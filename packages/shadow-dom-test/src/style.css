@@ -1,0 +1,40 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+ul {
+  padding: 0;
+  margin: 0;
+}
+
+[contenteditable]:focus {
+  outline: none;
+  border: none;
+}
+
+[contenteditable] {
+  font-size: 16px;
+  line-height: 26px;
+  white-space: pre-wrap;
+}
+
+[data-type='template']:empty::before {
+  content: attr(data-placeholder);
+  display: inline;
+  color: rgba(20, 118, 255, 0.5);
+}
+
+[data-type='block'] {
+  color: #1476ff;
+  margin: 0 4px;
+  padding: 2px 8px;
+  background-color: rgba(20, 118, 255, 0.1);
+  border-radius: 6px;
+  box-decoration-break: clone;
+}

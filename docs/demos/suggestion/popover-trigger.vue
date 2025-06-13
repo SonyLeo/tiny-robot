@@ -34,6 +34,10 @@ const handleClose = () => {
   show.value = false
 }
 
+const handleClickOutside = (ev: MouseEvent) => {
+  console.log('click-outside', ev)
+}
+
 const data = [
   { id: 'b1', text: '什么是弹性云服务器?' },
   { id: 'b2', text: '如何登录到Windows云服务器?' },
