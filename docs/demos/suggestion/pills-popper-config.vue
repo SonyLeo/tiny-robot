@@ -12,16 +12,19 @@
     <label>手动控制显示更多：</label>
     <tiny-switch v-model="showAll" ref="showAllRef"></tiny-switch>
   </div>
+  <hr />
+  <button ref="addButtonRef" @click="handleClickAddButton">增加按钮</button>
 </template>
 
 <script setup lang="ts">
-import { SuggestionPillItem, TrSuggestionPills } from '@opentiny/tiny-robot'
+import { SuggestionPillItem, SuggestionPillMenuAction, TrSuggestionPills } from '@opentiny/tiny-robot'
 import { IconEdit, IconSparkles } from '@opentiny/tiny-robot-svgs'
 import { TinySwitch } from '@opentiny/vue'
 import { h, markRaw, ref } from 'vue'
 
 const showAll = ref(false)
 const showAllRef = ref<InstanceType<typeof TinySwitch>>()
+const addButtonRef = ref<HTMLButtonElement | null>(null)
 
 const dropdownMenuItems = ref([
   { id: '1', text: '去续费' },
@@ -40,38 +43,38 @@ const items = ref<SuggestionPillItem[]>([
       props: {
         data: [],
         loading: true,
+        onItemClick: (item) => {
+          console.log(item)
+        },
       },
       slots: {
         loading: () => h('span', {}, '加载中...'),
-      },
-      events: {
-        itemClick: (item) => {
-          console.log(item)
-        },
       },
     },
   },
   ...Array.from({ length: 8 })
     .fill(0)
-    .map(
-      (_, index) =>
-        ({
-          id: String(index),
-          text: '费用成本',
-          icon: markRaw(IconEdit),
-          action: {
-            type: 'menu',
-            props: {
-              items: dropdownMenuItems.value,
-            },
-            events: {
-              itemClick: (item) => {
-                console.log(item)
-              },
-            },
+    .map((_, index) => ({
+      id: String(index + 2),
+      text: '费用成本',
+      icon: markRaw(IconEdit),
+      action: {
+        type: 'menu',
+        props: {
+          items: dropdownMenuItems.value,
+          trigger: 'manual',
+          show: false,
+          onItemClick: (item) => {
+            console.log(item)
+            closeAllPopper()
           },
-        }) as const,
-    ),
+          onClickOutside: () => {
+            console.log('onClickOutside')
+            closeAllPopper()
+          },
+        },
+      } as SuggestionPillMenuAction,
+    })),
 ])
 
 const data = [
@@ -86,6 +89,14 @@ const data = [
   { id: 'b9', text: '云服务器安全组如何配置?' },
   { id: 'b0', text: '如何查看云服务器密码?' },
 ]
+
+const closeAllPopper = () => {
+  items.value.forEach((i) => {
+    if (i.action?.props) {
+      i.action.props.show = false
+    }
+  })
+}
 
 const delaySetData = () => {
   setTimeout(() => {
@@ -102,13 +113,53 @@ const handleItemClick = (item: SuggestionPillItem) => {
   if (item.id === items.value[0].id) {
     delaySetData()
   }
+
+  if (item.action?.type === 'menu') {
+    items.value.forEach((i) => {
+      if (i.action?.type === 'menu') {
+        if (i.id === item.id) {
+          i.action.props.show = !i.action.props.show
+        } else {
+          i.action.props.show = false
+        }
+      }
+    })
+  }
 }
 
 const handleClickOutside = (event: MouseEvent) => {
-  if (showAllRef.value?.$el.contains(event.target as Node)) {
+  if (event.composedPath().includes(showAllRef.value?.$el)) {
+    return
+  }
+  if (addButtonRef.value && event.composedPath().includes(addButtonRef.value)) {
     return
   }
   showAll.value = false
+  closeAllPopper()
+}
+
+const handleClickAddButton = () => {
+  items.value.push({
+    id: String(items.value.length + 2),
+    text: '费用成本',
+    icon: markRaw(IconEdit),
+    action: {
+      type: 'menu',
+      props: {
+        items: dropdownMenuItems.value,
+        trigger: 'manual',
+        show: false,
+        onItemClick: (item) => {
+          console.log(item)
+          closeAllPopper()
+        },
+        onClickOutside: () => {
+          console.log('onClickOutside')
+          closeAllPopper()
+        },
+      },
+    } as SuggestionPillMenuAction,
+  })
 }
 </script>
 
