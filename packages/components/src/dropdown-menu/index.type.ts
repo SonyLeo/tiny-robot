@@ -5,6 +5,14 @@ export interface DropdownMenuItem {
 
 export interface DropdownMenuProps {
   items: DropdownMenuItem[]
+  /**
+   * 是否显示菜单，仅在 trigger 为 'manual' 时有效
+   */
+  show?: boolean
+  /**
+   * 触发方式。默认值为 'click'
+   */
+  trigger?: 'click' | 'manual'
   // 下面是样式相关的属性
   minWidth?: string | number
   topOffset?: string | number
@@ -16,8 +24,21 @@ export interface DropdownMenuSlots {
 
 export interface DropdownMenuEmits {
   (e: 'item-click', item: DropdownMenuItem): void
+  (e: 'click-outside', event: MouseEvent): void
+}
+
+export interface DropdownMenuEventProps {
+  onItemClick?: (item: DropdownMenuItem) => void
+  onClickOutside?: (event: MouseEvent) => void
 }
 
 export interface DropdownMenuEvents {
+  /**
+   * @deprecated
+   */
   itemClick?: (item: DropdownMenuItem) => void
+  /**
+   * @deprecated
+   */
+  clickOutside?: (event: MouseEvent) => void
 }

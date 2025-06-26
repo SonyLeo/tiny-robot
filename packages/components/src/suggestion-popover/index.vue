@@ -1,5 +1,12 @@
 <script setup lang="ts">
-import { onClickOutside, useElementBounding, useElementSize, useMediaQuery, useScroll } from '@vueuse/core'
+import {
+  onClickOutside,
+  useElementBounding,
+  useElementSize,
+  useMediaQuery,
+  useScroll,
+  watchThrottled,
+} from '@vueuse/core'
 import { computed, CSSProperties, ref, StyleValue, useAttrs, watch } from 'vue'
 import FlowLayoutButtons from '../flow-layout-buttons'
 import { toCssUnit } from '../shared/utils'
@@ -86,7 +93,16 @@ const { x, y, update } = useElementBounding(popoverTriggerRef)
 const isMobile = useMediaQuery('(max-width: 767px)')
 
 const listRef = ref<HTMLElement | null>(null)
-const { isScrolling } = useScroll(listRef, { throttle: 100 })
+const isScrolling = ref(false)
+// useScroll 设置 throttle 参数在 shadow dom 中会报错，所以使用 watchThrottled 代替
+const { isScrolling: listScrolling } = useScroll(listRef)
+watchThrottled(
+  listScrolling,
+  (value) => {
+    isScrolling.value = value
+  },
+  { throttle: 100, leading: true, trailing: true },
+)
 
 const listItemsRef = ref<(HTMLElement | null)[]>([])
 const firstItemRef = computed(() => listItemsRef.value.at(0))
@@ -131,16 +147,25 @@ const popoverStyles = computed<CSSProperties>(() => {
   }
 })
 
-if (props.trigger === 'click') {
-  onClickOutside(popoverRef, (ev) => {
-    // 如果在外部点到了 trigger，则停止冒泡，防止 triger 被点击然后触发菜单再次开启
-    if (popoverTriggerRef.value?.contains(ev.target as Node)) {
-      ev.stopPropagation()
+const emitClickTriggerEvents = () => {
+  if (props.trigger === 'click') {
+    if (show.value) {
+      emit('open')
+    } else {
+      emit('close')
     }
-    show.value = false
-    emit('close')
-  })
+  }
 }
+
+onClickOutside(
+  popoverRef,
+  (ev) => {
+    emit('click-outside', ev as MouseEvent)
+    show.value = false
+    emitClickTriggerEvents()
+  },
+  { ignore: [popoverTriggerRef] },
+)
 
 watch(show, (value) => {
   if (value) {
@@ -150,9 +175,7 @@ watch(show, (value) => {
 
 const handleToggleShow = () => {
   show.value = !show.value
-  if (show.value) {
-    emit('open')
-  }
+  emitClickTriggerEvents()
 }
 
 const handleClose = () => {
@@ -163,9 +186,7 @@ const handleClose = () => {
 const handleItemClick = (item: SuggestionItem) => {
   emit('item-click', item)
   show.value = false
-  if (props.trigger === 'click') {
-    emit('close')
-  }
+  emitClickTriggerEvents()
 }
 
 const handleGroupClick = (id: string) => {
@@ -196,7 +217,7 @@ const handleItemMouseleave = (event: MouseEvent) => {
     :class="attrs.class"
     :style="attrsStyle"
     ref="popoverTriggerRef"
-    @click="handleToggleShow"
+    @pointerup="handleToggleShow"
   >
     <slot />
   </div>
@@ -264,6 +285,7 @@ const handleItemMouseleave = (event: MouseEvent) => {
   position: fixed;
   z-index: var(--tr-z-index-popover);
   height: v-bind('toCssUnit(props.popoverHeight)');
+  max-height: 100dvh;
   padding: 20px;
   padding-bottom: 16px;
   border-radius: 24px;
