@@ -1,3 +1,5 @@
+import { VNode } from 'vue'
+
 export interface DropdownMenuItem {
   id: string
   text: string
@@ -15,11 +17,10 @@ export interface DropdownMenuProps {
   trigger?: 'click' | 'manual'
   // 下面是样式相关的属性
   minWidth?: string | number
-  topOffset?: string | number
 }
 
 export interface DropdownMenuSlots {
-  default?: () => unknown
+  trigger?: () => VNode | VNode[]
 }
 
 export interface DropdownMenuEmits {
