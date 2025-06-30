@@ -1,17 +1,14 @@
 <script setup lang="ts">
-import { onClickOutside, useElementBounding } from '@vueuse/core'
-import { computed, CSSProperties, ref, StyleValue, useAttrs, watch } from 'vue'
-import { toCssUnit } from '../shared/utils'
-import { DropdownMenuEmits, DropdownMenuItem, DropdownMenuProps, DropdownMenuSlots } from './index.type'
+import { onClickOutside, unrefElement, useElementHover } from '@vueuse/core'
+import { computed, ref, watch } from 'vue'
+import TrBasePopper from '../base-popper'
+import { DropdownMenuEmits, DropdownMenuItem, DropdownMenuProps } from './index.type'
 
 const props = withDefaults(defineProps<DropdownMenuProps>(), {
   trigger: 'click',
-  topOffset: 0,
-  minWidth: 160,
 })
 
-const attrs = useAttrs()
-const attrsStyle = computed(() => attrs.style as StyleValue)
+const emit = defineEmits<DropdownMenuEmits>()
 
 const showRef = ref(false)
 
@@ -31,40 +28,39 @@ const show = computed({
   },
 })
 
-defineSlots<DropdownMenuSlots>()
+const basePopperRef = ref<InstanceType<typeof TrBasePopper> | null>(null)
+const triggerRef = computed(() => basePopperRef.value?.triggerRef)
+const dropdownMenuRef = computed(() => basePopperRef.value?.popperRef)
 
-const emit = defineEmits<DropdownMenuEmits>()
+if (props.trigger === 'click' || props.trigger === 'manual') {
+  onClickOutside(
+    dropdownMenuRef,
+    (ev) => {
+      emit('click-outside', ev as MouseEvent)
+      show.value = false
+    },
+    { ignore: [triggerRef] },
+  )
+} else if (props.trigger === 'hover') {
+  // TODO 使用 @floating-ui/dom 提供的 safePolygon() 工具。实现鼠标从触发元素（trigger）移动到弹出框时，即使中间有空隙，也不会马上关闭
+  const isTriggerHovered = useElementHover(
+    computed(() => unrefElement(triggerRef.value)),
+    { delayEnter: 100, delayLeave: 300 },
+  )
+  const isDropdownMenuHovered = useElementHover(dropdownMenuRef, { delayEnter: 100, delayLeave: 300 })
 
-const dropDownTriggerRef = ref<HTMLDivElement | null>(null)
-const dropdownMenuRef = ref<HTMLDivElement | null>(null)
+  watch(
+    () => [isTriggerHovered.value, isDropdownMenuHovered.value],
+    ([isTriggerHovered, isDropdownMenuHovered]) => {
+      show.value = isTriggerHovered || isDropdownMenuHovered
+    },
+  )
+}
 
-const { x, y, update } = useElementBounding(dropDownTriggerRef)
-const { width: menuWidth, height: menuHeight } = useElementBounding(dropdownMenuRef)
-
-const dropdownStyles = computed<CSSProperties>(() => {
-  return {
-    left: `min(${toCssUnit(x.value)}, 100% - ${toCssUnit(menuWidth.value)})`,
-    top: `max(${toCssUnit(y.value)} - ${toCssUnit(menuHeight.value)} + ${toCssUnit(props.topOffset)} - 8px, 0px)`,
+const handleTriggerClick = () => {
+  if (props.trigger === 'click') {
+    show.value = !show.value
   }
-})
-
-onClickOutside(
-  dropdownMenuRef,
-  (ev) => {
-    emit('click-outside', ev as MouseEvent)
-    show.value = false
-  },
-  { ignore: [dropDownTriggerRef] },
-)
-
-watch(show, (value) => {
-  if (value) {
-    update()
-  }
-})
-
-const handleToggleShow = () => {
-  show.value = !show.value
 }
 
 const handleItemClick = (item: DropdownMenuItem) => {
@@ -74,18 +70,20 @@ const handleItemClick = (item: DropdownMenuItem) => {
 </script>
 
 <template>
-  <div
-    class="tr-dropdown-menu__wrapper"
-    :class="attrs.class"
-    :style="attrsStyle"
-    ref="dropDownTriggerRef"
-    @pointerup="handleToggleShow"
+  <TrBasePopper
+    :show="show"
+    class="tr-dropdown-menu"
+    ref="basePopperRef"
+    placement="top-left"
+    :offset="8"
+    :transition-props="{ name: 'tr-dropdown-menu' }"
+    :prevent-overflow="true"
+    :trigger-events="{ onClick: handleTriggerClick }"
   >
-    <slot />
-  </div>
-
-  <Transition name="tr-dropdown-menu">
-    <div v-if="show" class="tr-dropdown-menu" :style="dropdownStyles" ref="dropdownMenuRef">
+    <template #trigger>
+      <slot name="trigger" />
+    </template>
+    <template #content>
       <ul class="tr-dropdown-menu__list">
         <li
           class="tr-dropdown-menu__list-item"
@@ -96,30 +94,33 @@ const handleItemClick = (item: DropdownMenuItem) => {
           {{ item.text }}
         </li>
       </ul>
-    </div>
-  </Transition>
+    </template>
+  </TrBasePopper>
 </template>
 
-<style lang="less" scoped>
-.tr-dropdown-menu__wrapper {
-  display: inline-block;
+<style lang="less">
+:root {
+  --tr-dropdown-menu-bg-color: #ffffff;
+  --tr-dropdown-menu-box-shadow: 0 0 20px rgba(0, 0, 0, 0.08);
+  --tr-dropdown-menu-min-width: 130px;
+  --tr-dropdown-menu-item-color: rgb(25, 25, 25);
+  --tr-dropdown-menu-item-hover-bg-color: #f5f5f5;
 }
 
 .tr-dropdown-menu {
-  position: fixed;
-  min-width: v-bind('toCssUnit(props.minWidth)');
   z-index: var(--tr-z-index-dropdown);
+  min-width: var(--tr-dropdown-menu-min-width);
   padding: 8px;
   border-radius: 12px;
-  color: rgb(25, 25, 25);
-  background-color: #ffffff;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.08);
+  background-color: var(--tr-dropdown-menu-bg-color);
+  box-shadow: var(--tr-dropdown-menu-box-shadow);
 
   &-enter-active,
   &-leave-active {
     transition-property: opacity;
     transition-duration: 0.3s;
     transition-timing-function: ease;
+    pointer-events: none;
   }
 
   &-enter-from,
@@ -131,25 +132,28 @@ const handleItemClick = (item: DropdownMenuItem) => {
   &-leave-from {
     opacity: 1;
   }
+}
+</style>
 
-  .tr-dropdown-menu__list {
-    flex: 1;
-    list-style: none;
-    scrollbar-width: thin;
-    scrollbar-color: #dbdbdb transparent;
+<style lang="less" scoped>
+.tr-dropdown-menu__list {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  scrollbar-width: thin;
+  scrollbar-color: #dbdbdb transparent;
 
-    .tr-dropdown-menu__list-item {
-      font-size: 14px;
-      line-height: 24px;
-      padding: 4px 8px;
-      cursor: pointer;
-      border-radius: 4px;
-      transition: background-color 0.3s ease;
-      font-weight: 600;
+  .tr-dropdown-menu__list-item {
+    color: var(--tr-dropdown-menu-item-color);
+    font-size: 14px;
+    line-height: 24px;
+    padding: 4px 8px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
 
-      &:hover {
-        background-color: rgba(0, 0, 0, 0.08);
-      }
+    &:hover {
+      background-color: var(--tr-dropdown-menu-item-hover-bg-color);
     }
   }
 }

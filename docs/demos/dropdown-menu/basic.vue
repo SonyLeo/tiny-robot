@@ -1,6 +1,8 @@
 <template>
   <TrDropdownMenu :items="dropdownMenuItems" @item-click="(item) => console.log(item)">
-    <TrSuggestionPillButton> 点我打开Dropdown Menu </TrSuggestionPillButton>
+    <template #trigger>
+      <TrSuggestionPillButton> 点我打开Dropdown Menu </TrSuggestionPillButton>
+    </template>
   </TrDropdownMenu>
   <hr />
   <TrDropdownMenu
@@ -10,8 +12,23 @@
     @item-click="(item) => console.log(item)"
     @click-outside="handleClickOutside"
   >
-    <TrSuggestionPillButton @click="show = !show"> Trigger 为 manual </TrSuggestionPillButton>
+    <template #trigger>
+      <TrSuggestionPillButton @click="show = !show"> Trigger 为 manual </TrSuggestionPillButton>
+    </template>
   </TrDropdownMenu>
+  <hr />
+  <div style="display: flex; gap: 10px">
+    <TrDropdownMenu :items="dropdownMenuItems" trigger="hover" @item-click="(item) => console.log(item)">
+      <template #trigger>
+        <TrSuggestionPillButton> Trigger 为 hover </TrSuggestionPillButton>
+      </template>
+    </TrDropdownMenu>
+    <TrDropdownMenu :items="dropdownMenuItems" trigger="hover" @item-click="(item) => console.log(item)">
+      <template #trigger>
+        <TrSuggestionPillButton> Trigger 为 hover </TrSuggestionPillButton>
+      </template>
+    </TrDropdownMenu>
+  </div>
 </template>
 
 <script setup lang="ts">
