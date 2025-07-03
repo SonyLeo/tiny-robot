@@ -1,7 +1,7 @@
 
 # 版本更新日志
 
-## 0.2.10 (25.6.28)
+## 0.2.11 (25.6.28)
 
 > [!IMPORTANT]
 > **Breaking Change**: DropdownMenu 下拉菜单组件
