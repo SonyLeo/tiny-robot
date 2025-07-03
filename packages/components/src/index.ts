@@ -15,7 +15,6 @@ import Welcome from './welcome'
 import Suggestion from './suggestion'
 import SuggestionPopover from './suggestion-popover'
 import SuggestionPills, { SuggestionPillButton } from './suggestion-pills'
-import { useSelection } from './shared/useSelection'
 
 export * from './bubble/index.type'
 export * from './container/index.type'
@@ -95,5 +94,4 @@ export {
   Question as TrQuestion,
   SuggestionPopover,
   SuggestionPopover as TrSuggestionPopover,
-  useSelection,
 }
