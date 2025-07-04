@@ -1,7 +1,20 @@
 
 # 版本更新日志
 
-## 0.2.10 (25.6.28)
+## 0.2.13 (25.7.3)
+
+1.【特性】【DropdownMenu 下拉菜单】新增 `appendTo` prop，设置菜单挂载的目标容器
+
+## 0.2.12 (25.7.3)
+
+> [!IMPORTANT]
+> **Breaking Change**: Sender 消息输入框模板编辑功能重新设计，相关用法请查看最新稳定
+
+1.【优化】【Sender 组件】模板编辑重新设计，优化使用体验  
+2.【优化】【SuggestionPills 建议按钮组】`autoScrollOnHover` 属性现在已经在任意 `overflowMode` 下都支持  
+3.【优化】【DropdownMenu 下拉菜单】增加控制菜单项的字重的 CSS 变量 `--tr-dropdown-menu-item-font-weight`
+
+## 0.2.11 (25.6.28)
 
 > [!IMPORTANT]
 > **Breaking Change**: DropdownMenu 下拉菜单组件

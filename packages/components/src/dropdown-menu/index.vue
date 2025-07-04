@@ -75,6 +75,7 @@ const handleItemClick = (item: DropdownMenuItem) => {
     class="tr-dropdown-menu"
     ref="basePopperRef"
     placement="top-left"
+    :append-to="props.appendTo"
     :offset="8"
     :transition-props="{ name: 'tr-dropdown-menu' }"
     :prevent-overflow="true"
@@ -105,6 +106,7 @@ const handleItemClick = (item: DropdownMenuItem) => {
   --tr-dropdown-menu-min-width: 130px;
   --tr-dropdown-menu-item-color: rgb(25, 25, 25);
   --tr-dropdown-menu-item-hover-bg-color: #f5f5f5;
+  --tr-dropdown-menu-item-font-weight: normal;
 }
 
 .tr-dropdown-menu {
@@ -147,6 +149,7 @@ const handleItemClick = (item: DropdownMenuItem) => {
     color: var(--tr-dropdown-menu-item-color);
     font-size: 14px;
     line-height: 24px;
+    font-weight: var(--tr-dropdown-menu-item-font-weight);
     padding: 4px 8px;
     cursor: pointer;
     border-radius: 4px;
