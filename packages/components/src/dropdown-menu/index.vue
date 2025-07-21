@@ -64,6 +64,12 @@ const handleItemClick = (item: DropdownMenuItem) => {
   show.value = false
   emit('item-click', item)
 }
+
+defineExpose({
+  update: () => {
+    basePopperRef.value?.update()
+  },
+})
 </script>
 
 <template>
