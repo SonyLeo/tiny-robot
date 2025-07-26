@@ -13,13 +13,17 @@ const { y } = useScroll(scrollContainerRef, {
 })
 const lastBubble = computed(() => props.items.at(-1))
 
-watch([() => props.items.length, () => lastBubble.value?.content], () => {
-  if (!props.autoScroll || !scrollContainerRef.value) {
-    return
-  }
+watch(
+  [() => props.items.length, () => lastBubble.value?.content],
+  () => {
+    if (!props.autoScroll || !scrollContainerRef.value) {
+      return
+    }
 
-  y.value = scrollContainerRef.value.scrollHeight
-})
+    y.value = scrollContainerRef.value.scrollHeight
+  },
+  { deep: true },
+)
 
 const getItemProps = (item: BubbleProps & { slots?: BubbleSlots }): BubbleProps => {
   const defaultConfig = item.role ? props.roles?.[item.role] || {} : {}
@@ -32,13 +36,30 @@ const getItemSlots = (item: BubbleProps & { slots?: BubbleSlots }): BubbleSlots 
   const defaultConfig = item.role ? props.roles?.[item.role] || {} : {}
   return { ...defaultConfig.slots, ...item.slots }
 }
+
+const loadingBubble = computed(() => {
+  if (!(props.loading && props.loadingRole && props.roles?.[props.loadingRole])) {
+    return null
+  }
+
+  const { slots, ...rest } = props.roles[props.loadingRole]
+
+  return { props: { ...rest, loading: true }, slots }
+})
 </script>
 
 <template>
   <div class="tr-bubble-list" ref="scrollContainerRef">
-    <Bubble v-for="(item, index) in props.items" :key="item.id || index" v-bind="getItemProps(item)">
-      <template v-for="(_, slotName) in getItemSlots(item)" #[slotName]="slotProps" :key="slotName">
-        <component :is="getItemSlots(item)[slotName]" v-bind="slotProps" />
+    <template v-for="(item, index) in props.items" :key="item.id || index">
+      <Bubble v-if="!item.hidden" v-bind="getItemProps(item)">
+        <template v-for="(slot, slotName) in getItemSlots(item)" #[slotName]="slotProps" :key="slotName">
+          <component :is="slot" v-bind="slotProps" />
+        </template>
+      </Bubble>
+    </template>
+    <Bubble v-if="loadingBubble" v-bind="loadingBubble.props">
+      <template v-for="(slot, slotName) in loadingBubble.slots" #[slotName]="slotProps" :key="slotName">
+        <component :is="slot" v-bind="slotProps" />
       </template>
     </Bubble>
   </div>
