@@ -1,10 +1,5 @@
 <script setup lang="ts">
-import TinyTabs from '@opentiny/vue-tabs'
-import TinyTabItem from '@opentiny/vue-tab-item'
-import TinyInput from '@opentiny/vue-input'
-import TinySelect from '@opentiny/vue-select'
-import TinyOption from '@opentiny/vue-option'
-import { TinyModal } from '@opentiny/vue'
+import { TinyTabs, TinyTabItem, TinyInput, TinySelect, TinyOption, TinyModal } from '@opentiny/vue'
 import { ref, computed, watch } from 'vue'
 import { PluginCard, PluginModal, NoData } from './components'
 import { IconClose, IconSearch, IconPlus } from '@opentiny/tiny-robot-svgs'
