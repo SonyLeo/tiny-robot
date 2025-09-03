@@ -83,7 +83,7 @@ onUnmounted(() => {
 
     <!-- 类型 -->
     <div class="form-editor__item">
-      <label class="form-editor__label">类型</label>
+      <label class="form-editor__label custom-label">类型</label>
       <tiny-radio-group v-model="formData.type" :options="typeOptions" class="form-editor__radio-group" />
     </div>
 
@@ -105,7 +105,7 @@ onUnmounted(() => {
 
     <!-- 缩略图 -->
     <div class="form-editor__item">
-      <label class="form-editor__label">缩略图</label>
+      <label class="form-editor__label custom-label">缩略图</label>
       <div class="form-editor__file-upload" @click="handleOpenFileDialog">
         <img :src="previewImageUrl || defaultImageUrl" alt="缩略图预览" class="form-editor__file-preview-image" />
         <!-- 悬浮遮罩层 -->
@@ -127,8 +127,8 @@ onUnmounted(() => {
 
   &__item {
     display: flex;
-    flex-direction: column;
-    gap: 8px;
+    align-items: flex-start;
+    gap: 29px;
   }
 
   &__label {
@@ -136,9 +136,15 @@ onUnmounted(() => {
     font-weight: 500;
     color: #191919;
     line-height: 22px;
+    width: 56px;
+
+    &.custom-label {
+      width: 48px;
+    }
   }
 
   &__input {
+    width: 100%;
     padding: 8px 12px;
     border: 1px solid #d9d9d9;
     border-radius: 6px;
@@ -166,6 +172,7 @@ onUnmounted(() => {
   }
 
   &__textarea {
+    width: 100%;
     padding: 8px 12px;
     border: 1px solid #d9d9d9;
     border-radius: 6px;

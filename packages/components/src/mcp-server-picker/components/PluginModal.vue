@@ -65,11 +65,11 @@ const handleConfirm = () => {
           <tiny-radio-group v-model="addType" type="button" :options="addTypeOptions" />
         </div>
 
-        <div v-if="addType === 'form'" class="plugin-editor__form-editor">
+        <div v-if="addType === 'form'">
           <FormEditor v-model:form-data="formData" />
         </div>
 
-        <div v-if="addType === 'code'" class="plugin-editor__code-editor">
+        <div v-if="addType === 'code'">
           <CodeEditor v-model:code-data="codeData" />
         </div>
       </div>
@@ -99,8 +99,8 @@ const handleConfirm = () => {
   z-index: 9999;
   top: 50%;
   left: 50%;
+  width: 570px;
   transform: translate(-50%, -50%);
-  width: 700px;
   background-color: #ffffff;
   border-radius: 12px;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
@@ -164,23 +164,19 @@ const handleConfirm = () => {
 
   &__add-type {
     display: flex;
-    flex-direction: column;
-    gap: 8px;
+    align-self: center;
+    gap: 20px;
+    margin-bottom: 16px;
 
     &-label {
+      display: flex;
+      align-items: center;
+
       font-size: 14px;
       font-weight: 400;
       line-height: 22px;
       color: #191919;
     }
-  }
-
-  &__form-editor {
-    margin-top: 16px;
-  }
-
-  &__code-editor {
-    margin-top: 20px;
   }
 
   &__footer {
