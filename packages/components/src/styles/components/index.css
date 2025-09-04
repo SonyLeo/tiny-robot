@@ -1,3 +1,4 @@
+@import './container.less';
 @import './bubble.less';
 @import './bubble-list.less';
 @import './bubble-tool.less';

@@ -152,6 +152,7 @@
   --tr-page-bg-default: #191919;
 
   /* ===== 容器背景 ===== */
+  /* TODO 和容器组件命名冲突，后续统一改为--tr-bg-x */
   --tr-container-bg-default: #262626;
   --tr-container-bg-default-2: rgba(255, 255, 255, 0.05);
   --tr-container-bg-hover: rgba(255, 255, 255, 0.1);
