@@ -112,7 +112,7 @@ const installedPlugins = ref<PluginInfo[]>([
   },
 ])
 
-// 市场插件数据
+// 市场插件数据 - 演示三种不同的添加状态
 const marketPlugins = ref<PluginInfo[]>([
   {
     id: 'plugin-1',
@@ -120,7 +120,7 @@ const marketPlugins = ref<PluginInfo[]>([
     icon: 'https://ts3.tc.mm.bing.net/th/id/ODLS.2a97aa8b-50c6-4e00-af97-3b563dfa07f4',
     description: 'Jira 任务管理',
     enabled: true,
-    added: false,
+    addState: 'idle', // 未添加状态，显示"添加"按钮
     tools: [
       { id: 'tool-5', name: '创建任务', description: '创建 Jira 任务', enabled: false },
       { id: 'tool-6', name: '查询任务', description: '查询 Jira 任务', enabled: false },
@@ -132,7 +132,7 @@ const marketPlugins = ref<PluginInfo[]>([
     icon: 'https://www.notion.so/front-static/favicon.ico',
     description: 'Notion 文档管理和协作',
     enabled: false,
-    added: false,
+    addState: 'loading', // 添加中状态，显示"添加中"按钮
     tools: [
       { id: 'tool-7', name: '创建页面', description: '创建 Notion 页面', enabled: false },
       { id: 'tool-8', name: '查询数据库', description: '查询 Notion 数据库', enabled: false },
@@ -144,7 +144,7 @@ const marketPlugins = ref<PluginInfo[]>([
     icon: 'https://telegram.org/favicon.ico',
     description: 'Telegram 消息推送和自动化',
     enabled: false,
-    added: false,
+    addState: 'added', // 已添加状态，显示"已添加"按钮
     tools: [{ id: 'tool-9', name: '发送消息', description: '发送 Telegram 消息', enabled: false }],
     category: 'ai',
   },
@@ -170,32 +170,36 @@ const handlePluginToggle = (plugin: PluginInfo, enabled: boolean) => {
   plugin.enabled = enabled
 }
 
-const handlePluginAdd = (plugin: PluginInfo, added: boolean) => {
+const handlePluginAdd = (plugin: PluginInfo) => {
   const targetPlugin = marketPlugins.value.find((p) => p.id === plugin.id)!
-  targetPlugin.added = added
 
-  if (added) {
-    // 如果是添加操作，创建新的插件副本并添加到已安装列表
+  // 设置为加载状态
+  targetPlugin.addState = 'loading'
+
+  // 模拟异步添加过程
+  setTimeout(() => {
+    // 添加成功后设置为已添加状态
+    targetPlugin.addState = 'added'
+
     const newPlugin: PluginInfo = {
       ...plugin,
       id: `${plugin.id}-installed-${Date.now()}`, // 生成新的ID避免冲突
       enabled: false, // 新添加的插件默认不启用
-      added: true,
+      addState: 'added',
     }
     installedPlugins.value.push(newPlugin)
-  } else {
-    // 如果是取消添加操作，从已安装列表中移除
-    const index = installedPlugins.value.findIndex((p) => p.name === plugin.name)
-    if (index > -1) {
-      installedPlugins.value.splice(index, 1)
-    }
-  }
+  }, 2000) // 模拟2秒的网络延迟
 }
 
 const handlePluginDelete = (plugin: PluginInfo) => {
   const index = installedPlugins.value.findIndex((p) => p.id === plugin.id)
   if (index > -1) {
     installedPlugins.value.splice(index, 1)
+  }
+
+  const marketPlugin = marketPlugins.value.find((p) => p.name === plugin.name)
+  if (marketPlugin) {
+    marketPlugin.addState = 'idle'
   }
 }
 

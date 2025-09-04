@@ -2,7 +2,7 @@
 import { TinySwitch, TinyPopconfirm } from '@opentiny/vue'
 import { computed, ref } from 'vue'
 import { IconDelete, IconArrowRight, IconArrowDown } from '@opentiny/tiny-robot-svgs'
-import type { PluginCardEmits, PluginCardProps } from '../index.type'
+import type { PluginCardEmits, PluginCardProps, PluginInfo } from '../index.type'
 
 const props = withDefaults(defineProps<PluginCardProps>(), {
   mode: 'installed',
@@ -69,11 +69,11 @@ const handleDelete = () => {
 }
 
 // 市场插件添加状态
-const isAdded = computed(() => props.plugin.added || false)
+const addState = computed(() => props.plugin.addState || 'idle')
 
-const handleAdd = () => {
-  const newAddedState = !isAdded.value
-  emit('add-plugin', newAddedState)
+const handleAdd = (plugin: PluginInfo) => {
+  if (addState.value !== 'idle') return
+  emit('add-plugin', plugin)
 }
 
 const getHoverTitle = (isEnabled: boolean) => {
@@ -132,10 +132,15 @@ const getHoverTitle = (isEnabled: boolean) => {
               <slot name="add-button">
                 <div
                   class="plugin-card__add-button"
-                  :class="{ 'plugin-card__add-button--added': isAdded }"
-                  @click="handleAdd"
+                  :class="{
+                    'plugin-card__add-button--loading': addState === 'loading',
+                    'plugin-card__add-button--added': addState === 'added',
+                  }"
+                  @click="handleAdd(plugin)"
                 >
-                  <span>{{ isAdded ? '已添加' : '添加' }}</span>
+                  <span v-if="addState === 'idle'">添加</span>
+                  <span v-else-if="addState === 'loading'">添加中</span>
+                  <span v-else>已添加</span>
                 </div>
               </slot>
             </div>
@@ -314,8 +319,21 @@ const getHoverTitle = (isEnabled: boolean) => {
       cursor: pointer;
       box-sizing: border-box;
 
+      &--loading {
+        width: 78px;
+        background: #e6f4ff;
+        border-color: #1476ff;
+        color: #1476ff;
+        cursor: not-allowed;
+      }
+
       &--added {
         width: 78px;
+        color: #c2c2c2;
+        background-color: #f0f0f0;
+        border-color: #dbdbdb;
+        fill: #c2c2c2;
+        cursor: not-allowed;
       }
     }
   }

@@ -10,6 +10,40 @@ MCP Server Picker 组件是一个用于展示和管理插件的组件，支持�
 
 <demo vue="../../demos/mcp-server-picker/basic-usage.vue" />
 
+### 插件添加状态
+
+市场插件支持三种添加状态，提供更好的用户体验：
+
+- **idle**: 未添加状态，显示"添加"按钮，用户可以点击添加
+- **loading**: 添加中状态，显示"添加中"按钮，按钮不可点击，适用于网络请求等异步操作
+- **added**: 已添加状态，显示"已添加"按钮，按钮不可点击
+
+通过 `addState` 属性控制插件的添加状态，开发者可以在添加插件的异步过程中动态更新状态，提升用户体验。
+
+#### 状态控制示例
+
+```typescript
+const handlePluginAdd = (plugin: PluginInfo) => {
+  const targetPlugin = marketPlugins.value.find((p) => p.id === plugin.id)!
+  
+  // 设置为加载状态
+  targetPlugin.addState = 'loading'
+  
+  // 异步添加插件
+  addPluginToServer(plugin)
+    .then(() => {
+      // 添加成功
+      targetPlugin.addState = 'added'
+      // 添加到已安装列表
+      installedPlugins.value.push(newPlugin)
+    })
+    .catch(() => {
+      // 添加失败，重置为idle状态，用户可以重新尝试
+      targetPlugin.addState = 'idle'
+    })
+}
+```
+
 ## 弹出方式
 
 > MCP Server Picker 组件支持两种弹出方式， 即 `Fixed` 模式和 `Drawer` 模式，通过 `popupConfig` 配置对象统一管理
@@ -91,7 +125,7 @@ MCP Server Picker 组件是一个用于展示和管理插件的组件，支持�
 |--------|------|------|
 | `plugin-toggle` | `(plugin: PluginInfo, enabled: boolean)` | 插件启用/禁用 |
 | `plugin-delete` | `(plugin: PluginInfo)` | 删除插件 |
-| `plugin-add` | `(plugin: PluginInfo, added: boolean)` | 市场插件添加/取消添加 |
+| `plugin-add` | `(plugin: PluginInfo)` | 市场插件添加 |
 | `plugin-create` | `(type: 'form' \| 'code', data: PluginCreationData)` | 插件创建 |
 
 #### 工具操作
@@ -111,6 +145,8 @@ MCP Server Picker 组件是一个用于展示和管理插件的组件，支持�
 插件信息类型：
 
 ```typescript
+type PluginAddState = 'idle' | 'loading' | 'added'
+
 interface PluginInfo {
   id: string              // 插件唯一标识
   name: string            // 插件名称
@@ -119,7 +155,7 @@ interface PluginInfo {
   enabled: boolean       // 是否启用
   expanded?: boolean      // 是否展开
   tools: PluginTool[]    // 工具列表
-  added?: boolean         // 市场插件添加状态(可选)
+  addState?: PluginAddState // 市场插件添加状态(可选): 'idle' - 未添加, 'loading' - 添加中, 'added' - 已添加
   category?: string       // 插件分类(可选，用于市场分类筛选)
 }
 ```
