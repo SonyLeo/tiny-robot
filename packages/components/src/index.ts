@@ -18,6 +18,7 @@ import SuggestionPopover from './suggestion-popover'
 import ThemeProvider from './theme-provider'
 import Welcome from './welcome'
 import McpServerPicker from './mcp-server-picker'
+import McpToolManager from './mcp-tool-manager'
 
 export * from './attachments/index.type'
 export * from './bubble/index.type'
@@ -59,6 +60,7 @@ const components = [
   ThemeProvider,
   Welcome,
   McpServerPicker,
+  McpToolManager,
 ]
 
 export default {
@@ -113,4 +115,6 @@ export {
   Welcome as TrWelcome,
   McpServerPicker,
   McpServerPicker as TrMcpServerPicker,
+  McpToolManager,
+  McpToolManager as TrMcpToolManager,
 }
