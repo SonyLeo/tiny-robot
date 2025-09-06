@@ -276,7 +276,6 @@ const handleSearch = (query, tab) => {
 .demo-container {
   width: 100%;
   height: 380px;
-  border-radius: 8px;
   overflow: hidden;
 }
 </style>
