@@ -62,4 +62,10 @@ const codeData = defineModel<string>('codeData', { required: true })
     }
   }
 }
+
+@media (max-width: 768px) {
+  .code-editor__textarea {
+    height: 500px;
+  }
+}
 </style>

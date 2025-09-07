@@ -99,7 +99,8 @@ const handleConfirm = () => {
   z-index: 9999;
   top: 50%;
   left: 50%;
-  width: 570px;
+  max-width: 570px;
+  width: 100%;
   transform: translate(-50%, -50%);
   background-color: #ffffff;
   border-radius: 12px;
@@ -220,6 +221,22 @@ const handleConfirm = () => {
           border-color: #333333;
         }
       }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .plugin-editor {
+    width: 100%;
+
+    &__add-type {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    &__footer > .button {
+      flex: 1;
     }
   }
 }

@@ -167,8 +167,9 @@ onUnmounted(() => {
   }
 
   &__radio-group {
-    height: 22px;
     box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
   }
 
   &__textarea {
@@ -277,6 +278,22 @@ onUnmounted(() => {
     height: 100%;
     object-fit: cover;
     border-radius: 8px;
+  }
+
+  @media (max-width: 768px) {
+    &__container {
+      gap: 8px;
+    }
+
+    &__item {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .plugin-editor__footer > .button {
+      flex: 1;
+    }
   }
 }
 </style>
