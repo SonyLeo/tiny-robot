@@ -86,10 +86,6 @@ const handleUpdateAddType = (type: AddType) => {
 
   // 基础变量组
   @vars: {
-    /* 容器变量 */
-    bg-color: #ffffff;
-    border-radius: 12px;
-
     /* 内容区域变量 */
     content-padding: 20px 32px;
 
@@ -153,10 +149,6 @@ const handleUpdateAddType = (type: AddType) => {
 <style lang="less" scoped>
 // 第二层：组件映射层 (Component Mapping Layer)
 .mcp-add-form {
-  /* 容器变量 */
-  --bg-color: var(--tr-mcp-add-form-bg-color);
-  --border-radius: var(--tr-mcp-add-form-border-radius);
-
   /* 内容区域变量 */
   --content-padding: var(--tr-mcp-add-form-content-padding);
 
@@ -196,9 +188,6 @@ const handleUpdateAddType = (type: AddType) => {
 }
 
 .mcp-add-form {
-  width: 100%;
-  background-color: var(--bg-color);
-  border-radius: var(--border-radius);
   display: flex;
   flex-direction: column;
 
