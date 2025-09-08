@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { TinyRadioGroup } from '@opentiny/vue'
 import { FormEditor, CodeEditor } from './components'
-import { ref, defineEmits } from 'vue'
+import { ref } from 'vue'
 import type { McpAddFormData, AddType, McpAddFormEmits, McpAddFormProps } from './index.type'
 
-const props = defineProps<McpAddFormProps>()
+const props = withDefaults(defineProps<McpAddFormProps>(), {
+  addType: 'form',
+})
 
 const emit = defineEmits<McpAddFormEmits>()
 
@@ -20,7 +22,7 @@ const formData = ref<McpAddFormData>(
 )
 
 const codeData = ref<string>(props.codeData || '')
-const addType = ref<AddType>(props.addType || 'form')
+const addType = ref<AddType>(props.addType)
 
 const addTypeOptions = [
   { label: 'form', text: '表单添加' },
