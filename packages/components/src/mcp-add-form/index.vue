@@ -85,10 +85,8 @@ const handleUpdateAddType = (type: AddType) => {
   // 基础变量组
   @vars: {
     /* 容器变量 */
-    max-width: 570px;
     bg-color: #ffffff;
     border-radius: 12px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
 
     /* 内容区域变量 */
     content-padding: 20px 32px;
@@ -131,8 +129,9 @@ const handleUpdateAddType = (type: AddType) => {
   // 响应式变量组
   @mobile-vars: {
     add-type-gap-mobile: 8px;
-    content-padding-mobile: 16px 16px;
+    content-padding-mobile: 12px 16px 16px;
     footer-padding-mobile: 30px 16px 20px;
+    footer-gap-mobile: 16px;
   };
 
   :root {
@@ -153,10 +152,8 @@ const handleUpdateAddType = (type: AddType) => {
 // 第二层：组件映射层 (Component Mapping Layer)
 .mcp-add-form {
   /* 容器变量 */
-  --max-width: var(--tr-mcp-add-form-max-width);
   --bg-color: var(--tr-mcp-add-form-bg-color);
   --border-radius: var(--tr-mcp-add-form-border-radius);
-  --box-shadow: var(--tr-mcp-add-form-box-shadow);
 
   /* 内容区域变量 */
   --content-padding: var(--tr-mcp-add-form-content-padding);
@@ -197,11 +194,9 @@ const handleUpdateAddType = (type: AddType) => {
 }
 
 .mcp-add-form {
-  max-width: var(--max-width);
   width: 100%;
   background-color: var(--bg-color);
   border-radius: var(--border-radius);
-  box-shadow: var(--box-shadow);
   display: flex;
   flex-direction: column;
 
@@ -273,8 +268,6 @@ const handleUpdateAddType = (type: AddType) => {
 
 @media (max-width: 768px) {
   .mcp-add-form {
-    width: 100%;
-
     &__add-type {
       flex-direction: column;
       align-items: flex-start;
@@ -287,6 +280,8 @@ const handleUpdateAddType = (type: AddType) => {
 
     &__footer {
       padding: var(--tr-mcp-add-form-footer-padding-mobile);
+      justify-content: space-between;
+      gap: var(--tr-mcp-add-form-footer-gap-mobile);
     }
 
     &__footer > .button {
