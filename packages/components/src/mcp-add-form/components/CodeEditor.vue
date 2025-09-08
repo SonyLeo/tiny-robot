@@ -64,8 +64,12 @@ const codeData = defineModel<string>('codeData', { required: true })
 }
 
 @media (max-width: 768px) {
+  .code-editor__area {
+    margin-bottom: 58px;
+  }
+
   .code-editor__textarea {
-    height: 500px;
+    height: 470px;
   }
 }
 </style>

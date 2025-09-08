@@ -98,7 +98,7 @@ const handleUpdateAddType = (type: AddType) => {
     add-type-margin: 0 0 16px 0;
     add-type-label-font-size: 14px;
     add-type-label-font-weight: 400;
-    add-type-label-line-height: 22px;
+    add-type-label-line-height: 20px;
     add-type-label-color: #191919;
 
     /* 底部区域变量 */
@@ -131,6 +131,8 @@ const handleUpdateAddType = (type: AddType) => {
   // 响应式变量组
   @mobile-vars: {
     add-type-gap-mobile: 8px;
+    content-padding-mobile: 16px 16px;
+    footer-padding-mobile: 30px 16px 20px;
   };
 
   :root {
@@ -277,6 +279,14 @@ const handleUpdateAddType = (type: AddType) => {
       flex-direction: column;
       align-items: flex-start;
       gap: var(--tr-mcp-add-form-add-type-gap-mobile);
+    }
+
+    &__content {
+      padding: var(--tr-mcp-add-form-content-padding-mobile);
+    }
+
+    &__footer {
+      padding: var(--tr-mcp-add-form-footer-padding-mobile);
     }
 
     &__footer > .button {

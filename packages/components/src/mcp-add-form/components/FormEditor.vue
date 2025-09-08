@@ -135,7 +135,7 @@ onUnmounted(() => {
     font-size: 14px;
     font-weight: 500;
     color: #191919;
-    line-height: 22px;
+    line-height: 20px;
     width: 56px;
 
     &.custom-label {
@@ -281,10 +281,6 @@ onUnmounted(() => {
   }
 
   @media (max-width: 768px) {
-    &__container {
-      gap: 8px;
-    }
-
     &__item {
       flex-direction: column;
       align-items: flex-start;
