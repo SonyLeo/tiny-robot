@@ -65,9 +65,6 @@ McpAddForm 组件支持以下 CSS 变量来自定义样式：
 
 | 变量名                                             | 描述           |
 | -------------------------------------------------- | -------------- |
-| `--tr-mcp-add-form-max-width`                      | 容器最大宽度   |
-| `--tr-mcp-add-form-bg-color`                       | 容器背景色     |
-| `--tr-mcp-add-form-border-radius`                  | 容器圆角       |
 | `--tr-mcp-add-form-box-shadow`                     | 容器阴影       |
 | `--tr-mcp-add-form-content-padding`                | 内容区域内边距 |
 | `--tr-mcp-add-form-add-type-gap`                   | 添加类型区域间距 |
@@ -108,7 +105,6 @@ McpAddForm 组件支持以下 CSS 变量来自定义样式：
 ```css
 :root {
   --tr-mcp-add-form-max-width: 600px;
-  --tr-mcp-add-form-bg-color: #f5f5f5;
 }
 ```
 
