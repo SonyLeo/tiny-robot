@@ -170,6 +170,11 @@ onUnmounted(() => {
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
+    gap: 8px;
+
+    :deep(.tiny-radio__label) {
+      line-height: 20px;
+    }
   }
 
   &__textarea {

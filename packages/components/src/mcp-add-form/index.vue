@@ -277,6 +277,7 @@ const handleUpdateAddType = (type: AddType) => {
 
     &__footer > .button {
       flex: 1;
+      height: 40px;
     }
   }
 }
