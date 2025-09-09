@@ -227,3 +227,5 @@ interface PopupConfig {
   }
 }
 ```
+
+<!--@include: ./mcp-add-form.md-->
