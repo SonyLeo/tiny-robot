@@ -13,8 +13,8 @@ const formData = defineModel<McpAddFormData>('formData', { required: true })
 
 // 类型选项
 const typeOptions = [
-  { label: 'sse', text: '服务器发送事件（SSE）' },
   { label: 'streamableHttp', text: '流式HTTP（Streamable HTTP）' },
+  { label: 'sse', text: '服务器发送事件（SSE）' },
 ]
 
 const { open: openFileDialog, files } = useFileDialog({

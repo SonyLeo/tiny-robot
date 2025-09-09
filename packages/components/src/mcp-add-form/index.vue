@@ -14,7 +14,7 @@ const formData = ref<McpAddFormData>(
   props.formData || {
     name: '',
     description: '',
-    type: 'sse',
+    type: 'streamableHttp',
     url: '',
     headers: '',
     thumbnail: null,
