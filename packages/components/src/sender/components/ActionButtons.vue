@@ -179,7 +179,11 @@ const handleUpload = () => {
       <!-- 文件上传按钮 -->
       <template v-if="allowFiles && !loading">
         <tiny-tooltip effect="light" placement="top" :render-content="fileTooltipRenderFn" :visible-arrow="false">
-          <div class="action-buttons__button" @click="handleUpload">
+          <div
+            class="action-buttons__button"
+            @click="handleUpload"
+            @focus.capture="(event: FocusEvent) => event.stopPropagation()"
+          >
             <IconUpload :class="['action-buttons__icon', { 'is-disabled': fileDisabled }]" alt="上传文件" />
           </div>
         </tiny-tooltip>

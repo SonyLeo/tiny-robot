@@ -375,6 +375,7 @@ export interface ControlState {
 interface fileUploadConfig {
   accept?: string // 接受的文件类型
   multiple?: boolean // 是否支持多选文件
+  reset?: boolean // 是否重置文件选择
 }
 
 interface ButtonGroupConfig {
