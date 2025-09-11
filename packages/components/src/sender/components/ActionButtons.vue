@@ -178,7 +178,13 @@ const handleUpload = () => {
     >
       <!-- 文件上传按钮 -->
       <template v-if="allowFiles && !loading">
-        <tiny-tooltip effect="light" placement="top" :render-content="fileTooltipRenderFn" :visible-arrow="false">
+        <tiny-tooltip
+          effect="light"
+          placement="top"
+          :render-content="fileTooltipRenderFn"
+          :visible-arrow="false"
+          popper-class="tr-sender-actions-upload-button-popper"
+        >
           <div
             class="action-buttons__button"
             @click="handleUpload"
