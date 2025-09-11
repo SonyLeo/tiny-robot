@@ -148,7 +148,7 @@ Sender 组件支持输入联想功能，当用户输入时，可以根据提供�
 
 - **键盘交互**:
     - `↑`/`↓`: 在联想弹窗中导航。
-    - `Tab`/`Enter`: 确认当前高亮的联想项。
+    - `Tab`/`Enter`: 确认当前高亮的联想项（可通过 `activeSuggestionKeys` 属性自定义）。
     - `Esc`: 关闭联想弹窗。
 
 > **注意**: 输入框内的补全文本特性在匹配到联想项的前置字符时显示，否则不显示。
@@ -237,6 +237,9 @@ Sender 组件支持多种键盘快捷键操作，提高用户输入效率：
 | Esc         | 取消语音/关闭联想/建议    | 对应功能激活时                |
 | ↑ / ↓       | 导航联想项                | 联想弹窗开启时                 |
 
+**自定义选中按键**：可以通过 `activeSuggestionKeys` 属性自定义选中联想项的按键，默认值为 `['Enter', 'Tab']`。例如设置为 `['Tab']` 可仅使用 Tab 键选中联想项。  
+注意：请勿使用纯修饰键（如 `Control`/`Shift`/`Alt`/`Meta`）作为选中按键，否则会劫持常见快捷键（如 Ctrl+C/Ctrl+V/Ctrl+A）。
+
 您可以在实际开发中根据应用场景和用户需求选择最适合的快捷键方式。
 
 ### 布局与插槽
@@ -293,6 +296,7 @@ Sender 组件支持紧凑模式，适用于空间受限的场景。通过添加 
 | theme                | 主题样式                 | `'light' \| 'dark'`                                     | `'light'`         |
 | suggestions          | 输入建议列表             | `(string \| SuggestionItem)[]`                          | `[]`              |
 | suggestionPopupWidth | 输入建议弹窗宽度         | `'number' \| 'string'`                                                 | `400px`             |
+| activeSuggestionKeys | 激活建议项的按键         | `string[]`                                              | `['Enter', 'Tab']` |
 | templateData         | 模板数据，用于初始化或 v-model 更新 | `UserItem[]`                                            | `[]`              |
 
 
