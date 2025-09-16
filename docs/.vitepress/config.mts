@@ -37,7 +37,63 @@ export default defineConfig({
   },
   markdown: {
     config: (md) => {
-      md.use(vitepressDemoPlugin)
+      md.use(vitepressDemoPlugin, {
+        stackblitz: {
+          show: true,
+          templates: [
+            {
+              scope: 'global',
+              files: {
+                // 新增 index.css 文件
+                'src/index.css': `@import '@opentiny/tiny-robot/dist/style.css';
+body {
+  height: 80vh;
+  margin: 20px auto 0;
+  display: flex;
+  align-items: center;
+  background-color: #fafafa;
+}
+                `,
+                // 替换预设的 main.ts 文件
+                'src/main.ts': `import { createApp } from 'vue';
+import Demo from './Demo.vue';
+import './index.css';
+
+const app = createApp(Demo);
+app.mount('#app');
+                `,
+              },
+            },
+          ],
+        },
+        codesandbox: {
+          show: true,
+          templates: [
+            {
+              scope: 'global',
+              files: {
+                // 新增 index.css 文件
+                'src/index.css': `body {
+  height: 80vh;
+  margin: 20px auto 0;
+  display: flex;
+  align-items: center;
+  background-color: #fafafa;
+}
+                `,
+                // 替换预设的 main.ts 文件
+                'src/main.ts': `import { createApp } from 'vue';
+import Demo from './Demo.vue';
+import '@opentiny/tiny-robot/dist/style.css';
+
+const app = createApp(Demo);
+app.mount('#app');
+                `,
+              },
+            },
+          ],
+        },
+      })
     },
   },
   themeConfig: {
