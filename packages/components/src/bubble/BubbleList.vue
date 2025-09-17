@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useScroll } from '@vueuse/core'
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import Bubble from './Bubble.vue'
 import { BubbleListProps } from './index.type'
 
@@ -12,15 +12,44 @@ const { y } = useScroll(scrollContainerRef, {
   throttle: 100,
 })
 const lastBubble = computed(() => props.items.at(-1))
+const lastBubbleCustomContentLength = computed(() => {
+  if (!lastBubble.value) {
+    return 0
+  }
 
-watch(
-  [() => props.items.length, () => lastBubble.value?.content],
-  () => {
-    if (!props.autoScroll || !scrollContainerRef.value) {
-      return
+  const customContentField =
+    lastBubble.value.customContentField || props.roles?.[lastBubble.value.role || '']?.customContentField
+
+  if (!customContentField) {
+    return 0
+  }
+
+  const bubble = lastBubble.value as Record<string, unknown>
+
+  if (Array.isArray(bubble[customContentField])) {
+    const lastItem = bubble[customContentField].at(-1)
+    if (lastItem && typeof lastItem === 'object' && 'content' in lastItem) {
+      try {
+        return JSON.stringify(lastItem.content).length
+      } catch {}
     }
 
-    y.value = scrollContainerRef.value.scrollHeight
+    return bubble[customContentField].length
+  }
+
+  return 0
+})
+
+watch(
+  () => [props.autoScroll, props.items.length, lastBubble.value?.content, lastBubbleCustomContentLength.value] as const,
+  ([autoScroll]) => {
+    nextTick(() => {
+      if (!autoScroll || !scrollContainerRef.value) {
+        return
+      }
+
+      y.value = scrollContainerRef.value.scrollHeight
+    })
   },
   { deep: true },
 )
