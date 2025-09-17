@@ -10,7 +10,7 @@ export default defineConfig({
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),
       name: 'TinyRobotSvgs',
-      fileName: 'tiny-robot-svgs',
+      fileName: 'index.esm',
       formats: ['es'],
     },
     rollupOptions: {

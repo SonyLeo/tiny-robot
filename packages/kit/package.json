@@ -5,16 +5,16 @@
     "access": "public"
   },
   "description": "AI大模型请求与数据处理工具包",
-  "main": "dist/index.js",
-  "module": "dist/index.mjs",
+  "main": "dist/index.cjs",
+  "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
   "files": [
     "dist"
   ],
   "sideEffects": false,
   "scripts": {
-    "build": "tsup src/index.ts --format cjs,esm --dts --minify",
-    "dev": "tsup src/index.ts --format cjs,esm --dts --watch"
+    "build": "tsup",
+    "dev": "tsup --watch"
   },
   "author": "",
   "license": "MIT",

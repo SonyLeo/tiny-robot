@@ -39,7 +39,7 @@ export default defineConfig({
     lib: {
       entry: './src/index.ts',
       formats: ['es'],
-      fileName: () => 'index.js',
+      fileName: 'index.esm',
     },
     minify: true,
     rollupOptions: {
@@ -47,8 +47,8 @@ export default defineConfig({
       input: entries,
       output: {
         format: 'es',
-        entryFileNames: '[name].js',
-        chunkFileNames: '[name].js',
+        entryFileNames: '[name].esm.js',
+        chunkFileNames: '[name].esm.js',
         assetFileNames: (assetInfo) => {
           if (assetInfo.name === 'style.css') {
             return 'style.css'
