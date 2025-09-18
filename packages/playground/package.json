@@ -4,7 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "concurrently \"npm run dev:server\" \"vite\"",
+    "dev:client": "vite",
+    "dev:server": "cd server && npm install && npm run dev",
+    "setup": "node setup-demo.js",
     "build": "vue-tsc && vite build",
     "preview": "vite preview",
     "type-check": "vue-tsc --noEmit"
@@ -16,6 +19,7 @@
   "devDependencies": {
     "@types/node": "^22.13.17",
     "@vitejs/plugin-vue": "^4.5.2",
+    "concurrently": "^8.2.0",
     "less": "^4.2.0",
     "typescript": "^5.2.2",
     "vite": "^5.0.8",

@@ -138,7 +138,11 @@ import { TrWelcome, TrBubble } from '@opentiny/tiny-robot'
 }`,
 
     'index.css': `/* TinyRobot 样式导入 */
-@import url('https://unpkg.com/@opentiny/tiny-robot@0.3.0-rc.4/dist/style.css');`,
+@import url('https://unpkg.com/@opentiny/tiny-robot@0.3.0-rc.4/dist/style.css');
+
+/* TinyVue 样式导入 */
+@import url('https://registry.npmmirror.com/@opentiny/vue-theme/3.22/files/index.css');
+`,
 
     'import-map.json': `{
   "imports": {

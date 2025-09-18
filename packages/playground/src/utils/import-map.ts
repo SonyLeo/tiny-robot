@@ -17,6 +17,7 @@ export async function generateImportMap(options: ImportMapOptions) {
       '@vue/shared': `https://unpkg.com/@vue/shared@${vueVersionToUse}/index.js`,
       '@opentiny/tiny-robot': `https://unpkg.com/@opentiny/tiny-robot@${tinyRobotVersionToUse}/dist/index.js`,
       '@opentiny/tiny-robot-svgs': `https://unpkg.com/@opentiny/tiny-robot-svgs@${tinyRobotVersionToUse}/dist/tiny-robot-svgs.js`,
+      '@opentiny/tiny-robot-kit': `https://unpkg.com/@opentiny/tiny-robot-kit@${tinyRobotVersionToUse}/dist/index.js`,
       '@opentiny/vue': `https://registry.npmmirror.com/@opentiny/vue-runtime/3.22/files/dist3/tiny-vue-pc.mjs`,
       '@opentiny/vue-icon': `https://registry.npmmirror.com/@opentiny/vue-runtime/3.22/files/dist3/tiny-vue-icon.mjs`,
       '@opentiny/vue-locale': `https://registry.npmmirror.com/@opentiny/vue-runtime/3.22/files/dist3/tiny-vue-locale.mjs`,

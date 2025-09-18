@@ -1,12 +1,19 @@
 <template>
   <header class="playground-header">
     <div class="header-left">
-      <img class="playground-logo" src="/logo.svg" />
-      <div class="playground-title">TinyRobot Playground</div>
+      <div class="playground-info">
+        <img class="playground-logo" src="/logo.svg" />
+        <div class="playground-title">TinyRobot Playground</div>
+      </div>
+
+      <div class="mode-selector">
+        <button class="mode-btn" :class="{ active: mode === 'repl' }" @click="switchMode('repl')">代码编辑器</button>
+        <button class="mode-btn" :class="{ active: mode === 'demo' }" @click="switchMode('demo')">Demo 示例</button>
+      </div>
     </div>
 
-    <div class="header-center">
-      <div class="version-selectors">
+    <div class="header-right">
+      <div v-if="mode === 'repl'" class="version-selectors">
         <div class="version-selector">
           <label>TinyRobot:</label>
           <select v-model="tinyRobotVersion" @change="handleVersionChange('tinyRobot', $event)">
@@ -32,9 +39,7 @@
           </select>
         </div>
       </div>
-    </div>
 
-    <div class="header-right">
       <div class="action-buttons">
         <button
           class="action-btn"
@@ -107,7 +112,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, inject, type Ref } from 'vue'
 
 interface Props {
   tinyRobotVersions: string[]
@@ -116,17 +121,20 @@ interface Props {
   initialTinyRobotVersion?: string
   initialVueVersion?: string
   initialTypescriptVersion?: string
+  mode?: 'repl' | 'demo'
 }
 
 const props = withDefaults(defineProps<Props>(), {
   initialTinyRobotVersion: 'latest',
   initialVueVersion: 'latest',
   initialTypescriptVersion: 'latest',
+  mode: 'repl',
 })
 
 const emit = defineEmits<{
   'version-change': [type: string, version: string]
   'theme-toggle': []
+  'mode-change': [mode: 'repl' | 'demo']
   share: []
   reload: []
 }>()
@@ -134,7 +142,10 @@ const emit = defineEmits<{
 const tinyRobotVersion = ref(props.initialTinyRobotVersion)
 const vueVersion = ref(props.initialVueVersion)
 const typescriptVersion = ref(props.initialTypescriptVersion)
-const isDark = ref(false)
+const mode = ref<'repl' | 'demo'>(props.mode)
+
+// 从父组件接收主题状态
+const isDark = inject<Ref<boolean>>('isDark', ref(false))
 
 // Watch for prop changes
 watch(
@@ -159,15 +170,7 @@ watch(
 )
 
 const toggleTheme = () => {
-  isDark.value = !isDark.value
   emit('theme-toggle')
-
-  // Apply theme to document
-  if (isDark.value) {
-    document.documentElement.classList.add('dark')
-  } else {
-    document.documentElement.classList.remove('dark')
-  }
 }
 
 const sharePlayground = () => {
@@ -178,53 +181,39 @@ const reloadPlayground = () => {
   emit('reload')
 }
 
+const switchMode = (newMode: 'repl' | 'demo') => {
+  mode.value = newMode
+  emit('mode-change', newMode)
+}
+
 const handleVersionChange = (type: string, event: Event) => {
   const target = event.target as HTMLSelectElement
   if (target) {
     emit('version-change', type, target.value)
   }
 }
-
-// Initialize theme
-const initTheme = () => {
-  const savedTheme = localStorage.getItem('playground-theme')
-  if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-    isDark.value = true
-    document.documentElement.classList.add('dark')
-  }
-}
-
-initTheme()
-
-// Save theme preference
-watch(isDark, (newVal) => {
-  localStorage.setItem('playground-theme', newVal ? 'dark' : 'light')
-})
 </script>
 
 <style scoped lang="less">
 .playground-header {
-  // CSS 自定义属性定义
-  --header-height: 60px;
-  --header-padding: 20px;
+  // 使用统一的 CSS 变量系统
+  --header-height: var(--tr-header-height);
+  --header-padding: var(--tr-spacing-xl);
   --logo-size: 32px;
   --action-btn-size: 36px;
-  --border-radius: 6px;
-  --select-border-radius: 4px;
-  --transition-duration: 0.2s;
+  --border-radius: var(--tr-radius-lg);
+  --select-border-radius: var(--tr-radius-md);
+  --transition-duration: var(--tr-transition-normal);
 
-  // 亮色模式颜色变量
-  --primary-color: #655bf8;
-  --bg-color: #f8f9fa;
-  --border-color: #e1e4e8;
-  --text-color: #24292e;
-  --text-secondary: #586069;
-  --select-bg: #ffffff;
-  --select-border: #d1d5da;
-  --btn-bg-hover: #f3f4f6;
-
-  // 响应式断点
-  --mobile-breakpoint: 768px;
+  // 使用统一的颜色变量
+  --primary-color: var(--tr-color-primary);
+  --bg-color: var(--tr-bg-secondary);
+  --border-color: var(--tr-border-primary);
+  --text-color: var(--tr-text-primary);
+  --text-secondary: var(--tr-text-secondary);
+  --select-bg: var(--tr-bg-primary);
+  --select-border: var(--tr-border-primary);
+  --btn-bg-hover: var(--tr-bg-tertiary);
 
   height: var(--header-height);
   background: var(--bg-color);
@@ -239,25 +228,59 @@ watch(isDark, (newVal) => {
   .header-left {
     flex: 0 0 auto;
     display: flex;
-    align-items: center;
+    gap: 16px;
 
-    .playground-logo {
-      width: var(--logo-size);
-      height: var(--logo-size);
-      margin-right: 16px;
+    .playground-info {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      .playground-logo {
+        width: var(--logo-size);
+        height: var(--logo-size);
+      }
+
+      .playground-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--primary-color);
+      }
     }
 
-    .playground-title {
-      font-size: 18px;
-      font-weight: 600;
-      color: var(--primary-color);
+    .mode-selector {
+      display: flex;
+      background: var(--select-bg);
+      border: 1px solid var(--select-border);
+      border-radius: var(--border-radius);
+      padding: 2px;
+
+      .mode-btn {
+        padding: 6px 12px;
+        border: none;
+        background: transparent;
+        color: var(--text-secondary);
+        font-size: 12px;
+        cursor: pointer;
+        border-radius: calc(var(--border-radius) - 2px);
+        transition: all var(--transition-duration) ease;
+
+        &:hover {
+          color: var(--text-color);
+        }
+
+        &.active {
+          background: var(--primary-color);
+          color: white;
+        }
+      }
     }
   }
 
-  .header-center {
-    flex: 1;
+  .header-right {
+    flex: 0 0 auto;
     display: flex;
-    justify-content: center;
+    align-items: center;
+    gap: 10px;
 
     .version-selectors {
       display: flex;
@@ -293,15 +316,11 @@ watch(isDark, (newVal) => {
           &:focus {
             outline: none;
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 2px var(--primary-color, 20%);
+            box-shadow: 0 0 0 2px rgba(101, 91, 248, 0.2);
           }
         }
       }
     }
-  }
-
-  .header-right {
-    flex: 0 0 auto;
 
     .action-buttons {
       display: flex;
@@ -324,13 +343,11 @@ watch(isDark, (newVal) => {
 
         &:hover {
           background: var(--btn-bg-hover);
-          border-color: var(--primary-color);
           color: var(--primary-color);
         }
 
         &.active {
           background: var(--primary-color);
-          border-color: var(--primary-color);
           color: white;
         }
 
@@ -343,19 +360,6 @@ watch(isDark, (newVal) => {
   }
 }
 
-// Dark theme styles
-.dark .playground-header {
-  // 暗色模式颜色变量覆盖
-  --primary-color: #655bf8;
-  --bg-color: #0d1117;
-  --border-color: #21262d;
-  --text-color: #f0f6fc;
-  --text-secondary: #8b949e;
-  --select-bg: #21262d;
-  --select-border: #30363d;
-  --btn-bg-hover: #21262d;
-}
-
 // Responsive design
 @media (max-width: 768px) {
   .playground-header {
@@ -364,9 +368,7 @@ watch(isDark, (newVal) => {
     padding: 12px 16px;
     gap: 12px;
 
-    .header-center {
-      order: 2;
-
+    .header-right {
       .version-selectors {
         flex-wrap: wrap;
         gap: 12px;
@@ -376,11 +378,6 @@ watch(isDark, (newVal) => {
           min-width: 100px;
         }
       }
-    }
-
-    .header-right {
-      order: 1;
-      align-self: flex-end;
     }
   }
 }

@@ -7,24 +7,29 @@
       :initial-tiny-robot-version="tinyRobotVersion"
       :initial-vue-version="vueVersion"
       :initial-typescript-version="typescriptVersion"
+      :mode="currentMode"
       @version-change="handleVersionChange"
       @theme-toggle="handleThemeToggle"
+      @mode-change="handleModeChange"
       @share="handleShare"
       @reload="handleReload"
     />
     <div class="playground-content">
       <LoadingSpinner v-if="isLoading" text="Initializing TinyRobot Playground..." />
-      <Repl
-        v-else
-        ref="replRef"
-        :store="store"
-        :editor="Monaco"
-        :show-compile-output="false"
-        :show-import-map="true"
-        :clear-console="false"
-        :theme="isDark ? 'dark' : 'light'"
-        @keydown="handleKeydown"
-      />
+      <template v-else>
+        <Repl
+          v-if="currentMode === 'repl'"
+          ref="replRef"
+          :store="store"
+          :editor="Monaco"
+          :show-compile-output="false"
+          :show-import-map="true"
+          :clear-console="false"
+          :theme="isDark ? 'dark' : 'light'"
+          @keydown="handleKeydown"
+        />
+        <DemoPlayground v-else-if="currentMode === 'demo'" />
+      </template>
     </div>
   </div>
 </template>
@@ -34,7 +39,8 @@ import { ref, onMounted } from 'vue'
 import { Repl } from '@vue/repl'
 import { useStore } from '@vue/repl/core'
 import Monaco from '@vue/repl/monaco-editor'
-import { LoadingSpinner, PlaygroundHeader } from './components'
+import { LoadingSpinner, PlaygroundHeader, DemoPlayground } from './components'
+import { provide } from 'vue'
 import { getVersions, getSupportedTSVersions } from './utils/versions'
 import { generateImportMap } from './utils/import-map'
 import { getDefaultFiles } from './utils/default-files'
@@ -49,6 +55,7 @@ const vueVersion = ref('latest')
 const typescriptVersion = ref('latest')
 const isDark = ref(false)
 const isLoading = ref(true)
+const currentMode = ref<'repl' | 'demo'>('repl')
 
 // Repl store
 const store = useStore()
@@ -129,8 +136,22 @@ const initFromUrl = async () => {
   return false
 }
 
+// Initialize theme
+const initTheme = () => {
+  const savedTheme = localStorage.getItem('playground-theme')
+  if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    isDark.value = true
+    document.documentElement.classList.add('dark')
+  } else {
+    isDark.value = false
+    document.documentElement.classList.remove('dark')
+  }
+}
+
 // Initialize versions
 onMounted(async () => {
+  // Initialize theme first
+  initTheme()
   try {
     // Load available versions
     const [tinyRobotVers, vueVers, tsVers] = await Promise.all([
@@ -221,8 +242,6 @@ onMounted(async () => {
   }
 })
 
-// Update utils.js file to reflect current TinyRobot version
-
 // Update import map when versions change
 const updateImportMap = async () => {
   try {
@@ -257,7 +276,25 @@ const handleVersionChange = async (type: string, version: string) => {
 // Handle theme toggle
 const handleThemeToggle = () => {
   isDark.value = !isDark.value
+
+  // Apply theme to document
+  if (isDark.value) {
+    document.documentElement.classList.add('dark')
+  } else {
+    document.documentElement.classList.remove('dark')
+  }
+
+  // Save theme preference
+  localStorage.setItem('playground-theme', isDark.value ? 'dark' : 'light')
 }
+
+// Handle mode change
+const handleModeChange = (mode: 'repl' | 'demo') => {
+  currentMode.value = mode
+}
+
+// 为子组件提供主题状态
+provide('isDark', isDark)
 
 // Handle share functionality
 const handleShare = async () => {
@@ -350,32 +387,17 @@ const handleKeydown = (event: KeyboardEvent) => {
 @import '@vue/repl/style.css';
 
 .playground {
-  // CSS 自定义属性定义
-  --transition-duration: 0.2s;
-  --mobile-breakpoint: 768px;
-  --mobile-header-height: 120px;
-
-  // 亮色模式颜色变量
-  --bg-color: #ffffff;
-  --brand-color: #42b883;
-  --brand-color-variant: #369870;
-
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--bg-color);
-  transition: background-color var(--transition-duration) ease;
+  background: var(--tr-bg-primary);
+  transition: background-color var(--tr-transition-normal) ease;
 
   &.dark {
-    // 暗色模式颜色变量覆盖
-    --bg-color: #0d1117;
-    --brand-color: #58a6ff;
-    --brand-color-variant: #1f6feb;
-
     // Dark theme for repl
     .vue-repl {
-      --color-branding: var(--brand-color);
-      --color-branding-dark: var(--brand-color-variant);
+      --color-branding: var(--tr-color-primary);
+      --color-branding-dark: var(--tr-color-primary-hover);
     }
   }
 
@@ -388,7 +410,7 @@ const handleKeydown = (event: KeyboardEvent) => {
 // Responsive design
 @media (max-width: 768px) {
   .playground .playground-content {
-    height: calc(100vh - var(--mobile-header-height));
+    height: calc(100vh - var(--tr-header-height));
   }
 }
 </style>
