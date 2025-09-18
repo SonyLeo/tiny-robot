@@ -8,6 +8,8 @@
     "build": "pnpm build:components",
     "dev:docs": "pnpm build:components && pnpm -F docs dev",
     "build:docs": "pnpm build:components && pnpm -F docs build",
+    "dev:playground": "pnpm -F @opentiny/tiny-robot-playground dev",
+    "build:playground": "pnpm -F @opentiny/tiny-robot-playground build",
     "build:deps": "pnpm -F @opentiny/tiny-robot-* build",
     "dev:components": "pnpm build:deps && pnpm -F @opentiny/tiny-robot dev",
     "build:components": "pnpm build:deps && pnpm -F @opentiny/tiny-robot build",
