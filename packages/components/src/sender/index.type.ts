@@ -14,12 +14,21 @@ export type InputMode = 'single' | 'multiple'
 // 提交触发方式
 export type SubmitTrigger = 'enter' | 'ctrlEnter' | 'shiftEnter'
 
+// 自定义语音识别接口
+export interface CustomSpeechRecognition {
+  start(): Promise<void> | void
+  stop(): Promise<void> | void
+  abort?(): Promise<void> | void
+  isSupported(): boolean
+}
+
 // 语音识别配置
 export interface SpeechConfig {
   lang?: string // 识别语言，默认浏览器语言
   continuous?: boolean // 是否持续识别
   interimResults?: boolean // 是否返回中间结果
   autoReplace?: boolean // 是否自动替换当前输入内容
+  customRecognition?: CustomSpeechRecognition // 自定义语音识别实现
 }
 
 export type AutoSize = boolean | { minRows: number; maxRows: number }
