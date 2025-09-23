@@ -180,7 +180,7 @@ const handleUpload = () => {
       <template v-if="allowFiles && !loading">
         <tiny-tooltip
           effect="light"
-          placement="top"
+          placement="top-end"
           :render-content="fileTooltipRenderFn"
           :visible-arrow="false"
           popper-class="tr-sender-actions-upload-button-popper"
