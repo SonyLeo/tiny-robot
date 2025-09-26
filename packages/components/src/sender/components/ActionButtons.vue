@@ -29,6 +29,7 @@ const props = withDefaults(defineProps<ActionButtonsProps>(), {
    * 是否允许语音功能
    */
   allowSpeech: false,
+  speechConfig: undefined,
   speechStatus: () => ({
     isRecording: false,
     isSupported: false,
@@ -101,7 +102,13 @@ const submitTooltipRenderFn = computed(() => {
 /**
  * 是否启用语音功能
  */
-const speechEnabled = computed(() => props.allowSpeech)
+const speechEnabled = computed(() => {
+  if (!props.allowSpeech) return false
+  // 如果有自定义配置，语音按钮一直显示
+  if (props.speechConfig?.customRecognition) return true
+  // 否则检查浏览器支持
+  return props.speechStatus.isSupported
+})
 
 const isSpeechRecording = computed(() => props.speechStatus.isRecording)
 

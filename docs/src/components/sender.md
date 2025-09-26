@@ -103,6 +103,17 @@ Sender 组件支持在多行模式下灵活定制底部区域。通过 `footer-l
 
 <demo vue="../../demos/sender/voiceInput.vue" title="语音输入" description="可以使用 speech 属性进行配置" />
 
+#### 自定义语音输入
+
+支持接入外部语音识别服务，通过简单配置即可实现自定义语音识别。
+
+**特点：**
+- **简单配置**：只需提供 `onRecordingChange` 回调函数
+- **始终显示**：配置自定义语音识别后，语音按钮始终显示
+- **外部控制**：由外部语音识别服务控制识别过程
+
+<demo vue="../../demos/sender/CustomVoiceInput.vue" title="自定义语音输入" description="展示如何接入自定义语音识别服务" />
+
 #### 消息提示
 
 此功能适用于需要在输入框内显示提示信息并引导用户操作的场景，如：
@@ -383,6 +394,13 @@ interface SpeechConfig {
   continuous?: boolean // 是否持续识别
   interimResults?: boolean // 是否返回中间结果
   autoReplace?: boolean // 是否自动替换当前输入内容
+  // 自定义语音识别配置
+  customRecognition?: {
+    // 语音识别结果变化回调
+    onRecordingChange?: (transcript: string) => void
+    // 检查是否支持的函数，默认返回 true
+    isSupported?: () => boolean
+  }
 }
 ```
 

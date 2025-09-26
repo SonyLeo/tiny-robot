@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch, nextTick, useSlots } from 'vue'
+import { computed, ref, watch, nextTick, useSlots, onMounted } from 'vue'
 import { TinyInput } from '@opentiny/vue'
 import { useFileDialog } from '@vueuse/core'
 import type { SenderProps, SenderEmits, InputHandler, KeyboardHandler, UserItem } from './index.type'
@@ -304,37 +304,79 @@ watch(
   { deep: true },
 )
 
-// 语音识别
-const speechOptions = computed(() => {
-  const speechConfig = typeof props.speech === 'object' ? props.speech : {}
-  return {
-    ...speechConfig,
-    onStart: () => emit('speech-start'),
-    onEnd: (transcript?: string) => emit('speech-end', transcript),
-    onInterim: (transcript: string) => emit('speech-interim', transcript),
-    onFinal: (text: string) => {
-      // 根据 autoReplace 选项决定是追加还是替换文本
-      // 默认为追加模式（autoReplace = false）
-      if (speechConfig.autoReplace) {
-        // 替换模式：直接覆盖现有内容
-        inputValue.value = text
-      } else {
-        // 追加模式：将识别结果追加到现有内容
-        // 智能空格处理：如果当前内容末尾和识别结果开头都不是空格，自动添加空格
-        const currentText = inputValue.value
-        if (currentText && text && !currentText.endsWith(' ') && !text.startsWith(' ') && currentText.length > 0) {
-          inputValue.value = currentText + ' ' + text
-        } else {
-          inputValue.value = currentText + text
-        }
-      }
-      emit('speech-end', text)
-    },
-    onError: (err: Error) => {
-      emit('speech-error', err)
-    },
+// 处理自定义语音识别结果
+const handleCustomRecordingResult = (transcript: string) => {
+  // 直接设置文本内容
+  if (speechConfig.value.autoReplace) {
+    inputValue.value = transcript
+  } else {
+    const currentText = inputValue.value
+    if (
+      currentText &&
+      transcript &&
+      !currentText.endsWith(' ') &&
+      !transcript.startsWith(' ') &&
+      currentText.length > 0
+    ) {
+      inputValue.value = currentText + ' ' + transcript
+    } else {
+      inputValue.value = currentText + transcript
+    }
+  }
+
+  // 停止录音状态
+  speechState.isRecording = false
+
+  // 触发事件
+  emit('speech-end', transcript)
+}
+
+// 语音识别配置
+const speechConfig = computed(() => (typeof props.speech === 'object' ? props.speech : {}))
+
+// 在组件挂载时包装自定义语音识别的回调函数
+onMounted(() => {
+  const config = speechConfig.value
+  if (config.customRecognition?.onRecordingChange) {
+    const originalCallback = config.customRecognition.onRecordingChange
+
+    // 直接修改原始对象的回调函数
+    config.customRecognition.onRecordingChange = (transcript: string) => {
+      // 先处理内部逻辑
+      handleCustomRecordingResult(transcript)
+      // 然后调用外部回调
+      originalCallback(transcript)
+    }
   }
 })
+
+// 语音识别选项
+const speechOptions = computed(() => ({
+  ...speechConfig.value,
+  onStart: () => emit('speech-start'),
+  onEnd: (transcript?: string) => emit('speech-end', transcript),
+  onInterim: (transcript: string) => emit('speech-interim', transcript),
+  onFinal: (text: string) => {
+    // 根据 autoReplace 选项决定是追加还是替换文本
+    // 默认为追加模式（autoReplace = false）
+    if (speechConfig.value.autoReplace) {
+      // 替换模式：直接覆盖现有内容
+      inputValue.value = text
+    } else {
+      // 追加模式：将识别结果追加到现有内容
+      // 智能空格处理：如果当前内容末尾和识别结果开头都不是空格，自动添加空格
+      const currentText = inputValue.value
+      if (currentText && text && !currentText.endsWith(' ') && !text.startsWith(' ') && currentText.length > 0) {
+        inputValue.value = currentText + ' ' + text
+      } else {
+        inputValue.value = currentText + text
+      }
+    }
+  },
+  onError: (err: Error) => {
+    emit('speech-error', err)
+  },
+}))
 
 const { speechState, start: startSpeech, stop: stopSpeech } = useSpeechHandler(speechOptions.value)
 
@@ -547,6 +589,7 @@ defineExpose({
               <slot name="actions" />
               <action-buttons
                 :allow-speech="allowSpeech"
+                :speech-config="speechConfig"
                 :allow-files="allowFiles"
                 :loading="loading"
                 :disabled="isDisabled"
@@ -596,6 +639,7 @@ defineExpose({
                 <div class="tiny-sender__buttons-container">
                   <action-buttons
                     :allow-speech="allowSpeech"
+                    :speech-config="speechConfig"
                     :allow-files="allowFiles"
                     :loading="loading"
                     :disabled="isDisabled"

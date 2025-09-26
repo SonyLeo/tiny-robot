@@ -130,76 +130,20 @@ export class CustomSpeechStrategy implements SpeechRecognitionStrategy {
     this.speechState = speechState
     this.options = options
     this.customRecognition = options.customRecognition!
-    this.setupCustomRecognitionCallbacks()
   }
 
   isSupported(): boolean {
-    return this.customRecognition.isSupported()
+    return this.customRecognition.isSupported?.() ?? true
   }
 
-  private setupCustomRecognitionCallbacks(): void {
-    // 如果自定义识别实现支持回调，设置回调函数
-    if ('onResult' in this.customRecognition && typeof this.customRecognition.onResult === 'function') {
-      this.customRecognition.onResult = (transcript: string, isFinal: boolean) => {
-        if (isFinal) {
-          this.options.onFinal?.(transcript)
-        } else {
-          this.options.onInterim?.(transcript)
-        }
-      }
-    }
-
-    if ('onError' in this.customRecognition && typeof this.customRecognition.onError === 'function') {
-      this.customRecognition.onError = (error: Error) => {
-        this.handleError(error)
-      }
-    }
+  start(): void {
+    this.speechState.isRecording = true
+    this.speechState.error = undefined
+    this.options.onStart?.()
   }
 
-  async start(): Promise<void> {
-    try {
-      // 如果正在录音，先停止
-      if (this.speechState.isRecording) {
-        await this.stop()
-        // 短暂延迟后重新开始
-        await new Promise((resolve) => setTimeout(resolve, 100))
-      }
-
-      this.speechState.isRecording = true
-      this.speechState.error = undefined
-      this.options.onStart?.()
-
-      await this.customRecognition.start()
-    } catch (error) {
-      this.handleError(error)
-    }
-  }
-
-  async stop(): Promise<void> {
-    if (!this.speechState.isRecording) return
-
-    try {
-      await this.customRecognition.stop()
-      this.speechState.isRecording = false
-      this.options.onEnd?.()
-    } catch (error) {
-      this.handleError(error)
-    }
-  }
-
-  cleanup(): void {
-    if (this.customRecognition.abort) {
-      try {
-        this.customRecognition.abort()
-      } catch (error) {
-        console.warn('清理自定义语音识别时出错:', error)
-      }
-    }
-  }
-
-  private handleError(error: unknown): void {
-    this.speechState.error = error instanceof Error ? error : new Error('自定义语音识别操作失败')
+  stop(): void {
     this.speechState.isRecording = false
-    this.options.onError?.(this.speechState.error)
+    this.options.onEnd?.()
   }
 }
