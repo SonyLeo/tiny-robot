@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { TinyTooltip } from '@opentiny/vue'
 import { ActionButtonsProps } from '../index.type'
-import { IconSend, IconStop, IconUpload, IconVoice, IconLoadingSpeech, IconClear } from '@opentiny/tiny-robot-svgs'
+import { IconSend, IconStop, IconUpload, IconVoice, IconClear } from '@opentiny/tiny-robot-svgs'
 
 const props = withDefaults(defineProps<ActionButtonsProps>(), {
   /**
@@ -204,7 +204,7 @@ const fileTooltipPlacement = computed(() => props.buttonGroup?.file?.tooltipPlac
       <template v-if="speechEnabled && !loading">
         <div class="action-buttons__button" @click="handleToggleSpeech" :class="{ 'is-recording': isSpeechRecording }">
           <IconVoice v-if="!isSpeechRecording" class="action-buttons__icon" alt="录音" />
-          <IconLoadingSpeech v-else class="action-buttons__icon action-buttons__icon--recording" alt="语音中" />
+          <img v-else class="action-buttons__recording" src="../../assets/wave.webp" alt="语音中" />
         </div>
       </template>
 
@@ -289,6 +289,11 @@ const fileTooltipPlacement = computed(() => props.buttonGroup?.file?.tooltipPlac
   gap: var(--tr-sender-actions-gap);
   border-radius: 26px;
   align-items: center;
+
+  &__recording {
+    width: 140px;
+    height: 18px;
+  }
 
   /* 公共按钮样式 */
   &__button {

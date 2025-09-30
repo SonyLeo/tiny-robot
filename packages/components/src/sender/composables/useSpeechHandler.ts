@@ -1,118 +1,88 @@
-import { reactive } from 'vue'
-import type { SpeechHookOptions, SpeechHandler, SpeechState } from '../index.type'
+import { reactive, onUnmounted } from 'vue'
+import type { SpeechHookOptions, SpeechHandler, SpeechState, SpeechCallbacks } from '../index.type'
+import { SpeechStrategyFactory } from './speechStrategies'
 
 /**
  * 语音识别处理 Hook
- * 集中管理语音识别相关逻辑
+ * 支持内置 Web Speech API 和自定义语音处理器双模式
+ * 使用策略模式实现不同的语音识别方案
  *
  * @param options 语音识别配置
  */
-
 export function useSpeechHandler(options: SpeechHookOptions): SpeechHandler {
   // 语音识别状态
   const speechState = reactive<SpeechState>({
     isRecording: false,
-    isSupported:
-      (typeof window !== 'undefined' && 'webkitSpeechRecognition' in window) || 'SpeechRecognition' in window,
+    isSupported: false,
     error: undefined,
   })
 
-  // 创建语音识别实例
-  const recognition: SpeechRecognition | undefined = speechState.isSupported
-    ? new (window.webkitSpeechRecognition || window.SpeechRecognition)()
-    : undefined
+  // 创建语音策略
+  const strategy = SpeechStrategyFactory.createStrategy(options.mode)
 
-  // 初始化语音识别配置
-  if (recognition !== undefined) {
-    recognition.continuous = options.continuous ?? false
-    recognition.interimResults = options.interimResults ?? true
-    recognition.lang = options.lang ?? navigator.language
+  // 初始化策略
+  strategy.initialize(options)
+  speechState.isSupported = strategy.isSupported()
 
-    // 开始识别事件
-    recognition.onstart = () => {
+  // 创建回调函数集合
+  const createCallbacks = (): SpeechCallbacks => ({
+    onStart: () => {
       speechState.isRecording = true
       speechState.error = undefined
       options.onStart?.()
-    }
-
-    // 结束识别事件
-    recognition.onend = () => {
+    },
+    onInterim: (transcript: string) => {
+      options.onInterim?.(transcript)
+    },
+    onFinal: (transcript: string) => {
+      options.onFinal?.(transcript)
+    },
+    onEnd: (transcript?: string) => {
       speechState.isRecording = false
-      options.onEnd?.()
-    }
-
-    // 中间结果事件
-    recognition.onresult = (event: SpeechRecognitionEvent) => {
-      const transcript = Array.from(event.results)
-        .map((result) => result[0].transcript)
-        .join('')
-
-      if (event.results[0].isFinal) {
-        options.onFinal?.(transcript)
-      } else {
-        options.onInterim?.(transcript)
-      }
-    }
-
-    // 错误处理
-    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-      speechState.error = new Error(event.error)
+      options.onEnd?.(transcript)
+    },
+    onError: (error: Error) => {
+      speechState.error = error
       speechState.isRecording = false
-      options.onError?.(speechState.error)
-    }
-  }
+      options.onError?.(error)
+    },
+  })
 
   // 开始录音
   const start = () => {
-    if (!recognition) {
-      const error = new Error('浏览器不支持语音识别')
+    if (!speechState.isSupported) {
+      const error = new Error('语音识别不受支持')
       speechState.error = error
       options.onError?.(error)
       return
     }
 
-    // 已经在录音中则先停止当前会话
+    // 如果正在录音，先停止再重新开始
     if (speechState.isRecording) {
-      try {
-        recognition.stop()
-        // 短暂延迟后再开始新的录音会话
-        setTimeout(() => {
-          try {
-            recognition.start()
-          } catch (err) {
-            handleError(err)
-          }
-        }, 100)
-      } catch (err) {
-        handleError(err)
-      }
+      strategy.stop()
+      // 短暂延迟后重新开始
+      setTimeout(() => {
+        strategy.start(createCallbacks())
+      }, 100)
       return
     }
 
-    try {
-      recognition.start()
-    } catch (error) {
-      handleError(error)
-    }
+    strategy.start(createCallbacks())
   }
 
   // 停止录音
   const stop = () => {
-    if (recognition && speechState.isRecording) {
-      try {
-        recognition.stop()
-      } catch (error) {
-        handleError(error)
-      }
+    if (!speechState.isRecording) {
+      return
     }
+
+    strategy.stop()
   }
 
-  // 处理错误
-  const handleError = (error: unknown) => {
-    speechState.error = error instanceof Error ? error : new Error('语音识别操作失败')
-    speechState.isRecording = false
-    options.onError?.(speechState.error)
-  }
+  // 组件卸载时清理资源
+  onUnmounted(() => {
+    strategy.cleanup?.()
+  })
 
   return {
     speechState,

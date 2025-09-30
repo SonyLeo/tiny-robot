@@ -50,12 +50,18 @@ Sender 是一个灵活的输入组件，支持多种输入方式和功能，包�
 #### 字数限制与统计
 
 通过`maxLength`属性限制输入字符数，搭配`showWordLimit`显示字数统计。
+
 > **注意**：当输入内容超出字数限制时，系统不会自动截断，真实字数会以红色标示，且无法发送。
 
 <tr-sender mode="multiple" :showWordLimit="true" :maxLength="20" defaultValue="测试超出字数限制，当前已经超过了字数限制。"/>
 
 ```vue
-<tr-sender mode="multiple" :showWordLimit="true" :maxLength="20" defaultValue="测试超出字数限制，当前已经超过了字数限制。"/>
+<tr-sender
+  mode="multiple"
+  :showWordLimit="true"
+  :maxLength="20"
+  defaultValue="测试超出字数限制，当前已经超过了字数限制。"
+/>
 ```
 
 #### 自动调整高度
@@ -82,7 +88,6 @@ Sender 是一个灵活的输入组件，支持多种输入方式和功能，包�
 
 #### 自定义按钮
 
-
 Sender 组件支持在多行模式下灵活定制底部区域。通过 `footer-left` 和 `footer-right` 插槽，您可以在保留现有功能的同时添加自定义内容。
 
 - `footer-left`: 在字数限制左侧添加自定义内容
@@ -101,7 +106,13 @@ Sender 组件支持在多行模式下灵活定制底部区域。通过 `footer-l
 
 - 连续语音输入：用户可以连续录入语音，系统会自动将语音转换为文本，点击按钮手动停止录音。
 
-<demo vue="../../demos/sender/voiceInput.vue" title="语音输入" description="可以使用 speech 属性进行配置" />
+<demo vue="../../demos/sender/voiceInput.vue" title="内置语音输入" description="使用浏览器内置的 Web Speech API" />
+
+#### 自定义语音识别
+
+Sender 组件支持自定义语音识别服务，可以集成百度、Azure、阿里云等第三方语音识别服务，或者使用 WebSocket 实时语音识别。
+
+<demo vue="../../demos/sender/CustomSpeech.vue" :vueFiles="['../../demos/sender/CustomSpeech.vue', '../../demos/sender/speechHandlers.ts']" title="自定义语音识别" description="集成百度语音识别服务的完整示例" />
 
 #### 消息提示
 
@@ -126,13 +137,13 @@ Sender 组件支持在多行模式下灵活定制底部区域。通过 `footer-l
 通过 `buttonGroup.file.tooltipPlacement` 属性可以自定义文件上传按钮的 tooltip 弹窗位置：
 
 ```vue
-<tr-sender 
-  :allowFiles="true" 
+<tr-sender
+  :allowFiles="true"
   :buttonGroup="{
     file: {
       tooltips: '点击上传文件',
-      tooltipPlacement: 'bottom' // 自定义 tooltip 位置
-    }
+      tooltipPlacement: 'bottom', // 自定义 tooltip 位置
+    },
   }"
 />
 ```
@@ -163,13 +174,14 @@ Sender 组件支持在多行模式下灵活定制底部区域。通过 `footer-l
 Sender 组件支持输入联想功能，当用户输入时，可以根据提供的 `suggestions` 列表显示匹配的建议项。此功能有助于提高输入效率和准确性。
 
 **核心特性:**
+
 - **Tab 提示器**: 仅在有联想数据且输入框有内容时显示，提示用户可按 Tab 选择。
 - **输入框补全**: 用户输入部分正常显示，联想到的补全部分以半透明灰色文本展示。
 
 - **键盘交互**:
-    - `↑`/`↓`: 在联想弹窗中导航。
-    - `Tab`/`Enter`: 确认当前高亮的联想项（可通过 `activeSuggestionKeys` 属性自定义）。
-    - `Esc`: 关闭联想弹窗。
+  - `↑`/`↓`: 在联想弹窗中导航。
+  - `Tab`/`Enter`: 确认当前高亮的联想项（可通过 `activeSuggestionKeys` 属性自定义）。
+  - `Esc`: 关闭联想弹窗。
 
 > **注意**: 输入框内的补全文本特性在匹配到联想项的前置字符时显示，否则不显示。
 
@@ -178,23 +190,27 @@ Sender 组件支持输入联想功能，当用户输入时，可以根据提供�
 Sender 组件支持三种高亮匹配模式，通过 `suggestions` 属性实现：
 
 1. **自动匹配高亮**（默认）：直接传入字符串数组到 `suggestions` 属性，组件会根据用户输入自动高亮匹配部分。
+
    ```vue
    <tr-sender :suggestions="['你好世界', '你好中国', '你好北京']" />
    ```
 
 2. **精确指定高亮**：传入对象数组到 `suggestions` 属性，通过 `content` 和 `highlights` 字段精确指定要高亮的文本片段。
+
    ```vue
-   <tr-sender :suggestions="[
-     { content: '你好世界', highlights: ['你好'] },
-     { content: '你好中国', highlights: ['中国'] },
-     { content: '你好北京', highlights: ['你好', '北京'] }
-   ]" />
+   <tr-sender
+     :suggestions="[
+       { content: '你好世界', highlights: ['你好'] },
+       { content: '你好中国', highlights: ['中国'] },
+       { content: '你好北京', highlights: ['你好', '北京'] },
+     ]"
+   />
    ```
 
 3. **完全自定义高亮**：传入对象数组到 `suggestions` 属性，`highlights` 字段为函数，可完全自定义高亮逻辑。
    ```vue
    <tr-sender :suggestions="[
-    { 
+    {
       content: '你好世界',
       // 自定义高亮：根据输入内容高亮匹配部分
       highlights: (content, input) => {
@@ -248,14 +264,14 @@ Sender 组件支持三种高亮匹配模式，通过 `suggestions` 属性实现�
 
 Sender 组件支持多种键盘快捷键操作，提高用户输入效率：
 
-| 快捷键      | 功能                      | 适用条件                       |
-| ----------- | ------------------------- | ------------------------------ |
-| Enter       | 提交内容 / 选中联想项     | submitType="enter"（默认） / 联想弹窗开启时 |
-| Ctrl+Enter  | 提交内容                  | submitType="ctrlEnter"(多行)   |
-| Shift+Enter | 提交内容                  | submitType="shiftEnter"(多行)  |
-| Tab         | 选中联想项                | 联想弹窗开启并有联想数据时     |
-| Esc         | 取消语音/关闭联想/建议    | 对应功能激活时                |
-| ↑ / ↓       | 导航联想项                | 联想弹窗开启时                 |
+| 快捷键      | 功能                   | 适用条件                                    |
+| ----------- | ---------------------- | ------------------------------------------- |
+| Enter       | 提交内容 / 选中联想项  | submitType="enter"（默认） / 联想弹窗开启时 |
+| Ctrl+Enter  | 提交内容               | submitType="ctrlEnter"(多行)                |
+| Shift+Enter | 提交内容               | submitType="shiftEnter"(多行)               |
+| Tab         | 选中联想项             | 联想弹窗开启并有联想数据时                  |
+| Esc         | 取消语音/关闭联想/建议 | 对应功能激活时                              |
+| ↑ / ↓       | 导航联想项             | 联想弹窗开启时                              |
 
 **自定义选中按键**：可以通过 `activeSuggestionKeys` 属性自定义选中联想项的按键，默认值为 `['Enter', 'Tab']`。例如设置为 `['Tab']` 可仅使用 Tab 键选中联想项。  
 注意：请勿使用纯修饰键（如 `Control`/`Shift`/`Alt`/`Meta`）作为选中按键，否则会劫持常见快捷键（如 Ctrl+C/Ctrl+V/Ctrl+A）。
@@ -273,6 +289,7 @@ Sender 组件支持多种键盘快捷键操作，提高用户输入效率：
 Sender 组件支持紧凑模式，适用于空间受限的场景。通过添加 `tr-sender-compact` CSS类可以启用紧凑样式。
 
 紧凑模式的特点：
+
 - 较小的字体和输入框（14px vs 16px）
 - 更紧凑的内边距和间距
 - 更小的图标尺寸（32px vs 36px）
@@ -294,31 +311,30 @@ Sender 组件支持紧凑模式，适用于空间受限的场景。通过添加 
 
 ### Props
 
-| 属性名               | 说明                     | 类型                                                    | 默认值            |
-| -------------------- | ------------------------ | ------------------------------------------------------- | ----------------- |
-| autofocus            | 自动获取焦点             | `boolean`                                               | `false`           |
-| autoSize             | 自动调整高度             | `boolean \| { minRows: number, maxRows: number }` | `false`           |
-| allowSpeech          | 是否开启语音输入         | `boolean`                                               | `false`           |
-| allowFiles           | 是否允许文件上传         | `boolean`                                               | `true`            |
-| clearable            | 是否可清空               | `boolean`                                               | `false`           |
-| disabled             | 是否禁用                 | `boolean`                                               | `false`           |
-| modelValue           | 绑定值(v-model)          | `string`                                                | `''`              |
-| defaultValue         | 默认值(非响应式)         | `string`                                                | `''`              |
-| loading              | 是否加载中               | `boolean`                                               | `false`           |
-| mode                 | 输入框类型               | `'single' \| 'multiple'`                                | `'single'`        |
-| maxLength            | 最大输入长度             | `number`                                                | `Infinity`        |
-| buttonGroup          | 按钮组配置               | `ButtonGroupConfig`                                     | `{}`              |
-| placeholder          | 输入框占位文本           | `string`                                                | `'请输入内容...'` |
-| speech               | 语音识别配置             | `'boolean' \| 'SpeechConfig'`                           | 无                |
-| showWordLimit        | 是否显示字数统计         | `boolean`                                               | `false`           |
-| stopText             | 停止按钮文字             | `string`                                                | `仅显示图标`      |
-| submitType           | 提交方式                 | `'enter' \| 'ctrl+enter' \| 'shift+enter'`              | `'enter'`         |
-| theme                | 主题样式                 | `'light' \| 'dark'`                                     | `'light'`         |
-| suggestions          | 输入建议列表             | `(string \| SuggestionItem)[]`                          | `[]`              |
-| suggestionPopupWidth | 输入建议弹窗宽度         | `'number' \| 'string'`                                                 | `400px`             |
-| activeSuggestionKeys | 激活建议项的按键         | `string[]`                                              | `['Enter', 'Tab']` |
-| templateData         | 模板数据，用于初始化或 v-model 更新 | `UserItem[]`                                            | `[]`              |
-
+| 属性名               | 说明                                | 类型                                              | 默认值             |
+| -------------------- | ----------------------------------- | ------------------------------------------------- | ------------------ |
+| autofocus            | 自动获取焦点                        | `boolean`                                         | `false`            |
+| autoSize             | 自动调整高度                        | `boolean \| { minRows: number, maxRows: number }` | `false`            |
+| allowSpeech          | 是否开启语音输入                    | `boolean`                                         | `false`            |
+| allowFiles           | 是否允许文件上传                    | `boolean`                                         | `true`             |
+| clearable            | 是否可清空                          | `boolean`                                         | `false`            |
+| disabled             | 是否禁用                            | `boolean`                                         | `false`            |
+| modelValue           | 绑定值(v-model)                     | `string`                                          | `''`               |
+| defaultValue         | 默认值(非响应式)                    | `string`                                          | `''`               |
+| loading              | 是否加载中                          | `boolean`                                         | `false`            |
+| mode                 | 输入框类型                          | `'single' \| 'multiple'`                          | `'single'`         |
+| maxLength            | 最大输入长度                        | `number`                                          | `Infinity`         |
+| buttonGroup          | 按钮组配置                          | `ButtonGroupConfig`                               | `{}`               |
+| placeholder          | 输入框占位文本                      | `string`                                          | `'请输入内容...'`  |
+| speech               | 语音识别配置                        | `'boolean' \| 'SpeechConfig'`                     | 无                 |
+| showWordLimit        | 是否显示字数统计                    | `boolean`                                         | `false`            |
+| stopText             | 停止按钮文字                        | `string`                                          | `仅显示图标`       |
+| submitType           | 提交方式                            | `'enter' \| 'ctrl+enter' \| 'shift+enter'`        | `'enter'`          |
+| theme                | 主题样式                            | `'light' \| 'dark'`                               | `'light'`          |
+| suggestions          | 输入建议列表                        | `(string \| SuggestionItem)[]`                    | `[]`               |
+| suggestionPopupWidth | 输入建议弹窗宽度                    | `'number' \| 'string'`                            | `400px`            |
+| activeSuggestionKeys | 激活建议项的按键                    | `string[]`                                        | `['Enter', 'Tab']` |
+| templateData         | 模板数据，用于初始化或 v-model 更新 | `UserItem[]`                                      | `[]`               |
 
 ### Events
 
@@ -365,20 +381,42 @@ Sender 组件支持紧凑模式，适用于空间受限的场景。通过添加 
 +----------------------+
 ```
 
-| 插槽名称          | 描述                             | CSS类名                           | 默认内容                |
-| ----------------- | -------------------------------- | --------------------------------- | ----------------------- |
-| `header`          | 头部插槽，位于输入框上方         | `.tiny-sender__header-slot`       | 无                      |
-| `prefix`          | 前缀插槽，位于输入框左侧         | `.tiny-sender__prefix-slot`       | 无                      |
-| `actions`         | 后缀插槽，位于输入框右侧         | `.tiny-sender__actions-slot`      | 单行模式下的操作按钮    |
-| `footer-left`     | 底部左侧插槽，保留字数限制       | `.tiny-sender__footer-left`       | 字数限制                |
-| `footer-right`    | 底部右侧插槽，保留操作按钮       | `.tiny-sender__footer-right`      | 多行模式下的操作按钮    |
-| `footer`          | 底部完全自定义插槽(向后兼容)     | `.tiny-sender__footer-slot`       | 无 (会覆盖其他底部元素) |
+| 插槽名称            | 描述                           | CSS类名                            | 默认内容                |
+| ------------------- | ------------------------------ | ---------------------------------- | ----------------------- |
+| `header`            | 头部插槽，位于输入框上方       | `.tiny-sender__header-slot`        | 无                      |
+| `prefix`            | 前缀插槽，位于输入框左侧       | `.tiny-sender__prefix-slot`        | 无                      |
+| `actions`           | 后缀插槽，位于输入框右侧       | `.tiny-sender__actions-slot`       | 单行模式下的操作按钮    |
+| `footer-left`       | 底部左侧插槽，保留字数限制     | `.tiny-sender__footer-left`        | 字数限制                |
+| `footer-right`      | 底部右侧插槽，保留操作按钮     | `.tiny-sender__footer-right`       | 多行模式下的操作按钮    |
+| `footer`            | 底部完全自定义插槽(向后兼容)   | `.tiny-sender__footer-slot`        | 无 (会覆盖其他底部元素) |
 | `decorativeContent` | 装饰性内容插槽，启用后禁止输入 | `.tiny-sender__decorative-content` | 无                      |
 
 ### Types
 
 ```typescript
+// 语音模式
+type SpeechMode = 'builtin' | 'custom'
+
+// 语音回调函数集合
+interface SpeechCallbacks {
+  onStart: () => void
+  onInterim: (transcript: string) => void
+  onFinal: (transcript: string) => void
+  onEnd: (transcript?: string) => void
+  onError: (error: Error) => void
+}
+
+// 自定义语音处理器接口
+interface CustomSpeechHandler {
+  start: (callbacks: SpeechCallbacks) => Promise<void> | void
+  stop: () => Promise<void> | void
+  isSupported: () => boolean
+}
+
+// 语音识别配置
 interface SpeechConfig {
+  mode?: SpeechMode // 语音模式：内置或自定义
+  customHandler?: CustomSpeechHandler // 自定义语音处理器
   lang?: string // 识别语言，默认浏览器语言
   continuous?: boolean // 是否持续识别
   interimResults?: boolean // 是否返回中间结果
@@ -390,7 +428,19 @@ interface SpeechConfig {
 export interface ControlState {
   tooltips?: string | Function // 工具提示
   disabled?: boolean // 是否禁用
-  tooltipPlacement?: 'top' | 'top-start' | 'top-end' | 'bottom' | 'bottom-start' | 'bottom-end' | 'left' | 'left-start' | 'left-end' | 'right' | 'right-start' | 'right-end' // tooltip 弹窗位置
+  tooltipPlacement?:
+    | 'top'
+    | 'top-start'
+    | 'top-end'
+    | 'bottom'
+    | 'bottom-start'
+    | 'bottom-end'
+    | 'left'
+    | 'left-start'
+    | 'left-end'
+    | 'right'
+    | 'right-start'
+    | 'right-end' // tooltip 弹窗位置
 }
 
 interface fileUploadConfig {
@@ -409,16 +459,18 @@ interface ButtonGroupConfig {
 ```typescript
 // 高亮文本片段类型
 interface SuggestionTextPart {
-  text: string;  // 文本片段
-  isMatch: boolean;  // 是否高亮
+  text: string // 文本片段
+  isMatch: boolean // 是否高亮
 }
 
 // 高亮函数类型
 type HighlightFunction = (suggestionText: string, inputText: string) => SuggestionTextPart[]
 
 // 建议项类型
-type SuggestionItem = string | {
-  content: string;  // 建议项文本内容
-  highlights?: string[] | HighlightFunction;  // 高亮方式
-}
-``` 
+type SuggestionItem =
+  | string
+  | {
+      content: string // 建议项文本内容
+      highlights?: string[] | HighlightFunction // 高亮方式
+    }
+```

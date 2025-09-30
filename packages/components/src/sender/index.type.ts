@@ -14,8 +14,29 @@ export type InputMode = 'single' | 'multiple'
 // 提交触发方式
 export type SubmitTrigger = 'enter' | 'ctrlEnter' | 'shiftEnter'
 
+// 语音模式枚举
+export type SpeechMode = 'builtin' | 'custom'
+
+// 语音回调函数集合
+export interface SpeechCallbacks {
+  onStart: () => void
+  onInterim: (transcript: string) => void
+  onFinal: (transcript: string) => void
+  onEnd: (transcript?: string) => void
+  onError: (error: Error) => void
+}
+
+// 自定义语音处理器接口
+export interface CustomSpeechHandler {
+  start: (callbacks: SpeechCallbacks) => Promise<void> | void
+  stop: () => Promise<void> | void
+  isSupported: () => boolean
+}
+
 // 语音识别配置
 export interface SpeechConfig {
+  mode?: SpeechMode // 语音模式：内置或自定义
+  customHandler?: CustomSpeechHandler // 自定义语音处理器
   lang?: string // 识别语言，默认浏览器语言
   continuous?: boolean // 是否持续识别
   interimResults?: boolean // 是否返回中间结果
