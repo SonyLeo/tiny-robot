@@ -117,7 +117,7 @@ import { BaiduSpeechHandler, MockSpeechHandler } from './speechHandlers'
 const apiKey = ref('')
 const secretKey = ref('')
 const autoReplace = ref(false)
-const showDemo = ref(true)
+const showDemo = ref(false)
 
 // 组件状态
 const inputText = ref('')
@@ -126,9 +126,14 @@ const interimResult = ref('')
 const errorMessage = ref('')
 const results = ref<Array<{ text: string; timestamp: string; mode: string }>>([])
 
-// 语音配置
+// 语音配置 - 使用动态获取密钥的方式
 const speechConfig = computed(() => {
-  const handler = showDemo.value ? new MockSpeechHandler() : new BaiduSpeechHandler(apiKey.value, secretKey.value)
+  const handler = showDemo.value
+    ? new MockSpeechHandler()
+    : BaiduSpeechHandler.createWithGetters(
+        () => apiKey.value,
+        () => secretKey.value,
+      )
 
   return {
     mode: 'custom' as const,
@@ -176,10 +181,15 @@ const handleSpeechError = (error: Error) => {
   interimResult.value = ''
   errorMessage.value = error.message
 
-  // 3秒后自动清除错误信息
+  // 如果是密钥相关错误，给出更明确的提示
+  if (error.message.includes('API Key') || error.message.includes('Secret Key')) {
+    errorMessage.value = `${error.message}\n当前API Key: ${apiKey.value ? '已设置' : '未设置'}\n当前Secret Key: ${secretKey.value ? '已设置' : '未设置'}`
+  }
+
+  // 5秒后自动清除错误信息
   setTimeout(() => {
     errorMessage.value = ''
-  }, 3000)
+  }, 5000)
 }
 
 const handleSubmit = (text: string) => {

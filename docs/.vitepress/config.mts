@@ -28,7 +28,27 @@ export default defineConfig({
   head: [['link', { rel: 'icon', href: '/logo-mini.svg' }]],
   vite: {
     plugins: [vueJsx()],
-    server: { open: true },
+    server: {
+      open: true,
+      proxy: {
+        '/api/baidu': {
+          target: 'https://aip.baidubce.com',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/api\/baidu/, ''),
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          },
+        },
+        '/api/server': {
+          target: 'https://vop.baidu.com/server_api',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/api\/baidu/, ''),
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          },
+        },
+      },
+    },
     resolve: {
       alias: {
         ...(process.env.VP_MODE === 'development' ? devAlias : prodAlias),
