@@ -114,6 +114,14 @@ Sender 组件支持自定义语音识别服务，可以集成百度、Azure、�
 
 <demo vue="../../demos/sender/CustomSpeech.vue" :vueFiles="['../../demos/sender/CustomSpeech.vue', '../../demos/sender/speechHandlers.ts']" title="自定义语音识别" description="集成百度语音识别服务的完整示例" />
 
+#### 移动端按住说话
+
+Sender 组件支持通过 `onVoiceButtonClick` 拦截器实现移动端自定义录音 UI。通过拦截录音按钮的点击事件，可以在移动端显示"按住说话"界面，实现按住录音、松开发送、上滑取消等交互。
+
+新增配置 `autoSubmit: true`，识别完成后自动提交
+
+<demo vue="../../demos/sender/MobilePressToTalk.vue" title="移动端按住说话" description="通过事件拦截实现移动端自定义录音 UI，支持按住说话、上滑取消等交互" :vueFiles="['../../demos/sender/MobilePressToTalk.vue', '../../demos/sender/PressToTalkOverlay.vue']" />
+
 #### 消息提示
 
 此功能适用于需要在输入框内显示提示信息并引导用户操作的场景，如：
@@ -338,21 +346,22 @@ Sender 组件支持紧凑模式，适用于空间受限的场景。通过添加 
 
 ### Events
 
-| 事件名            | 说明                       | 回调参数               |
-| ----------------- | -------------------------- | ---------------------- |
-| update:modelValue | 输入值变化时触发(v-model)  | `(value: string)`      |
-| blur              | 输入框失去焦点时触发       | `(event: FocusEvent)`  |
-| change            | 输入值改变且失焦时触发     | `(value: string)`      |
-| focus             | 输入框获得焦点时触发       | `(event: FocusEvent)`  |
-| input             | 输入值改变时触发           | `(value: string)`      |
-| submit            | 提交内容时触发             | `(value: string)`      |
-| clear             | 清空内容时触发             | `()`                   |
-| cancel            | 取消发送（加载状态）时触发 | `()`                   |
-| speech-start      | 语音识别开始时触发         | `()`                   |
-| speech-end        | 语音识别结束时触发         | `(transcript: string)` |
-| speech-interim    | 语音识别中间结果时触发     | `(transcript: string)` |
-| speech-error      | 语音识别错误时触发         | `(error: Error)`       |
-| suggestion-select | 选择输入建议时触发         | `(value: string)`      |
+| 事件名              | 说明                       | 回调参数                              |
+| ------------------- | -------------------------- | ------------------------------------- |
+| update:modelValue   | 输入值变化时触发(v-model)  | `(value: string)`                     |
+| blur                | 输入框失去焦点时触发       | `(event: FocusEvent)`                 |
+| change              | 输入值改变且失焦时触发     | `(value: string)`                     |
+| focus               | 输入框获得焦点时触发       | `(event: FocusEvent)`                 |
+| input               | 输入值改变时触发           | `(value: string)`                     |
+| submit              | 提交内容时触发             | `(value: string)`                     |
+| clear               | 清空内容时触发             | `()`                                  |
+| cancel              | 取消发送（加载状态）时触发 | `()`                                  |
+| speech-start        | 语音识别开始时触发         | `()`                                  |
+| speech-end          | 语音识别结束时触发         | `(transcript: string)`                |
+| speech-interim      | 语音识别中间结果时触发     | `(transcript: string)`                |
+| speech-error        | 语音识别错误时触发         | `(error: Error)`                      |
+| suggestion-select   | 选择输入建议时触发         | `(value: string)`                     |
+| voice-button-click  | 语音按钮点击时触发         | `(context: VoiceButtonClickContext)`  |
 
 ### Methods
 
@@ -364,6 +373,7 @@ Sender 组件支持紧凑模式，适用于空间受限的场景。通过添加 
 | submit                     | 手动触发提交事件         | -    | `void`          |
 | startSpeech                | 开始语音识别             | -    | `Promise<void>` |
 | stopSpeech                 | 停止语音识别             | -    | `void`          |
+| getSpeechState             | 获取当前语音识别状态     | -    | `SpeechState`   |
 | activateTemplateFirstField | 激活模板的第一个输入字段 | -    | `void`          |
 
 ### Slots
@@ -413,6 +423,25 @@ interface CustomSpeechHandler {
   isSupported: () => boolean
 }
 
+// 语音识别状态
+interface SpeechState {
+  isRecording: boolean // 是否正在录音
+  isSupported: boolean // 是否支持语音识别
+  error?: Error // 错误信息
+}
+
+// 录音按钮点击上下文
+interface VoiceButtonClickContext {
+  isRecording: boolean // 当前是否正在录音
+  isMobile: boolean // 是否移动端（组件自动检测）
+  speechHandler: {
+    // 暴露给产品侧的录音控制方法
+    start: () => void
+    stop: () => void
+    getState: () => SpeechState
+  }
+}
+
 // 语音识别配置
 interface SpeechConfig {
   mode?: SpeechMode // 语音模式：内置或自定义
@@ -421,6 +450,8 @@ interface SpeechConfig {
   continuous?: boolean // 是否持续识别
   interimResults?: boolean // 是否返回中间结果
   autoReplace?: boolean // 是否自动替换当前输入内容
+  isMobile?: boolean // 是否移动端（由外部传入，优先级高于自动检测）
+  onVoiceButtonClick?: (context: VoiceButtonClickContext) => boolean | Promise<boolean> // 录音按钮点击拦截器
 }
 ```
 

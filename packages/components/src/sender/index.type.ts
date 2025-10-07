@@ -33,6 +33,18 @@ export interface CustomSpeechHandler {
   isSupported: () => boolean
 }
 
+// 录音按钮点击上下文
+export interface VoiceButtonClickContext {
+  isRecording: boolean // 当前是否正在录音
+  isMobile: boolean // 是否移动端（组件自动检测）
+  speechHandler: {
+    // 暴露给产品侧的录音控制方法
+    start: () => void
+    stop: () => void
+    getState: () => SpeechState
+  }
+}
+
 // 语音识别配置
 export interface SpeechConfig {
   mode?: SpeechMode // 语音模式：内置或自定义
@@ -41,6 +53,9 @@ export interface SpeechConfig {
   continuous?: boolean // 是否持续识别
   interimResults?: boolean // 是否返回中间结果
   autoReplace?: boolean // 是否自动替换当前输入内容
+  autoSubmit?: boolean // 是否在语音识别完成后自动提交（通常用于移动端）
+  isMobile?: boolean // 是否移动端（由外部传入，优先级高于自动检测）
+  onVoiceButtonClick?: (context: VoiceButtonClickContext) => boolean | Promise<boolean> // 录音按钮点击拦截器
 }
 
 export type AutoSize = boolean | { minRows: number; maxRows: number }
@@ -155,6 +170,7 @@ export type SenderEmits = {
   (e: 'cancel'): void // 取消发送状态时触发
   (e: 'reset-template'): void // 重置模板状态，退出模板编辑模式
   (e: 'files-selected', files: File[]): void // 文件选择事件
+  (e: 'voice-button-click', context: VoiceButtonClickContext): void // 语音按钮点击事件
 }
 
 // 语音识别状态
