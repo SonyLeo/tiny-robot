@@ -47,6 +47,20 @@ export default defineConfig({
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
           },
         },
+        '/api/aliyun/asr': {
+          target: 'https://nls-gateway-cn-shanghai.aliyuncs.com',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/api\/aliyun\/asr/, '/stream/v1/asr'),
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          },
+        },
+        '/api/aliyun/ws': {
+          target: 'wss://nls-gateway.cn-shanghai.aliyuncs.com',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/api\/aliyun\/ws/, '/ws/v1'),
+          ws: true,
+        },
       },
     },
     resolve: {
