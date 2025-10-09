@@ -36,30 +36,19 @@ const TypedRecorder = Recorder as RecorderStatic
 export class BaiduSpeechHandler implements CustomSpeechHandler {
   private recorder?: IRecorder
   private callbacks?: SpeechCallbacks
-  private apiKey: string
-  private secretKey: string
   private accessToken?: string
-  private apiKeyGetter?: () => string
-  private secretKeyGetter?: () => string
 
-  constructor(apiKey: string, secretKey: string) {
-    this.apiKey = apiKey
-    this.secretKey = secretKey
+  constructor(
+    private getApiKey: () => string,
+    private getSecretKey: () => string,
+  ) {}
+
+  private get apiKey(): string {
+    return this.getApiKey()
   }
 
-  static createWithGetters(apiKeyGetter: () => string, secretKeyGetter: () => string): BaiduSpeechHandler {
-    const instance = new BaiduSpeechHandler('', '')
-    instance.apiKeyGetter = apiKeyGetter
-    instance.secretKeyGetter = secretKeyGetter
-    return instance
-  }
-
-  private getCurrentApiKey(): string {
-    return this.apiKeyGetter ? this.apiKeyGetter() : this.apiKey
-  }
-
-  private getCurrentSecretKey(): string {
-    return this.secretKeyGetter ? this.secretKeyGetter() : this.secretKey
+  private get secretKey(): string {
+    return this.getSecretKey()
   }
 
   async start(callbacks: SpeechCallbacks): Promise<void> {
@@ -130,17 +119,12 @@ export class BaiduSpeechHandler implements CustomSpeechHandler {
   }
 
   private async getAccessToken(): Promise<void> {
-    const currentApiKey = this.getCurrentApiKey()
-    const currentSecretKey = this.getCurrentSecretKey()
-
-    // 在开发环境使用代理，生产环境使用直连
-    const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    const url = isDev ? '/api/baidu/oauth/2.0/token' : 'https://aip.baidubce.com/oauth/2.0/token'
+    const url = '/api/baidu/oauth/2.0/token'
 
     const formData = new URLSearchParams()
     formData.append('grant_type', 'client_credentials')
-    formData.append('client_id', currentApiKey)
-    formData.append('client_secret', currentSecretKey)
+    formData.append('client_id', this.apiKey)
+    formData.append('client_secret', this.secretKey)
 
     const response = await fetch(url, {
       method: 'POST',
@@ -163,9 +147,7 @@ export class BaiduSpeechHandler implements CustomSpeechHandler {
     try {
       const base64Audio = await this.blobToBase64(audioBlob)
 
-      // 在开发环境使用代理，生产环境使用直连
-      const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-      const url = isDev ? '/api/server/server_api' : 'https://vop.baidu.com/server_api'
+      const url = '/api/server/server_api'
 
       const response = await fetch(url, {
         method: 'POST',
@@ -269,29 +251,18 @@ export class MockSpeechHandler implements CustomSpeechHandler {
 export class AliyunSpeechHandler implements CustomSpeechHandler {
   private recorder?: IRecorder
   private callbacks?: SpeechCallbacks
-  private appKey: string
-  private token: string
-  private appKeyGetter?: () => string
-  private tokenGetter?: () => string
 
-  constructor(appKey: string, token: string) {
-    this.appKey = appKey
-    this.token = token
+  constructor(
+    private getAppKey: () => string,
+    private getToken: () => string,
+  ) {}
+
+  private get appKey(): string {
+    return this.getAppKey()
   }
 
-  static createWithGetters(appKeyGetter: () => string, tokenGetter: () => string): AliyunSpeechHandler {
-    const instance = new AliyunSpeechHandler('', '')
-    instance.appKeyGetter = appKeyGetter
-    instance.tokenGetter = tokenGetter
-    return instance
-  }
-
-  private getCurrentAppKey(): string {
-    return this.appKeyGetter ? this.appKeyGetter() : this.appKey
-  }
-
-  private getCurrentToken(): string {
-    return this.tokenGetter ? this.tokenGetter() : this.token
+  private get token(): string {
+    return this.getToken()
   }
 
   async start(callbacks: SpeechCallbacks): Promise<void> {
@@ -352,15 +323,10 @@ export class AliyunSpeechHandler implements CustomSpeechHandler {
     if (!this.callbacks) return
 
     try {
-      const currentAppKey = this.getCurrentAppKey()
-      const currentToken = this.getCurrentToken()
-
-      // 在开发环境使用代理，生产环境使用直连
-      const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-      const baseUrl = isDev ? '/api/aliyun/asr' : 'https://nls-gateway-cn-shanghai.aliyuncs.com/stream/v1/asr'
+      const baseUrl = '/api/aliyun/asr'
 
       const params = new URLSearchParams({
-        appkey: currentAppKey,
+        appkey: this.appKey,
         format: 'pcm',
         sample_rate: '16000',
         enable_punctuation_prediction: 'true',
@@ -371,7 +337,7 @@ export class AliyunSpeechHandler implements CustomSpeechHandler {
         method: 'POST',
         headers: {
           'Content-Type': 'application/octet-stream',
-          'X-NLS-Token': currentToken,
+          'X-NLS-Token': this.token,
         },
         body: audioBlob,
       })
@@ -406,29 +372,18 @@ export class AliyunRealtimeSpeechHandler implements CustomSpeechHandler {
   private scriptProcessor?: ScriptProcessorNode
   private audioStream?: MediaStream
   private callbacks?: SpeechCallbacks
-  private appKey: string
-  private token: string
-  private appKeyGetter?: () => string
-  private tokenGetter?: () => string
 
-  constructor(appKey: string, token: string) {
-    this.appKey = appKey
-    this.token = token
+  constructor(
+    private getAppKey: () => string,
+    private getToken: () => string,
+  ) {}
+
+  private get appKey(): string {
+    return this.getAppKey()
   }
 
-  static createWithGetters(appKeyGetter: () => string, tokenGetter: () => string): AliyunRealtimeSpeechHandler {
-    const instance = new AliyunRealtimeSpeechHandler('', '')
-    instance.appKeyGetter = appKeyGetter
-    instance.tokenGetter = tokenGetter
-    return instance
-  }
-
-  private getCurrentAppKey(): string {
-    return this.appKeyGetter ? this.appKeyGetter() : this.appKey
-  }
-
-  private getCurrentToken(): string {
-    return this.tokenGetter ? this.tokenGetter() : this.token
+  private get token(): string {
+    return this.getToken()
   }
 
   private generateUUID(): string {
@@ -451,12 +406,7 @@ export class AliyunRealtimeSpeechHandler implements CustomSpeechHandler {
   }
 
   private setupWebSocket(): void {
-    const currentToken = this.getCurrentToken()
-    // 在开发环境使用代理，生产环境使用直连
-    const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    const socketUrl = isDev
-      ? `ws://${window.location.host}/api/aliyun/ws?token=${currentToken}`
-      : `wss://nls-gateway.cn-shanghai.aliyuncs.com/ws/v1?token=${currentToken}`
+    const socketUrl = `ws://${window.location.host}/api/aliyun/ws?token=${this.token}`
 
     this.ws = new WebSocket(socketUrl)
 
@@ -464,7 +414,7 @@ export class AliyunRealtimeSpeechHandler implements CustomSpeechHandler {
       // 连接成功后，发送开始识别指令
       const startMessage = {
         header: {
-          appkey: this.getCurrentAppKey(),
+          appkey: this.appKey,
           namespace: 'SpeechTranscriber',
           name: 'StartTranscription',
           task_id: this.generateUUID(),
@@ -609,7 +559,10 @@ export class SpeechConfigFactory {
   static createBaiduConfig(apiKey: string, secretKey: string) {
     return {
       mode: 'custom' as const,
-      customHandler: new BaiduSpeechHandler(apiKey, secretKey),
+      customHandler: new BaiduSpeechHandler(
+        () => apiKey,
+        () => secretKey,
+      ),
       continuous: false,
       interimResults: true,
       lang: 'zh-CN',
@@ -622,7 +575,10 @@ export class SpeechConfigFactory {
   static createAliyunConfig(appKey: string, token: string) {
     return {
       mode: 'custom' as const,
-      customHandler: new AliyunSpeechHandler(appKey, token),
+      customHandler: new AliyunSpeechHandler(
+        () => appKey,
+        () => token,
+      ),
       continuous: false,
       interimResults: false,
       lang: 'zh-CN',
@@ -635,7 +591,10 @@ export class SpeechConfigFactory {
   static createAliyunRealtimeConfig(appKey: string, token: string) {
     return {
       mode: 'custom' as const,
-      customHandler: new AliyunRealtimeSpeechHandler(appKey, token),
+      customHandler: new AliyunRealtimeSpeechHandler(
+        () => appKey,
+        () => token,
+      ),
       continuous: true,
       interimResults: true,
       lang: 'zh-CN',

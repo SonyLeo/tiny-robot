@@ -174,25 +174,25 @@ const interimResult = ref('')
 const errorMessage = ref('')
 const results = ref<Array<{ text: string; timestamp: string; mode: string }>>([])
 
-// 语音配置 - 使用动态获取密钥的方式
+// 语音配置
 const speechConfig = computed(() => {
   let handler: BaiduSpeechHandler | AliyunSpeechHandler | AliyunRealtimeSpeechHandler | MockSpeechHandler
 
   switch (provider.value) {
     case 'baidu':
-      handler = BaiduSpeechHandler.createWithGetters(
+      handler = new BaiduSpeechHandler(
         () => baiduApiKey.value,
         () => baiduSecretKey.value,
       )
       break
     case 'aliyun':
-      handler = AliyunSpeechHandler.createWithGetters(
+      handler = new AliyunSpeechHandler(
         () => aliyunAppKey.value,
         () => aliyunToken.value,
       )
       break
     case 'aliyun-realtime':
-      handler = AliyunRealtimeSpeechHandler.createWithGetters(
+      handler = new AliyunRealtimeSpeechHandler(
         () => aliyunAppKey.value,
         () => aliyunToken.value,
       )
