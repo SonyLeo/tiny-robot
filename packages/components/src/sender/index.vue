@@ -2,7 +2,14 @@
 import { computed, ref, watch, nextTick, useSlots } from 'vue'
 import { TinyInput } from '@opentiny/vue'
 import { useFileDialog } from '@vueuse/core'
-import type { SenderProps, SenderEmits, InputHandler, KeyboardHandler, UserItem } from './index.type'
+import type {
+  SenderProps,
+  SenderEmits,
+  InputHandler,
+  KeyboardHandler,
+  UserItem,
+  VoiceButtonClickContext,
+} from './index.type'
 import { useInputHandler } from './composables/useInputHandler'
 import { useKeyboardHandler } from './composables/useKeyboardHandler'
 import { useSpeechHandler } from './composables/useSpeechHandler'
@@ -347,6 +354,41 @@ const toggleSpeech = () => {
   }
 }
 
+// 处理语音按钮点击事件
+const handleVoiceButtonClick = async () => {
+  const speechConfig = typeof props.speech === 'object' ? props.speech : {}
+
+  // 构建上下文
+  const context: VoiceButtonClickContext = {
+    isRecording: speechState.isRecording,
+    speechHandler: {
+      start: () => startSpeech(),
+      stop: () => stopSpeech(),
+    },
+  }
+
+  // 触发事件，让外部可以监听
+  emit('voice-button-click', context)
+
+  // 如果配置了拦截器，先调用拦截器
+  if (speechConfig.onVoiceButtonClick) {
+    try {
+      const shouldIntercept = await speechConfig.onVoiceButtonClick(context)
+
+      // 如果拦截器返回 true，表示产品侧自己处理，不执行默认逻辑
+      if (shouldIntercept) {
+        return
+      }
+    } catch (error) {
+      console.error('语音按钮点击拦截器执行失败:', error)
+      // 拦截器出错时，继续执行默认逻辑
+    }
+  }
+
+  // 否则执行默认的切换逻辑
+  toggleSpeech()
+}
+
 // 计算字数是否超出限制
 const isOverLimit = computed(() => {
   return props.maxLength !== Infinity && inputValue.value.length > props.maxLength
@@ -500,45 +542,46 @@ defineExpose({
 
           <!-- 内容区域 - 确保最小宽度，不被挤占 -->
           <div class="tiny-sender__content-area">
-            <div v-if="$slots.decorativeContent" class="tiny-sender__decorative-content">
-              <slot name="decorativeContent"></slot>
-            </div>
-
-            <!-- 模板编辑器 -->
-            <template v-if="showTemplateEditor">
-              <TemplateEditor
-                ref="templateEditorRef"
-                :model-value="props.templateData"
-                @update:model-value="handleTemplateUpdate"
-                @submit="triggerSubmit"
-              />
-            </template>
-            <!-- 普通输入框 -->
-            <div v-else class="tiny-sender__input-field-wrapper">
-              <tiny-input
-                ref="inputRef"
-                :autosize="autoSize"
-                :type="currentType"
-                resize="none"
-                v-model="inputValue"
-                :disabled="isDisabled"
-                :placeholder="placeholder"
-                :autofocus="autofocus"
-                @keydown="handleKeyPress"
-                @compositionstart="isComposing = true"
-                @compositionend="handleCompositionEnd"
-                @focus="handleFocus"
-                @blur="handleBlur"
-              />
-              <!-- 补全提示词 -->
-              <div v-if="autoCompleteText && !isComposing" class="tiny-sender__completion-placeholder">
-                <span class="user-input-mirror">{{ inputValue }}</span
-                >{{ autoCompleteText }}
-
-                <!-- Tab Hint -->
-                <div v-if="showTabIndicator" class="tiny-sender__tab-hint">TAB</div>
+            <slot name="content">
+              <div v-if="$slots.decorativeContent" class="tiny-sender__decorative-content">
+                <slot name="decorativeContent"></slot>
               </div>
-            </div>
+
+              <!-- 模板编辑器 -->
+              <template v-if="showTemplateEditor">
+                <TemplateEditor
+                  ref="templateEditorRef"
+                  :model-value="props.templateData"
+                  @update:model-value="handleTemplateUpdate"
+                  @submit="triggerSubmit"
+                />
+              </template>
+              <!-- 普通输入框 -->
+              <div v-else class="tiny-sender__input-field-wrapper">
+                <tiny-input
+                  ref="inputRef"
+                  :autosize="autoSize"
+                  :type="currentType"
+                  resize="none"
+                  v-model="inputValue"
+                  :disabled="isDisabled"
+                  :placeholder="placeholder"
+                  :autofocus="autofocus"
+                  @keydown="handleKeyPress"
+                  @compositionstart="isComposing = true"
+                  @compositionend="handleCompositionEnd"
+                  @focus="handleFocus"
+                  @blur="handleBlur"
+                />
+                <!-- 补全提示词 -->
+                <div v-if="autoCompleteText && !isComposing" class="tiny-sender__completion-placeholder">
+                  <span class="user-input-mirror">{{ inputValue }}</span>
+                  {{ autoCompleteText }}
+                  <!-- Tab Hint -->
+                  <div v-if="showTabIndicator" class="tiny-sender__tab-hint">TAB</div>
+                </div>
+              </div>
+            </slot>
           </div>
 
           <!-- 操作区域/后置插槽 -->
@@ -559,10 +602,15 @@ defineExpose({
                 :stop-text="stopText"
                 @clear="clearInput"
                 @toggle-speech="toggleSpeech"
+                @voice-button-click="handleVoiceButtonClick"
                 @submit="triggerSubmit"
                 @cancel="$emit('cancel')"
                 @trigger-select="openFileDialog"
-              />
+              >
+                <template v-if="$slots['voice-icon']" #voice-icon="{ isRecording }">
+                  <slot name="voice-icon" :is-recording="isRecording" :mode="currentMode" />
+                </template>
+              </action-buttons>
             </div>
           </div>
         </div>
@@ -608,10 +656,15 @@ defineExpose({
                     :stop-text="stopText"
                     @clear="clearInput"
                     @toggle-speech="toggleSpeech"
+                    @voice-button-click="handleVoiceButtonClick"
                     @submit="triggerSubmit"
                     @cancel="$emit('cancel')"
                     @trigger-select="openFileDialog"
-                  />
+                  >
+                    <template v-if="$slots['voice-icon']" #voice-icon="{ isRecording }">
+                      <slot name="voice-icon" :is-recording="isRecording" :mode="currentMode" />
+                    </template>
+                  </action-buttons>
                 </div>
               </div>
             </div>

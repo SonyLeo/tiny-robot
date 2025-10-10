@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { TinyTooltip } from '@opentiny/vue'
 import { ActionButtonsProps } from '../index.type'
-import { IconSend, IconStop, IconUpload, IconVoice, IconLoadingSpeech, IconClear } from '@opentiny/tiny-robot-svgs'
+import { IconSend, IconStop, IconUpload, IconVoice, IconClear } from '@opentiny/tiny-robot-svgs'
 
 const props = withDefaults(defineProps<ActionButtonsProps>(), {
   /**
@@ -74,6 +74,10 @@ const emit = defineEmits<{
    * 触发选择文件事件
    */
   (e: 'trigger-select'): void
+  /**
+   * 语音按钮点击事件
+   */
+  (e: 'voice-button-click'): void
 }>()
 
 const fileTooltipRenderFn = computed(() => {
@@ -130,12 +134,11 @@ const handleClear = () => {
 }
 
 /**
- * 切换语音识别状态
+ * 语音按钮点击处理
  */
-const handleToggleSpeech = () => {
+const handleVoiceButtonClick = () => {
   if (!isDisabled.value) {
-    const newState = !props.speechStatus.isRecording
-    emit('toggle-speech', newState)
+    emit('voice-button-click')
   }
 }
 
@@ -202,9 +205,15 @@ const fileTooltipPlacement = computed(() => props.buttonGroup?.file?.tooltipPlac
 
       <!-- 语音按钮：仅在启用语音功能时显示 -->
       <template v-if="speechEnabled && !loading">
-        <div class="action-buttons__button" @click="handleToggleSpeech" :class="{ 'is-recording': isSpeechRecording }">
-          <IconVoice v-if="!isSpeechRecording" class="action-buttons__icon" alt="录音" />
-          <IconLoadingSpeech v-else class="action-buttons__icon action-buttons__icon--recording" alt="语音中" />
+        <div
+          class="action-buttons__button"
+          @click="handleVoiceButtonClick"
+          :class="{ 'is-recording': isSpeechRecording }"
+        >
+          <slot name="voice-icon" :is-recording="isSpeechRecording">
+            <IconVoice v-if="!isSpeechRecording" class="action-buttons__icon" alt="录音" />
+            <img v-else class="action-buttons__recording" src="../../assets/wave.webp" alt="语音中" />
+          </slot>
         </div>
       </template>
 
@@ -289,6 +298,11 @@ const fileTooltipPlacement = computed(() => props.buttonGroup?.file?.tooltipPlac
   gap: var(--tr-sender-actions-gap);
   border-radius: 26px;
   align-items: center;
+
+  &__recording {
+    width: 140px;
+    height: 18px;
+  }
 
   /* 公共按钮样式 */
   &__button {
