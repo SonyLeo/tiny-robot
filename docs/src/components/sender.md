@@ -103,14 +103,13 @@ Sender 组件支持在多行模式下灵活定制底部区域。通过 `footer-l
 
 <demo vue="../../demos/sender/voiceInput.vue" title="语音输入" description="可以使用 speech 属性进行配置" />
 
-#### 移动端语音输入
+#### 自定义语音录制
 
-Sender 组件支持移动端"按住说话"交互模式，通过自定义 UI 实现按住录音、松开发送、上滑取消等功能。
-
+Sender 组件支持自定义语音录制 UI。
 
 通过 `#voice-icon` 插槽可以自定义语音按钮的图标
 
-<demo vue="../../demos/sender/MobilePressToTalk.vue" title="基础示例" description="展示移动端按住说话的基本 UI 结构和交互流程" :vueFiles="['../../demos/sender/MobilePressToTalk.vue', '../../demos/sender/PressToTalkOverlay.vue']" />
+<demo vue="../../demos/sender/CustomRecordingUI.vue" title="基础示例" description="展示移动端按住说话的基本 UI 结构和交互流程" :vueFiles="['../../demos/sender/CustomRecordingUI.vue', '../../demos/sender/PressToTalkOverlay.vue']" />
 
 #### 消息提示
 

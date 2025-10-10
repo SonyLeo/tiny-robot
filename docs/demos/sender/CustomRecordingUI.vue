@@ -1,8 +1,8 @@
 <template>
   <div style="display: flex; flex-direction: column; gap: 20px">
-    <!-- 移动端按住说话 UI -->
+    <!-- 语音录制 UI -->
     <div>
-      <h4>移动端按住说话</h4>
+      <h4>{{ isMobile ? '移动端' : 'PC 端' }} 语音录制</h4>
       <div
         class="sender-container"
         @touchmove.prevent="handleTouchMove"
@@ -39,25 +39,28 @@
         />
       </div>
     </div>
+    <div>
+      <span style="margin-right: 20px">是否是移动端</span>
+      <tiny-switch v-model="isMobile"></tiny-switch>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
+import { TinySwitch } from '@opentiny/vue'
 import { TrSender } from '@opentiny/tiny-robot'
+import type { VoiceButtonClickContext } from '@opentiny/tiny-robot'
 import { MockSpeechHandler } from './speechHandlers'
 import PressToTalkOverlay from './PressToTalkOverlay.vue'
 
 const senderRef = ref<InstanceType<typeof TrSender>>()
 const inputText = ref('')
 const showMobileVoiceUI = ref(false)
+const isMobile = ref(false)
 const isCanceling = ref(false)
 const startY = ref(0)
 const cancelThreshold = 30
-
-const isMobile = computed(() => {
-  return true
-})
 
 // 语音配置
 const speechConfig = {
@@ -103,7 +106,7 @@ const handleTouchEnd = () => {
     inputText.value = ''
   }
 
-  console.log('handleTouchEnd - 开始发送')
+  console.log('handleTouchEnd - 开始发送', inputText.value)
 
   senderRef.value?.stopSpeech()
   senderRef.value?.submit()
