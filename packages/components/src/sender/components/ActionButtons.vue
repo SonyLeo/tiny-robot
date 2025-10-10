@@ -125,6 +125,11 @@ const isSubmitDisabled = computed(() => isDisabled.value || props.isOverLimit ||
 const hasUtilityButtons = computed(() => props.allowFiles || props.allowSpeech || props.showClear)
 
 /**
+ * 语音按钮图标组件
+ */
+const VoiceIconComponent = computed(() => props.buttonGroup?.voice?.icon || IconVoice)
+
+/**
  * 处理清除操作
  */
 const handleClear = () => {
@@ -210,10 +215,8 @@ const fileTooltipPlacement = computed(() => props.buttonGroup?.file?.tooltipPlac
           @click="handleVoiceButtonClick"
           :class="{ 'is-recording': isSpeechRecording }"
         >
-          <slot name="voice-icon" :is-recording="isSpeechRecording">
-            <IconVoice v-if="!isSpeechRecording" class="action-buttons__icon" alt="录音" />
-            <img v-else class="action-buttons__recording" src="../../assets/wave.webp" alt="语音中" />
-          </slot>
+          <component v-if="!isSpeechRecording" :is="VoiceIconComponent" class="action-buttons__icon" alt="录音" />
+          <img v-else class="action-buttons__recording" src="../../assets/wave.webp" alt="语音中" />
         </div>
       </template>
 

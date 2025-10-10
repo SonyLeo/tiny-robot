@@ -105,11 +105,11 @@ Sender 组件支持在多行模式下灵活定制底部区域。通过 `footer-l
 
 #### 自定义语音录制
 
-Sender 组件支持自定义语音录制 UI。
+Sender 组件支持完全自定义语音录制 UI，适用于移动端按住说话等场景。
 
-通过 `#voice-icon` 插槽可以自定义语音按钮的图标
+通过 `buttonGroup.voice.icon` 配置可以自定义语音按钮的图标。
 
-<demo vue="../../demos/sender/CustomRecordingUI.vue" title="基础示例" description="展示移动端按住说话的基本 UI 结构和交互流程" :vueFiles="['../../demos/sender/CustomRecordingUI.vue', '../../demos/sender/PressToTalkOverlay.vue']" />
+<demo vue="../../demos/sender/CustomRecordingUI.vue" title="移动端按住说话" description="展示移动端按住说话的基本 UI 结构和交互流程" :vueFiles="['../../demos/sender/CustomRecordingUI.vue', '../../demos/sender/PressToTalkOverlay.vue']" />
 
 #### 消息提示
 
@@ -379,7 +379,6 @@ Sender 组件支持紧凑模式，适用于空间受限的场景。通过添加 
 | `header`          | 头部插槽，位于输入框上方         | `.tiny-sender__header-slot`       | 无                      |
 | `prefix`          | 前缀插槽，位于输入框左侧         | `.tiny-sender__prefix-slot`       | 无                      |
 | `actions`         | 后缀插槽，位于输入框右侧         | `.tiny-sender__actions-slot`      | 单行模式下的操作按钮    |
-| `voice-icon` | 语音按钮图标插槽  | `{ isRecording: boolean, mode: string }` | -  | 默认麦克风图标  |
 | `content`         | 内容插槽                       | -                                 |  输入内容区域           |
 | `footer-left`     | 底部左侧插槽，保留字数限制       | `.tiny-sender__footer-left`       | 字数限制                |
 | `footer-right`    | 底部右侧插槽，保留操作按钮       | `.tiny-sender__footer-right`      | 多行模式下的操作按钮    |
@@ -421,10 +420,14 @@ interface fileUploadConfig {
   reset?: boolean // 是否重置文件选择
 }
 
+interface VoiceButtonConfig {
+  icon?: VNode | Component // 自定义语音图标（未录音状态）
+}
+
 interface ButtonGroupConfig {
   file?: ControlState & fileUploadConfig // 文件上传按钮
   submit?: ControlState // 提交按钮
-  // 后续可扩展至其他按钮...
+  voice?: VoiceButtonConfig // 语音按钮
 }
 ```
 

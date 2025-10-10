@@ -606,11 +606,7 @@ defineExpose({
                 @submit="triggerSubmit"
                 @cancel="$emit('cancel')"
                 @trigger-select="openFileDialog"
-              >
-                <template v-if="$slots['voice-icon']" #voice-icon="{ isRecording }">
-                  <slot name="voice-icon" :is-recording="isRecording" :mode="currentMode" />
-                </template>
-              </action-buttons>
+              />
             </div>
           </div>
         </div>
@@ -660,11 +656,7 @@ defineExpose({
                     @submit="triggerSubmit"
                     @cancel="$emit('cancel')"
                     @trigger-select="openFileDialog"
-                  >
-                    <template v-if="$slots['voice-icon']" #voice-icon="{ isRecording }">
-                      <slot name="voice-icon" :is-recording="isRecording" :mode="currentMode" />
-                    </template>
-                  </action-buttons>
+                  />
                 </div>
               </div>
             </div>
