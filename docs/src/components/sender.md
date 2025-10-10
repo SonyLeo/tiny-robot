@@ -103,6 +103,15 @@ Sender 组件支持在多行模式下灵活定制底部区域。通过 `footer-l
 
 <demo vue="../../demos/sender/voiceInput.vue" title="语音输入" description="可以使用 speech 属性进行配置" />
 
+#### 移动端语音输入
+
+Sender 组件支持移动端"按住说话"交互模式，通过自定义 UI 实现按住录音、松开发送、上滑取消等功能。
+
+
+通过 `#voice-icon` 插槽可以自定义语音按钮的图标
+
+<demo vue="../../demos/sender/MobilePressToTalk.vue" title="基础示例" description="展示移动端按住说话的基本 UI 结构和交互流程" :vueFiles="['../../demos/sender/MobilePressToTalk.vue', '../../demos/sender/PressToTalkOverlay.vue']" />
+
 #### 消息提示
 
 此功能适用于需要在输入框内显示提示信息并引导用户操作的场景，如：
@@ -337,6 +346,7 @@ Sender 组件支持紧凑模式，适用于空间受限的场景。通过添加 
 | speech-interim    | 语音识别中间结果时触发     | `(transcript: string)` |
 | speech-error      | 语音识别错误时触发         | `(error: Error)`       |
 | suggestion-select | 选择输入建议时触发         | `(value: string)`      |
+| voice-button-click| 语音按钮点击时触发         | `(context: VoiceButtonClickContext)`  |
 
 ### Methods
 
@@ -370,12 +380,24 @@ Sender 组件支持紧凑模式，适用于空间受限的场景。通过添加 
 | `header`          | 头部插槽，位于输入框上方         | `.tiny-sender__header-slot`       | 无                      |
 | `prefix`          | 前缀插槽，位于输入框左侧         | `.tiny-sender__prefix-slot`       | 无                      |
 | `actions`         | 后缀插槽，位于输入框右侧         | `.tiny-sender__actions-slot`      | 单行模式下的操作按钮    |
+| `voice-icon` | 语音按钮图标插槽  | `{ isRecording: boolean, mode: string }` | -  | 默认麦克风图标  |
+| `content`         | 内容插槽                       | -                                 |  输入内容区域           |
 | `footer-left`     | 底部左侧插槽，保留字数限制       | `.tiny-sender__footer-left`       | 字数限制                |
 | `footer-right`    | 底部右侧插槽，保留操作按钮       | `.tiny-sender__footer-right`      | 多行模式下的操作按钮    |
 | `footer`          | 底部完全自定义插槽(向后兼容)     | `.tiny-sender__footer-slot`       | 无 (会覆盖其他底部元素) |
 | `decorativeContent` | 装饰性内容插槽，启用后禁止输入 | `.tiny-sender__decorative-content` | 无                      |
 
 ### Types
+```typescript
+// 录音按钮点击上下文
+interface VoiceButtonClickContext {
+  isRecording: boolean // 当前是否正在录音
+  speechHandler: {
+    start: () => void
+    stop: () => void
+  }
+}
+```
 
 ```typescript
 interface SpeechConfig {
@@ -383,6 +405,7 @@ interface SpeechConfig {
   continuous?: boolean // 是否持续识别
   interimResults?: boolean // 是否返回中间结果
   autoReplace?: boolean // 是否自动替换当前输入内容
+  onVoiceButtonClick?: (context: VoiceButtonClickContext) => boolean | Promise<boolean> // 录音按钮点击
 }
 ```
 
