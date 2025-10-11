@@ -76,7 +76,9 @@ export class BuiltinSpeechStrategy implements SpeechStrategy {
         .map((result) => result[0].transcript)
         .join('')
 
-      if (event.results[0]?.isFinal) {
+      const current = event.results[event.resultIndex]
+
+      if (current?.isFinal) {
         this.currentCallbacks.onFinal(transcript)
       } else {
         this.currentCallbacks.onInterim(transcript)
@@ -150,7 +152,9 @@ export class CustomSpeechStrategy implements SpeechStrategy {
     }
 
     try {
-      this.customHandler.start(callbacks)
+      void Promise.resolve(this.customHandler.start(callbacks)).catch((error) => {
+        callbacks.onError(error instanceof Error ? error : new Error('自定义语音启动失败'))
+      })
     } catch (error) {
       callbacks.onError(error instanceof Error ? error : new Error('自定义语音启动失败'))
     }
@@ -160,7 +164,9 @@ export class CustomSpeechStrategy implements SpeechStrategy {
     if (!this.customHandler) return
 
     try {
-      this.customHandler.stop()
+      void Promise.resolve(this.customHandler.stop()).catch((error) => {
+        console.warn('停止自定义语音时发生错误:', error)
+      })
     } catch (error) {
       console.warn('停止自定义语音时发生错误:', error)
     }

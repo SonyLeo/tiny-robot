@@ -224,7 +224,8 @@ export class AliyunRealtimeSpeechHandler implements CustomSpeechHandler {
   }
 
   private setupWebSocket(): void {
-    const socketUrl = `ws://${window.location.host}/api/aliyun/ws?token=${this.token}`
+    const scheme = window.location.protocol === 'https:' ? 'wss' : 'ws'
+    const socketUrl = `${scheme}://${window.location.host}/api/aliyun/ws?token=${this.token}`
 
     this.ws = new WebSocket(socketUrl)
 

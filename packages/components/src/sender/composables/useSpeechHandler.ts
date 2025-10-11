@@ -18,7 +18,7 @@ export function useSpeechHandler(options: SpeechHookOptions): SpeechHandler {
   })
 
   // 创建语音策略
-  const strategy = SpeechStrategyFactory.createStrategy(options.mode)
+  const strategy = SpeechStrategyFactory.createStrategy(options.mode ?? 'builtin')
 
   // 初始化策略
   strategy.initialize(options)
