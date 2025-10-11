@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, isVNode } from 'vue'
 import { TinyTooltip } from '@opentiny/vue'
 import { ActionButtonsProps } from '../index.type'
 import { IconSend, IconStop, IconUpload, IconVoice, IconClear } from '@opentiny/tiny-robot-svgs'
@@ -127,7 +127,16 @@ const hasUtilityButtons = computed(() => props.allowFiles || props.allowSpeech |
 /**
  * 语音按钮图标组件
  */
-const VoiceIconComponent = computed(() => props.buttonGroup?.voice?.icon || IconVoice)
+const VoiceIconComponent = computed(() => {
+  const icon = props.buttonGroup?.voice?.icon
+  if (!icon) return IconVoice
+
+  if (isVNode(icon)) {
+    return () => icon
+  }
+
+  return icon
+})
 
 /**
  * 处理清除操作

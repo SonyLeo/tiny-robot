@@ -1,7 +1,7 @@
 <template>
   <div v-if="visible" class="mobile-voice-overlay">
     <!-- 录音动画区域 -->
-    <div class="recording-wave" :class="{ active: visible }">
+    <div class="recording-wave active">
       <slot name="recording-icon">
         <img src="../../../packages/components/src/assets/wave.webp" alt="Recording Wave" class="wave-image" />
       </slot>
@@ -13,7 +13,7 @@
     </div>
 
     <!-- 按钮 -->
-    <button class="voice-btn" :class="{ recording: visible, cancel: isCanceling }">
+    <button class="voice-btn recording" :class="{ cancel: isCanceling }">
       <slot name="button-text">按住说话</slot>
     </button>
   </div>
@@ -100,10 +100,6 @@ const hintText = computed(() => {
   box-shadow: 0 6px 20px rgba(20, 118, 255, 0.25);
   user-select: none;
   pointer-events: none;
-}
-
-.voice-btn.recording {
-  background-color: #1476ff;
 }
 
 .voice-btn.cancel {
