@@ -1,6 +1,6 @@
 import Recorder from 'recorder-core'
 import 'recorder-core/src/engine/pcm'
-import type { CustomSpeechHandler, SpeechCallbacks } from '@opentiny/tiny-robot'
+import type { SpeechHandler, SpeechCallbacks } from '@opentiny/tiny-robot'
 
 /**
  * recorder-core 的配置选项
@@ -33,7 +33,7 @@ const TypedRecorder = Recorder as RecorderStatic
  * 简单的模拟语音处理器
  * 用于测试和演示
  */
-export class MockSpeechHandler implements CustomSpeechHandler {
+export class MockSpeechHandler implements SpeechHandler {
   private timer?: ReturnType<typeof setInterval>
 
   start(callbacks: SpeechCallbacks): void {
@@ -79,7 +79,7 @@ export class MockSpeechHandler implements CustomSpeechHandler {
  *
  * 需要填入自己的 appKey 和 token
  */
-export class AliyunSpeechHandler implements CustomSpeechHandler {
+export class AliyunSpeechHandler implements SpeechHandler {
   private recorder?: IRecorder
   private callbacks?: SpeechCallbacks
   private appKey: string = 'your_app_key'
@@ -188,7 +188,7 @@ export class AliyunSpeechHandler implements CustomSpeechHandler {
  *
  * 需要填入自己的 appKey 和 token
  */
-export class AliyunRealtimeSpeechHandler implements CustomSpeechHandler {
+export class AliyunRealtimeSpeechHandler implements SpeechHandler {
   private ws?: WebSocket
   private audioContext?: AudioContext
   private scriptProcessor?: ScriptProcessorNode

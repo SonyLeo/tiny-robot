@@ -399,9 +399,6 @@ Sender 组件支持紧凑模式，适用于空间受限的场景。通过添加 
 ### Types
 
 ```typescript
-// 语音模式
-type SpeechMode = 'builtin' | 'custom'
-
 // 语音回调函数集合
 interface SpeechCallbacks {
   onStart: () => void
@@ -412,13 +409,13 @@ interface SpeechCallbacks {
 }
 
 // 自定义语音处理器接口
-interface CustomSpeechHandler {
+interface SpeechHandler {
   start: (callbacks: SpeechCallbacks) => Promise<void> | void
   stop: () => Promise<void> | void
   isSupported: () => boolean
 }
 interface SpeechConfig {
-  customHandler?: CustomSpeechHandler // 自定义语音处理器
+  customHandler?: SpeechHandler // 自定义语音处理器
   lang?: string // 识别语言，默认浏览器语言
   continuous?: boolean // 是否持续识别
   interimResults?: boolean // 是否返回中间结果
