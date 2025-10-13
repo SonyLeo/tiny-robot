@@ -13,22 +13,14 @@ export type InputMode = 'single' | 'multiple'
 
 // 提交触发方式
 export type SubmitTrigger = 'enter' | 'ctrlEnter' | 'shiftEnter'
-// 录音按钮点击上下文
-export interface VoiceButtonClickContext {
-  isRecording: boolean // 当前是否正在录音
-  speechHandler: {
-    // 暴露给产品侧的录音控制方法
-    start: () => void
-    stop: () => void
-  }
-}
+
 // 语音识别配置
 export interface SpeechConfig {
   lang?: string // 识别语言，默认浏览器语言
   continuous?: boolean // 是否持续识别
   interimResults?: boolean // 是否返回中间结果
   autoReplace?: boolean // 是否自动替换当前输入内容
-  onVoiceButtonClick?: (context: VoiceButtonClickContext) => boolean | Promise<boolean> // 录音按钮点击拦截器
+  onVoiceButtonClick?: (isRecording: boolean, preventDefault: () => void) => void | Promise<void> // 录音按钮点击拦截器
 }
 
 export type AutoSize = boolean | { minRows: number; maxRows: number }
@@ -148,7 +140,6 @@ export type SenderEmits = {
   (e: 'cancel'): void // 取消发送状态时触发
   (e: 'reset-template'): void // 重置模板状态，退出模板编辑模式
   (e: 'files-selected', files: File[]): void // 文件选择事件
-  (e: 'voice-button-click', context: VoiceButtonClickContext): void // 语音按钮点击事件
 }
 
 // 语音识别状态

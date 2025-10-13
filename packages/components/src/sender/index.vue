@@ -2,14 +2,7 @@
 import { computed, ref, watch, nextTick, useSlots } from 'vue'
 import { TinyInput } from '@opentiny/vue'
 import { useFileDialog } from '@vueuse/core'
-import type {
-  SenderProps,
-  SenderEmits,
-  InputHandler,
-  KeyboardHandler,
-  UserItem,
-  VoiceButtonClickContext,
-} from './index.type'
+import type { SenderProps, SenderEmits, InputHandler, KeyboardHandler, UserItem } from './index.type'
 import { useInputHandler } from './composables/useInputHandler'
 import { useKeyboardHandler } from './composables/useKeyboardHandler'
 import { useSpeechHandler } from './composables/useSpeechHandler'
@@ -357,35 +350,27 @@ const toggleSpeech = () => {
 // 处理语音按钮点击事件
 const handleVoiceButtonClick = async () => {
   const speechConfig = typeof props.speech === 'object' ? props.speech : {}
-
-  // 构建上下文
-  const context: VoiceButtonClickContext = {
-    isRecording: speechState.isRecording,
-    speechHandler: {
-      start: () => startSpeech(),
-      stop: () => stopSpeech(),
-    },
-  }
-
-  // 触发事件，让外部可以监听
-  emit('voice-button-click', context)
+  const isRecording = speechState.isRecording
 
   // 如果配置了拦截器，先调用拦截器
   if (speechConfig.onVoiceButtonClick) {
-    try {
-      const shouldIntercept = await speechConfig.onVoiceButtonClick(context)
+    let defaultPrevented = false
 
-      // 如果拦截器返回 true，表示产品侧自己处理，不执行默认逻辑
-      if (shouldIntercept) {
-        return
-      }
+    try {
+      await speechConfig.onVoiceButtonClick(isRecording, () => {
+        defaultPrevented = true
+      })
     } catch (error) {
       console.error('语音按钮点击拦截器执行失败:', error)
-      // 拦截器出错时，继续执行默认逻辑
+    }
+
+    // 如果调用了 preventDefault，不执行默认逻辑
+    if (defaultPrevented) {
+      return
     }
   }
 
-  // 否则执行默认的切换逻辑
+  // 执行默认的切换逻辑
   toggleSpeech()
 }
 

@@ -345,7 +345,6 @@ Sender 组件支持紧凑模式，适用于空间受限的场景。通过添加 
 | speech-interim    | 语音识别中间结果时触发     | `(transcript: string)` |
 | speech-error      | 语音识别错误时触发         | `(error: Error)`       |
 | suggestion-select | 选择输入建议时触发         | `(value: string)`      |
-| voice-button-click| 语音按钮点击时触发         | `(context: VoiceButtonClickContext)`  |
 
 ### Methods
 
@@ -387,23 +386,12 @@ Sender 组件支持紧凑模式，适用于空间受限的场景。通过添加 
 
 ### Types
 ```typescript
-// 录音按钮点击上下文
-interface VoiceButtonClickContext {
-  isRecording: boolean // 当前是否正在录音
-  speechHandler: {
-    start: () => void
-    stop: () => void
-  }
-}
-```
-
-```typescript
 interface SpeechConfig {
   lang?: string // 识别语言，默认浏览器语言
   continuous?: boolean // 是否持续识别
   interimResults?: boolean // 是否返回中间结果
   autoReplace?: boolean // 是否自动替换当前输入内容
-  onVoiceButtonClick?: (context: VoiceButtonClickContext) => boolean | Promise<boolean> // 录音按钮点击
+  onVoiceButtonClick?: (isRecording: boolean, preventDefault: () => void) => void | Promise<void> // 录音按钮点击拦截器
 }
 ```
 

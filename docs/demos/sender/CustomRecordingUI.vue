@@ -50,8 +50,6 @@
 import { ref } from 'vue'
 import { TinySwitch } from '@opentiny/vue'
 import { TrSender } from '@opentiny/tiny-robot'
-import type { VoiceButtonClickContext } from '@opentiny/tiny-robot'
-import { MockSpeechHandler } from './speechHandlers'
 import PressToTalkOverlay from './PressToTalkOverlay.vue'
 
 const senderRef = ref<InstanceType<typeof TrSender>>()
@@ -64,17 +62,22 @@ const cancelThreshold = 30
 
 // 语音配置
 const speechConfig = {
-  mode: 'custom' as const,
-  customHandler: new MockSpeechHandler(),
-  onVoiceButtonClick: async (context: VoiceButtonClickContext) => {
-    if (!isMobile.value) return false
-    if (!context.isRecording) {
+  onVoiceButtonClick: async (isRecording: boolean, preventDefault: () => void) => {
+    // PC 端：使用默认的点击切换录音逻辑
+    if (!isMobile.value) {
+      return // 不调用 preventDefault，继续执行默认逻辑
+    }
+
+    // Mobile 端：使用自定义的按住说话逻辑
+    preventDefault() // 阻止默认逻辑
+
+    if (!isRecording) {
+      // 点击语音按钮时，显示按住说话 UI
       showMobileVoiceUI.value = true
-      return true
     } else {
-      context.speechHandler.stop()
+      // 如果正在录音，停止录音
+      senderRef.value?.stopSpeech()
       showMobileVoiceUI.value = false
-      return true
     }
   },
 }
@@ -105,8 +108,6 @@ const handleTouchEnd = () => {
     // 取消录音（可以在这里清空输入框或其他处理）
     inputText.value = ''
   }
-
-  console.log('handleTouchEnd - 开始发送', inputText.value)
 
   senderRef.value?.stopSpeech()
   senderRef.value?.submit()
