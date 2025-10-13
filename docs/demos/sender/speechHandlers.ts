@@ -35,11 +35,8 @@ const TypedRecorder = Recorder as RecorderStatic
  */
 export class MockSpeechHandler implements CustomSpeechHandler {
   private timer?: ReturnType<typeof setInterval>
-  private callbacks?: SpeechCallbacks
 
   start(callbacks: SpeechCallbacks): void {
-    this.callbacks = callbacks
-
     // 立即触发开始
     callbacks.onStart()
 
@@ -55,28 +52,24 @@ export class MockSpeechHandler implements CustomSpeechHandler {
         // 完成识别
         const finalResult = '这是一个模拟的语音识别结果'
         callbacks.onFinal(finalResult)
-        callbacks.onEnd(finalResult)
-        this.cleanup()
+
+        callbacks.onEnd()
+
+        // 清理定时器资源
+        this.stop()
       }
     }, 500)
   }
 
   stop(): void {
-    if (this.callbacks) {
-      this.callbacks.onEnd()
-    }
-    this.cleanup()
-  }
-
-  isSupported(): boolean {
-    return true // 模拟处理器总是支持
-  }
-
-  private cleanup(): void {
     if (this.timer) {
       clearInterval(this.timer)
       this.timer = undefined
     }
+  }
+
+  isSupported(): boolean {
+    return true // 模拟处理器总是支持
   }
 }
 
@@ -91,53 +84,6 @@ export class AliyunSpeechHandler implements CustomSpeechHandler {
   private callbacks?: SpeechCallbacks
   private appKey: string = 'your_app_key'
   private token: string = 'your_token'
-
-  async start(callbacks: SpeechCallbacks): Promise<void> {
-    this.callbacks = callbacks
-
-    try {
-      this.recorder = TypedRecorder({
-        type: 'pcm',
-        sampleRate: 16000,
-        bitRate: 16,
-      })
-
-      this.recorder.open(
-        () => {
-          this.recorder?.start()
-          callbacks.onStart()
-        },
-        (msg: string, isUserNotAllow: boolean) => {
-          const errorMsg = isUserNotAllow ? `用户拒绝了麦克风权限: ${msg}` : `无法打开麦克风: ${msg}`
-          callbacks.onError(new Error(errorMsg))
-        },
-      )
-    } catch (error) {
-      callbacks.onError(error instanceof Error ? error : new Error('阿里云语音服务启动失败'))
-    }
-  }
-
-  async stop(): Promise<void> {
-    if (!this.recorder) {
-      return
-    }
-
-    this.recorder.stop(
-      (blob: Blob, duration: number) => {
-        console.log(`录音成功，格式: ${blob.type}，时长: ${duration}ms`, blob)
-        this.processWithAliyunAPI(blob)
-        this.closeRecorder()
-      },
-      (msg: string) => {
-        this.callbacks?.onError(new Error(`录音失败: ${msg}`))
-        this.closeRecorder()
-      },
-    )
-  }
-
-  isSupported(): boolean {
-    return true
-  }
 
   private closeRecorder(): void {
     if (this.recorder) {
@@ -186,6 +132,53 @@ export class AliyunSpeechHandler implements CustomSpeechHandler {
     } catch (error) {
       this.callbacks.onError(error instanceof Error ? error : new Error('阿里云语音识别失败'))
     }
+  }
+
+  async start(callbacks: SpeechCallbacks): Promise<void> {
+    this.callbacks = callbacks
+
+    try {
+      this.recorder = TypedRecorder({
+        type: 'pcm',
+        sampleRate: 16000,
+        bitRate: 16,
+      })
+
+      this.recorder.open(
+        () => {
+          this.recorder?.start()
+          callbacks.onStart()
+        },
+        (msg: string, isUserNotAllow: boolean) => {
+          const errorMsg = isUserNotAllow ? `用户拒绝了麦克风权限: ${msg}` : `无法打开麦克风: ${msg}`
+          callbacks.onError(new Error(errorMsg))
+        },
+      )
+    } catch (error) {
+      callbacks.onError(error instanceof Error ? error : new Error('阿里云语音服务启动失败'))
+    }
+  }
+
+  async stop(): Promise<void> {
+    if (!this.recorder) {
+      return
+    }
+
+    this.recorder.stop(
+      (blob: Blob, duration: number) => {
+        console.log(`录音成功，格式: ${blob.type}，时长: ${duration}ms`, blob)
+        this.processWithAliyunAPI(blob)
+        this.closeRecorder()
+      },
+      (msg: string) => {
+        this.callbacks?.onError(new Error(`录音失败: ${msg}`))
+        this.closeRecorder()
+      },
+    )
+  }
+
+  isSupported(): boolean {
+    return true
   }
 }
 
@@ -334,14 +327,6 @@ export class AliyunRealtimeSpeechHandler implements CustomSpeechHandler {
   }
 
   stop(): void {
-    // 主动停止时，先触发 onEnd 回调，然后清理资源
-    if (this.callbacks) {
-      this.callbacks.onEnd()
-    }
-    this.cleanup()
-  }
-
-  private cleanup(): void {
     // 停止音频流
     if (this.audioStream) {
       this.audioStream.getTracks().forEach((track) => track.stop())
@@ -365,48 +350,5 @@ export class AliyunRealtimeSpeechHandler implements CustomSpeechHandler {
       this.ws.close()
     }
     this.ws = undefined
-  }
-}
-
-/**
- * 语音配置工厂函数
- */
-export class SpeechConfigFactory {
-  /**
-   * 阿里云一句话识别配置
-   */
-  static createAliyunConfig() {
-    return {
-      mode: 'custom' as const,
-      customHandler: new AliyunSpeechHandler(),
-      continuous: false,
-      interimResults: false,
-      lang: 'zh-CN',
-    }
-  }
-
-  /**
-   * 阿里云实时语音识别配置
-   */
-  static createAliyunRealtimeConfig() {
-    return {
-      mode: 'custom' as const,
-      customHandler: new AliyunRealtimeSpeechHandler(),
-      continuous: true,
-      interimResults: true,
-      lang: 'zh-CN',
-    }
-  }
-
-  /**
-   * 模拟语音识别配置
-   */
-  static createMockConfig() {
-    return {
-      mode: 'custom' as const,
-      customHandler: new MockSpeechHandler(),
-      continuous: false,
-      interimResults: true,
-    }
   }
 }

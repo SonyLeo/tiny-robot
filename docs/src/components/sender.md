@@ -418,7 +418,6 @@ interface CustomSpeechHandler {
   isSupported: () => boolean
 }
 interface SpeechConfig {
-  mode?: SpeechMode // 语音模式：内置或自定义
   customHandler?: CustomSpeechHandler // 自定义语音处理器
   lang?: string // 识别语言，默认浏览器语言
   continuous?: boolean // 是否持续识别

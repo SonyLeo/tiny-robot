@@ -76,7 +76,6 @@ const results = ref<Array<{ text: string; timestamp: string }>>([])
 
 // 语音配置 - 使用模拟处理器
 const speechConfig = {
-  mode: 'custom' as const,
   customHandler: new MockSpeechHandler(),
   interimResults: true,
 }
