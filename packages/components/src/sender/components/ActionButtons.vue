@@ -59,10 +59,6 @@ const emit = defineEmits<{
    */
   (e: 'clear'): void
   /**
-   * 切换语音识别状态事件
-   */
-  (e: 'toggle-speech', state: boolean): void
-  /**
    * 提交内容事件
    */
   (e: 'submit'): void
