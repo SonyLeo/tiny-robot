@@ -30,32 +30,25 @@ export default defineConfig({
     plugins: [vueJsx()],
     server: {
       open: true,
-      proxy: {
-        '/api/aliyun/asr': {
-          target: 'https://nls-gateway-cn-shanghai.aliyuncs.com',
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/api\/aliyun\/asr/, '/stream/v1/asr'),
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-          },
-        },
-        '/api/aliyun/ws': {
-          target: 'wss://nls-gateway.cn-shanghai.aliyuncs.com',
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/api\/aliyun\/ws/, '/ws/v1'),
-          ws: true,
-        },
-      },
+      proxy: process.env.VP_MODE === 'development' ? { '/playground': 'http://localhost:5184' } : undefined,
     },
     resolve: {
       alias: {
         ...(process.env.VP_MODE === 'development' ? devAlias : prodAlias),
       },
     },
+    define: {
+      __TINY_ROBOT_VERSION__: JSON.stringify(version),
+    },
   },
   markdown: {
     config: (md) => {
-      md.use(vitepressDemoPlugin)
+      md.use(vitepressDemoPlugin, {
+        playground: { show: true },
+        codeTransformer: (code) => {
+          return code.replace(/import\.meta\.env\.BASE_URL/g, `'${process.env.VITEPRESS_BASE || '/'}'`)
+        },
+      })
     },
   },
   themeConfig: {
@@ -63,13 +56,20 @@ export default defineConfig({
     logo: '/cdocs/tiny-robot/logo-mini.svg',
     siteTitle: 'TinyRobot',
     nav: [
-      { text: '指南', link: '/guide/installation', activeMatch: '/guide/' },
+      { text: '指南', link: '/guide/quick-start', activeMatch: '/guide/' },
       { text: '组件', link: '/components/bubble', activeMatch: '/components/' },
       { text: '工具', link: '/tools/ai-client', activeMatch: '/tools/' },
       { text: '演示', link: '/examples/assistant', activeMatch: '/examples/' },
       { text: `v${version}`, link: '/releases/update-log', activeMatch: '/releases/' },
     ],
     sidebar: {
+      '/guide/': [
+        {
+          text: '指南',
+          base: '/guide/',
+          items: [{ text: '快速开始', link: 'quick-start' }],
+        },
+      ],
       '/components/': [
         {
           text: '组件',
@@ -101,6 +101,13 @@ export default defineConfig({
             { text: '消息数据管理', link: 'message' },
             { text: '会话数据管理', link: 'conversation' },
           ],
+        },
+      ],
+      '/examples/': [
+        {
+          text: '演示',
+          base: '/examples/',
+          items: [{ text: '综合示例', link: 'assistant' }],
         },
       ],
     },

@@ -96,6 +96,7 @@ export class AliyunSpeechHandler implements SpeechHandler {
     if (!this.callbacks) return
 
     try {
+      // 实际请求中，需要配置代理转发到： https://nls-gateway-cn-shanghai.aliyuncs.com
       const baseUrl = '/api/aliyun/asr'
 
       const params = new URLSearchParams({
@@ -218,6 +219,7 @@ export class AliyunRealtimeSpeechHandler implements SpeechHandler {
 
   private setupWebSocket(): void {
     const scheme = window.location.protocol === 'https:' ? 'wss' : 'ws'
+    // 实际请求中，需要配置代理转发到： wss://nls-gateway-cn-shanghai.aliyuncs.com
     const socketUrl = `${scheme}://${window.location.host}/api/aliyun/ws?token=${this.token}`
 
     this.ws = new WebSocket(socketUrl)
