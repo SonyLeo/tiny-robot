@@ -72,11 +72,7 @@ Sender 是一个灵活的输入组件，支持多种输入方式和功能，包�
 
 通过`clearable`属性添加清空按钮，方便用户快速清除输入内容。
 
-<tr-sender :clearable="true" />
-
-```vue
-<tr-sender :clearable="true" />
-```
+<demo vue="../../demos/sender/Clearable.vue" title="清空内容" description="在用户输入内容后才显示，没有内容时自动隐藏" />
 
 ### 高级功能
 
@@ -123,6 +119,14 @@ Sender 组件支持自定义语音输入服务，可以集成百度、阿里云�
 - 调用第三方 API
 - 处理实时流式识别
 - 错误处理和资源清理
+
+#### 自定义语音录制
+
+Sender 组件支持完全自定义语音录制 UI，适用于移动端按住说话等场景。
+
+通过 `buttonGroup.voice.icon` 配置可以自定义语音按钮的图标。
+
+<demo vue="../../demos/sender/CustomRecordingUI.vue" title="移动端按住说话" description="展示移动端按住说话的基本 UI 结构和交互流程" :vueFiles="['../../demos/sender/CustomRecordingUI.vue', '../../demos/sender/PressToTalkOverlay.vue']" />
 
 #### 消息提示
 
@@ -391,13 +395,13 @@ Sender 组件支持紧凑模式，适用于空间受限的场景。通过添加 
 | `header`          | 头部插槽，位于输入框上方         | `.tiny-sender__header-slot`       | 无                      |
 | `prefix`          | 前缀插槽，位于输入框左侧         | `.tiny-sender__prefix-slot`       | 无                      |
 | `actions`         | 后缀插槽，位于输入框右侧         | `.tiny-sender__actions-slot`      | 单行模式下的操作按钮    |
+| `content`         | 内容插槽                       | -                                 |  输入内容区域           |
 | `footer-left`     | 底部左侧插槽，保留字数限制       | `.tiny-sender__footer-left`       | 字数限制                |
 | `footer-right`    | 底部右侧插槽，保留操作按钮       | `.tiny-sender__footer-right`      | 多行模式下的操作按钮    |
 | `footer`          | 底部完全自定义插槽(向后兼容)     | `.tiny-sender__footer-slot`       | 无 (会覆盖其他底部元素) |
 | `decorativeContent` | 装饰性内容插槽，启用后禁止输入 | `.tiny-sender__decorative-content` | 无                      |
 
 ### Types
-
 ```typescript
 // 语音回调函数集合
 interface SpeechCallbacks {
@@ -420,6 +424,7 @@ interface SpeechConfig {
   continuous?: boolean // 是否持续识别
   interimResults?: boolean // 是否返回中间结果
   autoReplace?: boolean // 是否自动替换当前输入内容
+  onVoiceButtonClick?: (isRecording: boolean, preventDefault: () => void) => void | Promise<void> // 录音按钮点击拦截器
 }
 ```
 
@@ -436,10 +441,14 @@ interface fileUploadConfig {
   reset?: boolean // 是否重置文件选择
 }
 
+interface VoiceButtonConfig {
+  icon?: VNode | Component // 自定义语音图标（未录音状态）
+}
+
 interface ButtonGroupConfig {
   file?: ControlState & fileUploadConfig // 文件上传按钮
   submit?: ControlState // 提交按钮
-  // 后续可扩展至其他按钮...
+  voice?: VoiceButtonConfig // 语音按钮
 }
 ```
 
