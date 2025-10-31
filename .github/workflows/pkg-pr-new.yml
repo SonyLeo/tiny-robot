@@ -1,0 +1,198 @@
+# pkg.pr.new 预览发布工作流
+# 默认：只发布包到 pkg.pr.new（快速）
+# 需要预览：在 PR 评论区回复 "/deploy-preview" 触发预览部署
+name: pkg.pr.new
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  issue_comment:
+    types: [created]
+  push:
+    branches: [main, develop]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    # 只在 PR 事件或 push 事件时执行，评论事件跳过
+    if: |
+      github.event_name != 'issue_comment' && (
+        (github.event_name == 'push' && !contains(github.event.head_commit.message, 'docs:') && !contains(github.event.head_commit.message, 'chore: release')) ||
+        (github.event_name == 'pull_request' && !contains(github.event.pull_request.title, 'docs:') && !contains(github.event.pull_request.title, 'chore: release'))
+      )
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        run: |
+          echo "pnpm_cache_dir=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.pnpm-cache.outputs.pnpm_cache_dir }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build packages
+        run: pnpm build
+
+      - name: Publish core packages to pkg.pr.new
+        run: |
+          npx pkg-pr-new publish \
+            ./packages/components \
+            ./packages/kit \
+            ./packages/svgs \
+            --pnpm \
+            --template=.pkg-pr-new/template \
+            --comment=update
+
+      - name: Comment PR with usage tip
+        if: github.event_name == 'pull_request' && github.event.action == 'opened'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.issue.number;
+            const comment = `## 📦 包预览已发布
+            
+            你的 PR 包预览已通过 pkg.pr.new 发布，查看上方 pkg-pr-new bot 的评论获取：
+            - 📦 包安装命令
+            - 🔗 StackBlitz 在线预览链接
+            
+            ---
+            
+            💡 **需要完整文档预览？** 在评论区回复 \`/deploy-docs\` 即可部署文档站点。`;
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: comment
+            });
+
+  deploy-docs:
+    runs-on: ubuntu-latest
+    # 只在 PR 评论包含 "/deploy-docs" 时执行
+    if: |
+      github.event_name == 'issue_comment' &&
+      github.event.issue.pull_request &&
+      contains(github.event.comment.body, '/deploy-docs')
+    steps:
+      - name: Add reaction to comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: context.payload.comment.id,
+              content: 'rocket'
+            });
+
+      - name: Get PR branch
+        id: pr_data
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+            core.setOutput('ref', pr.data.head.ref);
+            core.setOutput('sha', pr.data.head.sha);
+            return pr.data.head.ref;
+
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.pr_data.outputs.ref }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        run: |
+          echo "pnpm_cache_dir=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.pnpm-cache.outputs.pnpm_cache_dir }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build packages
+        run: pnpm build
+
+      - name: Build playground
+        run: pnpm -F @opentiny/tiny-robot-playground build
+        env:
+          PLAYGROUND_BASE: /tiny-robot/pr-${{ github.event.issue.number }}/playground
+
+      - name: Build docs
+        run: pnpm -F docs build
+        env:
+          VITEPRESS_BASE: /tiny-robot/pr-${{ github.event.issue.number }}/
+
+      - name: Copy playground to docs
+        run: cp -r packages/playground/dist docs/dist/playground
+
+      - name: Deploy docs preview
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs/dist
+          destination_dir: ./pr-${{ github.event.issue.number }}/
+          keep_files: true
+          force_orphan: false
+
+      - name: Comment preview link
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.issue.number;
+            const repoOwner = context.repo.owner;
+            const repoName = context.repo.repo;
+            const docsUrl = `https://${repoOwner}.github.io/${repoName}/pr-${prNumber}/`;
+            const playgroundUrl = `https://${repoOwner}.github.io/${repoName}/pr-${prNumber}/playground/`;
+            
+            const comment = `## 📚 文档预览已部署
+            
+            - **文档地址**: ${docsUrl}
+            - **Playground**: ${playgroundUrl}
+            - **更新时间**: ${new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}
+            
+            > 💡 再次回复 \`/deploy-docs\` 可重新部署最新代码`;
+            
+            await github.rest.issues.createComment({
+              owner: repoOwner,
+              repo: repoName,
+              issue_number: prNumber,
+              body: comment
+            });
