@@ -91,5 +91,3 @@ import { TinyBubble } from '@opentiny/tiny-robot'
   </div>
 </template>
 ```
-
-**原则：** 保持示例简洁，只展示最基础的用法。
