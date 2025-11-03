@@ -9,7 +9,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "vue": "^3.5.13"
+    "vue": "^3.5.13",
+    "@opentiny/tiny-robot": "*",
+    "@opentiny/tiny-robot-kit": "*",
+    "@opentiny/tiny-robot-svgs": "*"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.0",
