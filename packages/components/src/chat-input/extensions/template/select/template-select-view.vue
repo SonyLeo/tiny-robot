@@ -182,6 +182,7 @@ const navigateUp = () => {
   } else {
     highlightedIndex.value -= 1
   }
+  scrollToHighlighted()
 }
 
 const navigateDown = () => {
@@ -194,6 +195,21 @@ const navigateDown = () => {
   } else {
     highlightedIndex.value += 1
   }
+  scrollToHighlighted()
+}
+
+const scrollToHighlighted = () => {
+  nextTick(() => {
+    if (!dropdownRef.value) return
+
+    const highlightedElement = dropdownRef.value.querySelector('.template-select__option.is-highlighted')
+    if (highlightedElement) {
+      highlightedElement.scrollIntoView({
+        block: 'nearest',
+        behavior: 'smooth',
+      })
+    }
+  })
 }
 
 const selectHighlightedOption = () => {

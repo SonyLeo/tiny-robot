@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, nextTick } from 'vue'
 import type { MentionItem } from '../types'
 
 interface Props {
@@ -24,11 +24,13 @@ watch(
 function onKeyDown({ event }: { event: KeyboardEvent }): boolean {
   if (event.key === 'ArrowUp') {
     selectedIndex.value = Math.max(0, selectedIndex.value - 1)
+    scrollToSelected()
     return true
   }
 
   if (event.key === 'ArrowDown') {
     selectedIndex.value = Math.min(props.items.length - 1, selectedIndex.value + 1)
+    scrollToSelected()
     return true
   }
 
@@ -38,6 +40,19 @@ function onKeyDown({ event }: { event: KeyboardEvent }): boolean {
   }
 
   return false
+}
+
+// 滚动到选中项
+function scrollToSelected() {
+  nextTick(() => {
+    const selectedElement = document.querySelector('.mention-item.is-selected')
+    if (selectedElement) {
+      selectedElement.scrollIntoView({
+        block: 'nearest',
+        behavior: 'smooth',
+      })
+    }
+  })
 }
 
 // 选择提及项
