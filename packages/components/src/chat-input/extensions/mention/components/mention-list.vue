@@ -100,7 +100,7 @@ defineExpose({
   </div>
 </template>
 
-<style scoped>
+<style lang="less" scoped>
 .mention-list {
   background: var(--tr-chat-input-mention-list-bg);
   border-radius: 12px;
@@ -109,6 +109,28 @@ defineExpose({
   max-height: 320px;
   overflow-y: auto;
   max-width: 320px;
+
+  // 滚动条样式
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+    margin: 6px 0;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--tr-chat-input-mention-scrollbar-thumb);
+    border-radius: 4px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+
+    &:hover {
+      background: var(--tr-chat-input-mention-scrollbar-thumb-hover);
+      background-clip: padding-box;
+    }
+  }
 }
 
 .mention-item {
@@ -121,21 +143,21 @@ defineExpose({
   transition: background 0.15s ease;
   user-select: none;
 
-  /* Button reset */
+  // Button reset
   border: none;
   background: transparent;
   width: 100%;
   text-align: left;
   font-size: 14px;
   font-weight: 500;
-}
 
-.mention-item:hover {
-  background: var(--tr-chat-input-mention-item-hover-bg);
-}
+  &:hover {
+    background: var(--tr-chat-input-mention-item-hover-bg);
+  }
 
-.mention-item.is-selected {
-  background: var(--tr-chat-input-mention-item-selected-bg);
+  &.is-selected {
+    background: var(--tr-chat-input-mention-item-selected-bg);
+  }
 }
 
 .mention-icon {
@@ -165,27 +187,5 @@ defineExpose({
   text-align: center;
   color: var(--tr-chat-input-mention-text-tertiary);
   font-size: 14px;
-}
-
-/* 滚动条样式 */
-.mention-list::-webkit-scrollbar {
-  width: 8px;
-}
-
-.mention-list::-webkit-scrollbar-track {
-  background: transparent;
-  margin: 6px 0;
-}
-
-.mention-list::-webkit-scrollbar-thumb {
-  background: var(--tr-chat-input-mention-scrollbar-thumb);
-  border-radius: 4px;
-  border: 2px solid transparent;
-  background-clip: padding-box;
-}
-
-.mention-list::-webkit-scrollbar-thumb:hover {
-  background: var(--tr-chat-input-mention-scrollbar-thumb-hover);
-  background-clip: padding-box;
 }
 </style>
