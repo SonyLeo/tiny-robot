@@ -128,44 +128,14 @@ declare module '@tiptap/core' {
       insertTemplate: (attrs: Partial<TemplateAttrs>) => ReturnType
 
       /**
-       * 更新模板块
-       */
-      updateTemplate: (id: string, content: string) => ReturnType
-
-      /**
-       * 删除模板块
-       */
-      deleteTemplate: (id: string) => ReturnType
-
-      /**
-       * 聚焦到模板块
-       */
-      focusTemplate: (id: string, position?: 'start' | 'end' | number) => ReturnType
-
-      /**
        * 聚焦到第一个模板块
        */
       focusFirstTemplate: () => ReturnType
 
       /**
-       * 聚焦到最后一个模板块
-       */
-      focusLastTemplate: () => ReturnType
-
-      /**
        * 插入选择器
        */
       insertTemplateSelect: (attrs: Partial<TemplateSelectAttrs>) => ReturnType
-
-      /**
-       * 更新选择器的选中值
-       */
-      updateTemplateSelect: (id: string, value: string) => ReturnType
-
-      /**
-       * 删除选择器
-       */
-      deleteTemplateSelect: (id: string) => ReturnType
     }
   }
 }
