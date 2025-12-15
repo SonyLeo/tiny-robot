@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { Editor } from '@tiptap/core'
 import { NodeViewWrapper } from '@tiptap/vue-3'
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { computePosition, flip, shift, offset, autoUpdate } from '@floating-ui/dom'
 import { IconArrowDown } from '@opentiny/tiny-robot-svgs'
+import { TemplateSelectDropdownPluginKey } from './plugins'
 import type { SelectOption } from '../types'
 import { closeAllDropdowns, setupClickOutside } from './dropdown-manager'
 
@@ -18,7 +20,7 @@ interface Props {
     attrs: NodeAttrs
   }
   updateAttributes: (attrs: Record<string, unknown>) => void
-  editor: unknown
+  editor: Editor
 }
 
 const props = defineProps<Props>()
@@ -59,6 +61,17 @@ const openDropdown = async () => {
 
   showDropdown.value = true
 
+  // 更新 ProseMirror 插件状态
+  if (props.editor?.view) {
+    const view = props.editor.view
+    const tr = view.state.tr
+    tr.setMeta(TemplateSelectDropdownPluginKey, {
+      type: 'open',
+      selectId: props.node.attrs.id,
+    })
+    view.dispatch(tr)
+  }
+
   // 设置高亮索引：如果有选中值，高亮对应选项；否则不高亮任何选项
   if (props.node.attrs.value) {
     highlightedIndex.value = props.node.attrs.options.findIndex((opt) => opt.value === props.node.attrs.value)
@@ -76,9 +89,19 @@ const openDropdown = async () => {
   }
 }
 
-const closeDropdown = () => {
+const closeDropdown = async () => {
   showDropdown.value = false
   highlightedIndex.value = -1
+
+  // 更新 ProseMirror 插件状态
+  if (props.editor?.view) {
+    const view = props.editor.view
+    const tr = view.state.tr
+    tr.setMeta(TemplateSelectDropdownPluginKey, {
+      type: 'close',
+    })
+    view.dispatch(tr)
+  }
 
   // 清理点击外部监听
   if (cleanupClickOutside) {
@@ -201,7 +224,7 @@ onUnmounted(() => {
 
 <template>
   <NodeViewWrapper as="span" class="template-select">
-    <span contenteditable="false" class="template-select__prefix">&nbsp;</span>
+    <span contenteditable="false" class="template-select__prefix">&#8203;</span>
     <span
       ref="triggerRef"
       class="template-select__trigger"
@@ -211,7 +234,7 @@ onUnmounted(() => {
       <span class="template-select__text" :class="{ 'is-placeholder': isPlaceholder }">{{ displayText }}</span>
       <span class="template-select__icon"><IconArrowDown /></span>
     </span>
-    <span contenteditable="false" class="template-select__suffix">&nbsp;</span>
+    <span contenteditable="false" class="template-select__suffix">&#8203;</span>
 
     <Teleport to="body">
       <div v-if="showDropdown" ref="dropdownRef" class="template-select__dropdown">
@@ -235,8 +258,13 @@ onUnmounted(() => {
 
 <style lang="less" scoped>
 .template-select {
-  display: inline-block;
+  display: inline;
   position: relative;
+
+  &__prefix,
+  &__suffix {
+    user-select: none;
+  }
 
   &__trigger {
     display: inline-flex;

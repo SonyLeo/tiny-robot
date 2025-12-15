@@ -14,6 +14,7 @@ export { TemplateSelect } from './select/extension'
 export { templateCommands } from './commands'
 export * from './types'
 export { getTextWithTemplates, getTemplateStructuredData } from './utils'
+export { TemplateSelectDropdownPluginKey } from './select/plugins'
 
 // ===== 便捷函数 =====
 

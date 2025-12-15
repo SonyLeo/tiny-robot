@@ -6,8 +6,67 @@ import { Plugin, PluginKey } from '@tiptap/pm/state'
 import type { EditorState, Transaction } from '@tiptap/pm/state'
 import type { EditorView } from '@tiptap/pm/view'
 import type { Node as PMNode } from '@tiptap/pm/model'
+import { ZERO_WIDTH_CHAR } from '../utils'
 
-const ZERO_WIDTH_CHAR = '\u200B'
+/**
+ * Template Select 下拉菜单状态
+ */
+interface TemplateSelectDropdownState {
+  /**
+   * 是否有下拉菜单打开
+   */
+  isOpen: boolean
+  /**
+   * 当前打开的下拉菜单 ID
+   */
+  selectId: string | null
+}
+
+/**
+ * Template Select 下拉菜单状态插件 Key
+ */
+export const TemplateSelectDropdownPluginKey = new PluginKey<TemplateSelectDropdownState>('templateSelectDropdown')
+
+/**
+ * 下拉菜单状态管理插件
+ * 用于在 ProseMirror 插件状态中跟踪下拉菜单的打开/关闭状态
+ */
+export function selectDropdownStatePlugin() {
+  return new Plugin({
+    key: TemplateSelectDropdownPluginKey,
+
+    state: {
+      init(): TemplateSelectDropdownState {
+        return {
+          isOpen: false,
+          selectId: null,
+        }
+      },
+
+      apply(tr: Transaction, state: TemplateSelectDropdownState): TemplateSelectDropdownState {
+        const meta = tr.getMeta(TemplateSelectDropdownPluginKey)
+
+        if (meta) {
+          if (meta.type === 'open') {
+            return {
+              isOpen: true,
+              selectId: meta.selectId,
+            }
+          }
+
+          if (meta.type === 'close') {
+            return {
+              isOpen: false,
+              selectId: null,
+            }
+          }
+        }
+
+        return state
+      },
+    },
+  })
+}
 
 /**
  * 零宽字符管理插件
@@ -62,6 +121,15 @@ export function selectKeyboardPlugin() {
         const { selection } = state
         const { $from } = selection
 
+        // 如果有下拉菜单打开，拦截键盘事件让 Vue 组件处理
+        const dropdownState = TemplateSelectDropdownPluginKey.getState(view.state)
+        if (dropdownState?.isOpen) {
+          if (event.key === 'Enter' || event.key === 'ArrowUp' || event.key === 'ArrowDown' || event.key === 'Escape') {
+            // 返回 true 表示"已处理"，阻止事件继续传播到 useChatInputCore
+            return true
+          }
+        }
+
         // 处理 Backspace 删除选择器
         // 注意：零宽字符现在由 Vue 组件渲染，总是存在于 templateSelect 前后
         if (event.key === 'Backspace' && selection.empty) {
@@ -76,14 +144,30 @@ export function selectKeyboardPlugin() {
             return true
           }
 
-          // 场景2：光标后面是 templateSelect，前面是普通文本
+          // 场景2：光标前面是零宽字符（templateSelect 的 suffix）
+          // 需要找到并删除前面的 templateSelect 节点
+          if (beforeNode?.isText && beforeNode.text === ZERO_WIDTH_CHAR) {
+            // 查找零宽字符前面的节点
+            const posBeforeZeroWidth = $from.pos - 1
+            const $posBeforeZeroWidth = state.doc.resolve(posBeforeZeroWidth)
+            const nodeBeforeZeroWidth = $posBeforeZeroWidth.nodeBefore
+
+            // 如果零宽字符前面是 templateSelect，删除 templateSelect + 零宽字符
+            if (nodeBeforeZeroWidth?.type.name === 'templateSelect') {
+              const deleteFrom = posBeforeZeroWidth - nodeBeforeZeroWidth.nodeSize
+              const deleteTo = $from.pos // 包括零宽字符
+              dispatch(state.tr.delete(deleteFrom, deleteTo))
+              event.preventDefault()
+              return true
+            }
+          }
+
+          // 场景3：光标后面是 templateSelect，前面是普通文本
           // 删除文本的最后一个字符
           if (afterNode?.type.name === 'templateSelect') {
-            // 如果前面是普通文本
+            // 如果前面是普通文本（非零宽字符）
             if (beforeNode?.isText && beforeNode.text !== ZERO_WIDTH_CHAR) {
-              const deleteStart = $from.pos - 1
-              const deleteEnd = $from.pos
-              dispatch(state.tr.delete(deleteStart, deleteEnd))
+              dispatch(state.tr.delete($from.pos - 1, $from.pos))
               event.preventDefault()
               return true
             }
@@ -91,6 +175,14 @@ export function selectKeyboardPlugin() {
             if (beforeNode?.type.name === 'template') {
               return false
             }
+          }
+
+          // 场景4：光标在段落末尾（afterNode 为 null），前面是普通文本
+          // 这种情况通常发生在删除了段落末尾的 templateSelect 之后
+          if (!afterNode && beforeNode?.isText && beforeNode.text !== ZERO_WIDTH_CHAR) {
+            dispatch(state.tr.delete($from.pos - 1, $from.pos))
+            event.preventDefault()
+            return true
           }
         }
 
@@ -108,14 +200,29 @@ export function selectKeyboardPlugin() {
             return true
           }
 
-          // 场景2：光标前面是 templateSelect，后面是普通文本
+          // 场景2：光标后面是零宽字符（templateSelect 的 prefix）
+          // 需要找到并删除后面的 templateSelect 节点
+          if (afterNode?.isText && afterNode.text === ZERO_WIDTH_CHAR) {
+            // 查找零宽字符后面的节点
+            const posAfterZeroWidth = $from.pos + 1
+            const $posAfterZeroWidth = state.doc.resolve(posAfterZeroWidth)
+            const nodeAfterZeroWidth = $posAfterZeroWidth.nodeAfter
+
+            // 如果零宽字符后面是 templateSelect，删除零宽字符 + templateSelect
+            if (nodeAfterZeroWidth?.type.name === 'templateSelect') {
+              const deleteTo = posAfterZeroWidth + nodeAfterZeroWidth.nodeSize
+              dispatch(state.tr.delete($from.pos, deleteTo))
+              event.preventDefault()
+              return true
+            }
+          }
+
+          // 场景3：光标前面是 templateSelect，后面是普通文本
           // 删除文本的第一个字符
           if (beforeNode?.type.name === 'templateSelect') {
-            // 如果后面是普通文本
+            // 如果后面是普通文本（非零宽字符）
             if (afterNode?.isText && afterNode.text !== ZERO_WIDTH_CHAR) {
-              const deleteStart = $from.pos
-              const deleteEnd = $from.pos + 1
-              dispatch(state.tr.delete(deleteStart, deleteEnd))
+              dispatch(state.tr.delete($from.pos, $from.pos + 1))
               event.preventDefault()
               return true
             }
@@ -123,6 +230,14 @@ export function selectKeyboardPlugin() {
             if (afterNode?.type.name === 'template') {
               return false
             }
+          }
+
+          // 场景4：光标在段落开头（beforeNode 为 null），后面是普通文本
+          // 这种情况通常发生在删除了段落开头的 templateSelect 之后
+          if (!beforeNode && afterNode?.isText && afterNode.text !== ZERO_WIDTH_CHAR) {
+            dispatch(state.tr.delete($from.pos, $from.pos + 1))
+            event.preventDefault()
+            return true
           }
         }
 

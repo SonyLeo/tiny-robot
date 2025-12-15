@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { NodeViewWrapper, NodeViewContent } from '@tiptap/vue-3'
+import { ZERO_WIDTH_CHAR } from '../utils'
 
 interface NodeAttrs {
   id: string
@@ -22,7 +23,7 @@ const props = defineProps<Props>()
 const isEmpty = computed(() => {
   const content = props.node.textContent || ''
   // 排除零宽字符
-  return content.length === 0 || content === '\u200B'
+  return content.length === 0 || content === ZERO_WIDTH_CHAR
 })
 </script>
 

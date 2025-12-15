@@ -353,16 +353,52 @@ renderHTML({ node, HTMLAttributes }) {
 
 ## 零宽字符管理
 
-### 插入规则
+### 实现方案
 
-TemplateSelect 作为原子节点，需要在前后插入零宽字符以确保光标定位：
+TemplateSelect 采用**组件内置零宽字符**的方案，在 Vue 组件中直接渲染零宽字符，而不是通过插件动态插入。
 
-1. **段落首个节点是选择器** → 在选择器前插入零宽字符
-2. **段落末个节点是选择器** → 在选择器后插入零宽字符
-3. **连续两个选择器** → 在中间插入零宽字符
-4. **选择器和 TemplateBlock 相邻** → 在中间插入零宽字符
+**优势：**
+- 零宽字符作为 DOM 结构的一部分，总是存在
+- 逻辑更简单，不需要复杂的插入判断
+- 与 TemplateBlock 保持一致的实现方式
 
-**注意**：选择器内部不需要零宽字符（因为是原子节点，不可编辑）
+### Vue 组件实现
+
+```vue
+<template>
+  <NodeViewWrapper as="span" class="template-select">
+    <!-- 前置零宽字符 -->
+    <span contenteditable="false" class="template-select__prefix">&#8203;</span>
+    
+    <!-- 选择器触发器 -->
+    <span class="template-select__trigger">
+      <span class="template-select__text">{{ displayText }}</span>
+      <span class="template-select__icon">▼</span>
+    </span>
+    
+    <!-- 后置零宽字符 -->
+    <span contenteditable="false" class="template-select__suffix">&#8203;</span>
+  </NodeViewWrapper>
+</template>
+
+<style scoped>
+.template-select {
+  display: inline;  /* 使用 inline，避免光标高度异常 */
+  
+  &__prefix,
+  &__suffix {
+    user-select: none;  /* 不可选中 */
+  }
+}
+</style>
+```
+
+### 关键点
+
+1. **零宽字符**：使用 HTML 实体 `&#8203;`（Unicode U+200B）
+2. **contenteditable="false"**：防止零宽字符被编辑
+3. **display: inline**：避免 `inline-block` 导致光标高度异常
+4. **无需 font-size: 0px**：零宽字符本身不占空间
 
 ### 与 TemplateBlock 的差异
 
@@ -371,48 +407,42 @@ TemplateSelect 作为原子节点，需要在前后插入零宽字符以确保�
 | **内部零宽字符** | 需要（可编辑） | 不需要（原子节点） |
 | **前后零宽字符** | 需要 | 需要 |
 | **零宽字符位置** | 前、后、内部 | 仅前、后 |
+| **实现方式** | 组件内置 | 组件内置 |
 
-### 插件实现
+### 零宽字符清理插件
+
+插件只负责清理孤立的零宽字符（段落中只有一个零宽字符的情况）：
 
 ```typescript
 export function selectZeroWidthPlugin() {
   return new Plugin({
     key: new PluginKey('templateSelectZeroWidth'),
     
-    appendTransaction(transactions, oldState, newState) {
+    appendTransaction(transactions, _oldState, newState) {
       const docChanged = transactions.some(tr => tr.docChanged)
       if (!docChanged) return null
       
-      let tr = newState.tr
-      let modified = false
+      const todoPositions: Array<['remove', number]> = []
+      let { tr } = newState
       
-      newState.doc.descendants((node, pos, parent) => {
-        if (parent?.type.name !== 'paragraph') return
-        
-        // 处理选择器节点的零宽字符
-        if (node.type.name === 'templateSelect') {
-          // 检查前后是否需要零宽字符
-          const beforePos = pos - 1
-          const afterPos = pos + node.nodeSize
-          
-          const beforeNode = newState.doc.resolve(pos).nodeBefore
-          const afterNode = newState.doc.resolve(afterPos).nodeAfter
-          
-          // 在选择器前插入零宽字符
-          if (!beforeNode || beforeNode.text !== ZERO_WIDTH_CHAR) {
-            tr.insertText(ZERO_WIDTH_CHAR, pos)
-            modified = true
-          }
-          
-          // 在选择器后插入零宽字符
-          if (!afterNode || !afterNode.text?.startsWith(ZERO_WIDTH_CHAR)) {
-            tr.insertText(ZERO_WIDTH_CHAR, afterPos)
-            modified = true
+      newState.doc.descendants((node, pos) => {
+        if (node.type.name === 'paragraph' && node.childCount > 0) {
+          const { lastChild, firstChild } = node
+          // 如果段落只有一个零宽字符，删除它
+          if (lastChild === firstChild && lastChild?.isText && lastChild.text === ZERO_WIDTH_CHAR) {
+            todoPositions.push(['remove', pos + 1])
           }
         }
       })
       
-      return modified ? tr : null
+      if (todoPositions.length > 0) {
+        todoPositions.forEach(([, pos]) => {
+          tr = tr.delete(pos, pos + 1)
+        })
+        return tr
+      }
+      
+      return null
     }
   })
 }
@@ -504,7 +534,57 @@ export function setupClickOutside(
 
 
 
-## 键盘导航插件
+## 键盘删除逻辑
+
+### 删除场景
+
+由于零宽字符由组件内置，删除逻辑相对简单，主要处理以下场景：
+
+#### Backspace 删除
+
+**场景1：删除选择器本身**
+```
+文本[选择器]|  →  文本|
+```
+- 光标在选择器后面
+- 删除整个选择器节点（包括内置的零宽字符）
+
+**场景2：删除选择器前的文本**
+```
+文本|[选择器]  →  文|[选择器]
+```
+- 光标在选择器前面
+- 删除文本的最后一个字符
+
+**场景3：段落末尾删除**
+```
+文本|  →  文|
+```
+- 光标在段落末尾（删除选择器后）
+- 删除文本的最后一个字符
+
+#### Delete 删除
+
+**场景1：删除选择器本身**
+```
+|[选择器]文本  →  |文本
+```
+- 光标在选择器前面
+- 删除整个选择器节点（包括内置的零宽字符）
+
+**场景2：删除选择器后的文本**
+```
+[选择器]|文本  →  [选择器]|本
+```
+- 光标在选择器后面
+- 删除文本的第一个字符
+
+**场景3：段落开头删除**
+```
+|文本  →  |本
+```
+- 光标在段落开头（删除选择器后）
+- 删除文本的第一个字符
 
 ### 插件实现
 
@@ -519,27 +599,67 @@ export function selectKeyboardPlugin() {
         const { selection } = state
         const { $from } = selection
         
-        // 处理 Backspace 删除选择器
-        if (event.key === 'Backspace') {
+        // 处理 Backspace 删除
+        if (event.key === 'Backspace' && selection.empty) {
+          const beforeNode = $from.nodeBefore
+          const afterNode = $from.nodeAfter
+          
+          // 场景1：删除选择器本身
+          if (beforeNode?.type.name === 'templateSelect') {
+            dispatch(state.tr.delete($from.pos - beforeNode.nodeSize, $from.pos))
+            event.preventDefault()
+            return true
+          }
+          
+          // 场景2：删除选择器前的文本
+          if (afterNode?.type.name === 'templateSelect') {
+            if (beforeNode?.isText && beforeNode.text !== ZERO_WIDTH_CHAR) {
+              dispatch(state.tr.delete($from.pos - 1, $from.pos))
+              event.preventDefault()
+              return true
+            }
+            // 如果前面是 template 节点，交给 TemplateBlock 插件处理
+            if (beforeNode?.type.name === 'template') {
+              return false
+            }
+          }
+          
+          // 场景3：段落末尾删除
+          if (!afterNode && beforeNode?.isText && beforeNode.text !== ZERO_WIDTH_CHAR) {
+            dispatch(state.tr.delete($from.pos - 1, $from.pos))
+            event.preventDefault()
+            return true
+          }
+        }
+        
+        // 处理 Delete 删除
+        if (event.key === 'Delete' && selection.empty) {
+          const afterNode = $from.nodeAfter
           const beforeNode = $from.nodeBefore
           
+          // 场景1：删除选择器本身
+          if (afterNode?.type.name === 'templateSelect') {
+            dispatch(state.tr.delete($from.pos, $from.pos + afterNode.nodeSize))
+            event.preventDefault()
+            return true
+          }
+          
+          // 场景2：删除选择器后的文本
           if (beforeNode?.type.name === 'templateSelect') {
-            // 删除选择器节点和前后的零宽字符
-            let deleteStart = $from.pos - beforeNode.nodeSize
-            let deleteEnd = $from.pos
-            
-            // 检查前后是否有零宽字符
-            const prevNode = state.doc.resolve(deleteStart).nodeBefore
-            const afterNode = $from.nodeAfter
-            
-            if (prevNode?.text?.endsWith(ZERO_WIDTH_CHAR)) {
-              deleteStart -= 1
+            if (afterNode?.isText && afterNode.text !== ZERO_WIDTH_CHAR) {
+              dispatch(state.tr.delete($from.pos, $from.pos + 1))
+              event.preventDefault()
+              return true
             }
-            if (afterNode?.text?.startsWith(ZERO_WIDTH_CHAR)) {
-              deleteEnd += 1
+            // 如果后面是 template 节点，交给 TemplateBlock 插件处理
+            if (afterNode?.type.name === 'template') {
+              return false
             }
-            
-            dispatch(state.tr.delete(deleteStart, deleteEnd))
+          }
+          
+          // 场景3：段落开头删除
+          if (!beforeNode && afterNode?.isText && afterNode.text !== ZERO_WIDTH_CHAR) {
+            dispatch(state.tr.delete($from.pos, $from.pos + 1))
             event.preventDefault()
             return true
           }
@@ -547,12 +667,23 @@ export function selectKeyboardPlugin() {
         
         return false
       }
-    },
-    
-    // 下拉菜单打开时的键盘处理在 Vue 组件中实现
+    }
   })
 }
 ```
+
+### 与 TemplateBlock 的协作
+
+当选择器与 TemplateBlock 相邻时，删除逻辑会返回 `false`，让 TemplateBlock 插件处理：
+
+```typescript
+// 如果前面是 template 节点，交给 TemplateBlock 插件处理
+if (beforeNode?.type.name === 'template') {
+  return false
+}
+```
+
+这样可以避免插件冲突，确保删除行为正确。
 
 ### Vue 组件中的键盘处理
 

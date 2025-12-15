@@ -98,24 +98,24 @@ export type TemplateItem =
       type: 'select'
 
       /**
+       * 内容（选中的值）
+       */
+      content: string
+
+      /**
        * 占位文字（未选择时显示）
        */
-      placeholder: string
+      placeholder?: string
 
       /**
        * 选项列表
        */
-      options: SelectOption[]
+      options?: SelectOption[]
 
       /**
-       * 当前选中的值（可选）
+       * 当前选中的值
        */
       value?: string
-
-      /**
-       * 内容（选中的值，用于 submit 事件）
-       */
-      content: string
     }
 
 // ============================================

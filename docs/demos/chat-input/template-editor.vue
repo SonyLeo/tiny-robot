@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { ref } from 'vue'
 import { Button as TinyButton } from '@opentiny/vue'
 import { ChatInput } from '@opentiny/tiny-robot'
 import type { TemplateItem, StructuredData } from '@opentiny/tiny-robot'
 
-const chatInputRef = ref()
 const content = ref('')
 const submittedContent = ref('')
 
@@ -74,22 +73,12 @@ const setTemplate4 = () => {
   ]
 }
 
-const clearTemplate = () => {
-  templateData.value = []
-  content.value = ''
-  submittedContent.value = ''
-}
-
 const handleSubmit = (text: string, data?: StructuredData) => {
   submittedContent.value = text
 
   console.log('📝 提交内容（纯文本）：', text)
   console.log('📋 结构化数据：', data)
 }
-
-onMounted(() => {
-  setTemplate1()
-})
 </script>
 
 <template>
@@ -99,17 +88,16 @@ onMounted(() => {
       <tiny-button size="small" @click="setTemplate2"> 模板2：写报告 </tiny-button>
       <tiny-button size="small" @click="setTemplate3"> 模板3：英文作文（带选择器） </tiny-button>
       <tiny-button size="small" @click="setTemplate4"> 模板4：混合模板 </tiny-button>
-      <tiny-button size="small" @click="clearTemplate"> 清空 </tiny-button>
     </div>
 
     <ChatInput
-      ref="chatInputRef"
       mode="multiple"
       v-model="content"
       :extensions="extensions"
       placeholder="点击上方按钮插入模板，或直接输入..."
       :max-length="500"
       show-word-limit
+      clearable
       @submit="handleSubmit"
     />
 

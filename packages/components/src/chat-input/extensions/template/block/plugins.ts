@@ -7,9 +7,7 @@ import { Plugin, PluginKey, TextSelection } from '@tiptap/pm/state'
 import type { EditorState, Transaction } from '@tiptap/pm/state'
 import type { EditorView } from '@tiptap/pm/view'
 import type { Node as PMNode } from '@tiptap/pm/model'
-
-// 零宽字符常量
-const ZERO_WIDTH_CHAR = '\u200B'
+import { ZERO_WIDTH_CHAR } from '../utils'
 
 /**
  * 处理零宽字符逻辑

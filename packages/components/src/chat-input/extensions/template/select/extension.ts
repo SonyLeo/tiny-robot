@@ -6,7 +6,7 @@ import { Node, mergeAttributes } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import type { TemplateSelectAttrs } from '../types'
 import TemplateSelectView from './template-select-view.vue'
-import { selectZeroWidthPlugin, selectKeyboardPlugin } from './plugins'
+import { selectDropdownStatePlugin, selectZeroWidthPlugin, selectKeyboardPlugin } from './plugins'
 
 /**
  * TemplateSelect 节点定义
@@ -97,6 +97,6 @@ export const TemplateSelect = Node.create<Record<string, unknown>>({
 
   // 添加插件
   addProseMirrorPlugins() {
-    return [selectZeroWidthPlugin(), selectKeyboardPlugin()]
+    return [selectDropdownStatePlugin(), selectZeroWidthPlugin(), selectKeyboardPlugin()]
   },
 })
