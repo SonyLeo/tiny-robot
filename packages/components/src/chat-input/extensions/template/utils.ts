@@ -31,8 +31,20 @@ export function getTemplateStructuredData(editor: Editor): TemplateItem[] {
       if (node.type.name === 'template') {
         const content = (node.textContent || '').replace(new RegExp(ZERO_WIDTH_CHAR, 'g'), '')
         items.push({
-          type: 'template',
+          type: 'block',
           content,
+        })
+      } else if (node.type.name === 'templateSelect') {
+        // 获取选中的值
+        const selectedOption = node.attrs.options.find((opt: { value: string }) => opt.value === node.attrs.value)
+        const content = selectedOption?.value || ''
+
+        items.push({
+          type: 'select',
+          content,
+          value: node.attrs.value,
+          placeholder: node.attrs.placeholder,
+          options: node.attrs.options,
         })
       } else if (node.type.name === 'text') {
         const text = (node.text || '').replace(new RegExp(ZERO_WIDTH_CHAR, 'g'), '')

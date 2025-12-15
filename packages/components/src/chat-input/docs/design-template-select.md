@@ -45,7 +45,7 @@ Template 扩展通过数据结构的 `type` 字段区分不同类型：
 ```typescript
 type TemplateItem = 
   | { type: 'text'; content: string }
-  | { type: 'template'; content: string }  // TemplateBlock
+  | { type: 'block'; content: string }  // TemplateBlock
   | { type: 'select'; placeholder: string; options: SelectOption[]; value?: string }  // TemplateSelect
 ```
 
@@ -104,7 +104,7 @@ interface TemplateSelectAttrs {
 // 在现有 TemplateItem 基础上扩展
 type TemplateItem = 
   | { type: 'text'; content: string }
-  | { type: 'template'; content: string }
+  | { type: 'block'; content: string }
   | { 
       type: 'select'
       placeholder: string
@@ -135,7 +135,7 @@ const templateData = ref<TemplateItem[]>([
     ]
   },
   { type: 'text', content: '. The requirement is ' },
-  { type: 'template', content: '800' },
+  { type: 'block', content: '800' },
   { type: 'text', content: ' words.' }
 ])
 
@@ -157,7 +157,7 @@ const templateData = ref<TemplateItem[]>([
     ]
   },
   { type: 'text', content: '以下内容：' },
-  { type: 'template', content: '' }  // 可编辑块
+  { type: 'block', content: '' }  // 可编辑块
 ])
 ```
 
@@ -894,7 +894,7 @@ const templateData = [
     value: 'campus life'
   },
   { type: 'text', content: '. Word count: ' },
-  { type: 'template', content: '800' }
+  { type: 'block', content: '800' }
 ]
 
 // submit 事件返回
@@ -909,7 +909,7 @@ onSubmit((text, structuredData) => {
   //   { type: 'text', content: 'Write about ' },
   //   { type: 'select', content: 'campus life', value: 'campus life' },
   //   { type: 'text', content: '. Word count: ' },
-  //   { type: 'template', content: '800' }
+  //   { type: 'block', content: '800' }
   // ]
 })
 ```
@@ -935,13 +935,13 @@ export function getTemplateStructuredData(editor: Editor): TemplateItem[] {
   editor.state.doc.descendants((node, _pos, parent) => {
     if (parent?.type.name !== 'paragraph') return
     
-    if (node.type.name === 'templateBlock') {
+    if (node.type.name === 'template') {
       const content = (node.textContent || '').replace(
         new RegExp(ZERO_WIDTH_CHAR, 'g'), 
         ''
       )
       items.push({
-        type: 'template',
+        type: 'block',
         content
       })
     } else if (node.type.name === 'templateSelect') {
@@ -1062,18 +1062,18 @@ editor.commands.deleteTemplateSelect('select-1')
 ```
 packages/components/src/chat-input/extensions/template/
 ├── index.ts                          # 统一导出
-├── extension.ts                      # Template 扩展（容器）
+├── extension.ts                      # Template 扩展（统一入口）
 ├── types.ts                          # 统一类型定义
 ├── commands.ts                       # 统一命令
 ├── utils.ts                          # 统一工具函数
 │
-├── block/                            # 可编辑块（现有）
-│   ├── extension.ts
-│   ├── template-block-view.vue
-│   ├── plugins.ts
-│   └── index.less
+├── block/                            # TemplateBlock（可编辑块）
+│   ├── extension.ts                  # TemplateBlock 节点定义
+│   ├── template-block-view.vue       # 可编辑块视图组件
+│   ├── plugins.ts                    # 块专用插件
+│   └── index.less                    # 块样式
 │
-└── select/                           # 选择器（新增）
+└── select/                           # TemplateSelect（选择器）
     ├── extension.ts                  # TemplateSelect 节点定义
     ├── template-select-view.vue      # 选择器视图组件
     ├── plugins.ts                    # 选择器专用插件
@@ -1110,9 +1110,9 @@ packages/components/src/chat-input/extensions/template/
 - 选项样式
 
 #### 6. 更新 Template 扩展 (`extension.ts`)
-- 添加 TemplateSelect 子扩展
-- 更新 setTemplateData 命令
-- 支持混合类型渲染
+- 作为统一入口，包含 TemplateBlock 和 TemplateSelect
+- 通过 Extension.create 组合两个子扩展
+- 添加统一命令入口
 
 #### 7. 更新类型定义 (`types.ts`)
 - 添加 SelectOption 接口
@@ -1295,5 +1295,6 @@ TemplateSelect 扩展通过以下设计实现了下拉选择功能：
 ✅ **零宽字符管理** - 确保光标定位正确  
 ✅ **混合使用** - 与 TemplateBlock 和普通文本无缝集成  
 ✅ **结构化数据** - 提交时返回完整的类型信息  
+✅ **类型区分** - 使用 `type: 'block'` 和 `type: 'select'` 清晰区分不同节点类型
 
-通过 Template 扩展统一管理，用户只需传入符合要求的数据结构，即可渲染对应的模板类型。
+通过 Template 扩展统一管理，用户只需传入符合要求的数据结构（`type: 'text' | 'block' | 'select'`），即可渲染对应的模板类型。

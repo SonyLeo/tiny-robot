@@ -4,7 +4,7 @@
 
 import type { Editor } from '@tiptap/core'
 import { generateId } from '../utils'
-import type { TemplateItem, TemplateAttrs } from './types'
+import type { TemplateItem, TemplateAttrs, TemplateSelectAttrs } from './types'
 
 // ProseMirror Node 类型
 type PMNode = ReturnType<Editor['state']['doc']['nodeAt']> & { nodeSize: number }
@@ -65,7 +65,7 @@ export const templateCommands = {
               text: item.content,
             })
           }
-        } else if (item.type === 'template') {
+        } else if (item.type === 'block') {
           // 添加模板块节点（内部包含文本）
           content.push({
             type: 'template',
@@ -81,6 +81,17 @@ export const templateCommands = {
                   },
                 ]
               : [],
+          })
+        } else if (item.type === 'select') {
+          // 添加选择器节点
+          content.push({
+            type: 'templateSelect',
+            attrs: {
+              id: item.id || generateId('select'),
+              placeholder: item.placeholder,
+              options: item.options,
+              value: item.value || null,
+            },
           })
         }
       })
@@ -237,5 +248,63 @@ export const templateCommands = {
       const { pos } = blocks[blocks.length - 1]
       // 聚焦到节点内部（pos + 1）
       return commands.focus(pos + 1)
+    },
+
+  /**
+   * 插入选择器
+   */
+  insertTemplateSelect:
+    (attrs: Partial<TemplateSelectAttrs>) =>
+    ({ commands }: { commands: Editor['commands'] }) => {
+      return commands.insertContent({
+        type: 'templateSelect',
+        attrs: {
+          id: attrs.id || generateId('select'),
+          placeholder: attrs.placeholder || 'Please select',
+          options: attrs.options || [],
+          value: attrs.value || null,
+        },
+      })
+    },
+
+  /**
+   * 更新选择器的选中值
+   */
+  updateTemplateSelect:
+    (id: string, value: string) =>
+    ({ editor, tr }: { editor: Editor; tr: Editor['state']['tr'] }) => {
+      let found = false
+
+      editor.state.doc.descendants((node, pos) => {
+        if (node.type.name === 'templateSelect' && node.attrs.id === id) {
+          tr.setNodeMarkup(pos, undefined, {
+            ...node.attrs,
+            value,
+          })
+          found = true
+          return false
+        }
+      })
+
+      return found
+    },
+
+  /**
+   * 删除选择器
+   */
+  deleteTemplateSelect:
+    (id: string) =>
+    ({ editor, tr }: { editor: Editor; tr: Editor['state']['tr'] }) => {
+      let found = false
+
+      editor.state.doc.descendants((node, pos) => {
+        if (node.type.name === 'templateSelect' && node.attrs.id === id) {
+          tr.delete(pos, pos + node.nodeSize)
+          found = true
+          return false
+        }
+      })
+
+      return found
     },
 }

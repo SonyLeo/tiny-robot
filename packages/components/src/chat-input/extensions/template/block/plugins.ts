@@ -1,5 +1,5 @@
 /**
- * Template 插件
+ * TemplateBlock 插件
  * 管理零宽字符和光标行为
  */
 

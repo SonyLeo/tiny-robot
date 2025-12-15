@@ -75,6 +75,9 @@ ChatInput.Suggestion.configure({ items: suggestions, filterFn: customFilter })
 
 <demo vue="../../demos/chat-input/template-editor.vue" title="模板填充" description="支持动态模板切换，自动聚焦可编辑字段。" />
 
+
+<demo vue="../../demos/chat-input/template-select.vue" title="模板选择" description="支持动态模板切换，自动聚焦可编辑字段。" />
+
 **配置详见**：[扩展属性 - Template](#templateblock)
 
 ### 提及功能
