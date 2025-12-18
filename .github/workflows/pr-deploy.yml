@@ -1,0 +1,104 @@
+name: Deploy Preview
+
+on:
+  workflow_run:
+    workflows: ['PR Build']
+    types: [completed]
+
+jobs:
+  # Deployment job
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: Download pr number
+        uses: dawidd6/action-download-artifact@v9
+        with:
+          workflow: ${{ github.event.workflow.id }}
+          run_id: ${{ github.event.workflow_run.id }}
+          name: pr
+
+      - name: Output pr number
+        id: pr
+        run: echo "id=$(<pr.txt)" >> $GITHUB_OUTPUT
+
+      - name: Download docs artifact
+        uses: dawidd6/action-download-artifact@v9
+        with:
+          workflow: ${{ github.event.workflow.id }}
+          run_id: ${{ github.event.workflow_run.id }}
+          name: docs
+          path: dist
+
+      - name: Deploy Site to Surge
+        id: deploy
+        run: |
+          export DEPLOY_DOMAIN=https://preview-${{ steps.pr.outputs.id }}-tiny-robot.surge.sh
+          echo "Deploy to $DEPLOY_DOMAIN"
+          npx surge --project ./dist --domain $DEPLOY_DOMAIN --token $SURGE_TOKEN
+        env:
+          SURGE_TOKEN: ${{ secrets.SURGE_TOKEN }}
+
+      - name: Comment preview link
+        if: success()
+        uses: actions-cool/maintain-one-comment@v3.1.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          body: |
+            ## 🚀 Deploy Preview Success
+
+            | Name | Link |
+            | :--- | :--- |
+            | **Site** | [preview-${{ steps.pr.outputs.id }}-tiny-robot.surge.sh](https://preview-${{ steps.pr.outputs.id }}-tiny-robot.surge.sh) |
+
+            <!-- DEPLOY_PREVIEW -->
+          body-include: '<!-- DEPLOY_PREVIEW -->'
+          number: ${{ steps.pr.outputs.id }}
+
+      - name: Comment failure (Deploy)
+        if: failure()
+        uses: actions-cool/maintain-one-comment@v3.1.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          body: |
+            ## ❌ Deploy Failed
+
+            The deployment to Surge failed. Please check the Action logs.
+
+            <!-- DEPLOY_PREVIEW -->
+          body-include: '<!-- DEPLOY_PREVIEW -->'
+          number: ${{ steps.pr.outputs.id }}
+
+  # Failure handling (Upstream Build Failed)
+  on-failure:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    steps:
+      - name: Download pr number
+        uses: dawidd6/action-download-artifact@v9
+        with:
+          workflow: ${{ github.event.workflow.id }}
+          run_id: ${{ github.event.workflow_run.id }}
+          name: pr
+          if_no_artifact_found: ignore
+
+      - name: Output pr number
+        id: pr
+        run: |
+          if [ -f pr.txt ]; then
+            echo "id=$(<pr.txt)" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Comment failure
+        if: steps.pr.outputs.id
+        uses: actions-cool/maintain-one-comment@v3.1.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          body: |
+            ## ❌ Build Failed
+
+            The **PR Build** workflow failed. Please check the logs.
+
+            <!-- DEPLOY_PREVIEW -->
+          body-include: '<!-- DEPLOY_PREVIEW -->'
+          number: ${{ steps.pr.outputs.id }}
