@@ -72,6 +72,19 @@ jobs:
           name: docs
           path: docs/dist
 
+      - name: Comment build generating
+        if: github.event_name == 'pull_request'
+        uses: actions-cool/maintain-one-comment@v3.1.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          body: |
+            [<img width="400" src="https://github.com/user-attachments/assets/c25bbbe4-0cf5-4aca-b4b3-db49e7a264d9">](#)
+            
+            🔨 Building packages...
+            <!-- TINY_ROBOT_BUILD -->
+          body-include: '<!-- TINY_ROBOT_BUILD -->'
+          number: ${{ github.event.number }}
+
       - name: Publish to pkg.pr.new
         run: |
           npx pkg-pr-new publish \
@@ -82,3 +95,29 @@ jobs:
             --template \
             --comment=update \
             --packageManager=pnpm
+
+      - name: Comment build success
+        if: ${{ success() && github.event_name == 'pull_request' }}
+        uses: actions-cool/maintain-one-comment@v3.1.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          body: |
+            [<img width="400" src="https://github.com/user-attachments/assets/2a0bb639-dfaf-4384-8d73-cec616ea4b97">](https://preview-${{ github.event.number }}-tiny-robot.surge.sh)
+            
+            ✅ Build completed successfully!
+            <!-- TINY_ROBOT_BUILD -->
+          body-include: '<!-- TINY_ROBOT_BUILD -->'
+          number: ${{ github.event.number }}
+
+      - name: Comment build failed
+        if: ${{ failure() && github.event_name == 'pull_request' }}
+        uses: actions-cool/maintain-one-comment@v3.1.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          body: |
+            [<img width="400" src="https://github.com/user-attachments/assets/acfe799d-40be-4ffb-8190-da33f84056dc">](#)
+            
+            ❌ Build failed. Please check the logs for details.
+            <!-- TINY_ROBOT_BUILD -->
+          body-include: '<!-- TINY_ROBOT_BUILD -->'
+          number: ${{ github.event.number }}
