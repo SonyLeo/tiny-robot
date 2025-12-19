@@ -1,15 +1,15 @@
-name: Deploy Preview
+name: PR Docs Deploy
 
 on:
   workflow_run:
-    workflows: ['PR Build']
+    workflows: ['PR Packages Build']
     types: [completed]
 
 jobs:
   # Deployment job
   deploy:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'pull_request' }}
     steps:
       - name: Download pr number
         uses: dawidd6/action-download-artifact@v9
@@ -33,9 +33,10 @@ jobs:
       - name: Deploy Site to Surge
         id: deploy
         run: |
-          export DEPLOY_DOMAIN=https://preview-${{ steps.pr.outputs.id }}-tiny-robot.surge.sh
-          echo "Deploy to $DEPLOY_DOMAIN"
+          DEPLOY_DOMAIN=preview-${{ steps.pr.outputs.id }}-tiny-robot.surge.sh
+          echo "Deploying to: https://$DEPLOY_DOMAIN"
           npx surge --project ./dist --domain $DEPLOY_DOMAIN --token $SURGE_TOKEN
+          echo "url=https://$DEPLOY_DOMAIN" >> $GITHUB_OUTPUT
         env:
           SURGE_TOKEN: ${{ secrets.SURGE_TOKEN }}
 
@@ -49,7 +50,9 @@ jobs:
 
             | Name | Link |
             | :--- | :--- |
-            | **Site** | [preview-${{ steps.pr.outputs.id }}-tiny-robot.surge.sh](https://preview-${{ steps.pr.outputs.id }}-tiny-robot.surge.sh) |
+            | **Preview** | [${{ steps.deploy.outputs.url }}](${{ steps.deploy.outputs.url }}) |
+
+            > Preview will be automatically removed when this PR is closed.
 
             <!-- DEPLOY_PREVIEW -->
           body-include: '<!-- DEPLOY_PREVIEW -->'
@@ -72,7 +75,7 @@ jobs:
   # Failure handling (Upstream Build Failed)
   on-failure:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    if: ${{ github.event.workflow_run.conclusion == 'failure' && github.event.workflow_run.event == 'pull_request' }}
     steps:
       - name: Download pr number
         uses: dawidd6/action-download-artifact@v9
@@ -97,7 +100,7 @@ jobs:
           body: |
             ## ❌ Build Failed
 
-            The **PR Build** workflow failed. Please check the logs.
+            The **PR Packages Build** workflow failed. Please check the logs.
 
             <!-- DEPLOY_PREVIEW -->
           body-include: '<!-- DEPLOY_PREVIEW -->'
