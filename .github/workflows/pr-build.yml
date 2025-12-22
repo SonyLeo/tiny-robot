@@ -72,6 +72,16 @@ jobs:
           name: docs
           path: docs/dist
 
+      - name: Upload build artifacts
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: build
+          path: |
+            packages/components/dist
+            packages/kit/dist
+            packages/svgs/dist
+
       - name: Comment build generating
         if: github.event_name == 'pull_request'
         uses: actions-cool/maintain-one-comment@v3.1.1
@@ -93,7 +103,8 @@ jobs:
             ./packages/svgs \
             --pnpm \
             --comment=update \
-            --commentWithSha
+            --commentWithSha \
+            --packageManager=pnpm
 
       - name: Comment build success
         if: ${{ success() && github.event_name == 'pull_request' }}
