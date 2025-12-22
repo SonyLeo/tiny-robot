@@ -96,15 +96,62 @@ jobs:
           number: ${{ github.event.number }}
 
       - name: Publish to pkg.pr.new
+        id: pkg-pr-new
         run: |
           npx pkg-pr-new publish \
             ./packages/components \
             ./packages/kit \
             ./packages/svgs \
             --pnpm \
-            --comment=update \
-            --commentWithSha \
-            --packageManager=pnpm
+            --json output.json \
+            --comment=off
+
+      - name: Post or update pkg.pr.new comment
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const output = JSON.parse(fs.readFileSync('output.json', 'utf8'));
+            
+            const sha = context.payload.pull_request.head.sha.substring(0, 7);
+            
+            const packages = output.packages.map((p) => {
+              const shortUrl = p.url.replace(/@[a-f0-9]{40}/, '@' + sha);
+              return 'pnpm add ' + shortUrl;
+            }).join('\n\n');
+            
+            const commitUrl = 'https://github.com/' + context.repo.owner + '/' + context.repo.repo + '/commit/' + sha;
+            
+            const body = '## 📦 Package Preview\n\n' + packages + '\n\n**commit:** [' + sha + '](' + commitUrl + ')\n\n<!-- PKG_PR_NEW_COMMENT -->';
+            const botCommentIdentifier = '<!-- PKG_PR_NEW_COMMENT -->';
+            
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            
+            const existingComment = comments.data.find((comment) =>
+              comment.body.includes(botCommentIdentifier)
+            );
+            
+            if (existingComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: body,
+              });
+            }
 
       - name: Comment build success
         if: ${{ success() && github.event_name == 'pull_request' }}
