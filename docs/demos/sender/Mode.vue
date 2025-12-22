@@ -1,7 +1,7 @@
 <template>
   <div style="display: flex; flex-direction: column; gap: 16px">
     <div style="display: flex; align-items: center; gap: 12px">
-      <span style="font-weight: 500">模式：</span>
+      <span style="font-weight: 500">模式12315：</span>
       <label style="display: flex; align-items: center; gap: 4px; cursor: pointer">
         <input type="radio" value="single" v-model="mode" style="cursor: pointer" />
         <span>单行</span>
