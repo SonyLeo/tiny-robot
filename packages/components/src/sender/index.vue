@@ -57,11 +57,6 @@ const canSubmit = computed(() => {
     return false
   }
 
-  // 内容检查：空内容不能提交
-  if (!hasContent.value) {
-    return false
-  }
-
   // 字数限制检查：超出限制时不能提交
   if (isOverLimit.value) {
     return false
