@@ -3,56 +3,51 @@ name: E2E Tests
 run-name: E2E Tests
 
 on:
-  workflow_run:
-    workflows: ['PR Packages Build']
-    types: [completed]
   push:
     branches: [ develop, main ]
+  pull_request:
+    branches: [ develop, main ]
+
+# 避免同一 PR 的多次提交同时运行测试
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   e2e-tests:
     timeout-minutes: 60
     # 指定运行环境为最新版本的ubuntu
     runs-on: ubuntu-latest
-    # 只在构建成功或 push 事件时运行
+    # Skip if commit message or PR title contains specific patterns to save resources
     if: |
-      github.event_name == 'push' || 
-      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'pull_request')
+      !contains(github.event.head_commit.message, 'docs:') &&
+      !contains(github.event.head_commit.message, 'chore: release') &&
+      !contains(github.event.pull_request.title, 'docs:') &&
+      !contains(github.event.pull_request.title, 'chore: release') &&
+      !startsWith(github.event.pull_request.title, 'v') &&
+      !startsWith(github.event.pull_request.title, 'V')
     
     steps:
-      # 下载 PR number (仅 PR 触发时)
-      - name: Download PR number
-        if: github.event_name == 'workflow_run'
-        uses: dawidd6/action-download-artifact@v9
-        with:
-          workflow: ${{ github.event.workflow.id }}
-          run_id: ${{ github.event.workflow_run.id }}
-          name: pr
-          if_no_artifact_found: ignore
-
-      - name: Get PR number
-        if: github.event_name == 'workflow_run'
-        id: pr
-        run: |
-          if [ -f pr.txt ]; then
-            echo "number=$(<pr.txt)" >> $GITHUB_OUTPUT
-          fi
-
       # 步骤1: 检出代码 (处理所有情况)
 
       # 场景 A: 当工作流由 push 事件触发时 (例如合并到 develop 分支)
       # 或者由仓库内部成员创建的 PR 触发时，执行此步骤。
       - name: Checkout for Develop Repo Push or PR
         # 条件：事件不是来自 fork 的 PR
-        if: github.event_name == 'push'
-        uses: actions/checkout@v4
-
-      # 场景 B: 当工作流由 workflow_run 触发时
-      - name: Checkout for Workflow Run
-        if: github.event_name == 'workflow_run'
+        if: github.event.pull_request.head.repo.full_name == github.repository || github.event_name == 'push'
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          # 对于源仓库 PR，确认检出最新的代码
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      # 场景 B: 当工作流由外部 fork 仓库的 PR 触发时，执行此步骤
+      - name: Checkout for Fork PR
+        # 条件：事件是来自 fork 的 PR
+        if: github.event.pull_request.head.repo.full_name != github.repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.head_ref }}
 
       # 步骤2: 设置pnpm包管理器
       - name: Setup pnpm
@@ -85,20 +80,22 @@ jobs:
       - name: Install dependencies
         run: pnpm i --no-frozen-lockfile
 
-      # 步骤6.5: 下载构建产物 (仅 PR 触发时)
-      - name: Download build artifacts
-        if: github.event_name == 'workflow_run'
+      # 步骤6.5: 尝试下载构建产物 (仅 PR 触发时，来自同一工作流运行)
+      - name: Download build artifacts from PR Build
+        if: github.event_name == 'pull_request'
         uses: dawidd6/action-download-artifact@v9
+        continue-on-error: true
+        id: download-artifact
         with:
-          workflow: ${{ github.event.workflow.id }}
-          run_id: ${{ github.event.workflow_run.id }}
+          workflow: pr-build.yml
+          pr: ${{ github.event.pull_request.number }}
           name: build
           path: packages
           if_no_artifact_found: ignore
 
-      # 步骤7: 构建组件 (仅 push 事件时)
+      # 步骤7: 构建组件 (仅在 push 事件或下载产物失败时)
       - name: Run Build Components
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' || steps.download-artifact.outcome == 'failure'
         run: pnpm build
 
       # 步骤8: 安装 Playwright 浏览器
