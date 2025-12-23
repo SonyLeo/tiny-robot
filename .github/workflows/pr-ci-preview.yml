@@ -1,10 +1,11 @@
-name: PR CI Preview
+name: 'CI: Preview'
 
 on:
   workflow_call:
 
 jobs:
-  preview:
+  preview-job:
+    name: preview
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
