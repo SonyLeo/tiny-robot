@@ -1,27 +1,12 @@
-# PR Build Workflow
-name: PR Packages Build
+name: 'CI: Preview'
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-
-# Cancel previous runs if a new commit is pushed to the same PR
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  workflow_call:
 
 jobs:
-  publish:
+  preview-job:
+    name: preview
     runs-on: ubuntu-latest
-    # Skip if commit message or PR title contains specific patterns to save resources
-    if: |
-      !contains(github.event.head_commit.message, 'docs:') &&
-      !contains(github.event.head_commit.message, 'chore: release') &&
-      !contains(github.event.pull_request.title, 'docs:') &&
-      !contains(github.event.pull_request.title, 'chore: release') &&
-      !startsWith(github.event.pull_request.title, 'v') &&
-      !startsWith(github.event.pull_request.title, 'V')
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -37,8 +22,7 @@ jobs:
 
       - name: Get pnpm store directory
         id: pnpm-cache
-        run: |
-          echo "pnpm_cache_dir=$(pnpm store path)" >> $GITHUB_OUTPUT
+        run: echo "pnpm_cache_dir=$(pnpm store path)" >> $GITHUB_OUTPUT
 
       - name: Setup pnpm cache
         uses: actions/cache@v3
@@ -51,36 +35,14 @@ jobs:
       - name: Install dependencies
         run: pnpm i --no-frozen-lockfile
 
-      - name: Build packages and docs
-        run: pnpm build:docs
-
-      - name: Save PR number
-        if: github.event_name == 'pull_request'
-        run: echo ${{ github.event.number }} > pr.txt
-
-      - name: Upload PR number
-        if: github.event_name == 'pull_request'
-        uses: actions/upload-artifact@v4
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
         with:
-          name: pr
-          path: pr.txt
+          name: build-${{ github.sha }}
+          path: packages
 
-      - name: Upload docs artifact
-        if: github.event_name == 'pull_request'
-        uses: actions/upload-artifact@v4
-        with:
-          name: docs
-          path: docs/dist
-
-      - name: Upload build artifacts
-        if: github.event_name == 'pull_request'
-        uses: actions/upload-artifact@v4
-        with:
-          name: build
-          path: |
-            packages/components/dist
-            packages/kit/dist
-            packages/svgs/dist
+      - name: Build docs only (components already built)
+        run: pnpm -F docs build
 
       - name: Comment build generating
         if: github.event_name == 'pull_request'
@@ -152,6 +114,16 @@ jobs:
                 body: body,
               });
             }
+
+      - name: Deploy Site to Surge
+        id: deploy
+        run: |
+          DEPLOY_DOMAIN=preview-${{ github.event.number }}-tiny-robot.surge.sh
+          echo "Deploying to: https://$DEPLOY_DOMAIN"
+          npx surge --project ./docs/dist --domain $DEPLOY_DOMAIN --token $SURGE_TOKEN
+          echo "url=https://$DEPLOY_DOMAIN" >> $GITHUB_OUTPUT
+        env:
+          SURGE_TOKEN: ${{ secrets.SURGE_TOKEN }}
 
       - name: Comment build success
         if: ${{ success() && github.event_name == 'pull_request' }}
