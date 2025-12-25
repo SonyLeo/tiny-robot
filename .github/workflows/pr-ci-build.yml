@@ -46,7 +46,6 @@ jobs:
         run: pnpm -F docs build
 
       - name: Save PR number
-        if: github.event_name == 'pull_request'
         run: echo "${{ github.event.number }}" > pr_number.txt
 
       - name: Upload build artifacts
