@@ -52,7 +52,7 @@ jobs:
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: build-${{ github.sha }}
+          name: build-${{ github.event.pull_request.head.sha || github.sha }}
           path: |
             packages/components/dist
             packages/kit/dist

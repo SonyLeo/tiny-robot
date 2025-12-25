@@ -43,8 +43,8 @@ jobs:
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
-          name: build-${{ github.sha }}
-          path: packages
+          name: build-${{ github.event.pull_request.head.sha || github.sha }}
+          path: .
 
       - name: Publish to pkg.pr.new
         id: pkg-pr-new
@@ -66,7 +66,7 @@ jobs:
       - name: Upload pkg.pr.new output
         uses: actions/upload-artifact@v4
         with:
-          name: pkg-pr-new-output-${{ github.sha }}
+          name: pkg-pr-new-output-${{ github.event.pull_request.head.sha || github.sha }}
           path: pkg-pr-new-output.json
           retention-days: 1
           if-no-files-found: ignore
