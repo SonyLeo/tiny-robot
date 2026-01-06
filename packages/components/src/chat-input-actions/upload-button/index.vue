@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, watch } from 'vue'
+import { computed, watch, toRefs } from 'vue'
 import { useFileDialog } from '@vueuse/core'
 import { useChatInputContext } from '../../chat-input/context'
 import type { UploadButtonProps, UploadButtonEmits } from './index.type'
@@ -8,12 +8,14 @@ import { IconUpload } from '@opentiny/tiny-robot-svgs'
 
 const props = withDefaults(defineProps<UploadButtonProps>(), {
   accept: '*',
-  multiple: false,
+  multiple: true,
   reset: true,
   tooltipPlacement: 'top',
 })
 
 const emit = defineEmits<UploadButtonEmits>()
+
+const { accept, multiple, reset } = toRefs(props)
 
 // 从 context 获取 disabled 状态
 const { disabled: contextDisabled } = useChatInputContext()
@@ -22,9 +24,9 @@ const isDisabled = computed(() => props.disabled || contextDisabled.value)
 
 // 使用 vueuse 的 useFileDialog
 const { open, files } = useFileDialog({
-  accept: props.accept,
-  multiple: props.multiple,
-  reset: props.reset,
+  accept,
+  multiple,
+  reset,
 })
 
 // 处理文件选择
