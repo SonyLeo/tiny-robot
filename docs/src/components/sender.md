@@ -176,13 +176,21 @@ TrSender.Suggestion.configure({ items: suggestions, filterFn: customFilter })
 
 **配置详见**：[VoiceButton 属性](#voicebutton)
 
-### 文件上传
+### 按钮配置
 
-通过 `UploadButton` 组件实现文件上传功能，支持文件类型过滤、大小限制和数量限制。
+#### 默认按钮配置
 
-<demo vue="../../demos/chat-input/actions-enhanced.vue" title="文件上传" description="通过插槽添加 UploadButton 增强按钮。" />
+通过 `defaultActions` 属性统一配置默认按钮（Clear、Submit）的状态和提示。
 
-**配置详见**：[UploadButton 属性](#uploadbutton)
+<demo vue="../../demos/chat-input/actions-config-basic.vue" title="默认按钮配置" description="通过 defaultActions 统一配置默认按钮的状态和提示。" />
+
+#### 增强按钮
+
+通过插槽添加增强按钮（Upload、Voice 等），每个按钮都有独立的配置。
+
+<demo vue="../../demos/chat-input/actions-enhanced.vue" title="增强按钮" description="通过插槽添加 Upload、Voice 等增强按钮。" />
+
+**配置详见**：[UploadButton 属性](#uploadbutton)、[VoiceButton 属性](#voicebutton)
 
 ## 交互定制
 
@@ -595,6 +603,74 @@ import type { Extension } from '@tiptap/core'
 ```
 
 ---
+
+## CSS 变量
+
+Sender 组件提供了丰富的 CSS 变量用于自定义样式。所有变量都支持通过 `size` 属性自动切换（`normal` 和 `small`）。
+
+**基础颜色**
+
+| 变量名                        | 说明         | 默认值                            |
+| ----------------------------- | ------------ | --------------------------------- |
+| `--tr-sender-bg-color`        | 背景颜色     | `var(--tr-container-bg-default)`  |
+| `--tr-sender-text-color`      | 文本颜色     | `var(--tr-text-primary)`          |
+| `--tr-sender-placeholder-color` | 占位符颜色 | `var(--tr-text-tertiary)`         |
+| `--tr-sender-button-hover-bg` | 按钮悬停背景 | `var(--tr-container-bg-hover)`    |
+
+**尺寸和间距**
+
+| 变量名                          | 说明                 | normal  | small   |
+| ------------------------------- | -------------------- | ------- | ------- |
+| `--tr-sender-font-size`         | 字体大小             | `16px`  | `14px`  |
+| `--tr-sender-line-height`       | 行高                 | `26px`  | `24px`  |
+| `--tr-sender-border-radius`     | 圆角大小             | `26px`  | `24px`  |
+| `--tr-sender-padding`           | 内边距               | `15px 20px` | `12px 16px` |
+| `--tr-sender-gap`               | 元素间距             | `8px`   | `8px`   |
+| `--tr-sender-footer-gap`        | 底部元素间距         | `12px`  | `8px`   |
+
+**Header 区域**
+
+| 变量名                            | 说明                 | normal          | small           |
+| --------------------------------- | -------------------- | --------------- | --------------- |
+| `--tr-sender-header-padding`      | 头部内边距           | `12px 20px`     | `12px 16px`     |
+| `--tr-sender-header-divider-inset` | 头部分割线缩进      | `20px`          | `20px`          |
+| `--tr-sender-multi-main-padding`  | 多行模式主区域内边距 | `16px 20px 12px` | `14px 16px 10px` |
+
+**Footer 区域**
+
+| 变量名                         | 说明           | normal          | small           |
+| ------------------------------ | -------------- | --------------- | --------------- |
+| `--tr-sender-footer-padding`   | 底部内边距     | `0 10px 10px`   | `0 10px 10px`   |
+
+**前缀和操作区**
+
+| 变量名                              | 说明               | normal | small |
+| ----------------------------------- | ------------------ | ------ | ----- |
+| `--tr-sender-prefix-padding-right`  | 前缀区域右内边距   | `4px`  | `4px` |
+| `--tr-sender-actions-padding-right` | 操作区域右内边距   | `10px` | `8px` |
+
+**按钮**
+
+| 变量名                           | 说明             | normal | small |
+| -------------------------------- | ---------------- | ------ | ----- |
+| `--tr-sender-button-size`        | 按钮尺寸         | `32px` | `28px` |
+| `--tr-sender-button-size-submit` | 提交按钮尺寸     | `36px` | `32px` |
+
+:::tip 使用示例
+```css
+/* 自定义背景色 */
+.my-sender {
+  --tr-sender-bg-color: #f5f5f5;
+  --tr-sender-text-color: #333;
+}
+
+/* 自定义按钮尺寸 */
+.my-sender {
+  --tr-sender-button-size: 40px;
+  --tr-sender-button-size-submit: 44px;
+}
+```
+:::
 
 ## 已移除的 API {#已移除的-api}
 

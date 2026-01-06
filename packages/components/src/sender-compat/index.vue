@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import ChatInput, { TemplateItem } from '../chat-input/index'
-import { UploadButton, VoiceButton } from '../chat-input-actions/index'
+import Sender, { TemplateItem } from '../sender/index'
+import { UploadButton, VoiceButton } from '../sender-actions/index'
 import type { SenderProps, SenderEmits, UserTemplateItem } from './index.type'
 
 const props = withDefaults(defineProps<SenderProps>(), {
@@ -23,7 +23,7 @@ const modelValue = computed({
 const defaultValue = computed(() => props.defaultValue as string)
 
 // 暴露方法
-const chatInputRef = ref<InstanceType<typeof ChatInput>>()
+const senderRef = ref<InstanceType<typeof Sender>>()
 const voiceRef = ref<InstanceType<typeof VoiceButton>>()
 
 // 转换 extensions
@@ -34,7 +34,7 @@ const extensions = computed(() => {
   // 转换 suggestions
   if (props.suggestions?.length) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const Suggestion = (ChatInput as any).Suggestion
+    const Suggestion = (Sender as any).Suggestion
     if (Suggestion) {
       exts.push(
         Suggestion.configure({
@@ -52,7 +52,7 @@ const extensions = computed(() => {
 
   // 添加 Template 扩展（空配置，通过 setTemplateData 方法手动设置）
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const Template = (ChatInput as any).Template
+  const Template = (Sender as any).Template
   if (Template) {
     exts.push(Template.configure({}))
   }
@@ -88,7 +88,7 @@ const voiceConfig = computed(() => {
 })
 
 const setTemplateData = (templateData: UserTemplateItem[]) => {
-  const editor = chatInputRef.value?.editor
+  const editor = senderRef.value?.editor
 
   if (!editor) {
     console.warn('[sender-compat] Editor not ready, cannot set template data')
@@ -167,19 +167,19 @@ const stopSpeech = () => {
 }
 
 const focus = () => {
-  chatInputRef.value?.focus?.()
+  senderRef.value?.focus?.()
 }
 
 const blur = () => {
-  chatInputRef.value?.blur?.()
+  senderRef.value?.blur?.()
 }
 
 const clear = () => {
-  chatInputRef.value?.clear?.()
+  senderRef.value?.clear?.()
 }
 
 const submit = () => {
-  chatInputRef.value?.submit?.()
+  senderRef.value?.submit?.()
 }
 
 defineExpose({
@@ -194,8 +194,8 @@ defineExpose({
 </script>
 
 <template>
-  <ChatInput
-    ref="chatInputRef"
+  <Sender
+    ref="senderRef"
     v-model="modelValue"
     :default-value="defaultValue"
     :mode="mode"
@@ -290,5 +290,5 @@ defineExpose({
         @speech-error="handleSpeechError"
       />
     </template>
-  </ChatInput>
+  </Sender>
 </template>

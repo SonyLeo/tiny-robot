@@ -1,35 +1,62 @@
 /**
- * Sender 组件入口（v0.4.0+）
- * Sender 是 ChatInput 的对外名称
+ * Sender 组件入口
+ *
+ * 提供两种扩展使用方式：
+ * 1. 静态属性：Sender.Mention.configure() - 用于扩展继承
+ * 2. 便捷函数：Sender.mention() - 用于简单场景
  */
-import ChatInput from '../chat-input'
 
-const Sender = ChatInput as typeof ChatInput
-Sender.name = 'TrSender'
+import type { App } from 'vue'
+import SenderComponent from './index.vue'
+import { Mention, Suggestion, Template, mention, suggestion, template } from './extensions'
+import './index.less'
+
+// 设置组件名称
+SenderComponent.name = 'TrSender'
+
+// Vue 插件安装函数
+const install = function <T>(app: App<T>) {
+  app.component(SenderComponent.name!, SenderComponent)
+}
+
+// 扩展组件，添加静态属性和便捷函数
+const Sender = Object.assign(SenderComponent, {
+  install,
+  // 扩展类（用于继承）
+  Mention,
+  Suggestion,
+  Template,
+  // 便捷函数（用于简单场景）
+  mention,
+  suggestion,
+  template,
+})
 
 export default Sender
 
-// 重新导出类型
 export type {
-  ChatInputProps as SenderProps,
-  ChatInputEmits as SenderEmits,
-  ChatInputSlots as SenderSlots,
-  ChatInputContext as SenderContext,
+  SenderProps,
+  SenderEmits,
+  SenderSlots,
+  SenderContext,
+  UseEditorReturn,
+  UseModeSwitchReturn,
+  UseSuggestionReturn,
+  UseKeyboardShortcutsReturn,
   TemplateItem,
   MentionItem,
   DefaultActions,
-} from '../chat-input/index.type'
+} from './index.type'
 
+export { useSenderContext } from './context'
+
+// ========== 扩展类型导出 ==========
+export type { TemplateAttrs, TemplateOptions } from './extensions/template'
+export type { MentionAttrs, MentionOptions } from './extensions/mention'
 export type {
-  TemplateAttrs,
-  TemplateOptions,
-  MentionAttrs,
-  MentionOptions,
   SuggestionItem,
   SuggestionOptions,
   SuggestionState,
   SuggestionTextPart,
   HighlightFunction,
-} from '../chat-input/extensions'
-
-export { useChatInputContext as useSenderContext } from '../chat-input/context'
+} from './extensions/suggestion'

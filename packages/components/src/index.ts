@@ -28,7 +28,7 @@ import {
   VoiceButton,
   WordCounter,
   DefaultActionButtons,
-} from './chat-input-actions'
+} from './sender-actions'
 
 // ============================================
 // 组件类型导出
@@ -43,13 +43,13 @@ export * from './history/index.type'
 export * from './icon-button/index.type'
 export * from './prompts/index.type'
 export * from './sender/index.type'
+export * from './sender-actions'
 export * from './suggestion-pills/index.type'
 export * from './suggestion-popover/index.type'
 export * from './theme-provider/index.type'
 export * from './welcome/index.type'
 export * from './mcp-server-picker/index.type'
 export * from './mcp-add-form/index.type'
-export * from './chat-input-actions'
 
 export { useTheme } from './theme-provider/useTheme'
 export { useSenderContext } from './sender'

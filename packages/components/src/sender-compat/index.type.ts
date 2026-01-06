@@ -138,7 +138,7 @@ export type SenderEmits = {
   (e: 'files-selected', files: File[]): void
 }
 
-// UserItem 相关类型（从 ChatInput 导入）
+// UserItem 相关类型
 export interface TextItem {
   id: string
   type: 'text'

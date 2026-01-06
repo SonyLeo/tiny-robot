@@ -126,14 +126,14 @@
   --tr-shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.04);
 
   /* ===== Chat Input 输入框 ===== */
-  --tr-chat-input-bg-color-disabled: #f0f0f0;
-  --tr-chat-input-text-color-disabled: #a0a0a0;
-  --tr-chat-input-placeholder-color-disabled: #c0c0c0;
-  --tr-chat-input-box-shadow: 0 4px 16px 0px rgba(0, 0, 0, 0.08);
-  --tr-chat-input-header-border-bottom: 1px solid #e0e0e0;
-  --tr-chat-input-button-active-bg: rgba(0, 0, 0, 0.12);
-  --tr-chat-input-word-limit-color: #808080;
-  --tr-chat-input-word-limit-error-color: #f23030;
+  --tr-sender-bg-color-disabled: #f0f0f0;
+  --tr-sender-text-color-disabled: #a0a0a0;
+  --tr-sender-placeholder-color-disabled: #c0c0c0;
+  --tr-sender-box-shadow: 0 4px 16px 0px rgba(0, 0, 0, 0.08);
+  --tr-sender-header-border-bottom: 1px solid #e0e0e0;
+  --tr-sender-button-active-bg: rgba(0, 0, 0, 0.12);
+  --tr-sender-word-limit-color: #808080;
+  --tr-sender-word-limit-error-color: #f23030;
 
   /* ===== Suggestion 联想列表 ===== */
   --tr-suggestion-bg-color: #ffffff;
@@ -150,42 +150,42 @@
   --tr-suggestion-tab-hint-bg: rgba(255, 255, 255, 0.8);
 
   /* ===== Mention 提及列表 ===== */
-  --tr-chat-input-mention-color: #1476ff;
-  --tr-chat-input-mention-bg: rgba(20, 118, 255, 0.1);
-  --tr-chat-input-mention-hover-bg: rgba(20, 118, 255, 0.15);
-  --tr-chat-input-mention-list-bg: #ffffff;
-  --tr-chat-input-mention-list-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  --tr-chat-input-mention-text-primary: #191919;
-  --tr-chat-input-mention-text-secondary: #666666;
-  --tr-chat-input-mention-text-tertiary: #808080;
-  --tr-chat-input-mention-item-hover-bg: #f5f5f5;
-  --tr-chat-input-mention-item-selected-bg: #f5f5f5;
-  --tr-chat-input-mention-scrollbar-thumb: rgba(0, 0, 0, 0.2);
-  --tr-chat-input-mention-scrollbar-thumb-hover: rgba(0, 0, 0, 0.3);
-  --tr-chat-input-mention-trigger-bg: rgba(20, 118, 255, 0.05);
+  --tr-sender-mention-color: #1476ff;
+  --tr-sender-mention-bg: rgba(20, 118, 255, 0.1);
+  --tr-sender-mention-hover-bg: rgba(20, 118, 255, 0.15);
+  --tr-sender-mention-list-bg: #ffffff;
+  --tr-sender-mention-list-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --tr-sender-mention-text-primary: #191919;
+  --tr-sender-mention-text-secondary: #666666;
+  --tr-sender-mention-text-tertiary: #808080;
+  --tr-sender-mention-item-hover-bg: #f5f5f5;
+  --tr-sender-mention-item-selected-bg: #f5f5f5;
+  --tr-sender-mention-scrollbar-thumb: rgba(0, 0, 0, 0.2);
+  --tr-sender-mention-scrollbar-thumb-hover: rgba(0, 0, 0, 0.3);
+  --tr-sender-mention-trigger-bg: rgba(20, 118, 255, 0.05);
 
   /* ===== Template Block 模板块 ===== */
-  --tr-chat-input-template-color: #1476ff;
-  --tr-chat-input-template-bg: rgba(20, 118, 255, 0.1);
-  --tr-chat-input-template-border-radius: 6px;
-  --tr-chat-input-template-padding: 2px 4px;
-  --tr-chat-input-template-margin: 0 4px;
-  --tr-chat-input-template-min-width: 32px;
+  --tr-sender-template-color: #1476ff;
+  --tr-sender-template-bg: rgba(20, 118, 255, 0.1);
+  --tr-sender-template-border-radius: 6px;
+  --tr-sender-template-padding: 2px 4px;
+  --tr-sender-template-margin: 0 4px;
+  --tr-sender-template-min-width: 32px;
 
   /* ===== Template Select 模板选择器 ===== */
-  --tr-chat-input-template-select-color: #1476ff;
-  --tr-chat-input-template-select-placeholder-color: rgba(82, 145, 255, 0.5);
-  --tr-chat-input-template-select-bg: rgba(20, 118, 255, 0.1);
-  --tr-chat-input-template-select-bg-hover: rgba(20, 118, 255, 0.15);
-  --tr-chat-input-template-select-bg-active: rgba(20, 118, 255, 0.2);
-  --tr-chat-input-template-select-dropdown-bg: #ffffff;
-  --tr-chat-input-template-select-dropdown-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  --tr-chat-input-template-select-text-primary: #191919;
-  --tr-chat-input-template-select-text-secondary: #666666;
-  --tr-chat-input-template-select-option-hover-bg: #f5f5f5;
-  --tr-chat-input-template-select-option-selected-bg: #f5f5f5;
-  --tr-chat-input-template-select-scrollbar-thumb: rgba(0, 0, 0, 0.2);
-  --tr-chat-input-template-select-scrollbar-thumb-hover: rgba(0, 0, 0, 0.3);
+  --tr-sender-template-select-color: #1476ff;
+  --tr-sender-template-select-placeholder-color: rgba(82, 145, 255, 0.5);
+  --tr-sender-template-select-bg: rgba(20, 118, 255, 0.1);
+  --tr-sender-template-select-bg-hover: rgba(20, 118, 255, 0.15);
+  --tr-sender-template-select-bg-active: rgba(20, 118, 255, 0.2);
+  --tr-sender-template-select-dropdown-bg: #ffffff;
+  --tr-sender-template-select-dropdown-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --tr-sender-template-select-text-primary: #191919;
+  --tr-sender-template-select-text-secondary: #666666;
+  --tr-sender-template-select-option-hover-bg: #f5f5f5;
+  --tr-sender-template-select-option-selected-bg: #f5f5f5;
+  --tr-sender-template-select-scrollbar-thumb: rgba(0, 0, 0, 0.2);
+  --tr-sender-template-select-scrollbar-thumb-hover: rgba(0, 0, 0, 0.3);
 }
 
 /* ===== 深色主题 ===== */
@@ -252,14 +252,14 @@
   --tr-mcp-server-picker-border-color-default: rgba(255, 255, 255, 0.15);
 
   /* ===== Chat Input 输入框 ===== */
-  --tr-chat-input-bg-color-disabled: rgba(255, 255, 255, 0.06);
-  --tr-chat-input-text-color-disabled: #808080;
-  --tr-chat-input-placeholder-color-disabled: #666666;
-  --tr-chat-input-box-shadow: 0 4px 16px 0px rgba(0, 0, 0, 0.48);
-  --tr-chat-input-header-border-bottom: 1px solid #4a4a4a;
-  --tr-chat-input-button-active-bg: rgba(255, 255, 255, 0.15);
-  --tr-chat-input-word-limit-color: #808080;
-  --tr-chat-input-word-limit-error-color: #d94838;
+  --tr-sender-bg-color-disabled: rgba(255, 255, 255, 0.06);
+  --tr-sender-text-color-disabled: #808080;
+  --tr-sender-placeholder-color-disabled: #666666;
+  --tr-sender-box-shadow: 0 4px 16px 0px rgba(0, 0, 0, 0.48);
+  --tr-sender-header-border-bottom: 1px solid #4a4a4a;
+  --tr-sender-button-active-bg: rgba(255, 255, 255, 0.15);
+  --tr-sender-word-limit-color: #808080;
+  --tr-sender-word-limit-error-color: #d94838;
 
   /* ===== Suggestion 联想列表 ===== */
   --tr-suggestion-bg-color: #333333;
@@ -276,36 +276,36 @@
   --tr-suggestion-tab-hint-bg: rgba(0, 0, 0, 0.3);
 
   /* ===== Mention 提及列表 ===== */
-  --tr-chat-input-mention-color: #5291ff;
-  --tr-chat-input-mention-bg: rgba(82, 145, 255, 0.15);
-  --tr-chat-input-mention-hover-bg: rgba(82, 145, 255, 0.2);
-  --tr-chat-input-mention-list-bg: #333333;
-  --tr-chat-input-mention-list-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.48);
-  --tr-chat-input-mention-text-primary: #e6e6e6;
-  --tr-chat-input-mention-text-secondary: #b3b3b3;
-  --tr-chat-input-mention-text-tertiary: #808080;
-  --tr-chat-input-mention-item-hover-bg: #262626;
-  --tr-chat-input-mention-item-selected-bg: #262626;
-  --tr-chat-input-mention-scrollbar-thumb: rgba(255, 255, 255, 0.2);
-  --tr-chat-input-mention-scrollbar-thumb-hover: rgba(255, 255, 255, 0.3);
-  --tr-chat-input-mention-trigger-bg: rgba(82, 145, 255, 0.1);
+  --tr-sender-mention-color: #5291ff;
+  --tr-sender-mention-bg: rgba(82, 145, 255, 0.15);
+  --tr-sender-mention-hover-bg: rgba(82, 145, 255, 0.2);
+  --tr-sender-mention-list-bg: #333333;
+  --tr-sender-mention-list-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.48);
+  --tr-sender-mention-text-primary: #e6e6e6;
+  --tr-sender-mention-text-secondary: #b3b3b3;
+  --tr-sender-mention-text-tertiary: #808080;
+  --tr-sender-mention-item-hover-bg: #262626;
+  --tr-sender-mention-item-selected-bg: #262626;
+  --tr-sender-mention-scrollbar-thumb: rgba(255, 255, 255, 0.2);
+  --tr-sender-mention-scrollbar-thumb-hover: rgba(255, 255, 255, 0.3);
+  --tr-sender-mention-trigger-bg: rgba(82, 145, 255, 0.1);
 
   /* ===== Template Block 模板块 ===== */
-  --tr-chat-input-template-color: #5291ff;
-  --tr-chat-input-template-bg: rgba(82, 145, 255, 0.15);
+  --tr-sender-template-color: #5291ff;
+  --tr-sender-template-bg: rgba(82, 145, 255, 0.15);
 
   /* ===== Template Select 模板选择器 ===== */
-  --tr-chat-input-template-select-color: #5291ff;
-  --tr-chat-input-template-select-placeholder-color: rgba(82, 145, 255, 0.5);
-  --tr-chat-input-template-select-bg: rgba(82, 145, 255, 0.15);
-  --tr-chat-input-template-select-bg-hover: rgba(82, 145, 255, 0.2);
-  --tr-chat-input-template-select-bg-active: rgba(82, 145, 255, 0.25);
-  --tr-chat-input-template-select-dropdown-bg: #333333;
-  --tr-chat-input-template-select-dropdown-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.48);
-  --tr-chat-input-template-select-text-primary: #e6e6e6;
-  --tr-chat-input-template-select-text-secondary: #b3b3b3;
-  --tr-chat-input-template-select-option-hover-bg: #262626;
-  --tr-chat-input-template-select-option-selected-bg: #262626;
-  --tr-chat-input-template-select-scrollbar-thumb: rgba(255, 255, 255, 0.2);
-  --tr-chat-input-template-select-scrollbar-thumb-hover: rgba(255, 255, 255, 0.3);
+  --tr-sender-template-select-color: #5291ff;
+  --tr-sender-template-select-placeholder-color: rgba(82, 145, 255, 0.5);
+  --tr-sender-template-select-bg: rgba(82, 145, 255, 0.15);
+  --tr-sender-template-select-bg-hover: rgba(82, 145, 255, 0.2);
+  --tr-sender-template-select-bg-active: rgba(82, 145, 255, 0.25);
+  --tr-sender-template-select-dropdown-bg: #333333;
+  --tr-sender-template-select-dropdown-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.48);
+  --tr-sender-template-select-text-primary: #e6e6e6;
+  --tr-sender-template-select-text-secondary: #b3b3b3;
+  --tr-sender-template-select-option-hover-bg: #262626;
+  --tr-sender-template-select-option-selected-bg: #262626;
+  --tr-sender-template-select-scrollbar-thumb: rgba(255, 255, 255, 0.2);
+  --tr-sender-template-select-scrollbar-thumb-hover: rgba(255, 255, 255, 0.3);
 }
