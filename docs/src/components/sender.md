@@ -606,55 +606,59 @@ import type { Extension } from '@tiptap/core'
 
 ## CSS 变量
 
-Sender 组件提供了丰富的 CSS 变量用于自定义样式。所有变量都支持通过 `size` 属性自动切换（`normal` 和 `small`）。
+Sender 组件提供了丰富的 CSS 变量用于自定义样式。
 
 **基础颜色**
 
-| 变量名                        | 说明         | 默认值                            |
-| ----------------------------- | ------------ | --------------------------------- |
-| `--tr-sender-bg-color`        | 背景颜色     | `var(--tr-container-bg-default)`  |
-| `--tr-sender-text-color`      | 文本颜色     | `var(--tr-text-primary)`          |
-| `--tr-sender-placeholder-color` | 占位符颜色 | `var(--tr-text-tertiary)`         |
-| `--tr-sender-button-hover-bg` | 按钮悬停背景 | `var(--tr-container-bg-hover)`    |
+| 变量名                          | 说明         |
+| ------------------------------- | ------------ |
+| `--tr-sender-bg-color`          | 背景颜色     |
+| `--tr-sender-text-color`        | 文本颜色     |
+| `--tr-sender-placeholder-color` | 占位符颜色   |
+| `--tr-sender-button-hover-bg`   | 按钮悬停背景 |
 
 **尺寸和间距**
 
-| 变量名                          | 说明                 | normal  | small   |
-| ------------------------------- | -------------------- | ------- | ------- |
-| `--tr-sender-font-size`         | 字体大小             | `16px`  | `14px`  |
-| `--tr-sender-line-height`       | 行高                 | `26px`  | `24px`  |
-| `--tr-sender-border-radius`     | 圆角大小             | `26px`  | `24px`  |
-| `--tr-sender-padding`           | 内边距               | `15px 20px` | `12px 16px` |
-| `--tr-sender-gap`               | 元素间距             | `8px`   | `8px`   |
-| `--tr-sender-footer-gap`        | 底部元素间距         | `12px`  | `8px`   |
+| 变量名                       | 说明         |
+| ---------------------------- | ------------ |
+| `--tr-sender-font-size`      | 字体大小     |
+| `--tr-sender-line-height`    | 行高         |
+| `--tr-sender-border-radius`  | 圆角大小     |
+| `--tr-sender-padding`        | 内边距       |
+| `--tr-sender-gap`            | 元素间距     |
+| `--tr-sender-footer-gap`     | 底部元素间距 |
 
 **Header 区域**
 
-| 变量名                            | 说明                 | normal          | small           |
-| --------------------------------- | -------------------- | --------------- | --------------- |
-| `--tr-sender-header-padding`      | 头部内边距           | `12px 20px`     | `12px 16px`     |
-| `--tr-sender-header-divider-inset` | 头部分割线缩进      | `20px`          | `20px`          |
-| `--tr-sender-multi-main-padding`  | 多行模式主区域内边距 | `16px 20px 12px` | `14px 16px 10px` |
+| 变量名                             | 说明                 |
+| ---------------------------------- | -------------------- |
+| `--tr-sender-header-padding`       | 头部内边距           |
+| `--tr-sender-header-divider-inset` | 头部分割线缩进       |
+| `--tr-sender-multi-main-padding`   | 多行模式主区域内边距 |
 
 **Footer 区域**
 
-| 变量名                         | 说明           | normal          | small           |
-| ------------------------------ | -------------- | --------------- | --------------- |
-| `--tr-sender-footer-padding`   | 底部内边距     | `0 10px 10px`   | `0 10px 10px`   |
+| 变量名                       | 说明       |
+| ---------------------------- | ---------- |
+| `--tr-sender-footer-padding` | 底部内边距 |
 
 **前缀和操作区**
 
-| 变量名                              | 说明               | normal | small |
-| ----------------------------------- | ------------------ | ------ | ----- |
-| `--tr-sender-prefix-padding-right`  | 前缀区域右内边距   | `4px`  | `4px` |
-| `--tr-sender-actions-padding-right` | 操作区域右内边距   | `10px` | `8px` |
+| 变量名                              | 说明             |
+| ----------------------------------- | ---------------- |
+| `--tr-sender-prefix-padding-right`  | 前缀区域右内边距 |
+| `--tr-sender-actions-padding-right` | 操作区域右内边距 |
 
 **按钮**
 
-| 变量名                           | 说明             | normal | small |
-| -------------------------------- | ---------------- | ------ | ----- |
-| `--tr-sender-button-size`        | 按钮尺寸         | `32px` | `28px` |
-| `--tr-sender-button-size-submit` | 提交按钮尺寸     | `36px` | `32px` |
+| 变量名                           | 说明         |
+| -------------------------------- | ------------ |
+| `--tr-sender-button-size`        | 按钮尺寸     |
+| `--tr-sender-button-size-submit` | 提交按钮尺寸 |
+
+:::tip 尺寸变体
+所有变量都支持通过 `size` 属性自动切换。当 `size="small"` 时，组件会使用对应的 `-small` 变体（如 `--tr-sender-font-size-small`）。
+:::
 
 :::tip 使用示例
 ```css
