@@ -100,6 +100,9 @@ export interface ISuggestionItem {
   highlights?: string[] | HighlightFunction
 }
 
+// 虚拟键盘回车键提示类型
+export type EnterKeyHint = 'enter' | 'done' | 'go' | 'next' | 'previous' | 'search' | 'send'
+
 // Sender组件属性
 export interface SenderProps {
   autofocus?: boolean // 自动聚焦
@@ -109,6 +112,7 @@ export interface SenderProps {
   clearable?: boolean // 是否显示清除按钮
   disabled?: boolean // 禁用状态
   defaultValue?: string | null // 默认值
+  enterkeyhint?: EnterKeyHint // 虚拟键盘回车键提示
   loading?: boolean // 加载状态
   modelValue?: string // 双向绑定值
   mode?: InputMode // 输入框模式：单行/多行

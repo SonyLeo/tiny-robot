@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useUndoRedo } from '../composables/useUndoRedo'
-import type { UserItem } from '../index.type'
+import type { UserItem, EnterKeyHint } from '../index.type'
 import type {
   CreateItem,
   EditorRange,
@@ -36,6 +36,7 @@ const DEFAULT_LINE_HEIGHT = 40
 
 const props = defineProps<{
   autoSize: boolean | { minRows: number; maxRows: number }
+  enterkeyhint?: EnterKeyHint
 }>()
 
 const model = defineModel<UserItem[]>({ default: () => [] })
@@ -1071,6 +1072,7 @@ defineExpose({
       :key="forceRerender"
       class="editor"
       :style="autoSizeStyle"
+      :enterkeyhint="enterkeyhint"
       @beforeinput="handleBeforeInput"
       @compositionstart="handleCompositionStart"
       @compositionend="handleCompositionEnd"

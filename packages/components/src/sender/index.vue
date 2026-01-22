@@ -19,6 +19,7 @@ const props = withDefaults(defineProps<SenderProps>(), {
   allowFiles: false,
   clearable: false,
   disabled: false,
+  enterkeyhint: 'send',
   loading: false,
   modelValue: '',
   mode: 'single',
@@ -538,6 +539,7 @@ defineExpose({
                   ref="templateEditorRef"
                   :model-value="props.templateData"
                   :auto-size="autoSize"
+                  :enterkeyhint="enterkeyhint"
                   @update:model-value="handleTemplateUpdate"
                   @submit="triggerSubmit"
                 />
@@ -553,6 +555,7 @@ defineExpose({
                   :disabled="isDisabled"
                   :placeholder="placeholder"
                   :autofocus="autofocus"
+                  :enterkeyhint="enterkeyhint"
                   @keydown="handleKeyPress"
                   @compositionstart="isComposing = true"
                   @compositionend="handleCompositionEnd"
