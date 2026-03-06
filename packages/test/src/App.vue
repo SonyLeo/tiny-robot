@@ -5,6 +5,7 @@
       <ul>
         <li><a href="/" @click.prevent="currentComponent = 'Home'">首页</a></li>
         <li><a href="/container" @click.prevent="currentComponent = 'Container'">Container 组件</a></li>
+        <li><a href="/chat" @click.prevent="currentComponent = 'Chat'">Chat 组件</a></li>
       </ul>
     </nav>
 
@@ -19,9 +20,10 @@ import { ref, computed } from 'vue'
 import type { Component } from 'vue'
 import Home from './home/index.vue'
 import ContainerDemo from './container/index.vue'
+import ChatDemo from './chat/index.vue'
 
 // 定义组件名称类型
-type ComponentName = 'Home' | 'Container'
+type ComponentName = 'Home' | 'Container' | 'Chat'
 
 const currentComponent = ref<ComponentName>('Home')
 
@@ -29,6 +31,7 @@ const currentComponent = ref<ComponentName>('Home')
 const components: Record<ComponentName, Component> = {
   Home,
   Container: ContainerDemo,
+  Chat: ChatDemo,
 }
 
 // 计算属性确保类型安全

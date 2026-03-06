@@ -822,7 +822,7 @@ function handleAbort() {
     v-model="inputValue"
     :loading="isLoading"
     v-bind="$attrs"
-    @send="handleSend"
+    @submit="handleSend"
     @cancel="handleAbort"
   />
 </template>
@@ -1004,8 +1004,8 @@ function handlePromptClick(description: string) {
 ### `packages/chat/src/index.ts`
 
 ```ts
-// ===== 样式（用户需手动导入）=====
-// import '@opentiny/tiny-robot-chat/style'
+// ===== 样式（自动导入）=====
+import './styles/index.less'
 
 // ===== 黑盒组件（同时挂载白盒子组件）=====
 import TrChat from './components/TrChat.vue'

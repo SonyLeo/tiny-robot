@@ -73,7 +73,7 @@ const bubbleSlots = computed<Partial<Record<string, Slot>>>(() =>
         <slot name="message-list" :messages="chatKit.messages" />
       </template>
       <template v-else>
-        <div v-if="showWelcome" class="tr-chat__welcome">
+        <div v-if="showWelcome" class="tr-chat__welcome-area">
           <slot v-if="$slots.welcome" name="welcome" />
           <TrChatWelcome
             v-else-if="props.welcome"
@@ -84,7 +84,13 @@ const bubbleSlots = computed<Partial<Record<string, Slot>>>(() =>
           <slot v-else name="empty" />
         </div>
 
-        <TrChatMessageList v-else :auto-scroll="props.autoScroll">
+        <TrChatMessageList
+          v-else
+          :auto-scroll="props.autoScroll"
+          :role-configs="props.roleConfigs"
+          :group-strategy="props.groupStrategy"
+          v-bind="props.bubbleListProps"
+        >
           <!-- 只透传 BubbleList 允许的 slots -->
           <template v-for="(_, name) in bubbleSlots" #[name]="slotProps" :key="name">
             <slot :name="name" v-bind="slotProps ?? {}" />
@@ -100,11 +106,16 @@ const bubbleSlots = computed<Partial<Record<string, Slot>>>(() =>
         <template v-if="$slots['footer-extra']" #extra>
           <slot name="footer-extra" />
         </template>
-        <TrChatSender :placeholder="props.placeholder" :max-length="props.maxLength" :mode="props.senderMode" />
+        <TrChatSender
+          :placeholder="props.placeholder"
+          :max-length="props.maxLength"
+          :mode="props.senderMode"
+          v-bind="props.senderProps"
+        />
       </TrChatFooter>
 
       <!-- 历史 Drawer -->
-      <TrChatHistory v-if="props.showHistory" />
+      <TrChatHistory v-if="props.showHistory" v-bind="props.historyProps" />
     </div>
   </TrChatRoot>
 </template>

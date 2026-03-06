@@ -331,7 +331,17 @@ interface UseChatKitReturn {
   // === 便捷方法（套件层新增）===
   // 组合了：首次发送自动创建会话 + sendMessage
   // 消息入队后立即返回，流式输出异步进行，不阻塞 UI
-  sendMessage: (content: string) => void
+  /**
+   * 发送消息
+   * @param content - 消息文本
+   * @param data - 预留字段：结构化数据（如 RAG 引用的文档、前端采集的上下文等），底层 engine 暂不支持，为未来扩展预留
+   */
+  sendMessage: (content: string, data?: StructuredData) => void
+  /** 
+   * 动态更新底层 request 层使用的数据源提供者
+   * 更新后，当前活跃对话和新创建的对话都会使用新的 provider
+   */
+  updateResponseProvider: (provider: ResponseProvider) => void
   abort: () => Promise<void>
 }
 ```
@@ -452,6 +462,9 @@ interface TrChatProps {
 ```vue
 <!-- 最简用法 -->
 <TrChat :response-provider="responseProvider" />
+
+> **💡 `responseProvider` 响应式更新**：
+> `TrChat` 监听了 `responseProvider` prop 的变化。当父组件传入新的 provider 时，底层所有活跃引擎会立即热更新，后续请求将直接使用新 provider，无需重启整个 Chat 组件。
 
 <!-- 完整配置 -->
 <TrChat
@@ -1095,15 +1108,10 @@ export type { WelcomeConfig }
 | Props 优先级 | 平铺 props > 透传对象 props |
 | `TrChat.Root` 使用模式 | 支持两种互斥模式：传 Options（内部创建状态）或传 `:chat-kit`（外部注入实例） |
 | sendMessage 返回值 | `void`（同步入队，流式异步），替代原 `Promise<void>` |
-| ResponseProvider 实际签名 | `AsyncGenerator<ChatCompletion>`（不是设计初稿中的 `ReadableStream<string>`） |
 | TrChat.Body | **拆分**为 `TrChat.Welcome` + `TrChat.MessageList`（独立控制显隐） |
 | TrChat.Root 默认高度 | `height: 100%`，由父容器控制 |
-| Props 优先级 | 平铺 props > 透传对象 props |
 | 平铺语法糖（mentions/suggestions） | **移除**（避免隐式转换，改为直接通过 `senderProps.extensions` 传入） |
 | 白盒子组件 props | 支持完整底层组件 props，不做二次封装限制 |
-| Chat.Root 使用模式 | 支持两种互斥模式：传 Options（内部创建状态）或传 `.chat`（外部注入实例） |
-| ResponseProvider 类型 | 定义在 `types.ts`，核心扩展点，返回 ReadableStream<string> |
-| sendMessage 返回值 | `void`（同步入队，流式异步），替代原 `Promise<void>` |
 
 ---
 

@@ -1,8 +1,8 @@
 import type { Component, ComputedRef, VNode } from 'vue'
 import type { ConversationStorageStrategy, ChatMessage } from '@opentiny/tiny-robot-kit'
 import type { UseMessagePlugin, MessageRequestBody, ChatCompletion, UseMessageOptions } from '@opentiny/tiny-robot-kit'
-import type { UseConversationReturn } from '@opentiny/tiny-robot-kit'
-import type { PromptProps, StructuredData } from '@opentiny/tiny-robot'
+import type { UseConversationReturn, ConversationInfo } from '@opentiny/tiny-robot-kit'
+import type { PromptProps, StructuredData, BubbleListProps, SenderProps } from '@opentiny/tiny-robot'
 
 // ===== ResponseProvider =====
 // 注意：实际底层签名接受 AsyncGenerator<ChatCompletion>，与设计文档中的 ReadableStream<string> 不同
@@ -37,14 +37,15 @@ export interface UseChatKitOptions {
 export interface UseChatKitReturn
   extends Pick<
     UseConversationReturn,
-    | 'conversations'
     | 'activeConversationId'
     | 'activeConversation'
     | 'createConversation'
     | 'switchConversation'
     | 'deleteConversation'
     | 'updateConversationTitle'
+    | 'abortActiveRequest'
   > {
+  conversations: UseConversationReturn['conversations']
   messages: ComputedRef<ChatMessage[]>
   status: ComputedRef<ChatStatus>
   sendMessage: (content: string, data?: StructuredData) => void
@@ -75,10 +76,11 @@ export interface TrChatProps {
   showHistory?: boolean
   fullscreen?: boolean
   // 补充缺失的 props
-  roleConfigs?: Record<string, unknown>
-  groupStrategy?: string
-  senderProps?: Record<string, unknown>
-  bubbleListProps?: Record<string, unknown>
+  roleConfigs?: BubbleListProps['roleConfigs']
+  groupStrategy?: BubbleListProps['groupStrategy']
+  senderProps?: SenderProps
+  bubbleListProps?: Omit<BubbleListProps, 'roleConfigs' | 'groupStrategy' | 'messages'>
+  // TODO: @opentiny/tiny-robot 暂未导出 HistoryProps，故保持 Record 类型
   historyProps?: Record<string, unknown>
 }
 
