@@ -1,0 +1,12 @@
+# API Configuration
+VITE_API_KEY=your_api_key_here
+VITE_API_PROVIDER=
+
+# For OpenAI:
+# VITE_API_PROVIDER=openai
+
+# For DeepSeek:
+# VITE_API_PROVIDER=deepseek
+
+# Note: In production, use a backend proxy to avoid exposing API keys in the browser.
+# See README.md for security best practices.

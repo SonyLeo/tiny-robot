@@ -1076,16 +1076,16 @@ declare module './components/TrChat.vue' {
 
 ---
 
-## Step 2 — CLI 工具（`packages/create-tiny-robot-app/`）
+## Step 2 — CLI 工具（`packages/chat-cli/`，npm 包名 `create-tiny-robot`）
 
 ### Step 2.1 — `package.json`
 
 ```json
 {
-  "name": "create-tiny-robot-app",
+  "name": "create-tiny-robot",
   "version": "0.1.0",
   "type": "module",
-  "bin": { "create-tiny-robot-app": "bin/index.js" },
+  "bin": { "create-tiny-robot": "bin/index.js" },
   "files": ["bin", "templates", "scripts"],
   "dependencies": {
     "@clack/prompts": "^0.9.0",
@@ -1372,7 +1372,7 @@ Phase 1 - Step 1: packages/chat/
   ☐ 1.13 src/components/TrChat.vue
   ☐ 1.14 src/index.ts + src/shims.d.ts
 
-Phase 1 - Step 2: packages/create-tiny-robot-app/
+Phase 1 - Step 2: packages/chat-cli/（npm 包名: create-tiny-robot）
   ☐ 2.1  package.json
   ☐ 2.2  bin/index.js
   ☐ 2.3  templates/basic/src/App.vue + main.ts + env.d.ts

@@ -119,43 +119,66 @@
 
 ---
 
-## Phase 1 — Step 2: `packages/create-tiny-robot-app/`（CLI 工具）
+## Phase 1 — Step 2: `packages/chat-cli/`（CLI 工具）
 
 ### 2.1 CLI 工程配置
-- ⏳ `package.json`（bin 字段、`@clack/prompts` + `picocolors` 依赖）
+- ✅ `package.json`（bin 字段、`@clack/prompts` + `picocolors` 依赖）
+  - ✅ npm 包名为 `create-tiny-robot`
+  - ✅ 包含 `files` 字段（bin、templates、scripts）
+  - ✅ 依赖配置正确
 
 ### 2.2 basic 模板
-- ⏳ `templates/basic/src/App.vue`（~30 行，直接用 `<TrChat>`）
-- ⏳ `templates/basic/src/main.ts`
-- ⏳ `templates/basic/src/env.d.ts`
-- ⏳ `templates/basic/index.html`
-- ⏳ `templates/basic/package.json`（依赖版本占位符）
-- ⏳ `templates/basic/vite.config.ts`
-- ⏳ `templates/basic/tsconfig.json`
-- ⏳ `templates/basic/_gitignore`（构建时重命名为 `.gitignore`）
-- ⏳ `templates/basic/_env.example`（构建时重命名为 `.env.example`）
-- ⏳ `templates/basic/README.md`（含生产环境后端代理安全说明）
+- ✅ `templates/basic/src/App.vue`（~40 行，直接用 `<TrChat>`）
+  - ⚠️ 缺少 `:storage="storage"` 配置（会话持久化）
+  - ⚠️ 缺少 `:prompts="prompts"` 配置（引导词）
+  - ✅ 使用 `fullscreen` prop
+  - ✅ 使用环境变量 `VITE_API_PROVIDER` 动态选择 provider
+- ✅ `templates/basic/src/main.ts`
+  - ⚠️ 样式导入路径使用 `/dist/style.css`，应改为 `/style`（使用 package.json 导出）
+- ✅ `templates/basic/src/env.d.ts`
+- ✅ `templates/basic/index.html`
+- ✅ `templates/basic/package.json`（依赖版本使用 `workspace:*`）
+- ✅ `templates/basic/vite.config.ts`
+- ✅ `templates/basic/tsconfig.json` + `tsconfig.node.json`
+- ✅ `templates/basic/_gitignore`（构建时重命名为 `.gitignore`）
+- ✅ `templates/basic/_env.example`（构建时重命名为 `.env.example`）
+- ✅ `templates/basic/README.md`（含生产环境后端代理安全说明）
 
 ### 2.3 CLI 交互逻辑
-- ⏳ `bin/index.js`（ESM，使用 `@clack/prompts`）
-  - 交互流程：项目名 → 模板选择 → 语言 → API Provider → 安装依赖
-  - coming soon 模板的处理
-  - `isCancel()` 取消处理
-  - `_gitignore` → `.gitignore` 重命名
+- ✅ `bin/index.js`（ESM，使用 `@clack/prompts`）
+  - ✅ 项目名输入
+  - ✅ 模板选择（basic + coming soon 选项）
+  - ✅ API Provider 选择（OpenAI / DeepSeek / Custom）
+  - ✅ 安装依赖确认
+  - ✅ `isCancel()` 取消处理
+  - ✅ `_gitignore` → `.gitignore` 重命名
+  - ✅ `_env.example` → `.env.example` 重命名
+  - ✅ Provider 占位符替换（`patchProviderInApp`）
+  - ✅ 自动安装依赖（可选）
+  - ✅ 完整的错误处理和用户反馈
 
 ### 2.4 版本同步脚本
-- ⏳ `scripts/update-versions.js`（读取 workspace 包版本，写入模板 package.json）
+- ❌ `scripts/update-versions.js`（未实现）
+  - **问题**：模板中的依赖版本固定为 `workspace:*`，发布到 npm 后无法使用
+  - **优先级**：P0（必须修复）
+  - **实施方案**：需创建脚本读取各包版本，在 release CI 中自动运行
 
 ---
 
 ## Phase 1 — Step 3: 工程配置
 
 ### 3.1 Workspace 注册
-- ⏳ `pnpm-workspace.yaml` 已包含 `packages/**`（无需修改）
-- ⏳ 根 `package.json` 补充 `build:chat`、`dev:chat` 脚本
+- ✅ `pnpm-workspace.yaml` 已包含 `packages/**`（无需修改）
+- ❌ 根 `package.json` 补充 `build:chat`、`dev:chat` 脚本
+  - **问题**：缺少 `dev:chat-cli` 和 `build:chat-cli` 脚本
+  - **优先级**：P1（强烈建议）
+  - **实施方案**：在根 package.json 中添加 CLI 相关脚本
 
 ### 3.2 CI 配置
-- ⏳ `.github/workflows/` 补充 release 时触发版本同步脚本（Phase 1 可选）
+- ❌ `.github/workflows/` 补充 release 时触发版本同步脚本
+  - **问题**：未配置 CI 自动运行版本同步
+  - **优先级**：P0（必须修复）
+  - **实施方案**：在 release workflow 中调用 `scripts/update-versions.js`
 
 ---
 
@@ -204,6 +227,50 @@
 
 ---
 
+## 优化记录（2026-03-06）
+
+### CLI 工具实施完成度评估
+
+1. **已完成部分（100%）**
+   - ✅ CLI 工程配置（package.json、bin 字段、依赖）
+   - ✅ CLI 交互逻辑（项目名、模板选择、Provider 选择、依赖安装）
+   - ✅ Basic 模板结构（所有必要文件）
+   - ✅ 模板文档（README.md 含安全说明）
+
+2. **与设计方案的差异**
+   - ⚠️ App.vue 缺少 `:storage` 和 `:prompts` 配置
+   - ⚠️ 样式导入路径使用 `/dist/style.css` 而非 `/style`
+   - ✅ Provider 实现更灵活（环境变量而非占位符）
+
+3. **缺失部分（需修复）**
+   - ❌ `scripts/update-versions.js` 未实现（P0）
+   - ❌ 根 package.json 缺少 CLI 脚本（P1）
+   - ❌ App.vue 缺少 storage 和 prompts 配置（P1）
+   - ❌ 样式导入路径需修正（P1）
+
+4. **总体完成度**
+   - CLI 工程配置：100%
+   - CLI 交互逻辑：100%
+   - Basic 模板结构：100%
+   - Basic 模板功能：70%（缺 storage 和 prompts）
+   - 版本同步脚本：0%
+   - 根目录集成：0%
+   - **总体：约 75%**
+
+### 待修复项目清单
+
+| 优先级 | 项目 | 状态 | 说明 |
+|--------|------|------|------|
+| P0 | 版本同步脚本 | ❌ 未实现 | 影响 npm 发布，必须完成 |
+| P0 | 构建脚本集成 | ❌ 未实现 | 需在 release CI 中调用版本同步 |
+| P1 | App.vue 功能完整性 | ⚠️ 部分缺失 | 添加 storage 和 prompts 配置 |
+| P1 | 样式导入路径 | ⚠️ 需修正 | 改为使用 package.json 导出路径 |
+| P1 | 根目录脚本 | ❌ 未实现 | 添加 dev:chat-cli 和 build:chat-cli |
+| P2 | CLI 增强功能 | ⏳ 可选 | --skip-install、--template 等标志 |
+| P2 | 模板增强 | ⏳ 可选 | 更多示例、ESLint/Prettier 配置 |
+
+---
+
 ## 关键设计决策备忘
 
 | 决策点 | 结论 |
@@ -229,6 +296,247 @@
 |------|------|------|
 | BubbleList slots 动态透传 | ⏳ 待验证 | 带连字符 slot 名（`content-footer`）需测试 |
 | ChatStatus 四态与底层映射 | ⏳ 待验证 | 从 `requestState` 推导，abort 后立即置 ready |
-| `createOpenAIProvider` 浏览器端安全 | ⏳ 文档说明 | README 必须说明生产环境需后端代理 |
-| CLI `_gitignore` 重命名 | ⏳ 待实现 | npm publish 会忽略 `.gitignore` |
+| `createOpenAIProvider` 浏览器端安全 | ✅ 已处理 | README 已包含生产环境后端代理说明 |
+| CLI `_gitignore` 重命名 | ✅ 已实现 | bin/index.js 中 renameSync 处理 |
 | 暗色模式变量名 | ✅ 已修正 | `--tr-color-border` 改为 `--tr-border-color-default`；硬编码值在 `[data-tr-color-mode='dark']` 下覆盖 |
+| 版本同步机制 | ❌ 未实现 | 模板依赖版本固定为 `workspace:*`，npm 发布后无法使用（P0） |
+| 样式导入路径 | ⚠️ 需修正 | 使用 `/dist/style.css` 而非 `/style` 导出路径（P1） |
+| App.vue 功能完整性 | ⚠️ 部分缺失 | 缺少 storage 和 prompts 配置（P1） |
+
+---
+
+## 实施检查清单
+
+```
+Phase 1 - Step 1: packages/chat/
+  ✅ 1.1  package.json + tsconfig.json + vite.config.ts
+  ✅ 1.2  src/types.ts + src/context.ts
+  ✅ 1.3  src/composables/useChatKit.ts
+  ✅ 1.4  src/providers/openai.ts + deepseek.ts
+  ✅ 1.5  src/styles/variables.less + layout.less + drawer.less + index.less
+  ✅ 1.6  src/components/TrChatRoot.vue
+  ✅ 1.7  src/components/TrChatHeader.vue
+  ✅ 1.8  src/components/TrChatWelcome.vue
+  ✅ 1.9  src/components/TrChatMessageList.vue
+  ✅ 1.10 src/components/TrChatFooter.vue
+  ✅ 1.11 src/components/TrChatSender.vue
+  ✅ 1.12 src/components/TrChatHistory.vue
+  ✅ 1.13 src/components/TrChat.vue
+  ✅ 1.14 src/index.ts + src/shims.d.ts
+
+Phase 1 - Step 2: packages/chat-cli/（npm 包名: create-tiny-robot）
+  ✅ 2.1  package.json
+  ✅ 2.2  bin/index.js（完整的 CLI 交互逻辑）
+  ✅ 2.3  templates/basic/src/App.vue + main.ts + env.d.ts
+  ✅ 2.4  templates/basic/_env.example + _gitignore + index.html + package.json + vite.config.ts + tsconfig.json + README.md
+  ❌ 2.5  scripts/update-versions.js（P0 - 必须修复）
+
+Phase 1 - Step 3: 工程配置
+  ✅ 3.1  pnpm-workspace.yaml 已包含 packages/**
+  ✅ 3.2  根 package.json 已有 dev:chat / build:chat 脚本
+  ❌ 3.3  根 package.json 补充 dev:chat-cli / build:chat-cli 脚本（P1 - 强烈建议）
+  ❌ 3.4  .github/workflows/ 补充 release 时触发版本同步脚本（P0 - 必须修复）
+
+Phase 1 - Step 4: 文档
+  ⏳ 4.1  docs/ 补充套件快速开始页
+  ⏳ 4.2  docs/ 补充 API 参考页
+```
+
+---
+
+## 待修复项目详细清单
+
+### P0 优先级（必须修复）
+
+#### 1. 创建版本同步脚本
+**文件**：`packages/chat-cli/scripts/update-versions.js`
+
+**问题**：模板中的依赖版本固定为 `workspace:*`，发布到 npm 后无法使用
+
+**实施方案**：
+```js
+#!/usr/bin/env node
+import { readFileSync, writeFileSync } from 'fs'
+import { join, dirname } from 'path'
+import { fileURLToPath } from 'url'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+const root = join(__dirname, '..')
+
+// 读取各包版本
+const chatPkg = JSON.parse(readFileSync(join(root, '../chat/package.json'), 'utf-8'))
+const kitPkg = JSON.parse(readFileSync(join(root, '../kit/package.json'), 'utf-8'))
+const componentsPkg = JSON.parse(readFileSync(join(root, '../components/package.json'), 'utf-8'))
+
+// 更新模板 package.json
+const templatePkgPath = join(root, 'templates/basic/package.json')
+const templatePkg = JSON.parse(readFileSync(templatePkgPath, 'utf-8'))
+
+templatePkg.dependencies['@opentiny/tiny-robot-chat'] = `^${chatPkg.version}`
+templatePkg.dependencies['@opentiny/tiny-robot-kit'] = `^${kitPkg.version}`
+templatePkg.dependencies['@opentiny/tiny-robot'] = `^${componentsPkg.version}`
+
+writeFileSync(templatePkgPath, JSON.stringify(templatePkg, null, 2) + '\n')
+console.log('✅ Template versions updated')
+```
+
+**集成方式**：在 release CI workflow 中调用此脚本
+
+#### 2. 配置 Release CI 自动运行版本同步
+**文件**：`.github/workflows/release.yml`（或类似）
+
+**问题**：未配置 CI 自动运行版本同步脚本
+
+**实施方案**：在 release 步骤中添加
+```yaml
+- name: Update template versions
+  run: node packages/chat-cli/scripts/update-versions.js
+```
+
+### P1 优先级（强烈建议）
+
+#### 1. 修复 App.vue 功能完整性
+**文件**：`packages/chat-cli/templates/basic/src/App.vue`
+
+**问题**：缺少 `:storage` 和 `:prompts` 配置
+
+**修改内容**：添加 storage 和 prompts 配置
+```vue
+<script setup lang="ts">
+import { TrChat, createOpenAIProvider, createDeepSeekProvider } from '@opentiny/tiny-robot-chat'
+import { localStorageStrategyFactory } from '@opentiny/tiny-robot-kit'
+
+const apiKey = import.meta.env.VITE_API_KEY
+const provider = import.meta.env.VITE_API_PROVIDER
+
+let responseProvider
+
+if (provider === 'openai') {
+  responseProvider = createOpenAIProvider({
+    apiKey,
+    model: 'gpt-4-turbo',
+  })
+} else if (provider === 'deepseek') {
+  responseProvider = createDeepSeekProvider({
+    apiKey,
+    model: 'deepseek-chat',
+  })
+} else {
+  throw new Error(`Unknown API provider: ${provider}`)
+}
+
+const storage = localStorageStrategyFactory()
+
+const welcome = {
+  title: 'Welcome to Tiny Robot Chat',
+  description: 'Start a conversation with AI',
+}
+
+const prompts = [
+  { title: '✍️ 写作', description: '帮我写一篇关于...' },
+  { title: '💻 编程', description: '帮我写一个...' },
+  { title: '📊 分析', description: '帮我分析...' },
+  { title: '🌐 翻译', description: '帮我翻译...' },
+]
+</script>
+
+<template>
+  <div id="app">
+    <TrChat
+      :response-provider="responseProvider"
+      :storage="storage"
+      :welcome="welcome"
+      :prompts="prompts"
+      show-history
+      fullscreen
+    />
+  </div>
+</template>
+
+<style scoped>
+#app {
+  width: 100%;
+  height: 100vh;
+}
+</style>
+```
+
+#### 2. 修正样式导入路径
+**文件**：`packages/chat-cli/templates/basic/src/main.ts`
+
+**问题**：使用 `/dist/style.css` 而非 `/style` 导出路径
+
+**修改内容**：
+```ts
+import { createApp } from 'vue'
+import App from './App.vue'
+import '@opentiny/tiny-robot/dist/style.css'
+import '@opentiny/tiny-robot-chat/style'  // 改为使用 package.json 导出路径
+
+createApp(App).mount('#app')
+```
+
+#### 3. 添加根目录 CLI 脚本
+**文件**：根 `package.json`
+
+**问题**：缺少 CLI 相关脚本
+
+**修改内容**：在 `scripts` 中添加
+```json
+{
+  "scripts": {
+    "dev:chat-cli": "pnpm -F create-tiny-robot dev",
+    "build:chat-cli": "pnpm -F create-tiny-robot build"
+  }
+}
+```
+
+### P2 优先级（可选优化）
+
+#### 1. CLI 增强功能
+- 添加 `--skip-install` 标志
+- 添加 `--template` 标志直接指定模板
+- 添加版本检查和更新提示
+
+#### 2. 模板增强
+- 添加 TypeScript 严格模式配置
+- 添加 ESLint/Prettier 配置（可选）
+- 添加更多示例（多模态、工具调用等）
+
+---
+
+## 完成度统计
+
+| 模块 | 完成度 | 状态 |
+|------|--------|------|
+| packages/chat 工程配置 | 100% | ✅ 完成 |
+| packages/chat 核心功能 | 100% | ✅ 完成 |
+| packages/chat 样式系统 | 100% | ✅ 完成 |
+| packages/chat 组件库 | 100% | ✅ 完成 |
+| packages/chat-cli 工程配置 | 100% | ✅ 完成 |
+| packages/chat-cli CLI 交互 | 100% | ✅ 完成 |
+| packages/chat-cli 模板结构 | 100% | ✅ 完成 |
+| packages/chat-cli 模板功能 | 70% | ⚠️ 缺 storage 和 prompts |
+| 版本同步脚本 | 0% | ❌ 未实现 |
+| 工程集成脚本 | 50% | ⚠️ 部分缺失 |
+| **总体完成度** | **75%** | ⚠️ 进行中 |
+
+---
+
+## 后续工作计划
+
+### 立即执行（本周）
+1. ✅ 完成 packages/chat 的构建和类型检查修复
+2. ✅ 完成 packages/chat-cli 的 CLI 交互实现
+3. ❌ 创建版本同步脚本（P0）
+4. ❌ 修复 App.vue 功能完整性（P1）
+
+### 本周内完成（优先级 P1）
+1. ❌ 修正样式导入路径
+2. ❌ 添加根目录 CLI 脚本
+3. ❌ 配置 Release CI 集成
+
+### 下周完成（优先级 P2）
+1. ⏳ CLI 增强功能
+2. ⏳ 模板增强
+3. ⏳ 文档补充

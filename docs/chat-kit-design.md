@@ -184,8 +184,11 @@ assistant-ui 是 2024 年兴起的影响力最大的 AI 对话 UI 库，受 Radi
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│  Layer 3: 模板工程 (create-tiny-robot-app)           │
+│  Layer 3: 模板工程 (create-tiny-robot)           │
 │  通过 CLI 脚手架生成，~30 行核心代码即可运行          │
+├─────────────────────────────────────────────────────┤
+│  目录: packages/chat-cli/                           │
+│  npm 包名: create-tiny-robot                        │
 ├─────────────────────────────────────────────────────┤
 │  Layer 2: Chat 套件 (@opentiny/tiny-robot-chat)      │
 │  开箱即用的 <TrChat> 组件 + useChatKit composable   │
@@ -228,7 +231,7 @@ packages/
 │   ├── tsconfig.json
 │   └── vite.config.ts
 │
-└── create-tiny-robot-app/             ← CLI 工具（独立包）
+└── chat-cli/                      ← CLI 工具（独立包，npm 包名: create-tiny-robot）
     ├── bin/
     │   └── index.js                   ← CLI 入口（ESM）
     ├── scripts/
@@ -863,11 +866,11 @@ export function createOpenAIProvider(options) {
 ### 9.1 使用方式
 
 ```bash
-npm create tiny-robot-app my-app
+npm create tiny-robot my-app
 # 或
-npx create-tiny-robot-app my-app
+npx create-tiny-robot my-app
 # 或（不指定目录名，交互式询问）
-npm create tiny-robot-app
+npm create tiny-robot
 ```
 
 ### 9.2 交互流程（使用 @clack/prompts）
@@ -1073,7 +1076,7 @@ export type { WelcomeConfig }
 |------|------|
 | 黑盒 vs 白盒 | 两者都支持，共享同一套 useChatKit 状态 |
 | 套件包名 | `@opentiny/tiny-robot-chat` |
-| CLI 包名 | `create-tiny-robot-app` |
+| CLI 包名 | `create-tiny-robot` |
 | CLI 交互库 | `@clack/prompts` + `picocolors`（替代原 `prompts` + `kolorist`） |
 | 模板数量（本期） | 1 个（basic），其余 Phase 2 |
 | 模板工程类型 | 纯 SPA（Vite + Vue 3） |
