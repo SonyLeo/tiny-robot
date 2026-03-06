@@ -10,7 +10,7 @@
 | 二 | [项目现状分析](#二项目现状分析) |
 | 三 | [整体架构设计](#三整体架构设计) |
 | 四 | [`useChatKit` — 核心逻辑层](#四usechatkit--核心逻辑层) |
-| 五 | [`ChatKit` 黑盒组件](#五chatkit-黑盒组件) |
+| 五 | [`TrChat` 黑盒组件](#五trchat-黑盒组件) |
 | 六 | [白盒复合组件](#六白盒复合组件) |
 | 七 | [样式方案](#七样式方案) |
 | 八 | [Providers 设计](#八providers-设计) |
@@ -38,7 +38,7 @@ Vercel AI SDK 的 `useChat` 是目前业界最广泛使用的 AI 对话逻辑层
 - **消息结构**：消息用 `parts` 数组表达多模态内容（text / reasoning / file / source-url），比单一 content 字段更具扩展性
 
 **对本方案的启示**：
-- `useChatKit` 的 `isProcessing` 应升级为四态状态机（`submitted / streaming / ready / error`）
+- `useChat` 的 `isProcessing` 应升级为四态状态机（`submitted / streaming / ready / error`）
 - `responseProvider` 的抽象思路与 Transport 模式一致，已有良好基础
 - 需补充 `onFinish / onError` 事件回调，让黑盒用法也能监听生命周期
 
@@ -75,7 +75,7 @@ assistant-ui 是 2024 年兴起的影响力最大的 AI 对话 UI 库，受 Radi
 - **Runtime 架构**：通过 Runtime 对象统一管理状态，组件通过 Context 消费，与 Vercel AI SDK / LangGraph 无缝集成
 
 **对本方案的关键启示（⚠️ 需修正的设计问题）**：
-- `useChatKit` 的职责应严格限定在**会话逻辑层**，`inputValue` / `showHistoryDrawer` / `senderExtensions` 等 **UI 状态不应混入 composable**，应由组件层（`ChatKit.vue`）自行管理
+- `useChatKit` 的职责应严格限定在**会话逻辑层**，`inputValue` / `showHistoryDrawer` / `senderExtensions` 等 **UI 状态不应混入 composable**，应由组件层（`TrChat.vue`）自行管理
 - 参考 Runtime 概念：将来可将 `useChatKit` 升级为可注入的 Runtime 对象，使组件与逻辑完全解耦
 
 ---
@@ -89,7 +89,7 @@ assistant-ui 是 2024 年兴起的影响力最大的 AI 对话 UI 库，受 Radi
 
 事件系统采用**解耦架构**：组件间通过事件通信，不直接引用，便于扩展和定制。
 
-**对本方案的启示**：`ChatKit` 就是一个 Composite Component，内部组合了已有的 Base Components。
+**对本方案的启示**：`Chat` 就是一个 Composite Component，内部组合了已有的 Base Components。
 
 ---
 
@@ -188,7 +188,7 @@ assistant-ui 是 2024 年兴起的影响力最大的 AI 对话 UI 库，受 Radi
 │  通过 CLI 脚手架生成，~30 行核心代码即可运行          │
 ├─────────────────────────────────────────────────────┤
 │  Layer 2: Chat 套件 (@opentiny/tiny-robot-chat)      │
-│  开箱即用的 <ChatKit> 组件 + useChatKit composable   │
+│  开箱即用的 <TrChat> 组件 + useChatKit composable   │
 ├─────────────────────────────────────────────────────┤
 │  Layer 1: 已有基础层（不改动）                       │
 │  @opentiny/tiny-robot（UI）                          │
@@ -200,24 +200,24 @@ assistant-ui 是 2024 年兴起的影响力最大的 AI 对话 UI 库，受 Radi
 
 ```
 packages/
-├── chat-kit/                          ← @opentiny/tiny-robot-chat
+├── chat/                              ← @opentiny/tiny-robot-chat
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── ChatKit.vue            ← 黑盒入口（同时挂载所有白盒子组件）
-│   │   │   ├── ChatKitRoot.vue        ← 白盒根组件（provide 状态）
-│   │   │   ├── ChatKitHeader.vue      ← 顶部栏（新建/历史按钮）
-│   │   │   ├── ChatKitWelcome.vue     ← 欢迎页（原 Body 的职责拆出）
-│   │   │   ├── ChatKitMessageList.vue ← 消息列表（支持完整 BubbleList props）
-│   │   │   ├── ChatKitFooter.vue      ← 底部容器
-│   │   │   ├── ChatKitSender.vue      ← 白盒 Sender（支持完整 TrSender props）
-│   │   │   └── ChatKitHistory.vue     ← Drawer + TrHistory
+│   │   │   ├── TrChat.vue             ← 黑盒入口（同时挂载所有白盒子组件）
+│   │   │   ├── TrChatRoot.vue         ← 白盒根组件（provide 状态）
+│   │   │   ├── TrChatHeader.vue       ← 顶部栏（新建/历史按钮）
+│   │   │   ├── TrChatWelcome.vue      ← 欢迎页（原 Body 的职责拆出）
+│   │   │   ├── TrChatMessageList.vue  ← 消息列表（支持完整 BubbleList props）
+│   │   │   ├── TrChatFooter.vue       ← 底部容器
+│   │   │   ├── TrChatSender.vue       ← 白盒 Sender（支持完整 TrSender props）
+│   │   │   └── TrChatHistory.vue      ← Drawer + TrHistory
 │   │   ├── composables/
 │   │   │   └── useChatKit.ts          ← 核心逻辑 composable（纯逻辑，无 UI 状态）
 │   │   ├── providers/
 │   │   │   ├── openai.ts              ← createOpenAIProvider
 │   │   │   └── deepseek.ts            ← createDeepSeekProvider
 │   │   ├── styles/
-│   │   │   ├── variables.css          ← --chat-kit-* CSS 变量
+│   │   │   ├── variables.css          ← --chat-* CSS 变量
 │   │   │   ├── layout.css             ← 套件布局样式
 │   │   │   ├── drawer.css             ← Drawer 动画（自实现，零依赖）
 │   │   │   └── index.css              ← 样式入口
@@ -253,7 +253,7 @@ packages/
     └── package.json
 ```
 
-> **⚠️ 架构变更说明**：原方案中的 `ChatKitBody.vue` 被拆分为 `ChatKitWelcome.vue` + `ChatKitMessageList.vue`。理由：将 Welcome 和 MessageList 耦合在一个 Body 组件内，会导致白盒模式下用户无法独立控制两者的显示逻辑。拆分后用户可以完全自主控制何时显示欢迎页、何时显示消息列表。
+> **⚠️ 架构变更说明**：原方案中的 `TrChatBody.vue` 被拆分为 `TrChatWelcome.vue` + `TrChatMessageList.vue`。理由：将 Welcome 和 MessageList 耦合在一个 Body 组件内，会导致白盒模式下用户无法独立控制两者的显示逻辑。拆分后用户可以完全自主控制何时显示欢迎页、何时显示消息列表。
 
 ---
 
@@ -263,8 +263,8 @@ packages/
 
 - 对 `useConversation` 的**薄封装**，不重复实现已有逻辑
 - **严格限定职责**：只管理会话逻辑状态，**不管理任何 UI 状态**
-  - `inputValue` → `ChatKit.vue` 组件内部 `ref`（与 `useChatKit` 无关）
-  - `showHistoryDrawer` → `ChatKit.vue` 组件内部 `ref`
+  - `inputValue` → `TrChat.vue` 组件内部 `ref`（与 `useChatKit` 无关）
+  - `showHistoryDrawer` → `TrChat.vue` 组件内部 `ref`
   - `senderExtensions` → 由调用方通过 prop/slot 管理
 - 提供**便捷方法**，封装"首次发送自动创建会话"等常见逻辑
 - 提供**生命周期回调**（`onFinish`、`onError`），对齐 Vercel AI SDK 设计
@@ -280,14 +280,16 @@ packages/
 
 ```ts
 // ===== ResponseProvider 类型（核心扩展点）=====
+// ⚠️ 实际签名与设计初稿不同：底层接受 AsyncGenerator<ChatCompletion>，而非 ReadableStream<string>
+// createOpenAIProvider 工厂函数负责将 SSE 流适配为 AsyncGenerator<ChatCompletion>
 type ResponseProvider = (
   requestBody: {
     messages: ChatMessage[]     // 当前全量消息列表
     [key: string]: unknown      // 可扩展自定义字段（如 RAG 文档、工具定义等）
   },
   abortSignal: AbortSignal      // 用于响应 abort() 调用
-) => Promise<ReadableStream<string>> | ReadableStream<string>
-// 返回值必须是可读文本流，每个 chunk 为增量内容（delta），不是全量
+) => Promise<ChatCompletion> | AsyncGenerator<ChatCompletion> | Promise<AsyncGenerator<ChatCompletion>>
+// 返回值为异步生成器，每个 chunk 为 ChatCompletion 对象（增量内容在 delta 字段中）
 
 // 消息状态（对齐 Vercel AI SDK 四态模型）
 type ChatStatus = 'ready' | 'submitted' | 'streaming' | 'error'
@@ -347,12 +349,12 @@ sendMessage(content) {
 
 ---
 
-## 五、`ChatKit` 黑盒组件
+## 五、`Chat` 黑盒组件
 
 ### 5.1 Props 设计
 
 ```ts
-interface ChatKitProps {
+interface TrChatProps {
   // === 必须 ===
   responseProvider: ResponseProvider
 
@@ -376,7 +378,7 @@ interface ChatKitProps {
   }
   prompts?: PromptProps[]
   // 黑盒模式下，点击引导词会自动调用 sendMessage(prompt.description)
-  // 白盒模式下，用户需通过 ChatKit.Welcome 的 @prompt-click 事件自行处理
+  // 白盒模式下，用户需通过 TrChat.Welcome 的 @prompt-click 事件自行处理
 
   // === Sender 高频 props（平铺，优先级高于 senderProps）===
   placeholder?: string          // default: '请输入您的问题'
@@ -424,7 +426,7 @@ interface ChatKitProps {
 #sender="{ send, abort, status }"            替换整个输入区（status 为解包后的 ChatStatus 字面量值，替换原 isProcessing）
 #message-list="{ messages, roleConfigs }"    替换整个消息列表
 
-// BubbleList slots 动态透传（用户在 ChatKit 上写，自动穿透到内部 BubbleList）
+// BubbleList slots 动态透传（用户在 TrChat 上写，自动穿透到内部 BubbleList）
 #prefix="{ messages, role, messageIndexes }"
 #suffix="{ messages, role, messageIndexes }"
 #after="{ messages, role, messageIndexes }"
@@ -434,7 +436,7 @@ interface ChatKitProps {
 **动态透传实现**：
 
 ```vue
-<!-- ChatKit.vue 内部 BubbleList 处 -->
+<!-- TrChat.vue 内部 BubbleList 处 -->
 <TrBubbleList :messages="messages" v-bind="mergedBubbleListProps">
   <template v-for="(_, name) in bubbleListSlots" #[name]="slotProps">
     <slot :name="name" v-bind="slotProps" />
@@ -446,10 +448,10 @@ interface ChatKitProps {
 
 ```vue
 <!-- 最简用法 -->
-<ChatKit :response-provider="responseProvider" />
+<TrChat :response-provider="responseProvider" />
 
 <!-- 完整配置 -->
-<ChatKit
+<TrChat
   :response-provider="responseProvider"
   :plugins="[toolPlugin(...)]"
   :storage="localStorageStrategy"
@@ -484,7 +486,7 @@ interface ChatKitProps {
       @action="handleAction"
     />
   </template>
-</ChatKit>
+</TrChat>
 ```
 
 ---
@@ -494,21 +496,21 @@ interface ChatKitProps {
 ### 6.1 设计原则
 
 基于 shadcn/ui 的复合组件模式：
-- `ChatKit.Root` 通过 `provide` 注入 `useChatKit()` 的完整返回值
+- `TrChat.Root` 通过 `provide` 注入 `useChatKit()` 的完整返回值
 - 所有子组件通过 `inject` 消费共享状态，无 prop drilling
 - 子组件支持完整的底层组件 props，不做二次封装限制
 - **White Box = Composability**：用户可以任意调整子组件的顺序、省略某个子组件、在子组件中插入自定义内容
 
-### 6.1.1 ChatKit.Root 的两种使用模式
+### 6.1.1 TrChat.Root 的两种使用模式
 
-`ChatKit.Root` 的 props 设计支持两种互斥的使用方式：
+`TrChat.Root` 的 props 设计支持两种互斥的使用方式：
 
 **模式 A（传 Options）**：Root 内部调用 `useChatKit`，适合无需在外部访问响应式状态的场景
 
 ```vue
-<ChatKit.Root :response-provider="fn" :storage="storage">
+<TrChat.Root :response-provider="fn" :storage="storage">
   ...
-</ChatKit.Root>
+</TrChat.Root>
 ```
 
 **模式 B（传实例）**：外部预先调用 `useChatKit`，通过 `:chat-kit` prop 注入，Root 直接 provide，不重复创建状态。适合需要在父组件用 `v-if="messages.length === 0"` 等条件渲染的场景
@@ -522,37 +524,37 @@ const { messages } = chat
 
 <template>
   <!-- :chat-kit 接受 UseChatKitReturn 实例，Root 不再内部创建新状态 -->
-  <ChatKit.Root :chat-kit="chat">
+  <TrChat.Root :chat-kit="chat">
     ...
-  </ChatKit.Root>
+  </TrChat.Root>
 </template>
 ```
 
-> **⚠️ 两种模式互斥**：不能同时传 `:chat-kit` 和 `:response-provider`。
+> **⚠️ 两种模式互斥**：不能同时传 `.chat` 和 `:response-provider`。
 
 ### 6.2 组件树
 
 ```
-ChatKit.Root   支持两种模式：传 UseChatKitOptions（内部创建状态）或传 :chat-kit（外部注入实例）
-├── ChatKit.Header    顶部栏，props: showHistory?, showNewChat?
+TrChat.Root   支持两种模式：传 UseChatKitOptions（内部创建状态）或传 :chat-kit（外部注入实例）
+├── TrChat.Header    顶部栏，props: showHistory?, showNewChat?
 │                     slot: #extra（追加操作）
-├── ChatKit.Welcome   欢迎页，props: title, description?, icon?（可独立控制显隐）
-├── ChatKit.MessageList  消息列表，支持完整 TrBubbleList props + 所有 slots
-├── ChatKit.Footer    底部容器（slot: #extra 用于 pills 等）
-│   └── ChatKit.Sender   独立 Sender，支持完整 TrSender props
-└── ChatKit.History   Drawer + TrHistory，支持完整 TrHistory props
+├── TrChat.Welcome   欢迎页，props: title, description?, icon?（可独立控制显隐）
+├── TrChat.MessageList  消息列表，支持完整 TrBubbleList props + 所有 slots
+├── TrChat.Footer    底部容器（slot: #extra 用于 pills 等）
+│   └── TrChat.Sender   独立 Sender，支持完整 TrSender props
+└── TrChat.History   Drawer + TrHistory，支持完整 TrHistory props
 ```
 
-> **⚠️ 变更说明**：`ChatKit.Body` 已拆分为 `ChatKit.Welcome` + `ChatKit.MessageList`，用户可以独立控制两者的显示逻辑，例如：在欢迎页和消息列表之间插入置顶公告、免责声明等自定义内容。
+> **⚠️ 变更说明**：`TrChat.Body` 已拆分为 `TrChat.Welcome` + `TrChat.MessageList`，用户可以独立控制两者的显示逻辑，例如：在欢迎页和消息列表之间插入置顶公告、免责声明等自定义内容。
 
 ### 6.3 白盒用法示例
 
 ```vue
 <script setup lang="ts">
-import { ChatKit, useChatKit } from '@opentiny/tiny-robot-chat'
+import { TrChat, useChatKit } from '@opentiny/tiny-robot-chat'
 import '@opentiny/tiny-robot-chat/style'
 
-// 模式 B：外部创建 chatKit 实例，用于顶层条件渲染
+// 模式 B：外部创建 chat 实例，用于顶层条件渲染
 const chat = useChatKit({ responseProvider, storage })
 const { messages } = chat
 
@@ -564,20 +566,20 @@ function handleError(err) { /* ... */ }
 
 <template>
   <!-- 通过 :chat-kit 注入实例，Root 不重复创建状态 -->
-  <ChatKit.Root :chat-kit="chat">
-    <ChatKit.Header>
+  <TrChat.Root :chat-kit="chat">
+    <TrChat.Header>
       <template #extra>
         <MyCustomButton />
       </template>
-    </ChatKit.Header>
+    </TrChat.Header>
 
   <!-- Welcome 和 MessageList 分别独立控制 -->
-  <ChatKit.Welcome
+  <TrChat.Welcome
     v-if="messages.length === 0"
     title="AI Assistant"
     description="有什么可以帮你的？"
   />
-  <ChatKit.MessageList
+  <TrChat.MessageList
     v-else
     :role-configs="roles"
     :group-strategy="'divider'"
@@ -593,24 +595,24 @@ function handleError(err) { /* ... */ }
         @action="handleAction"
       />
     </template>
-  </ChatKit.MessageList>
+  </TrChat.MessageList>
 
-  <ChatKit.Footer>
+  <TrChat.Footer>
     <!-- 输入框上方自定义区域 -->
     <template #extra>
       <MySuggestionPills />
     </template>
     <!-- 完整支持 TrSender 的所有 props -->
-    <ChatKit.Sender
+    <TrChat.Sender
       :max-length="2000"
       :show-word-limit="true"
       sender-mode="autosize"
     />
-  </ChatKit.Footer>
+  </TrChat.Footer>
 
-  <ChatKit.History />
+  <TrChat.History />
 
-  </ChatKit.Root>
+  </TrChat.Root>
 </template>
 ```
 
@@ -657,22 +659,22 @@ function handleSend() {
 ### 6.5 导出方式
 
 ```ts
-// ChatKit 同时作为黑盒组件和白盒子组件的挂载点
-import { ChatKit } from '@opentiny/tiny-robot-chat'
+// TrChat 同时作为黑盒组件和白盒子组件的挂载点
+import { TrChat } from '@opentiny/tiny-robot-chat'
 
 // 黑盒
-<ChatKit :response-provider="fn" />
+<TrChat :response-provider="fn" />
 
-// 白盒（子组件挂载在 ChatKit 上）
-<ChatKit.Root>
-  <ChatKit.Header />
-  <ChatKit.Welcome v-if="messages.length === 0" title="..." />
-  <ChatKit.MessageList v-else />
-  <ChatKit.Footer>
-    <ChatKit.Sender />
-  </ChatKit.Footer>
-  <ChatKit.History />
-</ChatKit.Root>
+// 白盒（子组件挂载在 TrChat 上）
+<TrChat.Root>
+  <TrChat.Header />
+  <TrChat.Welcome v-if="messages.length === 0" title="..." />
+  <TrChat.MessageList v-else />
+  <TrChat.Footer>
+    <TrChat.Sender />
+  </TrChat.Footer>
+  <TrChat.History />
+</TrChat.Root>
 ```
 
 ---
@@ -682,98 +684,106 @@ import { ChatKit } from '@opentiny/tiny-robot-chat'
 ### 7.1 分层原则
 
 ```
-套件层（--chat-kit-*）   负责布局结构：尺寸、间距、Drawer 宽度等
+套件层（--chat-*）   负责布局结构：尺寸、间距、Drawer 宽度等
     ↓ 引用
 组件层（--tr-*）         负责组件本身：颜色、字体、边框等（已有，不改动）
 ```
 
+**技术栈**：使用 Less（与 `packages/components/` 保持一致），利用嵌套语法减少 BEM 前缀重复。
+
 用户定制时只需覆盖套件变量，无需了解内部组件变量：
 
-```css
+```less
 .my-chat {
-  --chat-kit-height: 100vh;
-  --chat-kit-drawer-width: 320px;
-  --chat-kit-border-radius: 0;
+  --chat-height: 100vh;
+  --chat-drawer-width: 320px;
+  --chat-border-radius: 0;
 }
 ```
 
-### 7.2 CSS 变量清单（`variables.css`）
+### 7.2 CSS 变量清单（`variables.less`）
 
-```css
+```less
 :root {
   /* 整体布局 */
-  --chat-kit-width: 100%;
-  --chat-kit-height: 100%;          /* 默认 100%，由父容器控制高度 */
-  --chat-kit-border-radius: 16px;
+  --chat-width: 100%;
+  --chat-height: 100%;          /* 默认 100%，由父容器控制高度 */
+  --chat-border-radius: 16px;
 
   /* Header */
-  --chat-kit-header-height: 48px;
-  --chat-kit-header-padding: 0 12px;
-  --chat-kit-header-bg: var(--tr-container-bg-default);
-  --chat-kit-header-border-bottom: 1px solid var(--tr-color-border);
+  --chat-header-height: 48px;
+  --chat-header-padding: 0 12px;
+  --chat-header-bg: var(--tr-container-bg-default);
+  --chat-header-border-bottom: 1px solid var(--tr-border-color-default);
 
   /* Body */
-  --chat-kit-body-padding: 0;
-  --chat-kit-body-bg: var(--tr-container-bg-default);
+  --chat-body-padding: 0;
+  --chat-body-bg: var(--tr-container-bg-default);
 
   /* Footer */
-  --chat-kit-footer-padding: 8px 12px;
-  --chat-kit-footer-bg: var(--tr-container-bg-default);
-  --chat-kit-footer-border-top: 1px solid var(--tr-color-border);
+  --chat-footer-padding: 8px 12px;
+  --chat-footer-bg: var(--tr-container-bg-default);
+  --chat-footer-border-top: 1px solid var(--tr-border-color-default);
 
   /* History Drawer */
-  --chat-kit-drawer-width: 280px;
-  --chat-kit-drawer-bg: var(--tr-container-bg-default);
-  --chat-kit-drawer-shadow: 4px 0 20px rgba(0, 0, 0, 0.08);
-  --chat-kit-drawer-z-index: 100;
-  --chat-kit-drawer-transition: 0.25s ease;
-  --chat-kit-drawer-overlay-bg: rgba(0, 0, 0, 0.3);
+  --chat-drawer-width: 280px;
+  --chat-drawer-bg: var(--tr-container-bg-default);
+  --chat-drawer-shadow: 4px 0 20px rgba(0, 0, 0, 0.08);
+  --chat-drawer-z-index: 100;
+  --chat-drawer-transition: 0.25s ease;
+  --chat-drawer-overlay-bg: rgba(0, 0, 0, 0.3);
+}
+
+// 暗色模式下覆盖硬编码值（--tr-* 引用链自动跟随，只需覆盖无法引用 --tr-* 的硬编码项）
+[data-tr-color-mode='dark'] {
+  --chat-drawer-shadow: 4px 0 20px rgba(0, 0, 0, 0.48);
+  --chat-drawer-overlay-bg: rgba(0, 0, 0, 0.5);
 }
 ```
 
 ### 7.3 Drawer 实现（自实现，零依赖）
 
-使用 `position: absolute`（相对 ChatKit 容器定位，不影响页面其他内容）：
+使用 `position: absolute`（相对 TrChat 容器定位，不影响页面其他内容）：
 
-```css
-/* ChatKit 根元素 */
-.chat-kit {
+```less
+/* TrChat 根元素 */
+.tr-chat {
   position: relative;
   overflow: hidden;
-  width: var(--chat-kit-width);
-  height: var(--chat-kit-height);
+  width: var(--chat-width);
+  height: var(--chat-height);
 }
 
 /* 遮罩层 */
-.chat-kit-drawer-overlay {
+.tr-chat-drawer-overlay {
   position: absolute;
   inset: 0;
-  background: var(--chat-kit-drawer-overlay-bg);
+  background: var(--chat-drawer-overlay-bg);
   opacity: 0;
-  transition: opacity var(--chat-kit-drawer-transition);
+  transition: opacity var(--chat-drawer-transition);
   pointer-events: none;
-  z-index: calc(var(--chat-kit-drawer-z-index) - 1);
+  z-index: calc(var(--chat-drawer-z-index) - 1);
 }
-.chat-kit-drawer-overlay.is-open {
+.chat-drawer-overlay.is-open {
   opacity: 1;
   pointer-events: auto;
 }
 
 /* Drawer 面板 */
-.chat-kit-drawer {
+.chat-drawer {
   position: absolute;
   top: 0; left: 0;
   height: 100%;
-  width: var(--chat-kit-drawer-width);
-  background: var(--chat-kit-drawer-bg);
-  box-shadow: var(--chat-kit-drawer-shadow);
+  width: var(--chat-drawer-width);
+  background: var(--chat-drawer-bg);
+  box-shadow: var(--chat-drawer-shadow);
   transform: translateX(-100%);
-  transition: transform var(--chat-kit-drawer-transition);
-  z-index: var(--chat-kit-drawer-z-index);
+  transition: transform var(--chat-drawer-transition);
+  z-index: var(--chat-drawer-z-index);
   display: flex;
   flex-direction: column;
 }
-.chat-kit-drawer.is-open {
+.chat-drawer.is-open {
   transform: translateX(0);
 }
 ```
@@ -960,7 +970,7 @@ if (isCancel(template)) {
 ```
 my-app/
 ├── src/
-│   ├── App.vue          ← 核心：~30 行，直接用 <ChatKit>
+│   ├── App.vue          ← 核心：~30 行，直接用 <Chat>
 │   ├── main.ts
 │   └── env.d.ts
 ├── public/
@@ -977,7 +987,7 @@ my-app/
 
 ```vue
 <template>
-  <ChatKit
+  <TrChat
     :response-provider="responseProvider"
     :storage="storage"
     :welcome="welcome"
@@ -988,7 +998,7 @@ my-app/
 </template>
 
 <script setup lang="ts">
-import { ChatKit, createOpenAIProvider } from '@opentiny/tiny-robot-chat'
+import { TrChat, createOpenAIProvider } from '@opentiny/tiny-robot-chat'
 import { localStorageStrategy } from '@opentiny/tiny-robot-kit'
 import '@opentiny/tiny-robot-chat/style'
 
@@ -1034,10 +1044,10 @@ const prompts = [
 // @opentiny/tiny-robot-chat
 
 // ===== 组件 =====
-export { ChatKit }
-// ChatKit 同时挂载白盒子组件：
-// ChatKit.Root / ChatKit.Header / ChatKit.Welcome
-// ChatKit.MessageList / ChatKit.Footer / ChatKit.Sender / ChatKit.History
+export { TrChat }
+// TrChat 同时挂载白盒子组件：
+// TrChat.Root / TrChat.Header / TrChat.Welcome
+// TrChat.MessageList / TrChat.Footer / TrChat.Sender / TrChat.History
 
 // ===== Composable =====
 export { useChatKit }
@@ -1048,7 +1058,7 @@ export { createDeepSeekProvider }
 
 // ===== 类型 =====
 export type { ResponseProvider }
-export type { ChatKitProps }
+export type { TrChatProps }
 export type { UseChatKitOptions, UseChatKitReturn }
 export type { ChatStatus }
 export type { OpenAIProviderOptions, DeepSeekProviderOptions }
@@ -1071,17 +1081,24 @@ export type { WelcomeConfig }
 | useChatKit 独立暴露 | 是，可不用任何组件纯逻辑使用 |
 | useChatKit UI 状态 | **不管理**（`inputValue`/`showHistoryDrawer` 由组件层自行管理） |
 | 消息状态 | `status: ChatStatus`（四态），替代原 `isProcessing: boolean` |
-| 生命周期回调 | `onFinish` / `onError`（`useChatKit` options 和 ChatKit props 均支持） |
+| 生命周期回调 | `onFinish` / `onError`（`useChatKit` options 和 TrChat props 均支持） |
 | createOpenAIProvider 位置 | `tiny-robot-chat` 包，面向快速上手 |
 | 历史会话面板形态 | Drawer，从左侧滑出 |
 | Drawer 实现方式 | 套件自实现，position: absolute + transition，零依赖 |
-| 样式方案 | 套件层 `--chat-kit-*` 变量管布局，组件层 `--tr-*` 变量管样式 |
-| ChatKit.Body | **拆分**为 `ChatKit.Welcome` + `ChatKit.MessageList`（独立控制显隐） |
-| ChatKit.Root 默认高度 | `height: 100%`，由父容器控制 |
+| 样式方案 | Less（与 components 包保持一致），嵌套语法减少 BEM 前缀重复；`--chat-*` 引用 `--tr-*` 实现暗色模式自动切换 |
+| 暗色模式 | 通过 `--tr-*` 变量引用链自动跟随 ThemeProvider，无需额外代码；硬编码值在 `[data-tr-color-mode='dark']` 下覆盖 |
+| VueUse 引入 | 不引入（当前方案逻辑已足够简单，无明显简化收益） |
+| ResponseProvider 实际签名 | `AsyncGenerator<ChatCompletion>`（不是设计初稿中的 `ReadableStream<string>`） |
+| Props 优先级 | 平铺 props > 透传对象 props |
+| `TrChat.Root` 使用模式 | 支持两种互斥模式：传 Options（内部创建状态）或传 `:chat-kit`（外部注入实例） |
+| sendMessage 返回值 | `void`（同步入队，流式异步），替代原 `Promise<void>` |
+| ResponseProvider 实际签名 | `AsyncGenerator<ChatCompletion>`（不是设计初稿中的 `ReadableStream<string>`） |
+| TrChat.Body | **拆分**为 `TrChat.Welcome` + `TrChat.MessageList`（独立控制显隐） |
+| TrChat.Root 默认高度 | `height: 100%`，由父容器控制 |
 | Props 优先级 | 平铺 props > 透传对象 props |
 | 平铺语法糖（mentions/suggestions） | **移除**（避免隐式转换，改为直接通过 `senderProps.extensions` 传入） |
 | 白盒子组件 props | 支持完整底层组件 props，不做二次封装限制 |
-| ChatKit.Root 使用模式 | 支持两种互斥模式：传 Options（内部创建状态）或传 `:chat-kit`（外部注入实例） |
+| Chat.Root 使用模式 | 支持两种互斥模式：传 Options（内部创建状态）或传 `.chat`（外部注入实例） |
 | ResponseProvider 类型 | 定义在 `types.ts`，核心扩展点，返回 ReadableStream<string> |
 | sendMessage 返回值 | `void`（同步入队，流式异步），替代原 `Promise<void>` |
 
@@ -1090,7 +1107,7 @@ export type { WelcomeConfig }
 ## 十二、实施顺序
 
 ```
-Phase 1 - Step 1: packages/chat-kit/
+Phase 1 - Step 1: packages/chat/
   1.1  package.json + tsconfig + vite.config
   1.2  types.ts（含 ChatStatus 类型）+ context.ts
   1.3  composables/useChatKit.ts（纯逻辑，无 UI 状态）
@@ -1103,7 +1120,7 @@ Phase 1 - Step 1: packages/chat-kit/
   1.10 components/ChatKitFooter.vue
   1.11 components/ChatKitSender.vue
   1.12 components/ChatKitHistory.vue（Drawer + TrHistory）
-  1.13 components/ChatKit.vue（黑盒，组合以上子组件，内部管理 inputValue 等 UI 状态）
+  1.13 components/Chat.vue（黑盒，组合以上子组件，内部管理 inputValue 等 UI 状态）
   1.14 index.ts（导出入口，挂载复合组件）
 
 Phase 1 - Step 2: packages/create-tiny-robot-app/
@@ -1114,7 +1131,7 @@ Phase 1 - Step 2: packages/create-tiny-robot-app/
 
 Phase 1 - Step 3: 工程配置
   3.1  pnpm-workspace.yaml 注册新包
-  3.2  根 package.json 补充 build:chat-kit 等脚本
+  3.2  根 package.json 补充 build:chat 等脚本
   3.3  CI 配置：在 release 时触发版本同步脚本
 
 Phase 1 - Step 4: 文档
@@ -1128,17 +1145,21 @@ Phase 1 - Step 4: 文档
 
 1. **BubbleList slots 动态透传**：Vue 3 的动态 slot 名需要用 `v-for` + `#[name]` 实现，需要验证所有 slot 名能正确透传，特别是带连字符的 slot 名（`content-footer`）。
 
-2. **ChatKit.vue 内部 inputValue 管理**：`inputValue` 不再由 `useChatKit` 管理，而是由 `ChatKit.vue` 组件内部持有。在 `sendMessage` 调用成功后，组件负责清空 `inputValue`。需确保流程清晰，避免状态不同步。
+2. **TrChat.vue 内部 inputValue 管理**：`inputValue` 不再由 `useChatKit` 管理，而是由 `TrChat.vue` 组件内部持有。在 `sendMessage` 调用成功后，组件负责清空 `inputValue`。需确保流程清晰，避免状态不同步。
 
 3. **ChatStatus 四态与底层 useMessage 的映射**：底层 `useMessage` 尚未直接暴露四态状态机，需在 `useChatKit` 中根据 `engine` 的现有状态（`isStreaming`、`error` 等）推导 `status`，需验证边界状态（如 abort 后的状态重置）；此外 abort() 执行后状态应立即同步置为 ready，即使流尚未实际断开（网络层的关闭是异步的）。
 
-4. **ChatKit.Welcome / ChatKit.MessageList 的切换时机**：黑盒 `ChatKit.vue` 内部会自动处理（`messages.length === 0` 时显示 Welcome），白盒模式下需用户自行用 `v-if/v-else` 控制，**文档必须明确说明**。
+4. **TrChat.Welcome / TrChat.MessageList 的切换时机**：黑盒 `TrChat.vue` 内部会自动处理（`messages.length === 0` 时显示 Welcome），白盒模式下需用户自行用 `v-if/v-else` 控制，**文档必须明确说明**。
 
 5. **createOpenAIProvider 的浏览器端安全**：直接在浏览器端使用 API Key 存在泄露风险，模板工程的 README 必须明确说明生产环境应通过**后端代理**转发请求（如建议使用 Nitro / Hono 实现代理中间层）。
 
 6. **CLI 的 `_gitignore` 重命名**：npm publish 时 `.gitignore` 文件会被自动忽略，需用 `_gitignore` 命名后在 CLI 脚本中重命名，参照 create-vue 的处理方式。
 
 7. **`@clack/prompts` 版本一致性**：`@clack/prompts` API 在 v0.x 阶段仍在迭代，建议 lockfile 精确锁定版本，并在升级时验证交互行为。
+
+8. **暗色模式变量名**：`--tr-color-border` 不存在，正确变量名是 `--tr-border-color-default`；`--chat-drawer-shadow` 和 `--chat-drawer-overlay-bg` 等硬编码值需在 `[data-tr-color-mode='dark']` 下覆盖，与 components 包的处理方式保持一致。
+
+9. **ResponseProvider 实际签名差异**：设计初稿中写的是 `ReadableStream<string>`，但底层实际接受 `AsyncGenerator<ChatCompletion>`。`createOpenAIProvider` 工厂函数已按实际签名实现，`types.ts` 中 `ResponseProvider` 类型也已对齐实际签名。
 
 ---
 
@@ -1149,12 +1170,12 @@ Phase 1 - Step 4: 文档
 
 ### 14.1 `with-mcp`
 
-**定位**：演示如何在 ChatKit 中使用 `toolPlugin` 集成 MCP 工具调用。  
+**定位**：演示如何在 Chat 中使用 `toolPlugin` 集成 MCP 工具调用。  
 **核心**：`responseProvider` + `toolPlugin`，ChatKit 本身无需改动。
 
 ### 14.2 `with-rag`
 
-**定位**：演示如何写一个带文档检索步骤的 `responseProvider`（RAG 核心价值不在 ChatKit 配置，而在 provider 层）。  
+**定位**：演示如何写一个带文档检索步骤的 `responseProvider`（RAG 核心价值不在 Chat 配置，而在 provider 层）。  
 **核心**：`rag.ts`（检索 → 注入 system prompt → 发给 LLM），使用 `TrFeedback` 的 `sources` 展示参考文档。
 
 ### 14.3 `with-context`
