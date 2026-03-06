@@ -1,0 +1,17 @@
+# 构建产物
+dist/
+
+# 依赖
+node_modules/
+
+# 日志
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# 开发环境
+.env
+.env.local
+
+# TypeScript 增量构建缓存
+*.tsbuildinfo

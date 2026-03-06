@@ -1,12 +1,15 @@
 # API Configuration
+# ⚠️ Never commit this file to version control once you've added your real API key!
 VITE_API_KEY=your_api_key_here
-VITE_API_PROVIDER=
+VITE_API_PROVIDER=openai
 
-# For OpenAI:
-# VITE_API_PROVIDER=openai
+# Optional: Custom model name
+# OpenAI  default: gpt-4o-mini
+# DeepSeek default: deepseek-chat
+# VITE_MODEL=gpt-4o-mini
 
-# For DeepSeek:
-# VITE_API_PROVIDER=deepseek
+# Optional: Custom API base URL (for proxy servers or alternative endpoints)
+# VITE_BASE_URL=https://api.openai.com/v1
 
 # Note: In production, use a backend proxy to avoid exposing API keys in the browser.
 # See README.md for security best practices.

@@ -1,43 +1,45 @@
 <script setup lang="ts">
 import { TrChat, createOpenAIProvider, createDeepSeekProvider } from '@opentiny/tiny-robot-chat'
+import { localStorageStrategy } from '@opentiny/tiny-robot-kit'
 
 const apiKey = import.meta.env.VITE_API_KEY
 const provider = import.meta.env.VITE_API_PROVIDER
 
-let responseProvider
+const responseProvider =
+  provider === 'deepseek'
+    ? createDeepSeekProvider({
+        apiKey,
+        model: import.meta.env.VITE_MODEL || 'deepseek-chat',
+      })
+    : createOpenAIProvider({
+        apiKey,
+        model: import.meta.env.VITE_MODEL || 'gpt-4o-mini',
+        baseURL: import.meta.env.VITE_BASE_URL,
+      })
 
-if (provider === 'openai') {
-  responseProvider = createOpenAIProvider({
-    apiKey,
-    model: 'gpt-4-turbo',
-  })
-} else if (provider === 'deepseek') {
-  responseProvider = createDeepSeekProvider({
-    apiKey,
-    model: 'deepseek-chat',
-  })
-} else {
-  throw new Error(`Unknown API provider: ${provider}`)
+// 启用 LocalStorage 持久化，配合 show-history 使用
+const storage = localStorageStrategy()
+
+const welcome = {
+  title: 'AI Assistant',
+  description: '你好，我是你的 AI 助手，有什么可以帮你的？',
 }
+
+const prompts = [
+  { title: '✍️ 写作', description: '帮我写一篇关于...' },
+  { title: '💻 编程', description: '帮我写一个...' },
+  { title: '📊 分析', description: '帮我分析...' },
+  { title: '🌐 翻译', description: '帮我翻译...' },
+]
 </script>
 
 <template>
-  <div id="app">
-    <TrChat
-      :response-provider="responseProvider"
-      :welcome="{
-        title: 'Welcome to Tiny Robot Chat',
-        description: 'Start a conversation with AI',
-      }"
-      show-history
-      fullscreen
-    />
-  </div>
+  <TrChat
+    :response-provider="responseProvider"
+    :storage="storage"
+    :welcome="welcome"
+    :prompts="prompts"
+    show-history
+    style="height: 100vh"
+  />
 </template>
-
-<style scoped>
-#app {
-  width: 100%;
-  height: 100vh;
-}
-</style>

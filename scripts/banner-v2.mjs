@@ -1,4 +1,12 @@
 #!/usr/bin/env node
+/**
+ * banner-v2.mjs — 独立 Banner 演示脚本
+ *
+ * 核心逻辑已迁移至 packages/chat-cli/utils/banner.js（可复用模块）。
+ * 本文件保留作为独立演示/预览脚本使用。
+ *
+ * 运行：node scripts/banner-v2.mjs
+ */
 
 // ── ANSI helpers ──────────────────────────────────────────────
 const B  = '\x1b[38;2;20;118;255m'   // brand blue #1476ff
@@ -81,7 +89,7 @@ function printBanner() {
   // ── Quick start ──
   console.log(`  ${B}${bo}🚀 快速开始${R}`)
   console.log('')
-  console.log(`     ${gr}$${R}  ${cy}npm create tiny-robot-app my-app${R}`)
+  console.log(`     ${gr}$${R}  ${cy}npm create tiny-robot my-app${R}`)
   console.log(`     ${gr}$${R}  ${cy}cd my-app && npm run dev${R}`)
   console.log('')
   console.log(`  ${B}${dm}${'─'.repeat(80)}${R}`)
