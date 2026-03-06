@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { inject, useSlots, computed } from 'vue'
+import type { Slot } from 'vue'
 import { TrBubbleList } from '@opentiny/tiny-robot'
 import { CHAT_KIT_KEY, BUBBLE_LIST_SLOTS } from '../context'
 
@@ -13,8 +14,12 @@ const slots = useSlots()
 const messages = computed(() => chatKit.messages.value)
 
 // 过滤 slots，只保留 BubbleList 允许的 slot 名
-const filteredSlots = computed(() =>
-  Object.fromEntries(Object.entries(slots).filter(([name]) => (BUBBLE_LIST_SLOTS as readonly string[]).includes(name))),
+const filteredSlots = computed<Partial<Record<string, Slot>>>(() =>
+  Object.fromEntries(
+    Object.entries(slots)
+      .filter(([name, slot]) => (BUBBLE_LIST_SLOTS as readonly string[]).includes(name) && slot !== undefined)
+      .map(([name, slot]) => [name, slot as Slot]),
+  ),
 )
 </script>
 

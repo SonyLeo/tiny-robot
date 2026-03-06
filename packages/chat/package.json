@@ -16,7 +16,8 @@
   "sideEffects": ["*.css"],
   "scripts": {
     "dev": "vue-tsc && vite build --watch",
-    "build": "vue-tsc && vite build"
+    "build": "vue-tsc && vite build",
+    "type-check": "vue-tsc --noEmit"
   },
   "peerDependencies": {
     "vue": "^3.3.11"

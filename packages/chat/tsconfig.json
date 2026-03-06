@@ -5,13 +5,9 @@
     "moduleResolution": "bundler",
     "strict": true,
     "jsx": "preserve",
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "skipLibCheck": true,
-    "noEmit": true,
-    "paths": {
-      "@opentiny/tiny-robot": ["../components/src/index.ts"],
-      "@opentiny/tiny-robot-kit": ["../kit/src/index.ts"]
-    }
+    "noEmit": true
   },
   "include": ["src/**/*.ts", "src/**/*.vue"]
 }

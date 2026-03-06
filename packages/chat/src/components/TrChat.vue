@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, watch, useSlots } from 'vue'
+import type { Slot } from 'vue'
 import { useChatKit } from '../composables/useChatKit'
 import TrChatRoot from './TrChatRoot.vue'
 import TrChatHeader from './TrChatHeader.vue'
@@ -45,8 +46,12 @@ function handlePromptClick(description: string) {
 
 // BubbleList 允许的 slot 白名单
 const slots = useSlots()
-const bubbleSlots = computed(() =>
-  Object.fromEntries(Object.entries(slots).filter(([name]) => (BUBBLE_LIST_SLOTS as readonly string[]).includes(name))),
+const bubbleSlots = computed<Partial<Record<string, Slot>>>(() =>
+  Object.fromEntries(
+    Object.entries(slots)
+      .filter(([name, slot]) => (BUBBLE_LIST_SLOTS as readonly string[]).includes(name) && slot !== undefined)
+      .map(([name, slot]) => [name, slot as Slot]),
+  ),
 )
 </script>
 

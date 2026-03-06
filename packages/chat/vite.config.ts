@@ -1,20 +1,37 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import dts from 'vite-plugin-dts'
-import { resolve } from 'path'
 
 export default defineConfig({
-  plugins: [vue(), dts({ include: ['src'], insertTypesEntry: true })],
+  plugins: [
+    vue(),
+    dts({
+      outDir: 'dist',
+      rollupTypes: true,
+      entryRoot: 'src',
+      tsconfigPath: './tsconfig.json',
+    }),
+  ],
   build: {
     lib: {
-      entry: resolve(__dirname, 'src/index.ts'),
+      entry: './src/index.ts',
       formats: ['es'],
-      fileName: 'index',
+      fileName: () => 'index.js',
     },
+    minify: true,
     rollupOptions: {
       external: ['vue', '@opentiny/tiny-robot', '@opentiny/tiny-robot-kit'],
-      output: { preserveModules: false },
+      output: {
+        entryFileNames: '[name].js',
+        chunkFileNames: '[name].js',
+        assetFileNames: (assetInfo) => (assetInfo.name === 'style.css' ? 'style.css' : '[name][extname]'),
+        preserveModules: false,
+        exports: 'named',
+        dir: 'dist',
+      },
     },
-    cssCodeSplit: false, // 所有 CSS 合并到 dist/style.css
+    outDir: 'dist',
+    emptyOutDir: true,
+    cssCodeSplit: false,
   },
 })
