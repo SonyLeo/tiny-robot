@@ -1,5 +1,5 @@
-// ===== 样式（用户需手动导入）=====
-// import '@opentiny/tiny-robot-chat/style'
+// ===== 样式 =====
+import './styles/index.less'
 
 // ===== 黑盒组件（同时挂载白盒子组件）=====
 import TrChat from './components/TrChat.vue'

@@ -18,13 +18,17 @@ export default defineConfig({
       formats: ['es'],
       fileName: () => 'index.js',
     },
+    cssMinify: true,
     minify: true,
     rollupOptions: {
       external: ['vue', '@opentiny/tiny-robot', '@opentiny/tiny-robot-kit'],
       output: {
         entryFileNames: '[name].js',
         chunkFileNames: '[name].js',
-        assetFileNames: (assetInfo) => (assetInfo.name === 'style.css' ? 'style.css' : '[name][extname]'),
+        assetFileNames: (assetInfo) => {
+          if (assetInfo.name === 'style.css') return 'style.css'
+          return '[name][extname]'
+        },
         preserveModules: false,
         exports: 'named',
         dir: 'dist',

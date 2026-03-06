@@ -45,7 +45,7 @@ function handlePromptClick(description: string) {
 }
 
 // BubbleList 允许的 slot 白名单
-const slots = useSlots()
+const slots = useSlots() as Record<string, Slot | undefined>
 const bubbleSlots = computed<Partial<Record<string, Slot>>>(() =>
   Object.fromEntries(
     Object.entries(slots)

@@ -10,7 +10,10 @@
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
     },
-    "./style": "./dist/style.css"
+    "./style": {
+      "default": "./dist/style.css"
+    },
+    "./dist/style.css": "./dist/style.css"
   },
   "files": ["dist"],
   "sideEffects": ["*.css"],

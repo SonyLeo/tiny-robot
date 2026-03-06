@@ -8,7 +8,7 @@ import { CHAT_KIT_KEY, BUBBLE_LIST_SLOTS } from '../context'
 defineOptions({ inheritAttrs: false })
 
 const chatKit = inject(CHAT_KIT_KEY)!
-const slots = useSlots()
+const slots = useSlots() as Record<string, Slot | undefined>
 
 // 在 script 中解构 messages，避免模板中手动 .value
 const messages = computed(() => chatKit.messages.value)
