@@ -1,0 +1,34 @@
+// 套件层 CSS 变量（运行时可被用户覆盖）
+// --chat-* 变量全部引用 --tr-* 变量，暗色模式由 ThemeProvider 写入
+// data-tr-color-mode="dark" 后 --tr-* 自动切换，--chat-* 作为引用链自动跟随，无需额外处理
+:root {
+  --chat-width: 100%;
+  --chat-height: 100%;
+  --chat-border-radius: 16px;
+
+  --chat-header-height: 48px;
+  --chat-header-padding: 0 12px;
+  --chat-header-bg: var(--tr-container-bg-default, #fff);
+  // ✅ 修正：--tr-color-border 不存在，正确变量名是 --tr-border-color-default
+  --chat-header-border-bottom: 1px solid var(--tr-border-color-default, #c2c2c2);
+
+  --chat-body-padding: 0;
+  --chat-body-bg: var(--tr-container-bg-default, #fff);
+
+  --chat-footer-padding: 8px 12px;
+  --chat-footer-bg: var(--tr-container-bg-default, #fff);
+  --chat-footer-border-top: 1px solid var(--tr-border-color-default, #c2c2c2);
+
+  --chat-drawer-width: 280px;
+  --chat-drawer-bg: var(--tr-container-bg-default, #fff);
+  --chat-drawer-shadow: 4px 0 20px rgba(0, 0, 0, 0.08);
+  --chat-drawer-z-index: 100;
+  --chat-drawer-transition: 0.25s ease;
+  --chat-drawer-overlay-bg: rgba(0, 0, 0, 0.3);
+}
+
+// 暗色模式下覆盖硬编码值（--tr-* 引用链自动跟随，只需覆盖无法引用 --tr-* 的硬编码项）
+[data-tr-color-mode='dark'] {
+  --chat-drawer-shadow: 4px 0 20px rgba(0, 0, 0, 0.48);
+  --chat-drawer-overlay-bg: rgba(0, 0, 0, 0.5);
+}

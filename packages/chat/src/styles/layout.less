@@ -1,0 +1,51 @@
+// Less 嵌套语法：BEM 子元素嵌套在 .tr-chat 内，消除前缀重复
+.tr-chat {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  width: var(--chat-width);
+  height: var(--chat-height);
+  border-radius: var(--chat-border-radius);
+
+  &__header {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: var(--chat-header-height);
+    padding: var(--chat-header-padding);
+    background: var(--chat-header-bg);
+    border-bottom: var(--chat-header-border-bottom);
+  }
+
+  &__body {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    padding: var(--chat-body-padding);
+    background: var(--chat-body-bg);
+  }
+
+  &__welcome {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    overflow-y: auto;
+  }
+
+  &__footer {
+    flex-shrink: 0;
+    padding: var(--chat-footer-padding);
+    background: var(--chat-footer-bg);
+    border-top: var(--chat-footer-border-top);
+
+    &-extra {
+      margin-bottom: 8px;
+    }
+  }
+}
