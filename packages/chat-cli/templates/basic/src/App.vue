@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { TrChat, createOpenAIProvider, createDeepSeekProvider } from '@opentiny/tiny-robot-chat'
-import { localStorageStrategy } from '@opentiny/tiny-robot-kit'
+import { localStorageStrategyFactory } from '@opentiny/tiny-robot-kit'
 
 const apiKey = import.meta.env.VITE_API_KEY
 const provider = import.meta.env.VITE_API_PROVIDER
@@ -18,7 +18,7 @@ const responseProvider =
       })
 
 // 启用 LocalStorage 持久化，配合 show-history 使用
-const storage = localStorageStrategy()
+const storage = localStorageStrategyFactory()
 
 const welcome = {
   title: 'AI Assistant',
@@ -26,10 +26,10 @@ const welcome = {
 }
 
 const prompts = [
-  { title: '✍️ 写作', description: '帮我写一篇关于...' },
-  { title: '💻 编程', description: '帮我写一个...' },
-  { title: '📊 分析', description: '帮我分析...' },
-  { title: '🌐 翻译', description: '帮我翻译...' },
+  { label: '✍️ 写作', description: '帮我写一篇关于...' },
+  { label: '💻 编程', description: '帮我写一个...' },
+  { label: '📊 分析', description: '帮我分析...' },
+  { label: '🌐 翻译', description: '帮我翻译...' },
 ]
 </script>
 
