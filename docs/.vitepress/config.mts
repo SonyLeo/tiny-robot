@@ -8,6 +8,7 @@ import { themeConfig } from './themeConfig'
 const devAlias = {
   '@opentiny/tiny-robot': fileURLToPath(new URL('../../packages/components/src', import.meta.url)),
   '@opentiny/tiny-robot-kit': fileURLToPath(new URL('../../packages/kit/src', import.meta.url)),
+  '@opentiny/tiny-robot-chat': fileURLToPath(new URL('../../packages/chat/src', import.meta.url)),
   '@opentiny/tiny-robot-style': fileURLToPath(
     new URL('../../packages/components/src/styles/root.css', import.meta.url),
   ),

@@ -11,7 +11,9 @@ interface Props {
   mode?: 'single' | 'multiple'
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  mode: 'multiple',
+})
 
 const chatKit = inject(CHAT_KIT_KEY)!
 

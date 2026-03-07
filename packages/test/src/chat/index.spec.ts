@@ -219,6 +219,81 @@ test.describe('Chat 黑盒模式测试', () => {
     // matrix(-1, 0, 0, 1, 0, 0) 或包含 translateX(-100%) 的变换
     expect(transform).not.toBe('none')
   })
+  // --- Edge Cases / 文档扩展能力测试 ---
+
+  test.describe('黑盒边缘/扩展场景', () => {
+    test.beforeEach(async ({ page }: { page: Page }) => {
+      // 切换到专门挂载了边缘 Props 和定制属性的组件
+      await page.click('text=边缘用例测试')
+    })
+
+    test('全屏: 点击全屏按钮应使组件变成 fixed 定位全屏态', async ({ page }) => {
+      const chat = page.getByTestId('chat-blackbox-edge').locator('.tr-chat')
+      const btn = chat.getByTitle('全屏')
+
+      await expect(chat).not.toHaveClass(/tr-chat--fullscreen/)
+      await btn.click()
+      await expect(chat).toHaveClass(/tr-chat--fullscreen/)
+
+      // 测试 CSS 是否生效 (position fixed 等)
+      const position = await chat.evaluate((el) => getComputedStyle(el).position)
+      expect(position).toBe('fixed')
+
+      // 返回
+      await btn.click()
+    })
+
+    test('属性透传: sender-props maxLength 限制发送但不截断输入', async ({ page }) => {
+      const root = 'div[data-testid="chat-blackbox-edge"] .tr-chat'
+      const input = page.locator(root).locator('.tiptap') // 使用 tiptap 的真实节点
+      const submitBtn = page.locator(root).locator('.tr-sender-submit-button') // 获取发送按钮
+
+      // demo 中我们在 extra-mode 配了 maxLength: 5
+      await input.fill('12345678')
+      const val = await input.textContent()
+
+      // 1. 验证输入不会被截断，也就是真实长度依然会超过 5
+      expect(val?.length).toBe(8)
+      expect(val).toBe('12345678')
+
+      // 2. 验证此时因为超长 (8 > 5)，发送按钮具有 is-disabled 类
+      await expect(submitBtn).toHaveClass(/is-disabled/)
+    })
+
+    test('属性透传: roleConfigs 自定义排布应覆盖默认规则', async () => {
+      const root = 'div[data-testid="chat-blackbox-edge"] .tr-chat'
+      await helper.sendMessage('修改布局', root)
+      await helper.waitForAssistantReply(root)
+
+      const bubbles = helper.getLocator(root).locator(helper.selectors.bubbleItem)
+      const userBubble = bubbles.first()
+
+      // 测试页我们配置了 user placement: 'start'（本该是右'end'，但首选配置了靠左）
+      const placement = await userBubble.getAttribute('data-placement')
+      expect(placement).toBe('start')
+    })
+
+    test('插槽透传: #footer-extra 和 #header-extra 正常渲染', async ({ page }) => {
+      const chatNode = page.getByTestId('chat-blackbox-edge')
+
+      const headerBtn = chatNode.getByTestId('custom-header-btn')
+      const footerExtra = chatNode.getByTestId('custom-footer-extra')
+
+      await expect(headerBtn).toBeVisible()
+      await expect(footerExtra).toBeVisible()
+      await expect(footerExtra).toHaveText('这是Footer额外区域')
+    })
+
+    test('异常流: 发送特定文本触发 error 事件且记录回调日志', async ({ page }) => {
+      const root = 'div[data-testid="chat-blackbox-edge"] .tr-chat'
+      // E2E mock 会在遇到 'err' 抗异常（注意: edge 模式 maxLength=5，所以需 ≤ 5 字符）
+      await helper.sendMessage('err', root)
+
+      // 等待抛出异常被截获
+      const errLog = page.getByTestId('on-error-log')
+      await expect(errLog).toContainText('error:Mock API Error: 模拟请求失败')
+    })
+  })
 })
 
 // ═══════════════════════════════════════════════════════════
@@ -366,5 +441,13 @@ test.describe('Chat 白盒模式测试', () => {
 
     const bubbles = helper.getLocator(root).locator(helper.selectors.bubbleItem)
     await expect(bubbles.nth(1)).toBeVisible()
+  })
+  test('异常流: 内部 Provider 返回 Error 也能正常终止并回调', async ({ page }) => {
+    const root = helper.selectors.whiteboxChat
+
+    await helper.sendMessage('err', root)
+
+    const finishLog = page.getByTestId('on-finish-log')
+    await expect(finishLog).toContainText('error:Mock API Error: 模拟请求失败')
   })
 })

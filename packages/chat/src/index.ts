@@ -43,6 +43,7 @@ export { createDeepSeekProvider } from './providers/deepseek'
 
 // ===== 类型 =====
 export type {
+  BrandConfig,
   ResponseProvider,
   ChatStatus,
   UseChatKitOptions,

@@ -10,6 +10,13 @@
       <button data-testid="switch-whitebox" :class="{ active: mode === 'whitebox' }" @click="mode = 'whitebox'">
         白盒模式
       </button>
+      <button
+        data-testid="switch-blackbox-edge"
+        :class="{ active: mode === 'blackbox-edge' }"
+        @click="mode = 'blackbox-edge'"
+      >
+        边缘用例测试
+      </button>
     </div>
 
     <!-- =================== 黑盒模式 =================== -->
@@ -25,6 +32,33 @@
         @finish="handleFinish"
         @error="handleError"
       />
+    </div>
+
+    <!-- =================== 黑盒模式（边缘边界用例） =================== -->
+    <div v-if="mode === 'blackbox-edge' && isShow" data-testid="chat-blackbox-edge" class="chat-wrapper">
+      <div class="status-bar">
+        <span data-testid="on-error-log">{{ errorLog }}</span>
+      </div>
+      <TrChat
+        :response-provider="responseProvider"
+        :brand="brand"
+        placeholder="请输入消息..."
+        show-history
+        enable-fullscreen
+        v-model:fullscreen="isFullscreen"
+        v-model:show="isShow"
+        :role-configs="{ user: { placement: 'start' }, assistant: { placement: 'end' } }"
+        :sender-props="{ maxLength: 5 }"
+        @finish="handleFinish"
+        @error="handleError"
+      >
+        <template #header-extra>
+          <button data-testid="custom-header-btn">右侧按钮</button>
+        </template>
+        <template #footer-extra>
+          <div data-testid="custom-footer-extra">这是Footer额外区域</div>
+        </template>
+      </TrChat>
     </div>
 
     <!-- =================== 白盒模式 =================== -->
@@ -66,12 +100,33 @@ import { ref } from 'vue'
 import { TrChat, useChatKit } from '../../../chat/src'
 import { createMockProvider } from './mockProvider'
 
-const mode = ref<'blackbox' | 'whitebox'>('blackbox')
+const mode = ref<'blackbox' | 'whitebox' | 'blackbox-edge'>('blackbox')
 const finishLog = ref('')
+const errorLog = ref('')
 const isFullscreen = ref(false)
+const isShow = ref(true)
 
-// === 共享的 mock provider ===
-const responseProvider = createMockProvider()
+// === 共享的 mock provider，并拦截触发异常的特定文本 ===
+const baseProvider = createMockProvider()
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const responseProvider = async function* (body: any, signal: any) {
+  const userMsg = body.messages?.[body.messages.length - 1]?.content
+  if (userMsg === 'err') {
+    throw new Error('Mock API Error: 模拟请求失败')
+  }
+
+  // 最佳实践：先 await 抹平外层的 Promise 包装，不论原来是同步还是异步
+  const result = await baseProvider(body, signal)
+
+  // 如果结果具有 Symbol.asyncIterator 属性，说明是流式输出（AsyncGenerator）
+  if (result && typeof result === 'object' && Symbol.asyncIterator in result) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    yield* result as AsyncGenerator<any, any, any>
+  } else {
+    // 否则说明是非流式的一维返回，直接 yield 单个结果
+    yield result
+  }
+}
 
 // === UI-B1：品牌配置（Header 左侧标题） ===
 const brand = {
@@ -96,11 +151,12 @@ function handleFinish(msg: { content?: string }) {
 
 function handleError(err: Error) {
   finishLog.value = `error:${err.message}`
+  errorLog.value = `error:${err.message}`
 }
 
 // === 白盒模式 ===
 const chat = useChatKit({
-  responseProvider: createMockProvider(),
+  responseProvider: responseProvider,
   onFinish: (msg) => {
     finishLog.value = `finish:${msg.content?.slice(0, 20) ?? ''}`
   },

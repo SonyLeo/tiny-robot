@@ -39,6 +39,11 @@ const sharedSidebarItems = [
       { text: '工具函数', link: 'utils' },
     ],
   },
+  {
+    text: 'Chat Suite',
+    base: '/components/',
+    items: [{ text: 'Chat 聊天套件', link: 'chat' }],
+  },
 ]
 
 const nav = [
