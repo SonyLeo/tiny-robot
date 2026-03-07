@@ -1,6 +1,6 @@
 # Chat 对话套件设计方案
 
-> 版本：v1.1 | 日期：2026-03-04 | 状态：优化中
+> 版本：v1.2 | 日期：2026-03-07 | 状态：优化中
 
 **目录**
 
@@ -20,6 +20,8 @@
 | 十二 | [实施顺序](#十二实施顺序) |
 | 十三 | [风险与注意事项](#十三风险与注意事项) |
 | 十四 | [模板路线图（Phase 2+）](#十四模板路线图phase-2) |
+| 十五 | [UI 一致性增补方案（2026-03-07）](#十五ui-一致性增补方案) |
+| 十六 | [E2E 测试用例更新方案（配套第十五章）](#十六e2e-测试用例更新方案配套第十五章) |
 
 ---
 
@@ -380,8 +382,16 @@ interface TrChatProps {
   onFinish?: (message: ChatMessage) => void
   onError?: (error: Error) => void
 
+  // === 品牌配置（v15 UI-B1 新增） ===
+  brand?: {
+    title?: string             // Header 左侧品牌标题，default: ''
+    logo?: VNode | Component   // Welcome 区 Logo 图标 fallback（welcome.icon 未配置时使用），default: undefined
+  }
+
   // === 角色/头像配置 ===
   roleConfigs?: Record<string, BubbleRoleConfig>
+  // 套件层内置 DEFAULT_ROLE_CONFIGS（assistant 左 + user 右 + 默认头像）
+  // 用户传入的 roleConfigs 会与默认值浅合并，用户配置优先
 
   // === 欢迎页 ===
   welcome?: {
@@ -1112,6 +1122,12 @@ export type { WelcomeConfig }
 | TrChat.Root 默认高度 | `height: 100%`，由父容器控制 |
 | 平铺语法糖（mentions/suggestions） | **移除**（避免隐式转换，改为直接通过 `senderProps.extensions` 传入） |
 | 白盒子组件 props | 支持完整底层组件 props，不做二次封装限制 |
+| Header 按钮实现 | 使用 `TrIconButton` + SVG 图标（`IconHistory`/`IconNewSession`），**移除原生 `<button>` + emoji**（v15 UI-H1） |
+| 品牌配置 `brand` | `TrChatProps` 新增 `brand?: { title?, logo? }`，Header 标题与 Welcome Logo 统一来源（v15 UI-B1） |
+| 全屏模式 API | **分离功能开关与视图状态**：新增 `enableFullscreen?: boolean`（默认 false）决定是否显示全屏按钮按钮，原有 `fullscreen?: boolean` 结合 `v-model:fullscreen` 专职控制当前试图状态。解决传 undefined 还是传 false 含混不清的语义问题。 |
+| 全屏容器 CSS 架构 | **重构外壳约束**：移除 `:deep` 伪类等脆弱约束。Header 和 Footer 自身确保 100% 宽度贯穿处理背景，并在内部采用 `__header-inner`、`__footer-inner` 与 `__body` 保持同级最大的 `max-width` 与 `margin-left/right: auto` 约束，达成 Copilot 式纯净全屏展示（v15 UI-S1）。 |
+| 默认 roleConfigs | 套件层内置 `DEFAULT_ROLE_CONFIGS`（assistant 靠左 + `IconAi`，user 靠右 + `IconUser`），用户传入的 `roleConfigs` 浅合并覆盖（v15 UI-RC1） |
+| Prompt 卡片布局 | `TrChatWelcome` 默认传 `:wrap="true"` + container query 双列断点（v15 UI-W2） |
 
 ---
 
@@ -1154,44 +1170,44 @@ Phase 1 - Step 4: 文档
 
 ## 十三、风险与注意事项
 
-1. **BubbleList slots 动态透传**：Vue 3 的动态 slot 名需要用 `v-for` + `#[name]` 实现，需要验证所有 slot 名能正确透传，特别是带连字符的 slot 名（`content-footer`）。
+1.  **BubbleList slots 动态透传**：Vue 3 的动态 slot 名需要用 `v-for` + `#[name]` 实现，需要验证所有 slot 名能正确透传，特别是带连字符的 slot 名（`content-footer`）。
 
-2. **TrChat.vue 内部 inputValue 管理**：`inputValue` 不再由 `useChatKit` 管理，而是由 `TrChat.vue` 组件内部持有。在 `sendMessage` 调用成功后，组件负责清空 `inputValue`。需确保流程清晰，避免状态不同步。
+2.  **TrChat.vue 内部 inputValue 管理**：`inputValue` 不再由 `useChatKit` 管理，而是由 `TrChat.vue` 组件内部持有。在 `sendMessage` 调用成功后，组件负责清空 `inputValue`。需确保流程清晰，避免状态不同步。
 
-3. **ChatStatus 四态与底层 useMessage 的映射**：底层 `useMessage` 尚未直接暴露四态状态机，需在 `useChatKit` 中根据 `engine` 的现有状态（`isStreaming`、`error` 等）推导 `status`，需验证边界状态（如 abort 后的状态重置）；此外 abort() 执行后状态应立即同步置为 ready，即使流尚未实际断开（网络层的关闭是异步的）。
+3.  **ChatStatus 四态与底层 useMessage 的映射**：底层 `useMessage` 尚未直接暴露四态状态机，需在 `useChatKit` 中根据 `engine` 的现有状态（`isStreaming`、`error` 等）推导 `status`，需验证边界状态（如 abort 后的状态重置）；此外 abort() 执行后状态应立即同步置为 ready，即使流尚未实际断开（网络层的关闭是异步的）。
 
-4. **TrChat.Welcome / TrChat.MessageList 的切换时机**：黑盒 `TrChat.vue` 内部会自动处理（`messages.length === 0` 时显示 Welcome），白盒模式下需用户自行用 `v-if/v-else` 控制，**文档必须明确说明**。
+4.  **TrChat.Welcome / TrChat.MessageList 的切换时机**：黑盒 `TrChat.vue` 内部会自动处理（`messages.length === 0` 时显示 Welcome），白盒模式下需用户自行用 `v-if/v-else` 控制，**文档必须明确说明**。
 
-5. **createOpenAIProvider 的浏览器端安全**：直接在浏览器端使用 API Key 存在泄露风险，模板工程的 README 必须明确说明生产环境应通过**后端代理**转发请求（如建议使用 Nitro / Hono 实现代理中间层）。
+5.  **createOpenAIProvider 的浏览器端安全**：直接在浏览器端使用 API Key 存在泄露风险，模板工程的 README 必须明确说明生产环境应通过**后端代理**转发请求（如建议使用 Nitro / Hono 实现代理中间层）。
 
-6. **CLI 的 `_gitignore` 重命名**：npm publish 时 `.gitignore` 文件会被自动忽略，需用 `_gitignore` 命名后在 CLI 脚本中重命名，参照 create-vue 的处理方式。
+6.  **CLI 的 `_gitignore` 重命名**：npm publish 时 `.gitignore` 文件会被自动忽略，需用 `_gitignore` 命名后在 CLI 脚本中重命名，参照 create-vue 的处理方式。
 
-7. **`@clack/prompts` 版本一致性**：`@clack/prompts` API 在 v0.x 阶段仍在迭代，建议 lockfile 精确锁定版本，并在升级时验证交互行为。
+7.  **`@clack/prompts` 版本一致性**：`@clack/prompts` API 在 v0.x 阶段仍在迭代，建议 lockfile 精确锁定版本，并在升级时验证交互行为。
 
-8. **暗色模式变量名**：`--tr-color-border` 不存在，正确变量名是 `--tr-border-color-default`；`--chat-drawer-shadow` 和 `--chat-drawer-overlay-bg` 等硬编码值需在 `[data-tr-color-mode='dark']` 下覆盖，与 components 包的处理方式保持一致。
+8.  **暗色模式变量名**：`--tr-color-border` 不存在，正确变量名是 `--tr-border-color-default`；`--chat-drawer-shadow` 和 `--chat-drawer-overlay-bg` 等硬编码值需在 `[data-tr-color-mode='dark']` 下覆盖，与 components 包的处理方式保持一致。
 
-9. **ResponseProvider 实际签名差异**：设计初稿中写的是 `ReadableStream<string>`，但底层实际接受 `AsyncGenerator<ChatCompletion>`。`createOpenAIProvider` 工厂函数已按实际签名实现，`types.ts` 中 `ResponseProvider` 类型也已对齐实际签名。
+9.  **ResponseProvider 实际签名差异**：设计初稿中写的是 `ReadableStream<string>`，但底层实际接受 `AsyncGenerator<ChatCompletion>`。`createOpenAIProvider` 工厂函数已按实际签名实现，`types.ts` 中 `ResponseProvider` 类型也已对齐实际签名。
 
 ---
 
 ## 十四、模板路线图（Phase 2+）
 
-> 以下内容为 Phase 2 及以后的规划，本期（Phase 1）不实现。  
+> 以下内容为 Phase 2 及以后的规划，本期（Phase 1）不实现。
 > 详细设计在对应模板开发时再展开，此处仅说明各模板的定位。
 
 ### 14.1 `with-mcp`
 
-**定位**：演示如何在 Chat 中使用 `toolPlugin` 集成 MCP 工具调用。  
+**定位**：演示如何在 Chat 中使用 `toolPlugin` 集成 MCP 工具调用。
 **核心**：`responseProvider` + `toolPlugin`，ChatKit 本身无需改动。
 
 ### 14.2 `with-rag`
 
-**定位**：演示如何写一个带文档检索步骤的 `responseProvider`（RAG 核心价值不在 Chat 配置，而在 provider 层）。  
+**定位**：演示如何写一个带文档检索步骤的 `responseProvider`（RAG 核心价值不在 Chat 配置，而在 provider 层）。
 **核心**：`rag.ts`（检索 → 注入 system prompt → 发给 LLM），使用 `TrFeedback` 的 `sources` 展示参考文档。
 
 ### 14.3 `with-context`
 
-**定位**：演示多轮对话上下文优化（token 计数 → 超阈值时自动生成摘要 → 压缩历史）。  
+**定位**：演示多轮对话上下文优化（token 计数 → 超阈值时自动生成摘要 → 压缩历史）。
 **核心**：`ContextManager` 工具类 + `createContextAwareProvider`，通过 `#header-extra` slot 展示 token 统计。
 
 ### 14.4 模板组合路线
@@ -1205,4 +1221,505 @@ Phase 1 - Step 4: 文档
 | `with-mcp` + `with-context` | 工具调用 + 上下文管理 |
 
 > 组合模板推荐采用**独立模板**方式实现（不共享库），保持代码清晰可读，作为用户的完整参考示例。
+
+---
+
+## 十五、UI 一致性增补方案（2026-03-07）
+
+> 本章节补充自评审结论，目标是让 `@opentiny/tiny-robot-chat` 默认 UI 在开箱状态下与 Assistant 基础效果保持一致，修复核心 UI 的缺失。本章节基于差异分析补充了具体的设计方案。
+
+### 15.1 一致性目标（Design Baseline）
+
+- `H` Header 按钮组一致：全屏与侧边模式下图标、尺寸、间距、交互态一致。基于 `TrIconButton` 升级。
+- `W` Welcome 区一致：Logo + 标题 + 描述 + Prompt 卡片的结构与节奏一致。补齐 Prompt 卡片样式和响应式布局。
+- `C` 对话排布一致：assistant 左、user 右，头像、气泡宽度与间距一致。提供默认 `roleConfigs`。
+- `B` 品牌 Logo 一致：Header 与 Welcome 使用统一品牌来源，不出现双标准。
+
+### 15.2 范围与边界
+
+- 本轮只修改 `packages/chat`（核心套件）。不修改 `@opentiny/tiny-robot` 基础组件。
+- 不在本轮引入业务化能力（如 MCP、Dropzone、复杂 Pills 逻辑）。这些作为 `chat-cli` 模板后续的高级配置承接。
+- 业务化能力（如 Pills 区域）通过 `#footer-extra` 等 slot 进行支持，保证扩展性。
+
+### 15.3 分阶段实施与具体方案
+
+#### Phase 1（P0）：Header + 品牌展示 + 默认消息布局
+
+1.  **`UI-H1` 统一 Header 按钮体系**
+    -   **方案**：改造 `TrChatHeader.vue`。从原生 `<button>` + emoji 升级到引用组件库已有的 `TrIconButton` + SVG 图标（`IconHistory`, `IconNewSession`）。
+    -   **好处**：自带 hover/active/focus 交互态，解除不同系统下 emoji 的渲染差异风险。
+
+2.  **`UI-B1` 品牌区抽象与统一**
+    -   **方案**：为 `TrChatProps` 增加 `brand` 配置。
+    -   **机制**：Header 显示 `brand.title`；Welcome 优先显示 `welcome.icon`，未配置则 fallback 到 `brand.logo`，实现展示入口一致性。
+    -   **类型签名**（回溯补充第五章 `TrChatProps`）：
+        ```ts
+        interface TrChatProps {
+          // ... 现有 props ...
+
+          // === 品牌配置（新增） ===
+          brand?: {
+            title?: string             // Header 左侧品牌标题，default: ''
+            logo?: VNode | Component   // Welcome 区 Logo 图标 fallback，default: undefined
+          }
+        }
+        ```
+
+3.  **`UI-H2` 历史开关行为一致**
+    -   **方案**：完善按钮的 `title` 和 `aria-label` 属性绑定 `showHistoryDrawer` 状态，切换提示文本，增强可访问性。
+
+4.  **`UI-RC1` 内置默认 roleConfigs（⚠️ 关键增补）**
+    -   **痛点**：当前未配置 `roleConfigs` 时，气泡无头像且无左右分布，视觉体验极差。
+    -   **方案**：套件层内置 `DEFAULT_ROLE_CONFIGS`（assistant 靠左 + `IconAi` 头像，user 靠右 + `IconUser` 头像），作为基础合并依据，用户传入的 `roleConfigs` 进行深合并。
+    -   **参考实现**：
+        ```ts
+        // composables/defaults.ts
+        import { h } from 'vue'
+        import { IconAi, IconUser } from '@opentiny/tiny-robot-svgs'
+        import type { BubbleRoleConfig } from '@opentiny/tiny-robot'
+
+        export const DEFAULT_ROLE_CONFIGS: Record<string, BubbleRoleConfig> = {
+          assistant: {
+            placement: 'start',
+            avatar: h(IconAi, { style: { fontSize: '32px' } }),
+          },
+          user: {
+            placement: 'end',
+            avatar: h(IconUser, { style: { fontSize: '32px' } }),
+          },
+        }
+        ```
+        ```ts
+        // TrChat.vue 中合并逻辑
+        const mergedRoleConfigs = computed(() => ({
+          ...DEFAULT_ROLE_CONFIGS,
+          ...props.roleConfigs,
+        }))
+        ```
+
+#### Phase 2（P0）：Welcome 区对齐（W）
+
+1.  **`UI-W1` Welcome 结构对齐**
+    -   对齐“Logo + 标题 + 描述”的层级结构。
+
+2.  **`UI-W2` Prompt 卡片样式对齐（⚠️ 关键增补）**
+    -   **方案**：`TrChatWelcome.vue` 中调用 `<TrPrompts>` 必须传入 `:wrap="true"`。
+    -   **CSS 响应式**：增加 `tr-chat__welcome-prompts` 类，开启 `container-type: inline-size`，配置 `--tr-prompt-width: 100%`，并在宽屏端 (`@container (min-width: 640px)`) 覆盖为双列 `calc(50% - 8px)`，呈现标准的卡片排布。
+
+#### Phase 3（P0）：底部输入区 + 视觉打磨（C）
+
+1.  **`UI-C2` 底部输入区视觉统一**
+    -   整体对齐 Footer、Pills 区、Sender 的垂直节奏与宽度约束。全局维护一套默认 `--chat-sender-*` 和 `--chat-footer-*` 间距变量。
+
+#### Phase 4（P1）：Shell 模式整合与验收
+
+1.  **`UI-S1` Shell 模式能力补充（更正）**
+    -   **痛点**：目前 `TrChat` 自身的 fullscreen 只设了 `100vh` 且旧版 `layout.less` 通过 `max-width` 限制导致 Header/Footer 两侧无法渲染背景色；同时 `fullscreen` 既当功能开关又当状态。
+    -   **方案 1（全屏 API 明确）**：拆分开关。为 `TrChatProps` 新增并引入 `enableFullscreen?: boolean` 以解决属性语义交织混合的问题，通过 `v-model:fullscreen` 绑定实际试图状态。
+    -   **方案 2（外壳宽度重构）**：修正 CSS 全屏模型。引入 `__header-inner`，`__footer-inner` 保证 Header / Footer 作为容器 `width: 100%` 可以满宽显示背景底色；同时约束这三个子区局居中，消除 `:deep(.tr-sender)` 这些脆弱选择器可能带来的代码腐化问题。
+    -   **边界**：明确套件层和 `TrContainer` 的边界，如果业务自身需要拖拽等高级外壳容器和侧边模式，不应使用 `show` 作为挂点，必须外覆 `TrContainer` 代劳。
+
+2.  **`QA-1` 三视图验收**
+    -   包含桌面欢迎态、移动欢迎态、对话流三种状态验收，收敛样式分歧。
+
+### 15.4 CSS 变量增补清单
+
+为了支持上述改造，会在 `variables.less` 中增补以下暴露供自定义的 `--chat-*` 变量：
+
+```less
+/* Header 品牌 */
+--chat-header-title-font-size: 14px;
+--chat-header-title-font-weight: 600;
+--chat-header-title-color: var(--tr-color-text-primary, #191919);
+
+/* Welcome Prompt 区域 */
+--chat-welcome-prompts-max-width: 800px;
+--chat-welcome-prompts-padding: 16px 24px;
+
+/* 全屏模式内容区约束 */
+--chat-content-max-width: 1280px;
+```
+
+### 15.5 验收标准（Definition of Done）
+
+- 默认黑盒 `<TrChat :response-provider="..." />` 在不传自定义 slot / roleConfigs 的情况下即可满足 `H/W/C/B` 四项一致性。
+- Header 使用 `TrIconButton` + SVG 图标，emoji fallback 完全移除。
+- Welcome 样式在桌面端呈双列 Prompt 卡片、移动端呈单列。
+- 消息区默认呈现 assistant 左（含头像）/ user 右（含头像）的对话排布。
+- 品牌 Logo 来源统一（`brand` 配置），Header 与 Welcome 不出现视觉冲突。
+- 全屏模式下内容区有 `max-width` 约束，不撑满整个屏幕。
+
+### 15.6 与模板路线的关系
+
+- 先完成核心 UI 纠偏（本章节）。
+- 再将 Assistant 的高级交互（业务强相关的拦截、反馈、文件 Dropzone、Pills 下拉菜单）沉淀为 `chat-cli` 高级模板（如 `assistant/pro`），依靠套件的基础 slots 进行组装配置，避免将业务代码内聚到套件库引起 API 膨胀。
+
+---
+
+## 十六、E2E 测试用例更新方案（配套第十五章）
+
+> 第十五章 UI 改造涉及 DOM 结构变更（Header 按钮类名）和新增功能（品牌区、默认 roleConfigs、Prompt 布局），需同步更新 E2E 测试体系，确保改造前后测试绿灯。
+>
+> 测试路径：`packages/test/src/chat/`
+
+### 16.1 影响范围总览
+
+| 改造项 | 影响的测试文件 | 变更类型 |
+|--------|--------------|---------|
+| UI-H1 Header 按钮升级 `TrIconButton` | `selectors.ts`、`index.spec.ts` | 选择器变更 + 断言修改 |
+| UI-H2 历史按钮 `aria-label` | `selectors.ts`、`testHelper.ts`、`index.spec.ts` | 新增可访问性测试 |
+| UI-B1 品牌配置 `brand` | `index.vue`、`testHelper.ts`、`index.spec.ts` | 测试页面配置 + 新增断言 |
+| UI-RC1 默认 `roleConfigs` | `selectors.ts`、`testHelper.ts`、`index.spec.ts` | 新增消息排布测试 |
+| UI-W2 Prompt 卡片 `wrap` + 双列布局 | `selectors.ts`、`testHelper.ts`、`index.spec.ts` | 新增样式/布局测试 |
+
+> **⚠️ 执行顺序**：必须先完成组件改造，再按 `selectors.ts → index.vue → testHelper.ts → index.spec.ts` 的顺序更新测试，最后运行 `pnpm test`。
+
+---
+
+### 16.2 `selectors.ts` — 选择器更新
+
+#### 16.2.1 Header 按钮选择器变更（⚠️ 破坏性）
+
+`TrIconButton` 渲染的 DOM 结构与原生 `<button class="tr-chat__header-button">` 不同。需从类名选择器改为更语义化的属性选择器，与 UI-H2 的 `aria-label` 改造对齐：
+
+```ts
+// ❌ 旧：依赖实现细节类名（UI 升级后失效）
+historyBtn: '.tr-chat__header-left .tr-chat__header-button',
+newChatBtn: '.tr-chat__header-right .tr-chat__header-button',
+
+// ✅ 新：依赖语义属性（稳定，不随实现细节变化）
+historyBtn: '[title="打开历史"], [title="关闭历史"]',
+newChatBtn: '[title="新建对话"]',
+```
+
+> 用 `title` 替代 `aria-label` 作选择器，因为 `aria-label` 的值会随 Drawer 开关改变，而 `title` 同样有变化。实际按钮上两个属性都有，选择器写法可以用任意一个。推荐用 `title`，测试中需要精确断言当前值时用 `aria-label`。
+
+#### 16.2.2 新增选择器
+
+```ts
+// === Header 品牌 ===
+headerBrand: '.tr-chat__header-brand',
+
+// === 消息气泡角色（用于排布测试）===
+// TrBubbleList 在 placement: 'start' 时为 .tr-bubble--start，'end' 时为 .tr-bubble--end
+bubbleStart: '.tr-bubble--start',   // assistant 靠左
+bubbleEnd: '.tr-bubble--end',        // user 靠右
+bubbleAvatar: '.tr-bubble__avatar',  // 头像容器
+
+// === Welcome Prompt 容器（用于布局测试）===
+welcomePrompts: '.tr-chat__welcome-prompts',
+```
+
+#### 16.2.3 完整变更 diff
+
+```diff
+  // === Header 按钮 ===
+- historyBtn: '.tr-chat__header-left .tr-chat__header-button',
+- newChatBtn: '.tr-chat__header-right .tr-chat__header-button',
++ historyBtn: '[title="打开历史"], [title="关闭历史"]',
++ newChatBtn: '[title="新建对话"]',
+
++ // === Header 品牌 ===
++ headerBrand: '.tr-chat__header-brand',
+
++ // === 消息气泡角色 ===
++ bubbleStart: '.tr-bubble--start',
++ bubbleEnd: '.tr-bubble--end',
++ bubbleAvatar: '.tr-bubble__avatar',
+
++ // === Welcome Prompt 容器 ===
++ welcomePrompts: '.tr-chat__welcome-prompts',
+```
+
+---
+
+### 16.3 `index.vue`（测试页面）— 配置更新
+
+黑盒模式需要传入 `brand` 配置，使品牌标题在 Header 中可见，并将 `welcome.title` 专用于 Welcome 区（与 `brand.title` 分离）：
+
+```diff
+  // === 共享配置 ===
++ const brand = {
++   title: 'Chat Kit 测试',   // 对应 Header 品牌标题
++ }
+
+  const welcome = {
+-   title: '🤖 Chat Kit 测试',
++   title: 'TinyRobot',             // Welcome 区大标题，可与品牌名一致或不同
+    description: '这是 Chat Kit 的 E2E 测试页面',
+  }
+```
+
+```diff
+  <TrChat
+    :response-provider="responseProvider"
++   :brand="brand"
+    :welcome="welcome"
+    :prompts="prompts"
+    placeholder="请输入消息..."
+    show-history
+    fullscreen
+    @finish="handleFinish"
+    @error="handleError"
+  />
+```
+
+> **白盒模式无需改动**：白盒模式由用户自行控制 Header 内容，`brand` 配置仅影响黑盒模式的自动渲染。
+
+---
+
+### 16.4 `testHelper.ts` — 新增 Helper 方法
+
+#### 16.4.1 品牌区断言
+
+```ts
+// =====================
+//  品牌区断言（UI-B1）
+// =====================
+
+/** 检查 Header 品牌标题文本 */
+const expectBrandTitle = async (text: string, root: string = selectors.blackboxChat) => {
+  const brand = page.locator(root).locator(selectors.headerBrand)
+  await expect(brand).toContainText(text, { timeout: defaultTimeout })
+}
+
+/** 检查 Header 品牌标题不存在（未配置 brand.title 时） */
+const expectNoBrandTitle = async (root: string = selectors.blackboxChat) => {
+  const brand = page.locator(root).locator(selectors.headerBrand)
+  await expect(brand).not.toBeVisible({ timeout: defaultTimeout })
+}
+```
+
+#### 16.4.2 消息角色/头像断言
+
+```ts
+// =====================
+//  消息角色断言（UI-RC1）
+// =====================
+
+/** 检查 assistant 消息是否靠左（placement: start） */
+const expectAssistantOnLeft = async (root: string = selectors.blackboxChat) => {
+  const bubble = page.locator(root).locator(selectors.bubbleStart)
+  await expect(bubble.first()).toBeVisible({ timeout: defaultTimeout * 2 })
+}
+
+/** 检查 user 消息是否靠右（placement: end） */
+const expectUserOnRight = async (root: string = selectors.blackboxChat) => {
+  const bubble = page.locator(root).locator(selectors.bubbleEnd)
+  await expect(bubble.first()).toBeVisible({ timeout: defaultTimeout })
+}
+
+/** 检查第 N 条消息是否有头像 */
+const expectBubbleHasAvatar = async (index: number, root: string = selectors.blackboxChat) => {
+  const bubble = page.locator(root).locator(selectors.bubbleItem).nth(index)
+  const avatar = bubble.locator(selectors.bubbleAvatar)
+  await expect(avatar).toBeVisible({ timeout: defaultTimeout })
+}
+```
+
+#### 16.4.3 Prompt 布局断言
+
+```ts
+// =====================
+//  Prompt 布局断言（UI-W2）
+// =====================
+
+/** 检查 Prompt 是否在 wrap 容器中渲染（tr-chat__welcome-prompts） */
+const expectPromptContainerVisible = async (root: string = selectors.blackboxChat) => {
+  const container = page.locator(root).locator(selectors.welcomePrompts)
+  await expect(container).toBeVisible({ timeout: defaultTimeout })
+}
+
+/**
+ * 检查宽屏下 Prompt 是否为双列布局
+ * 原理：单个 prompt 宽度应小于容器宽度的 60%（双列时约 50%）
+ */
+const expectPromptsDoubleColumn = async (root: string = selectors.blackboxChat) => {
+  const container = page.locator(root).locator(selectors.welcomePrompts)
+  const promptItem = page.locator(root).locator(selectors.promptItem).first()
+  const containerBox = await container.boundingBox()
+  const promptBox = await promptItem.boundingBox()
+  if (containerBox && promptBox) {
+    expect(promptBox.width).toBeLessThan(containerBox.width * 0.6)
+  }
+}
+```
+
+#### 16.4.4 可访问性断言
+
+```ts
+// =====================
+//  可访问性断言（UI-H2）
+// =====================
+
+/**
+ * 检查历史按钮的 aria-label
+ * @param label 期望值，如 "打开历史" 或 "关闭历史"
+ */
+const expectHistoryBtnAriaLabel = async (label: string, root: string = selectors.blackboxChat) => {
+  // 注意：historyBtn 选择器是联合选择器，这里改用 title 精确匹配
+  const btn = page.locator(root).locator(`[title="${label}"]`)
+  await expect(btn).toBeVisible({ timeout: defaultTimeout })
+}
+```
+
+#### 16.4.5 在 return 语句中补充
+
+```diff
+  return {
+    // (现有方法保持不变) ...
+
++   // 品牌区
++   expectBrandTitle,
++   expectNoBrandTitle,
+
++   // 消息角色
++   expectAssistantOnLeft,
++   expectUserOnRight,
++   expectBubbleHasAvatar,
+
++   // Prompt 布局
++   expectPromptContainerVisible,
++   expectPromptsDoubleColumn,
+
++   // 可访问性
++   expectHistoryBtnAriaLabel,
+  }
+```
+
+---
+
+### 16.5 `index.spec.ts` — 测试用例变更
+
+#### 16.5.1 修改现有测试（1 条）
+
+UI-H1 升级后，按钮不再含 emoji 文本，现有测试需追加否定断言：
+
+```diff
+- test('布局: Header 应显示历史和新建对话按钮', async () => {
++ test('布局: Header 应显示 TrIconButton 风格的历史和新建对话按钮', async () => {
+    const root = helper.selectors.blackboxChat
+    const historyBtn = helper.getLocator(root).locator(helper.selectors.historyBtn)
+    const newChatBtn = helper.getLocator(root).locator(helper.selectors.newChatBtn)
+    await expect(historyBtn).toBeVisible()
+    await expect(newChatBtn).toBeVisible()
++   // 升级为 TrIconButton 后，按钮不应再包含 emoji 文本
++   await expect(historyBtn).not.toContainText('☰')
++   await expect(newChatBtn).not.toContainText('✏️')
+  })
+```
+
+#### 16.5.2 黑盒模式新增测试（8 条）
+
+在 `test.describe('Chat 黑盒模式测试', ...)` 中追加：
+
+```ts
+// --- 品牌展示（UI-B1）---
+
+test('品牌: Header 应显示 brand.title 配置的品牌标题', async () => {
+  await helper.expectBrandTitle('Chat Kit 测试')
+})
+
+// --- 默认 roleConfigs（UI-RC1）---
+
+test('消息排布: 发送消息后 user 消息应靠右显示', async () => {
+  await helper.sendMessage('测试排布：user 右对齐')
+  await helper.expectUserOnRight()
+})
+
+test('消息排布: 收到 assistant 回复后应靠左显示', async () => {
+  await helper.sendMessage('测试排布：assistant 左对齐')
+  await helper.waitForAssistantReply()
+  await helper.expectAssistantOnLeft()
+})
+
+test('消息排布: 消息气泡应显示默认头像', async () => {
+  await helper.sendMessage('测试默认头像')
+  await helper.waitForAssistantReply()
+  // index 0 为 user 消息，index 1 为 assistant 消息
+  await helper.expectBubbleHasAvatar(0)
+  await helper.expectBubbleHasAvatar(1)
+})
+
+// --- Header 可访问性（UI-H2）---
+
+test('可访问性: 历史按钮初始状态 title 应为 "打开历史"', async () => {
+  await helper.expectHistoryBtnAriaLabel('打开历史')
+})
+
+test('可访问性: 打开 Drawer 后历史按钮 title 应变为 "关闭历史"', async () => {
+  await helper.clickHistoryBtn()
+  await helper.expectDrawerOpen(true)
+  await helper.expectHistoryBtnAriaLabel('关闭历史')
+  // 清理：关闭 Drawer，避免影响后续测试
+  await helper.clickOverlayToClose()
+})
+
+// --- Prompt 布局（UI-W2）---
+
+test('Prompt: 应在 .tr-chat__welcome-prompts 容器中渲染', async () => {
+  await helper.expectPromptContainerVisible()
+})
+
+test('Prompt: 宽屏（≥ 640px）下应呈双列布局', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 })
+  await helper.expectPromptsDoubleColumn()
+})
+```
+
+#### 16.5.3 白盒模式新增测试（1 条）
+
+在 `test.describe('Chat 白盒模式测试', ...)` 中追加，验证默认 roleConfigs 在白盒 `<TrChat.MessageList>` 中同样生效：
+
+```ts
+// --- 默认 roleConfigs（UI-RC1，白盒）---
+
+test('消息排布: 白盒 MessageList 应使用默认 roleConfigs 排布', async () => {
+  const root = helper.selectors.whiteboxChat
+
+  await helper.sendMessage('白盒排布测试', root)
+  await helper.waitForAssistantReply(root)
+
+  // 白盒模式下消息列表也应有默认的 placement 分布
+  const assistantBubble = page.locator(root).locator(helper.selectors.bubbleStart)
+  const userBubble = page.locator(root).locator(helper.selectors.bubbleEnd)
+  await expect(assistantBubble.first()).toBeVisible()
+  await expect(userBubble.first()).toBeVisible()
+})
+```
+
+---
+
+### 16.6 新增 / 修改测试汇总
+
+| 序号 | 模式 | 测试描述 | 对应改造项 | 类型 |
+|------|------|---------|-----------|------|
+| 1 | 黑盒 | Header 显示 TrIconButton 风格按钮（无 emoji） | UI-H1 | 修改 |
+| 2 | 黑盒 | Header 显示 brand.title 品牌标题 | UI-B1 | 新增 |
+| 3 | 黑盒 | user 消息靠右显示 | UI-RC1 | 新增 |
+| 4 | 黑盒 | assistant 回复靠左显示 | UI-RC1 | 新增 |
+| 5 | 黑盒 | 消息气泡显示默认头像 | UI-RC1 | 新增 |
+| 6 | 黑盒 | 历史按钮初始 title 为"打开历史" | UI-H2 | 新增 |
+| 7 | 黑盒 | 打开 Drawer 后 title 变为"关闭历史" | UI-H2 | 新增 |
+| 8 | 黑盒 | Prompt 在 `.tr-chat__welcome-prompts` 容器中渲染 | UI-W2 | 新增 |
+| 9 | 黑盒 | 宽屏下 Prompt 呈双列布局 | UI-W2 | 新增 |
+| 10 | 白盒 | MessageList 使用默认 roleConfigs 排布 | UI-RC1 | 新增 |
+
+### 16.7 执行顺序与验收
+
+```
+Step 1  完成组件改造（UI-H1/H2/B1/RC1/W2）
+Step 2  更新 selectors.ts（选择器变更，会导致旧测试失败）
+Step 3  更新 index.vue（测试页面配置）
+Step 4  更新 testHelper.ts（新增 helper 方法）
+Step 5  更新 index.spec.ts（修改 1 条 + 新增 9 条）
+Step 6  pnpm --filter @tiny-robot/test test
+        期望：全部绿灯，无 flaky 测试
+```
+
+**验收标准**：
+
+- `packages/test/src/chat/index.spec.ts` 中全部 **10 条修改/新增** 的测试通过。
+- 原有已过的 **16 条**测试保持通过，无回归。
+- Prompt 双列布局测试在 `width >= 1280px` 的 viewport 下稳定通过。
 

@@ -20,9 +20,12 @@ const iconVNode = computed(() => props.icon as VNode | undefined)
 <template>
   <div class="tr-chat__welcome">
     <TrWelcome :title="props.title" :description="props.description || ''" :icon="iconVNode" />
+    <!-- UI-W2：传 wrap=true 使 Prompt 卡片可换行；添加容器类供布局测试锚点 -->
     <TrPrompts
       v-if="props.prompts?.length"
       :items="props.prompts"
+      :wrap="true"
+      class="tr-chat__welcome-prompts"
       @item-click="(_ev, item) => emit('prompt-click', item.description ?? item.label)"
     />
   </div>

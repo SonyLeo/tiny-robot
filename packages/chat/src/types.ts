@@ -1,7 +1,7 @@
 import type { Component, ComputedRef, VNode } from 'vue'
 import type { ConversationStorageStrategy, ChatMessage } from '@opentiny/tiny-robot-kit'
 import type { UseMessagePlugin, MessageRequestBody, ChatCompletion, UseMessageOptions } from '@opentiny/tiny-robot-kit'
-import type { UseConversationReturn, ConversationInfo } from '@opentiny/tiny-robot-kit'
+import type { UseConversationReturn } from '@opentiny/tiny-robot-kit'
 import type { PromptProps, StructuredData, BubbleListProps, SenderProps } from '@opentiny/tiny-robot'
 
 // ===== ResponseProvider =====
@@ -53,6 +53,14 @@ export interface UseChatKitReturn
   abort: () => Promise<void>
 }
 
+// ===== 品牌配置 =====
+export interface BrandConfig {
+  /** Header 左侧品牌标题，不传则不展示 */
+  title?: string
+  /** Welcome 区 Logo 图标 fallback（welcome.icon 未配置时使用） */
+  logo?: VNode | Component
+}
+
 // ===== TrChat 黑盒组件 Props =====
 export interface WelcomeConfig {
   title: string
@@ -67,6 +75,8 @@ export interface TrChatProps {
   initialMessages?: ChatMessage[]
   onFinish?: (message: ChatMessage) => void
   onError?: (error: Error) => void
+  // === 品牌配置（UI-B1）===
+  brand?: BrandConfig
   welcome?: WelcomeConfig
   prompts?: PromptProps[]
   placeholder?: string
@@ -75,6 +85,8 @@ export interface TrChatProps {
   autoScroll?: boolean
   showHistory?: boolean
   fullscreen?: boolean
+  enableFullscreen?: boolean
+  show?: boolean
   // 补充缺失的 props
   roleConfigs?: BubbleListProps['roleConfigs']
   groupStrategy?: BubbleListProps['groupStrategy']
@@ -112,6 +124,8 @@ export type TrChatRootProps = TrChatRootPropsA | TrChatRootPropsB
 export interface TrChatHeaderProps {
   showHistory?: boolean
   showNewChat?: boolean
+  /** Header 左侧品牌标题 */
+  title?: string
 }
 
 export interface TrChatWelcomeProps {

@@ -27,6 +27,7 @@
   },
   "dependencies": {
     "@opentiny/tiny-robot": "workspace:*",
+    "@opentiny/tiny-robot-svgs": "workspace:*",
     "@opentiny/tiny-robot-kit": "workspace:*"
   },
   "devDependencies": {

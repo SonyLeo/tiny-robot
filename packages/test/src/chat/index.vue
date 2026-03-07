@@ -16,11 +16,12 @@
     <div v-if="mode === 'blackbox'" data-testid="chat-blackbox" class="chat-wrapper">
       <TrChat
         :response-provider="responseProvider"
+        :brand="brand"
         :welcome="welcome"
         :prompts="prompts"
         placeholder="请输入消息..."
         show-history
-        fullscreen
+        v-model:fullscreen="isFullscreen"
         @finish="handleFinish"
         @error="handleError"
       />
@@ -61,19 +62,25 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { TrChat, useChatKit } from '../../../chat/src'
 import { createMockProvider } from './mockProvider'
 
 const mode = ref<'blackbox' | 'whitebox'>('blackbox')
 const finishLog = ref('')
+const isFullscreen = ref(false)
 
 // === 共享的 mock provider ===
 const responseProvider = createMockProvider()
 
-// === 共享配置 ===
+// === UI-B1：品牌配置（Header 左侧标题） ===
+const brand = {
+  title: 'Chat Kit 测试',
+}
+
+// === Welcome 区配置（与品牌标题分离） ===
 const welcome = {
-  title: '🤖 Chat Kit 测试',
+  title: 'TinyRobot',
   description: '这是 Chat Kit 的 E2E 测试页面',
 }
 

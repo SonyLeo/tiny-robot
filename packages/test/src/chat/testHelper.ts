@@ -150,7 +150,8 @@ export function createChatTestHelper(page: Page, options: ChatTestHelperOptions 
 
   /** 点击历史按钮 */
   const clickHistoryBtn = async (root: string = selectors.blackboxChat) => {
-    const btn = page.locator(root).locator(selectors.historyBtn)
+    // historyBtn 是联合选择器，优先找"打开历史"态按钮
+    const btn = page.locator(root).locator('[title="打开历史"]')
     await btn.waitFor({ state: 'visible', timeout: defaultTimeout })
     await btn.click()
   }
@@ -232,6 +233,82 @@ export function createChatTestHelper(page: Page, options: ChatTestHelperOptions 
     await expect(footer).toBeVisible({ timeout: defaultTimeout })
   }
 
+  // =====================
+  //  品牌区断言（UI-B1）
+  // =====================
+
+  /** 检查 Header 品牌标题文本 */
+  const expectBrandTitle = async (text: string, root: string = selectors.blackboxChat) => {
+    const brand = page.locator(root).locator(selectors.headerBrand)
+    await expect(brand).toContainText(text, { timeout: defaultTimeout })
+  }
+
+  /** 检查 Header 品牌标题不存在（未配置 brand.title 时） */
+  const expectNoBrandTitle = async (root: string = selectors.blackboxChat) => {
+    const brand = page.locator(root).locator(selectors.headerBrand)
+    await expect(brand).not.toBeVisible({ timeout: defaultTimeout })
+  }
+
+  // =====================
+  //  消息角色断言（UI-RC1）
+  // =====================
+
+  /** 检查 assistant 消息是否靠左（placement: start） */
+  const expectAssistantOnLeft = async (root: string = selectors.blackboxChat) => {
+    const bubble = page.locator(root).locator(selectors.bubbleStart)
+    await expect(bubble.first()).toBeVisible({ timeout: defaultTimeout * 2 })
+  }
+
+  /** 检查 user 消息是否靠右（placement: end） */
+  const expectUserOnRight = async (root: string = selectors.blackboxChat) => {
+    const bubble = page.locator(root).locator(selectors.bubbleEnd)
+    await expect(bubble.first()).toBeVisible({ timeout: defaultTimeout })
+  }
+
+  /** 检查第 N 条消息是否有头像 */
+  const expectBubbleHasAvatar = async (index: number, root: string = selectors.blackboxChat) => {
+    const bubble = page.locator(root).locator(selectors.bubbleItem).nth(index)
+    const avatar = bubble.locator(selectors.bubbleAvatar)
+    await expect(avatar).toBeVisible({ timeout: defaultTimeout })
+  }
+
+  // =====================
+  //  Prompt 布局断言（UI-W2）
+  // =====================
+
+  /** 检查 Prompt 是否在 wrap 容器(.tr-chat__welcome-prompts)中渲染 */
+  const expectPromptContainerVisible = async (root: string = selectors.blackboxChat) => {
+    const container = page.locator(root).locator(selectors.welcomePrompts)
+    await expect(container).toBeVisible({ timeout: defaultTimeout })
+  }
+
+  /**
+   * 检查宽屏下 Prompt 是否为双列布局
+   * 原理：单个 prompt 宽度应小于容器宽度的 60%（双列时约 50%）
+   */
+  const expectPromptsDoubleColumn = async (root: string = selectors.blackboxChat) => {
+    const container = page.locator(root).locator(selectors.welcomePrompts)
+    const promptItem = page.locator(root).locator(selectors.promptItem).first()
+    const containerBox = await container.boundingBox()
+    const promptBox = await promptItem.boundingBox()
+    if (containerBox && promptBox) {
+      expect(promptBox.width).toBeLessThan(containerBox.width * 0.6)
+    }
+  }
+
+  // =====================
+  //  可访问性断言（UI-H2）
+  // =====================
+
+  /**
+   * 检查历史按钮的 title / aria-label
+   * @param label 期望值，如 "打开历史" 或 "关闭历史"
+   */
+  const expectHistoryBtnTitle = async (label: string, root: string = selectors.blackboxChat) => {
+    const btn = page.locator(root).locator(`[title="${label}"]`)
+    await expect(btn).toBeVisible({ timeout: defaultTimeout })
+  }
+
   return {
     // 模式切换
     switchToBlackbox,
@@ -274,6 +351,22 @@ export function createChatTestHelper(page: Page, options: ChatTestHelperOptions 
     // 布局
     expectHeaderVisible,
     expectFooterVisible,
+
+    // 品牌区（UI-B1）
+    expectBrandTitle,
+    expectNoBrandTitle,
+
+    // 消息角色（UI-RC1）
+    expectAssistantOnLeft,
+    expectUserOnRight,
+    expectBubbleHasAvatar,
+
+    // Prompt 布局（UI-W2）
+    expectPromptContainerVisible,
+    expectPromptsDoubleColumn,
+
+    // 可访问性（UI-H2）
+    expectHistoryBtnTitle,
 
     // 基础工具
     ...testUtils,

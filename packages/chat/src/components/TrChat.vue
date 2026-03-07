@@ -2,6 +2,7 @@
 import { computed, watch, useSlots } from 'vue'
 import type { Slot } from 'vue'
 import { useChatKit } from '../composables/useChatKit'
+import { DEFAULT_ROLE_CONFIGS } from '../composables/defaults'
 import TrChatRoot from './TrChatRoot.vue'
 import TrChatHeader from './TrChatHeader.vue'
 import TrChatWelcome from './TrChatWelcome.vue'
@@ -16,8 +17,15 @@ const props = withDefaults(defineProps<TrChatProps>(), {
   placeholder: '请输入您的问题',
   autoScroll: true,
   showHistory: false,
-  fullscreen: false,
+  enableFullscreen: false,
+  fullscreen: undefined,
+  show: undefined,
 })
+
+const emit = defineEmits<{
+  (e: 'update:fullscreen', value: boolean): void
+  (e: 'update:show', value: boolean): void
+}>()
 
 // 黑盒模式：内部创建 chatKit 实例，传给 Root（模式 B）
 const chatKit = useChatKit({
@@ -44,6 +52,15 @@ function handlePromptClick(description: string) {
   chatKit.sendMessage(description)
 }
 
+// UI-RC1：默认 roleConfigs 合并（用户配置优先）
+const mergedRoleConfigs = computed(() => ({
+  ...DEFAULT_ROLE_CONFIGS,
+  ...props.roleConfigs,
+}))
+
+// UI-B1：Welcome 区 icon：优先 welcome.icon，fallback brand.logo
+const welcomeIcon = computed(() => props.welcome?.icon ?? props.brand?.logo)
+
 // BubbleList 允许的 slot 白名单
 const slots = useSlots() as Record<string, Slot | undefined>
 const bubbleSlots = computed<Partial<Record<string, Slot>>>(() =>
@@ -57,12 +74,22 @@ const bubbleSlots = computed<Partial<Record<string, Slot>>>(() =>
 
 <template>
   <TrChatRoot :chat-kit="chatKit">
-    <div class="tr-chat" :style="props.fullscreen ? 'height: 100vh' : undefined">
+    <div v-show="props.show !== false" class="tr-chat" :class="{ 'tr-chat--fullscreen': props.fullscreen }">
       <!-- 顶部栏 -->
       <template v-if="$slots.header">
         <slot name="header" />
       </template>
-      <TrChatHeader v-else :show-history="props.showHistory">
+      <!-- UI-B1：将 brand.title 传给 Header，UI-S1: full-screen / close 支持 -->
+      <TrChatHeader
+        v-else
+        :show-history="props.showHistory"
+        :title="props.brand?.title"
+        :show-full-screen="props.enableFullscreen"
+        :is-fullscreen="props.fullscreen"
+        :show-close="props.show !== undefined"
+        @update:fullscreen="emit('update:fullscreen', $event)"
+        @close="emit('update:show', false)"
+      >
         <template v-if="$slots['header-extra']" #extra>
           <slot name="header-extra" />
         </template>
@@ -77,17 +104,20 @@ const bubbleSlots = computed<Partial<Record<string, Slot>>>(() =>
           <slot v-if="$slots.welcome" name="welcome" />
           <TrChatWelcome
             v-else-if="props.welcome"
-            v-bind="props.welcome"
+            :title="props.welcome.title"
+            :description="props.welcome.description"
+            :icon="welcomeIcon"
             :prompts="props.prompts"
             @prompt-click="handlePromptClick"
           />
           <slot v-else name="empty" />
         </div>
 
+        <!-- UI-RC1：使用 mergedRoleConfigs 确保默认左右布局 -->
         <TrChatMessageList
           v-else
           :auto-scroll="props.autoScroll"
-          :role-configs="props.roleConfigs"
+          :role-configs="mergedRoleConfigs"
           :group-strategy="props.groupStrategy"
           v-bind="props.bubbleListProps"
         >

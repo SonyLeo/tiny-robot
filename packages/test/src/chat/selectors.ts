@@ -18,9 +18,13 @@ export const CHAT_SELECTORS = {
   footer: '.tr-chat__footer',
   footerExtra: '.tr-chat__footer-extra',
 
-  // === Header 按钮 ===
-  historyBtn: '.tr-chat__header-left .tr-chat__header-button',
-  newChatBtn: '.tr-chat__header-right .tr-chat__header-button',
+  // === Header 按钮（UI-H1/H2：改为 title 属性选择器，不依赖实现细节类名）===
+  // historyBtn 选取两种状态：打开/关闭均可找到
+  historyBtn: '[title="打开历史"], [title="关闭历史"]',
+  newChatBtn: '[title="新建对话"]',
+
+  // === Header 品牌（UI-B1）===
+  headerBrand: '.tr-chat__header-brand',
 
   // === Drawer ===
   drawerOverlay: '.tr-chat-drawer-overlay',
@@ -37,10 +41,19 @@ export const CHAT_SELECTORS = {
   bubbleItem: '.tr-bubble',
   bubbleContent: '.tr-bubble__content',
 
+  // === 消息气泡角色（UI-RC1：用于排布测试）===
+  // Bubble 组件通过 data-placement 属性控制左右布局（注意：不是 CSS 类名）
+  bubbleStart: '.tr-bubble[data-placement="start"]', // assistant 靠左
+  bubbleEnd: '.tr-bubble[data-placement="end"]', // user 靠右
+  bubbleAvatar: '.tr-bubble__avatar', // 头像容器
+
   // === Welcome / Prompts ===
   welcomeTitle: '.tr-welcome__title',
   welcomeDescription: '.tr-welcome__description',
   promptItem: '.tr-prompt',
+
+  // === Welcome Prompt 容器（UI-W2：用于布局测试）===
+  welcomePrompts: '.tr-chat__welcome-prompts',
 
   // === History ===
   historyItem: '.tr-history__item',

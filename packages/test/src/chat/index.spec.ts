@@ -24,18 +24,28 @@ test.describe('Chat 黑盒模式测试', () => {
     await helper.expectFooterVisible()
   })
 
-  test('布局: Header 应显示历史和新建对话按钮', async () => {
+  // UI-H1：升级为 TrIconButton 后验证 SVG 按钮 + 无 emoji
+  test('布局: Header 应显示 TrIconButton 风格的历史和新建对话按钮', async () => {
     const root = helper.selectors.blackboxChat
     const historyBtn = helper.getLocator(root).locator(helper.selectors.historyBtn)
     const newChatBtn = helper.getLocator(root).locator(helper.selectors.newChatBtn)
     await expect(historyBtn).toBeVisible()
     await expect(newChatBtn).toBeVisible()
+    // 升级为 TrIconButton 后，按钮不应再包含 emoji 文本
+    await expect(historyBtn).not.toContainText('☰')
+    await expect(newChatBtn).not.toContainText('✏️')
+  })
+
+  // --- 品牌展示（UI-B1）---
+
+  test('品牌: Header 应显示 brand.title 配置的品牌标题', async () => {
+    await helper.expectBrandTitle('Chat Kit 测试')
   })
 
   // --- 欢迎页 ---
 
   test('欢迎页: 应显示标题和描述', async () => {
-    await helper.expectWelcomeTitle('Chat Kit 测试')
+    await helper.expectWelcomeTitle('TinyRobot')
   })
 
   test('欢迎页: 应显示引导词', async () => {
@@ -97,7 +107,8 @@ test.describe('Chat 黑盒模式测试', () => {
     await helper.clickHistoryBtn()
 
     // 等待动画
-    await helper.getLocator(helper.selectors.blackboxChat)
+    await helper
+      .getLocator(helper.selectors.blackboxChat)
       .locator(helper.selectors.drawer)
       .waitFor({ state: 'visible' })
 
@@ -136,9 +147,54 @@ test.describe('Chat 黑盒模式测试', () => {
     await helper.expectDrawerOpen(true)
 
     // 应至少有 1 条历史记录
-    const items = helper.getLocator(helper.selectors.blackboxChat)
-      .locator(helper.selectors.historyItem)
+    const items = helper.getLocator(helper.selectors.blackboxChat).locator(helper.selectors.historyItem)
     await expect(items).toHaveCount(1, { timeout: 5000 })
+  })
+
+  // --- 默认 roleConfigs（UI-RC1）---
+
+  test('消息排布: 发送消息后 user 消息应靠右显示', async () => {
+    await helper.sendMessage('测试排布：user 右对齐')
+    await helper.expectUserOnRight()
+  })
+
+  test('消息排布: 收到 assistant 回复后应靠左显示', async () => {
+    await helper.sendMessage('测试排布：assistant 左对齐')
+    await helper.waitForAssistantReply()
+    await helper.expectAssistantOnLeft()
+  })
+
+  test('消息排布: 消息气泡应显示默认头像', async () => {
+    await helper.sendMessage('测试默认头像')
+    await helper.waitForAssistantReply()
+    // index 0 为 user 消息，index 1 为 assistant 消息
+    await helper.expectBubbleHasAvatar(0)
+    await helper.expectBubbleHasAvatar(1)
+  })
+
+  // --- Header 可访问性（UI-H2）---
+
+  test('可访问性: 历史按钮初始状态 title 应为 "打开历史"', async () => {
+    await helper.expectHistoryBtnTitle('打开历史')
+  })
+
+  test('可访问性: 打开 Drawer 后历史按钮 title 应变为 "关闭历史"', async () => {
+    await helper.clickHistoryBtn()
+    await helper.expectDrawerOpen(true)
+    await helper.expectHistoryBtnTitle('关闭历史')
+    // 清理：关闭 Drawer，避免影响后续测试
+    await helper.clickOverlayToClose()
+  })
+
+  // --- Prompt 布局（UI-W2）---
+
+  test('Prompt: 应在 .tr-chat__welcome-prompts 容器中渲染', async () => {
+    await helper.expectPromptContainerVisible()
+  })
+
+  test('Prompt: 宽屏（≥ 640px）下应呈双列布局', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 })
+    await helper.expectPromptsDoubleColumn()
   })
 
   // --- 样式验证 ---
@@ -190,7 +246,7 @@ test.describe('Chat 白盒模式测试', () => {
     await helper.expectStatusMessageCount('0')
   })
 
-  test('状态: 发送消息后应经历 submitted → streaming → ready', async ({ page }) => {
+  test('状态: 发送消息后应经历 submitted → streaming → ready', async () => {
     const root = helper.selectors.whiteboxChat
 
     // 初始 ready
@@ -293,5 +349,22 @@ test.describe('Chat 白盒模式测试', () => {
     // 应切换到消息列表
     await helper.expectWelcomeVisible(false, root)
     await helper.expectMessageListVisible(root)
+  })
+
+  // --- 默认 roleConfigs（UI-RC1，白盒）---
+  // 注意：白盒模式由用户自行控制 TrChat.MessageList，不会自动注入 DEFAULT_ROLE_CONFIGS
+  // 如需默认排布，白盒模式需用户手动传 :role-configs="..."
+  // 此测试仅验证白盒消息列表能正确渲染黑盒模式的消息（排布细节通过黑盒测试覆盖）
+
+  test('消息排布: 白盒 MessageList 应正确渲染消息列表', async () => {
+    const root = helper.selectors.whiteboxChat
+
+    await helper.sendMessage('白盒消息渲染测试', root)
+    // waitForAssistantReply 内部等待第 2 条气泡可见（即 assistant 回复）
+    // 这等价于验证消息列表已正确渲染 >= 2 条消息
+    await helper.waitForAssistantReply(root)
+
+    const bubbles = helper.getLocator(root).locator(helper.selectors.bubbleItem)
+    await expect(bubbles.nth(1)).toBeVisible()
   })
 })
