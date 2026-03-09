@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import DemoHeader from './components/DemoHeader.vue'
 import DemoSection from './components/DemoSection.vue'
 import DemoFooter from './components/DemoFooter.vue'
 import { useProviderConfig } from './composables/useProviderConfig'
@@ -9,10 +8,10 @@ import './styles/index.css'
 
 // State
 const mode = ref<'blackbox' | 'whitebox'>('blackbox')
-const selectedModel = ref<string>('gpt-4o')
+const selectedModel = ref<string>('deepseek-chat')
 
 // Composables
-const { responseProvider, apiKeyStatus } = useProviderConfig(selectedModel)
+const { responseProvider } = useProviderConfig(selectedModel)
 
 // Handlers
 function handleError(error: Error) {
@@ -22,15 +21,6 @@ function handleError(error: Error) {
 
 <template>
   <div class="demo-container">
-    <DemoHeader
-      :mode="mode"
-      :selected-model="selectedModel"
-      :has-api-key="apiKeyStatus.hasKey"
-      :is-open-a-i="apiKeyStatus.isOpenAI"
-      @update:mode="mode = $event as 'blackbox' | 'whitebox'"
-      @update:selected-model="selectedModel = $event"
-    />
-
     <main class="demo-main">
       <DemoSection
         :title="MODE_INFO[mode].title"
@@ -43,6 +33,7 @@ function handleError(error: Error) {
         :brand-config="BRAND_CONFIG"
         :welcome-config="WELCOME_CONFIG"
         :prompts="PROMPTS"
+        @update:mode="mode = $event as 'blackbox' | 'whitebox'"
         @update:selected-model="selectedModel = $event"
         @error="handleError"
       />
@@ -51,3 +42,11 @@ function handleError(error: Error) {
     <DemoFooter />
   </div>
 </template>
+
+<style>
+.tr-sender:focus,
+.tr-sender:focus-within {
+  border-color: #1476ff;
+  box-shadow: 0 0 6px rgba(20, 118, 255, 0.12) !important;
+}
+</style>

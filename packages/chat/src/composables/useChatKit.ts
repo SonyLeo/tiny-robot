@@ -60,7 +60,7 @@ export function useChatKit(options: UseChatKitOptions): UseChatKitReturn {
    * 发送消息
    * @param data - 结构化数据（预留，底层 engine 暂未支持）
    */
-  function sendMessage(content: string, data?: StructuredData): void {
+  function sendMessage(content: string, _data?: StructuredData): void {
     if (!content.trim()) return
     if (!conversation.activeConversationId.value) {
       // 首次自动建会话：传入 initialMessages 的浅拷贝。

@@ -41,6 +41,8 @@ export { default as TrChatFeedback } from './components/TrChatFeedback.vue'
 // ===== Composable =====
 export { useChatKit } from './composables/useChatKit'
 export { useModelSelector, type UseModelSelectorReturn } from './composables/useModelSelector'
+export { DEFAULT_ROLE_CONFIGS } from './composables/defaults'
+export { CHAT_KIT_KEY } from './context'
 
 // ===== Providers =====
 export { createOpenAIProvider } from './providers/openai'

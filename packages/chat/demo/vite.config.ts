@@ -7,6 +7,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
+      // 直接指向 chat 源码，跳过 dist，改动即时生效
+      '@opentiny/tiny-robot-chat': fileURLToPath(new URL('../src/index.ts', import.meta.url)),
     },
   },
   server: {

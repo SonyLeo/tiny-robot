@@ -32,18 +32,6 @@ defineEmits<{
           </select>
         </div>
 
-        <div class="control-item">
-          <label>Model</label>
-          <select
-            :value="selectedModel"
-            @input="$emit('update:selectedModel', ($event.target as HTMLSelectElement).value)"
-            class="select-input"
-          >
-            <option value="gpt-4o">OpenAI (GPT-4o)</option>
-            <option value="deepseek-chat">DeepSeek</option>
-          </select>
-        </div>
-
         <div class="status-item" :class="{ ready: hasApiKey, error: !hasApiKey }">
           <span class="status-dot"></span>
           {{ hasApiKey ? (isOpenAI ? 'OpenAI Ready' : 'DeepSeek Ready') : 'API Key Missing' }}

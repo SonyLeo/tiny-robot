@@ -64,3 +64,10 @@ function handleAction(name: string) {
     @action="handleAction"
   />
 </template>
+
+<style>
+.tr-feedback .tr-feedback__operations {
+  justify-content: flex-start !important;
+  padding: 0 2px;
+}
+</style>

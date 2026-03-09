@@ -1,4 +1,4 @@
-export const AVAILABLE_MODELS = ['gpt-4o', 'deepseek-chat']
+export const AVAILABLE_MODELS = ['deepseek-reasoner', 'deepseek-chat']
 
 export const WELCOME_CONFIG = {
   title: 'Welcome to TinyRobot Chat',
@@ -31,17 +31,24 @@ export const MODE_INFO = {
   :welcome="welcomeConfig"
   :prompts="prompts"
   show-feedback
+  show-history
 />`,
   },
   whitebox: {
     title: '⚙️ White-box Mode',
     description: 'Full control. Compose chat UI with individual components and custom slots.',
     code: `<TrChat.Root :response-provider="responseProvider">
-  <TrChat.Header title="Custom Header" />
-  <TrChat.MessageList />
+  <TrChat.Header title="Custom Header" show-history />
+  <TrChat.Welcome :title="title" :prompts="prompts" />
+  <TrChat.MessageList>
+    <template #after="{ role }">
+      <TrChatFeedback v-if="role === 'assistant'" />
+    </template>
+  </TrChat.MessageList>
   <TrChat.Footer>
     <TrChat.Sender />
   </TrChat.Footer>
+  <TrChat.History />
 </TrChat.Root>`,
   },
 }
