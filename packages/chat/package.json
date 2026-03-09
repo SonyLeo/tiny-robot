@@ -15,8 +15,12 @@
     },
     "./dist/style.css": "./dist/style.css"
   },
-  "files": ["dist"],
-  "sideEffects": ["*.css"],
+  "files": [
+    "dist"
+  ],
+  "sideEffects": [
+    "*.css"
+  ],
   "scripts": {
     "dev": "vue-tsc && vite build --watch",
     "build": "vue-tsc && vite build",
@@ -28,8 +32,9 @@
   "dependencies": {
     "@floating-ui/dom": "^1.7.5",
     "@opentiny/tiny-robot": "workspace:*",
+    "@opentiny/tiny-robot-kit": "workspace:*",
     "@opentiny/tiny-robot-svgs": "workspace:*",
-    "@opentiny/tiny-robot-kit": "workspace:*"
+    "@vueuse/core": "^13.1.0"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^4.5.2",

@@ -1,5 +1,5 @@
 import { ref, nextTick, onMounted, onUnmounted, watch } from 'vue'
-import { computePosition, flip, shift, offset, autoUpdate } from '@floating-ui/dom'
+import { computePosition, shift, offset, autoUpdate } from '@floating-ui/dom'
 
 export function useFloatingDropdown(
   referenceEl: ReturnType<typeof ref<HTMLElement | null>>,
@@ -12,12 +12,11 @@ export function useFloatingDropdown(
     if (!referenceEl.value || !floatingEl.value) return
 
     const { x, y } = await computePosition(referenceEl.value, floatingEl.value, {
-      placement: 'bottom-end',
+      placement: 'bottom-start',
       strategy: 'absolute',
-      middleware: [offset(8), flip({ padding: 8 }), shift({ padding: 8 })],
+      middleware: [offset(8), shift({ padding: 8 })],
     })
 
-    // 使用 transform 而非 top/left，性能更好且支持亚像素定位
     const dpr = window.devicePixelRatio || 1
     const roundedX = Math.round(x * dpr) / dpr
     const roundedY = Math.round(y * dpr) / dpr
@@ -39,7 +38,7 @@ export function useFloatingDropdown(
     cleanupAutoUpdate = null
   }
 
-  // 点击外部关闭：先判断是否在 referenceEl 内，避免与 toggleDropdown 竞争
+  // 点击外部关闭
   const handleClickOutside = (event: MouseEvent) => {
     const target = event.target as Node
     if (referenceEl.value?.contains(target)) return
@@ -48,7 +47,9 @@ export function useFloatingDropdown(
   }
 
   const handleKeydown = (event: KeyboardEvent) => {
-    if (event.key === 'Escape') isOpen.value = false
+    if (event.key === 'Escape') {
+      isOpen.value = false
+    }
   }
 
   onMounted(() => {

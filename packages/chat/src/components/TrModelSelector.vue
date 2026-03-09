@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
+import { useMagicKeys, onKeyStroke } from '@vueuse/core'
 import { useFloatingDropdown } from '../composables/useFloatingDropdown'
 
-defineProps<{
+const props = defineProps<{
   models: string[]
 }>()
 
@@ -12,6 +13,43 @@ const referenceEl = ref<HTMLElement | null>(null)
 const floatingEl = ref<HTMLElement | null>(null)
 const { isOpen } = useFloatingDropdown(referenceEl, floatingEl)
 
+// 键盘导航状态
+const highlightedIndex = ref(0)
+const { ArrowUp, ArrowDown } = useMagicKeys()
+
+// 监听下拉框打开/关闭，重置高亮
+watch(isOpen, (newIsOpen) => {
+  if (newIsOpen) {
+    // 打开时，高亮当前选中的模型
+    const currentIndex = props.models.indexOf(currentModel.value ?? '')
+    highlightedIndex.value = currentIndex >= 0 ? currentIndex : 0
+  } else {
+    // 关闭时重置
+    highlightedIndex.value = 0
+  }
+})
+
+// 上下导航（使用 useMagicKeys 的响应式状态）
+watch(ArrowUp, (pressed) => {
+  if (pressed && isOpen.value) {
+    highlightedIndex.value = Math.max(0, highlightedIndex.value - 1)
+  }
+})
+
+watch(ArrowDown, (pressed) => {
+  if (pressed && isOpen.value) {
+    highlightedIndex.value = Math.min(props.models.length - 1, highlightedIndex.value + 1)
+  }
+})
+
+// Enter 选择（使用 onKeyStroke 并 preventDefault 阻止后续 click 事件）
+onKeyStroke('Enter', (event) => {
+  if (isOpen.value && props.models[highlightedIndex.value]) {
+    event.preventDefault()
+    handleSelectModel(props.models[highlightedIndex.value])
+  }
+})
+
 function handleSelectModel(model: string) {
   currentModel.value = model
   isOpen.value = false
@@ -19,6 +57,10 @@ function handleSelectModel(model: string) {
 
 function toggleDropdown() {
   isOpen.value = !isOpen.value
+}
+
+function handleMouseEnter(index: number) {
+  highlightedIndex.value = index
 }
 
 function getProviderIcon(model: string): string {
@@ -34,18 +76,19 @@ const currentProvider = computed(() => getProviderIcon(currentModel.value ?? '')
 </script>
 
 <template>
-  <div class="tr-model-selector-wrapper">
+  <div class="tr-model-selector__wrapper">
     <button
       ref="referenceEl"
-      class="tr-model-selector-trigger"
+      class="tr-model-selector__trigger"
       @click="toggleDropdown"
       :aria-expanded="isOpen"
+      :title="currentModel"
       aria-label="选择模型"
     >
-      <span class="tr-model-selector-icon-provider">{{ currentProvider }}</span>
-      <span class="tr-model-selector-value">{{ currentModel }}</span>
+      <span class="tr-model-selector__icon-provider">{{ currentProvider }}</span>
+      <span class="tr-model-selector__value">{{ currentModel }}</span>
       <svg
-        class="tr-model-selector-chevron"
+        class="tr-model-selector__chevron"
         :class="{ 'is-open': isOpen }"
         xmlns="http://www.w3.org/2000/svg"
         width="16"
@@ -61,24 +104,31 @@ const currentProvider = computed(() => getProviderIcon(currentModel.value ?? '')
       </svg>
     </button>
 
-    <!-- 分离定位层和样式层：外层用于 floating-ui 定位，内层用于样式和过渡 -->
     <transition name="tr-model-selector-fade">
-      <div v-if="isOpen" ref="floatingEl" class="tr-model-selector-dropdown-wrapper">
-        <div class="tr-model-selector-dropdown">
-          <div class="tr-model-selector-content">
-            <div v-for="model in models" :key="model" class="tr-model-selector-item">
+      <div v-if="isOpen" ref="floatingEl" class="tr-model-selector__dropdown-wrapper">
+        <div class="tr-model-selector__dropdown">
+          <div class="tr-model-selector__content">
+            <div
+              v-for="(model, index) in models"
+              :key="model"
+              class="tr-model-selector__item"
+              @mouseenter="handleMouseEnter(index)"
+            >
               <button
-                class="tr-model-selector-option"
-                :class="{ 'is-selected': currentModel === model }"
+                class="tr-model-selector__option"
+                :class="{
+                  'is-selected': currentModel === model,
+                  'is-highlighted': highlightedIndex === index,
+                }"
                 @click="handleSelectModel(model)"
               >
-                <div class="tr-model-selector-option-left">
-                  <span class="tr-model-selector-option-icon">{{ getProviderIcon(model) }}</span>
-                  <span class="tr-model-selector-option-label">{{ model }}</span>
+                <div class="tr-model-selector__option-left">
+                  <span class="tr-model-selector__option-icon">{{ getProviderIcon(model) }}</span>
+                  <span class="tr-model-selector__option-label" :title="model">{{ model }}</span>
                 </div>
                 <svg
                   v-if="currentModel === model"
-                  class="tr-model-selector-check"
+                  class="tr-model-selector__check"
                   xmlns="http://www.w3.org/2000/svg"
                   width="16"
                   height="16"
@@ -100,174 +150,7 @@ const currentProvider = computed(() => getProviderIcon(currentModel.value ?? '')
   </div>
 </template>
 
-<style scoped>
-.tr-model-selector-wrapper {
-  position: relative;
-  display: inline-block;
-}
-
-.tr-model-selector-trigger {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  background-color: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #1f2937;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-  min-height: 40px;
-}
-
-.tr-model-selector-trigger:hover {
-  border-color: #d1d5db;
-  background-color: #f9fafb;
-}
-
-.tr-model-selector-trigger:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.tr-model-selector-icon-provider {
-  font-size: 16px;
-  flex-shrink: 0;
-}
-
-.tr-model-selector-value {
-  max-width: 140px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.tr-model-selector-chevron {
-  flex-shrink: 0;
-  color: #6b7280;
-  transition: transform 0.2s ease;
-  margin-left: auto;
-}
-
-.tr-model-selector-chevron.is-open {
-  transform: rotate(180deg);
-}
-
-/* 定位层：floating-ui 只负责计算和应用 transform */
-.tr-model-selector-dropdown-wrapper {
-  position: absolute;
-  width: max-content;
-  top: 0;
-  left: 0;
-  z-index: 9999;
-}
-
-/* 样式层：处理外观、过渡、阴影等 */
-.tr-model-selector-dropdown {
-  background-color: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  z-index: 50;
-  min-width: 240px;
-  overflow: hidden;
-}
-
-.tr-model-selector-content {
-  padding: 6px;
-  max-height: 320px;
-  overflow-y: auto;
-}
-
-.tr-model-selector-item {
-  padding: 0;
-}
-
-.tr-model-selector-option {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 10px 12px;
-  background: none;
-  border: none;
-  font-size: 14px;
-  color: #374151;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  text-align: left;
-  border-radius: 6px;
-}
-
-.tr-model-selector-option:hover {
-  background-color: #f3f4f6;
-}
-
-.tr-model-selector-option.is-selected {
-  background-color: #eff6ff;
-  color: #1e40af;
-  font-weight: 500;
-}
-
-.tr-model-selector-option-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex: 1;
-  min-width: 0;
-}
-
-.tr-model-selector-option-icon {
-  font-size: 16px;
-  flex-shrink: 0;
-}
-
-.tr-model-selector-option-label {
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.tr-model-selector-check {
-  flex-shrink: 0;
-  margin-left: 8px;
-  color: #3b82f6;
-}
-
-.tr-model-selector-fade-enter-active,
-.tr-model-selector-fade-leave-active {
-  transition: all 0.15s ease;
-}
-
-.tr-model-selector-fade-enter-from {
-  opacity: 0;
-  transform: translateY(4px);
-}
-
-.tr-model-selector-fade-leave-to {
-  opacity: 0;
-  transform: translateY(4px);
-}
-
-.tr-model-selector-content::-webkit-scrollbar {
-  width: 6px;
-}
-
-.tr-model-selector-content::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.tr-model-selector-content::-webkit-scrollbar-thumb {
-  background: #d1d5db;
-  border-radius: 3px;
-}
-
-.tr-model-selector-content::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af;
-}
+<style scoped lang="less">
+// 样式已迁移到 packages/chat/src/styles/model-selector.less
+// 使用全局 CSS 变量支持主题切换和暗色模式
 </style>
