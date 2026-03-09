@@ -34,8 +34,13 @@ TrChatFull.History = TrChatHistory
 
 export { TrChatFull as TrChat }
 
+// ===== 独立组件 =====
+export { default as TrModelSelector } from './components/TrModelSelector.vue'
+export { default as TrChatFeedback } from './components/TrChatFeedback.vue'
+
 // ===== Composable =====
 export { useChatKit } from './composables/useChatKit'
+export { useModelSelector, type UseModelSelectorReturn } from './composables/useModelSelector'
 
 // ===== Providers =====
 export { createOpenAIProvider } from './providers/openai'

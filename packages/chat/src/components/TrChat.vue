@@ -10,6 +10,7 @@ import TrChatMessageList from './TrChatMessageList.vue'
 import TrChatFooter from './TrChatFooter.vue'
 import TrChatSender from './TrChatSender.vue'
 import TrChatHistory from './TrChatHistory.vue'
+import TrChatFeedback from './TrChatFeedback.vue'
 import { BUBBLE_LIST_SLOTS } from '../context'
 import type { TrChatProps } from '../types'
 
@@ -124,6 +125,10 @@ const bubbleSlots = computed<Partial<Record<string, Slot>>>(() =>
           <!-- 只透传 BubbleList 允许的 slots -->
           <template v-for="(_, name) in bubbleSlots" #[name]="slotProps" :key="name">
             <slot :name="name" v-bind="slotProps ?? {}" />
+          </template>
+          <!-- showFeedback 时自动在 assistant 消息下挂载 Feedback -->
+          <template v-if="props.showFeedback" #after="slotProps">
+            <TrChatFeedback v-if="slotProps.role === 'assistant'" v-bind="slotProps" />
           </template>
         </TrChatMessageList>
       </template>

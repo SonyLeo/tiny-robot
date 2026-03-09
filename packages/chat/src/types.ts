@@ -84,6 +84,7 @@ export interface TrChatProps {
   senderMode?: 'single' | 'multiple'
   autoScroll?: boolean
   showHistory?: boolean
+  showFeedback?: boolean
   fullscreen?: boolean
   enableFullscreen?: boolean
   show?: boolean

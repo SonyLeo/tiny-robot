@@ -167,6 +167,155 @@ const provider = computed(() => {
     *   完成 CLI 底座。
     *   集成 `agentskills.io` 纯前端加载与解析 Demo。
     *   动态多模型选择 UI 配置体验。
+
+---
+
+## 七、模型选择能力的分层设计（Phase 1 实现方案）
+
+### 7.1 架构决策
+
+模型选择能力**不放入 `@opentiny/tiny-robot-chat` 组件包**，原因如下：
+
+- chat 包面向所有业务场景，不应感知 `.env` 环境变量约定
+- 不同模板的 ModelSelector UI 形态可能不同（下拉、命令面板、侧边栏列表）
+- chat 包已通过 `TrChatHeader` 的 `#extra` slot 提供了足够的扩展点
+
+模型选择能力以 **`_shared` 共享层**的形式存在于 CLI 脚手架的模板目录中，在生成项目时 merge 进各模板，源头只维护一份。
+
+### 7.2 脚手架目录结构
+
+```text
+create-tiny-robot/
+└── templates/
+    ├── _shared/                          ← 所有模板共享，不直接生成为项目
+    │   ├── components/
+    │   │   └── ModelSelector.vue         ← UI 组件（纯展示壳）
+    │   └── composables/
+    │       └── useModelSelector.ts       ← 核心业务逻辑
+    ├── basic/                            ← Phase 1 Basic 模板
+    │   ├── src/
+    │   │   └── App.vue
+    │   ├── .env.example
+    │   └── ...
+    ├── with-tools/                       ← Phase 2
+    └── with-vision/                      ← Phase 3
+```
+
+生成项目时，脚手架将 `_shared/` 内容合并到 `src/components/` 和 `src/composables/` 中，每个生成出来的项目都是完整独立的。
+
+### 7.3 核心实现
+
+**`_shared/composables/useModelSelector.ts`**
+
+```ts
+import { ref, watch } from 'vue'
+import { createOpenAIProvider } from '@opentiny/tiny-robot-chat'
+import type { UseChatKitReturn } from '@opentiny/tiny-robot-chat'
+
+export function useModelSelector(chatKit: UseChatKitReturn) {
+  // 从环境变量解析可用模型列表，降级为空数组
+  const models = (import.meta.env.VITE_AVAILABLE_MODELS ?? '').split(',').filter(Boolean)
+  const currentModel = ref(models[0] ?? '')
+
+  // 切换模型时重建 provider，immediate 确保初始化时也生效
+  watch(
+    currentModel,
+    (model) => {
+      if (!model) return
+      chatKit.updateResponseProvider(
+        createOpenAIProvider({
+          apiKey: import.meta.env.VITE_API_KEY,
+          baseURL: import.meta.env.VITE_BASE_URL,
+          model,
+        }),
+      )
+    },
+    { immediate: true },
+  )
+
+  return { models, currentModel }
+}
+```
+
+**`_shared/components/ModelSelector.vue`**
+
+```vue
+<script setup lang="ts">
+// 纯 UI 壳，不含任何业务逻辑
+defineProps<{
+  models: string[]
+}>()
+
+const currentModel = defineModel<string>()
+</script>
+
+<template>
+  <select v-model="currentModel" class="tr-model-selector" aria-label="选择模型">
+    <option v-for="model in models" :key="model" :value="model">
+      {{ model }}
+    </option>
+  </select>
+</template>
+```
+
+> 实际样式使用 `@opentiny/tiny-robot` 的 Select 组件替换，此处为结构示意。
+
+**`basic/src/App.vue` 中的接入方式**
+
+```vue
+<script setup lang="ts">
+import { TrChat } from '@opentiny/tiny-robot-chat'
+import { useChatKit } from '@opentiny/tiny-robot-chat'
+import { createOpenAIProvider } from '@opentiny/tiny-robot-chat'
+import ModelSelector from './components/ModelSelector.vue'
+import { useModelSelector } from './composables/useModelSelector'
+
+const chatKit = useChatKit({
+  responseProvider: createOpenAIProvider({
+    apiKey: import.meta.env.VITE_API_KEY,
+    baseURL: import.meta.env.VITE_BASE_URL,
+    model: import.meta.env.VITE_AVAILABLE_MODELS?.split(',')[0] ?? '',
+  }),
+})
+
+// 模型选择逻辑完全收敛在 composable 中
+const { models, currentModel } = useModelSelector(chatKit)
+</script>
+
+<template>
+  <TrChat :chat-kit="chatKit">
+    <template #header-extra>
+      <!-- 通过 TrChatHeader 的 #extra slot 注入，chat 包无感知 -->
+      <ModelSelector v-model="currentModel" :models="models" />
+    </template>
+  </TrChat>
+</template>
+```
+
+### 7.4 `.env.example` 配置
+
+```env
+# 必填：API Key
+VITE_API_KEY="sk-xxxxxxxxxxxxxxxxxxxxxxxx"
+
+# 必填：兼容 OpenAI 格式的服务商端点
+VITE_BASE_URL="https://api.openai.com/v1"
+
+# 逗号分隔的可用模型列表，第一个为默认选中项
+# 支持任意兼容 OpenAI 格式的模型名称
+VITE_AVAILABLE_MODELS="gpt-4o,deepseek-chat,qwen-max"
+```
+
+### 7.5 后续模板复用方式
+
+Phase 2 / Phase 3 新增模板时，脚手架直接将 `_shared/` 合并进新模板，无需任何额外改动。各模板可以：
+
+- 直接使用默认的 `ModelSelector.vue` UI
+- 替换为自己的 UI 实现，但复用 `useModelSelector.ts` 的逻辑
+- 完全自定义，`useModelSelector` 的 composable 接口保持稳定
+
+---
+
 *   🛠 **Phase 2: with-tools (基础工具链)**
     *   未来支持无后端的浏览器内置 Tools 演示 (如基于 navigator API 获取地理位置、获取客户端时间戳、轻量级 Web Search 代理)。
     *   提供引导向 MCP (Model Context Protocol) 的整合指引。

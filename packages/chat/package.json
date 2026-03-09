@@ -26,6 +26,7 @@
     "vue": "^3.3.11"
   },
   "dependencies": {
+    "@floating-ui/dom": "^1.7.5",
     "@opentiny/tiny-robot": "workspace:*",
     "@opentiny/tiny-robot-svgs": "workspace:*",
     "@opentiny/tiny-robot-kit": "workspace:*"
