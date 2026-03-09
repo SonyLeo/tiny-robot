@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { inject, computed } from 'vue'
+import { inject, computed, ref } from 'vue'
+import { syncRef } from '@vueuse/core'
 import { TrHistory } from '@opentiny/tiny-robot'
 import type { HistoryItem, HistoryMenuItem } from '@opentiny/tiny-robot'
 import { CHAT_KIT_KEY, CHAT_UI_KEY } from '../context'
@@ -11,12 +12,17 @@ const chatKit = inject(CHAT_KIT_KEY)!
 const { showHistoryDrawer } = inject(CHAT_UI_KEY)!
 
 // 将 conversations 转换为 HistoryItem 格式
-const historyData = computed<HistoryItem[]>(() => {
+const historyDataComputed = computed<HistoryItem[]>(() => {
   return chatKit.conversations.value.map((conv) => ({
     id: conv.id,
     title: conv.title || '新对话',
   }))
 })
+
+const historyData = ref<HistoryItem[]>([])
+
+// 使用 syncRef 从 computed 同步到 ref（ltr 方向）
+syncRef(historyDataComputed, historyData, { direction: 'ltr' })
 
 async function handleItemClick(item: HistoryItem) {
   try {
