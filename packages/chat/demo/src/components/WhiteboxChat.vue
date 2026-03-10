@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { inject, computed, Component, h, markRaw } from 'vue'
+import { inject, computed, Component, h, markRaw, defineComponent } from 'vue'
 import { TrChat, TrChatFeedback, TrModelSelector, CHAT_KIT_KEY } from '@opentiny/tiny-robot-chat'
-import { BubbleRenderers } from '@opentiny/tiny-robot'
-import type { PromptProps, BubbleListProps } from '@opentiny/tiny-robot'
+import { BubbleRendererMatchPriority, BubbleProvider, BubbleRenderers } from '@opentiny/tiny-robot'
+import type { PromptProps, BubbleListProps, BubbleContentRendererProps, BubbleMessage } from '@opentiny/tiny-robot'
+import EditInputRenderer from './EditInputRenderer.vue'
 
 interface Props {
   title: string
@@ -25,19 +26,39 @@ const props = withDefaults(defineProps<Props>(), {
   groupStrategy: () => 'consecutive' as const,
 })
 
-// 合并 roleConfigs，为 assistant 注入 fallbackContentRenderer
-const mergedRoleConfigs = computed(() => {
-  const base = props.roleConfigs ?? {}
-  const fallbackRenderer =
-    (props.bubbleListProps?.fallbackContentRenderer as object | undefined) ?? markRaw(BubbleRenderers.Markdown)
-  return {
-    ...base,
-    assistant: {
-      ...(base['assistant'] ?? {}),
-      fallbackContentRenderer: fallbackRenderer,
-    },
-  }
+// 自定义编辑状态渲染器（content 级别，渲染输入框）
+const EditStateRenderer = defineComponent({
+  props: {
+    message: { type: Object, required: true },
+    contentIndex: Number,
+  },
+  setup(props: BubbleContentRendererProps) {
+    return () => h(EditInputRenderer, { message: props.message, contentIndex: props.contentIndex })
+  },
 })
+
+// box 渲染器：当消息处于编辑状态时，给 box 添加 data-editing 属性
+const boxRendererMatches = computed(() => [
+  {
+    find: (messages: BubbleMessage[]) =>
+      messages.length === 1 && (messages[0].state as Record<string, unknown>)?.isEditing === true,
+    renderer: markRaw(BubbleRenderers.Box),
+    priority: BubbleRendererMatchPriority.NORMAL,
+    attributes: { 'data-editing': 'true' },
+  },
+])
+
+// content 渲染器：当消息处于编辑状态时渲染输入框
+const contentRendererMatches = computed(() => [
+  {
+    find: (message: BubbleMessage) => (message.state as Record<string, unknown>)?.isEditing === true,
+    renderer: markRaw(EditStateRenderer),
+    priority: BubbleRendererMatchPriority.NORMAL,
+  },
+])
+
+// 合并 roleConfigs
+const mergedRoleConfigs = computed(() => props.roleConfigs ?? {})
 
 const renderWelcomeIcon = () => {
   return h(props.welcomeIcon, { style: { fontSize: '38px' } })
@@ -52,9 +73,19 @@ function handlePromptClick(description: string) {
   chatKit.sendMessage(description)
 }
 
-function handleEditMessage(content: string) {
-  console.log('[WhiteboxChat] Edit message:', content)
-  // TODO: 实现编辑逻辑
+function handleEditMessage(messageIndexes: number[]) {
+  if (!messageIndexes?.length) return
+  const message = chatKit.messages.value[messageIndexes[0]]
+  if (message) {
+    if (!message.state) message.state = {}
+    message.state.isEditing = true
+  }
+}
+
+function isMessageEditing(messageIndexes: number[]): boolean {
+  if (!messageIndexes?.length) return false
+  const message = chatKit.messages.value[messageIndexes[0]]
+  return message?.state?.isEditing === true
 }
 </script>
 
@@ -79,11 +110,22 @@ function handleEditMessage(content: string) {
         @prompt-click="handlePromptClick"
       />
     </div>
-    <TrChat.MessageList v-else :role-configs="mergedRoleConfigs" :group-strategy="props.groupStrategy" auto-scroll>
-      <template #after="slotProps">
-        <TrChatFeedback v-bind="slotProps" @edit="handleEditMessage" style="margin-top: 6px" />
-      </template>
-    </TrChat.MessageList>
+    <BubbleProvider
+      v-else
+      :box-renderer-matches="boxRendererMatches"
+      :content-renderer-matches="contentRendererMatches"
+    >
+      <TrChat.MessageList :role-configs="mergedRoleConfigs" :group-strategy="props.groupStrategy" auto-scroll>
+        <template #after="slotProps">
+          <TrChatFeedback
+            v-if="!isMessageEditing(slotProps.messageIndexes)"
+            v-bind="slotProps"
+            @edit="handleEditMessage(slotProps.messageIndexes)"
+            style="margin-top: 6px"
+          />
+        </template>
+      </TrChat.MessageList>
+    </BubbleProvider>
 
     <TrChat.Footer>
       <TrChat.Sender />
@@ -95,5 +137,10 @@ function handleEditMessage(content: string) {
 <style>
 .tr-bubble__box[data-role='user'] {
   --tr-bubble-box-bg: var(--tr-color-primary-light);
+}
+
+.tr-bubble__box[data-editing='true'] {
+  --tr-bubble-box-bg: transparent;
+  width: 50% !important;
 }
 </style>

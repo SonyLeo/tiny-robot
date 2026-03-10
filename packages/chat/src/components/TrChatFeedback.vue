@@ -22,6 +22,8 @@ const { feedbackActions, handleCopyAction, handleRefreshAction, userContent } = 
 function handleAction(name: string) {
   if (name === 'copy') {
     handleCopyAction()
+  } else if (name === 'edit') {
+    emit('edit', userContent.value)
   } else if (name === 'refresh') {
     if (handleRefreshAction()) {
       emit('edit', userContent.value)
