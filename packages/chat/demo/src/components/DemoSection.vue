@@ -2,6 +2,7 @@
 import { TrChat, TrModelSelector, DEFAULT_ROLE_CONFIGS } from '@opentiny/tiny-robot-chat'
 import WhiteboxChat from './WhiteboxChat.vue'
 import type { ResponseProvider } from '@opentiny/tiny-robot-chat'
+import { Component } from 'vue'
 
 interface BrandConfig {
   title: string
@@ -9,6 +10,7 @@ interface BrandConfig {
 
 interface WelcomeConfig {
   title: string
+  icon: Component
   description: string
 }
 
@@ -18,9 +20,6 @@ interface PromptItem {
 }
 
 defineProps<{
-  title: string
-  description: string
-  code: string
   mode: 'blackbox' | 'whitebox'
   selectedModel: string
   availableModels: string[]
@@ -28,6 +27,7 @@ defineProps<{
   brandConfig: BrandConfig
   welcomeConfig: WelcomeConfig
   prompts: PromptItem[]
+  bubbleListProps?: Record<string, unknown>
 }>()
 
 const emit = defineEmits<{
@@ -44,33 +44,6 @@ function handleError(error: Error) {
 
 <template>
   <div class="demo-section">
-    <div class="demo-header">
-      <div class="demo-info">
-        <h2>{{ title }}</h2>
-        <p>{{ description }}</p>
-        <pre><code>{{ code }}</code></pre>
-      </div>
-
-      <div class="demo-controls">
-        <button
-          class="mode-btn"
-          :class="{ active: mode === 'blackbox' }"
-          @click="$emit('update:mode', 'blackbox')"
-          title="Black-box Mode"
-        >
-          🎯
-        </button>
-        <button
-          class="mode-btn"
-          :class="{ active: mode === 'whitebox' }"
-          @click="$emit('update:mode', 'whitebox')"
-          title="White-box Mode"
-        >
-          ⚙️
-        </button>
-      </div>
-    </div>
-
     <div class="demo-chat">
       <!-- Black-box Mode -->
       <template v-if="mode === 'blackbox'">
@@ -79,6 +52,7 @@ function handleError(error: Error) {
           :brand="brandConfig"
           :welcome="welcomeConfig"
           :prompts="prompts"
+          :bubble-list-props="bubbleListProps"
           show-feedback
           show-history
           @error="handleError"
@@ -98,6 +72,7 @@ function handleError(error: Error) {
         <TrChat.Root :response-provider="responseProvider" @error="handleError">
           <WhiteboxChat
             :title="brandConfig.title"
+            :welcome-icon="welcomeConfig.icon"
             :welcome-title="welcomeConfig.title"
             :welcome-description="welcomeConfig.description"
             :prompts="prompts"
@@ -118,76 +93,6 @@ function handleError(error: Error) {
   display: flex;
   gap: 16px;
   height: 100%;
-}
-
-.demo-header {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  width: 280px;
-  flex-shrink: 0;
-}
-
-.demo-info {
-  flex: 1;
-}
-
-.demo-info h2 {
-  margin: 0 0 8px 0;
-  font-size: 14px;
-  font-weight: 600;
-  color: #1f2937;
-}
-
-.demo-info p {
-  margin: 0 0 12px 0;
-  font-size: 12px;
-  color: #6b7280;
-  line-height: 1.5;
-}
-
-.demo-info pre {
-  margin: 0;
-  padding: 8px;
-  background: #f3f4f6;
-  border-radius: 4px;
-  overflow-x: auto;
-  font-size: 11px;
-}
-
-.demo-info code {
-  color: #374151;
-  font-family: 'Monaco', 'Menlo', monospace;
-}
-
-.demo-controls {
-  display: flex;
-  gap: 8px;
-}
-
-.mode-btn {
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  background: #fff;
-  cursor: pointer;
-  font-size: 16px;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.mode-btn:hover {
-  border-color: #9ca3af;
-  background: #f9fafb;
-}
-
-.mode-btn.active {
-  border-color: #3b82f6;
-  background: #eff6ff;
 }
 
 .demo-chat {

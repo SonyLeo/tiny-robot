@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { inject, computed } from 'vue'
+import { inject, computed, Component, h, markRaw } from 'vue'
 import { TrChat, TrChatFeedback, TrModelSelector, CHAT_KIT_KEY } from '@opentiny/tiny-robot-chat'
+import { BubbleRenderers } from '@opentiny/tiny-robot'
 import type { PromptProps, BubbleListProps } from '@opentiny/tiny-robot'
 
 interface Props {
   title: string
+  welcomeIcon: Component
   welcomeTitle: string
   welcomeDescription: string
   prompts: PromptProps[]
@@ -12,6 +14,7 @@ interface Props {
   availableModels: string[]
   roleConfigs?: BubbleListProps['roleConfigs']
   groupStrategy?: BubbleListProps['groupStrategy']
+  bubbleListProps?: Record<string, unknown>
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -21,6 +24,24 @@ const props = withDefaults(defineProps<Props>(), {
   }),
   groupStrategy: () => 'consecutive' as const,
 })
+
+// 合并 roleConfigs，为 assistant 注入 fallbackContentRenderer
+const mergedRoleConfigs = computed(() => {
+  const base = props.roleConfigs ?? {}
+  const fallbackRenderer =
+    (props.bubbleListProps?.fallbackContentRenderer as object | undefined) ?? markRaw(BubbleRenderers.Markdown)
+  return {
+    ...base,
+    assistant: {
+      ...(base['assistant'] ?? {}),
+      fallbackContentRenderer: fallbackRenderer,
+    },
+  }
+})
+
+const renderWelcomeIcon = () => {
+  return h(props.welcomeIcon, { style: { fontSize: '38px' } })
+}
 
 const emit = defineEmits<{ 'update:selectedModel': [value: string] }>()
 
@@ -47,12 +68,13 @@ function handlePromptClick(description: string) {
     <div v-if="showWelcome" class="tr-chat__welcome-area">
       <TrChat.Welcome
         :title="props.welcomeTitle"
+        :icon="renderWelcomeIcon"
         :description="props.welcomeDescription"
         :prompts="props.prompts"
         @prompt-click="handlePromptClick"
       />
     </div>
-    <TrChat.MessageList v-else :role-configs="props.roleConfigs" :group-strategy="props.groupStrategy" auto-scroll>
+    <TrChat.MessageList v-else :role-configs="mergedRoleConfigs" :group-strategy="props.groupStrategy" auto-scroll>
       <template #after="slotProps">
         <TrChatFeedback v-if="slotProps.role === 'assistant'" v-bind="slotProps" />
       </template>
@@ -64,3 +86,9 @@ function handlePromptClick(description: string) {
     <TrChat.History />
   </div>
 </template>
+
+<style>
+.tr-bubble__box[data-role='user'] {
+  --tr-bubble-box-bg: var(--tr-color-primary-light);
+}
+</style>

@@ -3,15 +3,22 @@ import { ref } from 'vue'
 import DemoSection from './components/DemoSection.vue'
 import DemoFooter from './components/DemoFooter.vue'
 import { useProviderConfig } from './composables/useProviderConfig'
-import { AVAILABLE_MODELS, WELCOME_CONFIG, PROMPTS, BRAND_CONFIG, MODE_INFO } from './composables/useDemoConfig'
+import { AVAILABLE_MODELS, WELCOME_CONFIG, PROMPTS, BRAND_CONFIG } from './composables/useDemoConfig'
+import { BubbleRenderers } from '@opentiny/tiny-robot'
+import { markRaw } from 'vue'
 import './styles/index.css'
 
 // State
-const mode = ref<'blackbox' | 'whitebox'>('blackbox')
+const mode = ref<'blackbox' | 'whitebox'>('whitebox')
 const selectedModel = ref<string>('deepseek-chat')
 
 // Composables
 const { responseProvider } = useProviderConfig(selectedModel)
+
+// BubbleList props with Markdown renderer
+const bubbleListProps = {
+  fallbackContentRenderer: markRaw(BubbleRenderers.Markdown),
+}
 
 // Handlers
 function handleError(error: Error) {
@@ -23,9 +30,6 @@ function handleError(error: Error) {
   <div class="demo-container">
     <main class="demo-main">
       <DemoSection
-        :title="MODE_INFO[mode].title"
-        :description="MODE_INFO[mode].description"
-        :code="MODE_INFO[mode].code"
         :mode="mode"
         :selected-model="selectedModel"
         :available-models="AVAILABLE_MODELS"
@@ -33,6 +37,7 @@ function handleError(error: Error) {
         :brand-config="BRAND_CONFIG"
         :welcome-config="WELCOME_CONFIG"
         :prompts="PROMPTS"
+        :bubble-list-props="bubbleListProps"
         @update:mode="mode = $event as 'blackbox' | 'whitebox'"
         @update:selected-model="selectedModel = $event"
         @error="handleError"
