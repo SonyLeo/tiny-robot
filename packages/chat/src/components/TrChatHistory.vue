@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { inject, computed, ref } from 'vue'
 import { syncRef } from '@vueuse/core'
-import { TrHistory } from '@opentiny/tiny-robot'
 import type { HistoryItem, HistoryMenuItem } from '@opentiny/tiny-robot'
+import { TrHistory } from '@opentiny/tiny-robot'
 import { CHAT_KIT_KEY, CHAT_UI_KEY } from '../context'
 
 // 支持透传完整 TrHistory props
 defineOptions({ inheritAttrs: false })
 
+// 内联 composable - 仅在此组件使用
 const chatKit = inject(CHAT_KIT_KEY)!
 const { showHistoryDrawer } = inject(CHAT_UI_KEY)!
 
@@ -42,6 +43,8 @@ async function handleItemAction(action: HistoryMenuItem, item: HistoryItem) {
     await chatKit.deleteConversation(item.id!)
   }
 }
+
+const activeConversationId = chatKit.activeConversationId
 </script>
 
 <template>
@@ -52,7 +55,7 @@ async function handleItemAction(action: HistoryMenuItem, item: HistoryItem) {
   <div class="tr-chat-drawer" :class="{ 'is-open': showHistoryDrawer }">
     <TrHistory
       :data="historyData"
-      :selected="chatKit.activeConversationId.value ?? undefined"
+      :selected="activeConversationId ?? undefined"
       v-bind="$attrs"
       @item-click="handleItemClick"
       @item-title-change="handleItemTitleChange"

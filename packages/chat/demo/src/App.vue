@@ -54,4 +54,8 @@ function handleError(error: Error) {
   border-color: #1476ff;
   box-shadow: 0 0 6px rgba(20, 118, 255, 0.12) !important;
 }
+
+.tr-history {
+  padding: 10px;
+}
 </style>

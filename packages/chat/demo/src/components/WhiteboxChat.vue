@@ -51,6 +51,11 @@ const showWelcome = computed(() => chatKit.messages.value.length === 0)
 function handlePromptClick(description: string) {
   chatKit.sendMessage(description)
 }
+
+function handleEditMessage(content: string) {
+  console.log('[WhiteboxChat] Edit message:', content)
+  // TODO: 实现编辑逻辑
+}
 </script>
 
 <template>
@@ -76,7 +81,7 @@ function handlePromptClick(description: string) {
     </div>
     <TrChat.MessageList v-else :role-configs="mergedRoleConfigs" :group-strategy="props.groupStrategy" auto-scroll>
       <template #after="slotProps">
-        <TrChatFeedback v-if="slotProps.role === 'assistant'" v-bind="slotProps" />
+        <TrChatFeedback v-bind="slotProps" @edit="handleEditMessage" style="margin-top: 6px" />
       </template>
     </TrChat.MessageList>
 

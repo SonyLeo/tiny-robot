@@ -11,6 +11,8 @@ const currentModel = defineModel<string>()
 
 const referenceEl = ref<HTMLElement | null>(null)
 const floatingEl = ref<HTMLElement | null>(null)
+
+// 内联 composable - 仅在此组件使用
 const { isOpen } = useFloatingDropdown(referenceEl, floatingEl)
 
 // 键盘导航状态
