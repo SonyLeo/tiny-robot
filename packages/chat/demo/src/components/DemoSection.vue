@@ -1,8 +1,12 @@
 <script setup lang="ts">
 import { TrChat, TrModelSelector, DEFAULT_ROLE_CONFIGS } from '@opentiny/tiny-robot-chat'
 import WhiteboxChat from './WhiteboxChat.vue'
+import McpPanel from './McpPanel.vue'
 import type { ResponseProvider } from '@opentiny/tiny-robot-chat'
-import { Component } from 'vue'
+import { Component, provide, ref } from 'vue'
+import { toolPlugin } from '@opentiny/tiny-robot-kit'
+import { useMcpManager } from '../composables/useMcpManager'
+import { defaultMcpServers } from '../data/mcpServers'
 
 interface BrandConfig {
   title: string
@@ -36,9 +40,29 @@ const emit = defineEmits<{
   error: [error: Error]
 }>()
 
+// MCP Panel visibility state
+const mcpPanelVisible = ref(true)
+
+// MCP Manager - 创建单一实例
+const mcpManager = useMcpManager()
+mcpManager.installedPlugins.value = defaultMcpServers
+
+// Provide 给子组件
+provide('mcpManager', mcpManager)
+
+// Tool plugin for chat
+const toolPluginInstance = toolPlugin({
+  getTools: mcpManager.getTools,
+  callTool: mcpManager.callTool,
+})
+
 function handleError(error: Error) {
   console.error('Chat error:', error)
   emit('error', error)
+}
+
+function toggleMcpPanel() {
+  mcpPanelVisible.value = !mcpPanelVisible.value
 }
 </script>
 
@@ -49,6 +73,7 @@ function handleError(error: Error) {
       <template v-if="mode === 'blackbox'">
         <TrChat
           :response-provider="responseProvider"
+          :plugins="[toolPluginInstance]"
           :brand="brandConfig"
           :welcome="welcomeConfig"
           :prompts="prompts"
@@ -69,7 +94,7 @@ function handleError(error: Error) {
 
       <!-- White-box Mode: same features, manually composed -->
       <template v-else>
-        <TrChat.Root :response-provider="responseProvider" @error="handleError">
+        <TrChat.Root :response-provider="responseProvider" :plugins="[toolPluginInstance]" @error="handleError">
           <WhiteboxChat
             :title="brandConfig.title"
             :welcome-icon="welcomeConfig.icon"
@@ -79,12 +104,17 @@ function handleError(error: Error) {
             :selected-model="selectedModel"
             :available-models="availableModels"
             :role-configs="DEFAULT_ROLE_CONFIGS"
+            :mcp-panel-visible="mcpPanelVisible"
             group-strategy="consecutive"
             @update:selected-model="$emit('update:selectedModel', $event)"
+            @toggle-mcp-panel="toggleMcpPanel"
           />
         </TrChat.Root>
       </template>
     </div>
+
+    <!-- MCP Picker Modal -->
+    <McpPanel :visible="mcpPanelVisible" @update:visible="mcpPanelVisible = $event" />
   </div>
 </template>
 

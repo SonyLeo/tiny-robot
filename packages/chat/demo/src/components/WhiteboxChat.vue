@@ -16,10 +16,12 @@ interface Props {
   roleConfigs?: BubbleListProps['roleConfigs']
   groupStrategy?: BubbleListProps['groupStrategy']
   bubbleListProps?: Record<string, unknown>
+  mcpPanelVisible?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   groupStrategy: () => 'consecutive' as const,
+  mcpPanelVisible: false,
 })
 
 const mergedRoleConfigs = computed(() => {
@@ -40,7 +42,10 @@ const renderWelcomeIcon = () => {
   return h(props.welcomeIcon, { style: { fontSize: '38px' } })
 }
 
-const emit = defineEmits<{ 'update:selectedModel': [value: string] }>()
+const emit = defineEmits<{
+  'update:selectedModel': [value: string]
+  'toggle-mcp-panel': []
+}>()
 
 const chatKit = inject(CHAT_KIT_KEY)!
 const showWelcome = computed(() => chatKit.messages.value.length === 0)
@@ -63,17 +68,46 @@ function isMessageEditing(messageIndexes: number[]): boolean {
   const message = chatKit.messages.value[messageIndexes[0]]
   return message?.state?.isEditing === true
 }
+
+function handleToggleMcpPanel() {
+  emit('toggle-mcp-panel')
+}
 </script>
 
 <template>
   <div class="tr-chat">
     <TrChat.Header :title="props.title" show-history>
       <template #extra>
-        <TrModelSelector
-          :model-value="props.selectedModel"
-          :models="props.availableModels"
-          @update:model-value="emit('update:selectedModel', $event)"
-        />
+        <div class="header-controls">
+          <button
+            class="mcp-toggle-btn"
+            :title="props.mcpPanelVisible ? 'Hide MCP Panel' : 'Show MCP Panel'"
+            @click="handleToggleMcpPanel"
+          >
+            <svg
+              fill="currentColor"
+              fill-rule="evenodd"
+              height="1em"
+              style="flex: none; line-height: 1"
+              viewBox="0 0 24 24"
+              width="1em"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <title>ModelContextProtocol</title>
+              <path
+                d="M15.688 2.343a2.588 2.588 0 00-3.61 0l-9.626 9.44a.863.863 0 01-1.203 0 .823.823 0 010-1.18l9.626-9.44a4.313 4.313 0 016.016 0 4.116 4.116 0 011.204 3.54 4.3 4.3 0 013.609 1.18l.05.05a4.115 4.115 0 010 5.9l-8.706 8.537a.274.274 0 000 .393l1.788 1.754a.823.823 0 010 1.18.863.863 0 01-1.203 0l-1.788-1.753a1.92 1.92 0 010-2.754l8.706-8.538a2.47 2.47 0 000-3.54l-.05-.049a2.588 2.588 0 00-3.607-.003l-7.172 7.034-.002.002-.098.097a.863.863 0 01-1.204 0 .823.823 0 010-1.18l7.273-7.133a2.47 2.47 0 00-.003-3.537z"
+              ></path>
+              <path
+                d="M14.485 4.703a.823.823 0 000-1.18.863.863 0 00-1.204 0l-7.119 6.982a4.115 4.115 0 000 5.9 4.314 4.314 0 006.016 0l7.12-6.982a.823.823 0 000-1.18.863.863 0 00-1.204 0l-7.119 6.982a2.588 2.588 0 01-3.61 0 2.47 2.47 0 010-3.54l7.12-6.982z"
+              ></path>
+            </svg>
+          </button>
+          <TrModelSelector
+            :model-value="props.selectedModel"
+            :models="props.availableModels"
+            @update:model-value="emit('update:selectedModel', $event)"
+          />
+        </div>
       </template>
     </TrChat.Header>
 
@@ -109,7 +143,6 @@ function isMessageEditing(messageIndexes: number[]): boolean {
     <TrChat.History />
   </div>
 </template>
-
 <style>
 .tr-bubble__box[data-role='user'] {
   --tr-bubble-box-bg: var(--tr-color-primary-light);
@@ -118,5 +151,35 @@ function isMessageEditing(messageIndexes: number[]): boolean {
 .tr-bubble__box[data-editing='true'] {
   --tr-bubble-box-bg: transparent;
   width: 50% !important;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mcp-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--tr-color-border);
+  border-radius: 4px;
+  background: var(--tr-color-bg-default);
+  color: var(--tr-color-text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mcp-toggle-btn:hover {
+  background: var(--tr-color-bg-hover);
+  border-color: var(--tr-color-border-hover);
+}
+
+.mcp-toggle-btn:active {
+  background: var(--tr-color-bg-active);
 }
 </style>
