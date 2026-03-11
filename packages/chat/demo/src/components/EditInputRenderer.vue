@@ -1,34 +1,10 @@
-<template>
-  <Transition name="slide-in-right" appear>
-    <div class="edit-input-container">
-      <div class="edit-textarea-wrapper">
-        <textarea
-          ref="textareaRef"
-          rows="1"
-          v-model="localContent"
-          @keydown="handleKeydown"
-          @input="adjustHeight"
-          placeholder="编辑消息内容..."
-          autofocus
-        />
-      </div>
-      <div class="edit-input-actions">
-        <button class="cancel-btn" @click="handleCancel">
-          <span>取消</span>
-        </button>
-        <button class="save-btn" @click="handleSave" :disabled="isSaving">
-          <span>{{ isSaving ? '保存中...' : '保存' }}</span>
-        </button>
-      </div>
-    </div>
-  </Transition>
-</template>
-
 <script setup lang="ts">
 import { useMessageContent, type BubbleContentRendererProps } from '@opentiny/tiny-robot'
-import { ref, nextTick, onMounted, watch } from 'vue'
+import { CHAT_KIT_KEY } from '@opentiny/tiny-robot-chat'
+import { ref, nextTick, onMounted, watch, inject } from 'vue'
 
 const props = defineProps<BubbleContentRendererProps>()
+const chatKit = inject(CHAT_KIT_KEY)
 
 const { contentText } = useMessageContent(props)
 
@@ -63,11 +39,23 @@ const handleSave = async () => {
 
   isSaving.value = true
   try {
-    // 更新消息内容
-    // eslint-disable-next-line vue/no-mutating-props
-    props.message.content = localContent.value
+    // 找到当前消息在消息列表中的索引
+    const messageIndex = chatKit!.messages.value.findIndex((msg) => msg === props.message)
+
+    if (messageIndex === -1) {
+      console.error('无法找到当前消息')
+      return
+    }
+
+    // 删除当前消息及其后面的所有消息
+    chatKit!.messages.value.splice(messageIndex)
+
     // 退出编辑状态
     props.message.state!.isEditing = false
+
+    // 以编辑后的内容作为新的用户消息发送，触发 AI 回复
+    await nextTick()
+    chatKit!.sendMessage(localContent.value)
   } finally {
     isSaving.value = false
   }
@@ -92,6 +80,32 @@ onMounted(() => {
   adjustHeight()
 })
 </script>
+
+<template>
+  <Transition name="slide-in-right" appear>
+    <div class="edit-input-container">
+      <div class="edit-textarea-wrapper">
+        <textarea
+          ref="textareaRef"
+          rows="1"
+          v-model="localContent"
+          @keydown="handleKeydown"
+          @input="adjustHeight"
+          placeholder="编辑消息内容..."
+          autofocus
+        />
+      </div>
+      <div class="edit-input-actions">
+        <button class="cancel-btn" @click="handleCancel">
+          <span>取消</span>
+        </button>
+        <button class="save-btn" @click="handleSave" :disabled="isSaving">
+          <span>{{ isSaving ? '保存中...' : '保存' }}</span>
+        </button>
+      </div>
+    </div>
+  </Transition>
+</template>
 
 <style scoped lang="less">
 .edit-input-container {

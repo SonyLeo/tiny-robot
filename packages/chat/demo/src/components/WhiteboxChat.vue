@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { inject, computed, Component, h, markRaw, defineComponent } from 'vue'
+import { inject, computed, Component, h } from 'vue'
 import { TrChat, TrChatFeedback, TrModelSelector, CHAT_KIT_KEY } from '@opentiny/tiny-robot-chat'
-import { BubbleRendererMatchPriority, BubbleProvider, BubbleRenderers } from '@opentiny/tiny-robot'
-import type { PromptProps, BubbleListProps, BubbleContentRendererProps, BubbleMessage } from '@opentiny/tiny-robot'
-import EditInputRenderer from './EditInputRenderer.vue'
+import { BubbleProvider } from '@opentiny/tiny-robot'
+import type { PromptProps, BubbleListProps } from '@opentiny/tiny-robot'
+import { boxRendererMatches, contentRendererMatches, roles as baseRoles } from '../composables/useBubbleConfig'
 
 interface Props {
   title: string
@@ -19,46 +19,22 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  roleConfigs: () => ({
-    user: { placement: 'end' },
-    assistant: { placement: 'start' },
-  }),
   groupStrategy: () => 'consecutive' as const,
 })
 
-// 自定义编辑状态渲染器（content 级别，渲染输入框）
-const EditStateRenderer = defineComponent({
-  props: {
-    message: { type: Object, required: true },
-    contentIndex: Number,
-  },
-  setup(props: BubbleContentRendererProps) {
-    return () => h(EditInputRenderer, { message: props.message, contentIndex: props.contentIndex })
-  },
+const mergedRoleConfigs = computed(() => {
+  const configs = props.roleConfigs || {}
+  return {
+    assistant: {
+      ...baseRoles.assistant,
+      ...configs.assistant,
+    },
+    user: {
+      ...baseRoles.user,
+      ...configs.user,
+    },
+  }
 })
-
-// box 渲染器：当消息处于编辑状态时，给 box 添加 data-editing 属性
-const boxRendererMatches = computed(() => [
-  {
-    find: (messages: BubbleMessage[]) =>
-      messages.length === 1 && (messages[0].state as Record<string, unknown>)?.isEditing === true,
-    renderer: markRaw(BubbleRenderers.Box),
-    priority: BubbleRendererMatchPriority.NORMAL,
-    attributes: { 'data-editing': 'true' },
-  },
-])
-
-// content 渲染器：当消息处于编辑状态时渲染输入框
-const contentRendererMatches = computed(() => [
-  {
-    find: (message: BubbleMessage) => (message.state as Record<string, unknown>)?.isEditing === true,
-    renderer: markRaw(EditStateRenderer),
-    priority: BubbleRendererMatchPriority.NORMAL,
-  },
-])
-
-// 合并 roleConfigs
-const mergedRoleConfigs = computed(() => props.roleConfigs ?? {})
 
 const renderWelcomeIcon = () => {
   return h(props.welcomeIcon, { style: { fontSize: '38px' } })
