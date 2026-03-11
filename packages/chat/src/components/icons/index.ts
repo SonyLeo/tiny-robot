@@ -1,0 +1,10 @@
+// 统一导出所有图标组件
+export { default as BailianIcon } from './bailian.vue'
+export { default as ClaudeIcon } from './claude.vue'
+export { default as DeepseekIcon } from './deepseek.vue'
+export { default as GeminiIcon } from './gemini.vue'
+export { default as McpIcon } from './mcp.vue'
+export { default as ModelscopeIcon } from './modelscope.vue'
+export { default as OpenaiIcon } from './openai.vue'
+export { default as OpenrouterIcon } from './openrouter.vue'
+export { default as SkillsIcon } from './skills.vue'

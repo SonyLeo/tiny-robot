@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-import { useMagicKeys, onKeyStroke } from '@vueuse/core'
+import { ref, computed } from 'vue'
 import { useFloatingDropdown } from '../composables/useFloatingDropdown'
+import { useKeyboardNavigation } from '../composables/useKeyboardNavigation'
+import { getProviderIcon } from '../utils/iconMap'
 
 const props = defineProps<{
   models: string[]
@@ -12,45 +13,25 @@ const currentModel = defineModel<string>()
 const referenceEl = ref<HTMLElement | null>(null)
 const floatingEl = ref<HTMLElement | null>(null)
 
-// 内联 composable - 仅在此组件使用
 const { isOpen } = useFloatingDropdown(referenceEl, floatingEl)
 
-// 键盘导航状态
-const highlightedIndex = ref(0)
-const { ArrowUp, ArrowDown } = useMagicKeys()
-
-// 监听下拉框打开/关闭，重置高亮
-watch(isOpen, (newIsOpen) => {
-  if (newIsOpen) {
-    // 打开时，高亮当前选中的模型
-    const currentIndex = props.models.indexOf(currentModel.value ?? '')
-    highlightedIndex.value = currentIndex >= 0 ? currentIndex : 0
-  } else {
-    // 关闭时重置
-    highlightedIndex.value = 0
-  }
+const { highlightedIndex, setHighlightedIndex } = useKeyboardNavigation({
+  enabled: isOpen,
+  itemCount: computed(() => props.models.length),
+  onSelect: (index) => {
+    handleSelectModel(props.models[index])
+  },
+  onClose: () => {
+    isOpen.value = false
+  },
 })
 
-// 上下导航（使用 useMagicKeys 的响应式状态）
-watch(ArrowUp, (pressed) => {
-  if (pressed && isOpen.value) {
-    highlightedIndex.value = Math.max(0, highlightedIndex.value - 1)
-  }
-})
-
-watch(ArrowDown, (pressed) => {
-  if (pressed && isOpen.value) {
-    highlightedIndex.value = Math.min(props.models.length - 1, highlightedIndex.value + 1)
-  }
-})
-
-// Enter 选择（使用 onKeyStroke 并 preventDefault 阻止后续 click 事件）
-onKeyStroke('Enter', (event) => {
-  if (isOpen.value && props.models[highlightedIndex.value]) {
-    event.preventDefault()
-    handleSelectModel(props.models[highlightedIndex.value])
-  }
-})
+// 打开时高亮当前选中的模型
+const handleOpenDropdown = () => {
+  isOpen.value = true
+  const currentIndex = props.models.indexOf(currentModel.value ?? '')
+  setHighlightedIndex(currentIndex >= 0 ? currentIndex : 0)
+}
 
 function handleSelectModel(model: string) {
   currentModel.value = model
@@ -58,20 +39,15 @@ function handleSelectModel(model: string) {
 }
 
 function toggleDropdown() {
-  isOpen.value = !isOpen.value
+  if (isOpen.value) {
+    isOpen.value = false
+  } else {
+    handleOpenDropdown()
+  }
 }
 
 function handleMouseEnter(index: number) {
   highlightedIndex.value = index
-}
-
-function getProviderIcon(model: string): string {
-  if (model.includes('gpt')) return '🧠'
-  if (model.includes('deepseek')) return '🔷'
-  if (model.includes('llama')) return '🦙'
-  if (model.includes('qwen')) return '🌟'
-  if (model.includes('claude')) return '🤖'
-  return '✨'
 }
 
 const currentProvider = computed(() => getProviderIcon(currentModel.value ?? ''))
@@ -87,7 +63,7 @@ const currentProvider = computed(() => getProviderIcon(currentModel.value ?? '')
       :title="currentModel"
       aria-label="选择模型"
     >
-      <span class="tr-model-selector__icon-provider">{{ currentProvider }}</span>
+      <component v-if="currentProvider" :is="currentProvider" class="tr-model-selector__icon-provider" :size="20" />
       <span class="tr-model-selector__value">{{ currentModel }}</span>
       <svg
         class="tr-model-selector__chevron"
@@ -125,7 +101,12 @@ const currentProvider = computed(() => getProviderIcon(currentModel.value ?? '')
                 @click="handleSelectModel(model)"
               >
                 <div class="tr-model-selector__option-left">
-                  <span class="tr-model-selector__option-icon">{{ getProviderIcon(model) }}</span>
+                  <component
+                    v-if="getProviderIcon(model)"
+                    :is="getProviderIcon(model)"
+                    class="tr-model-selector__option-icon"
+                    :size="18"
+                  />
                   <span class="tr-model-selector__option-label" :title="model">{{ model }}</span>
                 </div>
                 <svg
@@ -151,8 +132,3 @@ const currentProvider = computed(() => getProviderIcon(currentModel.value ?? '')
     </transition>
   </div>
 </template>
-
-<style scoped lang="less">
-// 样式已迁移到 packages/chat/src/styles/model-selector.less
-// 使用全局 CSS 变量支持主题切换和暗色模式
-</style>
