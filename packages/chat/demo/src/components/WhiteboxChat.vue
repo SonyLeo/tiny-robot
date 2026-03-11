@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { inject, computed, Component, h } from 'vue'
+import { inject, computed, Component, h, ref } from 'vue'
 import { TrChat, TrChatFeedback, TrModelSelector, CHAT_KIT_KEY } from '@opentiny/tiny-robot-chat'
-import { BubbleProvider } from '@opentiny/tiny-robot'
-import type { PromptProps, BubbleListProps } from '@opentiny/tiny-robot'
+import { BubbleProvider, TrAttachments, UploadButton } from '@opentiny/tiny-robot'
+import type { PromptProps, BubbleListProps, Attachment } from '@opentiny/tiny-robot'
 import { boxRendererMatches, contentRendererMatches, roles as baseRoles } from '../composables/useBubbleConfig'
 
 interface Props {
@@ -50,8 +50,17 @@ const emit = defineEmits<{
 const chatKit = inject(CHAT_KIT_KEY)!
 const showWelcome = computed(() => chatKit.messages.value.length === 0)
 
+// Attachments state
+const attachments = ref<Attachment[]>([])
+
 function handlePromptClick(description: string) {
   chatKit.sendMessage(description)
+}
+
+function handleFileSelect(files: File[]) {
+  files.forEach((file) => {
+    attachments.value.push({ rawFile: file, url: URL.createObjectURL(file) })
+  })
 }
 
 function handleEditMessage(messageIndexes: number[]) {
@@ -138,7 +147,24 @@ function handleToggleMcpPanel() {
     </BubbleProvider>
 
     <TrChat.Footer>
-      <TrChat.Sender />
+      <div class="tr-chat-footer-wrapper">
+        <!-- Attachments display area -->
+        <div v-if="attachments.length > 0" class="tr-chat-attachments-area">
+          <TrAttachments v-model:items="attachments" variant="card" :wrap="true" />
+        </div>
+        <!-- Sender with upload button -->
+        <TrChat.Sender>
+          <template #footer-right>
+            <UploadButton
+              tooltip="上传文件"
+              tooltip-placement="top"
+              :multiple="true"
+              accept="*"
+              @select="handleFileSelect"
+            />
+          </template>
+        </TrChat.Sender>
+      </div>
     </TrChat.Footer>
     <TrChat.History />
   </div>
@@ -181,5 +207,17 @@ function handleToggleMcpPanel() {
 
 .mcp-toggle-btn:active {
   background: var(--tr-color-bg-active);
+}
+
+.tr-chat-footer-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tr-chat-attachments-area {
+  padding: 8px 12px;
+  border-top: 1px solid var(--tr-color-border);
+  background: var(--tr-color-bg-default);
 }
 </style>

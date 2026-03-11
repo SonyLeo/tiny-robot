@@ -41,7 +41,7 @@ const emit = defineEmits<{
 }>()
 
 // MCP Panel visibility state
-const mcpPanelVisible = ref(true)
+const mcpPanelVisible = ref(false)
 
 // MCP Manager - 创建单一实例
 const mcpManager = useMcpManager()
