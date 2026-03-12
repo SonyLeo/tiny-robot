@@ -4,7 +4,7 @@ import WhiteboxChat from './WhiteboxChat.vue'
 import McpPanel from './McpPanel.vue'
 import type { ResponseProvider } from '@opentiny/tiny-robot-chat'
 import { Component, provide, ref } from 'vue'
-import { toolPlugin } from '@opentiny/tiny-robot-kit'
+import { toolPlugin, localStorageStrategyFactory } from '@opentiny/tiny-robot-kit'
 import { useMcpManager } from '../composables/useMcpManager'
 import { defaultMcpServers } from '../data/mcpServers'
 
@@ -94,7 +94,12 @@ function toggleMcpPanel() {
 
       <!-- White-box Mode: same features, manually composed -->
       <template v-else>
-        <TrChat.Root :response-provider="responseProvider" :plugins="[toolPluginInstance]" @error="handleError">
+        <TrChat.Root
+          :response-provider="responseProvider"
+          :plugins="[toolPluginInstance]"
+          :storage="localStorageStrategyFactory()"
+          @error="handleError"
+        >
           <WhiteboxChat
             :title="brandConfig.title"
             :welcome-icon="welcomeConfig.icon"
