@@ -1,9 +1,11 @@
 <script setup lang="ts">
+import { IconAccessory } from '@opentiny/tiny-robot-svgs'
 import { inject, computed, Component, h, ref } from 'vue'
-import { TrChat, TrChatFeedback, TrModelSelector, CHAT_KIT_KEY } from '@opentiny/tiny-robot-chat'
 import { BubbleProvider, TrAttachments, UploadButton } from '@opentiny/tiny-robot'
 import type { PromptProps, BubbleListProps, Attachment } from '@opentiny/tiny-robot'
+import { TrChat, TrChatFeedback, TrModelSelector, CHAT_KIT_KEY } from '@opentiny/tiny-robot-chat'
 import { boxRendererMatches, contentRendererMatches, roles as baseRoles } from '../composables/useBubbleConfig'
+import { useProviderConfig } from '../composables/useProviderConfig'
 
 interface Props {
   title: string
@@ -11,8 +13,6 @@ interface Props {
   welcomeTitle: string
   welcomeDescription: string
   prompts: PromptProps[]
-  selectedModel: string
-  availableModels: string[]
   roleConfigs?: BubbleListProps['roleConfigs']
   groupStrategy?: BubbleListProps['groupStrategy']
   bubbleListProps?: Record<string, unknown>
@@ -43,7 +43,6 @@ const renderWelcomeIcon = () => {
 }
 
 const emit = defineEmits<{
-  'update:selectedModel': [value: string]
   'toggle-mcp-panel': []
 }>()
 
@@ -52,6 +51,13 @@ const showWelcome = computed(() => chatKit.messages.value.length === 0)
 
 // Attachments state
 const attachments = ref<Attachment[]>([])
+
+// Model selection state
+const selectedModel = ref<string>('deepseek-chat')
+const AVAILABLE_MODELS = ['deepseek-reasoner', 'deepseek-chat']
+
+// Get provider config based on selected model
+const { responseProvider } = useProviderConfig(selectedModel)
 
 function handlePromptClick(description: string) {
   chatKit.sendMessage(description)
@@ -80,6 +86,11 @@ function isMessageEditing(messageIndexes: number[]): boolean {
 
 function handleToggleMcpPanel() {
   emit('toggle-mcp-panel')
+}
+
+function handleModelChange(model: string) {
+  selectedModel.value = model
+  chatKit.updateResponseProvider(responseProvider.value)
 }
 </script>
 
@@ -111,11 +122,6 @@ function handleToggleMcpPanel() {
               ></path>
             </svg>
           </button>
-          <TrModelSelector
-            :model-value="props.selectedModel"
-            :models="props.availableModels"
-            @update:model-value="emit('update:selectedModel', $event)"
-          />
         </div>
       </template>
     </TrChat.Header>
@@ -154,11 +160,18 @@ function handleToggleMcpPanel() {
         </div>
         <!-- Sender with upload button -->
         <TrChat.Sender>
-          <template #footer-right>
+          <template #footer>
+            <TrModelSelector
+              v-model="selectedModel"
+              :models="AVAILABLE_MODELS"
+              @update:model-value="handleModelChange"
+            />
+
             <UploadButton
               tooltip="上传文件"
               tooltip-placement="top"
               :multiple="true"
+              :icon="IconAccessory"
               accept="*"
               @select="handleFileSelect"
             />
@@ -169,6 +182,7 @@ function handleToggleMcpPanel() {
     <TrChat.History />
   </div>
 </template>
+
 <style>
 .tr-bubble__box[data-role='user'] {
   --tr-bubble-box-bg: var(--tr-color-primary-light);

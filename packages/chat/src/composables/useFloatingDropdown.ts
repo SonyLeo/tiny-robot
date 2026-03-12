@@ -1,5 +1,5 @@
 import { ref, nextTick, onMounted, onUnmounted, watch } from 'vue'
-import { computePosition, shift, offset, autoUpdate } from '@floating-ui/dom'
+import { computePosition, flip, shift, offset, autoUpdate } from '@floating-ui/dom'
 
 export function useFloatingDropdown(
   referenceEl: ReturnType<typeof ref<HTMLElement | null>>,
@@ -14,7 +14,7 @@ export function useFloatingDropdown(
     const { x, y } = await computePosition(referenceEl.value, floatingEl.value, {
       placement: 'bottom-start',
       strategy: 'absolute',
-      middleware: [offset(8), shift({ padding: 8 })],
+      middleware: [offset(8), flip({ padding: 8 }), shift({ padding: 8 })],
     })
 
     const dpr = window.devicePixelRatio || 1

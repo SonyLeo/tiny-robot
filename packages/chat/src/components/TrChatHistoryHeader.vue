@@ -33,7 +33,6 @@ function handleToggleManagement() {
 <style lang="less" scoped>
 .tr-chat-history-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   padding: 16px;
   border-bottom: 1px solid var(--tr-border-color-default);
@@ -41,11 +40,11 @@ function handleToggleManagement() {
   gap: 8px;
 }
 
-.new-session-btn {
-  flex: 4;
+// 按钮基础样式
+.btn-base {
   padding: 8px 16px;
   border: 1px solid var(--tr-border-color-default);
-  border-radius: 6px;
+  border-radius: 12px;
   background: var(--tr-container-bg-default);
   cursor: pointer;
   font-size: 14px;
@@ -53,7 +52,6 @@ function handleToggleManagement() {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
 
   &:hover {
     background: var(--tr-container-bg-hover);
@@ -61,23 +59,15 @@ function handleToggleManagement() {
   }
 }
 
-.manage-btn {
-  flex: 1;
-  padding: 8px 16px;
-  border: 1px solid var(--tr-border-color-default);
-  border-radius: 6px;
-  background: var(--tr-container-bg-default);
-  cursor: pointer;
-  font-size: 14px;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.new-session-btn {
+  .btn-base();
+  flex: 4;
+  gap: 8px;
+}
 
-  &:hover {
-    background: var(--tr-container-bg-hover);
-    border-color: var(--tr-color-primary);
-  }
+.manage-btn {
+  .btn-base();
+  flex: 1;
 
   &.active {
     background: var(--tr-color-primary-light);

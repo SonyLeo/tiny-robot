@@ -64,7 +64,6 @@ const currentProvider = computed(() => getProviderIcon(currentModel.value ?? '')
       aria-label="选择模型"
     >
       <component v-if="currentProvider" :is="currentProvider" class="tr-model-selector__icon-provider" :size="20" />
-      <span class="tr-model-selector__value">{{ currentModel }}</span>
       <svg
         class="tr-model-selector__chevron"
         :class="{ 'is-open': isOpen }"

@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import DemoSection from './components/DemoSection.vue'
 import DemoFooter from './components/DemoFooter.vue'
 import { useProviderConfig } from './composables/useProviderConfig'
-import { AVAILABLE_MODELS, WELCOME_CONFIG, PROMPTS, BRAND_CONFIG } from './composables/useDemoConfig'
+import { WELCOME_CONFIG, PROMPTS, BRAND_CONFIG } from './composables/useDemoConfig'
 import { BubbleRenderers } from '@opentiny/tiny-robot'
 import { markRaw } from 'vue'
 import './styles/index.css'
@@ -31,15 +31,12 @@ function handleError(error: Error) {
     <main class="demo-main">
       <DemoSection
         :mode="mode"
-        :selected-model="selectedModel"
-        :available-models="AVAILABLE_MODELS"
         :response-provider="responseProvider"
         :brand-config="BRAND_CONFIG"
         :welcome-config="WELCOME_CONFIG"
         :prompts="PROMPTS"
         :bubble-list-props="bubbleListProps"
         @update:mode="mode = $event as 'blackbox' | 'whitebox'"
-        @update:selected-model="selectedModel = $event"
         @error="handleError"
       />
     </main>

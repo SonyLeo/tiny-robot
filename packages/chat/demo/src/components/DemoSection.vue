@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { TrChat, TrModelSelector, DEFAULT_ROLE_CONFIGS } from '@opentiny/tiny-robot-chat'
+import { TrChat, DEFAULT_ROLE_CONFIGS } from '@opentiny/tiny-robot-chat'
 import WhiteboxChat from './WhiteboxChat.vue'
 import McpPanel from './McpPanel.vue'
 import type { ResponseProvider } from '@opentiny/tiny-robot-chat'
@@ -25,8 +25,6 @@ interface PromptItem {
 
 defineProps<{
   mode: 'blackbox' | 'whitebox'
-  selectedModel: string
-  availableModels: string[]
   responseProvider: ResponseProvider
   brandConfig: BrandConfig
   welcomeConfig: WelcomeConfig
@@ -36,7 +34,6 @@ defineProps<{
 
 const emit = defineEmits<{
   'update:mode': [value: 'blackbox' | 'whitebox']
-  'update:selectedModel': [value: string]
   error: [error: Error]
 }>()
 
@@ -81,15 +78,7 @@ function toggleMcpPanel() {
           show-feedback
           show-history
           @error="handleError"
-        >
-          <template #header-extra>
-            <TrModelSelector
-              :model-value="selectedModel"
-              :models="availableModels"
-              @update:model-value="$emit('update:selectedModel', $event)"
-            />
-          </template>
-        </TrChat>
+        />
       </template>
 
       <!-- White-box Mode: same features, manually composed -->
@@ -106,12 +95,9 @@ function toggleMcpPanel() {
             :welcome-title="welcomeConfig.title"
             :welcome-description="welcomeConfig.description"
             :prompts="prompts"
-            :selected-model="selectedModel"
-            :available-models="availableModels"
             :role-configs="DEFAULT_ROLE_CONFIGS"
             :mcp-panel-visible="mcpPanelVisible"
             group-strategy="consecutive"
-            @update:selected-model="$emit('update:selectedModel', $event)"
             @toggle-mcp-panel="toggleMcpPanel"
           />
         </TrChat.Root>

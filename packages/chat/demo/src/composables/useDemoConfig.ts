@@ -1,11 +1,9 @@
 import { IconAi } from '@opentiny/tiny-robot-svgs'
 
-export const AVAILABLE_MODELS = ['deepseek-reasoner', 'deepseek-chat']
-
 export const WELCOME_CONFIG = {
   icon: IconAi,
-  title: 'Welcome to TinyRobot Chat',
-  description: 'Try asking me anything. I can help with coding, writing, analysis, and more.',
+  title: 'Welcome to TinyRobot',
+  description: 'Try asking me anything.',
 }
 
 export const PROMPTS = [

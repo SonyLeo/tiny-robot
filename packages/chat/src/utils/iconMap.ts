@@ -12,6 +12,7 @@ import {
   BailianIcon,
   ModelscopeIcon,
   OpenrouterIcon,
+  OllamaIcon,
 } from '../components/icons'
 
 /**
@@ -27,6 +28,7 @@ export const PROVIDER_ICON_MAP: Record<string, Component> = {
   bailian: BailianIcon,
   modelscope: ModelscopeIcon,
   openrouter: OpenrouterIcon,
+  ollama: OllamaIcon,
 }
 
 /**
