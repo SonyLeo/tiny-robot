@@ -21,8 +21,8 @@ const inputValue = ref('')
 
 const isLoading = computed(() => chatKit.status.value === 'submitted' || chatKit.status.value === 'streaming')
 
-function handleSend(content: string, data?: StructuredData) {
-  chatKit.sendMessage(content, data)
+async function handleSend(content: string, data?: StructuredData) {
+  await chatKit.sendMessage(content, data)
   inputValue.value = ''
 }
 

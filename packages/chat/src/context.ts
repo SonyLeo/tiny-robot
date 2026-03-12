@@ -11,3 +11,13 @@ export const CHAT_UI_KEY: InjectionKey<{
 
 // BubbleList 允许的 slot 白名单
 export const BUBBLE_LIST_SLOTS = ['prefix', 'suffix', 'after', 'content-footer'] as const
+
+// History 状态注入 key：由 TrChatHistory provide，供子组件使用
+export const CHAT_HISTORY_KEY: InjectionKey<{
+  isManagementMode: Ref<boolean>
+  selectedItems: Ref<string[]>
+  searchQuery: Ref<string>
+  toggleItemSelection: (itemId: string) => void
+  selectAll: (ids: string[]) => void
+  clearSelection: () => void
+}> = Symbol('chatHistory')
