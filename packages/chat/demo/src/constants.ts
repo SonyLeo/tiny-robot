@@ -1,4 +1,5 @@
 import { IconAi } from '@opentiny/tiny-robot-svgs'
+import type { PromptProps } from '@opentiny/tiny-robot'
 
 export const WELCOME_CONFIG = {
   icon: IconAi,
@@ -6,7 +7,7 @@ export const WELCOME_CONFIG = {
   description: 'Try asking me anything.',
 }
 
-export const PROMPTS = [
+export const PROMPTS: PromptProps[] = [
   { label: 'Explain React hooks', description: 'Explain React hooks' },
   { label: 'Write a Python function', description: 'Write a Python function' },
   { label: 'Summarize this text', description: 'Summarize this text' },

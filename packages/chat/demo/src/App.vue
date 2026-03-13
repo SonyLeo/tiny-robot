@@ -1,24 +1,12 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import DemoSection from './components/DemoSection.vue'
+import BlackboxDemo from './components/BlackboxDemo.vue'
+import WhiteboxDemo from './components/WhiteboxDemo.vue'
 import DemoFooter from './components/DemoFooter.vue'
-import { useProviderConfig } from './composables/useProviderConfig'
-import { WELCOME_CONFIG, PROMPTS, BRAND_CONFIG } from './composables/useDemoConfig'
-import { BubbleRenderers } from '@opentiny/tiny-robot'
-import { markRaw } from 'vue'
 import './styles/index.css'
 
 // State
 const mode = ref<'blackbox' | 'whitebox'>('whitebox')
-const selectedModel = ref<string>('deepseek-chat')
-
-// Composables
-const { responseProvider } = useProviderConfig(selectedModel)
-
-// BubbleList props with Markdown renderer
-const bubbleListProps = {
-  fallbackContentRenderer: markRaw(BubbleRenderers.Markdown),
-}
 
 // Handlers
 function handleError(error: Error) {
@@ -29,21 +17,56 @@ function handleError(error: Error) {
 <template>
   <div class="demo-container">
     <main class="demo-main">
-      <DemoSection
-        :mode="mode"
-        :response-provider="responseProvider"
-        :brand-config="BRAND_CONFIG"
-        :welcome-config="WELCOME_CONFIG"
-        :prompts="PROMPTS"
-        :bubble-list-props="bubbleListProps"
-        @update:mode="mode = $event as 'blackbox' | 'whitebox'"
-        @error="handleError"
-      />
+      <!-- Black-box Demo -->
+      <template v-if="mode === 'blackbox'">
+        <BlackboxDemo @error="handleError" />
+      </template>
+
+      <!-- White-box Demo -->
+      <template v-else>
+        <WhiteboxDemo @error="handleError" />
+      </template>
+
+      <!-- Mode Switcher -->
+      <div class="mode-switcher">
+        <button :class="{ active: mode === 'blackbox' }" @click="mode = 'blackbox'">Black-box</button>
+        <button :class="{ active: mode === 'whitebox' }" @click="mode = 'whitebox'">White-box</button>
+      </div>
     </main>
 
     <DemoFooter />
   </div>
 </template>
+
+<style scoped>
+.mode-switcher {
+  position: fixed;
+  top: 10px;
+  right: 200px;
+  display: flex;
+  gap: 8px;
+  z-index: 1000;
+}
+
+.mode-switcher button {
+  padding: 8px 16px;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.mode-switcher button.active {
+  background: #1476ff;
+  color: white;
+  border-color: #1476ff;
+}
+
+.mode-switcher button:hover {
+  border-color: #1476ff;
+}
+</style>
 
 <style>
 .tr-sender:focus,

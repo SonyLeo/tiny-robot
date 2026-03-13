@@ -44,7 +44,7 @@ export {
   useKeyboardNavigation,
   useHistoryState,
 } from './composables'
-export { CHAT_KIT_KEY, MCP_MANAGER_KEY } from './context'
+export { CHAT_KIT_KEY, MCP_MANAGER_KEY, CHAT_UI_KEY } from './context'
 
 // ===== Render 组件（按需导入）=====
 export {
