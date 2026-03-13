@@ -99,6 +99,27 @@ export function useChatKit(options: UseChatKitOptions): UseChatKitReturn {
     await conversation.abortActiveRequest()
   }
 
+  // ===== editMessage：编辑消息 =====
+  /**
+   * 编辑指定索引的消息
+   * 删除该消息及之后的所有消息，然后以新内容重新发送
+   * @param messageIndex - 消息在列表中的索引
+   * @param newContent - 编辑后的消息内容
+   */
+  function editMessage(messageIndex: number, newContent: string): void {
+    const msgs = messages.value
+    if (messageIndex < 0 || messageIndex >= msgs.length) {
+      console.warn(`[useChatKit] editMessage: invalid messageIndex ${messageIndex}`)
+      return
+    }
+
+    // 删除该消息及之后的所有消息
+    msgs.splice(messageIndex)
+
+    // 以编辑后的内容重新发送
+    sendMessage(newContent)
+  }
+
   return {
     // 透传 useConversation 的会话管理 API
     conversations: conversation.conversations,
@@ -121,5 +142,6 @@ export function useChatKit(options: UseChatKitOptions): UseChatKitReturn {
     sendMessage,
     updateResponseProvider,
     abort,
+    editMessage,
   }
 }

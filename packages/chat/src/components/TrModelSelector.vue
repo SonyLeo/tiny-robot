@@ -1,11 +1,18 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, inject } from 'vue'
+import { CHAT_KIT_KEY } from '../context'
+import { getProviderIcon } from '../utils/iconMap'
+import { ModelOption, ModelProviderFactory } from '../types'
 import { useFloatingDropdown } from '../composables/useFloatingDropdown'
 import { useKeyboardNavigation } from '../composables/useKeyboardNavigation'
-import { getProviderIcon } from '../utils/iconMap'
 
 const props = defineProps<{
-  models: string[]
+  models: ModelOption[]
+  providerFactories?: ModelProviderFactory[]
+}>()
+
+const emit = defineEmits<{
+  change: [value: ModelOption]
 }>()
 
 const currentModel = defineModel<string>()
@@ -26,16 +33,28 @@ const { highlightedIndex, setHighlightedIndex } = useKeyboardNavigation({
   },
 })
 
+const chatKit = inject(CHAT_KIT_KEY, null)
+
+function handleSelectModel(model: ModelOption) {
+  currentModel.value = model.value
+
+  if (chatKit && props.providerFactories?.length) {
+    const factory = props.providerFactories.find((f) => f.match(model))
+    if (factory) {
+      chatKit.updateResponseProvider(factory.createProvider(model))
+    }
+  }
+
+  isOpen.value = false
+  // emit 作为补充通知，供外层做埋点、清空消息等额外业务逻辑
+  emit('change', model)
+}
+
 // 打开时高亮当前选中的模型
 const handleOpenDropdown = () => {
   isOpen.value = true
-  const currentIndex = props.models.indexOf(currentModel.value ?? '')
+  const currentIndex = props.models.findIndex((m) => m.value === currentModel.value)
   setHighlightedIndex(currentIndex >= 0 ? currentIndex : 0)
-}
-
-function handleSelectModel(model: string) {
-  currentModel.value = model
-  isOpen.value = false
 }
 
 function toggleDropdown() {
@@ -87,29 +106,31 @@ const currentProvider = computed(() => getProviderIcon(currentModel.value ?? '')
           <div class="tr-model-selector__content">
             <div
               v-for="(model, index) in models"
-              :key="model"
+              :key="model.value"
               class="tr-model-selector__item"
               @mouseenter="handleMouseEnter(index)"
             >
               <button
                 class="tr-model-selector__option"
                 :class="{
-                  'is-selected': currentModel === model,
+                  'is-selected': currentModel === model.value,
                   'is-highlighted': highlightedIndex === index,
                 }"
                 @click="handleSelectModel(model)"
               >
                 <div class="tr-model-selector__option-left">
                   <component
-                    v-if="getProviderIcon(model)"
-                    :is="getProviderIcon(model)"
+                    v-if="getProviderIcon(model.value)"
+                    :is="getProviderIcon(model.value)"
                     class="tr-model-selector__option-icon"
                     :size="18"
                   />
-                  <span class="tr-model-selector__option-label" :title="model">{{ model }}</span>
+                  <span class="tr-model-selector__option-label" :title="model.value">{{
+                    model.label || model.value
+                  }}</span>
                 </div>
                 <svg
-                  v-if="currentModel === model"
+                  v-if="currentModel === model.value"
                   class="tr-model-selector__check"
                   xmlns="http://www.w3.org/2000/svg"
                   width="16"

@@ -2,7 +2,7 @@ import type { Component, ComputedRef, VNode } from 'vue'
 import type { ConversationStorageStrategy, ChatMessage } from '@opentiny/tiny-robot-kit'
 import type { UseMessagePlugin, MessageRequestBody, ChatCompletion, UseMessageOptions } from '@opentiny/tiny-robot-kit'
 import type { UseConversationReturn } from '@opentiny/tiny-robot-kit'
-import type { PromptProps, StructuredData, BubbleListProps, SenderProps } from '@opentiny/tiny-robot'
+import type { PromptProps, StructuredData, BubbleListProps, SenderProps, BubbleRoleConfig } from '@opentiny/tiny-robot'
 
 // ===== ResponseProvider =====
 // 注意：实际底层签名接受 AsyncGenerator<ChatCompletion>，与设计文档中的 ReadableStream<string> 不同
@@ -49,6 +49,7 @@ export interface UseChatKitReturn
   messages: ComputedRef<ChatMessage[]>
   status: ComputedRef<ChatStatus>
   sendMessage: (content: string, data?: StructuredData) => void
+  editMessage: (messageIndex: number, newContent: string) => void
   updateResponseProvider: (provider: ResponseProvider) => void
   abort: () => Promise<void>
 }
@@ -159,4 +160,41 @@ export interface DeepSeekProviderOptions {
   model?: string
   systemPrompt?: string
   temperature?: number
+}
+
+export interface ModelOption {
+  value: string // 模型 ID
+  label?: string // 显示名称，fallback 到 value
+  provider?: string // 用于图标匹配，如 'openai' | 'deepseek'
+  disabled?: boolean
+}
+
+export interface ModelProviderFactory {
+  match: (model: ModelOption) => boolean // 匹配规则
+  createProvider: (model: ModelOption) => ResponseProvider // 按需创建，内部可缓存
+}
+
+// ===== Bubble Renderer Match 类型 =====
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type BubbleRendererMatchType<T extends (...args: any[]) => boolean = (...args: any[]) => boolean> = {
+  find: T
+  renderer: Component
+  priority?: number
+  attributes?: Record<string, string>
+}
+
+export type BubbleContentRendererMatchType = BubbleRendererMatchType<
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (message: any, content: any, contentIndex: number) => boolean
+>
+
+export type BubbleBoxRendererMatchType = BubbleRendererMatchType<
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (messages: any[], content: any | undefined, contentIndex: number | undefined) => boolean
+>
+
+export interface UseDefaultBubbleConfigOptions {
+  extraContentMatches?: BubbleContentRendererMatchType[]
+  extraBoxMatches?: BubbleBoxRendererMatchType[]
+  overrideRoles?: Record<string, BubbleRoleConfig>
 }

@@ -1,5 +1,6 @@
 import type { InjectionKey, Ref } from 'vue'
 import type { UseChatKitReturn } from './types'
+import type { UseMcpManagerReturn } from './composables/useMcpManager'
 
 // 主状态注入 key：由 TrChatRoot provide，所有子组件 inject
 export const CHAT_KIT_KEY: InjectionKey<UseChatKitReturn> = Symbol('chatKit')
@@ -8,6 +9,9 @@ export const CHAT_KIT_KEY: InjectionKey<UseChatKitReturn> = Symbol('chatKit')
 export const CHAT_UI_KEY: InjectionKey<{
   showHistoryDrawer: Ref<boolean>
 }> = Symbol('chatUI')
+
+// MCP 管理器注入 key：由 TrChatRoot provide，供 TrChatMcpPanel 使用
+export const MCP_MANAGER_KEY: InjectionKey<UseMcpManagerReturn> = Symbol('mcpManager')
 
 // BubbleList 允许的 slot 白名单
 export const BUBBLE_LIST_SLOTS = ['prefix', 'suffix', 'after', 'content-footer'] as const

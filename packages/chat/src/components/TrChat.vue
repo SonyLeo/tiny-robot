@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { computed, watch, useSlots } from 'vue'
 import type { Slot } from 'vue'
-import { useChatKit } from '../composables/useChatKit'
-import { DEFAULT_ROLE_CONFIGS } from '../composables/defaults'
+import { useChatKit, useDefaultBubbleConfig } from '../composables'
 import TrChatRoot from './TrChatRoot.vue'
 import TrChatHeader from './TrChatHeader.vue'
 import TrChatWelcome from './TrChatWelcome.vue'
@@ -11,6 +10,7 @@ import TrChatFooter from './TrChatFooter.vue'
 import TrChatSender from './TrChatSender.vue'
 import TrChatHistory from './TrChatHistory.vue'
 import TrChatFeedback from './TrChatFeedback.vue'
+import { BubbleProvider } from '@opentiny/tiny-robot'
 import { BUBBLE_LIST_SLOTS } from '../context'
 import type { TrChatProps } from '../types'
 
@@ -53,9 +53,12 @@ function handlePromptClick(description: string) {
   chatKit.sendMessage(description)
 }
 
+// 获取默认 Bubble 配置
+const { contentMatches, boxMatches, roles: defaultRoles } = useDefaultBubbleConfig()
+
 // UI-RC1：默认 roleConfigs 合并（用户配置优先）
 const mergedRoleConfigs = computed(() => ({
-  ...DEFAULT_ROLE_CONFIGS,
+  ...defaultRoles,
   ...props.roleConfigs,
 }))
 
@@ -114,23 +117,24 @@ const bubbleSlots = computed<Partial<Record<string, Slot>>>(() =>
           <slot v-else name="empty" />
         </div>
 
-        <!-- UI-RC1：使用 mergedRoleConfigs 确保默认左右布局 -->
-        <TrChatMessageList
-          v-else
-          :auto-scroll="props.autoScroll"
-          :role-configs="mergedRoleConfigs"
-          :group-strategy="props.groupStrategy"
-          v-bind="props.bubbleListProps"
-        >
-          <!-- 只透传 BubbleList 允许的 slots -->
-          <template v-for="(_, name) in bubbleSlots" #[name]="slotProps" :key="name">
-            <slot :name="name" v-bind="slotProps ?? {}" />
-          </template>
-          <!-- showFeedback 时自动在 assistant 消息下挂载 Feedback -->
-          <template v-if="props.showFeedback" #after="slotProps">
-            <TrChatFeedback v-if="slotProps.role === 'assistant'" v-bind="slotProps" />
-          </template>
-        </TrChatMessageList>
+        <!-- UI-RC1：使用 mergedRoleConfigs 确保默认左右布局 + 内置 renderer -->
+        <BubbleProvider :box-renderer-matches="boxMatches" :content-renderer-matches="contentMatches">
+          <TrChatMessageList
+            :auto-scroll="props.autoScroll"
+            :role-configs="mergedRoleConfigs"
+            :group-strategy="props.groupStrategy"
+            v-bind="props.bubbleListProps"
+          >
+            <!-- 只透传 BubbleList 允许的 slots -->
+            <template v-for="(_, name) in bubbleSlots" #[name]="slotProps" :key="name">
+              <slot :name="name" v-bind="slotProps ?? {}" />
+            </template>
+            <!-- showFeedback 时自动在 assistant 消息下挂载 Feedback -->
+            <template v-if="props.showFeedback" #after="slotProps">
+              <TrChatFeedback v-if="slotProps.role === 'assistant'" v-bind="slotProps" />
+            </template>
+          </TrChatMessageList>
+        </BubbleProvider>
       </template>
 
       <!-- 底部 -->

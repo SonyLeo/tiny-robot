@@ -34,14 +34,32 @@ TrChatFull.History = TrChatHistory
 
 export { TrChatFull as TrChat }
 
-// ===== 独立组件 =====
+// ===== Composable =====
+export {
+  useChatKit,
+  useDefaultBubbleConfig,
+  useMcpManager,
+  useChatFeedback,
+  useFloatingDropdown,
+  useKeyboardNavigation,
+  useHistoryState,
+} from './composables'
+export { CHAT_KIT_KEY, MCP_MANAGER_KEY } from './context'
+
+// ===== Render 组件（按需导入）=====
+export {
+  MarkStreamRenderer,
+  ErrorRenderer,
+  EditInputRenderer,
+  ToolCallsRenderer,
+  ToolCallRenderer,
+  AttachmentsRenderer,
+} from './components/render'
+
+// ===== 新组件 =====
 export { default as TrModelSelector } from './components/TrModelSelector.vue'
 export { default as TrChatFeedback } from './components/TrChatFeedback.vue'
-
-// ===== Composable =====
-export { useChatKit } from './composables/useChatKit'
-export { DEFAULT_ROLE_CONFIGS } from './composables/defaults'
-export { CHAT_KIT_KEY } from './context'
+export { default as TrChatMcpPanel } from './components/TrChatMcpPanel.vue'
 
 // ===== Providers =====
 export { createOpenAIProvider } from './providers/openai'
@@ -64,4 +82,10 @@ export type {
   OpenAIProviderOptions,
   DeepSeekProviderOptions,
   UseMessageResponseProvider,
+  ModelOption,
+  ModelProviderFactory,
+  UseDefaultBubbleConfigOptions,
 } from './types'
+
+// 从 composables 导出类型
+export type { UseMcpManagerReturn } from './composables'

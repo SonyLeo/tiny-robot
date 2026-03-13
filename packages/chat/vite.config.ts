@@ -21,7 +21,7 @@ export default defineConfig({
     cssMinify: true,
     minify: true,
     rollupOptions: {
-      external: ['vue', '@opentiny/tiny-robot', '@opentiny/tiny-robot-kit'],
+      external: ['vue', '@opentiny/tiny-robot', '@opentiny/tiny-robot-kit', 'markstream-vue'],
       output: {
         entryFileNames: '[name].js',
         chunkFileNames: '[name].js',
