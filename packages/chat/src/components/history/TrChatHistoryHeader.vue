@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { inject } from 'vue'
 import { IconNewSession } from '@opentiny/tiny-robot-svgs'
-import { CHAT_HISTORY_KEY, CHAT_KIT_KEY, CHAT_UI_KEY } from '../context'
+import { CHAT_HISTORY_KEY, CHAT_KIT_KEY, CHAT_UI_KEY } from '../../context'
 
 // 职责：仅负责头部按钮的渲染和事件分发
 const historyState = inject(CHAT_HISTORY_KEY)!

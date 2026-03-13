@@ -9,7 +9,7 @@ import TrChatWelcome from './components/TrChatWelcome.vue'
 import TrChatMessageList from './components/TrChatMessageList.vue'
 import TrChatFooter from './components/TrChatFooter.vue'
 import TrChatSender from './components/TrChatSender.vue'
-import TrChatHistory from './components/TrChatHistory.vue'
+import TrChatHistory from './components/history/TrChatHistory.vue'
 
 // 定义带子组件的 TrChat 类型
 type TrChatWithSubComponents = typeof TrChat & {
@@ -62,8 +62,7 @@ export { default as TrChatFeedback } from './components/TrChatFeedback.vue'
 export { default as TrChatMcpPanel } from './components/TrChatMcpPanel.vue'
 
 // ===== Providers =====
-export { createOpenAIProvider } from './providers/openai'
-export { createDeepSeekProvider } from './providers/deepseek'
+export { matchProvider, createOpenAIFactory, createDeepSeekFactory } from './providers/factories'
 
 // ===== 类型 =====
 export type {
@@ -84,8 +83,12 @@ export type {
   UseMessageResponseProvider,
   ModelOption,
   ModelProviderFactory,
+  ProviderFactoryCreator,
   UseDefaultBubbleConfigOptions,
 } from './types'
+
+// 从 iconMap 导出 KnownProvider 类型
+export { KNOWN_PROVIDERS, type KnownProvider } from './utils/iconMap'
 
 // 从 composables 导出类型
 export type { UseMcpManagerReturn } from './composables'

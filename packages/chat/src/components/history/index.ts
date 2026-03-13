@@ -1,0 +1,5 @@
+export { default as TrChatHistory } from './TrChatHistory.vue'
+export { default as TrChatHistoryHeader } from './TrChatHistoryHeader.vue'
+export { default as TrChatHistoryList } from './TrChatHistoryList.vue'
+export { default as TrChatHistoryPanel } from './TrChatHistoryPanel.vue'
+export { default as TrChatHistorySearch } from './TrChatHistorySearch.vue'

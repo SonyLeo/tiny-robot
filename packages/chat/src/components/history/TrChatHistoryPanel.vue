@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { inject, computed } from 'vue'
 import { IconDelete, IconClose } from '@opentiny/tiny-robot-svgs'
-import { CHAT_HISTORY_KEY, CHAT_KIT_KEY } from '../context'
+import { CHAT_HISTORY_KEY, CHAT_KIT_KEY } from '../../context'
 
 const historyState = inject(CHAT_HISTORY_KEY)!
 const chatKit = inject(CHAT_KIT_KEY)!

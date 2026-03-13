@@ -3,7 +3,7 @@ import { syncRef } from '@vueuse/core'
 import { inject, computed, ref } from 'vue'
 import { TrHistory } from '@opentiny/tiny-robot'
 import type { HistoryItem, HistoryMenuItem } from '@opentiny/tiny-robot'
-import { CHAT_HISTORY_KEY, CHAT_KIT_KEY, CHAT_UI_KEY } from '../context'
+import { CHAT_HISTORY_KEY, CHAT_KIT_KEY, CHAT_UI_KEY } from '../../context'
 
 // 职责：仅负责列表的渲染和事件处理
 const historyState = inject(CHAT_HISTORY_KEY)!

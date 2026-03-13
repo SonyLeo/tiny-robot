@@ -15,7 +15,7 @@ const emit = defineEmits<{
   change: [value: ModelOption]
 }>()
 
-const currentModel = defineModel<string>()
+const currentModel = defineModel<string>({ default: '' })
 
 const referenceEl = ref<HTMLElement | null>(null)
 const floatingEl = ref<HTMLElement | null>(null)
@@ -25,6 +25,7 @@ const { isOpen } = useFloatingDropdown(referenceEl, floatingEl)
 const { highlightedIndex, setHighlightedIndex } = useKeyboardNavigation({
   enabled: isOpen,
   itemCount: computed(() => props.models.length),
+  isItemDisabled: (index) => !!props.models[index]?.disabled,
   onSelect: (index) => {
     handleSelectModel(props.models[index])
   },
@@ -36,6 +37,7 @@ const { highlightedIndex, setHighlightedIndex } = useKeyboardNavigation({
 const chatKit = inject(CHAT_KIT_KEY, null)
 
 function handleSelectModel(model: ModelOption) {
+  if (model.disabled) return
   currentModel.value = model.value
 
   if (chatKit && props.providerFactories?.length) {
@@ -66,10 +68,19 @@ function toggleDropdown() {
 }
 
 function handleMouseEnter(index: number) {
+  if (props.models[index]?.disabled) return
   highlightedIndex.value = index
 }
 
-const currentProvider = computed(() => getProviderIcon(currentModel.value ?? ''))
+// 计算当前选中模型的完整对象
+const currentModelOption = computed(() => {
+  return props.models.find((m) => m.value === currentModel.value)
+})
+
+// 获取当前模型的图标
+const currentProvider = computed(() => {
+  return currentModelOption.value ? getProviderIcon(currentModelOption.value) : null
+})
 </script>
 
 <template>
@@ -115,13 +126,14 @@ const currentProvider = computed(() => getProviderIcon(currentModel.value ?? '')
                 :class="{
                   'is-selected': currentModel === model.value,
                   'is-highlighted': highlightedIndex === index,
+                  'is-disabled': model.disabled,
                 }"
                 @click="handleSelectModel(model)"
               >
                 <div class="tr-model-selector__option-left">
                   <component
-                    v-if="getProviderIcon(model.value)"
-                    :is="getProviderIcon(model.value)"
+                    v-if="getProviderIcon(model)"
+                    :is="getProviderIcon(model)"
                     class="tr-model-selector__option-icon"
                     :size="18"
                   />

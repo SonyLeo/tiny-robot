@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { inject, provide } from 'vue'
-import { CHAT_UI_KEY, CHAT_HISTORY_KEY } from '../context'
-import { useHistoryState } from '../composables/useHistoryState'
+import { CHAT_UI_KEY, CHAT_HISTORY_KEY } from '../../context'
+import { useHistoryState } from '../../composables/useHistoryState'
 import TrChatHistoryHeader from './TrChatHistoryHeader.vue'
 import TrChatHistorySearch from './TrChatHistorySearch.vue'
 import TrChatHistoryList from './TrChatHistoryList.vue'

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, watch, useSlots } from 'vue'
-import type { Slot } from 'vue'
+import { BubbleProvider } from '@opentiny/tiny-robot'
+import { computed, watch, useSlots, type Slot, ref } from 'vue'
 import { useChatKit, useDefaultBubbleConfig } from '../composables'
 import TrChatRoot from './TrChatRoot.vue'
 import TrChatHeader from './TrChatHeader.vue'
@@ -8,9 +8,9 @@ import TrChatWelcome from './TrChatWelcome.vue'
 import TrChatMessageList from './TrChatMessageList.vue'
 import TrChatFooter from './TrChatFooter.vue'
 import TrChatSender from './TrChatSender.vue'
-import TrChatHistory from './TrChatHistory.vue'
 import TrChatFeedback from './TrChatFeedback.vue'
-import { BubbleProvider } from '@opentiny/tiny-robot'
+import TrModelSelector from './TrModelSelector.vue'
+import { TrChatHistory } from './history'
 import { BUBBLE_LIST_SLOTS } from '../context'
 import type { TrChatProps } from '../types'
 
@@ -26,11 +26,31 @@ const props = withDefaults(defineProps<TrChatProps>(), {
 const emit = defineEmits<{
   (e: 'update:fullscreen', value: boolean): void
   (e: 'update:show', value: boolean): void
+  (e: 'update:model', value: string): void
 }>()
+
+// 模型选择状态
+const selectedModel = ref<string>(props.defaultModel || props.models?.[0]?.value || '')
+
+// 获取初始 responseProvider
+const getInitialProvider = () => {
+  // 如果有 models + providerFactories，从工厂创建
+  if (props.models?.length && props.providerFactories?.length && selectedModel.value) {
+    const model = props.models.find((m) => m.value === selectedModel.value)
+    if (model) {
+      const factory = props.providerFactories.find((f) => f.match(model))
+      if (factory) {
+        return factory.createProvider(model)
+      }
+    }
+  }
+  // 否则使用传入的 responseProvider
+  return props.responseProvider
+}
 
 // 黑盒模式：内部创建 chatKit 实例，传给 Root（模式 B）
 const chatKit = useChatKit({
-  responseProvider: props.responseProvider,
+  responseProvider: getInitialProvider()!,
   plugins: props.plugins,
   storage: props.storage,
   initialMessages: props.initialMessages,
@@ -42,9 +62,26 @@ const chatKit = useChatKit({
 watch(
   () => props.responseProvider,
   (newProvider) => {
-    chatKit.updateResponseProvider(newProvider)
+    if (newProvider) {
+      chatKit.updateResponseProvider(newProvider)
+    }
   },
 )
+
+// 监听模型选择变化
+watch(selectedModel, (newModel) => {
+  if (props.models?.length && props.providerFactories?.length) {
+    const model = props.models.find((m) => m.value === newModel)
+    if (model) {
+      const factory = props.providerFactories.find((f) => f.match(model))
+      if (factory) {
+        chatKit.updateResponseProvider(factory.createProvider(model))
+        props.onModelChange?.(model)
+        emit('update:model', newModel)
+      }
+    }
+  }
+})
 
 const showWelcome = computed(() => chatKit.messages.value.length === 0)
 
@@ -74,6 +111,9 @@ const bubbleSlots = computed<Partial<Record<string, Slot>>>(() =>
       .map(([name, slot]) => [name, slot as Slot]),
   ),
 )
+
+// 是否显示模型选择器
+const showModelSelector = computed(() => props.models?.length && props.providerFactories?.length)
 </script>
 
 <template>
@@ -145,12 +185,20 @@ const bubbleSlots = computed<Partial<Record<string, Slot>>>(() =>
         <template v-if="$slots['footer-extra']" #extra>
           <slot name="footer-extra" />
         </template>
-        <TrChatSender
-          :placeholder="props.placeholder"
-          :max-length="props.maxLength"
-          :mode="props.senderMode"
-          v-bind="props.senderProps"
-        />
+        <div class="tr-chat-footer-content">
+          <TrModelSelector
+            v-if="showModelSelector"
+            v-model="selectedModel"
+            :models="props.models!"
+            :provider-factories="props.providerFactories!"
+          />
+          <TrChatSender
+            :placeholder="props.placeholder"
+            :max-length="props.maxLength"
+            :mode="props.senderMode"
+            v-bind="props.senderProps"
+          />
+        </div>
       </TrChatFooter>
 
       <!-- 历史 Drawer -->
@@ -158,3 +206,11 @@ const bubbleSlots = computed<Partial<Record<string, Slot>>>(() =>
     </div>
   </TrChatRoot>
 </template>
+
+<style scoped>
+.tr-chat-footer-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+</style>

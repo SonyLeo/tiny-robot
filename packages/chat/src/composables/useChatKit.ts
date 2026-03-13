@@ -99,6 +99,43 @@ export function useChatKit(options: UseChatKitOptions): UseChatKitReturn {
     await conversation.abortActiveRequest()
   }
 
+  // ===== startEditMessage：进入编辑态 =====
+  /**
+   * 将指定索引的消息置为编辑态
+   * @param messageIndex - 消息在列表中的索引
+   */
+  function startEditMessage(messageIndex: number): void {
+    const msg = messages.value[messageIndex]
+    if (!msg) {
+      console.warn(`[useChatKit] startEditMessage: invalid messageIndex ${messageIndex}`)
+      return
+    }
+    if (!msg.state) msg.state = {}
+    msg.state.isEditing = true
+  }
+
+  // ===== cancelEditMessage：退出编辑态 =====
+  /**
+   * 取消指定索引消息的编辑态
+   * @param messageIndex - 消息在列表中的索引
+   */
+  function cancelEditMessage(messageIndex: number): void {
+    const msg = messages.value[messageIndex]
+    if (msg?.state) {
+      msg.state.isEditing = false
+    }
+  }
+
+  // ===== isMessageEditing：检查消息是否在编辑态 =====
+  /**
+   * 检查指定索引的消息是否处于编辑状态
+   * @param messageIndex - 消息在列表中的索引
+   * @returns 是否在编辑态
+   */
+  function isMessageEditing(messageIndex: number): boolean {
+    return messages.value[messageIndex]?.state?.isEditing === true
+  }
+
   // ===== editMessage：编辑消息 =====
   /**
    * 编辑指定索引的消息
@@ -142,6 +179,9 @@ export function useChatKit(options: UseChatKitOptions): UseChatKitReturn {
     sendMessage,
     updateResponseProvider,
     abort,
+    startEditMessage,
+    cancelEditMessage,
+    isMessageEditing,
     editMessage,
   }
 }

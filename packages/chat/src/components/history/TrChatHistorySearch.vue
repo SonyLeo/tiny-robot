@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { inject } from 'vue'
-import { CHAT_HISTORY_KEY } from '../context'
+import { CHAT_HISTORY_KEY } from '../../context'
 
 // 职责：仅负责搜索输入框的渲染
 const historyState = inject(CHAT_HISTORY_KEY)!

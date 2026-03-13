@@ -22,6 +22,12 @@ export interface UseKeyboardNavigationOptions {
    */
   itemCount: Ref<number> | number
   /**
+   * 当前是否禁用
+   * @param index 索引
+   * @returns 是否禁用
+   */
+  isItemDisabled?: (index: number) => boolean
+  /**
    * 当选择项时的回调
    */
   onSelect?: (index: number) => void
@@ -56,7 +62,7 @@ export interface UseKeyboardNavigationReturn {
  * @returns 导航状态和方法
  */
 export function useKeyboardNavigation(options: UseKeyboardNavigationOptions): UseKeyboardNavigationReturn {
-  const { enabled = true, itemCount, onSelect, onClose, loop = false } = options
+  const { enabled = true, itemCount, isItemDisabled, onSelect, onClose, loop = false } = options
 
   const highlightedIndex = ref(0)
   const { ArrowUp, ArrowDown } = useMagicKeys()
@@ -88,18 +94,32 @@ export function useKeyboardNavigation(options: UseKeyboardNavigationOptions): Us
     highlightedIndex.value = Math.max(0, Math.min(index, count - 1))
   }
 
+  /**
+   * 切换高亮索引（支持正向/反向）
+   * @param {boolean} isNext - true=下一项，false=上一项
+   */
+  const switchHighlightedIndex = (isNext: boolean) => {
+    const count = getItemCount()
+    if (count <= 0) return
+
+    let target = highlightedIndex.value
+    do {
+      if (isNext) {
+        // 正向（原逻辑）
+        target = loop ? (target + 1) % count : Math.min(target + 1, count - 1)
+      } else {
+        // 反向（新逻辑）
+        target = loop ? (target - 1 + count) % count : Math.max(target - 1, 0)
+      }
+    } while (isItemDisabled?.(target) && target !== highlightedIndex.value)
+    highlightedIndex.value = target
+  }
+
   // 上箭头导航
   whenever(
     () => ArrowUp.value && isEnabled(),
     () => {
-      const count = getItemCount()
-      if (count <= 0) return
-
-      if (loop) {
-        highlightedIndex.value = (highlightedIndex.value - 1 + count) % count
-      } else {
-        highlightedIndex.value = Math.max(0, highlightedIndex.value - 1)
-      }
+      switchHighlightedIndex(false)
     },
   )
 
@@ -107,14 +127,7 @@ export function useKeyboardNavigation(options: UseKeyboardNavigationOptions): Us
   whenever(
     () => ArrowDown.value && isEnabled(),
     () => {
-      const count = getItemCount()
-      if (count <= 0) return
-
-      if (loop) {
-        highlightedIndex.value = (highlightedIndex.value + 1) % count
-      } else {
-        highlightedIndex.value = Math.min(highlightedIndex.value + 1, count - 1)
-      }
+      switchHighlightedIndex(true)
     },
   )
 

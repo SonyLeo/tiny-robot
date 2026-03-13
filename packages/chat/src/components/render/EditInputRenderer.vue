@@ -49,7 +49,7 @@ const handleSave = async () => {
     }
 
     // 退出编辑状态
-    props.message.state!.isEditing = false
+    chatKit!.cancelEditMessage(messageIndex)
 
     await nextTick()
     chatKit!.editMessage(messageIndex, localContent.value)
@@ -59,8 +59,12 @@ const handleSave = async () => {
 }
 
 const handleCancel = () => {
-  // 退出编辑状态，不保存内容
-  props.message.state!.isEditing = false
+  // 找到当前消息在消息列表中的索引
+  const messageIndex = chatKit!.messages.value.findIndex((msg) => msg === props.message)
+  if (messageIndex !== -1) {
+    // 退出编辑状态，不保存内容
+    chatKit!.cancelEditMessage(messageIndex)
+  }
 }
 
 const handleKeydown = (event: KeyboardEvent) => {

@@ -49,6 +49,9 @@ export interface UseChatKitReturn
   messages: ComputedRef<ChatMessage[]>
   status: ComputedRef<ChatStatus>
   sendMessage: (content: string, data?: StructuredData) => void
+  startEditMessage: (messageIndex: number) => void
+  cancelEditMessage: (messageIndex: number) => void
+  isMessageEditing: (messageIndex: number) => boolean
   editMessage: (messageIndex: number, newContent: string) => void
   updateResponseProvider: (provider: ResponseProvider) => void
   abort: () => Promise<void>
@@ -70,7 +73,7 @@ export interface WelcomeConfig {
 }
 
 export interface TrChatProps {
-  responseProvider: ResponseProvider
+  responseProvider?: ResponseProvider
   plugins?: UseMessagePlugin[]
   storage?: ConversationStorageStrategy
   initialMessages?: ChatMessage[]
@@ -96,6 +99,11 @@ export interface TrChatProps {
   bubbleListProps?: Omit<BubbleListProps, 'roleConfigs' | 'groupStrategy' | 'messages'>
   // TODO: @opentiny/tiny-robot 暂未导出 HistoryProps，故保持 Record 类型
   historyProps?: Record<string, unknown>
+  // === 模型选择相关 ===
+  models?: ModelOption[]
+  defaultModel?: string
+  providerFactories?: ModelProviderFactory[]
+  onModelChange?: (model: ModelOption) => void
 }
 
 // ===== 白盒组件 Props 类型 =====
@@ -165,7 +173,7 @@ export interface DeepSeekProviderOptions {
 export interface ModelOption {
   value: string // 模型 ID
   label?: string // 显示名称，fallback 到 value
-  provider?: string // 用于图标匹配，如 'openai' | 'deepseek'
+  provider?: string // 用于图标匹配，如 'openai' | 'deepseek'，支持已知 provider 或自定义
   disabled?: boolean
 }
 
@@ -173,6 +181,12 @@ export interface ModelProviderFactory {
   match: (model: ModelOption) => boolean // 匹配规则
   createProvider: (model: ModelOption) => ResponseProvider // 按需创建，内部可缓存
 }
+
+/**
+ * Provider 工厂帮助函数类型
+ * 用于简化 ModelProviderFactory 的创建
+ */
+export type ProviderFactoryCreator<T extends Record<string, unknown>> = (options: T) => ModelProviderFactory
 
 // ===== Bubble Renderer Match 类型 =====
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

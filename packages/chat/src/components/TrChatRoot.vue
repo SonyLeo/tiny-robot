@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { provide, ref } from 'vue'
 import { conditionalProp } from '../utils'
+import { useChatKit, useMcpManager } from '../composables'
 import { CHAT_KIT_KEY, CHAT_UI_KEY, MCP_MANAGER_KEY } from '../context'
-import { useChatKit } from '../composables/useChatKit'
-import { useMcpManager } from '../composables/useMcpManager'
-import type { TrChatRootProps, UseChatKitOptions } from '../types'
 import type { PluginInfo } from '@opentiny/tiny-robot'
+import type { TrChatRootProps, UseChatKitOptions } from '../types'
 
 // 两种互斥模式：
 // 模式 A：传 UseChatKitOptions，Root 内部创建状态
