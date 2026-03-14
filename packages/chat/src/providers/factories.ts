@@ -20,6 +20,10 @@ export function matchProvider(provider: string) {
  * 创建 OpenAI Provider 工厂
  * @param options - OpenAI 配置选项（不包括 model，会从 ModelOption.value 获取）
  * @returns ModelProviderFactory
+ *
+ * SECURITY: The generated provider runs in the client and will send the
+ * configured API key from the browser. Use only for demos or trusted
+ * environments.
  */
 export function createOpenAIFactory(options: Omit<OpenAIProviderOptions, 'model'>): ModelProviderFactory {
   return {
@@ -36,6 +40,10 @@ export function createOpenAIFactory(options: Omit<OpenAIProviderOptions, 'model'
  * 创建 DeepSeek Provider 工厂
  * @param options - DeepSeek 配置选项（不包括 model，会从 ModelOption.value 获取）
  * @returns ModelProviderFactory
+ *
+ * SECURITY: The generated provider runs in the client and will send the
+ * configured API key from the browser. Use only for demos or trusted
+ * environments.
  */
 export function createDeepSeekFactory(options: Omit<DeepSeekProviderOptions, 'model'>): ModelProviderFactory {
   return {

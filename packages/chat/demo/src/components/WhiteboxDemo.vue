@@ -1,26 +1,22 @@
 <script setup lang="ts">
 import { IconAccessory, IconPlugin } from '@opentiny/tiny-robot-svgs'
-import { computed, ref, provide, h } from 'vue'
-import { BubbleProvider, TrAttachments, UploadButton, ActionButton } from '@opentiny/tiny-robot'
+import { computed, ref, h } from 'vue'
+import { TrAttachments, UploadButton, ActionButton } from '@opentiny/tiny-robot'
 import type { Attachment } from '@opentiny/tiny-robot'
 import {
   TrChat,
   TrChatFeedback,
   TrModelSelector,
   TrChatMcpPanel,
-  useDefaultBubbleConfig,
   useChatKit,
   useMcpManager,
-  createDeepSeekFactory,
-  createOpenAIFactory,
-  CHAT_KIT_KEY,
-  CHAT_UI_KEY,
-  MCP_MANAGER_KEY,
+  useModelSelector,
+  createChatAdapterFromConfig,
 } from '@opentiny/tiny-robot-chat'
-import type { ModelOption, ModelProviderFactory } from '@opentiny/tiny-robot-chat'
-import { localStorageStrategyFactory } from '@opentiny/tiny-robot-kit'
+import { localStorageStrategyFactory, toolPlugin } from '@opentiny/tiny-robot-kit'
 import { defaultMcpServers } from '../data/mcpServers'
 import { WELCOME_CONFIG, PROMPTS, BRAND_CONFIG } from '../constants'
+import { createDemoMcpBridge } from '../utils/mcpBridge'
 
 defineEmits<{
   error: [error: Error]
@@ -30,65 +26,70 @@ defineEmits<{
 const deepseekApiKey = import.meta.env.VITE_DEEPSEEK_API_KEY || ''
 const openaiApiKey = import.meta.env.VITE_OPENAI_API_KEY || ''
 
-// Model options
-const AVAILABLE_MODELS: ModelOption[] = [
-  { value: 'deepseek-chat', label: 'DeepSeek Chat', provider: 'deepseek' },
-  { value: 'deepseek-reasoner', label: 'DeepSeek Reasoner', provider: 'deepseek' },
-  { value: 'gpt-4o', label: 'GPT-4o', provider: 'openai' },
-  { value: 'gpt-4o-mini', label: 'GPT-4o Mini', provider: 'openai' },
-]
+const chatAdapter = createChatAdapterFromConfig({
+  models: [
+    { id: 'deepseek-chat', label: 'DeepSeek Chat', provider: 'deepseek' },
+    { id: 'deepseek-reasoner', label: 'DeepSeek Reasoner', provider: 'deepseek' },
+    { id: 'gpt-4o', label: 'GPT-4o', provider: 'openai' },
+    { id: 'gpt-4o-mini', label: 'GPT-4o Mini', provider: 'openai' },
+  ],
+  providers: {
+    deepseek: {
+      type: 'openai-compatible',
+      baseURL: 'https://api.deepseek.com/v1',
+      headers: {
+        Authorization: `Bearer ${deepseekApiKey}`,
+      },
+      systemPrompt: 'You are a helpful assistant.',
+    },
+    openai: {
+      type: 'openai-compatible',
+      baseURL: 'https://api.openai.com/v1',
+      headers: {
+        Authorization: `Bearer ${openaiApiKey}`,
+      },
+      systemPrompt: 'You are a helpful assistant.',
+    },
+  },
+  defaults: {
+    model: 'deepseek-chat',
+  },
+  ui: {
+    brand: BRAND_CONFIG,
+    welcome: WELCOME_CONFIG,
+    prompts: PROMPTS,
+  },
+})
 
-// Provider factories
-const providerFactories: ModelProviderFactory[] = [
-  createDeepSeekFactory({
-    apiKey: deepseekApiKey,
-    systemPrompt: 'You are a helpful assistant.',
-  }),
-  createOpenAIFactory({
-    apiKey: openaiApiKey,
-    systemPrompt: 'You are a helpful assistant.',
-  }),
-]
+// MCP Manager
+const mcpManager = useMcpManager({
+  initialPlugins: defaultMcpServers,
+  bridge: createDemoMcpBridge(),
+})
 
-// Get initial provider
-const getInitialProvider = () => {
-  const defaultModel = AVAILABLE_MODELS[0]
-  const factory = providerFactories.find((f) => f.match(defaultModel))
-  if (factory) {
-    return factory.createProvider(defaultModel)
-  }
-  return createDeepSeekFactory({
-    apiKey: deepseekApiKey,
-    systemPrompt: 'You are a helpful assistant.',
-  }).createProvider(defaultModel)
-}
+const toolPluginInstance = toolPlugin({
+  getTools: mcpManager.getTools,
+  callTool: mcpManager.callTool,
+})
 
 // Create chatKit directly using useChatKit
 const chatKit = useChatKit({
-  responseProvider: getInitialProvider(),
-  plugins: [],
+  responseProvider: chatAdapter.createResponseProvider(),
+  plugins: [toolPluginInstance],
   storage: localStorageStrategyFactory(),
 })
-
-// Provide chatKit to child components
-provide(CHAT_KIT_KEY, chatKit)
-
-// UI state for Header/History
-const showHistoryDrawer = ref(false)
-provide(CHAT_UI_KEY, { showHistoryDrawer })
-
-// MCP Manager
-const mcpManager = useMcpManager()
-mcpManager.installedPlugins.value = defaultMcpServers
-provide(MCP_MANAGER_KEY, mcpManager)
 
 // State
 const mcpPanelVisible = ref(false)
 const attachments = ref<Attachment[]>([])
-const selectedModel = ref<string>('deepseek-chat')
+const selectedModel = ref<string>(chatAdapter.defaultModel || chatAdapter.models[0]?.value || '')
+const { selectModel } = useModelSelector({
+  currentModel: selectedModel,
+  models: computed(() => chatAdapter.models),
+  providerFactories: computed(() => chatAdapter.providerFactories),
+  chatKit,
+})
 
-// Config
-const { contentMatches, boxMatches, roles } = useDefaultBubbleConfig()
 const showWelcome = computed(() => chatKit.messages.value.length === 0)
 
 // MCP Panel icon renderer
@@ -108,65 +109,68 @@ function handleFileSelect(files: File[]) {
 function handleToggleMcpPanel() {
   mcpPanelVisible.value = !mcpPanelVisible.value
 }
+
+function handleModelChange(model: (typeof chatAdapter.models)[number]) {
+  selectModel(model)
+}
 </script>
 
 <template>
-  <div class="tr-chat">
-    <TrChat.Header :title="BRAND_CONFIG.title" show-history />
+  <TrChat.Root :chat-kit="chatKit" :mcp-manager="mcpManager">
+    <TrChat.Layout>
+      <TrChat.Header :title="BRAND_CONFIG.title" show-history />
 
-    <div v-if="showWelcome" class="tr-chat__welcome-area">
-      <TrChat.Welcome
-        :title="WELCOME_CONFIG.title"
-        :icon="WELCOME_CONFIG.icon"
-        :description="WELCOME_CONFIG.description"
-        :prompts="PROMPTS"
-        @prompt-click="handlePromptClick"
-      />
-    </div>
-    <BubbleProvider v-else :box-renderer-matches="boxMatches" :content-renderer-matches="contentMatches">
-      <TrChat.MessageList :role-configs="roles" group-strategy="consecutive" auto-scroll>
+      <div v-if="showWelcome" class="tr-chat__welcome-area">
+        <TrChat.Welcome
+          :title="chatAdapter.config.ui?.welcome?.title || WELCOME_CONFIG.title"
+          :icon="chatAdapter.config.ui?.welcome?.icon || WELCOME_CONFIG.icon"
+          :description="chatAdapter.config.ui?.welcome?.description || WELCOME_CONFIG.description"
+          :prompts="chatAdapter.config.ui?.prompts || PROMPTS"
+          @prompt-click="handlePromptClick"
+        />
+      </div>
+      <TrChat.MessageList v-else group-strategy="consecutive" auto-scroll>
         <template #after="slotProps">
           <TrChatFeedback v-bind="slotProps" style="margin-top: 6px" />
         </template>
       </TrChat.MessageList>
-    </BubbleProvider>
 
-    <TrChat.Footer>
-      <div class="tr-chat-footer-wrapper">
-        <div v-if="attachments.length > 0" class="tr-chat-attachments-area">
-          <TrAttachments v-model:items="attachments" variant="card" :wrap="true" />
+      <TrChat.Footer>
+        <div class="tr-chat-footer-wrapper">
+          <div v-if="attachments.length > 0" class="tr-chat-attachments-area">
+            <TrAttachments v-model:items="attachments" variant="card" :wrap="true" />
+          </div>
+          <TrChat.Sender>
+            <template #footer>
+              <TrModelSelector
+                v-model="selectedModel"
+                :models="chatAdapter.models"
+                :provider-factories="chatAdapter.providerFactories"
+                @change="handleModelChange"
+              />
+              <UploadButton
+                tooltip="上传文件"
+                tooltip-placement="top"
+                :multiple="true"
+                :icon="IconAccessory"
+                accept="*"
+                @select="handleFileSelect"
+              />
+              <ActionButton :icon="mcpPanelIcon" @click="handleToggleMcpPanel" />
+            </template>
+          </TrChat.Sender>
         </div>
-        <TrChat.Sender>
-          <template #footer>
-            <TrModelSelector
-              v-model="selectedModel"
-              :models="AVAILABLE_MODELS"
-              :provider-factories="providerFactories"
-            />
-            <UploadButton
-              tooltip="上传文件"
-              tooltip-placement="top"
-              :multiple="true"
-              :icon="IconAccessory"
-              accept="*"
-              @select="handleFileSelect"
-            />
-            <ActionButton :icon="mcpPanelIcon" @click="handleToggleMcpPanel" />
-          </template>
-        </TrChat.Sender>
-      </div>
-    </TrChat.Footer>
+      </TrChat.Footer>
 
-    <TrChat.History />
-    <TrChatMcpPanel :visible="mcpPanelVisible" @update:visible="mcpPanelVisible = $event" />
-  </div>
+      <TrChat.History />
+      <TrChatMcpPanel :visible="mcpPanelVisible" @update:visible="mcpPanelVisible = $event" />
+    </TrChat.Layout>
+  </TrChat.Root>
 </template>
 
 <style scoped>
-.tr-chat {
+:deep(.tr-chat) {
   height: 100%;
-  display: flex;
-  flex-direction: column;
 }
 
 .header-controls {

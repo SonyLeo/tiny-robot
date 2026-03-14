@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { inject, ref, computed, useSlots } from 'vue'
+import type { PropType, Slot } from 'vue'
 import { TrSender } from '@opentiny/tiny-robot'
 import type { StructuredData } from '@opentiny/tiny-robot'
 import { CHAT_KIT_KEY } from '../context'
@@ -7,12 +8,11 @@ import { CHAT_KIT_KEY } from '../context'
 // 支持透传完整 TrSender props
 defineOptions({ inheritAttrs: false })
 
-interface Props {
-  mode?: 'single' | 'multiple'
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  mode: 'multiple',
+const props = defineProps({
+  mode: {
+    type: String as PropType<'single' | 'multiple'>,
+    default: 'multiple',
+  },
 })
 
 const chatKit = inject(CHAT_KIT_KEY)!
@@ -31,7 +31,14 @@ function handleAbort() {
 }
 
 // 获取所有插槽以支持透传
-const slots = useSlots()
+const slots = useSlots() as Record<string, Slot | undefined>
+const forwardedSlots = computed<Partial<Record<string, Slot>>>(() =>
+  Object.fromEntries(
+    Object.entries(slots)
+      .filter(([, slot]) => slot !== undefined)
+      .map(([name, slot]) => [name, slot as Slot]),
+  ),
+)
 </script>
 
 <template>
@@ -44,23 +51,8 @@ const slots = useSlots()
     @cancel="handleAbort"
   >
     <!-- 透传所有插槽 -->
-    <template v-if="slots.header" #header>
-      <slot name="header" />
-    </template>
-    <template v-if="slots.prefix" #prefix>
-      <slot name="prefix" />
-    </template>
-    <template v-if="slots.content" #content="slotProps">
-      <slot name="content" v-bind="slotProps" />
-    </template>
-    <template v-if="slots['actions-inline']" #actions-inline>
-      <slot name="actions-inline" />
-    </template>
-    <template v-if="slots.footer" #footer>
-      <slot name="footer" />
-    </template>
-    <template v-if="slots['footer-right']" #footer-right>
-      <slot name="footer-right" />
+    <template v-for="(_, name) in forwardedSlots" #[name]="slotProps" :key="name">
+      <slot :name="name" v-bind="slotProps ?? {}" />
     </template>
   </TrSender>
 </template>

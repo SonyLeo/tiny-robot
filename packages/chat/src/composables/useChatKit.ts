@@ -19,7 +19,7 @@ export function useChatKit(options: UseChatKitOptions): UseChatKitReturn {
     onTurnEnd(ctx: BasePluginContext) {
       if (!onFinish) return
       // 取本轮最后一条 assistant 消息作为完成消息
-      const last = ctx.currentTurn.findLast((m) => m.role === 'assistant')
+      const last = [...ctx.currentTurn].reverse().find((message: ChatMessage) => message.role === 'assistant')
       if (last) onFinish(last)
     },
     onError(ctx: BasePluginContext & { error: unknown }) {

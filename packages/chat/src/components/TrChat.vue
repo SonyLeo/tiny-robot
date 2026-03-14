@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { BubbleProvider } from '@opentiny/tiny-robot'
 import { computed, watch, useSlots, type Slot, ref } from 'vue'
-import { useChatKit, useDefaultBubbleConfig } from '../composables'
+import { useChatKit, useModelSelector, useSlotFilter } from '../composables'
 import TrChatRoot from './TrChatRoot.vue'
+import TrChatLayout from './TrChatLayout.vue'
 import TrChatHeader from './TrChatHeader.vue'
 import TrChatWelcome from './TrChatWelcome.vue'
 import TrChatMessageList from './TrChatMessageList.vue'
@@ -12,7 +12,7 @@ import TrChatFeedback from './TrChatFeedback.vue'
 import TrModelSelector from './TrModelSelector.vue'
 import { TrChatHistory } from './history'
 import { BUBBLE_LIST_SLOTS } from '../context'
-import type { TrChatProps } from '../types'
+import type { ModelOption, TrChatProps } from '../types'
 
 const props = withDefaults(defineProps<TrChatProps>(), {
   placeholder: '请输入您的问题',
@@ -58,6 +58,13 @@ const chatKit = useChatKit({
   onError: props.onError,
 })
 
+const { selectModel } = useModelSelector({
+  currentModel: selectedModel,
+  models: computed(() => props.models ?? []),
+  providerFactories: computed(() => props.providerFactories),
+  chatKit,
+})
+
 // 监听 responseProvider 变化，动态更新
 watch(
   () => props.responseProvider,
@@ -68,21 +75,6 @@ watch(
   },
 )
 
-// 监听模型选择变化
-watch(selectedModel, (newModel) => {
-  if (props.models?.length && props.providerFactories?.length) {
-    const model = props.models.find((m) => m.value === newModel)
-    if (model) {
-      const factory = props.providerFactories.find((f) => f.match(model))
-      if (factory) {
-        chatKit.updateResponseProvider(factory.createProvider(model))
-        props.onModelChange?.(model)
-        emit('update:model', newModel)
-      }
-    }
-  }
-})
-
 const showWelcome = computed(() => chatKit.messages.value.length === 0)
 
 // 黑盒模式下自动处理引导词点击
@@ -90,35 +82,26 @@ function handlePromptClick(description: string) {
   chatKit.sendMessage(description)
 }
 
-// 获取默认 Bubble 配置
-const { contentMatches, boxMatches, roles: defaultRoles } = useDefaultBubbleConfig()
-
-// UI-RC1：默认 roleConfigs 合并（用户配置优先）
-const mergedRoleConfigs = computed(() => ({
-  ...defaultRoles,
-  ...props.roleConfigs,
-}))
-
 // UI-B1：Welcome 区 icon：优先 welcome.icon，fallback brand.logo
 const welcomeIcon = computed(() => props.welcome?.icon ?? props.brand?.logo)
 
 // BubbleList 允许的 slot 白名单
 const slots = useSlots() as Record<string, Slot | undefined>
-const bubbleSlots = computed<Partial<Record<string, Slot>>>(() =>
-  Object.fromEntries(
-    Object.entries(slots)
-      .filter(([name, slot]) => (BUBBLE_LIST_SLOTS as readonly string[]).includes(name) && slot !== undefined)
-      .map(([name, slot]) => [name, slot as Slot]),
-  ),
-)
+const bubbleSlots = useSlotFilter(slots, BUBBLE_LIST_SLOTS)
 
 // 是否显示模型选择器
-const showModelSelector = computed(() => props.models?.length && props.providerFactories?.length)
+const showModelSelector = computed(() => Boolean(props.models?.length && props.providerFactories?.length))
+
+function handleSelectedModelChange(model: ModelOption) {
+  selectModel(model)
+  props.onModelChange?.(model)
+  emit('update:model', model.value)
+}
 </script>
 
 <template>
-  <TrChatRoot :chat-kit="chatKit">
-    <div v-show="props.show !== false" class="tr-chat" :class="{ 'tr-chat--fullscreen': props.fullscreen }">
+  <TrChatRoot :chat-kit="chatKit" :mcp-manager="props.mcpManager">
+    <TrChatLayout v-show="props.show !== false" :fullscreen="props.fullscreen" :role-configs="props.roleConfigs">
       <!-- 顶部栏 -->
       <template v-if="$slots.header">
         <slot name="header" />
@@ -157,24 +140,21 @@ const showModelSelector = computed(() => props.models?.length && props.providerF
           <slot v-else name="empty" />
         </div>
 
-        <!-- UI-RC1：使用 mergedRoleConfigs 确保默认左右布局 + 内置 renderer -->
-        <BubbleProvider :box-renderer-matches="boxMatches" :content-renderer-matches="contentMatches">
-          <TrChatMessageList
-            :auto-scroll="props.autoScroll"
-            :role-configs="mergedRoleConfigs"
-            :group-strategy="props.groupStrategy"
-            v-bind="props.bubbleListProps"
-          >
-            <!-- 只透传 BubbleList 允许的 slots -->
-            <template v-for="(_, name) in bubbleSlots" #[name]="slotProps" :key="name">
-              <slot :name="name" v-bind="slotProps ?? {}" />
-            </template>
-            <!-- showFeedback 时自动在 assistant 消息下挂载 Feedback -->
-            <template v-if="props.showFeedback" #after="slotProps">
-              <TrChatFeedback v-if="slotProps.role === 'assistant'" v-bind="slotProps" />
-            </template>
-          </TrChatMessageList>
-        </BubbleProvider>
+        <TrChatMessageList
+          v-else
+          :auto-scroll="props.autoScroll"
+          :group-strategy="props.groupStrategy"
+          v-bind="props.bubbleListProps"
+        >
+          <!-- 只透传 BubbleList 允许的 slots -->
+          <template v-for="(_, name) in bubbleSlots" #[name]="slotProps" :key="name">
+            <slot :name="name" v-bind="slotProps ?? {}" />
+          </template>
+          <!-- showFeedback 时自动在 assistant 消息下挂载 Feedback -->
+          <template v-if="props.showFeedback" #after="slotProps">
+            <TrChatFeedback v-if="slotProps.role === 'assistant'" v-bind="slotProps" />
+          </template>
+        </TrChatMessageList>
       </template>
 
       <!-- 底部 -->
@@ -191,6 +171,7 @@ const showModelSelector = computed(() => props.models?.length && props.providerF
             v-model="selectedModel"
             :models="props.models!"
             :provider-factories="props.providerFactories!"
+            @change="handleSelectedModelChange"
           />
           <TrChatSender
             :placeholder="props.placeholder"
@@ -203,7 +184,7 @@ const showModelSelector = computed(() => props.models?.length && props.providerF
 
       <!-- 历史 Drawer -->
       <TrChatHistory v-if="props.showHistory" v-bind="props.historyProps" />
-    </div>
+    </TrChatLayout>
   </TrChatRoot>
 </template>
 

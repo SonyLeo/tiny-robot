@@ -1,27 +1,80 @@
-import { ref, computed } from 'vue'
-import type { Tool, ToolCall } from '@opentiny/tiny-robot-kit'
-import type { PluginInfo } from '@opentiny/tiny-robot'
+import { computed, ref } from 'vue'
+import type { MaybePromise, Tool, ToolCall } from '@opentiny/tiny-robot-kit'
+import type { PluginInfo, PluginTool } from '@opentiny/tiny-robot'
+
+export interface McpToolContext {
+  plugin: PluginInfo
+  tool: PluginTool
+  installedPlugins: PluginInfo[]
+}
+
+export interface McpPluginContext {
+  installedPlugins: PluginInfo[]
+}
+
+export interface UseMcpManagerBridge {
+  getTools?: (context: McpPluginContext) => MaybePromise<Tool[]>
+  callTool?: (toolCall: ToolCall, context: McpToolContext) => MaybePromise<string | Record<string, unknown>>
+  onPluginToggle?: (plugin: PluginInfo, enabled: boolean, context: McpPluginContext) => MaybePromise<void>
+  onToolToggle?: (plugin: PluginInfo, toolId: string, enabled: boolean, context: McpPluginContext) => MaybePromise<void>
+  onPluginCreate?: (type: 'form' | 'code', data: unknown, context: McpPluginContext) => MaybePromise<PluginInfo | void>
+  onPluginDelete?: (plugin: PluginInfo, context: McpPluginContext) => MaybePromise<void>
+}
+
+export interface UseMcpManagerOptions {
+  initialPlugins?: PluginInfo[]
+  bridge?: UseMcpManagerBridge
+}
+
+function clonePlugins(plugins: PluginInfo[]): PluginInfo[] {
+  return plugins.map((plugin) => ({
+    ...plugin,
+    tools: plugin.tools.map((tool) => ({ ...tool })),
+  }))
+}
+
+function createPluginContext(installedPlugins: PluginInfo[]): McpPluginContext {
+  return {
+    installedPlugins,
+  }
+}
+
+function normalizeToolResult(result: string | Record<string, unknown>): string {
+  return typeof result === 'string' ? result : JSON.stringify(result)
+}
+
+function createMissingBridgeError(toolName: string): string {
+  return JSON.stringify({
+    error: `No MCP bridge configured for tool "${toolName}"`,
+  })
+}
 
 /**
- * MCP 服务器和工具管理
- * 管理已安装的 MCP 服务器列表，派生出 toolPlugin 需要的 getTools 和 callTool 接口
+ * Manage installed MCP plugins and expose the minimal tool bridge that
+ * `toolPlugin` expects. The library owns state; actual tool execution can be
+ * delegated to the caller via the optional bridge callbacks.
  */
-export function useMcpManager() {
-  const installedPlugins = ref<PluginInfo[]>([])
+export function useMcpManager(options: UseMcpManagerOptions = {}) {
+  const installedPlugins = ref<PluginInfo[]>(clonePlugins(options.initialPlugins ?? []))
+  const bridge = options.bridge
 
-  /**
-   * 从 installedPlugins 派生出启用的工具列表（OpenAI Tool 格式）
-   */
   const getTools = async (): Promise<Tool[]> => {
+    if (bridge?.getTools) {
+      return await bridge.getTools(createPluginContext(installedPlugins.value))
+    }
+
     const tools: Tool[] = []
 
     for (const plugin of installedPlugins.value) {
-      if (!plugin.enabled) continue
+      if (!plugin.enabled) {
+        continue
+      }
 
       for (const tool of plugin.tools) {
-        if (!tool.enabled) continue
+        if (!tool.enabled) {
+          continue
+        }
 
-        // 将 PluginTool 转换为 OpenAI Tool 格式
         tools.push({
           type: 'function',
           function: {
@@ -40,89 +93,88 @@ export function useMcpManager() {
     return tools
   }
 
-  /**
-   * 执行工具调用
-   * 根据 tool name 找到对应的 plugin 和 tool，调用其 MCP 服务器
-   */
   const callTool = async (toolCall: ToolCall): Promise<string> => {
     const toolName = toolCall.function.name
     const [pluginId, toolId] = toolName.split('__')
 
-    const plugin = installedPlugins.value.find((p) => p.id === pluginId)
+    const plugin = installedPlugins.value.find((item) => item.id === pluginId)
     if (!plugin) {
       return JSON.stringify({ error: `Plugin not found: ${pluginId}` })
     }
 
-    const tool = plugin.tools.find((t) => t.id === toolId)
+    const tool = plugin.tools.find((item) => item.id === toolId)
     if (!tool) {
       return JSON.stringify({ error: `Tool not found: ${toolId}` })
     }
 
-    // TODO: 这里应该调用真实的 MCP 服务器
-    // 目前返回模拟数据
-    return JSON.stringify({
-      source: 'mcp-server',
-      plugin: plugin.name,
-      tool: tool.name,
-      result: `Mock result from ${plugin.name}/${tool.name}`,
-    })
+    if (!bridge?.callTool) {
+      return createMissingBridgeError(toolName)
+    }
+
+    return normalizeToolResult(
+      await bridge.callTool(toolCall, {
+        plugin,
+        tool,
+        installedPlugins: installedPlugins.value,
+      }),
+    )
   }
 
-  /**
-   * 处理插件启用/禁用
-   */
-  function handlePluginToggle(plugin: PluginInfo, enabled: boolean) {
-    const target = installedPlugins.value.find((p) => p.id === plugin.id)
+  async function handlePluginToggle(plugin: PluginInfo, enabled: boolean) {
+    const target = installedPlugins.value.find((item) => item.id === plugin.id)
     if (target) {
       target.enabled = enabled
-      // 父级被禁用时，禁用所有子级工具
       if (!enabled) {
         target.tools.forEach((tool) => {
           tool.enabled = false
         })
       }
     }
+
+    await bridge?.onPluginToggle?.(plugin, enabled, createPluginContext(installedPlugins.value))
   }
 
-  /**
-   * 处理工具启用/禁用
-   */
-  function handleToolToggle(plugin: PluginInfo, toolId: string, enabled: boolean) {
-    const target = installedPlugins.value.find((p) => p.id === plugin.id)
+  async function handleToolToggle(plugin: PluginInfo, toolId: string, enabled: boolean) {
+    const target = installedPlugins.value.find((item) => item.id === plugin.id)
     if (target) {
-      const tool = target.tools.find((t) => t.id === toolId)
+      const tool = target.tools.find((item) => item.id === toolId)
       if (tool) {
         tool.enabled = enabled
       }
     }
+
+    await bridge?.onToolToggle?.(plugin, toolId, enabled, createPluginContext(installedPlugins.value))
   }
 
-  /**
-   * 处理插件创建
-   */
-  function handlePluginCreate(type: 'form' | 'code', data: Record<string, unknown>) {
-    // TODO: 实现插件创建逻辑
-    console.log('Plugin create:', type, data)
-  }
+  async function handlePluginCreate(type: 'form' | 'code', data: unknown) {
+    const plugin = await bridge?.onPluginCreate?.(type, data, createPluginContext(installedPlugins.value))
+    if (!plugin) {
+      return
+    }
 
-  /**
-   * 处理插件删除
-   */
-  function handlePluginDelete(plugin: PluginInfo) {
-    const index = installedPlugins.value.findIndex((p) => p.id === plugin.id)
-    if (index > -1) {
-      installedPlugins.value.splice(index, 1)
+    const nextPlugin = clonePlugins([plugin])[0]
+    const existingIndex = installedPlugins.value.findIndex((item) => item.id === nextPlugin.id)
+    if (existingIndex >= 0) {
+      installedPlugins.value.splice(existingIndex, 1, nextPlugin)
+    } else {
+      installedPlugins.value.push(nextPlugin)
     }
   }
 
-  /**
-   * 启用的插件数量
-   */
+  async function handlePluginDelete(plugin: PluginInfo) {
+    const index = installedPlugins.value.findIndex((item) => item.id === plugin.id)
+    if (index >= 0) {
+      installedPlugins.value.splice(index, 1)
+    }
+
+    await bridge?.onPluginDelete?.(plugin, createPluginContext(installedPlugins.value))
+  }
+
   const activeCount = computed(() => {
-    return installedPlugins.value.filter((p) => p.enabled).length
+    return installedPlugins.value.filter((plugin) => plugin.enabled).length
   })
 
-  const result = {
+  return {
     installedPlugins,
     getTools,
     callTool,
@@ -132,8 +184,6 @@ export function useMcpManager() {
     handlePluginDelete,
     activeCount,
   }
-
-  return result
 }
 
 export type UseMcpManagerReturn = ReturnType<typeof useMcpManager>

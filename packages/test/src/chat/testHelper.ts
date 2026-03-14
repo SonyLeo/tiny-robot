@@ -71,6 +71,23 @@ export function createChatTestHelper(page: Page, options: ChatTestHelperOptions 
     await btn.click()
   }
 
+  /** 打开模型选择器 */
+  const openModelSelector = async (root: string = selectors.blackboxChat) => {
+    const trigger = page.locator(root).locator(selectors.modelSelectorTrigger)
+    await trigger.waitFor({ state: 'visible', timeout: defaultTimeout })
+    await trigger.click()
+  }
+
+  /** 选择模型 */
+  const selectModel = async (label: string, root: string = selectors.blackboxChat) => {
+    await openModelSelector(root)
+    const option = page.locator('.tr-model-selector__dropdown-wrapper').locator(selectors.modelSelectorOption, {
+      hasText: label,
+    })
+    await option.waitFor({ state: 'visible', timeout: defaultTimeout })
+    await option.click()
+  }
+
   // =====================
   //  欢迎页 & 引导词
   // =====================
@@ -319,6 +336,8 @@ export function createChatTestHelper(page: Page, options: ChatTestHelperOptions 
     clickSend,
     sendMessage,
     clickAbort,
+    openModelSelector,
+    selectModel,
 
     // 欢迎页
     expectWelcomeVisible,

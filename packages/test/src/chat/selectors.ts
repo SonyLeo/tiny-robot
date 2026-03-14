@@ -35,6 +35,8 @@ export const CHAT_SELECTORS = {
   senderInput: '.tiptap',
   senderSubmitBtn: '.tr-sender-submit-button',
   senderCancelBtn: '.tr-sender-submit-button__cancel',
+  modelSelectorTrigger: '.tr-model-selector__trigger',
+  modelSelectorOption: '.tr-model-selector__option',
 
   // === BubbleList / Messages ===
   bubbleList: '.tr-bubble-list',

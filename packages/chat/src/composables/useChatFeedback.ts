@@ -1,19 +1,19 @@
-import { inject, computed, h } from 'vue'
+import { computed, h } from 'vue'
 import { useClipboard } from '@vueuse/core'
 import { IconEditPen } from '@opentiny/tiny-robot-svgs'
 import { IconButton } from '@opentiny/tiny-robot'
 import type { BubbleMessage, FeedbackProps } from '@opentiny/tiny-robot'
-import { CHAT_KIT_KEY } from '../context'
+import type { UseChatKitReturn } from '../types'
 
 export interface UseChatFeedbackOptions {
   messages: BubbleMessage[]
   messageIndexes: number[]
   role?: string
+  chatKit?: UseChatKitReturn | null
 }
 
 export function useChatFeedback(options: UseChatFeedbackOptions) {
-  const { messages, messageIndexes, role } = options
-  const chatKit = inject(CHAT_KIT_KEY)!
+  const { messages, messageIndexes, role, chatKit = null } = options
   const { copy } = useClipboard()
 
   // 取该组最后一条 assistant 消息的文本内容（用于复制）
@@ -25,6 +25,7 @@ export function useChatFeedback(options: UseChatFeedbackOptions) {
 
   // 取触发本轮回答的最后一条 user 消息内容（用于重新生成）
   const lastUserContent = computed(() => {
+    if (!chatKit) return ''
     const allMessages = chatKit.messages.value
     // 找到本组第一条消息之前最近的 user 消息
     const firstIndex = messageIndexes[0] ?? 0
@@ -44,7 +45,9 @@ export function useChatFeedback(options: UseChatFeedbackOptions) {
     return typeof userMsg.content === 'string' ? userMsg.content : JSON.stringify(userMsg.content)
   })
 
-  const isStreaming = computed(() => chatKit.status.value === 'streaming' || chatKit.status.value === 'submitted')
+  const isStreaming = computed(() =>
+    chatKit ? chatKit.status.value === 'streaming' || chatKit.status.value === 'submitted' : false,
+  )
 
   // 根据角色生成对应的 actions
   const feedbackActions = computed<FeedbackProps['actions']>(() => {
@@ -76,7 +79,7 @@ export function useChatFeedback(options: UseChatFeedbackOptions) {
       return true
     } else {
       // Assistant 消息的重新生成
-      if (isStreaming.value || !lastUserContent.value) return false
+      if (!chatKit || isStreaming.value || !lastUserContent.value) return false
       chatKit.sendMessage(lastUserContent.value)
       return false
     }

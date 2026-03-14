@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, computed, inject } from 'vue'
-import { CHAT_KIT_KEY } from '../context'
+import { ref, computed } from 'vue'
+import type { ModelOption, ModelProviderFactory } from '../types'
 import { getProviderIcon } from '../utils/iconMap'
-import { ModelOption, ModelProviderFactory } from '../types'
+import { useModelSelector } from '../composables'
 import { useFloatingDropdown } from '../composables/useFloatingDropdown'
 import { useKeyboardNavigation } from '../composables/useKeyboardNavigation'
 
@@ -21,6 +21,13 @@ const referenceEl = ref<HTMLElement | null>(null)
 const floatingEl = ref<HTMLElement | null>(null)
 
 const { isOpen } = useFloatingDropdown(referenceEl, floatingEl)
+const { currentProvider, selectModel } = useModelSelector({
+  currentModel,
+  models: computed(() => props.models),
+  onChange: (model) => {
+    emit('change', model)
+  },
+})
 
 const { highlightedIndex, setHighlightedIndex } = useKeyboardNavigation({
   enabled: isOpen,
@@ -34,28 +41,14 @@ const { highlightedIndex, setHighlightedIndex } = useKeyboardNavigation({
   },
 })
 
-const chatKit = inject(CHAT_KIT_KEY, null)
-
 function handleSelectModel(model: ModelOption) {
-  if (model.disabled) return
-  currentModel.value = model.value
-
-  if (chatKit && props.providerFactories?.length) {
-    const factory = props.providerFactories.find((f) => f.match(model))
-    if (factory) {
-      chatKit.updateResponseProvider(factory.createProvider(model))
-    }
-  }
-
+  selectModel(model)
   isOpen.value = false
-  // emit 作为补充通知，供外层做埋点、清空消息等额外业务逻辑
-  emit('change', model)
 }
 
-// 打开时高亮当前选中的模型
 const handleOpenDropdown = () => {
   isOpen.value = true
-  const currentIndex = props.models.findIndex((m) => m.value === currentModel.value)
+  const currentIndex = props.models.findIndex((model) => model.value === currentModel.value)
   setHighlightedIndex(currentIndex >= 0 ? currentIndex : 0)
 }
 
@@ -68,19 +61,12 @@ function toggleDropdown() {
 }
 
 function handleMouseEnter(index: number) {
-  if (props.models[index]?.disabled) return
+  if (props.models[index]?.disabled) {
+    return
+  }
+
   highlightedIndex.value = index
 }
-
-// 计算当前选中模型的完整对象
-const currentModelOption = computed(() => {
-  return props.models.find((m) => m.value === currentModel.value)
-})
-
-// 获取当前模型的图标
-const currentProvider = computed(() => {
-  return currentModelOption.value ? getProviderIcon(currentModelOption.value) : null
-})
 </script>
 
 <template>

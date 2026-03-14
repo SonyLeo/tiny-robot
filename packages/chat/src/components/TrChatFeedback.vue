@@ -22,6 +22,7 @@ const { feedbackActions, handleCopyAction, handleRefreshAction, userContent } = 
   messages: props.messages,
   messageIndexes: props.messageIndexes,
   role: props.role,
+  chatKit,
 })
 
 // 检查当前消息是否在编辑态
@@ -51,8 +52,8 @@ function handleAction(name: string) {
   <TrFeedback v-if="!isEditing" :actions="feedbackActions" @action="handleAction" />
 </template>
 
-<style>
-.tr-feedback .tr-feedback__operations {
+<style scoped>
+:deep(.tr-feedback .tr-feedback__operations) {
   justify-content: flex-start !important;
   padding: 0 2px;
 }

@@ -19,7 +19,8 @@ if (!mcpManager) {
   throw new Error('mcpManager not provided')
 }
 
-const { installedPlugins, handlePluginToggle, handleToolToggle, handlePluginDelete, activeCount } = mcpManager
+const { installedPlugins, handlePluginToggle, handleToolToggle, handlePluginCreate, handlePluginDelete, activeCount } =
+  mcpManager
 
 const handlePluginToggleEvent = (plugin: PluginInfo, enabled: boolean) => {
   handlePluginToggle(plugin, enabled)
@@ -31,6 +32,10 @@ const handleToolToggleEvent = (plugin: PluginInfo, toolId: string, enabled: bool
 
 const handlePluginDeleteEvent = (plugin: PluginInfo) => {
   handlePluginDelete(plugin)
+}
+
+const handlePluginCreateEvent = (type: 'form' | 'code', data: unknown) => {
+  handlePluginCreate(type, data)
 }
 </script>
 
@@ -57,6 +62,7 @@ const handlePluginDeleteEvent = (plugin: PluginInfo) => {
       @update:visible="emit('update:visible', $event)"
       @plugin-toggle="(plugin, enabled) => handlePluginToggleEvent(plugin, enabled)"
       @tool-toggle="(plugin, toolId, enabled) => handleToolToggleEvent(plugin, toolId, enabled)"
+      @plugin-create="handlePluginCreateEvent"
       @plugin-delete="handlePluginDeleteEvent"
     />
   </div>

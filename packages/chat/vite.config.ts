@@ -14,9 +14,11 @@ export default defineConfig({
   ],
   build: {
     lib: {
-      entry: './src/index.ts',
+      entry: {
+        index: './src/index.ts',
+        internal: './src/internal.ts',
+      },
       formats: ['es'],
-      fileName: () => 'index.js',
     },
     cssMinify: true,
     minify: true,
