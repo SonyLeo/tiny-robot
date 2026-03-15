@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { useBubbleContentRenderer, type BubbleContentRendererProps } from '@opentiny/tiny-robot'
-import { computed } from 'vue'
+import { computed, inject } from 'vue'
+import { CHAT_KIT_KEY } from '../../context'
+import { CHAT_MESSAGES } from '../../messages'
+import type { UseChatKitReturn } from '../../types'
 
 const props = defineProps<
   BubbleContentRendererProps<
@@ -8,12 +11,15 @@ const props = defineProps<
     {
       error?: {
         message?: string
+        retryable?: boolean
       }
     }
   >
 >()
 
 const error = computed(() => props.message.state?.error)
+const chatKit = inject<UseChatKitReturn | null>(CHAT_KIT_KEY, null)
+const canRetry = computed(() => Boolean(error.value?.retryable && chatKit?.lastError.value?.retryable))
 const messageWithoutError = computed(() => {
   return {
     ...props.message,
@@ -25,12 +31,26 @@ const messageWithoutError = computed(() => {
 })
 
 const renderer = useBubbleContentRenderer(messageWithoutError, props.contentIndex)
+
+function handleRetry() {
+  if (!chatKit || !canRetry.value) return
+  void chatKit.retry()
+}
 </script>
 
 <template>
   <component :is="renderer" v-bind="props" :message="messageWithoutError" />
   <div class="error-renderer">
-    <code>{{ error?.message || 'An error occurred' }}</code>
+    <code>{{ error?.message || CHAT_MESSAGES.error.defaultMessage }}</code>
+    <button
+      v-if="canRetry"
+      class="error-renderer__retry"
+      data-testid="chat-error-retry"
+      type="button"
+      @click="handleRetry"
+    >
+      {{ CHAT_MESSAGES.error.retry }}
+    </button>
   </div>
 </template>
 
@@ -41,5 +61,18 @@ const renderer = useBubbleContentRenderer(messageWithoutError, props.contentInde
   margin: 0.25rem 0;
   background-color: var(--rc-color-danger-light);
   border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.error-renderer__retry {
+  border: 1px solid var(--tr-color-primary, #1476ff);
+  background: #fff;
+  color: var(--tr-color-primary, #1476ff);
+  border-radius: 999px;
+  padding: 4px 12px;
+  cursor: pointer;
 }
 </style>

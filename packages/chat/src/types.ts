@@ -24,6 +24,16 @@ export type UseMessageResponseProvider = UseMessageOptions['responseProvider']
 //   error → 'error'
 export type ChatStatus = 'ready' | 'submitted' | 'streaming' | 'error'
 
+export type ChatErrorType = 'network' | 'auth' | 'rate_limit' | 'timeout' | 'server' | 'provider' | 'unknown'
+
+export interface ChatErrorInfo {
+  type: ChatErrorType
+  message: string
+  retryable: boolean
+  statusCode?: number
+  originalError?: unknown
+}
+
 // ===== useChatKit 选项 =====
 export interface UseChatKitOptions {
   responseProvider: ResponseProvider
@@ -48,6 +58,7 @@ export interface UseChatKitReturn extends Pick<
   conversations: UseConversationReturn['conversations']
   messages: ComputedRef<ChatMessage[]>
   status: ComputedRef<ChatStatus>
+  lastError: ComputedRef<ChatErrorInfo | null>
   sendMessage: (content: string, data?: StructuredData) => void
   startEditMessage: (messageIndex: number) => void
   cancelEditMessage: (messageIndex: number) => void
@@ -55,6 +66,7 @@ export interface UseChatKitReturn extends Pick<
   editMessage: (messageIndex: number, newContent: string) => void
   updateResponseProvider: (provider: ResponseProvider) => void
   abort: () => Promise<void>
+  retry: () => Promise<boolean>
 }
 
 // ===== 品牌配置 =====
@@ -70,6 +82,53 @@ export interface WelcomeConfig {
   title: string
   description?: string
   icon?: VNode | Component
+}
+
+export interface ChatMessages {
+  header: {
+    newChat: string
+    openHistory: string
+    closeHistory: string
+    enterFullscreen: string
+    exitFullscreen: string
+    close: string
+  }
+  history: {
+    newSession: string
+    manage: string
+    done: string
+    defaultConversationTitle: string
+    searchPlaceholder: string
+    deleteSelected: string
+    cancel: string
+  }
+  sender: {
+    placeholder: string
+  }
+  feedback: {
+    copy: string
+    edit: string
+    regenerate: string
+    like: string
+    dislike: string
+  }
+  editMessage: {
+    placeholder: string
+    cancel: string
+    save: string
+    saving: string
+  }
+  toolCall: {
+    running: string
+    success: string
+    failed: string
+    cancelled: string
+    untitled: string
+  }
+  error: {
+    defaultMessage: string
+    retry: string
+  }
 }
 
 export interface TrChatProps {
@@ -156,6 +215,7 @@ export interface TrChatMessageListProps {
 
 export interface TrChatSenderProps {
   mode?: 'single' | 'multiple'
+  placeholder?: string
 }
 
 // ===== Provider 工厂函数选项 =====

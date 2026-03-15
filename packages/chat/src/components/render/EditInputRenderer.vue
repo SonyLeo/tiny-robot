@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { CHAT_KIT_KEY } from '../../context'
-import type { UseChatKitReturn } from '../../types'
-import { ref, nextTick, onMounted, watch, inject } from 'vue'
+import { nextTick, onMounted, ref, watch, inject } from 'vue'
 import { useMessageContent, type BubbleContentRendererProps } from '@opentiny/tiny-robot'
+import { CHAT_KIT_KEY } from '../../context'
+import { CHAT_MESSAGES } from '../../messages'
+import type { UseChatKitReturn } from '../../types'
 
 const props = defineProps<BubbleContentRendererProps>()
 const chatKit = inject<UseChatKitReturn>(CHAT_KIT_KEY)
@@ -13,7 +14,6 @@ const localContent = ref(contentText.value || '')
 const textareaRef = ref<HTMLTextAreaElement>()
 const isSaving = ref(false)
 
-// 确保消息有 state 对象
 watch(
   () => props.message,
   (message) => {
@@ -28,29 +28,25 @@ const adjustHeight = async () => {
   await nextTick()
   if (textareaRef.value) {
     textareaRef.value.style.height = 'auto'
-    textareaRef.value.style.height = textareaRef.value.scrollHeight + 'px'
+    textareaRef.value.style.height = `${textareaRef.value.scrollHeight}px`
   }
 }
 
 const handleSave = async () => {
   if (!localContent.value.trim()) {
-    console.warn('消息内容不能为空')
+    console.warn('Message content cannot be empty')
     return
   }
 
   isSaving.value = true
   try {
-    // 找到当前消息在消息列表中的索引
-    const messageIndex = chatKit!.messages.value.findIndex((msg) => msg === props.message)
-
+    const messageIndex = chatKit!.messages.value.findIndex((message) => message === props.message)
     if (messageIndex === -1) {
-      console.error('无法找到当前消息')
+      console.error('Current message could not be found')
       return
     }
 
-    // 退出编辑状态
     chatKit!.cancelEditMessage(messageIndex)
-
     await nextTick()
     chatKit!.editMessage(messageIndex, localContent.value)
   } finally {
@@ -59,10 +55,8 @@ const handleSave = async () => {
 }
 
 const handleCancel = () => {
-  // 找到当前消息在消息列表中的索引
-  const messageIndex = chatKit!.messages.value.findIndex((msg) => msg === props.message)
+  const messageIndex = chatKit!.messages.value.findIndex((message) => message === props.message)
   if (messageIndex !== -1) {
-    // 退出编辑状态，不保存内容
     chatKit!.cancelEditMessage(messageIndex)
   }
 }
@@ -88,20 +82,20 @@ onMounted(() => {
       <div class="edit-textarea-wrapper">
         <textarea
           ref="textareaRef"
-          rows="1"
           v-model="localContent"
+          rows="1"
           @keydown="handleKeydown"
           @input="adjustHeight"
-          placeholder="编辑消息内容..."
+          :placeholder="CHAT_MESSAGES.editMessage.placeholder"
           autofocus
         />
       </div>
       <div class="edit-input-actions">
         <button class="cancel-btn" @click="handleCancel">
-          <span>取消</span>
+          <span>{{ CHAT_MESSAGES.editMessage.cancel }}</span>
         </button>
         <button class="save-btn" @click="handleSave" :disabled="isSaving">
-          <span>{{ isSaving ? '保存中...' : '保存' }}</span>
+          <span>{{ isSaving ? CHAT_MESSAGES.editMessage.saving : CHAT_MESSAGES.editMessage.save }}</span>
         </button>
       </div>
     </div>
@@ -174,7 +168,6 @@ onMounted(() => {
   }
 }
 
-// 滑动动画
 .slide-in-right-enter {
   &-active {
     transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);

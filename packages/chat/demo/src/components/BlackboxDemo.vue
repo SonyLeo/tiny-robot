@@ -4,6 +4,7 @@ import { toolPlugin } from '@opentiny/tiny-robot-kit'
 import { defaultMcpServers } from '../data/mcpServers'
 import { WELCOME_CONFIG, PROMPTS, BRAND_CONFIG } from '../constants'
 import { createDemoMcpBridge } from '../utils/mcpBridge'
+import { wrapDemoRetryProviderFactories } from '../utils/demoRetryProvider'
 
 defineEmits<{
   error: [error: Error]
@@ -60,11 +61,14 @@ const toolPluginInstance = toolPlugin({
   callTool: mcpManager.callTool,
 })
 
+const demoProviderFactories = wrapDemoRetryProviderFactories(chatAdapter.providerFactories)
+
 function handleError(error: Error) {
   console.error('Chat error:', error)
 }
 
 const chatPreset = createPresetChatProps(chatAdapter, {
+  providerFactories: demoProviderFactories,
   mcpManager,
   plugins: [toolPluginInstance],
   showFeedback: true,

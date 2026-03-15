@@ -68,7 +68,7 @@
       </div>
 
       <TrChat.Root :chat-kit="chat">
-        <div class="tr-chat" style="height: calc(100vh - 120px)">
+        <TrChat.Layout :fullscreen="false">
           <TrChat.Header show-history />
 
           <TrChat.Welcome
@@ -94,7 +94,7 @@
           </TrChat.Footer>
 
           <TrChat.History />
-        </div>
+        </TrChat.Layout>
       </TrChat.Root>
     </div>
   </div>
@@ -129,13 +129,6 @@ const edgeResponseProvider = async function* (
   body: unknown,
   signal: AbortSignal,
 ): AsyncGenerator<ChatCompletion, void, unknown> {
-  const request = body as { messages?: Array<{ content?: string }> }
-  const userMsg = request.messages?.[request.messages.length - 1]?.content
-
-  if (userMsg === 'err') {
-    throw new Error('Mock API Error: provider execution failed')
-  }
-
   const stream = await edgeBaseProvider(body as never, signal)
   yield* stream as AsyncGenerator<ChatCompletion, void, unknown>
 }

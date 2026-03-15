@@ -4,6 +4,9 @@
 
 // 核心 composables
 export { useChatKit } from './useChatKit'
+export { useChatConversation } from './useChatConversation'
+export { useChatRequest } from './useChatRequest'
+export { useChatMessages } from './useChatMessages'
 export { useDefaultBubbleConfig } from './useDefaultBubbleConfig'
 export { useMcpManager } from './useMcpManager'
 export { useModelSelector } from './useModelSelector'

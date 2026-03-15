@@ -121,7 +121,7 @@ packages/chat/src/
 │   ├── TrModelSelector.vue     ← 模型选择器
 │   ├── TrChatMcpPanel.vue      ← MCP 面板
 │   ├── history/                ← 历史记录子组件
-│   ├── icons/                  ← Provider 图标 (11 个 SVG 组件)
+│   ├── icons/                  ← 兼容保留，运行时图标已迁至 `@opentiny/tiny-robot-svgs`
 │   └── render/                 ← Bubble 内容渲染器 (6 个)
 ├── composables/
 │   ├── useChatKit.ts           ← 核心状态管理 (188 行)
@@ -359,7 +359,7 @@ export { CHAT_KIT_KEY, MCP_MANAGER_KEY, CHAT_UI_KEY } from './context'
 
 #### P1-5：icons 目录膨胀 + 职责越界
 
-**位置**：[icons/](file:///d:/OpenTinyRepository/tiny-robot/packages/chat/src/components/icons)
+**位置**：`packages/chat/src/utils/iconMap.ts`（运行时映射） + `packages/chat/src/components/icons`（兼容保留目录）
 
 **问题描述**：
 
@@ -372,6 +372,12 @@ export { CHAT_KIT_KEY, MCP_MANAGER_KEY, CHAT_UI_KEY } from './context'
 
 方案一：迁移到 `@opentiny/tiny-robot-svgs`
 方案二：`ModelOption` 增加 `icon` 字段，用户自行传入
+
+**当前实施状态**：
+
+- 已完成迁移：内置 provider icon 运行时来源统一为 `@opentiny/tiny-robot-svgs`
+- 已保留扩展点：`ModelOption.icon`
+- 兼容清理待办：`packages/chat/src/components/icons` 可在稳定观察期后移除
 
 #### P1-6：useMcpManager 含大量 Mock 代码
 
@@ -395,9 +401,9 @@ export { CHAT_KIT_KEY, MCP_MANAGER_KEY, CHAT_UI_KEY } from './context'
 
 `BubbleRendererMatchType` 系列类型与 `@opentiny/tiny-robot` 导出的 `BubbleContentRendererMatch` 是重复定义。建议删除，统一使用 tiny-robot 导出的类型。
 
-#### P2-2：i18n 硬编码
+#### P2-2：文案硬编码
 
-UI 文案全部硬编码中文（`"新建对话"`, `"复制"`, `"重新生成"` 等）。作为 SDK 会限制国际化场景。建议通过 props 暴露文案，提供中文默认值。
+UI 文案全部硬编码中文（`"新建对话"`, `"复制"`, `"重新生成"` 等）。作为 SDK 会限制后续国际化场景。建议先统一抽取到资源文件中，作为后期整体国际化的基座；待上游组件具备一致的国际化能力后，再做 runtime i18n 接入。
 
 #### P2-3：Less 选型与主包 tiny-robot 不一致
 
@@ -505,7 +511,7 @@ const chatKit = useChatKit({ responseProvider: myProvider })
 | **S3** | useMcpManager 去 mock 化 | P1-6 修复，callTool 改为必须参数 |
 | **S4** | responseProvider 补回归测试 | P1-0 修复（短期补测试，长期协调 kit 层接口） |
 | **S5** | Less -> 纯 CSS 迁移 | P2-3 修复 |
-| **S6** | i18n 文案机制 | P2-2 修复 |
+| **S6** | 文案资源基座 | P2-2 修复 |
 | **S7** | Provider 安全分层 | P0-4 进一步：提供 ServerProxyProvider + chat-cli 默认使用 BFF 模式 |
 | **S8** | manifest/config 契约定义 | 见 5.4 节 |
 
@@ -526,7 +532,7 @@ packages/chat/src/
 │   ├── TrModelSelector.vue
 │   ├── TrChatMcpPanel.vue
 │   ├── history/
-│   ├── icons/
+│   ├── icons/                  ← legacy cleanup target，运行时不再作为主来源
 │   └── render/
 ├── composables/
 │   ├── index.ts
@@ -638,7 +644,7 @@ const preset = createPresetChatProps(adapter)
 | P1-5 | 🟡 | icons 职责越界 | S2 | Phase 2 |
 | P1-6 | 🟡 | useMcpManager mock 代码 | S3 | Phase 2 |
 | P2-1 | 🔵 | 冗余类型定义 | F9 | Phase 1 |
-| P2-2 | 🔵 | i18n 硬编码 | S6 | Phase 2 |
+| P2-2 | 🔵 | 文案硬编码 | S6 | Phase 2 |
 | P2-3 | 🔵 | Less 选型不一致 | S5 | Phase 2 |
 | P2-4 | 🔵 | useFloatingDropdown DOM 操作 | Backlog | Phase 2+ |
 
@@ -688,7 +694,7 @@ const preset = createPresetChatProps(adapter)
 - `useModelSelector`、`useMcpManager` 等能力解耦
 - provider 安全分层与 BFF 推荐路径
 - `manifest/config -> adapter -> preset UI` 公共契约
-- 测试补充、样式与 i18n 收敛
+- 测试补充、样式与文案资源收敛
 - 为后续高级能力预留稳定扩展点
 
 **验收标准**：

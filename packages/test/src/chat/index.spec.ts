@@ -222,9 +222,8 @@ test.describe('Chat 黑盒模式测试', () => {
   // --- Edge Cases / 文档扩展能力测试 ---
 
   test.describe('黑盒边缘/扩展场景', () => {
-    test.beforeEach(async ({ page }: { page: Page }) => {
-      // 切换到专门挂载了边缘 Props 和定制属性的组件
-      await page.click('text=边缘用例测试')
+    test.beforeEach(async () => {
+      await helper.switchToBlackboxEdge()
     })
 
     test('全屏: 点击全屏按钮应使组件变成 fixed 定位全屏态', async ({ page }) => {
@@ -281,7 +280,7 @@ test.describe('Chat 黑盒模式测试', () => {
 
       await expect(headerBtn).toBeVisible()
       await expect(footerExtra).toBeVisible()
-      await expect(footerExtra).toHaveText('这是Footer额外区域')
+      await expect(footerExtra).toHaveText('这是 Footer 额外区域')
     })
 
     test('异常流: 发送特定文本触发 error 事件且记录回调日志', async ({ page }) => {
@@ -291,7 +290,21 @@ test.describe('Chat 黑盒模式测试', () => {
 
       // 等待抛出异常被截获
       const errLog = page.getByTestId('on-error-log')
-      await expect(errLog).toContainText('error:Mock API Error: 模拟请求失败')
+      await expect(errLog).toContainText('error:Mock API Error: provider execution failed')
+    })
+
+    test('retry button should retry failed request', async ({ page }) => {
+      const root = 'div[data-testid="chat-blackbox-edge"] .tr-chat'
+      await helper.sendMessage('err', root)
+
+      const retryButton = page.locator(root).getByTestId('chat-error-retry')
+      await expect(retryButton).toBeVisible()
+
+      await retryButton.click()
+      await helper.waitForAssistantReply(root)
+
+      const contents = page.locator(root).locator(helper.selectors.bubbleContent)
+      await expect(contents.last()).toContainText('[edge-provider:edge-model] err')
     })
   })
 })
@@ -448,6 +461,6 @@ test.describe('Chat 白盒模式测试', () => {
     await helper.sendMessage('err', root)
 
     const finishLog = page.getByTestId('on-finish-log')
-    await expect(finishLog).toContainText('error:Mock API Error: 模拟请求失败')
+    await expect(finishLog).toContainText('error:Mock API Error: provider execution failed')
   })
 })

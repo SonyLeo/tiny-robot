@@ -1,21 +1,21 @@
 <script setup lang="ts">
-import { computed, watch, useSlots, type Slot, ref } from 'vue'
+import { computed, ref, useSlots, watch, type Slot } from 'vue'
 import { useChatKit, useModelSelector, useSlotFilter } from '../composables'
-import TrChatRoot from './TrChatRoot.vue'
-import TrChatLayout from './TrChatLayout.vue'
-import TrChatHeader from './TrChatHeader.vue'
-import TrChatWelcome from './TrChatWelcome.vue'
-import TrChatMessageList from './TrChatMessageList.vue'
-import TrChatFooter from './TrChatFooter.vue'
-import TrChatSender from './TrChatSender.vue'
-import TrChatFeedback from './TrChatFeedback.vue'
-import TrModelSelector from './TrModelSelector.vue'
-import { TrChatHistory } from './history'
 import { BUBBLE_LIST_SLOTS } from '../context'
+import { CHAT_MESSAGES } from '../messages'
 import type { ModelOption, TrChatProps } from '../types'
+import TrChatFooter from './TrChatFooter.vue'
+import TrChatFeedback from './TrChatFeedback.vue'
+import TrChatHeader from './TrChatHeader.vue'
+import { TrChatHistory } from './history'
+import TrChatLayout from './TrChatLayout.vue'
+import TrChatMessageList from './TrChatMessageList.vue'
+import TrChatRoot from './TrChatRoot.vue'
+import TrChatSender from './TrChatSender.vue'
+import TrChatWelcome from './TrChatWelcome.vue'
+import TrModelSelector from './TrModelSelector.vue'
 
 const props = withDefaults(defineProps<TrChatProps>(), {
-  placeholder: '请输入您的问题',
   autoScroll: true,
   showHistory: false,
   enableFullscreen: false,
@@ -29,26 +29,22 @@ const emit = defineEmits<{
   (e: 'update:model', value: string): void
 }>()
 
-// 模型选择状态
 const selectedModel = ref<string>(props.defaultModel || props.models?.[0]?.value || '')
 
-// 获取初始 responseProvider
 const getInitialProvider = () => {
-  // 如果有 models + providerFactories，从工厂创建
   if (props.models?.length && props.providerFactories?.length && selectedModel.value) {
-    const model = props.models.find((m) => m.value === selectedModel.value)
+    const model = props.models.find((item) => item.value === selectedModel.value)
     if (model) {
-      const factory = props.providerFactories.find((f) => f.match(model))
+      const factory = props.providerFactories.find((item) => item.match(model))
       if (factory) {
         return factory.createProvider(model)
       }
     }
   }
-  // 否则使用传入的 responseProvider
+
   return props.responseProvider
 }
 
-// 黑盒模式：内部创建 chatKit 实例，传给 Root（模式 B）
 const chatKit = useChatKit({
   responseProvider: getInitialProvider()!,
   plugins: props.plugins,
@@ -65,7 +61,6 @@ const { selectModel } = useModelSelector({
   chatKit,
 })
 
-// 监听 responseProvider 变化，动态更新
 watch(
   () => props.responseProvider,
   (newProvider) => {
@@ -76,21 +71,16 @@ watch(
 )
 
 const showWelcome = computed(() => chatKit.messages.value.length === 0)
-
-// 黑盒模式下自动处理引导词点击
-function handlePromptClick(description: string) {
-  chatKit.sendMessage(description)
-}
-
-// UI-B1：Welcome 区 icon：优先 welcome.icon，fallback brand.logo
 const welcomeIcon = computed(() => props.welcome?.icon ?? props.brand?.logo)
+const senderPlaceholder = computed(() => props.placeholder ?? CHAT_MESSAGES.sender.placeholder)
+const showModelSelector = computed(() => Boolean(props.models?.length && props.providerFactories?.length))
 
-// BubbleList 允许的 slot 白名单
 const slots = useSlots() as Record<string, Slot | undefined>
 const bubbleSlots = useSlotFilter(slots, BUBBLE_LIST_SLOTS)
 
-// 是否显示模型选择器
-const showModelSelector = computed(() => Boolean(props.models?.length && props.providerFactories?.length))
+function handlePromptClick(description: string) {
+  chatKit.sendMessage(description)
+}
 
 function handleSelectedModelChange(model: ModelOption) {
   selectModel(model)
@@ -102,11 +92,9 @@ function handleSelectedModelChange(model: ModelOption) {
 <template>
   <TrChatRoot :chat-kit="chatKit" :mcp-manager="props.mcpManager">
     <TrChatLayout v-show="props.show !== false" :fullscreen="props.fullscreen" :role-configs="props.roleConfigs">
-      <!-- 顶部栏 -->
       <template v-if="$slots.header">
         <slot name="header" />
       </template>
-      <!-- UI-B1：将 brand.title 传给 Header，UI-S1: full-screen / close 支持 -->
       <TrChatHeader
         v-else
         :show-history="props.showHistory"
@@ -122,7 +110,6 @@ function handleSelectedModelChange(model: ModelOption) {
         </template>
       </TrChatHeader>
 
-      <!-- 消息区 / 欢迎页 -->
       <template v-if="$slots['message-list']">
         <slot name="message-list" :messages="chatKit.messages" />
       </template>
@@ -146,20 +133,24 @@ function handleSelectedModelChange(model: ModelOption) {
           :group-strategy="props.groupStrategy"
           v-bind="props.bubbleListProps"
         >
-          <!-- 只透传 BubbleList 允许的 slots -->
           <template v-for="(_, name) in bubbleSlots" #[name]="slotProps" :key="name">
             <slot :name="name" v-bind="slotProps ?? {}" />
           </template>
-          <!-- showFeedback 时自动在 assistant 消息下挂载 Feedback -->
           <template v-if="props.showFeedback" #after="slotProps">
             <TrChatFeedback v-if="slotProps.role === 'assistant'" v-bind="slotProps" />
           </template>
         </TrChatMessageList>
       </template>
 
-      <!-- 底部 -->
       <template v-if="$slots.sender">
-        <slot name="sender" :send="chatKit.sendMessage" :abort="chatKit.abort" :status="chatKit.status" />
+        <slot
+          name="sender"
+          :send="chatKit.sendMessage"
+          :abort="chatKit.abort"
+          :status="chatKit.status"
+          :last-error="chatKit.lastError"
+          :retry="chatKit.retry"
+        />
       </template>
       <TrChatFooter v-else>
         <template v-if="$slots['footer-extra']" #extra>
@@ -174,7 +165,7 @@ function handleSelectedModelChange(model: ModelOption) {
             @change="handleSelectedModelChange"
           />
           <TrChatSender
-            :placeholder="props.placeholder"
+            :placeholder="senderPlaceholder"
             :max-length="props.maxLength"
             :mode="props.senderMode"
             v-bind="props.senderProps"
@@ -182,7 +173,6 @@ function handleSelectedModelChange(model: ModelOption) {
         </div>
       </TrChatFooter>
 
-      <!-- 历史 Drawer -->
       <TrChatHistory v-if="props.showHistory" v-bind="props.historyProps" />
     </TrChatLayout>
   </TrChatRoot>

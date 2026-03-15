@@ -1,14 +1,14 @@
 import type { Component } from 'vue'
 import {
-  OpenaiIcon,
-  ClaudeIcon,
-  DeepseekIcon,
-  GeminiIcon,
-  BailianIcon,
-  ModelscopeIcon,
-  OpenrouterIcon,
-  OllamaIcon,
-} from '../components/icons'
+  IconOpenai,
+  IconClaude,
+  IconDeepseek,
+  IconGemini,
+  IconBailian,
+  IconModelscope,
+  IconOpenrouter,
+  IconOllama,
+} from '@opentiny/tiny-robot-svgs'
 import type { ModelOption } from '../types'
 
 /**
@@ -16,14 +16,14 @@ import type { ModelOption } from '../types'
  * Custom apps can override the icon per model via `ModelOption.icon`.
  */
 export const PROVIDER_ICON_MAP: Record<string, Component> = {
-  openai: OpenaiIcon,
-  claude: ClaudeIcon,
-  deepseek: DeepseekIcon,
-  gemini: GeminiIcon,
-  bailian: BailianIcon,
-  modelscope: ModelscopeIcon,
-  openrouter: OpenrouterIcon,
-  ollama: OllamaIcon,
+  openai: IconOpenai,
+  claude: IconClaude,
+  deepseek: IconDeepseek,
+  gemini: IconGemini,
+  bailian: IconBailian,
+  modelscope: IconModelscope,
+  openrouter: IconOpenrouter,
+  ollama: IconOllama,
 }
 
 export type KnownProvider = keyof typeof PROVIDER_ICON_MAP

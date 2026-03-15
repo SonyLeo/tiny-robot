@@ -17,6 +17,7 @@ import { localStorageStrategyFactory, toolPlugin } from '@opentiny/tiny-robot-ki
 import { defaultMcpServers } from '../data/mcpServers'
 import { WELCOME_CONFIG, PROMPTS, BRAND_CONFIG } from '../constants'
 import { createDemoMcpBridge } from '../utils/mcpBridge'
+import { wrapDemoRetryProviderFactories } from '../utils/demoRetryProvider'
 
 defineEmits<{
   error: [error: Error]
@@ -72,9 +73,25 @@ const toolPluginInstance = toolPlugin({
   callTool: mcpManager.callTool,
 })
 
+const demoProviderFactories = wrapDemoRetryProviderFactories(chatAdapter.providerFactories)
+
+function getProviderForModel(modelValue?: string) {
+  const model = chatAdapter.models.find((item) => item.value === modelValue) ?? chatAdapter.models[0]
+  if (!model) {
+    throw new Error('Whitebox demo requires at least one model to create a response provider.')
+  }
+
+  const factory = demoProviderFactories.find((item) => item.match(model))
+  if (!factory) {
+    throw new Error(`Whitebox demo could not match a provider for model "${model.value}".`)
+  }
+
+  return factory.createProvider(model)
+}
+
 // Create chatKit directly using useChatKit
 const chatKit = useChatKit({
-  responseProvider: chatAdapter.createResponseProvider(),
+  responseProvider: getProviderForModel(chatAdapter.defaultModel),
   plugins: [toolPluginInstance],
   storage: localStorageStrategyFactory(),
 })
@@ -86,7 +103,7 @@ const selectedModel = ref<string>(chatAdapter.defaultModel || chatAdapter.models
 const { selectModel } = useModelSelector({
   currentModel: selectedModel,
   models: computed(() => chatAdapter.models),
-  providerFactories: computed(() => chatAdapter.providerFactories),
+  providerFactories: computed(() => demoProviderFactories),
   chatKit,
 })
 
@@ -145,7 +162,7 @@ function handleModelChange(model: (typeof chatAdapter.models)[number]) {
               <TrModelSelector
                 v-model="selectedModel"
                 :models="chatAdapter.models"
-                :provider-factories="chatAdapter.providerFactories"
+                :provider-factories="demoProviderFactories"
                 @change="handleModelChange"
               />
               <UploadButton

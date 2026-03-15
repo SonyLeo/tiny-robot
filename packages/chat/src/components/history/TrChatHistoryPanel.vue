@@ -1,23 +1,22 @@
 <script setup lang="ts">
-import { inject, computed } from 'vue'
-import { IconDelete, IconClose } from '@opentiny/tiny-robot-svgs'
+import { computed, inject } from 'vue'
+import { IconClose, IconDelete } from '@opentiny/tiny-robot-svgs'
 import { CHAT_HISTORY_KEY, CHAT_KIT_KEY } from '../../context'
+import { CHAT_MESSAGES } from '../../messages'
 
 const historyState = inject(CHAT_HISTORY_KEY)!
 const chatKit = inject(CHAT_KIT_KEY)!
 
 const selectedCount = computed(() => historyState.selectedItems.value.length)
-
-// 获取所有会话 id
-const allConversationIds = computed(() => chatKit.conversations.value.map((conv) => conv.id))
-
-// 判断是否全选
-const isAllSelected = computed(() => {
-  return allConversationIds.value.length > 0 && selectedCount.value === allConversationIds.value.length
-})
+const allConversationIds = computed(() => chatKit.conversations.value.map((conversation) => conversation.id))
+const isAllSelected = computed(
+  () => allConversationIds.value.length > 0 && selectedCount.value === allConversationIds.value.length,
+)
 
 async function handleBatchDelete() {
-  if (selectedCount.value === 0) return
+  if (selectedCount.value === 0) {
+    return
+  }
 
   for (const itemId of historyState.selectedItems.value) {
     await chatKit.deleteConversation(itemId)
@@ -42,24 +41,24 @@ function handleClosePanel() {
 <template>
   <Transition name="tr-slide-up">
     <div v-if="historyState.isManagementMode.value" class="tr-chat-history-panel">
-      <!-- 左侧：全选 checkbox -->
       <div class="panel-left">
         <input type="checkbox" :checked="isAllSelected" @change="handleToggleSelectAll" class="select-all-checkbox" />
-
         <span class="selected-count">{{ selectedCount }}</span>
       </div>
 
-      <!-- 右侧：删除按钮 -->
       <div class="panel-right">
-        <button class="delete-icon-btn" :disabled="selectedCount === 0" @click="handleBatchDelete" title="删除选中">
+        <button
+          class="delete-icon-btn"
+          :disabled="selectedCount === 0"
+          @click="handleBatchDelete"
+          :title="CHAT_MESSAGES.history.deleteSelected"
+        >
           <IconDelete />
         </button>
 
-        <!-- 竖线分隔符 -->
         <div class="divider"></div>
 
-        <!-- 关闭按钮 -->
-        <button class="close-icon-btn" @click="handleClosePanel" title="取消">
+        <button class="close-icon-btn" @click="handleClosePanel" :title="CHAT_MESSAGES.history.cancel">
           <IconClose />
         </button>
       </div>

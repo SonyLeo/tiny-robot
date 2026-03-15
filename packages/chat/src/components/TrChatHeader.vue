@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { inject, computed } from 'vue'
+import { computed, inject } from 'vue'
 import { TrIconButton } from '@opentiny/tiny-robot'
-import { IconHistory, IconNewSession, IconFullScreen, IconCancelFullScreen, IconClose } from '@opentiny/tiny-robot-svgs'
+import { IconCancelFullScreen, IconClose, IconFullScreen, IconHistory, IconNewSession } from '@opentiny/tiny-robot-svgs'
 import { CHAT_KIT_KEY, CHAT_UI_KEY } from '../context'
+import { CHAT_MESSAGES } from '../messages'
 
 interface Props {
   showHistory?: boolean
@@ -10,7 +11,6 @@ interface Props {
   showFullScreen?: boolean
   isFullscreen?: boolean
   showClose?: boolean
-  /** Header 左侧品牌标题（UI-B1） */
   title?: string
 }
 
@@ -35,24 +35,24 @@ function handleNewChat() {
   chatKit.createConversation()
 }
 
-const FullScreenIcon = computed(() => (props.isFullscreen ? IconCancelFullScreen : IconFullScreen))
-const fullscreenTitle = computed(() => (props.isFullscreen ? '退出全屏' : '全屏'))
-
-/** 历史按钮 aria-label / title 随 Drawer 状态动态切换（UI-H2） */
-const historyBtnLabel = computed(() => (showHistoryDrawer.value ? '关闭历史' : '打开历史'))
+const fullScreenIcon = computed(() => (props.isFullscreen ? IconCancelFullScreen : IconFullScreen))
+const fullscreenTitle = computed(() =>
+  props.isFullscreen ? CHAT_MESSAGES.header.exitFullscreen : CHAT_MESSAGES.header.enterFullscreen,
+)
+const historyBtnLabel = computed(() =>
+  showHistoryDrawer.value ? CHAT_MESSAGES.header.closeHistory : CHAT_MESSAGES.header.openHistory,
+)
 </script>
 
 <template>
   <div class="tr-chat__header">
     <div class="tr-chat__header-inner">
-      <!-- 左侧：品牌标题（UI-B1） -->
       <div class="tr-chat__header-left">
         <slot name="title">
           <h3 v-if="props.title" class="tr-chat__header-brand">{{ props.title }}</h3>
         </slot>
       </div>
 
-      <!-- 右侧：操作按钮组（UI-H1 / UI-H2） -->
       <div class="tr-chat__header-right">
         <slot name="extra" />
         <TrIconButton
@@ -60,8 +60,8 @@ const historyBtnLabel = computed(() => (showHistoryDrawer.value ? '关闭历史'
           :icon="IconNewSession"
           size="28"
           svg-size="20"
-          title="新建对话"
-          aria-label="新建对话"
+          :title="CHAT_MESSAGES.header.newChat"
+          :aria-label="CHAT_MESSAGES.header.newChat"
           @click="handleNewChat"
         />
         <TrIconButton
@@ -77,15 +77,15 @@ const historyBtnLabel = computed(() => (showHistoryDrawer.value ? '关闭历史'
           v-if="props.showFullScreen"
           :title="fullscreenTitle"
           :aria-label="fullscreenTitle"
-          :icon="FullScreenIcon"
+          :icon="fullScreenIcon"
           size="28"
           svg-size="20"
           @click="emit('update:fullscreen', !props.isFullscreen)"
         />
         <TrIconButton
           v-if="props.showClose"
-          title="关闭"
-          aria-label="关闭"
+          :title="CHAT_MESSAGES.header.close"
+          :aria-label="CHAT_MESSAGES.header.close"
           :icon="IconClose"
           size="28"
           svg-size="20"

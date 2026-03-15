@@ -3,6 +3,7 @@ import { useClipboard } from '@vueuse/core'
 import { IconEditPen } from '@opentiny/tiny-robot-svgs'
 import { IconButton } from '@opentiny/tiny-robot'
 import type { BubbleMessage, FeedbackProps } from '@opentiny/tiny-robot'
+import { CHAT_MESSAGES } from '../messages'
 import type { UseChatKitReturn } from '../types'
 
 export interface UseChatFeedbackOptions {
@@ -16,56 +17,57 @@ export function useChatFeedback(options: UseChatFeedbackOptions) {
   const { messages, messageIndexes, role, chatKit = null } = options
   const { copy } = useClipboard()
 
-  // 取该组最后一条 assistant 消息的文本内容（用于复制）
   const lastContent = computed(() => {
-    const last = [...messages].reverse().find((m) => m.role === 'assistant' || !m.role)
-    if (!last?.content) return ''
+    const last = [...messages].reverse().find((message) => message.role === 'assistant' || !message.role)
+    if (!last?.content) {
+      return ''
+    }
     return typeof last.content === 'string' ? last.content : JSON.stringify(last.content)
   })
 
-  // 取触发本轮回答的最后一条 user 消息内容（用于重新生成）
   const lastUserContent = computed(() => {
-    if (!chatKit) return ''
+    if (!chatKit) {
+      return ''
+    }
+
     const allMessages = chatKit.messages.value
-    // 找到本组第一条消息之前最近的 user 消息
     const firstIndex = messageIndexes[0] ?? 0
-    for (let i = firstIndex - 1; i >= 0; i--) {
-      if (allMessages[i]?.role === 'user') {
-        const content = allMessages[i].content
+    for (let index = firstIndex - 1; index >= 0; index--) {
+      if (allMessages[index]?.role === 'user') {
+        const content = allMessages[index].content
         return typeof content === 'string' ? content : ''
       }
     }
+
     return ''
   })
 
-  // 取 user 消息的文本内容（用于复制和编辑）
   const userContent = computed(() => {
-    const userMsg = messages.find((m) => m.role === 'user')
-    if (!userMsg?.content) return ''
-    return typeof userMsg.content === 'string' ? userMsg.content : JSON.stringify(userMsg.content)
+    const userMessage = messages.find((message) => message.role === 'user')
+    if (!userMessage?.content) {
+      return ''
+    }
+    return typeof userMessage.content === 'string' ? userMessage.content : JSON.stringify(userMessage.content)
   })
 
   const isStreaming = computed(() =>
     chatKit ? chatKit.status.value === 'streaming' || chatKit.status.value === 'submitted' : false,
   )
 
-  // 根据角色生成对应的 actions
   const feedbackActions = computed<FeedbackProps['actions']>(() => {
     if (role === 'user') {
-      // User 消息：复制和编辑
       return [
-        { name: 'copy', label: '复制', icon: 'copy' },
-        { name: 'edit', label: '编辑', icon: h(IconButton, { icon: IconEditPen }) },
-      ]
-    } else {
-      // Assistant 消息：复制、重新生成、赞、踩
-      return [
-        { name: 'copy', label: '复制', icon: 'copy' },
-        { name: 'refresh', label: '重新生成', icon: 'refresh' },
-        { name: 'like', label: '赞', icon: 'like' },
-        { name: 'dislike', label: '踩', icon: 'dislike' },
+        { name: 'copy', label: CHAT_MESSAGES.feedback.copy, icon: 'copy' },
+        { name: 'edit', label: CHAT_MESSAGES.feedback.edit, icon: h(IconButton, { icon: IconEditPen }) },
       ]
     }
+
+    return [
+      { name: 'copy', label: CHAT_MESSAGES.feedback.copy, icon: 'copy' },
+      { name: 'refresh', label: CHAT_MESSAGES.feedback.regenerate, icon: 'refresh' },
+      { name: 'like', label: CHAT_MESSAGES.feedback.like, icon: 'like' },
+      { name: 'dislike', label: CHAT_MESSAGES.feedback.dislike, icon: 'dislike' },
+    ]
   })
 
   function handleCopyAction() {
@@ -75,14 +77,20 @@ export function useChatFeedback(options: UseChatFeedbackOptions) {
 
   function handleRefreshAction(): boolean {
     if (role === 'user') {
-      // User 消息的编辑 - 返回 true 表示需要触发 edit 事件
       return true
-    } else {
-      // Assistant 消息的重新生成
-      if (!chatKit || isStreaming.value || !lastUserContent.value) return false
-      chatKit.sendMessage(lastUserContent.value)
+    }
+
+    if (!chatKit || isStreaming.value || !lastUserContent.value) {
       return false
     }
+
+    if (chatKit.lastError.value?.retryable) {
+      void chatKit.retry()
+      return false
+    }
+
+    chatKit.sendMessage(lastUserContent.value)
+    return false
   }
 
   return {

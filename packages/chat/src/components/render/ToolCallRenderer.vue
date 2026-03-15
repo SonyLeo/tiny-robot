@@ -3,6 +3,7 @@ import { useTheme, useToolCall, type BubbleContentRendererProps } from '@opentin
 import { IconCancelled, IconError, IconLoading, IconPlugin } from '@opentiny/tiny-robot-svgs'
 import { MarkdownCodeBlockNode } from 'markstream-vue'
 import { computed, reactive, useAttrs, watchEffect, type Component } from 'vue'
+import { CHAT_MESSAGES } from '../../messages'
 
 const props = defineProps<BubbleContentRendererProps & { toolCallIndex: number }>()
 
@@ -11,7 +12,6 @@ defineOptions({
 })
 
 const attrs = useAttrs()
-
 const { toolCall, toolCallWithResult, state } = useToolCall(props)
 
 const node = reactive({
@@ -30,14 +30,14 @@ watchEffect(() => {
 
 const { resolvedColorMode } = useTheme()
 
-const textAndIconMap = new Map<string, { text: string; icon: Component }>([
-  ['running', { text: '正在调用', icon: IconLoading }],
-  ['success', { text: '已调用', icon: IconPlugin }],
-  ['failed', { text: '调用失败', icon: IconError }],
-  ['cancelled', { text: '已取消', icon: IconCancelled }],
-])
-
 const textAndIcon = computed(() => {
+  const textAndIconMap = new Map<string, { text: string; icon: Component }>([
+    ['running', { text: CHAT_MESSAGES.toolCall.running, icon: IconLoading }],
+    ['success', { text: CHAT_MESSAGES.toolCall.success, icon: IconPlugin }],
+    ['failed', { text: CHAT_MESSAGES.toolCall.failed, icon: IconError }],
+    ['cancelled', { text: CHAT_MESSAGES.toolCall.cancelled, icon: IconCancelled }],
+  ])
+
   return textAndIconMap.get(state.value?.status || '') || { text: '', icon: IconPlugin }
 })
 </script>
@@ -55,7 +55,7 @@ const textAndIcon = computed(() => {
           <component :is="textAndIcon.icon" class="header-icon" :class="`icon-${state.status}`" />
           <span>
             <span>{{ textAndIcon.text }}&nbsp;</span>
-            <span class="title">{{ toolCall?.function.name || 'Untitled' }} </span>
+            <span class="title">{{ toolCall?.function.name || CHAT_MESSAGES.toolCall.untitled }} </span>
           </span>
         </div>
       </template>

@@ -4,6 +4,7 @@ import type { PropType, Slot } from 'vue'
 import { TrSender } from '@opentiny/tiny-robot'
 import type { StructuredData } from '@opentiny/tiny-robot'
 import { CHAT_KIT_KEY } from '../context'
+import { CHAT_MESSAGES } from '../messages'
 
 // 支持透传完整 TrSender props
 defineOptions({ inheritAttrs: false })
@@ -12,6 +13,10 @@ const props = defineProps({
   mode: {
     type: String as PropType<'single' | 'multiple'>,
     default: 'multiple',
+  },
+  placeholder: {
+    type: String,
+    default: CHAT_MESSAGES.sender.placeholder,
   },
 })
 
@@ -46,6 +51,7 @@ const forwardedSlots = computed<Partial<Record<string, Slot>>>(() =>
     v-model="inputValue"
     :loading="isLoading"
     :mode="props.mode"
+    :placeholder="props.placeholder"
     v-bind="$attrs"
     @submit="handleSend"
     @cancel="handleAbort"

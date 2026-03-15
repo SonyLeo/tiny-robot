@@ -40,6 +40,11 @@ export function createChatTestHelper(page: Page, options: ChatTestHelperOptions 
     await page.locator(selectors.whiteboxRoot).waitFor({ state: 'visible', timeout: defaultTimeout })
   }
 
+  const switchToBlackboxEdge = async () => {
+    await testUtils.clickWhenVisible(selectors.switchToBlackboxEdge)
+    await page.locator('[data-testid="chat-blackbox-edge"]').waitFor({ state: 'visible', timeout: defaultTimeout })
+  }
+
   // =====================
   //  消息发送
   // =====================
@@ -330,6 +335,7 @@ export function createChatTestHelper(page: Page, options: ChatTestHelperOptions 
     // 模式切换
     switchToBlackbox,
     switchToWhitebox,
+    switchToBlackboxEdge,
 
     // 消息交互
     typeMessage,

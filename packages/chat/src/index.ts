@@ -1,5 +1,5 @@
 // ===== 样式 =====
-import './styles/index.less'
+import './styles/index.css'
 
 // ===== 黑盒组件（同时挂载白盒子组件）=====
 import TrChat from './components/TrChat.vue'
@@ -74,12 +74,15 @@ export { createServerProxyProvider, createServerProxyFactory } from './providers
 
 // ===== Adapters =====
 export { loadChatConfig, createChatAdapterFromConfig, createPresetChatProps } from './adapters'
+export { CHAT_MESSAGES } from './messages'
 
 // ===== 类型 =====
 export type {
   BrandConfig,
   ResponseProvider,
   ChatStatus,
+  ChatErrorType,
+  ChatErrorInfo,
   UseChatKitOptions,
   UseChatKitReturn,
   TrChatProps,
@@ -89,6 +92,7 @@ export type {
   TrChatMessageListProps,
   TrChatSenderProps,
   WelcomeConfig,
+  ChatMessages,
   OpenAIProviderOptions,
   DeepSeekProviderOptions,
   UseMessageResponseProvider,

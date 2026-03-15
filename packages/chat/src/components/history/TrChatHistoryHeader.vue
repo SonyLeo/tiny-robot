@@ -2,8 +2,8 @@
 import { inject } from 'vue'
 import { IconNewSession } from '@opentiny/tiny-robot-svgs'
 import { CHAT_HISTORY_KEY, CHAT_KIT_KEY, CHAT_UI_KEY } from '../../context'
+import { CHAT_MESSAGES } from '../../messages'
 
-// 职责：仅负责头部按钮的渲染和事件分发
 const historyState = inject(CHAT_HISTORY_KEY)!
 const chatKit = inject(CHAT_KIT_KEY)!
 const { showHistoryDrawer } = inject(CHAT_UI_KEY)!
@@ -23,9 +23,12 @@ function handleToggleManagement() {
 
 <template>
   <div class="tr-chat-history-header">
-    <button class="new-session-btn" @click="handleCreateNewSession"><IconNewSession /> 新建会话</button>
+    <button class="new-session-btn" @click="handleCreateNewSession">
+      <IconNewSession />
+      {{ CHAT_MESSAGES.history.newSession }}
+    </button>
     <button class="manage-btn" :class="{ active: historyState.isManagementMode.value }" @click="handleToggleManagement">
-      {{ historyState.isManagementMode.value ? '完成' : '管理' }}
+      {{ historyState.isManagementMode.value ? CHAT_MESSAGES.history.done : CHAT_MESSAGES.history.manage }}
     </button>
   </div>
 </template>
@@ -40,7 +43,6 @@ function handleToggleManagement() {
   gap: 8px;
 }
 
-// 按钮基础样式
 .btn-base {
   padding: 8px 16px;
   border: 1px solid var(--tr-border-color-default);

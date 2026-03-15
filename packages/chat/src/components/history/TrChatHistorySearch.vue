@@ -1,14 +1,19 @@
 <script setup lang="ts">
 import { inject } from 'vue'
 import { CHAT_HISTORY_KEY } from '../../context'
+import { CHAT_MESSAGES } from '../../messages'
 
-// 职责：仅负责搜索输入框的渲染
 const historyState = inject(CHAT_HISTORY_KEY)!
 </script>
 
 <template>
   <div class="tr-chat-history-search">
-    <input v-model="historyState.searchQuery.value" type="text" placeholder="搜索会话..." class="search-input" />
+    <input
+      v-model="historyState.searchQuery.value"
+      type="text"
+      :placeholder="CHAT_MESSAGES.history.searchPlaceholder"
+      class="search-input"
+    />
   </div>
 </template>
 

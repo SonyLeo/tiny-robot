@@ -1,6 +1,7 @@
-// 套件层 CSS 变量（运行时可被用户覆盖）
-// --chat-* 变量全部引用 --tr-* 变量，暗色模式由 ThemeProvider 写入
-// data-tr-color-mode="dark" 后 --tr-* 自动切换，--chat-* 作为引用链自动跟随，无需额外处理
+/*
+ * Chat kit CSS variables.
+ * Users can override these at runtime without relying on Less preprocessing.
+ */
 :root {
   --chat-width: 100%;
   --chat-height: 100%;
@@ -27,20 +28,16 @@
   --chat-drawer-transition: 0.25s ease;
   --chat-drawer-overlay-bg: rgba(0, 0, 0, 0.3);
 
-  // === UI-B1：Header 品牌标题 ===
   --chat-header-title-font-size: 14px;
   --chat-header-title-font-weight: 600;
   --chat-header-title-color: var(--tr-color-text-primary, #191919);
 
-  // === UI-W2：Welcome Prompt 区 ===
   --chat-welcome-prompts-max-width: 800px;
   --chat-welcome-prompts-padding: 16px 24px;
 
-  // === UI-S1：全屏模式内容区最大宽度 ===
   --chat-content-max-width: 1280px;
 }
 
-// 暗色模式下覆盖硬编码值（--tr-* 引用链自动跟随，只需覆盖无法引用 --tr-* 的硬编码项）
 [data-tr-color-mode='dark'] {
   --chat-drawer-shadow: 4px 0 20px rgba(0, 0, 0, 0.48);
   --chat-drawer-overlay-bg: rgba(0, 0, 0, 0.5);

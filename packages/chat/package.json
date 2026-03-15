@@ -27,7 +27,8 @@
   "scripts": {
     "dev": "vue-tsc && vite build --watch",
     "build": "vue-tsc && vite build",
-    "type-check": "vue-tsc --noEmit"
+    "type-check": "vue-tsc --noEmit",
+    "test:unit": "node ./tests/use-chat-slices.test.mjs"
   },
   "peerDependencies": {
     "vue": "^3.3.11",
