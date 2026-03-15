@@ -1,15 +1,7 @@
-# API Configuration
-# ⚠️ Never commit this file to version control once you've added your real API key!
-VITE_API_KEY=your_api_key_here
-VITE_API_PROVIDER=openai
+# Frontend chat endpoint
+# Point this to your own server proxy instead of a model vendor API URL.
+VITE_CHAT_API_ENDPOINT=/api/chat
 
-# Optional: Custom model name
-# OpenAI  default: gpt-4o-mini
-# DeepSeek default: deepseek-chat
-# VITE_MODEL=gpt-4o-mini
-
-# Optional: Custom API base URL (for proxy servers or alternative endpoints)
-# VITE_BASE_URL=https://api.openai.com/v1
-
-# Note: In production, use a backend proxy to avoid exposing API keys in the browser.
-# See README.md for security best practices.
+# Optional:
+# If your backend runs on another origin, point the frontend to that address.
+# VITE_CHAT_API_ENDPOINT=http://localhost:3000/api/chat

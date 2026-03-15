@@ -1,4 +1,4 @@
-# Tiny Robot Chat App
+# __PROJECT_TITLE__
 
 A minimal chat application powered by Tiny Robot Chat Kit.
 
@@ -12,26 +12,31 @@ A minimal chat application powered by Tiny Robot Chat Kit.
 ### Installation
 
 ```bash
-npm install
+__INSTALL_COMMAND__
 ```
 
 ### Configuration
 
-1. Copy `.env.example` to `.env.local`:
-```bash
-cp .env.example .env.local
+1. Create `.env.local` from `.env.example`.
+
+2. Set your frontend chat endpoint:
+
+```env
+VITE_CHAT_API_ENDPOINT=/api/chat
 ```
 
-2. Add your API key and provider:
-```env
-VITE_API_KEY=your_api_key_here
-VITE_API_PROVIDER=openai  # or deepseek
-```
+3. Edit `src/chat.config.ts` to adjust:
+
+- default model
+- provider id
+- welcome copy
+- prompt cards
+- brand title
 
 ### Development
 
 ```bash
-npm run dev
+__DEV_COMMAND__
 ```
 
 Open [http://localhost:5173](http://localhost:5173) in your browser.
@@ -39,38 +44,36 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 ### Build
 
 ```bash
-npm run build
+__BUILD_COMMAND__
 ```
 
 ## Security
 
-⚠️ **Important**: Never expose your API key in the browser in production!
+⚠️ **Important**: This template defaults to a server-proxy architecture.
 
-For production deployments, implement a backend proxy:
+Keep the real provider API key on the server. The browser should only call the
+endpoint defined by `VITE_CHAT_API_ENDPOINT`.
 
-1. Create a backend endpoint that accepts chat messages
-2. Forward requests to the API provider with your API key
-3. Update the app to call your backend instead of the API directly
+You can use `server/chat-proxy.example.ts` as a starting point for your backend
+route.
 
-Example backend proxy (Node.js/Express):
+Typical setup:
 
-```javascript
-app.post('/api/chat', async (req, res) => {
-  const { messages } = req.body
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'gpt-4-turbo',
-      messages,
-    }),
-  })
-  res.json(await response.json())
-})
-```
+1. Implement `/api/chat` in your own server runtime
+2. Store the real provider API key in server-side environment variables
+3. Forward the request to OpenAI / DeepSeek / your OpenAI-compatible backend
+4. Stream the provider response back to the browser
+
+## About the Generated Structure
+
+- `src/chat.config.ts`
+  - Your declarative chat configuration
+- `src/lib/chat.ts`
+  - Adapter + preset assembly
+- `src/App.vue`
+  - Only renders `<TrChat v-bind="chatPreset" />`
+- `server/chat-proxy.example.ts`
+  - Example backend proxy implementation
 
 ## Learn More
 

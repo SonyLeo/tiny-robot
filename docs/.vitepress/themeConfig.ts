@@ -42,7 +42,10 @@ const sharedSidebarItems = [
   {
     text: 'Chat Suite',
     base: '/components/',
-    items: [{ text: 'Chat 聊天套件', link: 'chat' }],
+    items: [
+      { text: 'Chat 聊天套件', link: 'chat' },
+      { text: 'Chat CLI 脚手架', link: 'chat-cli' },
+    ],
   },
 ]
 
