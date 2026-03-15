@@ -22,35 +22,61 @@ export function useModelSelector(options: UseModelSelectorOptions) {
     return currentModelOption.value ? getProviderIcon(currentModelOption.value) : null
   })
 
-  watchEffect(() => {
-    if (models.value.length === 0) {
-      return
-    }
+  function resolveProviderFactory(model: ModelOption) {
+    return providerFactories.value?.find((item) => item.match(model))
+  }
 
-    const hasCurrentModel = models.value.some((model) => model.value === options.currentModel.value)
-    if (!hasCurrentModel) {
-      const fallbackModel = models.value.find((model) => !model.disabled) ?? models.value[0]
-      if (fallbackModel) {
-        options.currentModel.value = fallbackModel.value
-      }
-    }
-  })
-
-  function selectModel(model: ModelOption) {
+  function canSelectModel(model: ModelOption) {
     if (model.disabled) {
-      return
+      return false
+    }
+
+    if (!options.chatKit || !providerFactories.value?.length) {
+      return true
+    }
+
+    return Boolean(resolveProviderFactory(model))
+  }
+
+  function commitModel(model: ModelOption, notifyChange = true) {
+    if (!canSelectModel(model)) {
+      return false
     }
 
     options.currentModel.value = model.value
 
     if (options.chatKit && providerFactories.value?.length) {
-      const factory = providerFactories.value.find((item) => item.match(model))
+      const factory = resolveProviderFactory(model)
       if (factory) {
         options.chatKit.updateResponseProvider(factory.createProvider(model))
       }
     }
 
-    options.onChange?.(model)
+    if (notifyChange) {
+      options.onChange?.(model)
+    }
+
+    return true
+  }
+
+  watchEffect(() => {
+    if (models.value.length === 0) {
+      return
+    }
+
+    const selectedModel = currentModelOption.value
+    const isCurrentModelSelectable = selectedModel ? canSelectModel(selectedModel) : false
+
+    if (!isCurrentModelSelectable) {
+      const fallbackModel = models.value.find((model) => canSelectModel(model))
+      if (fallbackModel) {
+        commitModel(fallbackModel)
+      }
+    }
+  })
+
+  function selectModel(model: ModelOption) {
+    commitModel(model)
   }
 
   return {

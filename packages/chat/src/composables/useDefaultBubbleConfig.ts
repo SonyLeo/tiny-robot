@@ -63,6 +63,12 @@ export function useDefaultBubbleConfig(options?: UseDefaultBubbleConfigOptions) 
       attributes: { 'data-editing': 'true', 'data-shape': 'none' },
     },
     {
+      find: (messages) => messages.length === 1 && messages[0].state?.optimistic === true,
+      renderer: BubbleRenderers.Box,
+      priority: BubbleRendererMatchPriority.NORMAL,
+      attributes: { 'data-optimistic': 'true' },
+    },
+    {
       find: (_, content) => content?.type === 'attachment',
       renderer: BubbleRenderers.Box,
       attributes: {

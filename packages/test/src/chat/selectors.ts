@@ -42,6 +42,8 @@ export const CHAT_SELECTORS = {
   bubbleList: '.tr-bubble-list',
   bubbleItem: '.tr-bubble',
   bubbleContent: '.tr-bubble__content',
+  bubbleOptimistic: '.tr-bubble__box[data-optimistic="true"]',
+  feedback: '.tr-feedback',
 
   // === 消息气泡角色（UI-RC1：用于排布测试）===
   // Bubble 组件通过 data-placement 属性控制左右布局（注意：不是 CSS 类名）
@@ -70,6 +72,9 @@ export const CHAT_SELECTORS = {
   statusIndicator: '[data-testid="status-indicator"]',
   messageCount: '[data-testid="message-count"]',
   onFinishLog: '[data-testid="on-finish-log"]',
+  onActionLog: '[data-testid="on-action-log"]',
+  variantIndicator: '[data-testid="variant-indicator"]',
+  toggleMessageVariant: '[data-testid="toggle-message-variant"]',
 } as const
 
 export type ChatSelectors = typeof CHAT_SELECTORS

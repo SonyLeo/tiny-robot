@@ -83,6 +83,8 @@ export type {
   ChatStatus,
   ChatErrorType,
   ChatErrorInfo,
+  ChatMessageActionPayload,
+  ChatListVariant,
   UseChatKitOptions,
   UseChatKitReturn,
   TrChatProps,

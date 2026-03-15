@@ -65,6 +65,53 @@
   background: var(--chat-body-bg);
 }
 
+.tr-chat__body--docs {
+  padding: 0;
+  background:
+    linear-gradient(180deg, rgba(247, 249, 252, 0.96) 0%, rgba(255, 255, 255, 1) 180px),
+    var(--chat-body-bg);
+}
+
+.tr-chat__body--docs .tr-bubble-list {
+  --gap: 16px;
+  --padding: 24px 32px 40px;
+}
+
+.tr-chat__body--docs .tr-bubble[data-role='assistant'] {
+  width: 100%;
+}
+
+.tr-chat__body--docs .tr-bubble[data-role='assistant'] .tr-bubble__content {
+  align-items: stretch;
+}
+
+.tr-chat__body--docs .tr-bubble[data-role='assistant'] .tr-bubble__box {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+}
+
+.tr-chat__body--docs .tr-bubble[data-role='assistant'] .tr-bubble__after {
+  margin-top: 10px;
+}
+
+.tr-chat__body--docs .tr-bubble[data-role='assistant'] .tr-bubble__box .markstream-vue {
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+.tr-chat__body--docs .tr-bubble[data-role='user'] {
+  margin-top: 4px;
+}
+
+.tr-chat__body--docs .tr-bubble[data-role='user'] .tr-bubble__box {
+  max-width: min(60%, 520px);
+}
+
 .tr-chat__welcome {
   display: flex;
   flex: 1;
@@ -93,6 +140,11 @@
   flex-shrink: 0;
   background: var(--chat-footer-bg);
   border-top: var(--chat-footer-border-top);
+}
+
+.tr-chat :where(.tr-bubble__box[data-optimistic='true']) {
+  opacity: 0.78;
+  transition: opacity 0.18s ease;
 }
 
 .tr-chat__footer-inner {

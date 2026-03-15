@@ -306,6 +306,57 @@ test.describe('Chat 黑盒模式测试', () => {
       const contents = page.locator(root).locator(helper.selectors.bubbleContent)
       await expect(contents.last()).toContainText('[edge-provider:edge-model] err')
     })
+
+    test('optimistic bubbles should appear during pending requests and clear after completion', async ({ page }) => {
+      const root = helper.selectors.blackboxChat
+      await helper.switchToBlackbox()
+      await helper.sendMessage('optimistic-state', root)
+
+      const optimisticBubble = page.locator(root).locator(helper.selectors.bubbleOptimistic)
+      await expect(optimisticBubble.first()).toBeVisible()
+
+      await helper.waitForStreamingComplete(root)
+      await expect(optimisticBubble).toHaveCount(0)
+    })
+  })
+
+  test('message action callback should receive feedback actions in blackbox mode', async ({ page }) => {
+    const root = helper.selectors.blackboxChat
+    await helper.sendMessage('trigger action callback', root)
+    await helper.waitForAssistantReply(root)
+
+    const actionButtons = page.locator(root).locator('.tr-feedback .tr-action-group__btn-wrapper')
+    await expect(actionButtons.first()).toBeVisible()
+    await actionButtons.first().click()
+
+    const actionLog = page.locator(helper.selectors.onActionLog)
+    await expect(actionLog).toContainText('action:copy:assistant:')
+  })
+
+  test('feedback actions should appear only after assistant reply is complete', async ({ page }) => {
+    const root = helper.selectors.blackboxChat
+    await helper.sendMessage('feedback timing', root)
+
+    const feedback = page.locator(root).locator(helper.selectors.feedback)
+    await expect(feedback).toHaveCount(0)
+
+    await helper.waitForStreamingComplete(root)
+    await expect(feedback.first()).toBeVisible()
+  })
+  test('docs variant should switch message list into document layout', async ({ page }) => {
+    const root = helper.selectors.blackboxChat
+
+    await page.locator(helper.selectors.toggleMessageVariant).click()
+    await expect(page.locator(helper.selectors.variantIndicator)).toContainText('docs')
+
+    await helper.sendMessage('docs variant message', root)
+    await helper.waitForAssistantReply(root)
+
+    const bubbleList = page.locator(root).locator('.tr-bubble-list')
+    await expect(bubbleList).toHaveAttribute('data-variant', 'docs')
+
+    const assistantAvatar = page.locator(root).locator(".tr-bubble[data-role='assistant'] .tr-bubble__avatar")
+    await expect(assistantAvatar).toHaveCount(0)
   })
 })
 

@@ -1,5 +1,5 @@
 import type { ComputedRef, InjectionKey, Ref } from 'vue'
-import type { UseChatKitReturn } from './types'
+import type { ChatMessageActionPayload, UseChatKitReturn } from './types'
 import type { UseMcpManagerReturn } from './composables/useMcpManager'
 import type { BubbleListProps } from '@opentiny/tiny-robot'
 
@@ -13,6 +13,9 @@ export const CHAT_UI_KEY: InjectionKey<{
 
 // MCP 管理器注入 key：由 TrChatRoot provide，供 TrChatMcpPanel 使用
 export const MCP_MANAGER_KEY: InjectionKey<UseMcpManagerReturn> = Symbol('mcpManager')
+
+export const MESSAGE_ACTION_KEY: InjectionKey<((payload: ChatMessageActionPayload) => void) | undefined> =
+  Symbol('messageAction')
 
 // Bubble 默认配置：由 TrChatLayout provide，供 MessageList 在未显式传参时兜底
 export const BUBBLE_CONFIG_KEY: InjectionKey<{

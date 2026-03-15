@@ -34,6 +34,17 @@ export interface ChatErrorInfo {
   originalError?: unknown
 }
 
+export interface ChatMessageActionPayload {
+  action: string
+  role?: string
+  messages: ChatMessage[]
+  messageIndexes: number[]
+  message?: ChatMessage
+  messageIndex?: number
+}
+
+export type ChatListVariant = 'bubble' | 'docs'
+
 // ===== useChatKit 选项 =====
 export interface UseChatKitOptions {
   responseProvider: ResponseProvider
@@ -147,11 +158,13 @@ export interface TrChatProps {
   maxLength?: number
   senderMode?: 'single' | 'multiple'
   autoScroll?: boolean
+  messageListVariant?: ChatListVariant
   showHistory?: boolean
   showFeedback?: boolean
   fullscreen?: boolean
   enableFullscreen?: boolean
   show?: boolean
+  onMessageAction?: (payload: ChatMessageActionPayload) => void
   // 补充缺失的 props
   roleConfigs?: BubbleListProps['roleConfigs']
   groupStrategy?: BubbleListProps['groupStrategy']
@@ -211,6 +224,8 @@ export interface TrChatWelcomeProps {
 
 export interface TrChatMessageListProps {
   autoScroll?: boolean
+  variant?: ChatListVariant
+  onActionClick?: (payload: ChatMessageActionPayload) => void
 }
 
 export interface TrChatSenderProps {

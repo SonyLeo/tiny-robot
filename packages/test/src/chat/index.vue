@@ -14,11 +14,19 @@
         :class="{ active: mode === 'blackbox-edge' }"
         @click="mode = 'blackbox-edge'"
       >
-        边缘场景
+        边界场景
       </button>
     </div>
 
     <div v-if="mode === 'blackbox'" data-testid="chat-blackbox" class="chat-wrapper">
+      <div class="status-bar">
+        <span data-testid="on-finish-log">{{ finishLog }}</span>
+        <span data-testid="on-action-log">{{ actionLog }}</span>
+        <span data-testid="variant-indicator">{{ messageListVariant }}</span>
+        <button data-testid="toggle-message-variant" @click="toggleMessageListVariant">
+          {{ messageListVariant === 'bubble' ? 'docs variant' : 'bubble variant' }}
+        </button>
+      </div>
       <TrChat
         :brand="brand"
         :welcome="welcome"
@@ -28,9 +36,12 @@
         default-model="openai-test"
         placeholder="请输入消息..."
         show-history
+        show-feedback
+        :message-list-variant="messageListVariant"
+        :on-finish="handleFinish"
+        :on-error="handleError"
+        :on-message-action="handleMessageAction"
         v-model:fullscreen="isFullscreen"
-        @finish="handleFinish"
-        @error="handleError"
       />
     </div>
 
@@ -48,11 +59,11 @@
         v-model:show="isShow"
         :role-configs="{ user: { placement: 'start' }, assistant: { placement: 'end' } }"
         :sender-props="{ maxLength: 5 }"
-        @finish="handleFinish"
-        @error="handleError"
+        :on-finish="handleFinish"
+        :on-error="handleError"
       >
         <template #header-extra>
-          <button data-testid="custom-header-btn">右侧按钮</button>
+          <button data-testid="custom-header-btn">自定义按钮</button>
         </template>
         <template #footer-extra>
           <div data-testid="custom-footer-extra">这是 Footer 额外区域</div>
@@ -65,6 +76,11 @@
         <span data-testid="status-indicator">{{ status }}</span>
         <span data-testid="message-count">{{ messages.length }}</span>
         <span data-testid="on-finish-log">{{ finishLog }}</span>
+        <span data-testid="on-action-log">{{ actionLog }}</span>
+        <span data-testid="variant-indicator">{{ messageListVariant }}</span>
+        <button data-testid="toggle-message-variant" @click="toggleMessageListVariant">
+          {{ messageListVariant === 'bubble' ? 'docs variant' : 'bubble variant' }}
+        </button>
       </div>
 
       <TrChat.Root :chat-kit="chat">
@@ -79,7 +95,11 @@
             @prompt-click="handlePromptClick"
           />
 
-          <TrChat.MessageList v-else auto-scroll />
+          <TrChat.MessageList v-else auto-scroll :variant="messageListVariant" :on-action-click="handleMessageAction">
+            <template #after="slotProps">
+              <TrChatFeedback v-if="slotProps.role === 'assistant'" v-bind="slotProps" />
+            </template>
+          </TrChat.MessageList>
 
           <TrChat.Footer>
             <div class="whitebox-footer">
@@ -102,14 +122,21 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { TrChat, TrModelSelector, useChatKit, useModelSelector } from '../../../chat/src'
-import type { ModelOption, ModelProviderFactory } from '../../../chat/src/types'
+import { TrChat, TrChatFeedback, TrModelSelector, useChatKit, useModelSelector } from '../../../chat/src'
+import type {
+  ChatListVariant,
+  ChatMessageActionPayload,
+  ModelOption,
+  ModelProviderFactory,
+} from '../../../chat/src/types'
 import type { ChatCompletion } from '../../../kit/src/vue/message/types'
 import { createMockFactory, createMockProvider } from './mockProvider'
 
 const mode = ref<'blackbox' | 'whitebox' | 'blackbox-edge'>('blackbox')
 const finishLog = ref('')
 const errorLog = ref('')
+const actionLog = ref('')
+const messageListVariant = ref<ChatListVariant>('bubble')
 const isFullscreen = ref(false)
 const isShow = ref(true)
 
@@ -139,12 +166,12 @@ const brand = {
 
 const welcome = {
   title: 'TinyRobot',
-  description: '用于验证 Chat Kit 的 E2E 主链路。',
+  description: '这里用于验证 Chat Kit 的黑盒接入和 E2E 场景。',
 }
 
 const prompts = [
-  { label: '总结一下', description: '请帮我总结这个问题。' },
-  { label: '生成问候语', description: '请输出 Hello World。' },
+  { label: '解释 React hooks', description: '解释 React hooks' },
+  { label: '生成 Hello World', description: '请帮我写一个 Hello World' },
 ]
 
 function handleFinish(msg: { content?: string }) {
@@ -154,6 +181,14 @@ function handleFinish(msg: { content?: string }) {
 function handleError(err: Error) {
   finishLog.value = `error:${err.message}`
   errorLog.value = `error:${err.message}`
+}
+
+function handleMessageAction(payload: ChatMessageActionPayload) {
+  actionLog.value = `action:${payload.action}:${payload.role ?? ''}:${payload.messageIndex ?? -1}`
+}
+
+function toggleMessageListVariant() {
+  messageListVariant.value = messageListVariant.value === 'bubble' ? 'docs' : 'bubble'
 }
 
 const selectedModel = ref('openai-test')
@@ -235,6 +270,15 @@ function handleModelChange(model: ModelOption) {
   padding: 2px 6px;
   background: #e8e8e8;
   border-radius: 3px;
+}
+
+.status-bar button {
+  padding: 2px 8px;
+  border: 1px solid #d0d7e2;
+  border-radius: 999px;
+  background: #fff;
+  cursor: pointer;
+  font: inherit;
 }
 
 .whitebox-footer {

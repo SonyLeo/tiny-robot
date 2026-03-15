@@ -1,13 +1,19 @@
 import assert from 'node:assert/strict'
+import { fileURLToPath } from 'node:url'
 import { computed, nextTick, ref, shallowRef } from 'vue'
 import createJiti from 'jiti'
 
 // Use jiti so the unit guardrails can import chat source files directly without a build step.
-const jiti = createJiti(import.meta.url)
+const jiti = createJiti(import.meta.url, {
+  alias: {
+    '@opentiny/tiny-robot-svgs': fileURLToPath(new URL('../../svgs/dist/tiny-robot-svgs.js', import.meta.url)),
+  },
+})
 const { useChatConversation } = await jiti.import('../src/composables/useChatConversation.ts')
 const { useChatMessages } = await jiti.import('../src/composables/useChatMessages.ts')
 const { useChatRequest } = await jiti.import('../src/composables/useChatRequest.ts')
 const { useChatKit } = await jiti.import('../src/composables/useChatKit.ts')
+const { useModelSelector } = await jiti.import('../src/composables/useModelSelector.ts')
 
 function createChunk({ content, role, finishReason = null, model = 'mock-model' }) {
   return {
@@ -31,7 +37,7 @@ function createChunk({ content, role, finishReason = null, model = 'mock-model' 
   }
 }
 
-function createStreamingProvider() {
+function createStreamingProvider({ initialDelay = 0 } = {}) {
   return async function* responseProvider(requestBody) {
     const lastMessage = requestBody.messages?.[requestBody.messages.length - 1]?.content ?? ''
 
@@ -40,6 +46,10 @@ function createStreamingProvider() {
     }
 
     const reply = `reply:${lastMessage}`
+
+    if (initialDelay > 0) {
+      await new Promise((resolve) => setTimeout(resolve, initialDelay))
+    }
 
     let isFirstChunk = true
     for (const char of reply) {
@@ -313,4 +323,142 @@ await runTest('useChatKit retry removes the failed turn and resends the last use
 
   assert.equal(chatKit.lastError.value, null)
   assert.equal(chatKit.messages.value.length, 2)
+})
+
+await runTest('useChatKit marks optimistic messages during a pending turn and clears them after completion', async () => {
+  const chatKit = useChatKit({
+    responseProvider: createStreamingProvider({ initialDelay: 80 }),
+    storage: createMemoryStorage(),
+  })
+
+  chatKit.sendMessage('optimistic-turn')
+
+  await waitFor(() => {
+    assert.equal(chatKit.messages.value[0]?.state?.optimistic, true)
+    assert.equal(chatKit.messages.value[1]?.state?.optimistic, true)
+  })
+
+  await waitFor(() => {
+    assert.equal(chatKit.status.value, 'ready')
+  })
+
+  assert.equal(chatKit.messages.value[0]?.state?.optimistic, undefined)
+  assert.equal(chatKit.messages.value[1]?.state?.optimistic, undefined)
+})
+
+await runTest('useChatKit rolls edited history back when the resend fails', async () => {
+  const chatKit = useChatKit({
+    responseProvider: createStreamingProvider(),
+    storage: createMemoryStorage(),
+  })
+
+  chatKit.sendMessage('seed')
+
+  await waitFor(() => {
+    assert.equal(chatKit.status.value, 'ready')
+    assert.equal(chatKit.messages.value[1]?.content, 'reply:seed')
+  })
+
+  chatKit.updateResponseProvider(
+    createRetryableProvider({
+      failMessage: 'edited-seed',
+      errorMessage: 'Mock API Error: provider execution failed',
+    }),
+  )
+
+  chatKit.editMessage(0, 'edited-seed')
+
+  await waitFor(() => {
+    assert.equal(chatKit.status.value, 'error')
+  })
+
+  assert.deepEqual(
+    chatKit.messages.value.map((message) => message.content),
+    ['seed', 'reply:seed'],
+  )
+  assert.equal(chatKit.lastError.value?.type, 'provider')
+})
+
+await runTest('useModelSelector falls back to the first selectable model and syncs the provider', async () => {
+  const currentModel = ref('removed-model')
+  const selected = []
+  const providerCalls = []
+  const providerA = () => {}
+  const providerB = () => {}
+  const models = ref([
+    { value: 'disabled-model', provider: 'openai', disabled: true },
+    { value: 'ready-model', provider: 'deepseek' },
+  ])
+  const providerFactories = ref([
+    {
+      match: (model) => model.value === 'ready-model',
+      createProvider: (model) => {
+        providerCalls.push(model.value)
+        return providerB
+      },
+    },
+    {
+      match: (model) => model.value === 'other-model',
+      createProvider: () => providerA,
+    },
+  ])
+
+  useModelSelector({
+    currentModel,
+    models,
+    providerFactories,
+    chatKit: {
+      updateResponseProvider(provider) {
+        assert.equal(provider, providerB)
+      },
+    },
+    onChange: (model) => {
+      selected.push(model.value)
+    },
+  })
+
+  await nextTick()
+
+  assert.equal(currentModel.value, 'ready-model')
+  assert.deepEqual(providerCalls, ['ready-model'])
+  assert.deepEqual(selected, ['ready-model'])
+})
+
+await runTest('useModelSelector keeps the current model when the next model has no matching provider factory', async () => {
+  const currentModel = ref('ready-model')
+  const providerCalls = []
+  const readyProvider = () => {}
+  const models = ref([
+    { value: 'ready-model', provider: 'deepseek' },
+    { value: 'missing-factory-model', provider: 'openai' },
+  ])
+  const providerFactories = ref([
+    {
+      match: (model) => model.value === 'ready-model',
+      createProvider: (model) => {
+        providerCalls.push(model.value)
+        return readyProvider
+      },
+    },
+  ])
+
+  const selector = useModelSelector({
+    currentModel,
+    models,
+    providerFactories,
+    chatKit: {
+      updateResponseProvider(provider) {
+        assert.equal(provider, readyProvider)
+      },
+    },
+  })
+
+  await nextTick()
+  providerCalls.length = 0
+
+  selector.selectModel(models.value[1])
+
+  assert.equal(currentModel.value, 'ready-model')
+  assert.deepEqual(providerCalls, [])
+  assert.notEqual(selector.currentModelOption.value?.value, 'missing-factory-model')
 })

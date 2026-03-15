@@ -4,6 +4,33 @@ import type { ChatMessage } from '@opentiny/tiny-robot-kit'
 interface UseChatMessagesOptions {
   messages: ComputedRef<ChatMessage[]>
   resendMessage: (content: string) => void
+  onOptimisticEdit?: (payload: { messageIndex: number; removedMessages: ChatMessage[]; newContent: string }) => void
+}
+
+function cloneValue<T>(value: T): T {
+  if (typeof structuredClone === 'function') {
+    try {
+      return structuredClone(value)
+    } catch {
+      // Fall through to the recursive clone below when structuredClone cannot serialize the value.
+    }
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((item) => cloneValue(item)) as T
+  }
+
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>).map(([key, item]) => [key, cloneValue(item)]),
+    ) as T
+  }
+
+  return value
+}
+
+function cloneMessages(messages: ChatMessage[]): ChatMessage[] {
+  return messages.map((message) => cloneValue(message))
 }
 
 export function useChatMessages(options: UseChatMessagesOptions) {
@@ -39,6 +66,16 @@ export function useChatMessages(options: UseChatMessagesOptions) {
       return
     }
 
+    if (!newContent.trim()) {
+      console.warn('[useChatMessages] editMessage: newContent cannot be empty')
+      return
+    }
+
+    options.onOptimisticEdit?.({
+      messageIndex,
+      removedMessages: cloneMessages(currentMessages.slice(messageIndex)),
+      newContent,
+    })
     currentMessages.splice(messageIndex)
     options.resendMessage(newContent)
   }

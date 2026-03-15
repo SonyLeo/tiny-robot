@@ -1,4 +1,4 @@
-import { computed, shallowRef } from 'vue'
+import { computed, shallowRef, watchEffect } from 'vue'
 import type { ChatMessage } from '@opentiny/tiny-robot-kit'
 import type { UseChatKitOptions, UseChatKitReturn, UseMessageResponseProvider } from '../types'
 import type { StructuredData } from '@opentiny/tiny-robot'
@@ -12,15 +12,77 @@ interface RetryContext {
   failedTurnStartIndex: number
 }
 
+interface OptimisticTurnContext {
+  conversationId: string
+  userContent: string
+  userMessage: ChatMessage | null
+  assistantMessage: ChatMessage | null
+}
+
+interface EditRollbackContext {
+  conversationId: string
+  messageIndex: number
+  removedMessages: ChatMessage[]
+}
+
+function ensureMessageState(message: ChatMessage) {
+  message.state ??= {}
+  return message.state
+}
+
+function setMessageOptimistic(message: ChatMessage | null, isOptimistic: boolean) {
+  if (!message) return
+
+  const state = ensureMessageState(message)
+  state.optimistic = isOptimistic || undefined
+}
+
+function findLatestUserMessage(messages: ChatMessage[], userContent: string): ChatMessage | null {
+  return (
+    [...messages]
+      .reverse()
+      .find(
+        (message) => message.role === 'user' && typeof message.content === 'string' && message.content === userContent,
+      ) ?? null
+  )
+}
+
+function findAssistantMessageForTurn(messages: ChatMessage[], userMessage: ChatMessage | null): ChatMessage | null {
+  if (!userMessage) return null
+
+  const userIndex = messages.findIndex((message) => message === userMessage)
+  if (userIndex === -1) return null
+
+  return (
+    messages
+      .slice(userIndex + 1)
+      .find((message) => message.loading || message.role === 'assistant' || message.role === '') ?? null
+  )
+}
+
 export function useChatKit(options: UseChatKitOptions): UseChatKitReturn {
   const responseProviderRef = shallowRef<UseMessageResponseProvider>(
     options.responseProvider as UseMessageResponseProvider,
   )
   const retryContext = shallowRef<RetryContext | null>(null)
+  const optimisticTurn = shallowRef<OptimisticTurnContext | null>(null)
+  const editRollbackContext = shallowRef<EditRollbackContext | null>(null)
 
   function clearFailureState() {
     retryContext.value = null
     request.clearLastError()
+  }
+
+  function clearOptimisticTurn() {
+    if (!optimisticTurn.value) return
+
+    setMessageOptimistic(optimisticTurn.value.userMessage, false)
+    setMessageOptimistic(optimisticTurn.value.assistantMessage, false)
+    optimisticTurn.value = null
+  }
+
+  function clearPendingEditRollback() {
+    editRollbackContext.value = null
   }
 
   const conversation = useChatConversation({
@@ -44,6 +106,22 @@ export function useChatKit(options: UseChatKitOptions): UseChatKitReturn {
           ...(failedAssistantMessage.state ?? {}),
           error: normalizedError,
         }
+      }
+
+      if (
+        editRollbackContext.value &&
+        currentConversationId &&
+        editRollbackContext.value.conversationId === currentConversationId
+      ) {
+        const activeMessages = conversation.activeConversation.value?.engine.messages.value
+        if (activeMessages) {
+          activeMessages.splice(
+            editRollbackContext.value.messageIndex,
+            activeMessages.length - editRollbackContext.value.messageIndex,
+            ...editRollbackContext.value.removedMessages,
+          )
+        }
+        clearPendingEditRollback()
       }
 
       if (
@@ -71,15 +149,84 @@ export function useChatKit(options: UseChatKitOptions): UseChatKitReturn {
 
   const messages = computed<ChatMessage[]>(() => conversation.activeConversation.value?.engine.messages.value ?? [])
 
+  function resendMessage(content: string) {
+    conversation.sendMessage(content)
+    markOptimisticTurn(content)
+  }
+
   const messageActions = useChatMessages({
     messages,
-    resendMessage: conversation.sendMessage,
+    resendMessage,
+    onOptimisticEdit: ({ messageIndex, removedMessages }) => {
+      const currentConversationId = conversation.activeConversationId.value
+      if (!currentConversationId) return
+
+      clearFailureState()
+      clearPendingEditRollback()
+      editRollbackContext.value = {
+        conversationId: currentConversationId,
+        messageIndex,
+        removedMessages,
+      }
+    },
+  })
+
+  function markOptimisticTurn(content: string) {
+    const currentConversationId = conversation.activeConversationId.value
+    const activeMessages = conversation.activeConversation.value?.engine.messages.value
+    if (!currentConversationId || !activeMessages) return
+
+    const userMessage = findLatestUserMessage(activeMessages, content)
+    if (!userMessage) return
+
+    const assistantMessage = findAssistantMessageForTurn(activeMessages, userMessage)
+    setMessageOptimistic(userMessage, true)
+    setMessageOptimistic(assistantMessage, true)
+
+    optimisticTurn.value = {
+      conversationId: currentConversationId,
+      userContent: content,
+      userMessage,
+      assistantMessage,
+    }
+  }
+
+  watchEffect(() => {
+    if (!optimisticTurn.value) return
+
+    const currentConversationId = conversation.activeConversationId.value
+    const activeMessages = conversation.activeConversation.value?.engine.messages.value ?? []
+    if (!currentConversationId || currentConversationId !== optimisticTurn.value.conversationId) {
+      clearOptimisticTurn()
+      return
+    }
+
+    if (!optimisticTurn.value.userMessage) {
+      optimisticTurn.value.userMessage = findLatestUserMessage(activeMessages, optimisticTurn.value.userContent)
+      setMessageOptimistic(optimisticTurn.value.userMessage, true)
+    }
+
+    if (!optimisticTurn.value.assistantMessage) {
+      optimisticTurn.value.assistantMessage = findAssistantMessageForTurn(
+        activeMessages,
+        optimisticTurn.value.userMessage,
+      )
+      setMessageOptimistic(optimisticTurn.value.assistantMessage, true)
+    }
+
+    if (request.status.value === 'ready' || request.status.value === 'error') {
+      clearOptimisticTurn()
+    }
+
+    if (request.status.value === 'ready') {
+      clearPendingEditRollback()
+    }
   })
 
   function sendMessage(content: string, _data?: StructuredData): void {
     if (!content.trim()) return
     clearFailureState()
-    conversation.sendMessage(content)
+    resendMessage(content)
   }
 
   async function retry(): Promise<boolean> {
@@ -110,7 +257,7 @@ export function useChatKit(options: UseChatKitOptions): UseChatKitReturn {
     }
 
     clearFailureState()
-    conversation.sendMessage(currentRetryContext.userContent)
+    resendMessage(currentRetryContext.userContent)
     return true
   }
 

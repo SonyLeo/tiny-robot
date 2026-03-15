@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { computed, ref, useSlots, watch, type Slot } from 'vue'
+import { computed, ref, useAttrs, useSlots, watch, type Slot } from 'vue'
 import { useChatKit, useModelSelector, useSlotFilter } from '../composables'
 import { BUBBLE_LIST_SLOTS } from '../context'
 import { CHAT_MESSAGES } from '../messages'
-import type { ModelOption, TrChatProps } from '../types'
+import type { ChatListVariant, ModelOption, TrChatProps } from '../types'
 import TrChatFooter from './TrChatFooter.vue'
 import TrChatFeedback from './TrChatFeedback.vue'
 import TrChatHeader from './TrChatHeader.vue'
@@ -15,6 +15,8 @@ import TrChatSender from './TrChatSender.vue'
 import TrChatWelcome from './TrChatWelcome.vue'
 import TrModelSelector from './TrModelSelector.vue'
 
+defineOptions({ inheritAttrs: false })
+
 const props = withDefaults(defineProps<TrChatProps>(), {
   autoScroll: true,
   showHistory: false,
@@ -22,6 +24,7 @@ const props = withDefaults(defineProps<TrChatProps>(), {
   fullscreen: undefined,
   show: undefined,
 })
+const attrs = useAttrs()
 
 const emit = defineEmits<{
   (e: 'update:fullscreen', value: boolean): void
@@ -74,6 +77,15 @@ const showWelcome = computed(() => chatKit.messages.value.length === 0)
 const welcomeIcon = computed(() => props.welcome?.icon ?? props.brand?.logo)
 const senderPlaceholder = computed(() => props.placeholder ?? CHAT_MESSAGES.sender.placeholder)
 const showModelSelector = computed(() => Boolean(props.models?.length && props.providerFactories?.length))
+const messageListVariant = computed<ChatListVariant>(() => {
+  const attrVariant = attrs['message-list-variant'] ?? attrs.messageListVariant
+
+  if (props.messageListVariant === 'docs' || attrVariant === 'docs') {
+    return 'docs'
+  }
+
+  return 'bubble'
+})
 
 const slots = useSlots() as Record<string, Slot | undefined>
 const bubbleSlots = useSlotFilter(slots, BUBBLE_LIST_SLOTS)
@@ -91,7 +103,7 @@ function handleSelectedModelChange(model: ModelOption) {
 
 <template>
   <TrChatRoot :chat-kit="chatKit" :mcp-manager="props.mcpManager">
-    <TrChatLayout v-show="props.show !== false" :fullscreen="props.fullscreen" :role-configs="props.roleConfigs">
+    <TrChatLayout :show="props.show !== false" :fullscreen="props.fullscreen" :role-configs="props.roleConfigs">
       <template v-if="$slots.header">
         <slot name="header" />
       </template>
@@ -130,6 +142,8 @@ function handleSelectedModelChange(model: ModelOption) {
         <TrChatMessageList
           v-else
           :auto-scroll="props.autoScroll"
+          :variant="messageListVariant"
+          :on-action-click="props.onMessageAction"
           :group-strategy="props.groupStrategy"
           v-bind="props.bubbleListProps"
         >

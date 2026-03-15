@@ -1,8 +1,37 @@
 import type { ModelOption, ModelProviderFactory, ResponseProvider } from '@opentiny/tiny-robot-chat'
 
 export const DEMO_RETRY_TRIGGER = '/mock-error'
+export const DEMO_OPTIMISTIC_TRIGGER = '/mock-optimistic'
+const DEMO_OPTIMISTIC_DELAY = 1200
 
 const triggerState = new Map<string, 'failed-once'>()
+
+function createAbortError(): Error {
+  const error = new Error('Demo optimistic trigger aborted before provider execution.')
+  error.name = 'AbortError'
+  return error
+}
+
+async function waitWithAbort(ms: number, signal: AbortSignal): Promise<void> {
+  if (signal.aborted) {
+    throw createAbortError()
+  }
+
+  await new Promise<void>((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      signal.removeEventListener('abort', handleAbort)
+      resolve()
+    }, ms)
+
+    const handleAbort = () => {
+      clearTimeout(timeout)
+      signal.removeEventListener('abort', handleAbort)
+      reject(createAbortError())
+    }
+
+    signal.addEventListener('abort', handleAbort, { once: true })
+  })
+}
 
 function getLastUserMessageContent(requestBody: { messages?: Array<{ role?: string; content?: unknown }> }): string {
   const lastUserMessage = [...(requestBody.messages ?? [])]
@@ -13,7 +42,7 @@ function getLastUserMessageContent(requestBody: { messages?: Array<{ role?: stri
 }
 
 export function wrapDemoRetryProvider(provider: ResponseProvider): ResponseProvider {
-  return (requestBody, abortSignal) => {
+  return async (requestBody, abortSignal) => {
     const userContent = getLastUserMessageContent(requestBody)
 
     if (userContent === DEMO_RETRY_TRIGGER) {
@@ -24,6 +53,10 @@ export function wrapDemoRetryProvider(provider: ResponseProvider): ResponseProvi
       }
 
       triggerState.delete(userContent)
+    }
+
+    if (userContent === DEMO_OPTIMISTIC_TRIGGER) {
+      await waitWithAbort(DEMO_OPTIMISTIC_DELAY, abortSignal)
     }
 
     return provider(requestBody, abortSignal)

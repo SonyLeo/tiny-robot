@@ -6,11 +6,13 @@ import { useDefaultBubbleConfig } from '../composables'
 import { BUBBLE_CONFIG_KEY } from '../context'
 
 interface Props {
+  show?: boolean
   fullscreen?: boolean
   roleConfigs?: BubbleListProps['roleConfigs']
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  show: true,
   fullscreen: false,
 })
 
@@ -28,7 +30,7 @@ provide(BUBBLE_CONFIG_KEY, {
 
 <template>
   <BubbleProvider :box-renderer-matches="boxMatches" :content-renderer-matches="contentMatches">
-    <div class="tr-chat" :class="{ 'tr-chat--fullscreen': props.fullscreen }">
+    <div v-show="props.show" class="tr-chat" :class="{ 'tr-chat--fullscreen': props.fullscreen }">
       <slot />
     </div>
   </BubbleProvider>

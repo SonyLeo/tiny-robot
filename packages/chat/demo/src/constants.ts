@@ -1,11 +1,11 @@
 import { IconAi } from '@opentiny/tiny-robot-svgs'
 import type { PromptProps } from '@opentiny/tiny-robot'
-import { DEMO_RETRY_TRIGGER } from './utils/demoRetryProvider'
+import { DEMO_OPTIMISTIC_TRIGGER, DEMO_RETRY_TRIGGER } from './utils/demoRetryProvider'
 
 export const WELCOME_CONFIG = {
   icon: IconAi,
   title: 'Welcome to TinyRobot',
-  description: `Try asking me anything, or type ${DEMO_RETRY_TRIGGER} to test retry.`,
+  description: `Try asking me anything, or use ${DEMO_RETRY_TRIGGER} / ${DEMO_OPTIMISTIC_TRIGGER} for demo validation.`,
 }
 
 export const PROMPTS: PromptProps[] = [
@@ -14,6 +14,7 @@ export const PROMPTS: PromptProps[] = [
   { label: 'Summarize this text', description: 'Summarize this text' },
   { label: 'Generate a poem', description: 'Generate a poem' },
   { label: 'Test retry flow', description: DEMO_RETRY_TRIGGER },
+  { label: 'Observe optimistic state', description: DEMO_OPTIMISTIC_TRIGGER },
 ]
 
 export const BRAND_CONFIG = {

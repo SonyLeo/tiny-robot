@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { IconAccessory, IconPlugin } from '@opentiny/tiny-robot-svgs'
-import { computed, ref, h } from 'vue'
+import { computed, h, ref } from 'vue'
 import { TrAttachments, UploadButton, ActionButton } from '@opentiny/tiny-robot'
 import type { Attachment } from '@opentiny/tiny-robot'
+import { IconAccessory, IconPlugin } from '@opentiny/tiny-robot-svgs'
 import {
   TrChat,
   TrChatFeedback,
@@ -13,6 +13,7 @@ import {
   useModelSelector,
   createChatAdapterFromConfig,
 } from '@opentiny/tiny-robot-chat'
+import type { ChatListVariant, ChatMessageActionPayload } from '@opentiny/tiny-robot-chat'
 import { localStorageStrategyFactory, toolPlugin } from '@opentiny/tiny-robot-kit'
 import { defaultMcpServers } from '../data/mcpServers'
 import { WELCOME_CONFIG, PROMPTS, BRAND_CONFIG } from '../constants'
@@ -23,9 +24,11 @@ defineEmits<{
   error: [error: Error]
 }>()
 
-// API Keys
 const deepseekApiKey = import.meta.env.VITE_DEEPSEEK_API_KEY || ''
 const openaiApiKey = import.meta.env.VITE_OPENAI_API_KEY || ''
+
+const actionLog = ref('')
+const messageListVariant = ref<ChatListVariant>('bubble')
 
 const chatAdapter = createChatAdapterFromConfig({
   models: [
@@ -62,7 +65,6 @@ const chatAdapter = createChatAdapterFromConfig({
   },
 })
 
-// MCP Manager
 const mcpManager = useMcpManager({
   initialPlugins: defaultMcpServers,
   bridge: createDemoMcpBridge(),
@@ -89,17 +91,16 @@ function getProviderForModel(modelValue?: string) {
   return factory.createProvider(model)
 }
 
-// Create chatKit directly using useChatKit
 const chatKit = useChatKit({
   responseProvider: getProviderForModel(chatAdapter.defaultModel),
   plugins: [toolPluginInstance],
   storage: localStorageStrategyFactory(),
 })
 
-// State
 const mcpPanelVisible = ref(false)
 const attachments = ref<Attachment[]>([])
 const selectedModel = ref<string>(chatAdapter.defaultModel || chatAdapter.models[0]?.value || '')
+
 const { selectModel } = useModelSelector({
   currentModel: selectedModel,
   models: computed(() => chatAdapter.models),
@@ -108,11 +109,8 @@ const { selectModel } = useModelSelector({
 })
 
 const showWelcome = computed(() => chatKit.messages.value.length === 0)
-
-// MCP Panel icon renderer
 const mcpPanelIcon = computed(() => () => h(IconPlugin, { style: { fontSize: '24px' } }))
 
-// Handlers
 function handlePromptClick(description: string) {
   chatKit.sendMessage(description)
 }
@@ -130,94 +128,125 @@ function handleToggleMcpPanel() {
 function handleModelChange(model: (typeof chatAdapter.models)[number]) {
   selectModel(model)
 }
+
+function handleMessageAction(payload: ChatMessageActionPayload) {
+  actionLog.value = `action:${payload.action}:${payload.role ?? ''}:${payload.messageIndex ?? -1}`
+}
+
+function toggleMessageListVariant() {
+  messageListVariant.value = messageListVariant.value === 'bubble' ? 'docs' : 'bubble'
+}
 </script>
 
 <template>
-  <TrChat.Root :chat-kit="chatKit" :mcp-manager="mcpManager">
-    <TrChat.Layout>
-      <TrChat.Header :title="BRAND_CONFIG.title" show-history />
+  <div class="demo-chat-shell">
+    <div class="demo-status-bar">
+      <span data-testid="demo-variant-indicator">{{ messageListVariant }}</span>
+      <button class="demo-status-btn" @click="toggleMessageListVariant">
+        {{ messageListVariant === 'bubble' ? 'Switch to docs' : 'Switch to bubble' }}
+      </button>
+      <span v-if="actionLog" data-testid="demo-action-log">{{ actionLog }}</span>
+    </div>
 
-      <div v-if="showWelcome" class="tr-chat__welcome-area">
-        <TrChat.Welcome
-          :title="chatAdapter.config.ui?.welcome?.title || WELCOME_CONFIG.title"
-          :icon="chatAdapter.config.ui?.welcome?.icon || WELCOME_CONFIG.icon"
-          :description="chatAdapter.config.ui?.welcome?.description || WELCOME_CONFIG.description"
-          :prompts="chatAdapter.config.ui?.prompts || PROMPTS"
-          @prompt-click="handlePromptClick"
-        />
-      </div>
-      <TrChat.MessageList v-else group-strategy="consecutive" auto-scroll>
-        <template #after="slotProps">
-          <TrChatFeedback v-bind="slotProps" style="margin-top: 6px" />
-        </template>
-      </TrChat.MessageList>
+    <TrChat.Root :chat-kit="chatKit" :mcp-manager="mcpManager">
+      <TrChat.Layout>
+        <TrChat.Header :title="BRAND_CONFIG.title" show-history />
 
-      <TrChat.Footer>
-        <div class="tr-chat-footer-wrapper">
-          <div v-if="attachments.length > 0" class="tr-chat-attachments-area">
-            <TrAttachments v-model:items="attachments" variant="card" :wrap="true" />
-          </div>
-          <TrChat.Sender>
-            <template #footer>
-              <TrModelSelector
-                v-model="selectedModel"
-                :models="chatAdapter.models"
-                :provider-factories="demoProviderFactories"
-                @change="handleModelChange"
-              />
-              <UploadButton
-                tooltip="上传文件"
-                tooltip-placement="top"
-                :multiple="true"
-                :icon="IconAccessory"
-                accept="*"
-                @select="handleFileSelect"
-              />
-              <ActionButton :icon="mcpPanelIcon" @click="handleToggleMcpPanel" />
-            </template>
-          </TrChat.Sender>
+        <div v-if="showWelcome" class="tr-chat__welcome-area">
+          <TrChat.Welcome
+            :title="chatAdapter.config.ui?.welcome?.title || WELCOME_CONFIG.title"
+            :icon="chatAdapter.config.ui?.welcome?.icon || WELCOME_CONFIG.icon"
+            :description="chatAdapter.config.ui?.welcome?.description || WELCOME_CONFIG.description"
+            :prompts="chatAdapter.config.ui?.prompts || PROMPTS"
+            @prompt-click="handlePromptClick"
+          />
         </div>
-      </TrChat.Footer>
+        <TrChat.MessageList
+          v-else
+          group-strategy="consecutive"
+          auto-scroll
+          :variant="messageListVariant"
+          :on-action-click="handleMessageAction"
+        >
+          <template #after="slotProps">
+            <TrChatFeedback v-if="slotProps.role === 'assistant'" v-bind="slotProps" style="margin-top: 6px" />
+          </template>
+        </TrChat.MessageList>
 
-      <TrChat.History />
-      <TrChatMcpPanel :visible="mcpPanelVisible" @update:visible="mcpPanelVisible = $event" />
-    </TrChat.Layout>
-  </TrChat.Root>
+        <TrChat.Footer>
+          <div class="tr-chat-footer-wrapper">
+            <div v-if="attachments.length > 0" class="tr-chat-attachments-area">
+              <TrAttachments v-model:items="attachments" variant="card" :wrap="true" />
+            </div>
+            <TrChat.Sender>
+              <template #footer>
+                <TrModelSelector
+                  v-model="selectedModel"
+                  :models="chatAdapter.models"
+                  :provider-factories="demoProviderFactories"
+                  @change="handleModelChange"
+                />
+                <UploadButton
+                  tooltip="上传附件"
+                  tooltip-placement="top"
+                  :multiple="true"
+                  :icon="IconAccessory"
+                  accept="*"
+                  @select="handleFileSelect"
+                />
+                <ActionButton :icon="mcpPanelIcon" @click="handleToggleMcpPanel" />
+              </template>
+            </TrChat.Sender>
+          </div>
+        </TrChat.Footer>
+
+        <TrChat.History />
+        <TrChatMcpPanel :visible="mcpPanelVisible" @update:visible="mcpPanelVisible = $event" />
+      </TrChat.Layout>
+    </TrChat.Root>
+  </div>
 </template>
 
 <style scoped>
-:deep(.tr-chat) {
+.demo-chat-shell {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   height: 100%;
+  min-height: 0;
+  overflow: hidden;
 }
 
-.header-controls {
+.demo-status-bar {
   display: flex;
-  align-items: center;
   gap: 12px;
+  padding: 8px 12px;
+  background: #f5f7fb;
+  border-bottom: 1px solid #e6ebf5;
+  font-size: 12px;
+  font-family: monospace;
+  flex-shrink: 0;
 }
 
-.mcp-toggle-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  border: 1px solid var(--tr-color-border);
-  border-radius: 4px;
-  background: var(--tr-color-bg-default);
-  color: var(--tr-color-text-primary);
+.demo-status-bar span {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #e8eefb;
+}
+
+.demo-status-btn {
+  padding: 2px 10px;
+  border: 1px solid #d0d7e2;
+  border-radius: 999px;
+  background: #fff;
   cursor: pointer;
-  transition: all 0.2s ease;
+  font: inherit;
 }
 
-.mcp-toggle-btn:hover {
-  background: var(--tr-color-bg-hover);
-  border-color: var(--tr-color-border-hover);
-}
-
-.mcp-toggle-btn:active {
-  background: var(--tr-color-bg-active);
+:deep(.tr-chat) {
+  flex: 1;
+  min-height: 0;
+  height: auto;
 }
 
 .tr-chat-footer-wrapper {
