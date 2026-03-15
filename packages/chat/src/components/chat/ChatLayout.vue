@@ -2,8 +2,10 @@
 import { BubbleProvider } from '@opentiny/tiny-robot'
 import type { BubbleListProps } from '@opentiny/tiny-robot'
 import { computed, provide } from 'vue'
-import { useDefaultBubbleConfig } from '../composables'
-import { BUBBLE_CONFIG_KEY } from '../context'
+import { useDefaultBubbleConfig } from '../../composables'
+import { BUBBLE_CONFIG_KEY } from '../../context'
+
+defineOptions({ name: 'TrChatLayout' })
 
 interface Props {
   show?: boolean

@@ -3,11 +3,11 @@ import { computed, inject, provide, useAttrs, useSlots } from 'vue'
 import type { Slot } from 'vue'
 import { TrBubbleList } from '@opentiny/tiny-robot'
 import type { BubbleListProps, BubbleRoleConfig } from '@opentiny/tiny-robot'
-import { BUBBLE_CONFIG_KEY, BUBBLE_LIST_SLOTS, CHAT_KIT_KEY, MESSAGE_ACTION_KEY } from '../context'
-import { useSlotFilter } from '../composables'
-import type { ChatListVariant, TrChatMessageListProps } from '../types'
+import { BUBBLE_CONFIG_KEY, BUBBLE_LIST_SLOTS, CHAT_KIT_KEY, MESSAGE_ACTION_KEY } from '../../context'
+import { useSlotFilter } from '../../composables'
+import type { ChatListVariant, TrChatMessageListProps } from '../../types'
 
-defineOptions({ inheritAttrs: false })
+defineOptions({ name: 'TrChatMessageList', inheritAttrs: false })
 
 const props = withDefaults(defineProps<TrChatMessageListProps>(), {
   variant: 'bubble',

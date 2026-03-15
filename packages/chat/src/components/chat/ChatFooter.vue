@@ -1,3 +1,7 @@
+<script setup lang="ts">
+defineOptions({ name: 'TrChatFooter' })
+</script>
+
 <template>
   <div class="tr-chat__footer">
     <div class="tr-chat__footer-inner">

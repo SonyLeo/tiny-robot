@@ -2,10 +2,12 @@
 import { inject, provide } from 'vue'
 import { CHAT_UI_KEY, CHAT_HISTORY_KEY } from '../../context'
 import { useHistoryState } from '../../composables/useHistoryState'
-import TrChatHistoryHeader from './TrChatHistoryHeader.vue'
-import TrChatHistorySearch from './TrChatHistorySearch.vue'
-import TrChatHistoryList from './TrChatHistoryList.vue'
-import TrChatHistoryPanel from './TrChatHistoryPanel.vue'
+import ChatHistoryHeader from './ChatHistoryHeader.vue'
+import ChatHistorySearch from './ChatHistorySearch.vue'
+import ChatHistoryList from './ChatHistoryList.vue'
+import ChatHistoryPanel from './ChatHistoryPanel.vue'
+
+defineOptions({ name: 'TrChatHistory' })
 
 const { showHistoryDrawer } = inject(CHAT_UI_KEY)!
 
@@ -20,11 +22,11 @@ provide(CHAT_HISTORY_KEY, historyState)
 
   <!-- Drawer 面板 -->
   <div class="tr-chat-drawer" :class="{ 'is-open': showHistoryDrawer }">
-    <TrChatHistoryHeader />
-    <TrChatHistorySearch />
+    <ChatHistoryHeader />
+    <ChatHistorySearch />
     <!-- 列表区：管理模式下底部留出悬浮面板的空间 -->
-    <TrChatHistoryList />
+    <ChatHistoryList />
     <!-- 悬浮操作面板：仅管理模式下出现 -->
-    <TrChatHistoryPanel />
+    <ChatHistoryPanel />
   </div>
 </template>

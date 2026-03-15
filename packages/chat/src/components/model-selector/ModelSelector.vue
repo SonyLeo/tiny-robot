@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import type { ModelOption, ModelProviderFactory } from '../types'
-import { getProviderIcon } from '../utils/iconMap'
-import { useModelSelector } from '../composables'
-import { useFloatingDropdown } from '../composables/useFloatingDropdown'
-import { useKeyboardNavigation } from '../composables/useKeyboardNavigation'
+import type { ModelOption, ModelProviderFactory } from '../../types'
+import { getProviderIcon } from '../../utils/iconMap'
+import { useModelSelector } from '../../composables'
+import { useFloatingDropdown } from '../../composables/useFloatingDropdown'
+import { useKeyboardNavigation } from '../../composables/useKeyboardNavigation'
+
+defineOptions({ name: 'TrModelSelector' })
 
 const props = defineProps<{
   models: ModelOption[]

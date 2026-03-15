@@ -2,15 +2,20 @@
 import './styles/index.css'
 
 // ===== 黑盒组件（同时挂载白盒子组件）=====
-import TrChat from './components/TrChat.vue'
-import TrChatRoot from './components/TrChatRoot.vue'
-import TrChatLayout from './components/TrChatLayout.vue'
-import TrChatHeader from './components/TrChatHeader.vue'
-import TrChatWelcome from './components/TrChatWelcome.vue'
-import TrChatMessageList from './components/TrChatMessageList.vue'
-import TrChatFooter from './components/TrChatFooter.vue'
-import TrChatSender from './components/TrChatSender.vue'
-import TrChatHistory from './components/history/TrChatHistory.vue'
+import {
+  Chat as TrChat,
+  ChatRoot as TrChatRoot,
+  ChatLayout as TrChatLayout,
+  ChatHeader as TrChatHeader,
+  ChatWelcome as TrChatWelcome,
+  ChatMessageList as TrChatMessageList,
+  ChatFooter as TrChatFooter,
+  ChatSender as TrChatSender,
+  ChatFeedback as TrChatFeedback,
+  ChatMcpPanel as TrChatMcpPanel,
+} from './components/chat'
+import { ChatHistory as TrChatHistory } from './components/history'
+import { ModelSelector as TrModelSelector } from './components/model-selector'
 
 // 定义带子组件的 TrChat 类型
 type TrChatWithSubComponents = typeof TrChat & {
@@ -61,10 +66,7 @@ export {
 } from './components/render'
 
 // ===== 新组件 =====
-export { default as TrModelSelector } from './components/TrModelSelector.vue'
-export { default as TrChatFeedback } from './components/TrChatFeedback.vue'
-export { default as TrChatMcpPanel } from './components/TrChatMcpPanel.vue'
-export { default as TrChatLayout } from './components/TrChatLayout.vue'
+export { TrModelSelector, TrChatFeedback, TrChatMcpPanel, TrChatLayout }
 
 // ===== Providers =====
 export { matchProvider, createOpenAIFactory, createDeepSeekFactory } from './providers/factories'

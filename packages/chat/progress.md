@@ -1,72 +1,60 @@
-# Chat Kit Progress
+# Chat Kit 进度追踪
 
-> 用于跟踪 `packages/chat` 会话套件重构与 chat-cli 对接进度  
-> 基线文档：`packages/chat/chat-kit-review.md`
+> 用于快速查看 `packages/chat` 本轮实施范围的完成情况。
+> 详细评审与方案背景见 `packages/chat/chat-kit-review.md`。
 
 ## 当前状态
+- 总体进度：`100%（本轮实施范围）`
+- 当前阶段：`已完成，进入维护收口`
+- 最近完成项：`B5 docs variant`、`useModelSelector` 一致性修复与单测补齐、组件内部命名收敛（源码去 `Tr` 前缀，对外 API 保持 `Tr*`）
+- 下一步：按需做尾项整理、文档维护和后续增强
+- 最近更新：`2026-03-15`
 
-- 阶段：Planning
-- 当前目标：完成 Phase 1 基座修复设计，等待确认后开始实现
-- 最近更新：2026-03-14
+## 阶段清单
 
-## 里程碑
+| 阶段 | 状态 | 进度 | 说明 |
+|:--|:--|:--|:--|
+| Phase 1 | 已完成 | `100%` | `Root + Layout`、MCP 单实例、模型切换单 owner、内部导出整理 |
+| Phase 2A | 已完成 | `100%` | `config/adapter` 契约、server proxy provider |
+| Phase 2B | 已完成 | `100%` | `useModelSelector`、MCP bridge、demo/template 对齐 |
+| Phase 2C | 已完成 | `100%` | 模型切换回归、icon 扩展点 |
+| Phase 2D | 已完成 | `100%` | provider icon 迁移到 `@opentiny/tiny-robot-svgs`、样式收敛为 CSS |
+| Phase 2E | 已完成 | `100%` | chat 文案抽取到 `messages.ts`，作为后续国际化基座 |
+| Phase 3A | 已完成 | `100%` | `useChatKit` 拆分为 conversation / request / messages slices |
+| Phase 3B | 已完成 | `100%` | 结构化错误、`lastError`、`retry()`、demo `/mock-error` |
+| Phase 3C | 已完成 | `100%` | optimistic 状态、rollback、demo `/mock-optimistic` |
+| Phase 3D | 已完成 | `100%` | 统一消息动作入口、blackbox / whitebox action log |
+| Phase 3E | 已完成 | `100%` | `docs variant`、demo 切换、warning 修复、样式对齐 |
 
-| 里程碑 | 状态 | 说明 |
-|:-------|:-----|:-----|
-| M1 文档收敛 | 已完成 | review 文档已整理为项目推进结构 |
-| M2 Phase 1 实现 | 未开始 | Layout、MCP 单实例、模型 owner、导出面修复 |
-| M3 Phase 1 验收 | 未开始 | demo 黑盒 / 白盒统一验证 |
-| M4 Phase 2 契约设计 | 未开始 | BFF / adapter / manifest 方案落地 |
-| M5 Phase 2 增强 | 未开始 | 状态分片、乐观更新、重试等优化 |
+## 本轮已落地能力
+- 黑盒 / 白盒链路统一到 `Root + Layout` 体系，demo 可直接验证主链路。
+- MCP 改为单实例接入，工具面板和实际工具调用不再脱节。
+- 模型切换 owner 收敛，`useModelSelector` 已补一致性修复和单测。
+- `config -> adapter -> preset UI` 契约已落地，并已接入 demo 与 chat-cli 模板。
+- icon 资源迁移到 `@opentiny/tiny-robot-svgs`，样式收敛为 CSS。
+- chat 文案已抽取到 `messages.ts`，作为后续整体国际化基座。
+- `useChatKit` 已完成内部切片，并补齐 unit guardrails。
+- 结构化错误、retry、optimistic、rollback、message action、docs variant 均已落地并验证。
+- 组件源码层已收敛为按领域分组的无前缀命名；`Tr*` 统一保留在 public export 和组件运行时名称层。
 
-## Phase 1 Checklist
+## 当前验证基线
+- `packages/chat/tests/use-chat-slices.test.mjs`
+  作用：内部 composable 护栏，覆盖编辑、重试、optimistic、rollback、model selector
+- `packages/test/src/chat/index.spec.ts`
+  作用：blackbox / whitebox / edge 场景回归，覆盖 docs variant
+- `packages/test/src/chat/model-switch.spec.ts`
+  作用：模型切换回归
+- `packages/chat/demo`
+  作用：手动验证 `/mock-error`、`/mock-optimistic`、feedback action、docs variant
 
-| 编号 | 事项 | 状态 | 备注 |
-|:-----|:-----|:-----|:-----|
-| F1 | 新增 `TrChat.Layout` | Todo | `Root + Layout` 双层模型 |
-| F2 | Root 参数校验 | Todo | 防止 `responseProvider` 缺失 |
-| F3 | MCP 单实例 | Todo | 面板与 toolPlugin 使用同一实例 |
-| F4 | 模型切换 owner 唯一化 | Todo | 避免双重 `updateResponseProvider` |
-| F5 | Feedback 样式 scoped | Todo | 去掉全局泄漏 |
-| F6 | Slot 过滤逻辑提取 | Todo | `useSlotFilter` |
-| F7 | Sender 动态 slot 透传 | Todo | 降低维护成本 |
-| F8 | `useChatFeedback` 参数化 | Todo | 去 inject 强耦合 |
-| F9 | 删除冗余类型 | Todo | 精简 types |
-| F10 | Injection Key 内部化 | Todo | 需注意发布策略 |
-| F11 | providers 安全标注 | Todo | 明确 demo-only 边界 |
-| F12 | Demo 对齐验证 | Todo | 黑盒 / 白盒统一 |
+## 已验证命令
+- `pnpm.cmd -F @opentiny/tiny-robot-chat type-check`
+- `pnpm.cmd -F @opentiny/tiny-robot-chat test:unit`
+- `pnpm.cmd -F @opentiny/tiny-robot-chat build`
+- `pnpm.cmd -F tiny-robot-test test -- src/chat/index.spec.ts src/chat/model-switch.spec.ts`
+- `pnpm.cmd -F docs build`
 
-## Phase 2 Checklist
-
-| 编号 | 事项 | 状态 | 备注 |
-|:-----|:-----|:-----|:-----|
-| S1 | `useModelSelector` composable | Todo | UI 与逻辑继续拆分 |
-| S2 | icons 迁移 | Todo | 收敛职责 |
-| S3 | `useMcpManager` 去 mock 化 | Todo | 最小 callback 契约 |
-| S4 | provider 回归测试 | Todo | 覆盖更新后发送路径 |
-| S5 | Less -> CSS | Todo | 与主包风格统一 |
-| S6 | i18n 机制 | Todo | 文案外置 |
-| S7 | Provider 安全分层 | Todo | BFF / ServerProxyProvider |
-| S8 | manifest/config 契约 | Todo | chat-cli 稳定入口 |
-| B1 | 状态分片 | Backlog | `useChatMessages` 等 |
-| B2 | 乐观更新 + 回滚 | Backlog | 体验增强 |
-| B3 | 统一消息操作入口 | Backlog | 扩展能力 |
-| B4 | 结构化错误 + 重试 | Backlog | 生产可用性 |
-| B5 | `docs` variant | Backlog | 远期场景扩展 |
-
-## 风险记录
-
-| 日期 | 风险 | 状态 | 说明 |
-|:-----|:-----|:-----|:-----|
-| 2026-03-14 | Injection Key 内部化属于破坏性变更 | Open | 需 deprecate 后再 major 发布 |
-| 2026-03-14 | 前端直连 provider 有 Key 暴露风险 | Open | chat-cli 默认应走 BFF |
-| 2026-03-14 | MCP 真实桥接接口未定 | Open | 先修单实例，再定义 callback 契约 |
-
-## 下一步
-
-等待确认后，按以下顺序开始实现：
-
-1. F1 `TrChat.Layout`
-2. F3 MCP 单实例
-3. F4 模型切换 owner 唯一化
-4. 同步更新 demo 与导出面
+## 后续可选项
+- 继续做导出面收口、demo 展示优化和文档维护。
+- 国际化当前只完成“文案抽取基座”，尚未进入 runtime i18n。
+- `chat-kit-review.md` 中剩余未落地的内容，可视为后续增强项，而非本轮阻塞项。

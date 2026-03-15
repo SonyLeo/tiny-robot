@@ -2,8 +2,10 @@
 import { computed, inject } from 'vue'
 import { TrIconButton } from '@opentiny/tiny-robot'
 import { IconCancelFullScreen, IconClose, IconFullScreen, IconHistory, IconNewSession } from '@opentiny/tiny-robot-svgs'
-import { CHAT_KIT_KEY, CHAT_UI_KEY } from '../context'
-import { CHAT_MESSAGES } from '../messages'
+import { CHAT_KIT_KEY, CHAT_UI_KEY } from '../../context'
+import { CHAT_MESSAGES } from '../../messages'
+
+defineOptions({ name: 'TrChatHeader' })
 
 interface Props {
   showHistory?: boolean

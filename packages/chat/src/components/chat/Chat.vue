@@ -1,21 +1,21 @@
 <script setup lang="ts">
 import { computed, ref, useAttrs, useSlots, watch, type Slot } from 'vue'
-import { useChatKit, useModelSelector, useSlotFilter } from '../composables'
-import { BUBBLE_LIST_SLOTS } from '../context'
-import { CHAT_MESSAGES } from '../messages'
-import type { ChatListVariant, ModelOption, TrChatProps } from '../types'
-import TrChatFooter from './TrChatFooter.vue'
-import TrChatFeedback from './TrChatFeedback.vue'
-import TrChatHeader from './TrChatHeader.vue'
-import { TrChatHistory } from './history'
-import TrChatLayout from './TrChatLayout.vue'
-import TrChatMessageList from './TrChatMessageList.vue'
-import TrChatRoot from './TrChatRoot.vue'
-import TrChatSender from './TrChatSender.vue'
-import TrChatWelcome from './TrChatWelcome.vue'
-import TrModelSelector from './TrModelSelector.vue'
+import { useChatKit, useModelSelector, useSlotFilter } from '../../composables'
+import { BUBBLE_LIST_SLOTS } from '../../context'
+import { CHAT_MESSAGES } from '../../messages'
+import type { ChatListVariant, ModelOption, TrChatProps } from '../../types'
+import { ChatHistory } from '../history'
+import ChatFooter from './ChatFooter.vue'
+import ChatFeedback from './ChatFeedback.vue'
+import ChatHeader from './ChatHeader.vue'
+import ChatLayout from './ChatLayout.vue'
+import ChatMessageList from './ChatMessageList.vue'
+import ChatRoot from './ChatRoot.vue'
+import ChatSender from './ChatSender.vue'
+import ChatWelcome from './ChatWelcome.vue'
+import ModelSelector from '../model-selector/ModelSelector.vue'
 
-defineOptions({ inheritAttrs: false })
+defineOptions({ name: 'TrChat', inheritAttrs: false })
 
 const props = withDefaults(defineProps<TrChatProps>(), {
   autoScroll: true,
@@ -102,12 +102,12 @@ function handleSelectedModelChange(model: ModelOption) {
 </script>
 
 <template>
-  <TrChatRoot :chat-kit="chatKit" :mcp-manager="props.mcpManager">
-    <TrChatLayout :show="props.show !== false" :fullscreen="props.fullscreen" :role-configs="props.roleConfigs">
+  <ChatRoot :chat-kit="chatKit" :mcp-manager="props.mcpManager">
+    <ChatLayout :show="props.show !== false" :fullscreen="props.fullscreen" :role-configs="props.roleConfigs">
       <template v-if="$slots.header">
         <slot name="header" />
       </template>
-      <TrChatHeader
+      <ChatHeader
         v-else
         :show-history="props.showHistory"
         :title="props.brand?.title"
@@ -120,7 +120,7 @@ function handleSelectedModelChange(model: ModelOption) {
         <template v-if="$slots['header-extra']" #extra>
           <slot name="header-extra" />
         </template>
-      </TrChatHeader>
+      </ChatHeader>
 
       <template v-if="$slots['message-list']">
         <slot name="message-list" :messages="chatKit.messages" />
@@ -128,7 +128,7 @@ function handleSelectedModelChange(model: ModelOption) {
       <template v-else>
         <div v-if="showWelcome" class="tr-chat__welcome-area">
           <slot v-if="$slots.welcome" name="welcome" />
-          <TrChatWelcome
+          <ChatWelcome
             v-else-if="props.welcome"
             :title="props.welcome.title"
             :description="props.welcome.description"
@@ -139,7 +139,7 @@ function handleSelectedModelChange(model: ModelOption) {
           <slot v-else name="empty" />
         </div>
 
-        <TrChatMessageList
+        <ChatMessageList
           v-else
           :auto-scroll="props.autoScroll"
           :variant="messageListVariant"
@@ -151,9 +151,9 @@ function handleSelectedModelChange(model: ModelOption) {
             <slot :name="name" v-bind="slotProps ?? {}" />
           </template>
           <template v-if="props.showFeedback" #after="slotProps">
-            <TrChatFeedback v-if="slotProps.role === 'assistant'" v-bind="slotProps" />
+            <ChatFeedback v-if="slotProps.role === 'assistant'" v-bind="slotProps" />
           </template>
-        </TrChatMessageList>
+        </ChatMessageList>
       </template>
 
       <template v-if="$slots.sender">
@@ -166,30 +166,30 @@ function handleSelectedModelChange(model: ModelOption) {
           :retry="chatKit.retry"
         />
       </template>
-      <TrChatFooter v-else>
+      <ChatFooter v-else>
         <template v-if="$slots['footer-extra']" #extra>
           <slot name="footer-extra" />
         </template>
         <div class="tr-chat-footer-content">
-          <TrModelSelector
+          <ModelSelector
             v-if="showModelSelector"
             v-model="selectedModel"
             :models="props.models!"
             :provider-factories="props.providerFactories!"
             @change="handleSelectedModelChange"
           />
-          <TrChatSender
+          <ChatSender
             :placeholder="senderPlaceholder"
             :max-length="props.maxLength"
             :mode="props.senderMode"
             v-bind="props.senderProps"
           />
         </div>
-      </TrChatFooter>
+      </ChatFooter>
 
-      <TrChatHistory v-if="props.showHistory" v-bind="props.historyProps" />
-    </TrChatLayout>
-  </TrChatRoot>
+      <ChatHistory v-if="props.showHistory" v-bind="props.historyProps" />
+    </ChatLayout>
+  </ChatRoot>
 </template>
 
 <style scoped>

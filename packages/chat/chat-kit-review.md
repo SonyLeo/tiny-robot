@@ -110,16 +110,17 @@ LobeHub 的消息发送流程：
 ```
 packages/chat/src/
 ├── components/
-│   ├── TrChat.vue              ← 黑盒组装层 (217 行)
-│   ├── TrChatRoot.vue          ← 状态注入层 (44 行)
-│   ├── TrChatHeader.vue        ← 顶栏
-│   ├── TrChatWelcome.vue       ← 欢迎页
-│   ├── TrChatMessageList.vue   ← 消息列表
-│   ├── TrChatFooter.vue        ← 底栏容器
-│   ├── TrChatSender.vue        ← 输入框封装
-│   ├── TrChatFeedback.vue      ← 反馈操作
-│   ├── TrModelSelector.vue     ← 模型选择器
-│   ├── TrChatMcpPanel.vue      ← MCP 面板
+│   ├── chat/
+│   │   ├── Chat.vue            ← 黑盒组装层
+│   │   ├── ChatRoot.vue        ← 状态注入层
+│   │   ├── ChatHeader.vue      ← 顶栏
+│   │   ├── ChatWelcome.vue     ← 欢迎页
+│   │   ├── ChatMessageList.vue ← 消息列表
+│   │   ├── ChatFooter.vue      ← 底栏容器
+│   │   ├── ChatSender.vue      ← 输入框封装
+│   │   ├── ChatFeedback.vue    ← 反馈操作
+│   │   └── ChatMcpPanel.vue    ← MCP 面板
+│   ├── model-selector/         ← 模型选择器
 │   ├── history/                ← 历史记录子组件
 │   ├── icons/                  ← 兼容保留，运行时图标已迁至 `@opentiny/tiny-robot-svgs`
 │   └── render/                 ← Bubble 内容渲染器 (6 个)
@@ -170,8 +171,8 @@ graph TD
 #### P0-1：模型切换状态所有权重复 + 副作用重复触发
 
 **位置**：
-- [TrChat.vue:72-84](file:///d:/OpenTinyRepository/tiny-robot/packages/chat/src/components/TrChat.vue#L72-L84)
-- [TrModelSelector.vue:43-47](file:///d:/OpenTinyRepository/tiny-robot/packages/chat/src/components/TrModelSelector.vue#L43-L47)
+- [Chat.vue](/d:/OpenTinyRepository/tiny-robot/packages/chat/src/components/chat/Chat.vue)
+- [ModelSelector.vue](/d:/OpenTinyRepository/tiny-robot/packages/chat/src/components/model-selector/ModelSelector.vue)
 
 **问题描述**：
 
@@ -192,8 +193,8 @@ graph TD
 
 **位置**：
 - [BlackboxDemo.vue:52-59](file:///d:/OpenTinyRepository/tiny-robot/packages/chat/demo/src/components/BlackboxDemo.vue#L52-L59)
-- [TrChatRoot.vue:31](file:///d:/OpenTinyRepository/tiny-robot/packages/chat/src/components/TrChatRoot.vue#L31)
-- [TrChatMcpPanel.vue:17](file:///d:/OpenTinyRepository/tiny-robot/packages/chat/src/components/TrChatMcpPanel.vue#L17)
+- [ChatRoot.vue](/d:/OpenTinyRepository/tiny-robot/packages/chat/src/components/chat/ChatRoot.vue)
+- [ChatMcpPanel.vue](/d:/OpenTinyRepository/tiny-robot/packages/chat/src/components/chat/ChatMcpPanel.vue)
 
 **问题描述**：
 
@@ -223,7 +224,7 @@ MCP Manager 需要单一实例：
 
 #### P0-3：TrChatRoot 的两种模式实现存在安全隐患
 
-**位置**：[TrChatRoot.vue:16-25](file:///d:/OpenTinyRepository/tiny-robot/packages/chat/src/components/TrChatRoot.vue#L16-L25)
+**位置**：[ChatRoot.vue](/d:/OpenTinyRepository/tiny-robot/packages/chat/src/components/chat/ChatRoot.vue)
 
 **问题描述**：
 
@@ -304,8 +305,8 @@ export { CHAT_KIT_KEY, MCP_MANAGER_KEY, CHAT_UI_KEY } from './context'
 #### P1-1：TrChatMessageList 和 TrChat 存在重复的 Slot 过滤逻辑
 
 **位置**：
-- [TrChat.vue:106-113](file:///d:/OpenTinyRepository/tiny-robot/packages/chat/src/components/TrChat.vue#L106-L113)
-- [TrChatMessageList.vue:17-23](file:///d:/OpenTinyRepository/tiny-robot/packages/chat/src/components/TrChatMessageList.vue#L17-L23)
+- [Chat.vue](/d:/OpenTinyRepository/tiny-robot/packages/chat/src/components/chat/Chat.vue)
+- [ChatMessageList.vue](/d:/OpenTinyRepository/tiny-robot/packages/chat/src/components/chat/ChatMessageList.vue)
 
 **问题描述**：
 
@@ -318,7 +319,7 @@ export { CHAT_KIT_KEY, MCP_MANAGER_KEY, CHAT_UI_KEY } from './context'
 
 #### P1-2：TrChatSender Slot 透传使用硬编码而非动态遍历
 
-**位置**：[TrChatSender.vue:47-64](file:///d:/OpenTinyRepository/tiny-robot/packages/chat/src/components/TrChatSender.vue#L47-L64)
+**位置**：[ChatSender.vue](/d:/OpenTinyRepository/tiny-robot/packages/chat/src/components/chat/ChatSender.vue)
 
 **问题描述**：
 
@@ -330,7 +331,7 @@ export { CHAT_KIT_KEY, MCP_MANAGER_KEY, CHAT_UI_KEY } from './context'
 
 #### P1-3：TrChatFeedback 样式泄漏
 
-**位置**：[TrChatFeedback.vue:54-58](file:///d:/OpenTinyRepository/tiny-robot/packages/chat/src/components/TrChatFeedback.vue#L54-L58)
+**位置**：[ChatFeedback.vue](/d:/OpenTinyRepository/tiny-robot/packages/chat/src/components/chat/ChatFeedback.vue)
 
 **问题描述**：
 
@@ -351,7 +352,7 @@ export { CHAT_KIT_KEY, MCP_MANAGER_KEY, CHAT_UI_KEY } from './context'
 1. 必须在 `TrChatRoot` 的子树中使用，否则运行时崩溃
 2. 无法在 TrChatRoot 外部独立测试
 
-作为对比，`TrChatFeedback.vue` 用了安全 inject `inject(CHAT_KIT_KEY, null)`，但它调用的 `useChatFeedback` 内部没有做同样的防御。
+作为对比，`components/chat/ChatFeedback.vue` 用了安全 inject `inject(CHAT_KIT_KEY, null)`，但它调用的 `useChatFeedback` 内部没有做同样的防御。
 
 **修复建议**：
 
@@ -478,7 +479,7 @@ const chatKit = useChatKit({ responseProvider: myProvider })
 4. **安全边界** — 明确区分 demo-only 和 production 模式，API Key 不能在前端暴露
 
 > [!WARNING]
-> 原方案 F1-F3 计划让 `TrChatRoot` 同时承担状态 provide + 容器布局 + BubbleProvider + 默认 renderer 配置，这与文档前面强调的 "UI/状态分离" 原则冲突。当前 Root 是纯 provide 层（TrChatRoot.vue:16），应保持不变。修正为 **Root + Layout 分离**方案。
+> 原方案 F1-F3 计划让 `TrChatRoot` 同时承担状态 provide + 容器布局 + BubbleProvider + 默认 renderer 配置，这与文档前面强调的 "UI/状态分离" 原则冲突。当前 Root 是纯 provide 层（`components/chat/ChatRoot.vue`），应保持不变。修正为 **Root + Layout 分离**方案。
 
 ### 5.2 分阶段实施计划
 
@@ -489,13 +490,13 @@ const chatKit = useChatKit({ responseProvider: myProvider })
 
 | 编号 | Action | 涉及文件 | 说明 |
 |:-----|:-------|:---------|:-----|
-| **F1** | 新增 `TrChat.Layout` 组件 | 新增 `TrChatLayout.vue` | 提供 `.tr-chat` 容器 + flex 布局 + BubbleProvider + useDefaultBubbleConfig。**TrChatRoot 保持纯 provide 层不变** |
-| **F2** | TrChatRoot 运行时参数校验 | `TrChatRoot.vue` | P0-3 修复 |
-| **F3** | MCP Manager 单实例修复 | `TrChatRoot.vue` + `TrChat.vue` | P0-2 修复：Root 不自动创建 mcpManager，改为接受外部传入 |
-| **F4** | 模型切换 owner 唯一化 | `TrChat.vue` + `TrModelSelector.vue` | P0-1 修复：TrChat 删除 watch selectedModel 的副作用 |
-| **F5** | TrChatFeedback 样式改 scoped | `TrChatFeedback.vue` | P1-3 修复 |
+| **F1** | 新增 `TrChat.Layout` 组件 | 新增 `components/chat/ChatLayout.vue` | 提供 `.tr-chat` 容器 + flex 布局 + BubbleProvider + useDefaultBubbleConfig。**TrChatRoot 保持纯 provide 层不变** |
+| **F2** | TrChatRoot 运行时参数校验 | `components/chat/ChatRoot.vue` | P0-3 修复 |
+| **F3** | MCP Manager 单实例修复 | `components/chat/ChatRoot.vue` + `components/chat/Chat.vue` | P0-2 修复：Root 不自动创建 mcpManager，改为接受外部传入 |
+| **F4** | 模型切换 owner 唯一化 | `components/chat/Chat.vue` + `components/model-selector/ModelSelector.vue` | P0-1 修复：TrChat 删除 watch selectedModel 的副作用 |
+| **F5** | TrChatFeedback 样式改 scoped | `components/chat/ChatFeedback.vue` | P1-3 修复 |
 | **F6** | Slot 重复过滤逻辑提取 | 新增 `composables/useSlotFilter.ts` | P1-1 修复 |
-| **F7** | TrChatSender 动态 slot 透传 | `TrChatSender.vue` | P1-2 修复 |
+| **F7** | TrChatSender 动态 slot 透传 | `components/chat/ChatSender.vue` | P1-2 修复 |
 | **F8** | useChatFeedback 参数化 chatKit | `useChatFeedback.ts` | P1-4 修复 |
 | **F9** | types.ts 删除冗余类型 | `types.ts` | P2-1 修复 |
 | **F10** | Injection Key 内部化 | `index.ts` + `package.json` exports | P0-5 修复：主导出移除，改为 `/internal` 子路径。**这是破坏性变更，需先 deprecate 再在 major release 落地** |
@@ -520,17 +521,19 @@ const chatKit = useChatKit({ responseProvider: myProvider })
 ```
 packages/chat/src/
 ├── components/
-│   ├── TrChat.vue              ← 纯组装，0 独有逻辑
-│   ├── TrChatRoot.vue          ← 纯 provide 层：chatKit / UI / MCP 上下文注入
-│   ├── TrChatLayout.vue        ← 容器布局 + BubbleProvider + 默认 bubble 配置
-│   ├── TrChatHeader.vue
-│   ├── TrChatWelcome.vue
-│   ├── TrChatMessageList.vue   ← 消费 Layout 提供的默认 bubble 环境，允许 props 覆盖
-│   ├── TrChatFooter.vue
-│   ├── TrChatSender.vue        ← 动态 slot 透传
-│   ├── TrChatFeedback.vue      ← scoped 样式
-│   ├── TrModelSelector.vue
-│   ├── TrChatMcpPanel.vue
+│   ├── chat/
+│   │   ├── Chat.vue            ← 纯组装，0 独有逻辑
+│   │   ├── ChatRoot.vue        ← 纯 provide 层：chatKit / UI / MCP 上下文注入
+│   │   ├── ChatLayout.vue      ← 容器布局 + BubbleProvider + 默认 bubble 配置
+│   │   ├── ChatHeader.vue
+│   │   ├── ChatWelcome.vue
+│   │   ├── ChatMessageList.vue ← 消费 Layout 提供的默认 bubble 环境，允许 props 覆盖
+│   │   ├── ChatFooter.vue
+│   │   ├── ChatSender.vue      ← 动态 slot 透传
+│   │   ├── ChatFeedback.vue    ← scoped 样式
+│   │   └── ChatMcpPanel.vue
+│   ├── model-selector/
+│   │   └── ModelSelector.vue
 │   ├── history/
 │   ├── icons/                  ← legacy cleanup target，运行时不再作为主来源
 │   └── render/
@@ -888,6 +891,7 @@ LobeHub 的设计对 TinyRobot Chat Kit 很有参考价值，但不应机械照�
 - Phase 1 已完成：`Root + Layout`、MCP 单实例、模型切换单 owner、内部导出面整理。
 - Phase 2 已完成：`config -> adapter -> preset UI` 契约、MCP bridge、icon 迁移、样式收敛为 CSS、文案抽取基座。
 - Backlog B1-B5 已完成：`useChatKit` 切片、optimistic + rollback、统一消息动作入口、结构化错误 + retry、`docs variant`。
+- 维护收口已完成：组件源码目录收敛为按领域分组的无前缀命名，`Tr*` 前缀统一保留在 public export 与组件运行时名称层。
 - demo、chat-cli 模板、unit、Playwright 回归均已同步到当前实现。
 
 ### 0.2 当前结论
@@ -895,3 +899,10 @@ LobeHub 的设计对 TinyRobot Chat Kit 很有参考价值，但不应机械照�
 - 本轮评审中识别出的主链路问题已经完成修复，`packages/chat` 已具备作为 chat kit 基座继续维护和扩展的条件。
 - 文档中仍保留的 backlog / 风险 / 对标分析，建议理解为后续增强参考，而不是本轮未完成阻塞项。
 - 尚未进入本轮范围的事项，主要集中在运行时国际化、进一步产品化打磨，以及后续可能新增的 CLI / 文档增强。
+
+### 0.3 当前源码命名约定（补充结论）
+
+- `Tr*` 作为组件库的公共命名空间继续保留，用户侧 API 不变，例如 `TrChat`、`TrChat.Root`、`TrModelSelector`。
+- `packages/chat/src/components` 内部源码文件已去掉 `Tr` 前缀，并按领域拆分为 `components/chat`、`components/history`、`components/model-selector`。
+- 组件运行时 `name` 继续保持 `Tr*`，用于 DevTools、报错栈和全局注册场景，避免内部文件重命名影响外部心智。
+- 后续如继续新增组件，建议遵循同一原则：**前缀属于 public API，不属于内部文件名**。

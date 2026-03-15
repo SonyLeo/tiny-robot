@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { inject } from 'vue'
-import { MCP_MANAGER_KEY } from '../context'
+import { MCP_MANAGER_KEY } from '../../context'
 import type { PluginInfo } from '@opentiny/tiny-robot'
 import { TrMcpServerPicker } from '@opentiny/tiny-robot'
-import type { UseMcpManagerReturn } from '../composables/useMcpManager'
+import type { UseMcpManagerReturn } from '../../composables/useMcpManager'
+
+defineOptions({ name: 'TrChatMcpPanel' })
 
 defineProps<{
   visible: boolean

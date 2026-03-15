@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { provide, ref } from 'vue'
-import { useChatKit } from '../composables'
-import { CHAT_KIT_KEY, CHAT_UI_KEY, MCP_MANAGER_KEY } from '../context'
-import type { TrChatRootProps, UseChatKitOptions } from '../types'
-import { conditionalProp } from '../utils'
+import { useChatKit } from '../../composables'
+import { CHAT_KIT_KEY, CHAT_UI_KEY, MCP_MANAGER_KEY } from '../../context'
+import type { TrChatRootProps, UseChatKitOptions } from '../../types'
+import { conditionalProp } from '../../utils'
+
+defineOptions({ name: 'TrChatRoot' })
 
 const props = defineProps<TrChatRootProps>()
 

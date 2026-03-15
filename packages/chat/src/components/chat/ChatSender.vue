@@ -3,11 +3,11 @@ import { inject, ref, computed, useSlots } from 'vue'
 import type { PropType, Slot } from 'vue'
 import { TrSender } from '@opentiny/tiny-robot'
 import type { StructuredData } from '@opentiny/tiny-robot'
-import { CHAT_KIT_KEY } from '../context'
-import { CHAT_MESSAGES } from '../messages'
+import { CHAT_KIT_KEY } from '../../context'
+import { CHAT_MESSAGES } from '../../messages'
 
 // 支持透传完整 TrSender props
-defineOptions({ inheritAttrs: false })
+defineOptions({ name: 'TrChatSender', inheritAttrs: false })
 
 const props = defineProps({
   mode: {
