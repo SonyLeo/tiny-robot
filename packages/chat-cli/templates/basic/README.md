@@ -1,446 +1,242 @@
 # __PROJECT_TITLE__
 
-一个由 Tiny Robot Chat Kit 驱动的生产级 AI 聊天应用。
+一个基于 Tiny Robot Chat Kit 的聊天应用骨架，默认采用“前端只请求你的服务端代理，服务端再请求模型提供商”的接入方式。
 
-## 项目概览
+适合这些场景：
 
-这是一个基于 Tiny Robot Chat Kit 的 AI 聊天应用脚手架，帮助开发者快速构建生产级的聊天应用。
+- 快速启动一个可定制的 AI 助手界面
+- 在现有业务后端中接入聊天能力
+- 以安全的服务端代理方式对接 OpenAI、DeepSeek 或兼容 OpenAI API 的服务
 
-**核心特性：**
-- 🚀 开箱即用的聊天 UI 和完整交互
-- 🔒 服务器代理架构，API 密钥安全
-- 🔄 支持 OpenAI / DeepSeek / 自定义提供商
-- 🌐 开发/生产环境无缝切换
-- 📱 响应式设计，支持桌面和移动设备
-- ⚡ 基于 Vite，开发体验极速
+## 当前模板默认配置
 
-**适用场景：**
-- 构建企业级 AI 助手
-- 快速原型验证
-- 集成 AI 功能到现有应用
+这个 README 会跟随你创建项目时选择的 Provider 一起生成。当前项目默认配置如下：
 
-## 目录
+| 配置项 | 当前值 |
+|:--|:--|
+| Provider | `__DEFAULT_PROVIDER__` |
+| 默认模型 | `__DEFAULT_MODEL__` |
+| 服务端密钥变量 | `__PROXY_API_KEY_ENV__` |
+| 服务端上游地址 | `__PROXY_ENDPOINT__` |
 
-- [项目概览](#项目概览)
-- [快速参考](#快速参考)
-- [5 分钟快速开始](#5-分钟快速开始)
-- [快速开始](#快速开始)
-- [开发环境](#开发环境)
-- [生产环境](#生产环境)
-- [常见错误](#常见错误)
-- [故障排除](#故障排除)
-- [架构决策](#架构决策)
-- [了解更多](#了解更多)
+如果你是通过 DeepSeek 相关命令生成的项目，这里会直接显示为：
 
-## 快速参考
+- Provider: `deepseek`
+- 默认模型: `deepseek-chat`
+- 服务端密钥变量: `DEEPSEEK_API_KEY`
+- 上游地址: `https://api.deepseek.com/v1/chat/completions`
 
-| 场景 | 命令 | 配置文件 |
-|:--|:--|:--|
-| 开发环境 | `__DEV_COMMAND__` | `vite.config.ts` + `.env.local` |
-| 生产构建 | `__BUILD_COMMAND__` | `.env.local` |
-| 安装依赖 | `__INSTALL_COMMAND__` | `package.json` |
-| 后端集成 | N/A | `server/chat-proxy.example.ts` |
+如果你后续改成 OpenAI 或你自己的兼容网关，需要同时修改：
 
-## 5 分钟快速开始
-
-### 第 1 步：创建项目
-
-```bash
-npm create tiny-robot __PROJECT_NAME__ -- --provider deepseek
-cd __PROJECT_NAME__
-__INSTALL_COMMAND__
-```
-
-### 第 2 步：配置后端
-
-1. 将 `server/chat-proxy.example.ts` 集成到你的后端项目（Express / Next.js / Hono 等）
-2. 在后端设置环境变量：
-
-```bash
-# 后端 .env
-DEEPSEEK_API_KEY=sk-your-key-here
-```
-
-3. 启动后端服务（监听 `http://localhost:3000`）
-
-### 第 3 步：启动前端
-
-```bash
-__DEV_COMMAND__
-```
-
-打开 [http://localhost:5173](http://localhost:5173)，开始聊天！
-
-> 💡 **提示**：前端会自动通过 Vite 代理转发请求到后端，无需处理跨域问题。
+- [src/chat.config.ts](./src/chat.config.ts) 中的 `models` 和 `providers`
+- [server/chat-proxy.example.ts](./server/chat-proxy.example.ts) 中的上游地址和认证变量
 
 ## 快速开始
 
-### 前置要求
-
-- Node.js 18+
-- npm、pnpm、yarn 或 bun
-
-### 安装
+### 1. 安装依赖
 
 ```bash
 __INSTALL_COMMAND__
 ```
 
-### 配置
+### 2. 配置前端请求地址
 
-1. 从 `.env.example` 创建 `.env.local`：
-
-```bash
-cp .env.example .env.local
-```
-
-2. 在 `.env.local` 中设置前端聊天端点：
+将 `.env.example` 复制为 `.env.local`，并确认它包含：
 
 ```env
 VITE_CHAT_API_ENDPOINT=/api/chat
 ```
 
-3. 编辑 `src/chat.config.ts` 进行自定义：
+`VITE_CHAT_API_ENDPOINT` 只用于告诉前端“请求哪个聊天接口”，它会被打进浏览器端代码中。
 
-- 默认模型
-- 提供商配置
-- 欢迎消息和描述
-- 提示卡片
-- 品牌标题
+不要把 API Key、Access Token 或任何秘密信息放进 `VITE_*` 变量。
 
-### 开发
+### 3. 集成服务端代理
 
-```bash
-__DEV_COMMAND__
-```
-
-在浏览器中打开 [http://localhost:5173](http://localhost:5173)。
-
-### 构建
-
-```bash
-__BUILD_COMMAND__
-```
-
-## 开发环境
-
-开发阶段使用 **Vite 开发代理**，不需要单独启动后端服务。
-
-```
-浏览器（前端 :5173）
-    ↓ /api/chat
-Vite Dev Server（代理转发）
-    ↓
-你的后端服务（:3000）
-    ↓
-OpenAI / DeepSeek / 自定义提供商
-```
-
-### 工作原理
-
-`vite.config.ts` 中已配置代理：
-
-```typescript
-proxy: {
-  '/api/chat': {
-    target: 'http://localhost:3000',
-    changeOrigin: true,
-  },
-}
-```
-
-前端请求 `/api/chat` 时，Vite 会自动将其转发到 `http://localhost:3000/api/chat`，浏览器不会感知到跨域。
-
-### 开发阶段操作步骤
-
-1. 将 `server/chat-proxy.example.ts` 集成到你的本地后端（Express、Koa、Hono 等）
-2. 在后端设置环境变量（如 `DEEPSEEK_API_KEY=sk-...`）
-3. 启动后端服务，确保监听在 `http://localhost:3000`
-4. 启动前端开发服务器：
-
-```bash
-__DEV_COMMAND__
-```
-
-如果你的后端端口不是 `3000`，修改 `vite.config.ts` 中的 `target` 即可：
-
-```typescript
-proxy: {
-  '/api/chat': {
-    target: 'http://localhost:YOUR_PORT',
-    changeOrigin: true,
-  },
-}
-```
-
----
-
-## 生产环境
-
-生产构建后，Vite 代理不再工作。前端直接请求 `.env.local` 中 `VITE_CHAT_API_ENDPOINT` 指定的地址。
-
-```
-浏览器（前端，静态文件）
-    ↓ VITE_CHAT_API_ENDPOINT
-你的生产后端（独立部署）
-    ↓
-OpenAI / DeepSeek / 自定义提供商
-```
-
-### 生产阶段操作步骤
-
-1. 将 `server/chat-proxy.example.ts` 集成到你的生产后端
-2. 在生产服务器上设置 API 密钥环境变量
-3. 构建前端：
-
-```bash
-__BUILD_COMMAND__
-```
-
-4. 将 `dist/` 目录部署到静态托管服务（Nginx、Vercel、CDN 等）
-5. 修改 `.env.local` 中的端点指向生产后端地址：
+`server/chat-proxy.example.ts` 是一个最小参考实现。把它移动到你的服务端运行时中，并在服务端环境变量中配置模型提供商密钥：
 
 ```env
-VITE_CHAT_API_ENDPOINT=https://your-api.example.com/api/chat
+__PROXY_API_KEY_ENV__=sk-your-key-here
 ```
 
-> ⚠️ `VITE_CHAT_API_ENDPOINT` 是构建时变量，修改后需要重新执行 `__BUILD_COMMAND__`。
+默认上游地址由模板注入为：
 
----
-
-## server/chat-proxy.example.ts 说明
-
-`server/` 目录下的文件是**后端代理的参考实现**，不会被 Vite 直接执行。你需要将其集成到自己的服务器运行时中。
-
-### 为什么需要服务器代理？
-
-- API 密钥保存在服务器上，不会暴露给浏览器
-- 统一处理 CORS 问题
-- 可以在代理层添加鉴权、限流、日志等逻辑
-
-### 集成示例
-
-**Express.js：**
-
-```typescript
-import express from 'express'
-import { proxyChatRequest } from './server/chat-proxy.example'
-
-const app = express()
-app.use(express.json())
-
-app.post('/api/chat', async (req, res) => {
-  const response = await proxyChatRequest(req as unknown as Request)
-  res.status(response.status)
-  response.headers.forEach((value, key) => res.setHeader(key, value))
-  response.body?.pipe(res)
-})
-
-app.listen(3000)
+```text
+__PROXY_ENDPOINT__
 ```
 
-**Next.js App Router：**
+如果你使用自己的网关或兼容 OpenAI API 的服务，请同步修改该代理文件中的上游地址、认证头和必要的请求参数。
 
-```typescript
+常见 Provider 对应关系：
+
+| Provider | 典型模型 | 服务端环境变量 | 上游地址 |
+|:--|:--|:--|:--|
+| OpenAI | `gpt-4o-mini` | `OPENAI_API_KEY` | `https://api.openai.com/v1/chat/completions` |
+| DeepSeek | `deepseek-chat` | `DEEPSEEK_API_KEY` | `https://api.deepseek.com/v1/chat/completions` |
+| 自定义兼容服务 | `custom-model` | `CUSTOM_API_KEY` | 由你自己的网关决定 |
+
+如果当前项目是用 DeepSeek 模板生成的，最少需要保证：
+
+```env
+DEEPSEEK_API_KEY=sk-your-key-here
+```
+
+并且 [server/chat-proxy.example.ts](./server/chat-proxy.example.ts) 里的上游地址保持为：
+
+```ts
+https://api.deepseek.com/v1/chat/completions
+```
+
+### 4. 启动本地开发
+
+1. 启动你的后端服务，并确保它监听在 `http://localhost:3000`
+2. 启动前端开发服务器：
+
+```bash
+__DEV_COMMAND__
+```
+
+3. 打开 `http://localhost:5173`
+
+如果你的后端端口不是 `3000`，修改 [vite.config.ts](./vite.config.ts) 中的代理目标。
+
+## 开发与生产的请求链路
+
+| 环境 | 前端请求地址 | 实际转发路径 |
+|:--|:--|:--|
+| 开发环境 | `/api/chat` | 浏览器 -> Vite 代理 -> 你的后端 -> 模型提供商 |
+| 生产环境 | `VITE_CHAT_API_ENDPOINT` | 浏览器 -> 你的生产后端 -> 模型提供商 |
+
+需要注意：
+
+- `server.proxy` 只在 Vite 开发服务器中生效
+- 生产构建后的静态文件不会自动带上开发代理
+- 前端始终只应请求你的服务端代理，而不是直接请求模型厂商地址
+
+## 服务端接入参考
+
+### Next.js App Router
+
+```ts
 // app/api/chat/route.ts
 import { proxyChatRequest } from '@/server/chat-proxy.example'
 
 export async function POST(req: Request) {
-  return await proxyChatRequest(req)
+  return proxyChatRequest(req)
 }
 ```
 
-**Hono：**
+### Hono
 
-```typescript
+```ts
 import { Hono } from 'hono'
 import { proxyChatRequest } from './server/chat-proxy.example'
 
 const app = new Hono()
 
-app.post('/api/chat', async (c) => {
-  return await proxyChatRequest(c.req.raw)
+app.post('/api/chat', (c) => {
+  return proxyChatRequest(c.req.raw)
 })
 
 export default app
 ```
 
-### 后端环境变量
+### Express / Koa
 
-在后端服务的 `.env` 文件中配置 API 密钥：
+`proxyChatRequest()` 接收的是标准 Fetch API `Request`，返回的是标准 `Response`。  
+如果你使用 Express 或 Koa，需要先做一层对象适配，再把返回的 Web Stream 转成 Node.js 可消费的流。
+
+如果你不希望自己处理这层适配，最简单的做法是在对应框架的路由里直接复用 `fetch('__PROXY_ENDPOINT__', ...)` 的核心逻辑，而不是直接复制类型转换示例。
+
+## 生产部署
+
+推荐把生产地址放到 `.env.production` 或部署平台的构建环境变量中，而不是反复改写 `.env.local`。
+
+例如：
 
 ```env
-# DeepSeek
-DEEPSEEK_API_KEY=sk-...
-
-# OpenAI
-OPENAI_API_KEY=sk-...
+VITE_CHAT_API_ENDPOINT=https://your-api.example.com/api/chat
 ```
 
-> ⚠️ 后端的 `.env` 与前端的 `.env.local` 是两个独立的文件，分别管理各自的环境变量。
+然后执行：
 
-## 生成的项目结构
-
-- `src/chat.config.ts`
-  - 声明式聊天配置
-- `src/lib/chat.ts`
-  - 适配器和预设组装
-- `src/App.vue`
-  - 仅渲染 `<TrChat v-bind="chatPreset" />`
-- `server/chat-proxy.example.ts`
-  - 示例后端代理实现
-
-## 配置参考
-
-### chat.config.ts
-
-```typescript
-const chatConfig: ChatConfig = {
-  models: [
-    {
-      id: 'deepseek-chat',
-      provider: 'deepseek',
-      label: 'DeepSeek Chat',
-    },
-  ],
-  providers: {
-    deepseek: {
-      type: 'openai-compatible',
-      endpoint: import.meta.env.VITE_CHAT_API_ENDPOINT || '/api/chat',
-    },
-  },
-  defaults: {
-    model: 'deepseek-chat',
-    systemPrompt: '你是一个有帮助的助手。',
-  },
-  ui: {
-    brand: {
-      title: '__PROJECT_TITLE__',
-    },
-    welcome: {
-      title: 'AI 助手',
-      description: '今天有什么我可以帮助你的吗？',
-    },
-    prompts: [
-      { label: '✍️ 写作', description: '帮我写...' },
-      { label: '💻 编程', description: '帮我编码...' },
-      { label: '📊 分析', description: '帮我分析...' },
-      { label: '🌐 翻译', description: '帮我翻译...' },
-    ],
-  },
-}
+```bash
+__BUILD_COMMAND__
 ```
 
-## 故障排除
+部署时请确认：
 
-### 开发环境：聊天请求返回 404
+1. 前端静态资源已部署到 `dist/`
+2. 后端代理已部署到可访问地址
+3. 服务端环境变量 `__PROXY_API_KEY_ENV__` 已正确配置
+4. 如果修改了 `VITE_CHAT_API_ENDPOINT`，你已经重新构建前端
 
-- 确认后端服务已启动，且监听端口与 `vite.config.ts` 中的 `target` 一致
-- 检查 `.env.local` 中 `VITE_CHAT_API_ENDPOINT` 是否为 `/api/chat`（相对路径，由 Vite 代理转发）
-- 如果后端不在 `localhost:3000`，修改 `vite.config.ts` 中的 `target`
+## 项目结构
 
-### 生产环境：聊天请求失败
+- `src/App.vue`：应用入口，只负责渲染 `<TrChat />`
+- `src/chat.config.ts`：模型、Provider 和 UI 文案配置
+- `src/lib/chat.ts`：聊天适配器和预设组装
+- `src/styles/index.css`：全局基础样式
+- `server/chat-proxy.example.ts`：服务端代理参考实现
 
-- 确认 `VITE_CHAT_API_ENDPOINT` 已设置为完整的生产后端地址（如 `https://your-api.example.com/api/chat`）
-- 修改该变量后需要重新构建（`__BUILD_COMMAND__`）
-- 确认生产后端已正确部署并可访问
+## 自定义入口
 
-### API 密钥错误
+你通常会先从这两个文件开始：
 
-- 检查后端 `.env` 中的密钥变量名是否与 `server/chat-proxy.example.ts` 中的 `process.env.XXX` 一致
-- 确认 API 密钥对所选提供商有效且未过期
+- [src/chat.config.ts](./src/chat.config.ts)
+- [server/chat-proxy.example.ts](./server/chat-proxy.example.ts)
 
-### 样式问题
+常见自定义项包括：
 
-- 不要删除 `src/styles/index.css` 及其在 `main.ts` 中的导入
-- 确认 `index.html` 中的内联样式未被移除
+- 默认模型和可选模型列表
+- 聊天接口地址
+- 品牌标题、欢迎文案、提示卡片
+- 服务端认证、限流、日志和错误处理
 
-## 架构决策
+如果你要从 DeepSeek 切到 OpenAI，至少需要同步检查：
 
-### 为什么使用服务器代理架构？
+1. [src/chat.config.ts](./src/chat.config.ts) 中的 `model.id`
+2. [src/chat.config.ts](./src/chat.config.ts) 中的 `provider`
+3. [server/chat-proxy.example.ts](./server/chat-proxy.example.ts) 中的上游 URL
+4. 服务端环境变量名是否从 `DEEPSEEK_API_KEY` 改为 `OPENAI_API_KEY`
 
-1. **安全性** — API 密钥永不暴露给浏览器，只在服务端保管
-2. **灵活性** — 可在代理层添加鉴权、限流、日志、缓存等逻辑
-3. **可维护性** — 集中管理 API 调用逻辑，便于升级和维护
-4. **成本控制** — 可实现请求去重、缓存、速率限制等成本优化
+## 常见问题
 
-### 为什么分离开发和生产环境？
+### 开发环境返回 404 或 `ECONNREFUSED`
 
-- **开发**：使用 Vite 代理，快速迭代，无需部署后端
-- **生产**：前端直接请求生产后端，后端独立部署和扩展
+- 确认后端服务已经启动
+- 确认后端监听地址与 [vite.config.ts](./vite.config.ts) 中的 `target` 一致
+- 确认 `.env.local` 里的 `VITE_CHAT_API_ENDPOINT` 仍然是 `/api/chat`
 
-这种分离让开发效率最高，同时保证生产环境的稳定性和可控性。
+### 生产环境仍然请求本地地址
 
-## 常见错误
+- 检查是否仍在使用开发环境的 `.env.local`
+- 把生产地址放进 `.env.production` 或部署平台的构建环境变量
+- 修改后重新执行 `__BUILD_COMMAND__`
 
-### 错误：`ECONNREFUSED 127.0.0.1:3000`
+### 返回 401 / 403
 
-**原因**：后端服务未启动或端口不匹配
+- 检查服务端环境变量 `__PROXY_API_KEY_ENV__` 是否存在且有效
+- 检查代理文件中的上游地址和认证方式是否与当前提供商一致
 
-**解决**：
-1. 确保后端服务已启动，监听在 `http://localhost:3000`
-2. 如果后端在其他端口，修改 `vite.config.ts` 中的 proxy target：
+### 出现 CORS 错误
 
-```typescript
-proxy: {
-  '/api/chat': {
-    target: 'http://localhost:YOUR_PORT',
-    changeOrigin: true,
-  },
-}
-```
+- 确认前端请求的是你的后端代理，而不是模型提供商地址
+- 在后端或反向代理层显式配置允许访问的前端域名
 
-### 错误：`401 Unauthorized` 或 `403 Forbidden`
+## 安全建议
 
-**原因**：API 密钥无效、过期或权限不足
+这个模板默认只解决“最小可用代理”问题。用于真实生产环境时，建议至少在服务端补上：
 
-**解决**：
-1. 检查后端 `.env` 中的 API 密钥是否正确
-2. 确认 API 密钥对应的提供商账户有效且有余额
-3. 检查 `server/chat-proxy.example.ts` 中的环境变量名是否与 `.env` 匹配
-
-### 错误：`CORS error` 或 `No 'Access-Control-Allow-Origin' header`
-
-**原因**：生产环境中前端和后端跨域
-
-**解决**：
-1. 确认 `VITE_CHAT_API_ENDPOINT` 指向正确的后端地址
-2. 后端需要配置 CORS 头，允许前端域名访问
-3. 或使用反向代理（Nginx）统一处理
-
-### 错误：`Cannot find module 'server/chat-proxy.example'`
-
-**原因**：`server/` 目录下的文件是参考实现，不会被 Vite 打包
-
-**解决**：
-- `server/chat-proxy.example.ts` 只是示例，需要你手动集成到自己的后端项目中
-- 不要尝试在前端代码中导入它
-
-### 错误：样式混乱或布局错误
-
-**原因**：缺少全局样式或样式被覆盖
-
-**解决**：
-1. 确认 `src/styles/index.css` 存在且在 `src/main.ts` 中被导入
-2. 确认 `index.html` 中的内联 `<style>` 标签未被删除
-3. 不要修改 `.chat-shell` 或 `:deep(.tr-chat)` 的样式（已在全局样式中处理）
+- 调用方鉴权
+- 请求速率限制
+- 请求超时和取消
+- 上游错误日志
+- 模型白名单和参数校验
 
 ## 了解更多
 
 - [Tiny Robot 官方文档](https://github.com/opentiny/tiny-robot)
-- [OpenAI API 文档](https://platform.openai.com/docs)
-- [DeepSeek API 文档](https://platform.deepseek.com/docs)
-- [Vite 文档](https://vitejs.dev)
-- [Vue 3 文档](https://vuejs.org)
-
-## 贡献
-
-欢迎提交 Issue 和 Pull Request！
-
-- **报告 Bug**：请提供复现步骤、环境信息和错误日志
-- **功能建议**：描述使用场景和期望行为
-- **改进文档**：帮助我们让文档更清晰
-
----
-
-**需要帮助？** 查看 [常见错误](#常见错误) 章节或提交 Issue。
+- [Vite Env and Mode](https://vite.dev/guide/env-and-mode.html)
+- [Vite Server Proxy](https://vite.dev/config/server-options.html#server-proxy)
+- [OpenAI API Key Safety Best Practices](https://help.openai.com/en/articles/5112595-best-practices-for-api-key-safety)
