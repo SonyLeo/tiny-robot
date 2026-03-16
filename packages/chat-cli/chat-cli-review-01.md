@@ -7,6 +7,8 @@
 > 1. 当前 `chat-cli` 做到了什么
 > 2. 它和 `packages/chat` 的目标相比还差什么
 > 3. 下一步应该如何优化，才能真正成为"可发布、可维护、可扩展"的脚手架
+>
+> 模板体系的专项调研与实施方案见：`packages/chat-cli/review/template-strategy.md`
 
 | 检视属性 | 内容 |
 |:--|:--|
