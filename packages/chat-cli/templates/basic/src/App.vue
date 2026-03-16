@@ -4,5 +4,5 @@ import { chatPreset } from './lib/chat'
 </script>
 
 <template>
-  <TrChat v-bind="chatPreset" style="height: 100vh" />
+  <TrChat v-bind="chatPreset" />
 </template>

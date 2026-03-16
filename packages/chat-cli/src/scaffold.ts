@@ -96,6 +96,8 @@ export function getTemplateVariables(provider: string): Record<string, string> {
     return {
       __DEFAULT_PROVIDER__: 'deepseek',
       __DEFAULT_MODEL__: 'deepseek-chat',
+      __PROXY_ENDPOINT__: 'https://api.deepseek.com/v1/chat/completions',
+      __PROXY_API_KEY_ENV__: 'DEEPSEEK_API_KEY',
     }
   }
 
@@ -103,12 +105,16 @@ export function getTemplateVariables(provider: string): Record<string, string> {
     return {
       __DEFAULT_PROVIDER__: 'openai-compatible',
       __DEFAULT_MODEL__: 'custom-model',
+      __PROXY_ENDPOINT__: 'https://api.your-provider.com/v1/chat/completions',
+      __PROXY_API_KEY_ENV__: 'CUSTOM_API_KEY',
     }
   }
 
   return {
     __DEFAULT_PROVIDER__: 'openai',
     __DEFAULT_MODEL__: 'gpt-4o-mini',
+    __PROXY_ENDPOINT__: 'https://api.openai.com/v1/chat/completions',
+    __PROXY_API_KEY_ENV__: 'OPENAI_API_KEY',
   }
 }
 

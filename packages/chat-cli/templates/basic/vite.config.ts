@@ -5,5 +5,11 @@ export default defineConfig({
   plugins: [vue()],
   server: {
     port: 5173,
+    proxy: {
+      '/api/chat': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      },
+    },
   },
 })

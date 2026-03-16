@@ -8,10 +8,10 @@
 export async function proxyChatRequest(request: Request): Promise<Response> {
   const body = await request.json()
 
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+  const response = await fetch('__PROXY_ENDPOINT__', {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      Authorization: `Bearer ${process.env.__PROXY_API_KEY_ENV__}`,
       'Content-Type': 'application/json',
       Accept: 'text/event-stream',
     },
