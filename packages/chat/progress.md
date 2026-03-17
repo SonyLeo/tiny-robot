@@ -10,7 +10,7 @@
 
 - 当前阶段：`Phase A - Registry Foundation`
 - 当前状态：`待启动`
-- 最近更新：`2026-03-17`
+- 最近更新：`2026-03-16`
 
 ---
 
@@ -52,11 +52,13 @@
 | MCP feature config | `未开始` | `agent-mcp` 还不应建立在手工 wiring 上 |
 | layout variant / placement formalization | `未开始` | `docs-chat` 暂不具备稳定 layout 依赖 |
 | feature -> template consumption | `未开始` | `chat-cli` 还处在“模板先行”风险区 |
+| agent preset / skill pack foundation | `后置规划` | workflow / template packs 暂不应依赖 informal skill 输入 |
 
 当前结论：
 
 - `chat-cli` 可以稳定消费 `config -> adapter -> preset -> TrChat` 这条基础链路
 - `chat-cli` 还不应把高频 feature 组合当成已稳定能力输入
+- `agent preset / skill pack` 目前只应作为后续扩展预留，不应进入正式 capability 输入面
 
 ---
 
@@ -81,6 +83,21 @@
 - [ ] `chat-cli` 模板消费入口
 - [ ] 对应 smoke 验证
 
+### P4: Agent Preset + Skill Pack Foundation（后置）
+
+- [ ] 定义 `AgentPreset` 基础类型
+- [ ] 定义 `SkillPack` metadata 与 resolver 入口
+- [ ] 明确 skill -> feature / prompts / MCP / layout hints 标准映射
+- [ ] 暴露 workflow / CLI 的最小消费边界
+- [ ] 首轮明确不包含 marketplace / 安装体系 / 独立 runtime
+
+### P5: Theme / Workspace Shell（更后置）
+
+- [ ] theme variant 正式化
+- [ ] workspace shell 抽象
+- [ ] shell-level placement conventions
+- [ ] 保持壳层只消费既有 capability bundles
+
 ---
 
 ## 风险与注意项
@@ -88,6 +105,7 @@
 - 不要让新增能力重新回到 `TrChat` props 膨胀路线
 - 不要把 feature resolution 分散回 demo 或页面层
 - 不要让 CLI 模板分支先于底层 feature 契约扩张
+- 不要让未来的 `agent preset / skill pack` 绕过 feature registry 与 preset 主链路
 - 不要在高频聊天能力收敛前优先投入 theme / workspace 壳层
 
 ---

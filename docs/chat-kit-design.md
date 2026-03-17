@@ -64,6 +64,15 @@
 
 `chat-cli` 需要的是可稳定消费的能力输入，而不是继续在模板里堆手写页面逻辑。
 
+### 3.5 为后续 Agent Preset / Skill Pack 预留扩展面
+
+当前阶段不直接把 `agent preset / skill pack` 作为 `chat` 的基础原语引入，但应保证后续可以在稳定 capability 层之上增加这类组合能力，而不推翻现有：
+
+- `ChatConfig`
+- `Adapter`
+- `Feature Registry`
+- `Preset`
+
 ---
 
 ## 4. 当前最关键的设计差距
@@ -150,6 +159,14 @@ ChatConfig
 
 theme、workspace shell 等能力有价值，但不应早于高频聊天能力的契约化。
 
+### 5.6 先能力原语，后技能组合
+
+对未来可能出现的 `agent preset / skill pack`，建议坚持：
+
+- 它们应建立在稳定的 feature / MCP / prompt / layout 能力之上
+- 它们应解析为标准 capability 输出，而不是绕过 registry 形成新黑盒入口
+- 当前阶段只保留扩展面，不引入完整 runtime、marketplace 或安装体系
+
 ---
 
 ## 6. 目标架构
@@ -209,6 +226,28 @@ ChatConfig
 - 黑盒提供默认编排
 - 白盒保留布局与插槽自由度
 
+### 6.6 后续扩展边界
+
+当 first-party features、MCP config、layout formalization 与 `chat-cli` 的 capability consumption 稳定后，可以在现有主链路之上增加：
+
+- `Agent Preset`
+- `Skill Pack`
+
+但它们的职责应是“组合标准能力输入”，而不是替代当前：
+
+- `ChatConfig`
+- `Feature Registry`
+- `Preset / Context Layer`
+
+也就是说，未来就算引入 skill pack，它也应被解析为：
+
+- feature config
+- prompts / commands
+- MCP / tool bindings
+- layout hints
+
+而不是直接越过基础装配层改写运行时。
+
 ---
 
 ## 7. 下一阶段重点设计主题
@@ -239,6 +278,30 @@ ChatConfig
 
 逐步把 `bubble / docs / workspace` 视为 layout variant，而不是各自发展独立状态系统。
 
+### 7.7 Agent Preset / Skill Pack Foundation（后置扩展）
+
+这不是当前阶段的主任务，但应明确后续接入顺序。
+
+推荐只在下面这些前置输出稳定后再进入实现：
+
+1. Feature Registry Foundation 完成
+2. attachments / sender actions / suggestions 完成正式 feature 化
+3. MCP config 与 layout variant / placement 边界稳定
+4. `chat-cli` 已完成 feature -> template / preset 的正式消费闭环
+
+在此前提下，`agent preset / skill pack` 更适合作为“能力组合层”进入 `chat`，其首轮职责建议限制为：
+
+- 预设一组标准 feature 组合
+- 预设 prompts / commands / MCP bindings
+- 向 workflow / CLI 暴露稳定消费输入
+
+不建议首轮就承诺：
+
+- marketplace
+- 远程安装
+- 独立 runtime
+- 绕过 feature registry 的技能黑盒
+
 ---
 
 ## 8. 非目标
@@ -250,6 +313,7 @@ ChatConfig
 - 先在 demo 中拼出新能力，再反向要求 `chat` 适配
 - 在 feature 契约尚未稳定前，大量扩张 CLI flags 或模板分支
 - 在 attachments / sender actions / suggestions / MCP 之前优先推进 theme 或 workspace 壳层
+- 在 capability 主链路稳定前，优先引入 `agent preset / skill pack` runtime 或 marketplace
 
 ---
 
@@ -267,6 +331,11 @@ ChatConfig
 因此，`packages/chat` 的设计是否成功，一个关键标准就是：
 
 > 新增能力能否以稳定、声明式、可生成的方式进入 `chat-cli` 的消费链路。
+
+对 `agent preset / skill pack` 来说，这意味着：
+
+- 在 feature -> template / preset consumption 稳定前，不应让它成为正式 CLI 输入
+- 它们后续应作为 capability consumer 出现，而不是重新把模板拉回页面拼装路线
 
 ---
 

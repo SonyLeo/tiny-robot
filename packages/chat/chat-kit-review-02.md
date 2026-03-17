@@ -45,13 +45,16 @@
 4. Suggestions Feature
 5. MCP Config 化
 6. Layout Formalization
-7. Theme / Workspace Shell
+7. Template / CLI Consumption
+8. Agent Preset / Skill Pack Foundation
+9. Theme / Workspace Shell
 
 这个顺序的核心原则是：
 
 - 先统一能力装配层
 - 再沉淀高频聊天能力
-- 最后再做更上层的布局和壳层抽象
+- 先证明 capability 可以被正式消费
+- 最后再做更高层的能力组合与壳层抽象
 
 ---
 
@@ -67,11 +70,15 @@
 | Phase B | attachments / sender actions / suggestions 的 config 与 preset 输出 | 让模板差异从页面手工装配转向能力组合 |
 | Phase C | `ChatMcpFeatureConfig`、layout variant / placement 的稳定边界 | 为 `agent-mcp` 和后续 `docs-chat` 提供正式模板依赖 |
 | Phase D | feature -> template / preset 的稳定消费链路 | 让 `chat-cli` 真正进入基于 capability 的模板消费阶段 |
+| Phase E | `AgentPreset` / `SkillPack` 基础类型、resolver 入口、workflow / CLI 消费边界 | 为后续 workflow presets、template packs、agent capabilities 提供正式组合层 |
+| Phase F | theme / workspace shell 的正式消费边界 | 让壳层能力建立在稳定 capability bundles 之上，而不是反向驱动底层适配 |
 
 这意味着：
 
 - 在 Phase A 完成前，`chat-cli` 不适合继续扩张顶层模板
 - 在 Phase C 完成前，`agent-mcp` 和 `docs-chat` 都不应依赖页面层手工 wiring 存活
+- 在 Phase D 完成前，`agent preset / skill pack` 不应成为正式 CLI 输入
+- 在 Phase E 完成前，workflow 或模板 pack 不应依赖非正式 skill wiring
 
 ---
 
@@ -174,6 +181,54 @@
 - CLI 能稳定生成不同 feature 组合模板
 - 模板不再依赖大量手工 `App.vue` 拼装逻辑
 
+### Phase E: Agent Preset / Skill Pack Foundation
+
+目标：
+
+- 在稳定 capability 主链路之上引入 `agent preset / skill pack` 组合层
+- 保持 skill pack 解析结果仍回到标准 feature / prompt / MCP / layout 能力面
+- 为后续 workflow、template packs、agent capabilities 提供正式消费边界
+
+范围：
+
+- `AgentPreset` 基础类型
+- `SkillPack` metadata 与 resolver 入口
+- skill -> capability 的标准映射
+- workflow / CLI 的最小消费边界
+
+对 `chat-cli` 的输出：
+
+- 可以稳定消费 agent preset 或 skill pack 的解析结果，而不是页面级手工 wiring
+- 为后续 `base + feature packs + preset packs` 路线提供正式输入
+
+验收口径：
+
+- skill pack 不绕过 feature registry
+- skill pack 至少可解析为标准 feature / prompts / MCP / layout hints 输出
+- 不引入新的状态系统分叉
+
+### Phase F: Theme / Workspace Shell
+
+目标：
+
+- 在稳定 capability bundles 基础上推进 theme / workspace shell
+- 让更上层壳层能力消费既有 preset / feature / skill pack 结果
+
+范围：
+
+- theme 变体
+- workspace shell
+- shell-level placement conventions
+
+对 `chat-cli` 的输出：
+
+- 模板可以正式生成壳层变体，但前提是能力底座已稳定
+
+验收口径：
+
+- 壳层不重新引入状态系统分叉
+- 壳层消费既有 capability 结果，而不是重新发明能力接入路径
+
 ---
 
 ## 6. 当前不建议做的事
@@ -183,6 +238,7 @@
 - 继续给 `TrChat` 堆更多离散 props
 - 大量平移 `packages/components` 组件到 `TrChat.*`
 - 先扩张 CLI flags 或模板分支，再倒逼 `chat` 适配
+- 在 Phase D 前优先推进 `agent preset / skill pack` runtime 或 marketplace
 - 过早把资源投入到 workspace 大工作台
 - 把 theme 当成当前阶段的主任务
 
