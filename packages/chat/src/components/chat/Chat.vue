@@ -108,6 +108,7 @@ function handleSelectedModelChange(model: ModelOption) {
     :mcp-manager="props.mcpManager"
     :attachments-manager="props.attachmentsManager"
     :attachments-feature="props.attachmentsFeature"
+    :sender-actions-feature="props.senderActionsFeature"
   >
     <ChatLayout :show="props.show !== false" :fullscreen="props.fullscreen" :role-configs="props.roleConfigs">
       <template v-if="$slots.header">

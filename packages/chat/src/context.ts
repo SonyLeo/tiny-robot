@@ -1,5 +1,10 @@
 import type { ComputedRef, InjectionKey, Ref } from 'vue'
-import type { ChatAttachmentsFeaturePreset, ChatMessageActionPayload, UseChatKitReturn } from './types'
+import type {
+  ChatAttachmentsFeaturePreset,
+  ChatMessageActionPayload,
+  ChatSenderActionsFeaturePreset,
+  UseChatKitReturn,
+} from './types'
 import type { UseMcpManagerReturn } from './composables/useMcpManager'
 import type { UseChatAttachmentsReturn } from './composables/useChatAttachments'
 import type { BubbleListProps } from '@opentiny/tiny-robot'
@@ -19,6 +24,10 @@ export const CHAT_ATTACHMENTS_KEY: InjectionKey<{
   manager: UseChatAttachmentsReturn
   feature: ChatAttachmentsFeaturePreset
 }> = Symbol('chatAttachments')
+
+export const CHAT_SENDER_ACTIONS_KEY: InjectionKey<{
+  feature: ChatSenderActionsFeaturePreset
+}> = Symbol('chatSenderActions')
 
 export const MESSAGE_ACTION_KEY: InjectionKey<((payload: ChatMessageActionPayload) => void) | undefined> =
   Symbol('messageAction')

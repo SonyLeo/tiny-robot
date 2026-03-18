@@ -1,11 +1,14 @@
 import type {
   ChatAttachmentsListConfig,
   ChatAttachmentsUploadConfig,
+  ChatSenderActionsFeaturePreset,
   ModelOption,
   ResponseProvider,
   TrChatProps,
   WelcomeConfig,
 } from '../types'
+import type { SenderProps } from '@opentiny/tiny-robot'
+import type { VoiceButtonProps } from '@opentiny/tiny-robot'
 import { createServerProxyFactory } from '../providers/serverProxy'
 import { resolveChatFeatures } from '../features'
 import type {
@@ -13,6 +16,7 @@ import type {
   ChatFeatureConfigMap,
   ChatFeedbackFeatureConfig,
   ChatHistoryFeatureConfig,
+  ChatSenderActionsFeatureConfig,
 } from '../features'
 import type {
   ChatAdapter,
@@ -214,6 +218,74 @@ function normalizeAttachmentsFeature(rawFeature: unknown): ChatAttachmentsFeatur
   }
 }
 
+function normalizeSenderActionsFeature(rawFeature: unknown): ChatSenderActionsFeatureConfig | undefined {
+  if (rawFeature === undefined) {
+    return undefined
+  }
+
+  if (typeof rawFeature === 'boolean') {
+    return rawFeature
+  }
+
+  if (!isRecord(rawFeature)) {
+    throw new Error('[loadChatConfig] features.senderActions must be a boolean or an object')
+  }
+
+  const upload = isRecord(rawFeature.upload)
+    ? {
+        enabled: typeof rawFeature.upload.enabled === 'boolean' ? rawFeature.upload.enabled : undefined,
+        accept: typeof rawFeature.upload.accept === 'string' ? rawFeature.upload.accept : undefined,
+        multiple: typeof rawFeature.upload.multiple === 'boolean' ? rawFeature.upload.multiple : undefined,
+        maxCount: typeof rawFeature.upload.maxCount === 'number' ? rawFeature.upload.maxCount : undefined,
+        maxSize: typeof rawFeature.upload.maxSize === 'number' ? rawFeature.upload.maxSize : undefined,
+        tooltip: typeof rawFeature.upload.tooltip === 'string' ? rawFeature.upload.tooltip : undefined,
+        tooltipPlacement:
+          typeof rawFeature.upload.tooltipPlacement === 'string'
+            ? (rawFeature.upload.tooltipPlacement as ChatAttachmentsUploadConfig['tooltipPlacement'])
+            : undefined,
+      }
+    : undefined
+
+  const voice = isRecord(rawFeature.voice)
+    ? ({
+        enabled: typeof rawFeature.voice.enabled === 'boolean' ? rawFeature.voice.enabled : undefined,
+        tooltip: typeof rawFeature.voice.tooltip === 'string' ? rawFeature.voice.tooltip : undefined,
+        tooltipPlacement:
+          typeof rawFeature.voice.tooltipPlacement === 'string'
+            ? (rawFeature.voice.tooltipPlacement as NonNullable<
+                NonNullable<ChatSenderActionsFeaturePreset['voice']>['tooltipPlacement']
+              >)
+            : undefined,
+        size:
+          rawFeature.voice.size === 'small' || rawFeature.voice.size === 'normal' ? rawFeature.voice.size : undefined,
+        speechConfig: isRecord(rawFeature.voice.speechConfig)
+          ? (rawFeature.voice.speechConfig as NonNullable<
+              NonNullable<ChatSenderActionsFeaturePreset['voice']>['speechConfig']
+            >)
+          : undefined,
+        autoInsert: typeof rawFeature.voice.autoInsert === 'boolean' ? rawFeature.voice.autoInsert : undefined,
+        onButtonClick:
+          typeof rawFeature.voice.onButtonClick === 'function'
+            ? (rawFeature.voice.onButtonClick as VoiceButtonProps['onButtonClick'])
+            : undefined,
+        icon: rawFeature.voice.icon as NonNullable<ChatSenderActionsFeaturePreset['voice']>['icon'],
+        recordingIcon: rawFeature.voice.recordingIcon as NonNullable<
+          ChatSenderActionsFeaturePreset['voice']
+        >['recordingIcon'],
+      } satisfies NonNullable<ChatSenderActionsFeaturePreset['voice']>)
+    : undefined
+
+  return {
+    enabled: typeof rawFeature.enabled === 'boolean' ? rawFeature.enabled : undefined,
+    upload,
+    voice,
+    wordCount: typeof rawFeature.wordCount === 'boolean' ? rawFeature.wordCount : undefined,
+    defaultActions: isRecord(rawFeature.defaultActions)
+      ? (rawFeature.defaultActions as SenderProps['defaultActions'])
+      : undefined,
+  }
+}
+
 function normalizeFeatures(rawFeatures: unknown): ChatFeatureConfigMap | undefined {
   if (rawFeatures === undefined) {
     return undefined
@@ -225,11 +297,12 @@ function normalizeFeatures(rawFeatures: unknown): ChatFeatureConfigMap | undefin
 
   const normalized: ChatFeatureConfigMap = {
     attachments: normalizeAttachmentsFeature(rawFeatures.attachments),
+    senderActions: normalizeSenderActionsFeature(rawFeatures.senderActions),
     history: normalizeHistoryFeature(rawFeatures.history),
     feedback: normalizeFeedbackFeature(rawFeatures.feedback),
   }
 
-  if (!normalized.attachments && !normalized.history && !normalized.feedback) {
+  if (!normalized.attachments && !normalized.senderActions && !normalized.history && !normalized.feedback) {
     return undefined
   }
 

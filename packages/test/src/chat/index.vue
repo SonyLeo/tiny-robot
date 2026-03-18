@@ -32,10 +32,12 @@
         :welcome="welcome"
         :prompts="prompts"
         :attachments-feature="attachmentsFeature"
+        :sender-actions-feature="senderActionsFeature"
         :models="models"
         :provider-factories="providerFactories"
         default-model="openai-test"
         placeholder="请输入消息..."
+        :max-length="20"
         show-history
         show-feedback
         :message-list-variant="messageListVariant"
@@ -181,6 +183,10 @@ const attachmentsFeature = {
     accept: '.txt,.md',
     multiple: true,
   },
+}
+
+const senderActionsFeature = {
+  wordCount: true,
 }
 
 function handleFinish(msg: { content?: string }) {

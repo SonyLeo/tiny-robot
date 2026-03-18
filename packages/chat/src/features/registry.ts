@@ -9,6 +9,7 @@ import type {
   ChatFeedbackFeatureResolution,
   ChatHistoryFeatureConfig,
   ChatHistoryFeatureResolution,
+  ChatSenderActionsFeatureResolution,
   ResolvedChatFeatures,
 } from './types'
 
@@ -75,6 +76,59 @@ const attachmentsFeature: ChatFeatureDefinition<
   },
 }
 
+const senderActionsFeature: ChatFeatureDefinition<
+  'senderActions',
+  ChatFeatureConfigMap['senderActions'],
+  ChatSenderActionsFeatureResolution
+> = {
+  key: 'senderActions',
+  resolve(config) {
+    const enabled = isFeatureEnabled(config)
+    const resolvedConfig = typeof config === 'object' && config !== null ? config : undefined
+
+    return {
+      key: 'senderActions',
+      enabled,
+      config: resolvedConfig,
+      presetProps: enabled
+        ? {
+            senderActionsFeature: {
+              enabled: true,
+              upload:
+                resolvedConfig?.upload === undefined
+                  ? undefined
+                  : {
+                      enabled: resolvedConfig.upload.enabled ?? true,
+                      accept: resolvedConfig.upload.accept ?? '*',
+                      multiple: resolvedConfig.upload.multiple ?? true,
+                      maxCount: resolvedConfig.upload.maxCount,
+                      maxSize: resolvedConfig.upload.maxSize,
+                      tooltip: resolvedConfig.upload.tooltip ?? '上传附件',
+                      tooltipPlacement: resolvedConfig.upload.tooltipPlacement ?? 'top',
+                    },
+              voice:
+                resolvedConfig?.voice === undefined
+                  ? undefined
+                  : {
+                      enabled: resolvedConfig.voice.enabled ?? true,
+                      tooltip: resolvedConfig.voice.tooltip ?? '语音输入',
+                      tooltipPlacement: resolvedConfig.voice.tooltipPlacement ?? 'top',
+                      size: resolvedConfig.voice.size,
+                      speechConfig: resolvedConfig.voice.speechConfig,
+                      autoInsert: resolvedConfig.voice.autoInsert,
+                      onButtonClick: resolvedConfig.voice.onButtonClick,
+                      icon: resolvedConfig.voice.icon,
+                      recordingIcon: resolvedConfig.voice.recordingIcon,
+                    },
+              wordCount: resolvedConfig?.wordCount ?? false,
+              defaultActions: resolvedConfig?.defaultActions,
+            },
+          }
+        : {},
+    }
+  },
+}
+
 const historyFeature: ChatFeatureDefinition<'history', ChatHistoryFeatureConfig, ChatHistoryFeatureResolution> = {
   key: 'history',
   resolve(config) {
@@ -116,6 +170,7 @@ const feedbackFeature: ChatFeatureDefinition<'feedback', ChatFeedbackFeatureConf
 
 export const CHAT_FEATURE_REGISTRY = {
   attachments: attachmentsFeature,
+  senderActions: senderActionsFeature,
   history: historyFeature,
   feedback: feedbackFeature,
 } as const
@@ -123,6 +178,7 @@ export const CHAT_FEATURE_REGISTRY = {
 export function resolveChatFeatures(config: ChatFeatureConfigMap | undefined): ResolvedChatFeatures {
   const entries = {
     attachments: CHAT_FEATURE_REGISTRY.attachments.resolve(config?.attachments),
+    senderActions: CHAT_FEATURE_REGISTRY.senderActions.resolve(config?.senderActions),
     history: CHAT_FEATURE_REGISTRY.history.resolve(config?.history),
     feedback: CHAT_FEATURE_REGISTRY.feedback.resolve(config?.feedback),
   }
@@ -136,6 +192,7 @@ export function resolveChatFeatures(config: ChatFeatureConfigMap | undefined): R
     enabledKeys,
     presetProps: mergePresetProps(
       entries.attachments.presetProps,
+      entries.senderActions.presetProps,
       entries.history.presetProps,
       entries.feedback.presetProps,
     ),

@@ -103,6 +103,9 @@ export type {
   ChatAttachmentsFeaturePreset,
   ChatAttachmentsListConfig,
   ChatAttachmentsUploadConfig,
+  ChatSenderActionsFeaturePreset,
+  ChatSenderActionUploadConfig,
+  ChatSenderActionVoiceConfig,
   UseChatAttachmentsOptions,
   WelcomeConfig,
   ChatMessages,
@@ -138,6 +141,8 @@ export type {
   ChatHistoryFeatureConfig,
   ChatHistoryFeatureOptions,
   ChatHistoryFeatureResolution,
+  ChatSenderActionsFeatureConfig,
+  ChatSenderActionsFeatureResolution,
   ResolvedChatFeatures,
 } from './features'
 

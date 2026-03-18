@@ -12,5 +12,7 @@ export type {
   ChatHistoryFeatureConfig,
   ChatHistoryFeatureOptions,
   ChatHistoryFeatureResolution,
+  ChatSenderActionsFeatureConfig,
+  ChatSenderActionsFeatureResolution,
   ResolvedChatFeatures,
 } from './types'

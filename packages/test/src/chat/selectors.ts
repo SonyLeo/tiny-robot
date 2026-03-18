@@ -21,6 +21,8 @@ export const CHAT_SELECTORS = {
   attachmentsList: '.tr-attachments__file-list',
   attachmentCard: '.tr-file-card',
   uploadActionBtn: '[data-testid="chat-attachments-upload"] .tr-action-button',
+  senderVoiceActionBtn: '[data-testid="chat-sender-action-voice"] .tr-action-button',
+  senderWordCounter: '.tr-sender-word-counter',
 
   // === Header 按钮（UI-H1/H2：改为 title 属性选择器，不依赖实现细节类名）===
   // historyBtn 选取两种状态：打开/关闭均可找到

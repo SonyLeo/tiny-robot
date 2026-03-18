@@ -10,6 +10,7 @@ import type {
   Attachment,
   AttachmentListProps,
   UploadButtonProps,
+  VoiceButtonProps,
 } from '@opentiny/tiny-robot'
 import type { UseMcpManagerReturn } from './composables/useMcpManager'
 import type { UseChatAttachmentsReturn } from './composables/useChatAttachments'
@@ -165,6 +166,7 @@ export interface TrChatProps {
   welcome?: WelcomeConfig
   prompts?: PromptProps[]
   attachmentsFeature?: ChatAttachmentsFeaturePreset
+  senderActionsFeature?: ChatSenderActionsFeaturePreset
   placeholder?: string
   maxLength?: number
   senderMode?: 'single' | 'multiple'
@@ -194,6 +196,7 @@ type TrChatRootSharedProps = {
   mcpManager?: UseMcpManagerReturn
   attachmentsManager?: UseChatAttachmentsReturn
   attachmentsFeature?: ChatAttachmentsFeaturePreset
+  senderActionsFeature?: ChatSenderActionsFeaturePreset
 }
 
 // ===== 白盒组件 Props 类型 =====
@@ -263,6 +266,30 @@ export interface ChatAttachmentsFeaturePreset {
   enabled?: boolean
   upload?: ChatAttachmentsUploadConfig
   list?: ChatAttachmentsListConfig
+}
+
+export interface ChatSenderActionUploadConfig extends Pick<
+  UploadButtonProps,
+  'accept' | 'multiple' | 'maxCount' | 'maxSize' | 'tooltip' | 'tooltipPlacement'
+> {
+  enabled?: boolean
+}
+
+export interface ChatSenderActionVoiceConfig extends Pick<
+  VoiceButtonProps,
+  'tooltip' | 'tooltipPlacement' | 'size' | 'speechConfig' | 'autoInsert' | 'onButtonClick'
+> {
+  enabled?: boolean
+  icon?: VoiceButtonProps['icon']
+  recordingIcon?: VoiceButtonProps['recordingIcon']
+}
+
+export interface ChatSenderActionsFeaturePreset {
+  enabled?: boolean
+  upload?: ChatSenderActionUploadConfig
+  voice?: ChatSenderActionVoiceConfig
+  wordCount?: boolean
+  defaultActions?: SenderProps['defaultActions']
 }
 
 export interface UseChatAttachmentsOptions {

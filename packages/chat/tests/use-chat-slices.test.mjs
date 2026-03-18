@@ -483,6 +483,14 @@ await runTest('loadChatConfig normalizes feature config and createPresetChatProp
           multiple: false,
         },
       },
+      senderActions: {
+        wordCount: true,
+        defaultActions: {
+          clear: {
+            tooltip: '清空',
+          },
+        },
+      },
       history: {
         props: {
           selected: 'conversation-1',
@@ -506,6 +514,17 @@ await runTest('loadChatConfig normalizes feature config and createPresetChatProp
       },
       list: undefined,
     },
+    senderActions: {
+      enabled: undefined,
+      upload: undefined,
+      voice: undefined,
+      wordCount: true,
+      defaultActions: {
+        clear: {
+          tooltip: '清空',
+        },
+      },
+    },
     history: {
       enabled: undefined,
       props: {
@@ -517,8 +536,9 @@ await runTest('loadChatConfig normalizes feature config and createPresetChatProp
 
   const adapter = createChatAdapterFromConfig(config)
 
-  assert.deepEqual(adapter.resolvedFeatures.enabledKeys, ['attachments', 'history', 'feedback'])
+  assert.deepEqual(adapter.resolvedFeatures.enabledKeys, ['attachments', 'senderActions', 'history', 'feedback'])
   assert.equal(adapter.resolvedFeatures.entries.attachments.enabled, true)
+  assert.equal(adapter.resolvedFeatures.entries.senderActions.enabled, true)
   assert.equal(adapter.resolvedFeatures.entries.history.enabled, true)
   assert.equal(adapter.resolvedFeatures.entries.feedback.enabled, true)
 
@@ -528,6 +548,8 @@ await runTest('loadChatConfig normalizes feature config and createPresetChatProp
   assert.equal(presetProps.attachmentsFeature?.upload?.accept, '.pdf')
   assert.equal(presetProps.attachmentsFeature?.upload?.multiple, false)
   assert.equal(presetProps.attachmentsFeature?.list?.variant, 'card')
+  assert.equal(presetProps.senderActionsFeature?.wordCount, true)
+  assert.equal(presetProps.senderActionsFeature?.defaultActions?.clear?.tooltip, '清空')
   assert.equal(presetProps.showHistory, true)
   assert.equal(presetProps.showFeedback, true)
   assert.deepEqual(presetProps.historyProps, {
@@ -546,6 +568,9 @@ await runTest('createPresetChatProps lets explicit overrides win over resolved f
     },
     features: {
       attachments: true,
+      senderActions: {
+        wordCount: true,
+      },
       history: true,
       feedback: true,
     },
@@ -558,11 +583,15 @@ await runTest('createPresetChatProps lets explicit overrides win over resolved f
         accept: 'image/*',
       },
     },
+    senderActionsFeature: {
+      wordCount: false,
+    },
     showHistory: false,
     showFeedback: false,
   })
 
   assert.equal(presetProps.attachmentsFeature?.upload?.accept, 'image/*')
+  assert.equal(presetProps.senderActionsFeature?.wordCount, false)
   assert.equal(presetProps.showHistory, false)
   assert.equal(presetProps.showFeedback, false)
 })
@@ -570,6 +599,7 @@ await runTest('createPresetChatProps lets explicit overrides win over resolved f
 await runTest('resolveChatFeatures keeps disabled features out of preset props', async () => {
   const resolved = resolveChatFeatures({
     attachments: false,
+    senderActions: false,
     history: false,
     feedback: {
       enabled: false,
@@ -579,6 +609,7 @@ await runTest('resolveChatFeatures keeps disabled features out of preset props',
   assert.deepEqual(resolved.enabledKeys, [])
   assert.deepEqual(resolved.presetProps, {})
   assert.equal(resolved.entries.attachments.enabled, false)
+  assert.equal(resolved.entries.senderActions.enabled, false)
   assert.equal(resolved.entries.history.enabled, false)
   assert.equal(resolved.entries.feedback.enabled, false)
 })

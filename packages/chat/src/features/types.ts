@@ -1,4 +1,4 @@
-import type { ChatAttachmentsFeaturePreset, TrChatProps } from '../types'
+import type { ChatAttachmentsFeaturePreset, ChatSenderActionsFeaturePreset, TrChatProps } from '../types'
 
 export type ChatFeatureInput<TConfig extends object = object> = boolean | ({ enabled?: boolean } & TConfig)
 
@@ -7,25 +7,34 @@ export interface ChatHistoryFeatureOptions {
 }
 
 export type ChatAttachmentsFeatureConfig = ChatFeatureInput<ChatAttachmentsFeaturePreset>
+export type ChatSenderActionsFeatureConfig = ChatFeatureInput<ChatSenderActionsFeaturePreset>
 export type ChatHistoryFeatureConfig = ChatFeatureInput<ChatHistoryFeatureOptions>
 export type ChatFeedbackFeatureConfig = ChatFeatureInput
 
 export interface ChatFeatureConfigMap {
   attachments?: ChatAttachmentsFeatureConfig
+  senderActions?: ChatSenderActionsFeatureConfig
   history?: ChatHistoryFeatureConfig
   feedback?: ChatFeedbackFeatureConfig
 }
 
-export type BuiltInChatFeatureKey = 'attachments' | 'history' | 'feedback'
+export type BuiltInChatFeatureKey = 'attachments' | 'senderActions' | 'history' | 'feedback'
 
 export type ChatFeaturePresetProps = Partial<
-  Pick<TrChatProps, 'attachmentsFeature' | 'showHistory' | 'historyProps' | 'showFeedback'>
+  Pick<TrChatProps, 'attachmentsFeature' | 'senderActionsFeature' | 'showHistory' | 'historyProps' | 'showFeedback'>
 >
 
 export interface ChatAttachmentsFeatureResolution {
   key: 'attachments'
   enabled: boolean
   config?: Exclude<ChatAttachmentsFeatureConfig, boolean>
+  presetProps: ChatFeaturePresetProps
+}
+
+export interface ChatSenderActionsFeatureResolution {
+  key: 'senderActions'
+  enabled: boolean
+  config?: Exclude<ChatSenderActionsFeatureConfig, boolean>
   presetProps: ChatFeaturePresetProps
 }
 
@@ -46,6 +55,7 @@ export interface ChatFeedbackFeatureResolution {
 export interface ResolvedChatFeatures {
   entries: {
     attachments: ChatAttachmentsFeatureResolution
+    senderActions: ChatSenderActionsFeatureResolution
     history: ChatHistoryFeatureResolution
     feedback: ChatFeedbackFeatureResolution
   }
