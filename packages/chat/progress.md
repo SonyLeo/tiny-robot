@@ -104,6 +104,7 @@
 - [ ] 为 suggestions 定义正式 feature config 与 preset 映射
 - [ ] 继续收敛 sender actions / suggestions 的默认行为，并消除 demo 手工拼装依赖
 - [ ] 保持黑盒 / 白盒共享同一默认能力底座
+- [ ] 为新增 feature 建立独立的 Playwright spec，并补齐 enabled / disabled / override / whitebox coverage
 
 ### P1 已完成的阶段性输出
 
@@ -143,9 +144,10 @@
 
 1. 先做 sender actions feature config 与默认编排
 2. 再做 suggestions feature config 与 welcome / empty-state 对齐
-3. 用黑盒 / 白盒两层验证三类 feature 的默认行为
-4. 清理 demo 中仍依赖手工拼装的 sender / attachment / suggestion 逻辑
-5. 明确哪些 P1 输出可被 `chat-cli` 作为正式 capability 输入
+3. 为新增 feature 创建独立测试文件，并先跑 feature 定向测试
+4. 用黑盒 / 白盒两层验证三类 feature 的默认行为
+5. 清理 demo 中仍依赖手工拼装的 sender / attachment / suggestion 逻辑
+6. 明确哪些 P1 输出可被 `chat-cli` 作为正式 capability 输入
 
 ### 进入 P1 前的完成标准
 
@@ -218,8 +220,20 @@
 
 - `pnpm.cmd -F @opentiny/tiny-robot-chat type-check`
 - `pnpm.cmd -F @opentiny/tiny-robot-chat test:unit`
-- `pnpm.cmd -F tiny-robot-test test -- --workers=1 src/chat/index.spec.ts`
-- `pnpm.cmd -F tiny-robot-test test -- --workers=1 src/chat/model-switch.spec.ts`
+- `pnpm.cmd -F tiny-robot-test test -- src/chat/index.spec.ts`
+- `pnpm.cmd -F tiny-robot-test test -- src/chat/model-switch.spec.ts`
+
+本地运行建议：
+
+- Playwright E2E 默认使用本机可用并行度，不必固定 `--workers=1`
+- 只有在排查 flaky、竞态或单测卡住时，再临时切回 `--workers=1`
+
+新增 feature 时的推荐测试顺序：
+
+1. 先补 unit / resolver 断言
+2. 再创建独立的 Playwright feature spec
+3. 先跑该 feature 的定向测试
+4. 再跑 `src/chat/index.spec.ts` 与相邻回归用例
 
 ---
 

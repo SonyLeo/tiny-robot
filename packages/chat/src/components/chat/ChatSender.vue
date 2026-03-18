@@ -58,6 +58,7 @@ const slots = useSlots() as Record<string, Slot | undefined>
 const forwardedSlots = computed<Partial<Record<string, Slot>>>(() =>
   Object.fromEntries(
     Object.entries(slots)
+      .filter(([name]) => name !== 'footer-right')
       .filter(([, slot]) => slot !== undefined)
       .map(([name, slot]) => [name, slot as Slot]),
   ),
@@ -78,7 +79,10 @@ const forwardedSlots = computed<Partial<Record<string, Slot>>>(() =>
     <template v-for="(_, name) in forwardedSlots" #[name]="slotProps" :key="name">
       <slot :name="name" v-bind="slotProps ?? {}" />
     </template>
-    <template v-if="(attachmentsContext && showDefaultUploadButton) || showDefaultVoiceButton" #footer-right>
+    <template v-if="$slots['footer-right']" #footer-right="slotProps">
+      <slot name="footer-right" v-bind="slotProps ?? {}" />
+    </template>
+    <template v-else-if="(attachmentsContext && showDefaultUploadButton) || showDefaultVoiceButton" #footer-right>
       <span
         v-if="attachmentsContext && showDefaultUploadButton && !$slots.footer && !$slots['footer-right']"
         data-testid="chat-attachments-upload"

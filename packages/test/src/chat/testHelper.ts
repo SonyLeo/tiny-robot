@@ -281,6 +281,16 @@ export function createChatTestHelper(page: Page, options: ChatTestHelperOptions 
     }
   }
 
+  /** 检查默认语音入口是否可见 */
+  const expectVoiceActionVisible = async (visible: boolean, root: string = selectors.blackboxChat) => {
+    const voiceButton = page.locator(root).locator(selectors.senderVoiceActionBtn)
+    if (visible) {
+      await expect(voiceButton).toBeVisible({ timeout: defaultTimeout })
+    } else {
+      await expect(voiceButton).toHaveCount(0)
+    }
+  }
+
   /** 检查附件区是否可见 */
   const expectAttachmentsAreaVisible = async (visible: boolean, root: string = selectors.blackboxChat) => {
     const attachmentsArea = page.locator(root).locator(selectors.attachmentsArea)
@@ -420,6 +430,7 @@ export function createChatTestHelper(page: Page, options: ChatTestHelperOptions 
     expectHeaderVisible,
     expectFooterVisible,
     expectUploadActionVisible,
+    expectVoiceActionVisible,
     expectAttachmentsAreaVisible,
     expectAttachmentCount,
 

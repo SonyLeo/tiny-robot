@@ -268,7 +268,135 @@
 
 ---
 
-## 8. 一句话结论
+## 8. 新增特性测试策略
+
+为了避免后续 feature 开发继续出现“功能已经接上，但测试覆盖只做了一半”的问题，建议把测试策略正式收口。
+
+### 8.1 基本原则
+
+- 新增 feature 时，测试目标不应只覆盖 config / resolver，还应覆盖运行时默认行为。
+- 每个 feature 都应至少覆盖四类场景：
+  - enabled 默认行为
+  - disabled 关闭行为
+  - override 覆盖行为
+  - 黑盒 / 白盒一致性
+- 测试应优先围绕 feature 自己的边界展开，而不是继续把所有新增断言塞进一个“大而全”的页面用例中。
+
+### 8.2 分层职责
+
+建议继续按三层测试分工：
+
+#### Unit / Resolver 层
+
+目标：
+
+- 验证 `loadChatConfig()`
+- 验证 feature normalization
+- 验证 `resolveChatFeatures()`
+- 验证 `createPresetChatProps()` 输出
+
+这层的重点是：
+
+- 数据结构是否正确
+- 默认值是否正确
+- enabled / disabled / override 是否正确
+
+#### Runtime / Component 层
+
+目标：
+
+- 验证黑盒默认行为
+- 验证白盒组合行为
+- 验证 slot、context、默认 UI 抑制与优先级
+
+这层的重点是：
+
+- 用户真实能不能看到正确行为
+- feature 与 slot / context / layout 是否有冲突
+
+#### Regression / Suite 层
+
+目标：
+
+- 验证相邻能力没有回退
+- 验证现有主链路没有被 feature 改坏
+
+这层的重点是：
+
+- 在 feature 用例通过后，再跑 chat 的既有主链路回归
+
+### 8.3 文件组织建议
+
+从测试可维护性看，建议逐步采用下面的组织方式：
+
+#### E2E / Playwright
+
+新增 feature 时，优先在 `packages/test/src/chat/` 下建立独立 spec 文件，例如：
+
+- `attachments.spec.ts`
+- `sender-actions.spec.ts`
+- `suggestions.spec.ts`
+- `mcp.spec.ts`
+
+这样做的好处是：
+
+- 可以先定向跑新增 feature
+- 用例边界更清楚
+- 回归失败时更容易定位到具体 feature
+
+#### Unit
+
+当前 `packages/chat` 的 unit 入口还是单文件脚本：
+
+- `packages/chat/tests/use-chat-slices.test.mjs`
+
+在现有基础设施下，短期仍可以继续在这里补新增断言，但建议：
+
+- 至少按 feature 分块组织
+- 不再把 feature 测试散落插入到无关章节里
+
+中期建议再单独推进：
+
+- 把 unit 测试迁移到支持多文件与过滤运行的 runner
+- 再将 feature unit 拆成独立文件
+
+也就是说：
+
+> “新增 feature 创建单独文件”这个方向是对的，但在 unit 层要结合当前 runner 现状分阶段推进；在 E2E 层则建议从现在开始就按 feature 拆文件。
+
+### 8.4 推荐执行步骤
+
+新增 feature 时，推荐按下面顺序执行：
+
+1. 先补 Unit / Resolver 用例
+   - 覆盖 normalization、resolver、preset 输出
+2. 再补该 feature 的独立 Runtime / E2E 用例
+   - 覆盖 enabled / disabled / override / blackbox / whitebox
+3. 定向运行新增 feature 对应测试
+   - 确认 feature 自身没有问题
+4. 再运行 chat 相关主链路回归
+   - 确认没有影响现有功能
+5. 最后再把该 feature 标记为已完成
+
+### 8.5 推荐命令顺序
+
+建议本地开发时按这个顺序跑：
+
+1. `pnpm.cmd -F @opentiny/tiny-robot-chat test:unit`
+2. `pnpm.cmd -F tiny-robot-test test -- src/chat/<feature>.spec.ts`
+3. `pnpm.cmd -F tiny-robot-test test -- src/chat/index.spec.ts src/chat/model-switch.spec.ts`
+
+说明：
+
+- 第 1 步先确认 config / resolver 主链路
+- 第 2 步只验证新增 feature
+- 第 3 步再做 chat 主链路回归
+
+如果只是排查 flaky 或竞态问题，再临时降为单 worker。
+
+---
+
+## 9. 一句话结论
 
 `review-02` 的核心结论不是重新定义 `chat`，而是确认：
 

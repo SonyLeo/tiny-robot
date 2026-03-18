@@ -94,12 +94,6 @@ test.describe('Chat 黑盒模式测试', () => {
     await helper.expectUploadActionVisible(true, root)
   })
 
-  test('sender actions: 启用 wordCount 后应显示字数计数', async ({ page }) => {
-    const root = helper.selectors.blackboxChat
-    await helper.typeMessage('12345', root)
-    await expect(page.locator(root).locator(helper.selectors.senderWordCounter)).toContainText('5/20')
-  })
-
   test('attachments: 选择文件后应显示默认附件区与附件卡片', async () => {
     const root = helper.selectors.blackboxChat
 
@@ -322,18 +316,6 @@ test.describe('Chat 黑盒模式测试', () => {
       await expect(submitBtn).toHaveClass(/is-disabled/)
     })
 
-    test('attachments: 未启用 attachments feature 的场景下不应出现默认上传入口', async () => {
-      const root = 'div[data-testid="chat-blackbox-edge"] .tr-chat'
-      await helper.expectUploadActionVisible(false, root)
-      await helper.expectAttachmentsAreaVisible(false, root)
-    })
-
-    test('sender actions: 未启用 sender actions feature 的场景下不应显示字数计数', async ({ page }) => {
-      const root = 'div[data-testid="chat-blackbox-edge"] .tr-chat'
-      await helper.typeMessage('12345', root)
-      await expect(page.locator(root).locator(helper.selectors.senderWordCounter)).toHaveCount(0)
-    })
-
     test('属性透传: roleConfigs 自定义排布应覆盖默认规则', async () => {
       const root = 'div[data-testid="chat-blackbox-edge"] .tr-chat'
       await helper.sendMessage('修改布局', root)
@@ -397,7 +379,8 @@ test.describe('Chat 黑盒模式测试', () => {
 
   test('message action callback should receive feedback actions in blackbox mode', async ({ page }) => {
     const root = helper.selectors.blackboxChat
-    await helper.sendMessage('trigger action callback', root)
+    await helper.sendMessage('action cb', root)
+    await helper.waitForStreamingComplete(root)
     await helper.waitForAssistantReply(root)
 
     const actionButtons = page.locator(root).locator('.tr-feedback .tr-action-group__btn-wrapper')

@@ -55,6 +55,8 @@
       <TrChat
         :response-provider="edgeResponseProvider"
         :brand="brand"
+        :attachments-feature="edgeAttachmentsFeature"
+        :sender-actions-feature="edgeSenderActionsFeature"
         placeholder="请输入消息..."
         show-history
         enable-fullscreen
@@ -86,7 +88,11 @@
         </button>
       </div>
 
-      <TrChat.Root :chat-kit="chat">
+      <TrChat.Root
+        :chat-kit="chat"
+        :attachments-feature="attachmentsFeature"
+        :sender-actions-feature="senderActionsFeature"
+      >
         <TrChat.Layout :fullscreen="false">
           <TrChat.Header show-history />
 
@@ -112,7 +118,11 @@
                 :provider-factories="providerFactories"
                 @change="handleModelChange"
               />
-              <TrChat.Sender placeholder="白盒模式请输入消息..." />
+              <TrChat.Sender placeholder="白盒模式请输入消息...">
+                <template #footer-right>
+                  <span data-testid="whitebox-custom-footer-right">自定义 footer-right</span>
+                </template>
+              </TrChat.Sender>
             </div>
           </TrChat.Footer>
 
@@ -186,7 +196,25 @@ const attachmentsFeature = {
 }
 
 const senderActionsFeature = {
+  voice: {
+    enabled: true,
+    tooltip: '语音输入',
+  },
   wordCount: true,
+}
+
+const edgeAttachmentsFeature = {
+  upload: {
+    tooltip: '上传附件',
+    accept: '.txt',
+    multiple: true,
+  },
+}
+
+const edgeSenderActionsFeature = {
+  upload: {
+    enabled: false,
+  },
 }
 
 function handleFinish(msg: { content?: string }) {

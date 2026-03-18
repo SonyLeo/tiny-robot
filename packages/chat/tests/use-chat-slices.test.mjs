@@ -484,6 +484,12 @@ await runTest('loadChatConfig normalizes feature config and createPresetChatProp
         },
       },
       senderActions: {
+        voice: {
+          enabled: true,
+          tooltip: '语音输入',
+          size: 'small',
+          autoInsert: false,
+        },
         wordCount: true,
         defaultActions: {
           clear: {
@@ -517,7 +523,17 @@ await runTest('loadChatConfig normalizes feature config and createPresetChatProp
     senderActions: {
       enabled: undefined,
       upload: undefined,
-      voice: undefined,
+      voice: {
+        enabled: true,
+        tooltip: '语音输入',
+        tooltipPlacement: undefined,
+        size: 'small',
+        speechConfig: undefined,
+        autoInsert: false,
+        onButtonClick: undefined,
+        icon: undefined,
+        recordingIcon: undefined,
+      },
       wordCount: true,
       defaultActions: {
         clear: {
@@ -548,6 +564,10 @@ await runTest('loadChatConfig normalizes feature config and createPresetChatProp
   assert.equal(presetProps.attachmentsFeature?.upload?.accept, '.pdf')
   assert.equal(presetProps.attachmentsFeature?.upload?.multiple, false)
   assert.equal(presetProps.attachmentsFeature?.list?.variant, 'card')
+  assert.equal(presetProps.senderActionsFeature?.voice?.enabled, true)
+  assert.equal(presetProps.senderActionsFeature?.voice?.tooltip, '语音输入')
+  assert.equal(presetProps.senderActionsFeature?.voice?.size, 'small')
+  assert.equal(presetProps.senderActionsFeature?.voice?.autoInsert, false)
   assert.equal(presetProps.senderActionsFeature?.wordCount, true)
   assert.equal(presetProps.senderActionsFeature?.defaultActions?.clear?.tooltip, '清空')
   assert.equal(presetProps.showHistory, true)
@@ -596,10 +616,85 @@ await runTest('createPresetChatProps lets explicit overrides win over resolved f
   assert.equal(presetProps.showFeedback, false)
 })
 
+await runTest('resolveChatFeatures keeps attachments and senderActions outputs independent for runtime composition', async () => {
+  const resolved = resolveChatFeatures({
+    attachments: {
+      upload: {
+        accept: '.txt',
+        multiple: true,
+      },
+    },
+    senderActions: {
+      upload: {
+        enabled: false,
+      },
+      voice: {
+        enabled: true,
+        tooltip: '语音输入',
+      },
+    },
+  })
+
+  assert.deepEqual(resolved.enabledKeys, ['attachments', 'senderActions'])
+  assert.equal(resolved.entries.attachments.presetProps.attachmentsFeature?.upload?.accept, '.txt')
+  assert.equal(resolved.entries.senderActions.presetProps.senderActionsFeature?.upload?.enabled, false)
+  assert.equal(resolved.entries.senderActions.presetProps.senderActionsFeature?.voice?.enabled, true)
+  assert.equal(resolved.entries.senderActions.presetProps.senderActionsFeature?.voice?.tooltip, '语音输入')
+})
+
+await runTest('createPresetChatProps lets suggestions feature override legacy ui.prompts and explicit disable clears prompts', async () => {
+  const adapter = createChatAdapterFromConfig({
+    models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+    providers: {
+      openai: {
+        type: 'openai-compatible',
+        endpoint: '/api/chat',
+      },
+    },
+    ui: {
+      prompts: [{ label: 'legacy prompt', description: 'legacy prompt' }],
+    },
+    features: {
+      suggestions: {
+        welcome: [
+          { label: 'feature prompt 1', description: 'feature prompt 1' },
+          { label: 'feature prompt 2', description: 'feature prompt 2' },
+        ],
+      },
+    },
+  })
+
+  const presetProps = createPresetChatProps(adapter)
+  assert.equal(presetProps.prompts?.length, 2)
+  assert.equal(presetProps.prompts?.[0]?.label, 'feature prompt 1')
+  assert.equal(adapter.resolvedFeatures.entries.suggestions.enabled, true)
+
+  const disabledAdapter = createChatAdapterFromConfig({
+    models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+    providers: {
+      openai: {
+        type: 'openai-compatible',
+        endpoint: '/api/chat',
+      },
+    },
+    ui: {
+      prompts: [{ label: 'legacy prompt', description: 'legacy prompt' }],
+    },
+    features: {
+      suggestions: false,
+    },
+  })
+
+  const disabledPresetProps = createPresetChatProps(disabledAdapter)
+  assert.deepEqual(disabledPresetProps.prompts, [])
+  assert.equal(disabledAdapter.resolvedFeatures.entries.suggestions.enabled, false)
+})
+
 await runTest('resolveChatFeatures keeps disabled features out of preset props', async () => {
   const resolved = resolveChatFeatures({
     attachments: false,
     senderActions: false,
+    suggestions: false,
     history: false,
     feedback: {
       enabled: false,
@@ -610,6 +705,7 @@ await runTest('resolveChatFeatures keeps disabled features out of preset props',
   assert.deepEqual(resolved.presetProps, {})
   assert.equal(resolved.entries.attachments.enabled, false)
   assert.equal(resolved.entries.senderActions.enabled, false)
+  assert.equal(resolved.entries.suggestions.enabled, false)
   assert.equal(resolved.entries.history.enabled, false)
   assert.equal(resolved.entries.feedback.enabled, false)
 })
@@ -632,6 +728,40 @@ await runTest('loadChatConfig rejects invalid feature shapes', async () => {
         },
       }),
     /features\.history\.props must be an object/,
+  )
+
+  assert.throws(
+    () =>
+      loadChatConfig({
+        models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+        providers: {
+          openai: {
+            type: 'openai-compatible',
+            endpoint: '/api/chat',
+          },
+        },
+        features: {
+          senderActions: 'invalid',
+        },
+      }),
+    /features\.senderActions must be a boolean or an object/,
+  )
+
+  assert.throws(
+    () =>
+      loadChatConfig({
+        models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+        providers: {
+          openai: {
+            type: 'openai-compatible',
+            endpoint: '/api/chat',
+          },
+        },
+        features: {
+          suggestions: 'invalid',
+        },
+      }),
+    /features\.suggestions must be a boolean or an object/,
   )
 })
 
