@@ -73,6 +73,7 @@ export const CHAT_SELECTORS = {
   switchToBlackbox: '[data-testid="switch-blackbox"]',
   switchToWhitebox: '[data-testid="switch-whitebox"]',
   switchToBlackboxEdge: '[data-testid="switch-blackbox-edge"]',
+  switchToWelcomePrompts: '[data-testid="switch-welcome-prompts"]',
 
   // === 状态指示器（白盒 Demo 中注入） ===
   statusIndicator: '[data-testid="status-indicator"]',

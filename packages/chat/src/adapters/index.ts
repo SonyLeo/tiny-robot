@@ -20,5 +20,8 @@ export type {
   ChatHistoryFeatureConfig,
   ChatHistoryFeatureOptions,
   ChatHistoryFeatureResolution,
+  ChatWelcomePromptsFeatureConfig,
+  ChatWelcomePromptsFeatureOptions,
+  ChatWelcomePromptsFeatureResolution,
   ResolvedChatFeatures,
 } from '../features'

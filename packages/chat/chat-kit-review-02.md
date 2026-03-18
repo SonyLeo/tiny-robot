@@ -42,12 +42,13 @@
 1. Registry Foundation
 2. Attachments Feature
 3. Sender Actions Feature
-4. Suggestions Feature
-5. MCP Config 化
-6. Layout Formalization
-7. Template / CLI Consumption
-8. Agent Preset / Skill Pack Foundation
-9. Theme / Workspace Shell
+4. Welcome Prompts Formalization
+5. Sender Extensions Boundary
+6. MCP Config 化
+7. Layout Formalization
+8. Template / CLI Consumption
+9. Agent Preset / Skill Pack Foundation
+10. Theme / Workspace Shell
 
 这个顺序的核心原则是：
 
@@ -67,7 +68,7 @@
 | 阶段 | `chat` 侧关键输出 | 对 `chat-cli` 的意义 |
 |:--|:--|:--|
 | Phase A | feature registry 基础设施、feature resolution 入口、preset 接入方式 | 为后续 template registry 和 feature mapping 提供正式接入点 |
-| Phase B | attachments / sender actions / suggestions 的 config 与 preset 输出 | 让模板差异从页面手工装配转向能力组合 |
+| Phase B | attachments / sender actions / welcome prompts 的 config 与 preset 输出，以及 `Sender Suggestion / Mention / Template` 的基础边界 | 让模板差异从页面手工装配转向能力组合，并避免把不同组件能力混成一个 `suggestions` 总称 |
 | Phase C | `ChatMcpFeatureConfig`、layout variant / placement 的稳定边界 | 为 `agent-mcp` 和后续 `docs-chat` 提供正式模板依赖 |
 | Phase D | feature -> template / preset 的稳定消费链路 | 让 `chat-cli` 真正进入基于 capability 的模板消费阶段 |
 | Phase E | `AgentPreset` / `SkillPack` 基础类型、resolver 入口、workflow / CLI 消费边界 | 为后续 workflow presets、template packs、agent capabilities 提供正式组合层 |
@@ -115,7 +116,8 @@
 
 - 正式沉淀 attachments
 - 正式沉淀 sender actions
-- 正式沉淀 suggestions
+- 正式沉淀 welcome prompts
+- 明确 `Sender Suggestion / Mention / Template` 的装配边界
 
 范围：
 
@@ -131,9 +133,15 @@
 
 验收口径：
 
-- 三类 feature 都能通过 config 启用
+- 当前已选定进入 P1 的能力都能通过 config 启用或明确边界
 - 默认行为不再依赖 demo 手工拼装
 - 黑盒和白盒共享同一默认能力底座
+
+补充说明：
+
+- 当前代码里已经开始把一部分 welcome prompts 走到 `features -> resolver -> preset -> prompts` 主链路
+- 但这不应被误判为 `Sender Suggestion` 已经完成
+- 后续设计与测试命名应尽量对齐组件原语，而不是继续泛化成一个模糊的 `suggestions`
 
 ### Phase C: MCP Config + Layout Formalization
 
@@ -335,7 +343,7 @@
 
 - `attachments.spec.ts`
 - `sender-actions.spec.ts`
-- `suggestions.spec.ts`
+- `welcome-prompts.spec.ts`
 - `mcp.spec.ts`
 
 这样做的好处是：

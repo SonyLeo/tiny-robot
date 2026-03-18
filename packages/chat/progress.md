@@ -55,7 +55,7 @@
 | 阶段 | 当前状态 | 说明 |
 |:--|:--|:--|
 | Phase A / P0 | `已完成` | registry / resolver / preset 接入已建立，并以首个内建 feature 贯通 |
-| Phase B / P1 | `进行中` | attachments 第一阶段已完成并通过验证，下一步进入 sender actions / suggestions |
+| Phase B / P1 | `进行中` | attachments 与 sender actions 已完成并通过验证；当前已 formalize welcome prompts，但这不等于 Sender 智能联想 |
 | Phase C / P2 | `未开始` | 等待 P1 完成后收敛 MCP config 与 layout variant |
 | Phase D / P3 | `未开始` | 等待 capability 主链路稳定后，让 `chat-cli` 正式消费 |
 | Phase E / P4 | `后置规划` | skill pack / agent preset 只在 Phase D 后进入 |
@@ -74,8 +74,9 @@
 ### P1: High-value Features
 
 - [x] Attachments feature
-- [ ] Sender Actions feature
-- [ ] Suggestions feature
+- [x] Sender Actions feature
+- [x] Welcome Prompts formalization
+- [ ] Sender Extensions boundary（Suggestion / Mention / Template）
 - [ ] 黑盒 / 白盒默认行为对齐
 
 ---
@@ -100,9 +101,8 @@
 
 ### P1 尚未完成的核心工作
 
-- [ ] 为 sender actions 定义正式 feature config 与 preset 映射
-- [ ] 为 suggestions 定义正式 feature config 与 preset 映射
-- [ ] 继续收敛 sender actions / suggestions 的默认行为，并消除 demo 手工拼装依赖
+- [ ] 继续收敛 welcome prompts 的默认行为，并消除 demo 手工拼装依赖
+- [ ] 明确 `Sender Suggestion / Mention / Template` 的装配边界与测试范围
 - [ ] 保持黑盒 / 白盒共享同一默认能力底座
 - [ ] 为新增 feature 建立独立的 Playwright spec，并补齐 enabled / disabled / override / whitebox coverage
 
@@ -113,6 +113,11 @@
 - [x] 未启用 `attachmentsFeature` 的场景不会出现默认附件能力
 - [x] 发送消息后会清空附件暂存
 - [x] 新建对话后会清空附件暂存
+- [x] `senderActions` 已进入 feature config / resolver / preset 主链路
+- [x] `senderActions` 已补黑盒 / 白盒 / override / disabled 稳定测试
+- [x] 独立 feature spec 已建立：`sender-actions.spec.ts`
+- [x] 当前第一阶段已把 welcome prompts 正式纳入 `features -> resolver -> preset -> prompts`
+- [x] 第一阶段独立 feature spec 已建立：`welcome-prompts.spec.ts`
 - [x] 已补稳定测试标识，便于 `packages/test` 消费侧验证
 
 ---
@@ -124,7 +129,7 @@
 | 能力项 | 当前状态 | 对 `chat-cli` 的意义 |
 |:--|:--|:--|
 | feature registry foundation | `已完成` | template registry 已具备正式映射 chat features 的基础接入点 |
-| attachments / sender actions / suggestions config | `进行中` | attachments 第一阶段已可配置化并完成基础验收，sender actions / suggestions 仍未完成，暂不能作为完整模板 capability 输入 |
+| attachments / sender actions / prompts / sender extensions | `进行中` | attachments、sender actions 已可配置化并完成基础验收；welcome prompts 第一阶段已进入主链路，但 `Sender Suggestion / Mention / Template` 仍未正式进入 capability 输入 |
 | MCP feature config | `未开始` | `agent-mcp` 还不应建立在手工 wiring 上 |
 | layout variant / placement formalization | `未开始` | `docs-chat` 暂不具备稳定 layout 依赖 |
 | feature -> template consumption | `未开始` | `chat-cli` 还处在“模板先行”风险区 |
@@ -142,11 +147,11 @@
 
 ### 立即下一步（建议按此顺序执行）
 
-1. 先做 sender actions feature config 与默认编排
-2. 再做 suggestions feature config 与 welcome / empty-state 对齐
-3. 为新增 feature 创建独立测试文件，并先跑 feature 定向测试
-4. 用黑盒 / 白盒两层验证三类 feature 的默认行为
-5. 清理 demo 中仍依赖手工拼装的 sender / attachment / suggestion 逻辑
+1. 先把 welcome prompts 与 `Sender Suggestion` 的设计口径彻底拆开
+2. 明确 `Sender Suggestion / Mention / Template` 是否进入 P1，还是拆到后续阶段
+3. 为当前 welcome prompts 补更多 enabled / disabled / override / whitebox coverage
+4. 用黑盒 / 白盒两层验证当前已 formalize 的 capability 默认行为
+5. 清理 demo 中仍依赖手工拼装的 sender / attachment / prompt / suggestion 逻辑
 6. 明确哪些 P1 输出可被 `chat-cli` 作为正式 capability 输入
 
 ### 进入 P1 前的完成标准
@@ -159,8 +164,9 @@
 ### P1: High-value Features
 
 - [x] Attachments feature
-- [ ] Sender Actions feature
-- [ ] Suggestions feature
+- [x] Sender Actions feature
+- [x] Welcome Prompts formalization
+- [ ] Sender Extensions boundary（Suggestion / Mention / Template）
 - [ ] 黑盒 / 白盒默认行为对齐
 
 ### P2: MCP + Layout
@@ -220,8 +226,11 @@
 
 - `pnpm.cmd -F @opentiny/tiny-robot-chat type-check`
 - `pnpm.cmd -F @opentiny/tiny-robot-chat test:unit`
+- `pnpm.cmd -F tiny-robot-test test -- src/chat/sender-actions.spec.ts`
+- `pnpm.cmd -F tiny-robot-test test -- src/chat/welcome-prompts.spec.ts`
 - `pnpm.cmd -F tiny-robot-test test -- src/chat/index.spec.ts`
 - `pnpm.cmd -F tiny-robot-test test -- src/chat/model-switch.spec.ts`
+- `pnpm.cmd -F tiny-robot-test test -- src/chat/index.spec.ts src/chat/model-switch.spec.ts src/chat/sender-actions.spec.ts src/chat/welcome-prompts.spec.ts`
 
 本地运行建议：
 

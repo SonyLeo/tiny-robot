@@ -10,6 +10,7 @@ import type {
   ChatHistoryFeatureConfig,
   ChatHistoryFeatureResolution,
   ChatSenderActionsFeatureResolution,
+  ChatWelcomePromptsFeatureResolution,
   ResolvedChatFeatures,
 } from './types'
 
@@ -129,6 +130,37 @@ const senderActionsFeature: ChatFeatureDefinition<
   },
 }
 
+const welcomePromptsFeature: ChatFeatureDefinition<
+  'welcomePrompts',
+  ChatFeatureConfigMap['welcomePrompts'],
+  ChatWelcomePromptsFeatureResolution
+> = {
+  key: 'welcomePrompts',
+  resolve(config) {
+    const hasConfig = config !== undefined
+    const enabled = isFeatureEnabled(config)
+    const resolvedConfig = typeof config === 'object' && config !== null ? config : undefined
+    const welcomePrompts = resolvedConfig?.welcome
+
+    return {
+      key: 'welcomePrompts',
+      enabled,
+      config: resolvedConfig,
+      presetProps: enabled
+        ? welcomePrompts?.length
+          ? {
+              prompts: welcomePrompts,
+            }
+          : {}
+        : hasConfig
+          ? {
+              prompts: [],
+            }
+          : {},
+    }
+  },
+}
+
 const historyFeature: ChatFeatureDefinition<'history', ChatHistoryFeatureConfig, ChatHistoryFeatureResolution> = {
   key: 'history',
   resolve(config) {
@@ -171,6 +203,7 @@ const feedbackFeature: ChatFeatureDefinition<'feedback', ChatFeedbackFeatureConf
 export const CHAT_FEATURE_REGISTRY = {
   attachments: attachmentsFeature,
   senderActions: senderActionsFeature,
+  welcomePrompts: welcomePromptsFeature,
   history: historyFeature,
   feedback: feedbackFeature,
 } as const
@@ -179,6 +212,7 @@ export function resolveChatFeatures(config: ChatFeatureConfigMap | undefined): R
   const entries = {
     attachments: CHAT_FEATURE_REGISTRY.attachments.resolve(config?.attachments),
     senderActions: CHAT_FEATURE_REGISTRY.senderActions.resolve(config?.senderActions),
+    welcomePrompts: CHAT_FEATURE_REGISTRY.welcomePrompts.resolve(config?.welcomePrompts),
     history: CHAT_FEATURE_REGISTRY.history.resolve(config?.history),
     feedback: CHAT_FEATURE_REGISTRY.feedback.resolve(config?.feedback),
   }
@@ -193,6 +227,7 @@ export function resolveChatFeatures(config: ChatFeatureConfigMap | undefined): R
     presetProps: mergePresetProps(
       entries.attachments.presetProps,
       entries.senderActions.presetProps,
+      entries.welcomePrompts.presetProps,
       entries.history.presetProps,
       entries.feedback.presetProps,
     ),

@@ -541,6 +541,7 @@ await runTest('loadChatConfig normalizes feature config and createPresetChatProp
         },
       },
     },
+    welcomePrompts: undefined,
     history: {
       enabled: undefined,
       props: {
@@ -642,7 +643,7 @@ await runTest('resolveChatFeatures keeps attachments and senderActions outputs i
   assert.equal(resolved.entries.senderActions.presetProps.senderActionsFeature?.voice?.tooltip, '语音输入')
 })
 
-await runTest('createPresetChatProps lets suggestions feature override legacy ui.prompts and explicit disable clears prompts', async () => {
+await runTest('createPresetChatProps lets welcomePrompts override legacy ui.prompts and explicit disable clears prompts', async () => {
   const adapter = createChatAdapterFromConfig({
     models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
     providers: {
@@ -655,7 +656,7 @@ await runTest('createPresetChatProps lets suggestions feature override legacy ui
       prompts: [{ label: 'legacy prompt', description: 'legacy prompt' }],
     },
     features: {
-      suggestions: {
+      welcomePrompts: {
         welcome: [
           { label: 'feature prompt 1', description: 'feature prompt 1' },
           { label: 'feature prompt 2', description: 'feature prompt 2' },
@@ -667,7 +668,7 @@ await runTest('createPresetChatProps lets suggestions feature override legacy ui
   const presetProps = createPresetChatProps(adapter)
   assert.equal(presetProps.prompts?.length, 2)
   assert.equal(presetProps.prompts?.[0]?.label, 'feature prompt 1')
-  assert.equal(adapter.resolvedFeatures.entries.suggestions.enabled, true)
+  assert.equal(adapter.resolvedFeatures.entries.welcomePrompts.enabled, true)
 
   const disabledAdapter = createChatAdapterFromConfig({
     models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
@@ -681,20 +682,43 @@ await runTest('createPresetChatProps lets suggestions feature override legacy ui
       prompts: [{ label: 'legacy prompt', description: 'legacy prompt' }],
     },
     features: {
-      suggestions: false,
+      welcomePrompts: false,
     },
   })
 
   const disabledPresetProps = createPresetChatProps(disabledAdapter)
   assert.deepEqual(disabledPresetProps.prompts, [])
-  assert.equal(disabledAdapter.resolvedFeatures.entries.suggestions.enabled, false)
+  assert.equal(disabledAdapter.resolvedFeatures.entries.welcomePrompts.enabled, false)
+})
+
+await runTest('loadChatConfig still accepts legacy suggestions as an alias of welcomePrompts', async () => {
+  const adapter = createChatAdapterFromConfig({
+    models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+    providers: {
+      openai: {
+        type: 'openai-compatible',
+        endpoint: '/api/chat',
+      },
+    },
+    features: {
+      suggestions: {
+        welcome: [{ label: 'legacy alias prompt', description: 'legacy alias prompt' }],
+      },
+    },
+  })
+
+  assert.equal(adapter.resolvedFeatures.entries.welcomePrompts.enabled, true)
+  assert.equal(adapter.resolvedFeatures.entries.welcomePrompts.config?.welcome?.[0]?.label, 'legacy alias prompt')
+
+  const presetProps = createPresetChatProps(adapter)
+  assert.equal(presetProps.prompts?.[0]?.label, 'legacy alias prompt')
 })
 
 await runTest('resolveChatFeatures keeps disabled features out of preset props', async () => {
   const resolved = resolveChatFeatures({
     attachments: false,
     senderActions: false,
-    suggestions: false,
+    welcomePrompts: false,
     history: false,
     feedback: {
       enabled: false,
@@ -702,10 +726,12 @@ await runTest('resolveChatFeatures keeps disabled features out of preset props',
   })
 
   assert.deepEqual(resolved.enabledKeys, [])
-  assert.deepEqual(resolved.presetProps, {})
+  assert.deepEqual(resolved.presetProps, {
+    prompts: [],
+  })
   assert.equal(resolved.entries.attachments.enabled, false)
   assert.equal(resolved.entries.senderActions.enabled, false)
-  assert.equal(resolved.entries.suggestions.enabled, false)
+  assert.equal(resolved.entries.welcomePrompts.enabled, false)
   assert.equal(resolved.entries.history.enabled, false)
   assert.equal(resolved.entries.feedback.enabled, false)
 })
@@ -758,10 +784,10 @@ await runTest('loadChatConfig rejects invalid feature shapes', async () => {
           },
         },
         features: {
-          suggestions: 'invalid',
+          welcomePrompts: 'invalid',
         },
       }),
-    /features\.suggestions must be a boolean or an object/,
+    /features\.welcomePrompts must be a boolean or an object/,
   )
 })
 

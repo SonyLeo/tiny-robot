@@ -16,6 +16,13 @@
       >
         边界场景
       </button>
+      <button
+        data-testid="switch-welcome-prompts"
+        :class="{ active: mode === 'welcome-prompts' }"
+        @click="mode = 'welcome-prompts'"
+      >
+        Welcome Prompts
+      </button>
     </div>
 
     <div v-if="mode === 'blackbox'" data-testid="chat-blackbox" class="chat-wrapper">
@@ -74,6 +81,10 @@
           <div data-testid="custom-footer-extra">这是 Footer 额外区域</div>
         </template>
       </TrChat>
+    </div>
+
+    <div v-if="mode === 'welcome-prompts'" data-testid="chat-welcome-prompts" class="chat-wrapper">
+      <TrChat v-bind="welcomePromptsPreset" />
     </div>
 
     <div v-if="mode === 'whitebox'" data-testid="chat-whitebox" class="chat-wrapper">
@@ -135,7 +146,15 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { TrChat, TrChatFeedback, TrModelSelector, useChatKit, useModelSelector } from '../../../chat/src'
+import {
+  TrChat,
+  TrChatFeedback,
+  TrModelSelector,
+  createChatAdapterFromConfig,
+  createPresetChatProps,
+  useChatKit,
+  useModelSelector,
+} from '../../../chat/src'
 import type {
   ChatListVariant,
   ChatMessageActionPayload,
@@ -145,7 +164,22 @@ import type {
 import type { ChatCompletion } from '../../../kit/src/vue/message/types'
 import { createMockFactory, createMockProvider } from './mockProvider'
 
-const mode = ref<'blackbox' | 'whitebox' | 'blackbox-edge'>('blackbox')
+type ChatMode = 'blackbox' | 'whitebox' | 'blackbox-edge' | 'welcome-prompts'
+
+function getInitialMode(): ChatMode {
+  if (typeof window === 'undefined') {
+    return 'blackbox'
+  }
+
+  const mode = new URLSearchParams(window.location.search).get('chatMode')
+  if (mode === 'whitebox' || mode === 'blackbox-edge' || mode === 'welcome-prompts') {
+    return mode
+  }
+
+  return 'blackbox'
+}
+
+const mode = ref<ChatMode>(getInitialMode())
 const finishLog = ref('')
 const errorLog = ref('')
 const actionLog = ref('')
@@ -202,6 +236,42 @@ const senderActionsFeature = {
   },
   wordCount: true,
 }
+
+const welcomePromptsAdapter = createChatAdapterFromConfig({
+  models: [{ id: 'welcome-prompts-model', provider: 'openai' }],
+  providers: {
+    openai: {
+      type: 'openai-compatible',
+      endpoint: '/api/chat',
+    },
+  },
+  ui: {
+    brand: {
+      title: 'Welcome Prompts 测试',
+    },
+    welcome: {
+      title: 'Welcome Prompts',
+      description: '验证 welcomePrompts feature -> preset -> TrChat 主链路',
+    },
+    prompts: [{ label: 'legacy prompt', description: 'legacy prompt' }],
+  },
+  features: {
+    welcomePrompts: {
+      welcome: [
+        { label: 'feature prompt 1', description: 'feature prompt 1' },
+        { label: 'feature prompt 2', description: 'feature prompt 2' },
+        { label: 'feature prompt 3', description: 'feature prompt 3' },
+      ],
+    },
+  },
+})
+
+const welcomePromptsPreset = createPresetChatProps(welcomePromptsAdapter, {
+  responseProvider: createMockProvider({
+    provider: 'openai',
+    model: 'welcome-prompts-model',
+  }),
+})
 
 const edgeAttachmentsFeature = {
   upload: {

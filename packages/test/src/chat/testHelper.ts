@@ -45,6 +45,11 @@ export function createChatTestHelper(page: Page, options: ChatTestHelperOptions 
     await page.locator('[data-testid="chat-blackbox-edge"]').waitFor({ state: 'visible', timeout: defaultTimeout })
   }
 
+  const switchToWelcomePrompts = async () => {
+    await testUtils.clickWhenVisible(selectors.switchToWelcomePrompts)
+    await page.locator('[data-testid="chat-welcome-prompts"]').waitFor({ state: 'visible', timeout: defaultTimeout })
+  }
+
   // =====================
   //  消息发送
   // =====================
@@ -388,6 +393,7 @@ export function createChatTestHelper(page: Page, options: ChatTestHelperOptions 
     switchToBlackbox,
     switchToWhitebox,
     switchToBlackboxEdge,
+    switchToWelcomePrompts,
 
     // 消息交互
     typeMessage,

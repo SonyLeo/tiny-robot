@@ -17,6 +17,7 @@ import type {
   ChatFeedbackFeatureConfig,
   ChatHistoryFeatureConfig,
   ChatSenderActionsFeatureConfig,
+  ChatWelcomePromptsFeatureConfig,
 } from '../features'
 import type {
   ChatAdapter,
@@ -286,6 +287,27 @@ function normalizeSenderActionsFeature(rawFeature: unknown): ChatSenderActionsFe
   }
 }
 
+function normalizeWelcomePromptsFeature(rawFeature: unknown): ChatWelcomePromptsFeatureConfig | undefined {
+  if (rawFeature === undefined) {
+    return undefined
+  }
+
+  if (typeof rawFeature === 'boolean') {
+    return rawFeature
+  }
+
+  if (!isRecord(rawFeature)) {
+    throw new Error('[loadChatConfig] features.welcomePrompts must be a boolean or an object')
+  }
+
+  const welcome = Array.isArray(rawFeature.welcome) ? (rawFeature.welcome as ChatConfigUI['prompts']) : undefined
+
+  return {
+    enabled: typeof rawFeature.enabled === 'boolean' ? rawFeature.enabled : undefined,
+    welcome,
+  }
+}
+
 function normalizeFeatures(rawFeatures: unknown): ChatFeatureConfigMap | undefined {
   if (rawFeatures === undefined) {
     return undefined
@@ -295,14 +317,17 @@ function normalizeFeatures(rawFeatures: unknown): ChatFeatureConfigMap | undefin
     throw new Error('[loadChatConfig] features must be an object when provided')
   }
 
+  const rawWelcomePrompts = rawFeatures.welcomePrompts ?? rawFeatures.suggestions
+
   const normalized: ChatFeatureConfigMap = {
     attachments: normalizeAttachmentsFeature(rawFeatures.attachments),
     senderActions: normalizeSenderActionsFeature(rawFeatures.senderActions),
+    welcomePrompts: normalizeWelcomePromptsFeature(rawWelcomePrompts),
     history: normalizeHistoryFeature(rawFeatures.history),
     feedback: normalizeFeedbackFeature(rawFeatures.feedback),
   }
 
-  if (!normalized.attachments && !normalized.senderActions && !normalized.history && !normalized.feedback) {
+  if (Object.values(normalized).every((value) => value === undefined)) {
     return undefined
   }
 

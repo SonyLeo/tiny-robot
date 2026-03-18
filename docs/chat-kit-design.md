@@ -93,7 +93,9 @@
 
 - attachments
 - sender actions
-- suggestions
+- `Prompts` / welcome prompts
+- `Sender` extensions（`Suggestion` / `Mention` / `Template`）
+- `SuggestionPills` / `SuggestionPopover`
 - drag upload
 - conversations navigation
 - 更完整的 MCP 管理链路
@@ -102,7 +104,7 @@
 
 ### 4.3 feature 与 layout 的边界仍需正式化
 
-未来的 attachments、MCP、suggestions、docs / workspace 等能力会不断带来一个共同问题：
+未来的 attachments、MCP、welcome prompts、`Sender` extensions、`SuggestionPills` / `SuggestionPopover`、docs / workspace 等能力会不断带来一个共同问题：
 
 - 是否启用能力
 - 以什么布局形态呈现
@@ -123,6 +125,20 @@
 1. 高频出现在聊天场景
 2. 需要消息状态、会话状态或布局编排参与
 3. 适合声明式配置驱动
+
+同时建议坚持一个额外原则：
+
+> 设计命名尽量直接映射到现有组件或能力原语，不发明容易混淆的总称。
+
+例如：
+
+- 欢迎区入口卡片就是 `Prompts` / `welcome prompts`
+- 输入框智能联想就是 `Sender Suggestion`
+- 提及就是 `Sender Mention`
+- 模板填充就是 `Sender Template`
+- 底部快捷入口继续沿用 `SuggestionPills` / `SuggestionPopover`
+
+不建议继续用一个泛化的 `suggestions` 同时指代以上所有能力。
 
 ### 5.2 先统一装配层，再评估统一 props 入口
 
@@ -242,7 +258,7 @@ ChatConfig
 也就是说，未来就算引入 skill pack，它也应被解析为：
 
 - feature config
-- prompts / commands
+- welcome prompts / commands
 - MCP / tool bindings
 - layout hints
 
@@ -266,33 +282,73 @@ ChatConfig
 
 把 upload、voice、word count、default actions 等能力从 demo 级 slot 拼装提升为 feature 级能力。
 
-### 7.4 Suggestions
+### 7.4 Welcome Prompts
 
-把当前分散在 welcome 或 demo 中的建议类能力逐步收敛为统一 suggestion feature。
+把当前通过 `ChatWelcome` / `TrPrompts` 呈现的欢迎区入口卡片正式纳入配置与 preset 主链路。
 
-### 7.5 MCP Config 化
+这一层解决的是：
+
+- 初始欢迎态入口
+- 点击后转成发送动作
+- `ui.prompts` 与 preset 的稳定映射
+
+它不等于 `Sender` 的智能联想能力。
+
+### 7.5 Sender Extensions
+
+`Sender` 文档里真正的输入增强能力包括：
+
+- `Suggestion`
+- `Mention`
+- `Template`
+
+这三类能力都属于 `TrSender` 的 extension 原语，应在后续设计中单独看待，而不是继续合并到一个模糊的 `suggestions` 名称中。
+
+优先级建议：
+
+1. `Sender Suggestion`
+2. `Sender Mention`
+3. `Sender Template`
+
+其中：
+
+- `Sender Suggestion` 是真正对应“智能联想”的能力
+- `Sender Mention` 与 `Sender Template` 也应进入基本测试与装配层规划
+
+### 7.6 SuggestionPills / SuggestionPopover
+
+参考 [Assistant.vue](./demos/examples/Assistant.vue)，`SuggestionPills` 与 `SuggestionPopover` 更适合作为：
+
+- 底部快捷入口
+- 热门问题入口
+- shell / footer / workspace 级辅助内容面
+
+它们不是 `Sender Suggestion` 的替代物，也不应直接归并到 `Sender` extensions。
+
+### 7.7 MCP Config 化
 
 下一步重点不是“再造 MCP 能力”，而是把现有 MCP 接入提升为配置可声明、preset 可消费的能力。
 
-### 7.6 Layout Variants
+### 7.8 Layout Variants
 
 逐步把 `bubble / docs / workspace` 视为 layout variant，而不是各自发展独立状态系统。
 
-### 7.7 Agent Preset / Skill Pack Foundation（后置扩展）
+### 7.9 Agent Preset / Skill Pack Foundation（后置扩展）
 
 这不是当前阶段的主任务，但应明确后续接入顺序。
 
 推荐只在下面这些前置输出稳定后再进入实现：
 
 1. Feature Registry Foundation 完成
-2. attachments / sender actions / suggestions 完成正式 feature 化
-3. MCP config 与 layout variant / placement 边界稳定
-4. `chat-cli` 已完成 feature -> template / preset 的正式消费闭环
+2. attachments / sender actions / welcome prompts 完成正式 feature 化
+3. `Sender Suggestion / Mention / Template` 的基础边界与测试策略明确
+4. MCP config 与 layout variant / placement 边界稳定
+5. `chat-cli` 已完成 feature -> template / preset 的正式消费闭环
 
 在此前提下，`agent preset / skill pack` 更适合作为“能力组合层”进入 `chat`，其首轮职责建议限制为：
 
 - 预设一组标准 feature 组合
-- 预设 prompts / commands / MCP bindings
+- 预设 welcome prompts / commands / MCP bindings
 - 向 workflow / CLI 暴露稳定消费输入
 
 不建议首轮就承诺：
@@ -312,7 +368,7 @@ ChatConfig
 - 把 `packages/components` 中所有组件平移为 `TrChat.*`
 - 先在 demo 中拼出新能力，再反向要求 `chat` 适配
 - 在 feature 契约尚未稳定前，大量扩张 CLI flags 或模板分支
-- 在 attachments / sender actions / suggestions / MCP 之前优先推进 theme 或 workspace 壳层
+- 在 attachments / sender actions / welcome prompts / sender extensions / MCP 之前优先推进 theme 或 workspace 壳层
 - 在 capability 主链路稳定前，优先引入 `agent preset / skill pack` runtime 或 marketplace
 
 ---
