@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { provide, ref } from 'vue'
-import { useChatKit } from '../../composables'
-import { CHAT_KIT_KEY, CHAT_UI_KEY, MCP_MANAGER_KEY } from '../../context'
+import { useChatAttachments, useChatKit } from '../../composables'
+import { CHAT_ATTACHMENTS_KEY, CHAT_KIT_KEY, CHAT_UI_KEY, MCP_MANAGER_KEY } from '../../context'
 import type { TrChatRootProps, UseChatKitOptions } from '../../types'
 import { conditionalProp } from '../../utils'
 
@@ -28,11 +28,19 @@ const chatKit =
   })
 
 const showHistoryDrawer = ref(false)
+const attachmentsFeature = props.attachmentsFeature
+const attachmentsManager = props.attachmentsManager ?? (attachmentsFeature ? useChatAttachments() : null)
 
 provide(CHAT_KIT_KEY, chatKit)
 provide(CHAT_UI_KEY, { showHistoryDrawer })
 if (props.mcpManager) {
   provide(MCP_MANAGER_KEY, props.mcpManager)
+}
+if (attachmentsManager && attachmentsFeature) {
+  provide(CHAT_ATTACHMENTS_KEY, {
+    manager: attachmentsManager,
+    feature: attachmentsFeature,
+  })
 }
 </script>
 

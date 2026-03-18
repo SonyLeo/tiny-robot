@@ -7,6 +7,7 @@ import type {
   TrChatProps,
   WelcomeConfig,
 } from '../types'
+import type { ChatFeatureConfigMap, ChatFeaturePresetProps, ResolvedChatFeatures } from '../features'
 import type { ServerProxyFactoryOptions } from '../providers/serverProxy'
 
 export interface ChatConfigModel {
@@ -38,6 +39,7 @@ export interface ChatConfig {
   providers: Record<string, ChatConfigProvider>
   defaults?: ChatConfigDefaults
   ui?: ChatConfigUI
+  features?: ChatFeatureConfigMap
 }
 
 export interface ChatAdapter {
@@ -45,10 +47,12 @@ export interface ChatAdapter {
   models: ModelOption[]
   providerFactories: ModelProviderFactory[]
   defaultModel?: string
+  resolvedFeatures: ResolvedChatFeatures
   createResponseProvider: (modelId?: string) => ResponseProvider
 }
 
 export type ChatPresetProps = Pick<
   TrChatProps,
   'models' | 'providerFactories' | 'defaultModel' | 'brand' | 'welcome' | 'prompts'
->
+> &
+  ChatFeaturePresetProps

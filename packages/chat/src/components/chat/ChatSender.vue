@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { inject, ref, computed, useSlots } from 'vue'
 import type { PropType, Slot } from 'vue'
-import { TrSender } from '@opentiny/tiny-robot'
+import { TrSender, UploadButton } from '@opentiny/tiny-robot'
 import type { StructuredData } from '@opentiny/tiny-robot'
-import { CHAT_KIT_KEY } from '../../context'
+import { CHAT_ATTACHMENTS_KEY, CHAT_KIT_KEY } from '../../context'
 import { CHAT_MESSAGES } from '../../messages'
 
 // 支持透传完整 TrSender props
@@ -21,18 +21,26 @@ const props = defineProps({
 })
 
 const chatKit = inject(CHAT_KIT_KEY)!
+const attachmentsContext = inject(CHAT_ATTACHMENTS_KEY, null)
 
 const inputValue = ref('')
 
 const isLoading = computed(() => chatKit.status.value === 'submitted' || chatKit.status.value === 'streaming')
+const attachmentsUploadConfig = computed(() => attachmentsContext?.feature.upload)
+const showDefaultUploadButton = computed(() => Boolean(attachmentsUploadConfig.value?.enabled !== false))
 
 async function handleSend(content: string, data?: StructuredData) {
   await chatKit.sendMessage(content, data)
+  attachmentsContext?.manager.clear()
   inputValue.value = ''
 }
 
 function handleAbort() {
   chatKit.abort()
+}
+
+function handleFileSelect(files: File[]) {
+  attachmentsContext?.manager.addFiles(files)
 }
 
 // 获取所有插槽以支持透传
@@ -59,6 +67,11 @@ const forwardedSlots = computed<Partial<Record<string, Slot>>>(() =>
     <!-- 透传所有插槽 -->
     <template v-for="(_, name) in forwardedSlots" #[name]="slotProps" :key="name">
       <slot :name="name" v-bind="slotProps ?? {}" />
+    </template>
+    <template v-if="attachmentsContext && showDefaultUploadButton && !$slots.footer" #footer-right>
+      <span data-testid="chat-attachments-upload">
+        <UploadButton v-bind="attachmentsUploadConfig" @select="handleFileSelect" />
+      </span>
     </template>
   </TrSender>
 </template>

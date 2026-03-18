@@ -6,6 +6,7 @@ import { CHAT_MESSAGES } from '../../messages'
 import type { ChatListVariant, ModelOption, TrChatProps } from '../../types'
 import { ChatHistory } from '../history'
 import ChatFooter from './ChatFooter.vue'
+import ChatAttachments from './ChatAttachments.vue'
 import ChatFeedback from './ChatFeedback.vue'
 import ChatHeader from './ChatHeader.vue'
 import ChatLayout from './ChatLayout.vue'
@@ -102,7 +103,12 @@ function handleSelectedModelChange(model: ModelOption) {
 </script>
 
 <template>
-  <ChatRoot :chat-kit="chatKit" :mcp-manager="props.mcpManager">
+  <ChatRoot
+    :chat-kit="chatKit"
+    :mcp-manager="props.mcpManager"
+    :attachments-manager="props.attachmentsManager"
+    :attachments-feature="props.attachmentsFeature"
+  >
     <ChatLayout :show="props.show !== false" :fullscreen="props.fullscreen" :role-configs="props.roleConfigs">
       <template v-if="$slots.header">
         <slot name="header" />
@@ -171,6 +177,7 @@ function handleSelectedModelChange(model: ModelOption) {
           <slot name="footer-extra" />
         </template>
         <div class="tr-chat-footer-content">
+          <ChatAttachments />
           <ModelSelector
             v-if="showModelSelector"
             v-model="selectedModel"

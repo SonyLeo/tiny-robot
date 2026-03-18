@@ -2,7 +2,7 @@
 import { computed, inject } from 'vue'
 import { TrIconButton } from '@opentiny/tiny-robot'
 import { IconCancelFullScreen, IconClose, IconFullScreen, IconHistory, IconNewSession } from '@opentiny/tiny-robot-svgs'
-import { CHAT_KIT_KEY, CHAT_UI_KEY } from '../../context'
+import { CHAT_ATTACHMENTS_KEY, CHAT_KIT_KEY, CHAT_UI_KEY } from '../../context'
 import { CHAT_MESSAGES } from '../../messages'
 
 defineOptions({ name: 'TrChatHeader' })
@@ -31,9 +31,11 @@ const emit = defineEmits<{
 }>()
 
 const chatKit = inject(CHAT_KIT_KEY)!
+const attachmentsContext = inject(CHAT_ATTACHMENTS_KEY, null)
 const { showHistoryDrawer } = inject(CHAT_UI_KEY)!
 
 function handleNewChat() {
+  attachmentsContext?.manager.clear()
   chatKit.createConversation()
 }
 

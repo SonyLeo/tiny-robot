@@ -10,6 +10,7 @@ import {
   ChatWelcome as TrChatWelcome,
   ChatMessageList as TrChatMessageList,
   ChatFooter as TrChatFooter,
+  ChatAttachments as TrChatAttachments,
   ChatSender as TrChatSender,
   ChatFeedback as TrChatFeedback,
   ChatMcpPanel as TrChatMcpPanel,
@@ -25,6 +26,7 @@ type TrChatWithSubComponents = typeof TrChat & {
   Welcome: typeof TrChatWelcome
   MessageList: typeof TrChatMessageList
   Footer: typeof TrChatFooter
+  Attachments: typeof TrChatAttachments
   Sender: typeof TrChatSender
   History: typeof TrChatHistory
 }
@@ -37,6 +39,7 @@ TrChatFull.Header = TrChatHeader
 TrChatFull.Welcome = TrChatWelcome
 TrChatFull.MessageList = TrChatMessageList
 TrChatFull.Footer = TrChatFooter
+TrChatFull.Attachments = TrChatAttachments
 TrChatFull.Sender = TrChatSender
 TrChatFull.History = TrChatHistory
 
@@ -45,6 +48,7 @@ export { TrChatFull as TrChat }
 // ===== Composable =====
 export {
   useChatKit,
+  useChatAttachments,
   useDefaultBubbleConfig,
   useMcpManager,
   useModelSelector,
@@ -66,7 +70,7 @@ export {
 } from './components/render'
 
 // ===== 新组件 =====
-export { TrModelSelector, TrChatFeedback, TrChatMcpPanel, TrChatLayout }
+export { TrModelSelector, TrChatFeedback, TrChatMcpPanel, TrChatLayout, TrChatAttachments }
 
 // ===== Providers =====
 export { matchProvider, createOpenAIFactory, createDeepSeekFactory } from './providers/factories'
@@ -76,6 +80,7 @@ export { createServerProxyProvider, createServerProxyFactory } from './providers
 
 // ===== Adapters =====
 export { loadChatConfig, createChatAdapterFromConfig, createPresetChatProps } from './adapters'
+export { CHAT_FEATURE_REGISTRY, resolveChatFeatures } from './features'
 export { CHAT_MESSAGES } from './messages'
 
 // ===== 类型 =====
@@ -95,6 +100,10 @@ export type {
   TrChatWelcomeProps,
   TrChatMessageListProps,
   TrChatSenderProps,
+  ChatAttachmentsFeaturePreset,
+  ChatAttachmentsListConfig,
+  ChatAttachmentsUploadConfig,
+  UseChatAttachmentsOptions,
   WelcomeConfig,
   ChatMessages,
   OpenAIProviderOptions,
@@ -106,6 +115,7 @@ export type {
 } from './types'
 export type { UseDefaultBubbleConfigOptions } from './composables'
 export type { UseMcpManagerBridge, UseMcpManagerOptions, UseModelSelectorOptions } from './composables'
+export type { UseChatAttachmentsReturn } from './composables'
 export type {
   ChatAdapter,
   ChatConfig,
@@ -116,6 +126,20 @@ export type {
   ChatPresetProps,
   OpenAICompatibleProviderConfig,
 } from './adapters'
+export type {
+  ChatAttachmentsFeatureConfig,
+  ChatAttachmentsFeatureResolution,
+  BuiltInChatFeatureKey,
+  ChatFeatureConfigMap,
+  ChatFeatureInput,
+  ChatFeaturePresetProps,
+  ChatFeedbackFeatureConfig,
+  ChatFeedbackFeatureResolution,
+  ChatHistoryFeatureConfig,
+  ChatHistoryFeatureOptions,
+  ChatHistoryFeatureResolution,
+  ResolvedChatFeatures,
+} from './features'
 
 // 从 iconMap 导出 KnownProvider 类型
 export { KNOWN_PROVIDERS, type KnownProvider } from './utils/iconMap'

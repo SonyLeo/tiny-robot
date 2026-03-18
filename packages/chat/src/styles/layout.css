@@ -157,6 +157,10 @@
   margin-bottom: 8px;
 }
 
+.tr-chat-attachments-area {
+  padding: 8px 0 4px;
+}
+
 .tr-chat--fullscreen {
   position: fixed;
   inset: 0;

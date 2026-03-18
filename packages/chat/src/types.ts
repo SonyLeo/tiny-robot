@@ -2,8 +2,17 @@ import type { Component, ComputedRef, VNode } from 'vue'
 import type { ConversationStorageStrategy, ChatMessage } from '@opentiny/tiny-robot-kit'
 import type { UseMessagePlugin, MessageRequestBody, ChatCompletion, UseMessageOptions } from '@opentiny/tiny-robot-kit'
 import type { UseConversationReturn } from '@opentiny/tiny-robot-kit'
-import type { PromptProps, StructuredData, BubbleListProps, SenderProps } from '@opentiny/tiny-robot'
+import type {
+  PromptProps,
+  StructuredData,
+  BubbleListProps,
+  SenderProps,
+  Attachment,
+  AttachmentListProps,
+  UploadButtonProps,
+} from '@opentiny/tiny-robot'
 import type { UseMcpManagerReturn } from './composables/useMcpManager'
+import type { UseChatAttachmentsReturn } from './composables/useChatAttachments'
 
 // ===== ResponseProvider =====
 // 注意：实际底层签名接受 AsyncGenerator<ChatCompletion>，与设计文档中的 ReadableStream<string> 不同
@@ -150,10 +159,12 @@ export interface TrChatProps {
   onFinish?: (message: ChatMessage) => void
   onError?: (error: Error) => void
   mcpManager?: UseMcpManagerReturn
+  attachmentsManager?: UseChatAttachmentsReturn
   // === 品牌配置（UI-B1）===
   brand?: BrandConfig
   welcome?: WelcomeConfig
   prompts?: PromptProps[]
+  attachmentsFeature?: ChatAttachmentsFeaturePreset
   placeholder?: string
   maxLength?: number
   senderMode?: 'single' | 'multiple'
@@ -181,6 +192,8 @@ export interface TrChatProps {
 
 type TrChatRootSharedProps = {
   mcpManager?: UseMcpManagerReturn
+  attachmentsManager?: UseChatAttachmentsReturn
+  attachmentsFeature?: ChatAttachmentsFeaturePreset
 }
 
 // ===== 白盒组件 Props 类型 =====
@@ -231,6 +244,29 @@ export interface TrChatMessageListProps {
 export interface TrChatSenderProps {
   mode?: 'single' | 'multiple'
   placeholder?: string
+}
+
+export interface ChatAttachmentsUploadConfig extends Pick<
+  UploadButtonProps,
+  'accept' | 'multiple' | 'maxCount' | 'maxSize' | 'tooltip' | 'tooltipPlacement'
+> {
+  enabled?: boolean
+}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface ChatAttachmentsListConfig extends Pick<
+  AttachmentListProps,
+  'variant' | 'wrap' | 'actions' | 'fileIcons' | 'fileMatchers' | 'disabled'
+> {}
+
+export interface ChatAttachmentsFeaturePreset {
+  enabled?: boolean
+  upload?: ChatAttachmentsUploadConfig
+  list?: ChatAttachmentsListConfig
+}
+
+export interface UseChatAttachmentsOptions {
+  initialItems?: Attachment[]
 }
 
 // ===== Provider 工厂函数选项 =====

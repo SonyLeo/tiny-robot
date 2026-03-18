@@ -9,3 +9,16 @@ export type {
   ChatPresetProps,
   OpenAICompatibleProviderConfig,
 } from './types'
+export { CHAT_FEATURE_REGISTRY, resolveChatFeatures } from '../features'
+export type {
+  BuiltInChatFeatureKey,
+  ChatFeatureConfigMap,
+  ChatFeatureInput,
+  ChatFeaturePresetProps,
+  ChatFeedbackFeatureConfig,
+  ChatFeedbackFeatureResolution,
+  ChatHistoryFeatureConfig,
+  ChatHistoryFeatureOptions,
+  ChatHistoryFeatureResolution,
+  ResolvedChatFeatures,
+} from '../features'

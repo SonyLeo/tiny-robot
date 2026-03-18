@@ -89,6 +89,45 @@ test.describe('Chat 黑盒模式测试', () => {
     await helper.waitForAssistantReply()
   })
 
+  test('attachments: 默认上传入口在黑盒模式下应可见', async () => {
+    const root = helper.selectors.blackboxChat
+    await helper.expectUploadActionVisible(true, root)
+  })
+
+  test('attachments: 选择文件后应显示默认附件区与附件卡片', async () => {
+    const root = helper.selectors.blackboxChat
+
+    await helper.expectAttachmentsAreaVisible(false, root)
+    await helper.uploadAttachment(
+      {
+        name: 'notes.txt',
+        mimeType: 'text/plain',
+        buffer: Buffer.from('hello attachment'),
+      },
+      root,
+    )
+
+    await helper.expectAttachmentsAreaVisible(true, root)
+    await helper.expectAttachmentCount(1, root)
+  })
+
+  test('attachments: 发送消息后应清空默认附件区', async () => {
+    const root = helper.selectors.blackboxChat
+
+    await helper.uploadAttachment(
+      {
+        name: 'notes.txt',
+        mimeType: 'text/plain',
+        buffer: Buffer.from('hello attachment'),
+      },
+      root,
+    )
+    await helper.expectAttachmentsAreaVisible(true, root)
+
+    await helper.sendMessage('携带附件发送', root)
+    await helper.expectAttachmentsAreaVisible(false, root)
+  })
+
   // --- 中断 ---
 
   test('中断: 流式输出时应可点击停止按钮中断', async () => {
@@ -135,6 +174,24 @@ test.describe('Chat 黑盒模式测试', () => {
 
     // 应回到欢迎页
     await helper.expectWelcomeVisible(true)
+  })
+
+  test('会话: 新建对话应清空附件暂存区', async () => {
+    const root = helper.selectors.blackboxChat
+
+    await helper.uploadAttachment(
+      {
+        name: 'notes.txt',
+        mimeType: 'text/plain',
+        buffer: Buffer.from('hello attachment'),
+      },
+      root,
+    )
+    await helper.expectAttachmentsAreaVisible(true, root)
+
+    await helper.clickNewChat(root)
+
+    await helper.expectAttachmentsAreaVisible(false, root)
   })
 
   test('会话: 发送消息后应能在历史中看到对话记录', async () => {
@@ -257,6 +314,12 @@ test.describe('Chat 黑盒模式测试', () => {
 
       // 2. 验证此时因为超长 (8 > 5)，发送按钮具有 is-disabled 类
       await expect(submitBtn).toHaveClass(/is-disabled/)
+    })
+
+    test('attachments: 未启用 attachments feature 的场景下不应出现默认上传入口', async () => {
+      const root = 'div[data-testid="chat-blackbox-edge"] .tr-chat'
+      await helper.expectUploadActionVisible(false, root)
+      await helper.expectAttachmentsAreaVisible(false, root)
     })
 
     test('属性透传: roleConfigs 自定义排布应覆盖默认规则', async () => {

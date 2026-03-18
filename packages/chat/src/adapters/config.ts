@@ -1,5 +1,19 @@
-import type { ModelOption, ResponseProvider, TrChatProps, WelcomeConfig } from '../types'
+import type {
+  ChatAttachmentsListConfig,
+  ChatAttachmentsUploadConfig,
+  ModelOption,
+  ResponseProvider,
+  TrChatProps,
+  WelcomeConfig,
+} from '../types'
 import { createServerProxyFactory } from '../providers/serverProxy'
+import { resolveChatFeatures } from '../features'
+import type {
+  ChatAttachmentsFeatureConfig,
+  ChatFeatureConfigMap,
+  ChatFeedbackFeatureConfig,
+  ChatHistoryFeatureConfig,
+} from '../features'
 import type {
   ChatAdapter,
   ChatConfig,
@@ -101,6 +115,127 @@ function normalizeUi(rawUi: unknown): ChatConfigUI | undefined {
   }
 }
 
+function normalizeFeedbackFeature(rawFeature: unknown): ChatFeedbackFeatureConfig | undefined {
+  if (rawFeature === undefined) {
+    return undefined
+  }
+
+  if (typeof rawFeature === 'boolean') {
+    return rawFeature
+  }
+
+  if (!isRecord(rawFeature)) {
+    throw new Error('[loadChatConfig] features.feedback must be a boolean or an object')
+  }
+
+  return {
+    enabled: typeof rawFeature.enabled === 'boolean' ? rawFeature.enabled : undefined,
+  }
+}
+
+function normalizeHistoryFeature(rawFeature: unknown): ChatHistoryFeatureConfig | undefined {
+  if (rawFeature === undefined) {
+    return undefined
+  }
+
+  if (typeof rawFeature === 'boolean') {
+    return rawFeature
+  }
+
+  if (!isRecord(rawFeature)) {
+    throw new Error('[loadChatConfig] features.history must be a boolean or an object')
+  }
+
+  const props = rawFeature.props
+  if (props !== undefined && !isRecord(props)) {
+    throw new Error('[loadChatConfig] features.history.props must be an object when provided')
+  }
+
+  return {
+    enabled: typeof rawFeature.enabled === 'boolean' ? rawFeature.enabled : undefined,
+    props: props as TrChatProps['historyProps'],
+  }
+}
+
+function normalizeAttachmentsFeature(rawFeature: unknown): ChatAttachmentsFeatureConfig | undefined {
+  if (rawFeature === undefined) {
+    return undefined
+  }
+
+  if (typeof rawFeature === 'boolean') {
+    return rawFeature
+  }
+
+  if (!isRecord(rawFeature)) {
+    throw new Error('[loadChatConfig] features.attachments must be a boolean or an object')
+  }
+
+  const upload = isRecord(rawFeature.upload)
+    ? ({
+        enabled: typeof rawFeature.upload.enabled === 'boolean' ? rawFeature.upload.enabled : undefined,
+        accept: typeof rawFeature.upload.accept === 'string' ? rawFeature.upload.accept : undefined,
+        multiple: typeof rawFeature.upload.multiple === 'boolean' ? rawFeature.upload.multiple : undefined,
+        maxCount: typeof rawFeature.upload.maxCount === 'number' ? rawFeature.upload.maxCount : undefined,
+        maxSize: typeof rawFeature.upload.maxSize === 'number' ? rawFeature.upload.maxSize : undefined,
+        tooltip: typeof rawFeature.upload.tooltip === 'string' ? rawFeature.upload.tooltip : undefined,
+        tooltipPlacement:
+          typeof rawFeature.upload.tooltipPlacement === 'string'
+            ? (rawFeature.upload.tooltipPlacement as ChatAttachmentsUploadConfig['tooltipPlacement'])
+            : undefined,
+      } satisfies ChatAttachmentsUploadConfig)
+    : undefined
+
+  const list = isRecord(rawFeature.list)
+    ? ({
+        variant:
+          rawFeature.list.variant === 'auto' ||
+          rawFeature.list.variant === 'card' ||
+          rawFeature.list.variant === 'picture'
+            ? rawFeature.list.variant
+            : undefined,
+        wrap: typeof rawFeature.list.wrap === 'boolean' ? rawFeature.list.wrap : undefined,
+        actions: Array.isArray(rawFeature.list.actions)
+          ? (rawFeature.list.actions as ChatAttachmentsListConfig['actions'])
+          : undefined,
+        fileIcons: isRecord(rawFeature.list.fileIcons)
+          ? (rawFeature.list.fileIcons as ChatAttachmentsListConfig['fileIcons'])
+          : undefined,
+        fileMatchers: Array.isArray(rawFeature.list.fileMatchers)
+          ? (rawFeature.list.fileMatchers as ChatAttachmentsListConfig['fileMatchers'])
+          : undefined,
+        disabled: typeof rawFeature.list.disabled === 'boolean' ? rawFeature.list.disabled : undefined,
+      } satisfies ChatAttachmentsListConfig)
+    : undefined
+
+  return {
+    enabled: typeof rawFeature.enabled === 'boolean' ? rawFeature.enabled : undefined,
+    upload,
+    list,
+  }
+}
+
+function normalizeFeatures(rawFeatures: unknown): ChatFeatureConfigMap | undefined {
+  if (rawFeatures === undefined) {
+    return undefined
+  }
+
+  if (!isRecord(rawFeatures)) {
+    throw new Error('[loadChatConfig] features must be an object when provided')
+  }
+
+  const normalized: ChatFeatureConfigMap = {
+    attachments: normalizeAttachmentsFeature(rawFeatures.attachments),
+    history: normalizeHistoryFeature(rawFeatures.history),
+    feedback: normalizeFeedbackFeature(rawFeatures.feedback),
+  }
+
+  if (!normalized.attachments && !normalized.history && !normalized.feedback) {
+    return undefined
+  }
+
+  return normalized
+}
+
 export function loadChatConfig(input: string | ChatConfig | unknown): ChatConfig {
   const raw = typeof input === 'string' ? JSON.parse(input) : input
 
@@ -139,17 +274,20 @@ export function loadChatConfig(input: string | ChatConfig | unknown): ChatConfig
   }
 
   const ui = normalizeUi(raw.ui)
+  const features = normalizeFeatures(raw.features)
 
   return {
     models,
     providers,
     defaults,
     ui,
+    features,
   }
 }
 
 export function createChatAdapterFromConfig(input: string | ChatConfig | unknown): ChatAdapter {
   const config = loadChatConfig(input)
+  const resolvedFeatures = resolveChatFeatures(config.features)
 
   const models: ModelOption[] = config.models.map((model) => ({
     value: model.id,
@@ -189,6 +327,7 @@ export function createChatAdapterFromConfig(input: string | ChatConfig | unknown
     models,
     providerFactories,
     defaultModel,
+    resolvedFeatures,
     createResponseProvider,
   }
 }
@@ -204,6 +343,7 @@ export function createPresetChatProps(
     brand: adapter.config.ui?.brand,
     welcome: adapter.config.ui?.welcome,
     prompts: adapter.config.ui?.prompts,
+    ...adapter.resolvedFeatures.presetProps,
     ...overrides,
   }
 }

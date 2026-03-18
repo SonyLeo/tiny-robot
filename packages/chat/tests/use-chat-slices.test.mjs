@@ -12,8 +12,12 @@ const jiti = createJiti(import.meta.url, {
 const { useChatConversation } = await jiti.import('../src/composables/useChatConversation.ts')
 const { useChatMessages } = await jiti.import('../src/composables/useChatMessages.ts')
 const { useChatRequest } = await jiti.import('../src/composables/useChatRequest.ts')
+const { useChatAttachments } = await jiti.import('../src/composables/useChatAttachments.ts')
 const { useChatKit } = await jiti.import('../src/composables/useChatKit.ts')
 const { useModelSelector } = await jiti.import('../src/composables/useModelSelector.ts')
+const { loadChatConfig, createChatAdapterFromConfig, createPresetChatProps, resolveChatFeatures } = await jiti.import(
+  '../src/adapters/index.ts',
+)
 
 function createChunk({ content, role, finishReason = null, model = 'mock-model' }) {
   return {
@@ -461,4 +465,154 @@ await runTest('useModelSelector keeps the current model when the next model has 
   assert.equal(currentModel.value, 'ready-model')
   assert.deepEqual(providerCalls, [])
   assert.notEqual(selector.currentModelOption.value?.value, 'missing-factory-model')
+})
+
+await runTest('loadChatConfig normalizes feature config and createPresetChatProps consumes resolved feature defaults', async () => {
+  const config = loadChatConfig({
+    models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+    providers: {
+      openai: {
+        type: 'openai-compatible',
+        endpoint: '/api/chat',
+      },
+    },
+    features: {
+      attachments: {
+        upload: {
+          accept: '.pdf',
+          multiple: false,
+        },
+      },
+      history: {
+        props: {
+          selected: 'conversation-1',
+        },
+      },
+      feedback: true,
+    },
+  })
+
+  assert.deepEqual(config.features, {
+    attachments: {
+      enabled: undefined,
+      upload: {
+        enabled: undefined,
+        accept: '.pdf',
+        multiple: false,
+        maxCount: undefined,
+        maxSize: undefined,
+        tooltip: undefined,
+        tooltipPlacement: undefined,
+      },
+      list: undefined,
+    },
+    history: {
+      enabled: undefined,
+      props: {
+        selected: 'conversation-1',
+      },
+    },
+    feedback: true,
+  })
+
+  const adapter = createChatAdapterFromConfig(config)
+
+  assert.deepEqual(adapter.resolvedFeatures.enabledKeys, ['attachments', 'history', 'feedback'])
+  assert.equal(adapter.resolvedFeatures.entries.attachments.enabled, true)
+  assert.equal(adapter.resolvedFeatures.entries.history.enabled, true)
+  assert.equal(adapter.resolvedFeatures.entries.feedback.enabled, true)
+
+  const presetProps = createPresetChatProps(adapter)
+
+  assert.equal(presetProps.attachmentsFeature?.enabled, true)
+  assert.equal(presetProps.attachmentsFeature?.upload?.accept, '.pdf')
+  assert.equal(presetProps.attachmentsFeature?.upload?.multiple, false)
+  assert.equal(presetProps.attachmentsFeature?.list?.variant, 'card')
+  assert.equal(presetProps.showHistory, true)
+  assert.equal(presetProps.showFeedback, true)
+  assert.deepEqual(presetProps.historyProps, {
+    selected: 'conversation-1',
+  })
+})
+
+await runTest('createPresetChatProps lets explicit overrides win over resolved feature defaults', async () => {
+  const adapter = createChatAdapterFromConfig({
+    models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+    providers: {
+      openai: {
+        type: 'openai-compatible',
+        endpoint: '/api/chat',
+      },
+    },
+    features: {
+      attachments: true,
+      history: true,
+      feedback: true,
+    },
+  })
+
+  const presetProps = createPresetChatProps(adapter, {
+    attachmentsFeature: {
+      enabled: true,
+      upload: {
+        accept: 'image/*',
+      },
+    },
+    showHistory: false,
+    showFeedback: false,
+  })
+
+  assert.equal(presetProps.attachmentsFeature?.upload?.accept, 'image/*')
+  assert.equal(presetProps.showHistory, false)
+  assert.equal(presetProps.showFeedback, false)
+})
+
+await runTest('resolveChatFeatures keeps disabled features out of preset props', async () => {
+  const resolved = resolveChatFeatures({
+    attachments: false,
+    history: false,
+    feedback: {
+      enabled: false,
+    },
+  })
+
+  assert.deepEqual(resolved.enabledKeys, [])
+  assert.deepEqual(resolved.presetProps, {})
+  assert.equal(resolved.entries.attachments.enabled, false)
+  assert.equal(resolved.entries.history.enabled, false)
+  assert.equal(resolved.entries.feedback.enabled, false)
+})
+
+await runTest('loadChatConfig rejects invalid feature shapes', async () => {
+  assert.throws(
+    () =>
+      loadChatConfig({
+        models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+        providers: {
+          openai: {
+            type: 'openai-compatible',
+            endpoint: '/api/chat',
+          },
+        },
+        features: {
+          history: {
+            props: 'invalid',
+          },
+        },
+      }),
+    /features\.history\.props must be an object/,
+  )
+})
+
+await runTest('useChatAttachments tracks selected files as attachment items', async () => {
+  const attachments = useChatAttachments()
+  const file = new File(['hello'], 'hello.txt', { type: 'text/plain' })
+
+  attachments.addFiles([file])
+
+  assert.equal(attachments.items.value.length, 1)
+  assert.equal(attachments.items.value[0]?.name, 'hello.txt')
+
+  attachments.clear()
+  assert.equal(attachments.items.value.length, 0)
 })

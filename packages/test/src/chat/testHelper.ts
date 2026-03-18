@@ -69,6 +69,22 @@ export function createChatTestHelper(page: Page, options: ChatTestHelperOptions 
     await clickSend(root)
   }
 
+  /** 通过默认上传入口选择文件 */
+  const uploadAttachment = async (
+    files:
+      | { name: string; mimeType: string; buffer: Buffer }
+      | Array<{ name: string; mimeType: string; buffer: Buffer }>,
+    root: string = selectors.blackboxChat,
+  ) => {
+    const uploadButton = page.locator(root).locator(selectors.uploadActionBtn)
+    await uploadButton.waitFor({ state: 'visible', timeout: defaultTimeout })
+
+    const fileChooserPromise = page.waitForEvent('filechooser')
+    await uploadButton.click()
+    const fileChooser = await fileChooserPromise
+    await fileChooser.setFiles(files)
+  }
+
   /** 点击停止按钮 */
   const clickAbort = async (root: string = selectors.blackboxChat) => {
     const btn = page.locator(root).locator(selectors.senderCancelBtn)
@@ -255,6 +271,32 @@ export function createChatTestHelper(page: Page, options: ChatTestHelperOptions 
     await expect(footer).toBeVisible({ timeout: defaultTimeout })
   }
 
+  /** 检查默认上传入口是否可见 */
+  const expectUploadActionVisible = async (visible: boolean, root: string = selectors.blackboxChat) => {
+    const uploadButton = page.locator(root).locator(selectors.uploadActionBtn)
+    if (visible) {
+      await expect(uploadButton).toBeVisible({ timeout: defaultTimeout })
+    } else {
+      await expect(uploadButton).toHaveCount(0)
+    }
+  }
+
+  /** 检查附件区是否可见 */
+  const expectAttachmentsAreaVisible = async (visible: boolean, root: string = selectors.blackboxChat) => {
+    const attachmentsArea = page.locator(root).locator(selectors.attachmentsArea)
+    if (visible) {
+      await expect(attachmentsArea).toBeVisible({ timeout: defaultTimeout })
+    } else {
+      await expect(attachmentsArea).toHaveCount(0)
+    }
+  }
+
+  /** 检查附件卡片数量 */
+  const expectAttachmentCount = async (count: number, root: string = selectors.blackboxChat) => {
+    const attachments = page.locator(root).locator(selectors.attachmentCard)
+    await expect(attachments).toHaveCount(count, { timeout: defaultTimeout })
+  }
+
   // =====================
   //  品牌区断言（UI-B1）
   // =====================
@@ -341,6 +383,7 @@ export function createChatTestHelper(page: Page, options: ChatTestHelperOptions 
     typeMessage,
     clickSend,
     sendMessage,
+    uploadAttachment,
     clickAbort,
     openModelSelector,
     selectModel,
@@ -376,6 +419,9 @@ export function createChatTestHelper(page: Page, options: ChatTestHelperOptions 
     // 布局
     expectHeaderVisible,
     expectFooterVisible,
+    expectUploadActionVisible,
+    expectAttachmentsAreaVisible,
+    expectAttachmentCount,
 
     // 品牌区（UI-B1）
     expectBrandTitle,

@@ -31,6 +31,7 @@
         :brand="brand"
         :welcome="welcome"
         :prompts="prompts"
+        :attachments-feature="attachmentsFeature"
         :models="models"
         :provider-factories="providerFactories"
         default-model="openai-test"
@@ -173,6 +174,14 @@ const prompts = [
   { label: '解释 React hooks', description: '解释 React hooks' },
   { label: '生成 Hello World', description: '请帮我写一个 Hello World' },
 ]
+
+const attachmentsFeature = {
+  upload: {
+    tooltip: '上传附件',
+    accept: '.txt,.md',
+    multiple: true,
+  },
+}
 
 function handleFinish(msg: { content?: string }) {
   finishLog.value = `finish:${msg.content?.slice(0, 40) ?? ''}`
