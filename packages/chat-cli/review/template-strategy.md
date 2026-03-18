@@ -215,7 +215,7 @@
 
 原因很简单：
 
-- 它们通常只是在 prompt、品牌文案、默认 suggestions 上不同
+- 它们通常只是在 prompt、品牌文案、默认 welcome prompts 上不同
 - 不足以形成独立的工程结构差异
 - 如果把这些都做成模板，模板数量会很快失控
 
@@ -263,7 +263,7 @@ templates/
     mcp/
     attachments/
     sender-actions/
-    suggestions/
+    welcome-prompts/
 ```
 
 这里的价值在于：

@@ -23,6 +23,13 @@
       >
         Welcome Prompts
       </button>
+      <button
+        data-testid="switch-sender-extensions"
+        :class="{ active: mode === 'sender-extensions' }"
+        @click="mode = 'sender-extensions'"
+      >
+        Sender Extensions
+      </button>
     </div>
 
     <div v-if="mode === 'blackbox'" data-testid="chat-blackbox" class="chat-wrapper">
@@ -83,8 +90,86 @@
       </TrChat>
     </div>
 
-    <div v-if="mode === 'welcome-prompts'" data-testid="chat-welcome-prompts" class="chat-wrapper">
-      <TrChat v-bind="welcomePromptsPreset" />
+    <div v-if="mode === 'welcome-prompts'" data-testid="chat-welcome-prompts" class="welcome-prompts-grid">
+      <div data-testid="chat-welcome-prompts-enabled" class="chat-wrapper">
+        <TrChat v-bind="welcomePromptsPreset" />
+      </div>
+
+      <div data-testid="chat-welcome-prompts-disabled" class="chat-wrapper">
+        <TrChat v-bind="disabledWelcomePromptsPreset" />
+      </div>
+
+      <div data-testid="chat-welcome-prompts-override" class="chat-wrapper">
+        <TrChat v-bind="overrideWelcomePromptsPreset" />
+      </div>
+
+      <div data-testid="chat-welcome-prompts-slot" class="chat-wrapper">
+        <TrChat v-bind="welcomePromptsPreset">
+          <template #welcome>
+            <div data-testid="welcome-slot-content">Custom welcome slot</div>
+          </template>
+        </TrChat>
+      </div>
+
+      <div data-testid="chat-welcome-prompts-whitebox" class="chat-wrapper">
+        <TrChat.Root :chat-kit="whiteboxWelcomePromptsChat" v-bind="whiteboxWelcomePromptsSlices.root">
+          <TrChat.Layout :fullscreen="false">
+            <TrChat.Header v-bind="whiteboxWelcomePromptsSlices.header" />
+
+            <TrChat.Welcome
+              v-if="showWhiteboxWelcomePrompts && whiteboxWelcomePromptsSlices.welcome"
+              v-bind="whiteboxWelcomePromptsSlices.welcome"
+              @prompt-click="handleWhiteboxWelcomePromptClick"
+            />
+
+            <TrChat.MessageList v-else auto-scroll />
+
+            <TrChat.Footer>
+              <TrChat.Sender
+                v-bind="whiteboxWelcomePromptsSlices.sender"
+                placeholder="Whitebox welcome prompts test..."
+              />
+            </TrChat.Footer>
+          </TrChat.Layout>
+        </TrChat.Root>
+      </div>
+    </div>
+
+    <div v-if="mode === 'sender-extensions'" class="sender-extensions-grid">
+      <div data-testid="chat-sender-extensions-blackbox" class="chat-wrapper">
+        <TrChat
+          :brand="{ title: 'Sender Extensions Blackbox' }"
+          :welcome="senderExtensionsWelcome"
+          :response-provider="senderExtensionsProvider"
+          :sender-props="{
+            extensions: senderSuggestionExtensions,
+            placeholder: 'Type ECS to trigger suggestions...',
+          }"
+        />
+      </div>
+
+      <div data-testid="chat-sender-extensions-whitebox" class="chat-wrapper">
+        <TrChat.Root :chat-kit="senderExtensionsWhiteboxChat">
+          <TrChat.Layout :fullscreen="false">
+            <TrChat.Header title="Sender Extensions Whitebox" />
+
+            <TrChat.Welcome
+              v-if="showSenderExtensionsWhiteboxWelcome"
+              title="Sender Extensions"
+              description="White-box passthrough verification for senderProps.extensions."
+            />
+
+            <TrChat.MessageList v-else auto-scroll />
+
+            <TrChat.Footer>
+              <TrChat.Sender
+                :extensions="senderSuggestionExtensions"
+                placeholder="Type ECS to trigger suggestions..."
+              />
+            </TrChat.Footer>
+          </TrChat.Layout>
+        </TrChat.Root>
+      </div>
     </div>
 
     <div v-if="mode === 'whitebox'" data-testid="chat-whitebox" class="chat-wrapper">
@@ -141,17 +226,67 @@
         </TrChat.Layout>
       </TrChat.Root>
     </div>
+
+    <div v-if="mode === 'whitebox'" class="welcome-prompts-grid">
+      <div data-testid="chat-whitebox-slices-default" class="chat-wrapper">
+        <TrChat.Root :chat-kit="whiteboxSlicesChat" v-bind="whiteboxFeatureSlices.root">
+          <TrChat.Layout v-bind="whiteboxFeatureSlices.layout">
+            <TrChat.Header v-bind="whiteboxFeatureSlices.header" />
+
+            <TrChat.Welcome
+              v-if="showWhiteboxSlicesWelcome && whiteboxFeatureSlices.welcome"
+              v-bind="whiteboxFeatureSlices.welcome"
+              @prompt-click="handleWhiteboxSlicesPromptClick"
+            />
+
+            <TrChat.MessageList v-else v-bind="whiteboxFeatureSlices.messageList" />
+
+            <TrChat.Footer>
+              <TrChat.Attachments />
+              <TrChat.Sender v-bind="whiteboxFeatureSlices.sender" />
+            </TrChat.Footer>
+          </TrChat.Layout>
+        </TrChat.Root>
+      </div>
+
+      <div data-testid="chat-whitebox-slices-slot" class="chat-wrapper">
+        <TrChat.Root :chat-kit="whiteboxSlicesSlotChat" v-bind="whiteboxFeatureSlices.root">
+          <TrChat.Layout v-bind="whiteboxFeatureSlices.layout">
+            <TrChat.Header v-bind="whiteboxFeatureSlices.header" />
+
+            <TrChat.Welcome
+              v-if="showWhiteboxSlicesSlotWelcome && whiteboxFeatureSlices.welcome"
+              v-bind="whiteboxFeatureSlices.welcome"
+              @prompt-click="handleWhiteboxSlicesSlotPromptClick"
+            />
+
+            <TrChat.MessageList v-else v-bind="whiteboxFeatureSlices.messageList" />
+
+            <TrChat.Footer>
+              <TrChat.Attachments />
+              <TrChat.Sender v-bind="whiteboxFeatureSlices.sender">
+                <template #footer-right>
+                  <span data-testid="whitebox-slices-custom-footer-right">whitebox slices footer-right</span>
+                </template>
+              </TrChat.Sender>
+            </TrChat.Footer>
+          </TrChat.Layout>
+        </TrChat.Root>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
+import { TrSender } from '@opentiny/tiny-robot'
 import {
   TrChat,
   TrChatFeedback,
   TrModelSelector,
   createChatAdapterFromConfig,
   createPresetChatProps,
+  createPresetChatSlices,
   useChatKit,
   useModelSelector,
 } from '../../../chat/src'
@@ -164,7 +299,7 @@ import type {
 import type { ChatCompletion } from '../../../kit/src/vue/message/types'
 import { createMockFactory, createMockProvider } from './mockProvider'
 
-type ChatMode = 'blackbox' | 'whitebox' | 'blackbox-edge' | 'welcome-prompts'
+type ChatMode = 'blackbox' | 'whitebox' | 'blackbox-edge' | 'welcome-prompts' | 'sender-extensions'
 
 function getInitialMode(): ChatMode {
   if (typeof window === 'undefined') {
@@ -172,7 +307,7 @@ function getInitialMode(): ChatMode {
   }
 
   const mode = new URLSearchParams(window.location.search).get('chatMode')
-  if (mode === 'whitebox' || mode === 'blackbox-edge' || mode === 'welcome-prompts') {
+  if (mode === 'whitebox' || mode === 'blackbox-edge' || mode === 'welcome-prompts' || mode === 'sender-extensions') {
     return mode
   }
 
@@ -237,6 +372,29 @@ const senderActionsFeature = {
   wordCount: true,
 }
 
+const senderExtensionSuggestions = [
+  { content: 'ECS instance startup issue' },
+  { content: 'ECS backup restore workflow' },
+  { content: 'ECS monitoring alert setup' },
+]
+
+const senderSuggestionExtensions = [TrSender.suggestion(senderExtensionSuggestions)]
+
+const senderExtensionsWelcome = {
+  title: 'Sender Extensions',
+  description: 'Type ECS in the sender to verify senderProps.extensions passthrough.',
+}
+
+const senderExtensionsProvider = createMockProvider({
+  provider: 'openai',
+  model: 'sender-extensions-model',
+})
+
+const senderExtensionsWhiteboxChat = useChatKit({
+  responseProvider: senderExtensionsProvider,
+})
+const showSenderExtensionsWhiteboxWelcome = computed(() => senderExtensionsWhiteboxChat.messages.value.length === 0)
+
 const welcomePromptsAdapter = createChatAdapterFromConfig({
   models: [{ id: 'welcome-prompts-model', provider: 'openai' }],
   providers: {
@@ -272,6 +430,103 @@ const welcomePromptsPreset = createPresetChatProps(welcomePromptsAdapter, {
     model: 'welcome-prompts-model',
   }),
 })
+
+const disabledWelcomePromptsAdapter = createChatAdapterFromConfig({
+  models: [{ id: 'welcome-prompts-disabled-model', provider: 'openai' }],
+  providers: {
+    openai: {
+      type: 'openai-compatible',
+      endpoint: '/api/chat',
+    },
+  },
+  ui: {
+    brand: {
+      title: 'Welcome Prompts Disabled 测试',
+    },
+    welcome: {
+      title: 'Welcome Prompts Disabled',
+      description: '验证 welcomePrompts disabled 时应清空默认提示项',
+    },
+    prompts: [{ label: 'legacy prompt', description: 'legacy prompt' }],
+  },
+  features: {
+    welcomePrompts: false,
+  },
+})
+
+const disabledWelcomePromptsPreset = createPresetChatProps(disabledWelcomePromptsAdapter, {
+  responseProvider: createMockProvider({
+    provider: 'openai',
+    model: 'welcome-prompts-disabled-model',
+  }),
+})
+
+const overrideWelcomePromptsPreset = createPresetChatProps(welcomePromptsAdapter, {
+  responseProvider: createMockProvider({
+    provider: 'openai',
+    model: 'welcome-prompts-model',
+  }),
+  prompts: [{ label: 'override prompt', description: 'override prompt' }],
+})
+
+const whiteboxWelcomePromptsPreset = createPresetChatProps(welcomePromptsAdapter)
+const whiteboxWelcomePromptsSlices = createPresetChatSlices(whiteboxWelcomePromptsPreset)
+const whiteboxWelcomePromptsChat = useChatKit({
+  responseProvider: createMockProvider({
+    provider: 'openai',
+    model: 'welcome-prompts-model',
+  }),
+})
+const showWhiteboxWelcomePrompts = computed(() => whiteboxWelcomePromptsChat.messages.value.length === 0)
+
+const whiteboxFeatureAdapter = createChatAdapterFromConfig({
+  models: [{ id: 'whitebox-slices-model', provider: 'openai' }],
+  providers: {
+    openai: {
+      type: 'openai-compatible',
+      endpoint: '/api/chat',
+    },
+  },
+  ui: {
+    brand: {
+      title: 'Whitebox Slices',
+    },
+    welcome: {
+      title: 'Whitebox Slices Welcome',
+      description: 'Preset slices drive the white-box footer defaults.',
+    },
+  },
+  features: {
+    attachments: true,
+    senderActions: {
+      voice: {
+        enabled: true,
+        tooltip: 'Voice from preset slices',
+      },
+      wordCount: true,
+    },
+  },
+})
+
+const whiteboxFeaturePreset = createPresetChatProps(whiteboxFeatureAdapter, {
+  placeholder: 'Whitebox slices sender...',
+  maxLength: 60,
+})
+const whiteboxFeatureSlices = createPresetChatSlices(whiteboxFeaturePreset)
+const whiteboxSlicesChat = useChatKit({
+  responseProvider: createMockProvider({
+    provider: 'openai',
+    model: 'whitebox-slices-model',
+  }),
+})
+const whiteboxSlicesSlotChat = useChatKit({
+  responseProvider: createMockProvider({
+    provider: 'openai',
+    model: 'whitebox-slices-slot-model',
+  }),
+})
+const showWhiteboxSlicesWelcome = computed(() => whiteboxSlicesChat.messages.value.length === 0)
+const showWhiteboxSlicesSlotWelcome = computed(() => whiteboxSlicesSlotChat.messages.value.length === 0)
 
 const edgeAttachmentsFeature = {
   upload: {
@@ -331,6 +586,18 @@ function handlePromptClick(description: string) {
   chat.sendMessage(description)
 }
 
+function handleWhiteboxWelcomePromptClick(description: string) {
+  whiteboxWelcomePromptsChat.sendMessage(description)
+}
+
+function handleWhiteboxSlicesPromptClick(description: string) {
+  whiteboxSlicesChat.sendMessage(description)
+}
+
+function handleWhiteboxSlicesSlotPromptClick(description: string) {
+  whiteboxSlicesSlotChat.sendMessage(description)
+}
+
 function handleModelChange(model: ModelOption) {
   selectModel(model)
 }
@@ -340,6 +607,18 @@ function handleModelChange(model: ModelOption) {
 .chat-demo {
   max-width: 100%;
   margin: 0 auto;
+}
+
+.welcome-prompts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.sender-extensions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
 }
 
 .mode-switcher {

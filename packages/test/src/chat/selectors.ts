@@ -43,6 +43,8 @@ export const CHAT_SELECTORS = {
   senderCancelBtn: '.tr-sender-submit-button__cancel',
   modelSelectorTrigger: '.tr-model-selector__trigger',
   modelSelectorOption: '.tr-model-selector__option',
+  suggestionList: '.suggestion-list',
+  suggestionItem: '.suggestion-list__item',
 
   // === BubbleList / Messages ===
   bubbleList: '.tr-bubble-list',
@@ -74,6 +76,7 @@ export const CHAT_SELECTORS = {
   switchToWhitebox: '[data-testid="switch-whitebox"]',
   switchToBlackboxEdge: '[data-testid="switch-blackbox-edge"]',
   switchToWelcomePrompts: '[data-testid="switch-welcome-prompts"]',
+  switchToSenderExtensions: '[data-testid="switch-sender-extensions"]',
 
   // === 状态指示器（白盒 Demo 中注入） ===
   statusIndicator: '[data-testid="status-indicator"]',

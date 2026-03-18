@@ -13,6 +13,7 @@
 
 - 默认输出已切换到 server proxy 安全模型
 - `chat.config.ts -> createChatAdapterFromConfig() -> createPresetChatProps()` 主链路已打通
+- `packages/chat` 已开始把 `chat-cli` 可正式消费的能力面固化为代码契约：`CHAT_CLI_CONSUMABLE_FEATURE_KEYS`、preset prop keys、preset slice keys、`createChatCliCapabilitySurface()`
 - CLI 已支持基础 flags、模板变量注入、README 命令注入、release helpers
 - 已具备 scaffold / release / smoke 三层测试基线
 

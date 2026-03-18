@@ -233,6 +233,7 @@ ChatConfig
 
 - 合并 feature resolution 结果
 - 产出稳定的 `TrChatProps`
+- 在需要 white-box 组装时，继续向下切出稳定的 preset slices（如 `root / header / welcome / sender / history`）
 - 向黑盒和白盒共享同一份装配结果
 
 ### 6.5 Blackbox / White-box
@@ -314,6 +315,27 @@ ChatConfig
 
 - `Sender Suggestion` 是真正对应“智能联想”的能力
 - `Sender Mention` 与 `Sender Template` 也应进入基本测试与装配层规划
+
+当前阶段建议进一步明确边界：
+
+| 能力 | 当前归属层 | 本阶段结论 | 原因 |
+|:--|:--|:--|:--|
+| `welcome prompts` | `chat` 场景能力 | 继续推进为 first-party feature | 它属于欢迎态入口与默认编排，不属于编辑器扩展 |
+| `Sender Suggestion` | `TrSender` extension | 暂不进入 `chat` feature registry | 它是输入补全、过滤、自动回填、键盘交互等编辑器级行为 |
+| `Sender Mention` | `TrSender` extension | 暂不进入 `chat` feature registry | 它直接参与 `structuredData` 产出，属于输入结构建模而非场景编排 |
+| `Sender Template` | `TrSender` extension | 暂不进入 `chat` feature registry | 它直接参与模板块编辑与 `structuredData` 产出，属于编辑器原语 |
+
+也就是说，Phase B 当前更合适的目标不是“把 Sender extensions feature 化”，而是：
+
+- 明确它们与 `welcome prompts` 不是一回事
+- 保持它们继续由 `TrSender` / `senderProps.extensions` 主导装配
+- 在 `chat` 侧只保留对这些输入增强能力的边界说明、命名收敛与后续测试策略
+
+只有在后续出现稳定的场景级需求时，才再评估是否需要在 `chat` 层增加：
+
+- 标准化的数据源注入
+- preset / template 层的受控装配入口
+- 面向 `chat-cli` 的 capability consumption
 
 ### 7.6 SuggestionPills / SuggestionPopover
 

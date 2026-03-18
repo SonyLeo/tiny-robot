@@ -155,7 +155,8 @@
 对于 `chat-cli` 来说，chat 侧最关键的下一阶段输出包括：
 
 - feature registry foundation
-- attachments / sender actions / suggestions 的稳定 config 与 preset 输出
+- attachments / sender actions / welcome prompts 的稳定 config 与 preset 输出
+- `createPresetChatSlices()` / `createChatCliCapabilitySurface()` 这类可被模板稳定引用的 white-box 消费面
 - MCP feature config
 - layout variant formalization
 

@@ -50,6 +50,14 @@ export function createChatTestHelper(page: Page, options: ChatTestHelperOptions 
     await page.locator('[data-testid="chat-welcome-prompts"]').waitFor({ state: 'visible', timeout: defaultTimeout })
   }
 
+  const switchToSenderExtensions = async () => {
+    await testUtils.clickWhenVisible(selectors.switchToSenderExtensions)
+    await page.locator('[data-testid="chat-sender-extensions-blackbox"]').waitFor({
+      state: 'visible',
+      timeout: defaultTimeout,
+    })
+  }
+
   // =====================
   //  消息发送
   // =====================
@@ -144,6 +152,21 @@ export function createChatTestHelper(page: Page, options: ChatTestHelperOptions 
   const expectPromptCount = async (count: number, root: string = selectors.blackboxChat) => {
     const promptItems = page.locator(root).locator(selectors.promptItem)
     await expect(promptItems).toHaveCount(count, { timeout: defaultTimeout })
+  }
+
+  const expectSuggestionListVisible = async (visible: boolean) => {
+    const suggestionList = page.locator(selectors.suggestionList)
+    if (visible) {
+      await expect(suggestionList).toBeVisible({ timeout: defaultTimeout })
+    } else {
+      await expect(suggestionList).toHaveCount(0)
+    }
+  }
+
+  const clickSuggestionItem = async (index: number = 0) => {
+    const items = page.locator(selectors.suggestionItem)
+    await items.nth(index).waitFor({ state: 'visible', timeout: defaultTimeout })
+    await items.nth(index).click()
   }
 
   // =====================
@@ -394,6 +417,7 @@ export function createChatTestHelper(page: Page, options: ChatTestHelperOptions 
     switchToWhitebox,
     switchToBlackboxEdge,
     switchToWelcomePrompts,
+    switchToSenderExtensions,
 
     // 消息交互
     typeMessage,
@@ -409,6 +433,8 @@ export function createChatTestHelper(page: Page, options: ChatTestHelperOptions 
     expectWelcomeTitle,
     clickPrompt,
     expectPromptCount,
+    expectSuggestionListVisible,
+    clickSuggestionItem,
 
     // 消息列表
     expectMessageListVisible,

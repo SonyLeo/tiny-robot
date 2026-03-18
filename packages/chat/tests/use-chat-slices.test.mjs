@@ -15,9 +15,20 @@ const { useChatRequest } = await jiti.import('../src/composables/useChatRequest.
 const { useChatAttachments } = await jiti.import('../src/composables/useChatAttachments.ts')
 const { useChatKit } = await jiti.import('../src/composables/useChatKit.ts')
 const { useModelSelector } = await jiti.import('../src/composables/useModelSelector.ts')
-const { loadChatConfig, createChatAdapterFromConfig, createPresetChatProps, resolveChatFeatures } = await jiti.import(
+const {
+  loadChatConfig,
+  createChatAdapterFromConfig,
+  createChatCliCapabilitySurface,
+  createPresetChatProps,
+  createPresetChatSlices,
+  CHAT_CLI_CONSUMABLE_FEATURE_KEYS,
+  CHAT_CLI_CONSUMABLE_PRESET_PROP_KEYS,
+  CHAT_CLI_CONSUMABLE_PRESET_SLICE_KEYS,
+  resolveChatFeatures,
+} = await jiti.import(
   '../src/adapters/index.ts',
 )
+const { CHAT_MESSAGES } = await jiti.import('../src/messages.ts')
 
 function createChunk({ content, role, finishReason = null, model = 'mock-model' }) {
   return {
@@ -592,6 +603,9 @@ await runTest('createPresetChatProps lets explicit overrides win over resolved f
       senderActions: {
         wordCount: true,
       },
+      welcomePrompts: {
+        welcome: [{ label: 'feature prompt', description: 'feature prompt' }],
+      },
       history: true,
       feedback: true,
     },
@@ -607,14 +621,225 @@ await runTest('createPresetChatProps lets explicit overrides win over resolved f
     senderActionsFeature: {
       wordCount: false,
     },
+    prompts: [{ label: 'override prompt', description: 'override prompt' }],
     showHistory: false,
     showFeedback: false,
   })
 
   assert.equal(presetProps.attachmentsFeature?.upload?.accept, 'image/*')
   assert.equal(presetProps.senderActionsFeature?.wordCount, false)
+  assert.equal(presetProps.prompts?.[0]?.label, 'override prompt')
   assert.equal(presetProps.showHistory, false)
   assert.equal(presetProps.showFeedback, false)
+})
+
+await runTest('createPresetChatSlices exposes white-box slices that preserve blackbox defaults', async () => {
+  const adapter = createChatAdapterFromConfig({
+    models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+    providers: {
+      openai: {
+        type: 'openai-compatible',
+        endpoint: '/api/chat',
+      },
+    },
+    ui: {
+      brand: {
+        title: 'Preset Slice Brand',
+        logo: 'brand-logo',
+      },
+      welcome: {
+        title: 'Preset Slice Welcome',
+        description: 'Preset Slice Description',
+      },
+    },
+    features: {
+      attachments: true,
+      senderActions: {
+        wordCount: true,
+      },
+      welcomePrompts: {
+        welcome: [{ label: 'feature prompt', description: 'feature prompt' }],
+      },
+      history: true,
+      feedback: true,
+    },
+  })
+
+  const presetProps = createPresetChatProps(adapter, {
+    maxLength: 200,
+    senderProps: {
+      maxLength: 120,
+    },
+    show: true,
+    enableFullscreen: true,
+    fullscreen: false,
+    messageListVariant: 'docs',
+    groupStrategy: 'consecutive',
+  })
+
+  const slices = createPresetChatSlices(presetProps)
+
+  assert.deepEqual(slices.root.attachmentsFeature, presetProps.attachmentsFeature)
+  assert.deepEqual(slices.root.senderActionsFeature, presetProps.senderActionsFeature)
+  assert.equal(slices.header.title, 'Preset Slice Brand')
+  assert.equal(slices.header.showHistory, true)
+  assert.equal(slices.header.showFullScreen, true)
+  assert.equal(slices.header.showClose, true)
+  assert.equal(slices.welcome?.title, 'Preset Slice Welcome')
+  assert.equal(slices.welcome?.icon, 'brand-logo')
+  assert.equal(slices.welcome?.prompts?.[0]?.label, 'feature prompt')
+  assert.equal(slices.messageList.autoScroll, true)
+  assert.equal(slices.messageList.variant, 'docs')
+  assert.equal(slices.messageList.groupStrategy, 'consecutive')
+  assert.equal(slices.messageList.showFeedback, true)
+  assert.equal(slices.sender.placeholder, CHAT_MESSAGES.sender.placeholder)
+  assert.equal(slices.sender.mode, 'multiple')
+  assert.equal(slices.sender.maxLength, 120)
+  assert.equal(slices.history.enabled, true)
+  assert.equal(slices.modelSelector.enabled, true)
+  assert.equal(slices.modelSelector.defaultModel, 'gpt-4o-mini')
+})
+
+await runTest('createPresetChatSlices keeps white-box slices empty when optional capabilities are absent', async () => {
+  const adapter = createChatAdapterFromConfig({
+    models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+    providers: {
+      openai: {
+        type: 'openai-compatible',
+        endpoint: '/api/chat',
+      },
+    },
+  })
+
+  const slices = createPresetChatSlices(createPresetChatProps(adapter))
+
+  assert.equal(slices.header.showHistory, false)
+  assert.equal(slices.header.showFullScreen, false)
+  assert.equal(slices.header.showClose, false)
+  assert.equal(slices.welcome, undefined)
+  assert.equal(slices.messageList.autoScroll, true)
+  assert.equal(slices.messageList.showFeedback, false)
+  assert.equal(slices.sender.placeholder, CHAT_MESSAGES.sender.placeholder)
+  assert.equal(slices.sender.mode, 'multiple')
+  assert.equal(slices.history.enabled, false)
+  assert.equal(slices.modelSelector.enabled, true)
+})
+
+await runTest('createPresetChatSlices preserves senderProps.extensions for passthrough composition', async () => {
+  const adapter = createChatAdapterFromConfig({
+    models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+    providers: {
+      openai: {
+        type: 'openai-compatible',
+        endpoint: '/api/chat',
+      },
+    },
+  })
+
+  const extensions = [{ name: 'suggestion-ext' }, { name: 'mention-ext' }]
+  const slices = createPresetChatSlices(
+    createPresetChatProps(adapter, {
+      senderProps: {
+        extensions,
+      },
+    }),
+  )
+
+  assert.equal(slices.sender.extensions, extensions)
+})
+
+await runTest('createPresetChatSlices keeps root feature defaults while sender slice honors explicit sender overrides', async () => {
+  const adapter = createChatAdapterFromConfig({
+    models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+    providers: {
+      openai: {
+        type: 'openai-compatible',
+        endpoint: '/api/chat',
+      },
+    },
+    ui: {
+      welcome: {
+        title: 'Alignment Welcome',
+      },
+    },
+    features: {
+      attachments: true,
+      senderActions: {
+        voice: {
+          enabled: true,
+          tooltip: 'voice from features',
+        },
+        wordCount: true,
+      },
+    },
+  })
+
+  const slices = createPresetChatSlices(
+    createPresetChatProps(adapter, {
+      placeholder: 'top-level placeholder',
+      senderMode: 'single',
+      maxLength: 80,
+      senderProps: {
+        placeholder: 'sender override placeholder',
+        allowSpeech: false,
+      },
+    }),
+  )
+
+  assert.equal(slices.root.attachmentsFeature?.enabled, true)
+  assert.equal(slices.root.senderActionsFeature?.voice?.enabled, true)
+  assert.equal(slices.root.senderActionsFeature?.wordCount, true)
+  assert.equal(slices.sender.placeholder, 'sender override placeholder')
+  assert.equal(slices.sender.mode, 'single')
+  assert.equal(slices.sender.maxLength, 80)
+  assert.equal(slices.sender.allowSpeech, false)
+})
+
+await runTest('createChatCliCapabilitySurface exposes the current stable chat-cli consumption contract', async () => {
+  assert.deepEqual(CHAT_CLI_CONSUMABLE_FEATURE_KEYS, ['attachments', 'senderActions', 'welcomePrompts'])
+  assert.deepEqual(CHAT_CLI_CONSUMABLE_PRESET_PROP_KEYS, ['attachmentsFeature', 'senderActionsFeature', 'prompts'])
+  assert.deepEqual(CHAT_CLI_CONSUMABLE_PRESET_SLICE_KEYS, ['root', 'welcome', 'sender'])
+
+  const adapter = createChatAdapterFromConfig({
+    models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+    providers: {
+      openai: {
+        type: 'openai-compatible',
+        endpoint: '/api/chat',
+      },
+    },
+    ui: {
+      welcome: {
+        title: 'CLI Welcome',
+      },
+    },
+    features: {
+      attachments: true,
+      senderActions: {
+        wordCount: true,
+      },
+      welcomePrompts: {
+        welcome: [{ label: 'feature prompt', description: 'feature prompt' }],
+      },
+      history: true,
+      feedback: true,
+    },
+  })
+
+  const surface = createChatCliCapabilitySurface(adapter, {
+    senderProps: {
+      maxLength: 80,
+    },
+  })
+
+  assert.deepEqual(surface.featureKeys, ['attachments', 'senderActions', 'welcomePrompts'])
+  assert.equal(surface.presetProps.attachmentsFeature?.enabled, true)
+  assert.equal(surface.presetProps.senderActionsFeature?.wordCount, true)
+  assert.equal(surface.presetProps.prompts?.[0]?.label, 'feature prompt')
+  assert.deepEqual(Object.keys(surface.presetSlices), ['root', 'welcome', 'sender'])
+  assert.equal(surface.presetSlices.root.attachmentsFeature?.enabled, true)
+  assert.equal(surface.presetSlices.welcome?.title, 'CLI Welcome')
+  assert.equal(surface.presetSlices.sender.maxLength, 80)
 })
 
 await runTest('resolveChatFeatures keeps attachments and senderActions outputs independent for runtime composition', async () => {

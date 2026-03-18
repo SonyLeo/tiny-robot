@@ -1,5 +1,7 @@
 # Chat CLI Progress
 
+> Update `2026-03-19`: `packages/chat` now exposes a code-level `chat-cli` consumption contract via `CHAT_CLI_CONSUMABLE_FEATURE_KEYS`, preset prop keys, preset slice keys, and `createChatCliCapabilitySurface()`.
+
 > `packages/chat-cli` 下一轮模板平台化改造的实时状态页。
 > 设计基线见 [../../docs/chat-cli-design.md](../../docs/chat-cli-design.md)。
 > 执行评审见 [chat-cli-review-02.md](./chat-cli-review-02.md)。
@@ -11,7 +13,7 @@
 
 - 当前阶段：`Phase A - Template Registry Foundation`
 - 当前状态：`待启动`
-- 最近更新：`2026-03-17`
+- 最近更新：`2026-03-19`
 
 ---
 
@@ -50,6 +52,12 @@
 | `docs-chat` | `等待 retrieval contract` | 不应早于 retrieval contract 落地 |
 | `assistant-workbench` | `后置` | 依赖 layout formalization 与多 feature 组合能力 |
 | `base + feature packs + add` | `未开始` | 属于 registry 落地后的下一阶段 |
+
+当前已确认的上游稳定消费面：
+
+- feature keys：`attachments / senderActions / welcomePrompts`
+- preset props：`attachmentsFeature / senderActionsFeature / prompts`
+- preset slices：`root / welcome / sender`
 
 ---
 

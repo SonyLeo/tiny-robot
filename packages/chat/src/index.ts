@@ -79,7 +79,13 @@ export { createDeepSeekProvider } from './providers/deepseek'
 export { createServerProxyProvider, createServerProxyFactory } from './providers/serverProxy'
 
 // ===== Adapters =====
-export { loadChatConfig, createChatAdapterFromConfig, createPresetChatProps } from './adapters'
+export { loadChatConfig, createChatAdapterFromConfig, createPresetChatProps, createPresetChatSlices } from './adapters'
+export {
+  CHAT_CLI_CONSUMABLE_FEATURE_KEYS,
+  CHAT_CLI_CONSUMABLE_PRESET_PROP_KEYS,
+  CHAT_CLI_CONSUMABLE_PRESET_SLICE_KEYS,
+  createChatCliCapabilitySurface,
+} from './adapters'
 export { CHAT_FEATURE_REGISTRY, resolveChatFeatures } from './features'
 export { CHAT_MESSAGES } from './messages'
 
@@ -121,12 +127,25 @@ export type { UseMcpManagerBridge, UseMcpManagerOptions, UseModelSelectorOptions
 export type { UseChatAttachmentsReturn } from './composables'
 export type {
   ChatAdapter,
+  ChatCliCapabilitySurface,
+  ChatCliConsumableFeatureKey,
+  ChatCliConsumablePresetPropKey,
+  ChatCliConsumablePresetSliceKey,
   ChatConfig,
   ChatConfigDefaults,
   ChatConfigModel,
   ChatConfigProvider,
   ChatConfigUI,
   ChatPresetProps,
+  ChatPresetHeaderSlice,
+  ChatPresetHistorySlice,
+  ChatPresetLayoutSlice,
+  ChatPresetMessageListSlice,
+  ChatPresetModelSelectorSlice,
+  ChatPresetRootSlice,
+  ChatPresetSenderSlice,
+  ChatPresetSlices,
+  ChatPresetWelcomeSlice,
   OpenAICompatibleProviderConfig,
 } from './adapters'
 export type {

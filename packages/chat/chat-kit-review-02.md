@@ -124,11 +124,13 @@
 - feature config 形态
 - preset 映射
 - 黑盒 / 白盒对齐
+- `createPresetChatSlices()` 这类 `preset -> white-box` 的稳定切片输出
 - 面向 `chat-cli` 的最小可消费输出
 
 对 `chat-cli` 的输出：
 
 - 模板可以正式声明这些能力，而不必继续把差异硬编码在页面或模板目录里
+- `CHAT_CLI_CONSUMABLE_FEATURE_KEYS`、preset prop keys、preset slice keys 与 `createChatCliCapabilitySurface()` 可以作为首轮代码级消费契约
 - 后续 `base + feature packs` 路线有正式能力输入
 
 验收口径：
@@ -142,6 +144,18 @@
 - 当前代码里已经开始把一部分 welcome prompts 走到 `features -> resolver -> preset -> prompts` 主链路
 - 但这不应被误判为 `Sender Suggestion` 已经完成
 - 后续设计与测试命名应尽量对齐组件原语，而不是继续泛化成一个模糊的 `suggestions`
+- 当前阶段的边界决议应进一步明确为：
+  - `welcome prompts` 继续作为 `chat` 的 first-party feature 推进
+  - `Sender Suggestion / Mention / Template` 当前保留在 `TrSender` extension 原子层
+  - Phase B 不把 `Sender Suggestion / Mention / Template` 直接提升为新的 `chat` feature registry 项
+  - 若后续需要被 preset / template 稳定消费，应优先通过 Sender 层装配能力进入，而不是绕过 `TrSender` 重新发明 chat 抽象
+
+Sender extensions 测试口径补充：
+
+- 在 `packages/chat` 中，Phase B 只验证 `senderProps.extensions` 的透传装配链路
+- 黑盒与白盒只需要证明它们能接住这类输入，并呈现最小可观察 UI
+- 本轮不为 `Suggestion / Mention / Template` 增加 resolver / preset feature 测试
+- 本轮不覆盖 sender 组件内部行为单测
 
 ### Phase C: MCP Config + Layout Formalization
 
@@ -322,6 +336,24 @@
 - 用户真实能不能看到正确行为
 - feature 与 slot / context / layout 是否有冲突
 
+P1-B 建议按下面的验证清单执行：
+
+- 默认值来源：
+  - `createPresetChatSlices()` 产出的 `welcome / sender / root` 是黑盒与白盒共享默认底座
+- 覆盖顺序：
+  - 黑盒遵循 `feature -> resolver -> preset -> TrChat props`
+  - 白盒遵循 `preset slices -> TrChat.* props -> slots / context`
+- Welcome：
+  - `welcomePrompts`、显式 `prompts override`、`#welcome` slot 的优先级与互斥关系
+- Sender：
+  - `placeholder / mode / maxLength` 的默认值与显式覆盖关系
+  - `footer-right` slot 出现后，默认 upload / voice UI 是否被正确抑制
+- Attachments / Sender Actions：
+  - `attachmentsFeature / senderActionsFeature` 的默认入口是否与 white-box 装配结果一致
+- Sender Extensions：
+  - 只验证 `senderProps.extensions` 在 blackbox / white-box 透传成功
+  - 不补 `Suggestion / Mention / Template` 的 resolver / preset feature 测试
+
 #### Regression / Suite 层
 
 目标：
@@ -344,6 +376,7 @@
 - `attachments.spec.ts`
 - `sender-actions.spec.ts`
 - `welcome-prompts.spec.ts`
+- `sender-extensions.spec.ts`（仅做透传验证）
 - `mcp.spec.ts`
 
 这样做的好处是：
@@ -357,6 +390,7 @@
 当前 `packages/chat` 的 unit 入口还是单文件脚本：
 
 - `packages/chat/tests/use-chat-slices.test.mjs`
+- 对 `Sender Suggestion / Mention / Template`，unit 只保留一层很薄的透传断言，例如 `createPresetChatSlices().sender`
 
 在现有基础设施下，短期仍可以继续在这里补新增断言，但建议：
 
@@ -404,7 +438,76 @@
 
 ---
 
-## 9. 一句话结论
+## 9. 执行规范
+
+这部分补充执行顺序、风险、验收和文档维护规则，作为后续推进 `packages/chat` 时的固定约束。
+
+### 9.1 执行顺序约束
+
+后续实现默认按下面顺序推进，不建议跳步：
+
+1. 先完成 `packages/chat` 自身的 capability 契约化。
+2. 再整理 `MCP config` 与 `layout variant / placement`。
+3. 再让 `chat-cli` 正式消费稳定 capability。
+4. 最后才进入 `Agent Preset / Skill Pack` 与 `Theme / Workspace Shell`。
+
+这条顺序的含义是：
+
+- `chat-cli` 应消费稳定能力，而不是反向驱动 `chat` 设计。
+- `demo` 只用于快速验证，不应决定 capability 形态。
+- white-box 自由度应建立在稳定 preset slices 之上，而不是页面层重复推导默认值。
+
+### 9.2 风险与注意事项
+
+推进过程中，默认持续关注下面这些风险：
+
+- 不要让新增能力重新回到 `TrChat` props 膨胀路线。
+- 不要把 feature resolution 分散回 demo 或页面层。
+- 不要让 CLI 模板分支先于底层 feature 契约扩张。
+- 不要让未来的 `agent preset / skill pack` 绕过 feature registry 与 preset 主链路。
+- 不要在高频聊天能力还未收稳前，优先投入 theme / workspace shell。
+
+当前阶段最需要盯住的额外风险是：
+
+- 如果默认行为判断继续散落在黑盒、白盒和页面层，P2 / P3 会继续漂移。
+- `attachments` 当前完成的是能力装配闭环，不应误判为完整多模态 transport 已完成。
+- `layout` 如果和 feature enablement 混在一起，后续 `docs-chat`、`agent-mcp`、workspace 变体会继续耦合。
+
+### 9.3 验收基线
+
+`packages/chat` 后续阶段默认至少对齐下面这组基线：
+
+- `pnpm.cmd -F @opentiny/tiny-robot-chat type-check`
+- `pnpm.cmd -F @opentiny/tiny-robot-chat test:unit`
+- `pnpm.cmd -F @opentiny/tiny-robot-chat build`
+- `pnpm.cmd -F tiny-robot-test test -- src/chat/index.spec.ts src/chat/model-switch.spec.ts`
+- `pnpm.cmd -F docs build`
+
+如果是 feature 增量开发，推荐按下面顺序执行：
+
+1. 先跑 unit / resolver 断言。
+2. 再跑该 feature 对应的独立 Playwright spec。
+3. 再跑 `src/chat/index.spec.ts` 与相邻回归。
+
+### 9.4 文档分工与更新规则
+
+从现在开始，文档分工保持如下：
+
+- `progress.md` 只保留实时进度看板。
+- `chat-kit-review-02.md` 保留阶段决议、执行规范、风险与验收规则。
+- `chat-kit-design.md` 保留设计背景与长期结构判断。
+
+出现下面变化时，优先更新本文件，而不是把规范散落回 `progress.md`：
+
+- 阶段顺序或执行原则变化。
+- 对 `chat-cli` consumption boundary 的判断变化。
+- 风险项或禁止事项变化。
+- 验收基线变化。
+- 测试策略或阶段完成标准变化。
+
+---
+
+## 10. 一句话结论
 
 `review-02` 的核心结论不是重新定义 `chat`，而是确认：
 

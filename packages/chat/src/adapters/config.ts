@@ -26,7 +26,9 @@ import type {
   ChatConfigModel,
   ChatConfigUI,
   ChatPresetProps,
+  ChatPresetSlices,
 } from './types'
+import { CHAT_MESSAGES } from '../messages'
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
@@ -443,5 +445,64 @@ export function createPresetChatProps(
     prompts: adapter.config.ui?.prompts,
     ...adapter.resolvedFeatures.presetProps,
     ...overrides,
+  }
+}
+
+export function createPresetChatSlices(preset: ChatPresetProps & Partial<TrChatProps>): ChatPresetSlices {
+  const senderProps = preset.senderProps ?? {}
+  const models = preset.models
+  const providerFactories = preset.providerFactories
+
+  return {
+    root: {
+      mcpManager: preset.mcpManager,
+      attachmentsManager: preset.attachmentsManager,
+      attachmentsFeature: preset.attachmentsFeature,
+      senderActionsFeature: preset.senderActionsFeature,
+    },
+    layout: {
+      show: preset.show,
+      fullscreen: preset.fullscreen,
+      roleConfigs: preset.roleConfigs,
+    },
+    header: {
+      title: preset.brand?.title,
+      showHistory: preset.showHistory ?? false,
+      showFullScreen: preset.enableFullscreen ?? false,
+      isFullscreen: preset.fullscreen,
+      showClose: preset.show !== undefined,
+    },
+    welcome: preset.welcome
+      ? {
+          title: preset.welcome.title,
+          description: preset.welcome.description,
+          icon: preset.welcome.icon ?? preset.brand?.logo,
+          prompts: preset.prompts,
+        }
+      : undefined,
+    messageList: {
+      autoScroll: preset.autoScroll ?? true,
+      variant: preset.messageListVariant,
+      onActionClick: preset.onMessageAction,
+      groupStrategy: preset.groupStrategy,
+      showFeedback: preset.showFeedback ?? false,
+      ...(preset.bubbleListProps ?? {}),
+    },
+    sender: {
+      placeholder: preset.placeholder ?? CHAT_MESSAGES.sender.placeholder,
+      mode: preset.senderMode ?? 'multiple',
+      maxLength: preset.maxLength,
+      ...senderProps,
+    },
+    history: {
+      enabled: preset.showHistory ?? false,
+      props: preset.historyProps,
+    },
+    modelSelector: {
+      enabled: Boolean(models?.length && providerFactories?.length),
+      models,
+      providerFactories,
+      defaultModel: preset.defaultModel,
+    },
   }
 }

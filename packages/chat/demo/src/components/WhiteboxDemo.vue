@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { computed, h, ref } from 'vue'
-import { TrAttachments, UploadButton, ActionButton } from '@opentiny/tiny-robot'
-import type { Attachment } from '@opentiny/tiny-robot'
-import { IconAccessory, IconPlugin } from '@opentiny/tiny-robot-svgs'
+import { ActionButton } from '@opentiny/tiny-robot'
+import { IconPlugin } from '@opentiny/tiny-robot-svgs'
 import {
   TrChat,
   TrChatFeedback,
@@ -12,6 +11,7 @@ import {
   useMcpManager,
   useModelSelector,
   createChatAdapterFromConfig,
+  createPresetChatProps,
 } from '@opentiny/tiny-robot-chat'
 import type { ChatListVariant, ChatMessageActionPayload } from '@opentiny/tiny-robot-chat'
 import { localStorageStrategyFactory, toolPlugin } from '@opentiny/tiny-robot-kit'
@@ -63,6 +63,26 @@ const chatAdapter = createChatAdapterFromConfig({
     welcome: WELCOME_CONFIG,
     prompts: PROMPTS,
   },
+  features: {
+    attachments: {
+      upload: {
+        accept: '*',
+        multiple: true,
+        tooltip: '上传附件',
+      },
+      list: {
+        variant: 'card',
+        wrap: true,
+      },
+    },
+    senderActions: {
+      voice: {
+        enabled: true,
+        tooltip: '语音输入',
+      },
+      wordCount: true,
+    },
+  },
 })
 
 const mcpManager = useMcpManager({
@@ -76,6 +96,9 @@ const toolPluginInstance = toolPlugin({
 })
 
 const demoProviderFactories = wrapDemoRetryProviderFactories(chatAdapter.providerFactories)
+const whiteboxPreset = createPresetChatProps(chatAdapter, {
+  providerFactories: demoProviderFactories,
+})
 
 function getProviderForModel(modelValue?: string) {
   const model = chatAdapter.models.find((item) => item.value === modelValue) ?? chatAdapter.models[0]
@@ -98,7 +121,6 @@ const chatKit = useChatKit({
 })
 
 const mcpPanelVisible = ref(false)
-const attachments = ref<Attachment[]>([])
 const selectedModel = ref<string>(chatAdapter.defaultModel || chatAdapter.models[0]?.value || '')
 
 const { selectModel } = useModelSelector({
@@ -113,12 +135,6 @@ const mcpPanelIcon = computed(() => () => h(IconPlugin, { style: { fontSize: '24
 
 function handlePromptClick(description: string) {
   chatKit.sendMessage(description)
-}
-
-function handleFileSelect(files: File[]) {
-  files.forEach((file) => {
-    attachments.value.push({ rawFile: file, url: URL.createObjectURL(file) })
-  })
 }
 
 function handleToggleMcpPanel() {
@@ -148,16 +164,21 @@ function toggleMessageListVariant() {
       <span v-if="actionLog" data-testid="demo-action-log">{{ actionLog }}</span>
     </div>
 
-    <TrChat.Root :chat-kit="chatKit" :mcp-manager="mcpManager">
+    <TrChat.Root
+      :chat-kit="chatKit"
+      :mcp-manager="mcpManager"
+      :attachments-feature="whiteboxPreset.attachmentsFeature"
+      :sender-actions-feature="whiteboxPreset.senderActionsFeature"
+    >
       <TrChat.Layout>
         <TrChat.Header :title="BRAND_CONFIG.title" show-history />
 
         <div v-if="showWelcome" class="tr-chat__welcome-area">
           <TrChat.Welcome
-            :title="chatAdapter.config.ui?.welcome?.title || WELCOME_CONFIG.title"
-            :icon="chatAdapter.config.ui?.welcome?.icon || WELCOME_CONFIG.icon"
-            :description="chatAdapter.config.ui?.welcome?.description || WELCOME_CONFIG.description"
-            :prompts="chatAdapter.config.ui?.prompts || PROMPTS"
+            :title="whiteboxPreset.welcome?.title || WELCOME_CONFIG.title"
+            :icon="whiteboxPreset.welcome?.icon || WELCOME_CONFIG.icon"
+            :description="whiteboxPreset.welcome?.description || WELCOME_CONFIG.description"
+            :prompts="whiteboxPreset.prompts || PROMPTS"
             @prompt-click="handlePromptClick"
           />
         </div>
@@ -174,29 +195,20 @@ function toggleMessageListVariant() {
         </TrChat.MessageList>
 
         <TrChat.Footer>
-          <div class="tr-chat-footer-wrapper">
-            <div v-if="attachments.length > 0" class="tr-chat-attachments-area">
-              <TrAttachments v-model:items="attachments" variant="card" :wrap="true" />
+          <template #extra>
+            <div class="tr-chat-footer-toolbar">
+              <TrModelSelector
+                v-model="selectedModel"
+                :models="whiteboxPreset.models || chatAdapter.models"
+                :provider-factories="demoProviderFactories"
+                @change="handleModelChange"
+              />
+              <ActionButton :icon="mcpPanelIcon" @click="handleToggleMcpPanel" />
             </div>
-            <TrChat.Sender>
-              <template #footer>
-                <TrModelSelector
-                  v-model="selectedModel"
-                  :models="chatAdapter.models"
-                  :provider-factories="demoProviderFactories"
-                  @change="handleModelChange"
-                />
-                <UploadButton
-                  tooltip="上传附件"
-                  tooltip-placement="top"
-                  :multiple="true"
-                  :icon="IconAccessory"
-                  accept="*"
-                  @select="handleFileSelect"
-                />
-                <ActionButton :icon="mcpPanelIcon" @click="handleToggleMcpPanel" />
-              </template>
-            </TrChat.Sender>
+          </template>
+          <div class="tr-chat-footer-wrapper">
+            <TrChat.Attachments />
+            <TrChat.Sender />
           </div>
         </TrChat.Footer>
 
@@ -255,10 +267,11 @@ function toggleMessageListVariant() {
   gap: 12px;
 }
 
-.tr-chat-attachments-area {
-  padding: 8px 12px;
-  border-top: 1px solid var(--tr-color-border);
-  background: var(--tr-color-bg-default);
+.tr-chat-footer-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 :deep(.tr-bubble__box[data-role='user']) {
