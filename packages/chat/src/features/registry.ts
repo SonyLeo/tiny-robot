@@ -4,6 +4,8 @@ import type {
   ChatAttachmentsFeatureResolution,
   ChatFeatureConfigMap,
   ChatFeatureInput,
+  ChatMcpFeatureConfig,
+  ChatMcpFeatureResolution,
   ChatFeaturePresetProps,
   ChatFeedbackFeatureConfig,
   ChatFeedbackFeatureResolution,
@@ -161,6 +163,26 @@ const welcomePromptsFeature: ChatFeatureDefinition<
   },
 }
 
+const mcpFeature: ChatFeatureDefinition<'mcp', ChatMcpFeatureConfig, ChatMcpFeatureResolution> = {
+  key: 'mcp',
+  resolve(config) {
+    const enabled = isFeatureEnabled(config)
+    const resolvedConfig = typeof config === 'object' && config !== null ? config : undefined
+
+    return {
+      key: 'mcp',
+      enabled,
+      config: resolvedConfig,
+      presetProps:
+        enabled && resolvedConfig?.manager
+          ? {
+              mcpManager: resolvedConfig.manager,
+            }
+          : {},
+    }
+  },
+}
+
 const historyFeature: ChatFeatureDefinition<'history', ChatHistoryFeatureConfig, ChatHistoryFeatureResolution> = {
   key: 'history',
   resolve(config) {
@@ -204,6 +226,7 @@ export const CHAT_FEATURE_REGISTRY = {
   attachments: attachmentsFeature,
   senderActions: senderActionsFeature,
   welcomePrompts: welcomePromptsFeature,
+  mcp: mcpFeature,
   history: historyFeature,
   feedback: feedbackFeature,
 } as const
@@ -213,6 +236,7 @@ export function resolveChatFeatures(config: ChatFeatureConfigMap | undefined): R
     attachments: CHAT_FEATURE_REGISTRY.attachments.resolve(config?.attachments),
     senderActions: CHAT_FEATURE_REGISTRY.senderActions.resolve(config?.senderActions),
     welcomePrompts: CHAT_FEATURE_REGISTRY.welcomePrompts.resolve(config?.welcomePrompts),
+    mcp: CHAT_FEATURE_REGISTRY.mcp.resolve(config?.mcp),
     history: CHAT_FEATURE_REGISTRY.history.resolve(config?.history),
     feedback: CHAT_FEATURE_REGISTRY.feedback.resolve(config?.feedback),
   }
@@ -228,6 +252,7 @@ export function resolveChatFeatures(config: ChatFeatureConfigMap | undefined): R
       entries.attachments.presetProps,
       entries.senderActions.presetProps,
       entries.welcomePrompts.presetProps,
+      entries.mcp.presetProps,
       entries.history.presetProps,
       entries.feedback.presetProps,
     ),

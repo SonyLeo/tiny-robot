@@ -1,6 +1,7 @@
 import type { PromptProps, SenderProps } from '@opentiny/tiny-robot'
 import type {
   BrandConfig,
+  ChatListVariant,
   ModelOption,
   ModelProviderFactory,
   ResponseProvider,
@@ -34,11 +35,22 @@ export interface ChatConfigUI {
   prompts?: PromptProps[]
 }
 
+export interface ChatLayoutPlacementsConfig {
+  assistant?: 'start' | 'end'
+  user?: 'start' | 'end'
+}
+
+export interface ChatLayoutConfig {
+  variant?: ChatListVariant
+  placements?: ChatLayoutPlacementsConfig
+}
+
 export interface ChatConfig {
   models: ChatConfigModel[]
   providers: Record<string, ChatConfigProvider>
   defaults?: ChatConfigDefaults
   ui?: ChatConfigUI
+  layout?: ChatLayoutConfig
   features?: ChatFeatureConfigMap
 }
 

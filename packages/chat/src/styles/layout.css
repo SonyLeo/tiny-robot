@@ -112,6 +112,26 @@
   max-width: min(60%, 520px);
 }
 
+.tr-chat__body--workspace {
+  padding: 0;
+  background:
+    linear-gradient(180deg, rgba(248, 250, 252, 0.96) 0%, rgba(255, 255, 255, 1) 220px),
+    var(--chat-body-bg);
+}
+
+.tr-chat__body--workspace .tr-bubble-list {
+  --gap: 14px;
+  --padding: 24px 24px 32px;
+}
+
+.tr-chat__body--workspace .tr-bubble[data-role='assistant'] .tr-bubble__box {
+  max-width: min(78%, 840px);
+}
+
+.tr-chat__body--workspace .tr-bubble[data-role='user'] .tr-bubble__box {
+  max-width: min(62%, 560px);
+}
+
 .tr-chat__welcome {
   display: flex;
   flex: 1;

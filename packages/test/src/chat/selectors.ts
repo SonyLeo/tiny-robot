@@ -77,6 +77,8 @@ export const CHAT_SELECTORS = {
   switchToBlackboxEdge: '[data-testid="switch-blackbox-edge"]',
   switchToWelcomePrompts: '[data-testid="switch-welcome-prompts"]',
   switchToSenderExtensions: '[data-testid="switch-sender-extensions"]',
+  switchToMcpFeature: '[data-testid="switch-mcp-feature"]',
+  switchToLayoutConfig: '[data-testid="switch-layout-config"]',
 
   // === 状态指示器（白盒 Demo 中注入） ===
   statusIndicator: '[data-testid="status-indicator"]',

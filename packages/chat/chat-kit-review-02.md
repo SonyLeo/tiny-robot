@@ -6,6 +6,39 @@
 
 ---
 
+## Current Execution Baseline
+
+Snapshot date: `2026-03-19`
+
+Current agreed status:
+
+- `P0` is complete.
+- `P1` is complete.
+- `P2` is complete.
+- The active next step is `P3 / Template / CLI Consumption`.
+
+What "P2 is complete" means in practice:
+
+- `mcp` is already a first-party chat feature and can flow through `features -> resolver -> preset -> root slices`.
+- `layout.variant` and `layout.placements` are already formalized through `ChatConfig -> Adapter -> Preset`.
+- `workspace` is already accepted as a pure layout variant.
+- Explicit placement still has higher priority than variant defaults.
+- Layout formalization must stay separate from feature enablement. `workspace` is a presentation choice, not a hidden feature bundle.
+
+Execution rule from this point:
+
+- Do not reopen `P2` by growing shell-level behavior into `layout`.
+- Do not let `chat-cli` invent new chat-layer abstractions.
+- Let `chat-cli` consume stabilized chat outputs from `packages/chat`.
+- Keep `packages/chat` as the single source of truth for capability contracts.
+
+Document split:
+
+- [progress.md](./progress.md) is the short status board.
+- This review document keeps the execution rules, boundaries, and acceptance standards.
+
+---
+
 ## 1. 本文档职责
 
 这份文档负责把 `chat` 侧设计结论收敛成执行决议，重点回答：

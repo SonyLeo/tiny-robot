@@ -41,13 +41,13 @@ function createVariantRoleConfigs(
     assistant: {
       ...assistant,
       avatar: undefined,
-      placement: 'start',
+      placement: assistant?.placement ?? 'start',
       shape: 'none',
     },
     user: {
       ...user,
       avatar: undefined,
-      placement: 'end',
+      placement: user?.placement ?? 'end',
       shape: user?.shape ?? 'rounded',
     },
   }

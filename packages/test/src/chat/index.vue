@@ -30,6 +30,20 @@
       >
         Sender Extensions
       </button>
+      <button
+        data-testid="switch-mcp-feature"
+        :class="{ active: mode === 'mcp-feature' }"
+        @click="mode = 'mcp-feature'"
+      >
+        MCP Feature
+      </button>
+      <button
+        data-testid="switch-layout-config"
+        :class="{ active: mode === 'layout-config' }"
+        @click="mode = 'layout-config'"
+      >
+        Layout Config
+      </button>
     </div>
 
     <div v-if="mode === 'blackbox'" data-testid="chat-blackbox" class="chat-wrapper">
@@ -172,6 +186,84 @@
       </div>
     </div>
 
+    <div v-if="mode === 'mcp-feature'" class="welcome-prompts-grid">
+      <div data-testid="chat-mcp-feature-blackbox" class="chat-wrapper">
+        <TrChat v-bind="mcpBlackboxPreset">
+          <template #header-extra>
+            <button data-testid="mcp-feature-blackbox-open" @click="mcpBlackboxPanelVisible = true">Open MCP</button>
+            <TrChatMcpPanel :visible="mcpBlackboxPanelVisible" @update:visible="mcpBlackboxPanelVisible = $event" />
+          </template>
+        </TrChat>
+      </div>
+
+      <div data-testid="chat-mcp-feature-whitebox" class="chat-wrapper">
+        <TrChat.Root :chat-kit="mcpWhiteboxChat" v-bind="mcpWhiteboxSlices.root">
+          <TrChat.Layout v-bind="mcpWhiteboxSlices.layout">
+            <TrChat.Header v-bind="mcpWhiteboxSlices.header">
+              <template #extra>
+                <button data-testid="mcp-feature-whitebox-open" @click="mcpWhiteboxPanelVisible = true">
+                  Open MCP
+                </button>
+              </template>
+            </TrChat.Header>
+            <TrChat.Welcome
+              v-if="showMcpWhiteboxWelcome && mcpWhiteboxSlices.welcome"
+              v-bind="mcpWhiteboxSlices.welcome"
+            />
+            <TrChat.MessageList v-else v-bind="mcpWhiteboxSlices.messageList" />
+            <TrChat.Footer>
+              <TrChat.Sender v-bind="mcpWhiteboxSlices.sender" />
+            </TrChat.Footer>
+            <TrChatMcpPanel :visible="mcpWhiteboxPanelVisible" @update:visible="mcpWhiteboxPanelVisible = $event" />
+          </TrChat.Layout>
+        </TrChat.Root>
+      </div>
+    </div>
+
+    <div v-if="mode === 'layout-config'" class="welcome-prompts-grid">
+      <div data-testid="chat-layout-config-blackbox" class="chat-wrapper">
+        <TrChat v-bind="layoutConfigBlackboxPreset" />
+      </div>
+
+      <div data-testid="chat-layout-config-whitebox" class="chat-wrapper">
+        <TrChat.Root :chat-kit="layoutConfigWhiteboxChat" v-bind="layoutConfigWhiteboxSlices.root">
+          <TrChat.Layout v-bind="layoutConfigWhiteboxSlices.layout">
+            <TrChat.Header v-bind="layoutConfigWhiteboxSlices.header" />
+            <TrChat.Welcome
+              v-if="showLayoutConfigWhiteboxWelcome && layoutConfigWhiteboxSlices.welcome"
+              v-bind="layoutConfigWhiteboxSlices.welcome"
+              @prompt-click="handleLayoutConfigWhiteboxPromptClick"
+            />
+            <TrChat.MessageList v-else v-bind="layoutConfigWhiteboxSlices.messageList" />
+            <TrChat.Footer>
+              <TrChat.Sender v-bind="layoutConfigWhiteboxSlices.sender" />
+            </TrChat.Footer>
+          </TrChat.Layout>
+        </TrChat.Root>
+      </div>
+
+      <div data-testid="chat-layout-workspace-blackbox" class="chat-wrapper">
+        <TrChat v-bind="workspaceLayoutBlackboxPreset" />
+      </div>
+
+      <div data-testid="chat-layout-workspace-whitebox" class="chat-wrapper">
+        <TrChat.Root :chat-kit="workspaceLayoutWhiteboxChat" v-bind="workspaceLayoutWhiteboxSlices.root">
+          <TrChat.Layout v-bind="workspaceLayoutWhiteboxSlices.layout">
+            <TrChat.Header v-bind="workspaceLayoutWhiteboxSlices.header" />
+            <TrChat.Welcome
+              v-if="showWorkspaceLayoutWhiteboxWelcome && workspaceLayoutWhiteboxSlices.welcome"
+              v-bind="workspaceLayoutWhiteboxSlices.welcome"
+              @prompt-click="handleWorkspaceLayoutWhiteboxPromptClick"
+            />
+            <TrChat.MessageList v-else v-bind="workspaceLayoutWhiteboxSlices.messageList" />
+            <TrChat.Footer>
+              <TrChat.Sender v-bind="workspaceLayoutWhiteboxSlices.sender" />
+            </TrChat.Footer>
+          </TrChat.Layout>
+        </TrChat.Root>
+      </div>
+    </div>
+
     <div v-if="mode === 'whitebox'" data-testid="chat-whitebox" class="chat-wrapper">
       <div class="status-bar">
         <span data-testid="status-indicator">{{ status }}</span>
@@ -283,11 +375,13 @@ import { TrSender } from '@opentiny/tiny-robot'
 import {
   TrChat,
   TrChatFeedback,
+  TrChatMcpPanel,
   TrModelSelector,
   createChatAdapterFromConfig,
   createPresetChatProps,
   createPresetChatSlices,
   useChatKit,
+  useMcpManager,
   useModelSelector,
 } from '../../../chat/src'
 import type {
@@ -299,7 +393,14 @@ import type {
 import type { ChatCompletion } from '../../../kit/src/vue/message/types'
 import { createMockFactory, createMockProvider } from './mockProvider'
 
-type ChatMode = 'blackbox' | 'whitebox' | 'blackbox-edge' | 'welcome-prompts' | 'sender-extensions'
+type ChatMode =
+  | 'blackbox'
+  | 'whitebox'
+  | 'blackbox-edge'
+  | 'welcome-prompts'
+  | 'sender-extensions'
+  | 'mcp-feature'
+  | 'layout-config'
 
 function getInitialMode(): ChatMode {
   if (typeof window === 'undefined') {
@@ -307,7 +408,14 @@ function getInitialMode(): ChatMode {
   }
 
   const mode = new URLSearchParams(window.location.search).get('chatMode')
-  if (mode === 'whitebox' || mode === 'blackbox-edge' || mode === 'welcome-prompts' || mode === 'sender-extensions') {
+  if (
+    mode === 'whitebox' ||
+    mode === 'blackbox-edge' ||
+    mode === 'welcome-prompts' ||
+    mode === 'sender-extensions' ||
+    mode === 'mcp-feature' ||
+    mode === 'layout-config'
+  ) {
     return mode
   }
 
@@ -394,6 +502,171 @@ const senderExtensionsWhiteboxChat = useChatKit({
   responseProvider: senderExtensionsProvider,
 })
 const showSenderExtensionsWhiteboxWelcome = computed(() => senderExtensionsWhiteboxChat.messages.value.length === 0)
+
+const mcpFeaturePlugins = [
+  {
+    id: 'weather-service',
+    name: 'Weather Service',
+    icon: 'W',
+    description: 'Get weather information for any location',
+    enabled: true,
+    expanded: true,
+    tools: [
+      {
+        id: 'get-weather',
+        name: 'Get Weather',
+        description: 'Get current weather for a location',
+        enabled: true,
+      },
+    ],
+    category: 'utilities',
+  },
+]
+
+const mcpBlackboxManager = useMcpManager({
+  initialPlugins: mcpFeaturePlugins,
+})
+const mcpWhiteboxManager = useMcpManager({
+  initialPlugins: mcpFeaturePlugins,
+})
+
+const mcpFeatureBaseConfig = {
+  models: [{ id: 'mcp-feature-model', provider: 'openai' }],
+  providers: {
+    openai: {
+      type: 'openai-compatible' as const,
+      endpoint: '/api/chat',
+    },
+  },
+  ui: {
+    brand: {
+      title: 'MCP Feature',
+    },
+    welcome: {
+      title: 'MCP Feature Welcome',
+      description: 'MCP manager should travel through feature -> preset -> root.',
+    },
+  },
+}
+
+const mcpBlackboxAdapter = createChatAdapterFromConfig({
+  ...mcpFeatureBaseConfig,
+  features: {
+    mcp: {
+      manager: mcpBlackboxManager,
+    },
+  },
+})
+const mcpBlackboxPreset = createPresetChatProps(mcpBlackboxAdapter, {
+  responseProvider: createMockProvider({
+    provider: 'openai',
+    model: 'mcp-feature-model',
+  }),
+})
+
+const mcpWhiteboxAdapter = createChatAdapterFromConfig({
+  ...mcpFeatureBaseConfig,
+  features: {
+    mcp: {
+      manager: mcpWhiteboxManager,
+    },
+  },
+})
+const mcpWhiteboxPreset = createPresetChatProps(mcpWhiteboxAdapter)
+const mcpWhiteboxSlices = createPresetChatSlices(mcpWhiteboxPreset)
+const mcpWhiteboxChat = useChatKit({
+  responseProvider: createMockProvider({
+    provider: 'openai',
+    model: 'mcp-feature-model',
+  }),
+})
+const showMcpWhiteboxWelcome = computed(() => mcpWhiteboxChat.messages.value.length === 0)
+const mcpBlackboxPanelVisible = ref(false)
+const mcpWhiteboxPanelVisible = ref(false)
+
+const layoutConfigAdapter = createChatAdapterFromConfig({
+  models: [{ id: 'layout-config-model', provider: 'openai' }],
+  providers: {
+    openai: {
+      type: 'openai-compatible',
+      endpoint: '/api/chat',
+    },
+  },
+  ui: {
+    brand: {
+      title: 'Layout Config',
+    },
+    welcome: {
+      title: 'Layout Config Welcome',
+      description: 'Layout variant and placements should be driven by config.',
+    },
+    prompts: [{ label: 'layout prompt', description: 'layout prompt' }],
+  },
+  layout: {
+    variant: 'docs',
+    placements: {
+      assistant: 'end',
+      user: 'start',
+    },
+  },
+})
+const layoutConfigBlackboxPreset = createPresetChatProps(layoutConfigAdapter, {
+  responseProvider: createMockProvider({
+    provider: 'openai',
+    model: 'layout-config-model',
+  }),
+})
+const layoutConfigWhiteboxPreset = createPresetChatProps(layoutConfigAdapter)
+const layoutConfigWhiteboxSlices = createPresetChatSlices(layoutConfigWhiteboxPreset)
+const layoutConfigWhiteboxChat = useChatKit({
+  responseProvider: createMockProvider({
+    provider: 'openai',
+    model: 'layout-config-model',
+  }),
+})
+const showLayoutConfigWhiteboxWelcome = computed(() => layoutConfigWhiteboxChat.messages.value.length === 0)
+
+const workspaceLayoutAdapter = createChatAdapterFromConfig({
+  models: [{ id: 'workspace-layout-model', provider: 'openai' }],
+  providers: {
+    openai: {
+      type: 'openai-compatible',
+      endpoint: '/api/chat',
+    },
+  },
+  ui: {
+    brand: {
+      title: 'Workspace Layout',
+    },
+    welcome: {
+      title: 'Workspace Layout Welcome',
+      description: 'Workspace variant should remain a pure layout choice.',
+    },
+    prompts: [{ label: 'workspace prompt', description: 'workspace prompt' }],
+  },
+  layout: {
+    variant: 'workspace',
+    placements: {
+      assistant: 'start',
+      user: 'end',
+    },
+  },
+})
+const workspaceLayoutBlackboxPreset = createPresetChatProps(workspaceLayoutAdapter, {
+  responseProvider: createMockProvider({
+    provider: 'openai',
+    model: 'workspace-layout-model',
+  }),
+})
+const workspaceLayoutWhiteboxPreset = createPresetChatProps(workspaceLayoutAdapter)
+const workspaceLayoutWhiteboxSlices = createPresetChatSlices(workspaceLayoutWhiteboxPreset)
+const workspaceLayoutWhiteboxChat = useChatKit({
+  responseProvider: createMockProvider({
+    provider: 'openai',
+    model: 'workspace-layout-model',
+  }),
+})
+const showWorkspaceLayoutWhiteboxWelcome = computed(() => workspaceLayoutWhiteboxChat.messages.value.length === 0)
 
 const welcomePromptsAdapter = createChatAdapterFromConfig({
   models: [{ id: 'welcome-prompts-model', provider: 'openai' }],
@@ -596,6 +869,14 @@ function handleWhiteboxSlicesPromptClick(description: string) {
 
 function handleWhiteboxSlicesSlotPromptClick(description: string) {
   whiteboxSlicesSlotChat.sendMessage(description)
+}
+
+function handleLayoutConfigWhiteboxPromptClick(description: string) {
+  layoutConfigWhiteboxChat.sendMessage(description)
+}
+
+function handleWorkspaceLayoutWhiteboxPromptClick(description: string) {
+  workspaceLayoutWhiteboxChat.sendMessage(description)
 }
 
 function handleModelChange(model: ModelOption) {

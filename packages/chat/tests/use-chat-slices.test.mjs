@@ -14,6 +14,7 @@ const { useChatMessages } = await jiti.import('../src/composables/useChatMessage
 const { useChatRequest } = await jiti.import('../src/composables/useChatRequest.ts')
 const { useChatAttachments } = await jiti.import('../src/composables/useChatAttachments.ts')
 const { useChatKit } = await jiti.import('../src/composables/useChatKit.ts')
+const { useMcpManager } = await jiti.import('../src/composables/useMcpManager.ts')
 const { useModelSelector } = await jiti.import('../src/composables/useModelSelector.ts')
 const {
   loadChatConfig,
@@ -553,6 +554,7 @@ await runTest('loadChatConfig normalizes feature config and createPresetChatProp
       },
     },
     welcomePrompts: undefined,
+    mcp: undefined,
     history: {
       enabled: undefined,
       props: {
@@ -631,6 +633,40 @@ await runTest('createPresetChatProps lets explicit overrides win over resolved f
   assert.equal(presetProps.prompts?.[0]?.label, 'override prompt')
   assert.equal(presetProps.showHistory, false)
   assert.equal(presetProps.showFeedback, false)
+})
+
+await runTest('loadChatConfig normalizes layout config and createPresetChatProps consumes it as layout defaults', async () => {
+  const config = loadChatConfig({
+    models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+    providers: {
+      openai: {
+        type: 'openai-compatible',
+        endpoint: '/api/chat',
+      },
+    },
+    layout: {
+      variant: 'docs',
+      placements: {
+        assistant: 'end',
+        user: 'start',
+      },
+    },
+  })
+
+  assert.deepEqual(config.layout, {
+    variant: 'docs',
+    placements: {
+      assistant: 'end',
+      user: 'start',
+    },
+  })
+
+  const adapter = createChatAdapterFromConfig(config)
+  const presetProps = createPresetChatProps(adapter)
+
+  assert.equal(presetProps.messageListVariant, 'docs')
+  assert.equal(presetProps.roleConfigs?.assistant?.placement, 'end')
+  assert.equal(presetProps.roleConfigs?.user?.placement, 'start')
 })
 
 await runTest('createPresetChatSlices exposes white-box slices that preserve blackbox defaults', async () => {
@@ -725,6 +761,68 @@ await runTest('createPresetChatSlices keeps white-box slices empty when optional
   assert.equal(slices.modelSelector.enabled, true)
 })
 
+await runTest('createPresetChatSlices exposes layout variant and placement defaults for white-box composition', async () => {
+  const adapter = createChatAdapterFromConfig({
+    models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+    providers: {
+      openai: {
+        type: 'openai-compatible',
+        endpoint: '/api/chat',
+      },
+    },
+    layout: {
+      variant: 'docs',
+      placements: {
+        assistant: 'end',
+        user: 'start',
+      },
+    },
+  })
+
+  const slices = createPresetChatSlices(createPresetChatProps(adapter))
+
+  assert.equal(slices.messageList.variant, 'docs')
+  assert.equal(slices.layout.roleConfigs?.assistant?.placement, 'end')
+  assert.equal(slices.layout.roleConfigs?.user?.placement, 'start')
+})
+
+await runTest('loadChatConfig and preset slices preserve workspace layout variant as a pure layout choice', async () => {
+  const config = loadChatConfig({
+    models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+    providers: {
+      openai: {
+        type: 'openai-compatible',
+        endpoint: '/api/chat',
+      },
+    },
+    layout: {
+      variant: 'workspace',
+      placements: {
+        assistant: 'start',
+        user: 'end',
+      },
+    },
+  })
+
+  assert.deepEqual(config.layout, {
+    variant: 'workspace',
+    placements: {
+      assistant: 'start',
+      user: 'end',
+    },
+  })
+
+  const presetProps = createPresetChatProps(createChatAdapterFromConfig(config))
+  const slices = createPresetChatSlices(presetProps)
+
+  assert.equal(presetProps.messageListVariant, 'workspace')
+  assert.equal(presetProps.roleConfigs?.assistant?.placement, 'start')
+  assert.equal(presetProps.roleConfigs?.user?.placement, 'end')
+  assert.equal(slices.messageList.variant, 'workspace')
+  assert.equal(slices.layout.roleConfigs?.assistant?.placement, 'start')
+  assert.equal(slices.layout.roleConfigs?.user?.placement, 'end')
+})
+
 await runTest('createPresetChatSlices preserves senderProps.extensions for passthrough composition', async () => {
   const adapter = createChatAdapterFromConfig({
     models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
@@ -793,6 +891,79 @@ await runTest('createPresetChatSlices keeps root feature defaults while sender s
   assert.equal(slices.sender.mode, 'single')
   assert.equal(slices.sender.maxLength, 80)
   assert.equal(slices.sender.allowSpeech, false)
+})
+
+await runTest('createPresetChatProps and createPresetChatSlices expose mcp manager through the feature pipeline', async () => {
+  const mcpManager = useMcpManager({
+    initialPlugins: [
+      {
+        id: 'weather-service',
+        name: 'Weather Service',
+        icon: 'W',
+        description: 'Weather tools',
+        enabled: true,
+        expanded: true,
+        tools: [
+          {
+            id: 'get-weather',
+            name: 'Get Weather',
+            description: 'Get current weather',
+            enabled: true,
+          },
+        ],
+        category: 'utilities',
+      },
+    ],
+  })
+
+  const adapter = createChatAdapterFromConfig({
+    models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+    providers: {
+      openai: {
+        type: 'openai-compatible',
+        endpoint: '/api/chat',
+      },
+    },
+    features: {
+      mcp: {
+        manager: mcpManager,
+      },
+    },
+  })
+
+  assert.equal(adapter.resolvedFeatures.entries.mcp.enabled, true)
+  assert.equal(adapter.resolvedFeatures.entries.mcp.config?.manager, mcpManager)
+
+  const presetProps = createPresetChatProps(adapter)
+  const presetSlices = createPresetChatSlices(presetProps)
+
+  assert.equal(presetProps.mcpManager, mcpManager)
+  assert.equal(presetSlices.root.mcpManager, mcpManager)
+})
+
+await runTest('createPresetChatProps lets explicit mcpManager override win over resolved mcp feature defaults', async () => {
+  const featureManager = useMcpManager()
+  const overrideManager = useMcpManager()
+  const adapter = createChatAdapterFromConfig({
+    models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+    providers: {
+      openai: {
+        type: 'openai-compatible',
+        endpoint: '/api/chat',
+      },
+    },
+    features: {
+      mcp: {
+        manager: featureManager,
+      },
+    },
+  })
+
+  const presetProps = createPresetChatProps(adapter, {
+    mcpManager: overrideManager,
+  })
+
+  assert.equal(presetProps.mcpManager, overrideManager)
 })
 
 await runTest('createChatCliCapabilitySurface exposes the current stable chat-cli consumption contract', async () => {
@@ -944,6 +1115,7 @@ await runTest('resolveChatFeatures keeps disabled features out of preset props',
     attachments: false,
     senderActions: false,
     welcomePrompts: false,
+    mcp: false,
     history: false,
     feedback: {
       enabled: false,
@@ -957,6 +1129,7 @@ await runTest('resolveChatFeatures keeps disabled features out of preset props',
   assert.equal(resolved.entries.attachments.enabled, false)
   assert.equal(resolved.entries.senderActions.enabled, false)
   assert.equal(resolved.entries.welcomePrompts.enabled, false)
+  assert.equal(resolved.entries.mcp.enabled, false)
   assert.equal(resolved.entries.history.enabled, false)
   assert.equal(resolved.entries.feedback.enabled, false)
 })
@@ -1013,6 +1186,23 @@ await runTest('loadChatConfig rejects invalid feature shapes', async () => {
         },
       }),
     /features\.welcomePrompts must be a boolean or an object/,
+  )
+
+  assert.throws(
+    () =>
+      loadChatConfig({
+        models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+        providers: {
+          openai: {
+            type: 'openai-compatible',
+            endpoint: '/api/chat',
+          },
+        },
+        features: {
+          mcp: 'invalid',
+        },
+      }),
+    /features\.mcp must be a boolean or an object/,
   )
 })
 

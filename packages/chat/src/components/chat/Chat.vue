@@ -81,8 +81,10 @@ const showModelSelector = computed(() => Boolean(props.models?.length && props.p
 const messageListVariant = computed<ChatListVariant>(() => {
   const attrVariant = attrs['message-list-variant'] ?? attrs.messageListVariant
 
-  if (props.messageListVariant === 'docs' || attrVariant === 'docs') {
-    return 'docs'
+  const variant = props.messageListVariant ?? attrVariant
+
+  if (variant === 'docs' || variant === 'workspace') {
+    return variant
   }
 
   return 'bubble'

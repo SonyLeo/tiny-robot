@@ -58,6 +58,22 @@ export function createChatTestHelper(page: Page, options: ChatTestHelperOptions 
     })
   }
 
+  const switchToMcpFeature = async () => {
+    await testUtils.clickWhenVisible(selectors.switchToMcpFeature)
+    await page.locator('[data-testid="chat-mcp-feature-blackbox"]').waitFor({
+      state: 'visible',
+      timeout: defaultTimeout,
+    })
+  }
+
+  const switchToLayoutConfig = async () => {
+    await testUtils.clickWhenVisible(selectors.switchToLayoutConfig)
+    await page.locator('[data-testid="chat-layout-config-blackbox"]').waitFor({
+      state: 'visible',
+      timeout: defaultTimeout,
+    })
+  }
+
   // =====================
   //  消息发送
   // =====================
@@ -418,6 +434,8 @@ export function createChatTestHelper(page: Page, options: ChatTestHelperOptions 
     switchToBlackboxEdge,
     switchToWelcomePrompts,
     switchToSenderExtensions,
+    switchToMcpFeature,
+    switchToLayoutConfig,
 
     // 消息交互
     typeMessage,

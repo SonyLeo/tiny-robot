@@ -53,7 +53,7 @@ export interface ChatMessageActionPayload {
   messageIndex?: number
 }
 
-export type ChatListVariant = 'bubble' | 'docs'
+export type ChatListVariant = 'bubble' | 'docs' | 'workspace'
 
 // ===== useChatKit 选项 =====
 export interface UseChatKitOptions {

@@ -6,6 +6,8 @@ export type {
   BuiltInChatFeatureKey,
   ChatFeatureConfigMap,
   ChatFeatureInput,
+  ChatMcpFeatureConfig,
+  ChatMcpFeatureResolution,
   ChatFeaturePresetProps,
   ChatFeedbackFeatureConfig,
   ChatFeedbackFeatureResolution,

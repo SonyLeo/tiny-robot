@@ -16,6 +16,7 @@ import type {
   ChatFeatureConfigMap,
   ChatFeedbackFeatureConfig,
   ChatHistoryFeatureConfig,
+  ChatMcpFeatureConfig,
   ChatSenderActionsFeatureConfig,
   ChatWelcomePromptsFeatureConfig,
 } from '../features'
@@ -23,6 +24,7 @@ import type {
   ChatAdapter,
   ChatConfig,
   ChatConfigProvider,
+  ChatLayoutConfig,
   ChatConfigModel,
   ChatConfigUI,
   ChatPresetProps,
@@ -119,6 +121,36 @@ function normalizeUi(rawUi: unknown): ChatConfigUI | undefined {
     brand,
     welcome,
     prompts,
+  }
+}
+
+function normalizeLayout(rawLayout: unknown): ChatLayoutConfig | undefined {
+  if (!isRecord(rawLayout)) {
+    return undefined
+  }
+
+  const variant =
+    rawLayout.variant === 'bubble' || rawLayout.variant === 'docs' || rawLayout.variant === 'workspace'
+      ? rawLayout.variant
+      : undefined
+  const placements = isRecord(rawLayout.placements)
+    ? ({
+        ...(rawLayout.placements.assistant === 'start' || rawLayout.placements.assistant === 'end'
+          ? { assistant: rawLayout.placements.assistant }
+          : {}),
+        ...(rawLayout.placements.user === 'start' || rawLayout.placements.user === 'end'
+          ? { user: rawLayout.placements.user }
+          : {}),
+      } satisfies NonNullable<ChatLayoutConfig['placements']>)
+    : undefined
+
+  if (!variant && !placements?.assistant && !placements?.user) {
+    return undefined
+  }
+
+  return {
+    variant,
+    placements,
   }
 }
 
@@ -310,6 +342,25 @@ function normalizeWelcomePromptsFeature(rawFeature: unknown): ChatWelcomePrompts
   }
 }
 
+function normalizeMcpFeature(rawFeature: unknown): ChatMcpFeatureConfig | undefined {
+  if (rawFeature === undefined) {
+    return undefined
+  }
+
+  if (typeof rawFeature === 'boolean') {
+    return rawFeature
+  }
+
+  if (!isRecord(rawFeature)) {
+    throw new Error('[loadChatConfig] features.mcp must be a boolean or an object')
+  }
+
+  return {
+    enabled: typeof rawFeature.enabled === 'boolean' ? rawFeature.enabled : undefined,
+    manager: rawFeature.manager as TrChatProps['mcpManager'],
+  }
+}
+
 function normalizeFeatures(rawFeatures: unknown): ChatFeatureConfigMap | undefined {
   if (rawFeatures === undefined) {
     return undefined
@@ -325,6 +376,7 @@ function normalizeFeatures(rawFeatures: unknown): ChatFeatureConfigMap | undefin
     attachments: normalizeAttachmentsFeature(rawFeatures.attachments),
     senderActions: normalizeSenderActionsFeature(rawFeatures.senderActions),
     welcomePrompts: normalizeWelcomePromptsFeature(rawWelcomePrompts),
+    mcp: normalizeMcpFeature(rawFeatures.mcp),
     history: normalizeHistoryFeature(rawFeatures.history),
     feedback: normalizeFeedbackFeature(rawFeatures.feedback),
   }
@@ -374,6 +426,7 @@ export function loadChatConfig(input: string | ChatConfig | unknown): ChatConfig
   }
 
   const ui = normalizeUi(raw.ui)
+  const layout = normalizeLayout(raw.layout)
   const features = normalizeFeatures(raw.features)
 
   return {
@@ -381,6 +434,7 @@ export function loadChatConfig(input: string | ChatConfig | unknown): ChatConfig
     providers,
     defaults,
     ui,
+    layout,
     features,
   }
 }
@@ -436,6 +490,25 @@ export function createPresetChatProps(
   adapter: ChatAdapter,
   overrides: Partial<TrChatProps> = {},
 ): ChatPresetProps & Partial<TrChatProps> {
+  const layoutRoleConfigs = adapter.config.layout?.placements
+    ? ({
+        ...(adapter.config.layout.placements.assistant
+          ? {
+              assistant: {
+                placement: adapter.config.layout.placements.assistant,
+              },
+            }
+          : {}),
+        ...(adapter.config.layout.placements.user
+          ? {
+              user: {
+                placement: adapter.config.layout.placements.user,
+              },
+            }
+          : {}),
+      } satisfies NonNullable<TrChatProps['roleConfigs']>)
+    : undefined
+
   return {
     models: adapter.models,
     providerFactories: adapter.providerFactories,
@@ -443,6 +516,8 @@ export function createPresetChatProps(
     brand: adapter.config.ui?.brand,
     welcome: adapter.config.ui?.welcome,
     prompts: adapter.config.ui?.prompts,
+    messageListVariant: adapter.config.layout?.variant,
+    roleConfigs: layoutRoleConfigs,
     ...adapter.resolvedFeatures.presetProps,
     ...overrides,
   }
