@@ -11,12 +11,19 @@ import { parseArgs } from 'node:util'
 import { getBanner } from './banner.js'
 import { getCommand, inferPackageManager, type PackageManager } from './packageManager.js'
 import { emptyDir, scaffoldProject } from './scaffold.js'
+import {
+  type ChatCliSupportedProvider,
+  getChatCliTemplateDefinition,
+  getStableChatCliTemplateIds,
+  getStableChatCliTemplates,
+} from './templateRegistry.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 const templatesDir = join(__dirname, '../templates')
-const supportedTemplates = new Set(['basic'])
 const supportedProviders = new Set(['openai', 'deepseek', 'custom'])
+const stableTemplates = getStableChatCliTemplates()
+const stableTemplateIds = new Set(getStableChatCliTemplateIds())
 
 const { values: flags, positionals } = parseArgs({
   args: process.argv.slice(2),
@@ -40,13 +47,14 @@ const providerFlag = typeof flags.provider === 'string' ? flags.provider : undef
 const cwdFlag = typeof flags.cwd === 'string' ? flags.cwd : undefined
 
 if (flags.help) {
+  const availableTemplates = getStableChatCliTemplateIds().join(', ')
   console.log(`
 Usage: create-tiny-robot [options] [project-name]
 
 Options:
   -h, --help            Display this help message
   -v, --version         Display version number
-      --template        Template name (currently: basic)
+      --template        Template name (available: ${availableTemplates})
       --provider        API provider (openai | deepseek | custom)
   -y, --yes             Use defaults and skip prompts
       --install         Install dependencies after generation
@@ -73,8 +81,10 @@ if (flags.version) {
 const argProjectName = positionals[0] as string | undefined
 
 function assertValidFlagValues(): void {
-  if (templateFlag && !supportedTemplates.has(templateFlag)) {
-    throw new Error(`Unsupported template "${templateFlag}". Only "basic" is available right now.`)
+  if (templateFlag && !stableTemplateIds.has(templateFlag)) {
+    throw new Error(
+      `Unsupported template "${templateFlag}". Available templates: ${getStableChatCliTemplateIds().join(', ')}.`,
+    )
   }
 
   if (providerFlag && !supportedProviders.has(providerFlag)) {
@@ -127,34 +137,38 @@ async function init(): Promise<void> {
       : await unwrapPrompt(
           select({
             message: 'Select a template:',
-            options: [
-              { value: 'basic', label: 'Basic Chat Agent', hint: 'Vue 3 + TypeScript + OpenAI/DeepSeek' },
-              { value: 'with-context', label: 'Chat + Context Management', hint: 'coming soon' },
-              { value: 'with-mcp', label: 'Chat + MCP Tools', hint: 'coming soon' },
-              { value: 'with-rag', label: 'Chat + RAG', hint: 'coming soon' },
-            ],
+            options: stableTemplates.map((item) => ({
+              value: item.id,
+              label: item.label,
+              hint: item.description,
+            })),
           }),
         )
-
-  if (template !== 'basic') {
-    cancel('This template is not available yet. Please select "basic".')
-    process.exit(0)
+  const templateDefinition = getChatCliTemplateDefinition(template)
+  if (!templateDefinition || templateDefinition.status !== 'stable') {
+    throw new Error(`Template "${template}" is not available.`)
   }
 
-  const provider = providerFlag
-    ? providerFlag
-    : flags.yes
-      ? 'openai'
-      : await unwrapPrompt(
-          select({
-            message: 'Select API Provider:',
-            options: [
-              { value: 'openai', label: 'OpenAI', hint: 'GPT-4o, GPT-4o-mini, etc.' },
-              { value: 'deepseek', label: 'DeepSeek', hint: 'deepseek-chat, deepseek-coder' },
-              { value: 'custom', label: 'OpenAI-Compatible', hint: 'Use your own proxy or compatible backend' },
-            ],
-          }),
-        )
+  const provider = (
+    providerFlag
+      ? providerFlag
+      : flags.yes
+        ? 'openai'
+        : await unwrapPrompt(
+            select({
+              message: 'Select API Provider:',
+              options: [
+                { value: 'openai', label: 'OpenAI', hint: 'GPT-4o, GPT-4o-mini, etc.' },
+                { value: 'deepseek', label: 'DeepSeek', hint: 'deepseek-chat, deepseek-coder' },
+                { value: 'custom', label: 'OpenAI-Compatible', hint: 'Use your own proxy or compatible backend' },
+              ],
+            }),
+          )
+  ) as ChatCliSupportedProvider
+
+  if (!templateDefinition.supportedProviders.includes(provider)) {
+    throw new Error(`Template "${templateDefinition.id}" does not support provider "${provider}".`)
+  }
 
   const pm = inferPackageManager()
   const shouldInstall =
@@ -194,7 +208,7 @@ async function init(): Promise<void> {
   }
 
   scaffoldProject({
-    templateDir: join(templatesDir, template),
+    templateDir: join(templatesDir, templateDefinition.templateDir),
     projectDir,
     provider,
     projectName,

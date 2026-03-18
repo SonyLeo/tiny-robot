@@ -967,9 +967,18 @@ await runTest('createPresetChatProps lets explicit mcpManager override win over 
 })
 
 await runTest('createChatCliCapabilitySurface exposes the current stable chat-cli consumption contract', async () => {
-  assert.deepEqual(CHAT_CLI_CONSUMABLE_FEATURE_KEYS, ['attachments', 'senderActions', 'welcomePrompts'])
-  assert.deepEqual(CHAT_CLI_CONSUMABLE_PRESET_PROP_KEYS, ['attachmentsFeature', 'senderActionsFeature', 'prompts'])
-  assert.deepEqual(CHAT_CLI_CONSUMABLE_PRESET_SLICE_KEYS, ['root', 'welcome', 'sender'])
+  assert.deepEqual(CHAT_CLI_CONSUMABLE_FEATURE_KEYS, ['attachments', 'senderActions', 'welcomePrompts', 'mcp'])
+  assert.deepEqual(CHAT_CLI_CONSUMABLE_PRESET_PROP_KEYS, [
+    'attachmentsFeature',
+    'senderActionsFeature',
+    'prompts',
+    'mcpManager',
+    'messageListVariant',
+    'roleConfigs',
+  ])
+  assert.deepEqual(CHAT_CLI_CONSUMABLE_PRESET_SLICE_KEYS, ['root', 'layout', 'welcome', 'messageList', 'sender'])
+
+  const mcpManager = useMcpManager()
 
   const adapter = createChatAdapterFromConfig({
     models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
@@ -984,6 +993,13 @@ await runTest('createChatCliCapabilitySurface exposes the current stable chat-cl
         title: 'CLI Welcome',
       },
     },
+    layout: {
+      variant: 'workspace',
+      placements: {
+        assistant: 'start',
+        user: 'end',
+      },
+    },
     features: {
       attachments: true,
       senderActions: {
@@ -991,6 +1007,9 @@ await runTest('createChatCliCapabilitySurface exposes the current stable chat-cl
       },
       welcomePrompts: {
         welcome: [{ label: 'feature prompt', description: 'feature prompt' }],
+      },
+      mcp: {
+        manager: mcpManager,
       },
       history: true,
       feedback: true,
@@ -1003,13 +1022,21 @@ await runTest('createChatCliCapabilitySurface exposes the current stable chat-cl
     },
   })
 
-  assert.deepEqual(surface.featureKeys, ['attachments', 'senderActions', 'welcomePrompts'])
+  assert.deepEqual(surface.featureKeys, ['attachments', 'senderActions', 'welcomePrompts', 'mcp'])
   assert.equal(surface.presetProps.attachmentsFeature?.enabled, true)
   assert.equal(surface.presetProps.senderActionsFeature?.wordCount, true)
   assert.equal(surface.presetProps.prompts?.[0]?.label, 'feature prompt')
-  assert.deepEqual(Object.keys(surface.presetSlices), ['root', 'welcome', 'sender'])
+  assert.equal(surface.presetProps.mcpManager, mcpManager)
+  assert.equal(surface.presetProps.messageListVariant, 'workspace')
+  assert.equal(surface.presetProps.roleConfigs?.assistant?.placement, 'start')
+  assert.equal(surface.presetProps.roleConfigs?.user?.placement, 'end')
+  assert.deepEqual(Object.keys(surface.presetSlices), ['root', 'layout', 'welcome', 'messageList', 'sender'])
   assert.equal(surface.presetSlices.root.attachmentsFeature?.enabled, true)
+  assert.equal(surface.presetSlices.root.mcpManager, mcpManager)
+  assert.equal(surface.presetSlices.layout.roleConfigs?.assistant?.placement, 'start')
+  assert.equal(surface.presetSlices.layout.roleConfigs?.user?.placement, 'end')
   assert.equal(surface.presetSlices.welcome?.title, 'CLI Welcome')
+  assert.equal(surface.presetSlices.messageList.variant, 'workspace')
   assert.equal(surface.presetSlices.sender.maxLength, 80)
 })
 

@@ -8,6 +8,11 @@ import { fileURLToPath } from 'node:url'
 
 import { getCommand } from '../../../chat-cli/src/packageManager'
 import {
+  getChatCliTemplateDefinition,
+  getChatCliTemplateRegistry,
+  getStableChatCliTemplateIds,
+} from '../../../chat-cli/src/templateRegistry'
+import {
   applyTemplateVariables,
   copyTemplateFiles,
   getScaffoldMetadata,
@@ -27,20 +32,44 @@ function createTempDir(prefix: string): string {
 }
 
 test.describe('chat-cli scaffold helpers', () => {
+  test('template registry should provide the stable CLI template source of truth', async () => {
+    const registry = getChatCliTemplateRegistry()
+    const basicTemplate = getChatCliTemplateDefinition('basic')
+
+    expect(getStableChatCliTemplateIds()).toEqual(['basic'])
+    expect(registry).toHaveLength(1)
+    expect(basicTemplate).toEqual({
+      id: 'basic',
+      label: 'Basic Chat Agent',
+      description: 'Vue 3 + TypeScript + OpenAI/DeepSeek',
+      status: 'stable',
+      templateDir: 'basic',
+      supportedProviders: ['openai', 'deepseek', 'custom'],
+      requiredChatFeatures: [],
+      postScaffoldSteps: ['copy-env', 'configure-endpoint', 'run-dev'],
+    })
+  })
+
   test('getTemplateVariables should map supported providers to stable defaults', async () => {
     expect(getTemplateVariables('openai')).toEqual({
       __DEFAULT_PROVIDER__: 'openai',
       __DEFAULT_MODEL__: 'gpt-4o-mini',
+      __PROXY_ENDPOINT__: 'https://api.openai.com/v1/chat/completions',
+      __PROXY_API_KEY_ENV__: 'OPENAI_API_KEY',
     })
 
     expect(getTemplateVariables('deepseek')).toEqual({
       __DEFAULT_PROVIDER__: 'deepseek',
       __DEFAULT_MODEL__: 'deepseek-chat',
+      __PROXY_ENDPOINT__: 'https://api.deepseek.com/v1/chat/completions',
+      __PROXY_API_KEY_ENV__: 'DEEPSEEK_API_KEY',
     })
 
     expect(getTemplateVariables('custom')).toEqual({
       __DEFAULT_PROVIDER__: 'openai-compatible',
       __DEFAULT_MODEL__: 'custom-model',
+      __PROXY_ENDPOINT__: 'https://api.your-provider.com/v1/chat/completions',
+      __PROXY_API_KEY_ENV__: 'CUSTOM_API_KEY',
     })
   })
 

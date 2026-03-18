@@ -55,6 +55,19 @@
 2. Keep `layout` and feature enablement separated while introducing template-facing capability mapping.
 3. Continue using `packages/chat` outputs as the single source of truth for template consumption.
 
+## P3 Current Progress
+
+- [x] `P3-A` has started on the chat side.
+- [x] `createChatCliCapabilitySurface()` now exposes the stable Phase C contract for CLI consumption.
+- [x] The current contract now covers:
+  - feature keys: `attachments / senderActions / welcomePrompts / mcp`
+  - preset props: `attachmentsFeature / senderActionsFeature / prompts / mcpManager / messageListVariant / roleConfigs`
+  - preset slices: `root / layout / welcome / messageList / sender`
+- [x] `P3-B` has started with a minimal template registry foundation in `chat-cli`
+- [ ] `P3-B` feature-aware template metadata and mapping closeout
+- [ ] `P3-C` capability-driven template wiring
+- [ ] `P3-D` scaffold and smoke closeout
+
 ## P3 Execution Order
 
 ### P3-A. Lock the chat-side consumption contract

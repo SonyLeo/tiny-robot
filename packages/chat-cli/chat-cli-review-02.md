@@ -1,166 +1,270 @@
 # Chat CLI Review 02
 
-> `packages/chat-cli` 下一阶段执行结论文档。
-> 架构设计见 [../../docs/chat-cli-design.md](../../docs/chat-cli-design.md)。
-> 模板策略见 [review/template-strategy.md](./review/template-strategy.md)。
-> 实时状态见 [progress.md](./progress.md)。
+> Snapshot date: `2026-03-19`
+> Design: [../../docs/chat-cli-design.md](../../docs/chat-cli-design.md)
+> Chat progress: [../chat/progress.md](../chat/progress.md)
+> CLI progress: [./progress.md](./progress.md)
 
 ---
 
-## 1. 当前判断
+## 1. Current Execution Baseline
 
-当前 `packages/chat-cli` 已经完成了“可靠基础脚手架”的第一阶段：
+Current agreed status:
 
-- 默认输出已切换到 server proxy 安全模型
-- `chat.config.ts -> createChatAdapterFromConfig() -> createPresetChatProps()` 主链路已打通
-- `packages/chat` 已开始把 `chat-cli` 可正式消费的能力面固化为代码契约：`CHAT_CLI_CONSUMABLE_FEATURE_KEYS`、preset prop keys、preset slice keys、`createChatCliCapabilitySurface()`
-- CLI 已支持基础 flags、模板变量注入、README 命令注入、release helpers
-- 已具备 scaffold / release / smoke 三层测试基线
+- `packages/chat` has completed `P0 / P1 / P2`.
+- `packages/chat` is now in `P3 / Template / CLI Consumption`.
+- `packages/chat-cli` has started its own `P0 / Template Registry Foundation + Hygiene`.
+- `chat-cli` already has a minimal template registry foundation and is no longer in a "not started" state.
 
-但它还没有进入“模板平台”阶段。
+What is already true in code:
 
-当前最关键的结构性问题不是“模板数量太少”，而是：
+- `packages/chat` exposes a stable Phase C-ready CLI consumption contract through:
+  - `CHAT_CLI_CONSUMABLE_FEATURE_KEYS`
+  - `CHAT_CLI_CONSUMABLE_PRESET_PROP_KEYS`
+  - `CHAT_CLI_CONSUMABLE_PRESET_SLICE_KEYS`
+  - `createChatCliCapabilitySurface()`
+- `packages/chat-cli` now has:
+  - `ChatCliTemplateDefinition`
+  - `templateRegistry.ts`
+  - registry-driven `--template` validation
+  - registry-driven interactive template selection
+  - registry-driven help output
+  - registry-driven template directory resolution
 
-1. 模板入口仍是硬编码的
-2. 交互菜单里仍有 `coming soon` dead-end 选项
-3. 模板目录治理还没有真正进入 release gate
-4. 第二模板和后续模板的引入顺序还没有被代码结构真正承接
+What is not complete yet:
 
----
-
-## 2. 核心结论
-
-### 2.1 Registry 必须先落地
-
-`template registry` 不是“以后再优化”，而是下一阶段的前置条件。
-
-如果 registry 不先落地，后续每增加一个模板，都会继续堆在：
-
-- CLI 入口
-- 帮助文案
-- 交互式模板列表
-- 模板约束判断
-- README 注入逻辑
-
-### 2.2 模板卫生必须升级为正式阻塞规则
-
-当前模板源目录已经暴露出真实卫生问题，例如模板目录中残留 `node_modules`。
-
-虽然 scaffold 复制时会跳过这些目录，但这仍说明模板源还没有被当成“可发布资产”治理。
-
-因此这部分不能只停留在提醒，而应升级为：
-
-- `prepare:templates` 阻塞规则
-- 独立测试基线
-- 清晰的模板目录卫生约束
-
-### 2.3 `agent-mcp` 是最优先的第二模板
-
-相对于 `docs-chat` 和 `assistant-workbench`，`agent-mcp` 更接近当前已经具备基础的能力面：
-
-- chat 侧已有 MCP runtime 基础
-- 价值感知强
-- 更容易证明 CLI 已经从“单模板脚手架”进入“场景模板脚手架”
-
-但它不应继续依赖模板内部手工 wiring，而应建立在 chat 侧最小 MCP contract 明确之后。
-
-### 2.4 `docs-chat` 应等待 retrieval contract
-
-`docs-chat` 的难点不是样式，而是 retrieval contract。
-
-如果 retrieval route、service contract 和 docs 场景边界还没有明确，就不应把 `docs-chat` 当成第一批稳定模板。
-
-### 2.5 长期方向应是 `base + feature packs + add`
-
-当前阶段可以容忍少量完整模板并存。
-
-但从下一阶段开始，必须明确：
-
-- `v1` 可以容忍少量完整模板
-- `v2` 开始，新增模板应尽量建立在 `base + registry + feature composition` 上
-
-否则 `basic` 会持续演变成所有模板的 fork 母版。
+- `requiredChatFeatures` is still mostly a placeholder metadata field.
+- template hygiene and governance are not fully enforced yet.
+- the registry currently proves the mechanism with `basic`, not the full future template system.
+- `agent-mcp`, `docs-chat`, and `assistant-workbench` are not ready to be treated as stable templates.
 
 ---
 
-## 3. 下一轮实施重点
+## 2. Responsibilities And Boundaries
 
-### Phase A: Template Registry Foundation + Hygiene
+### 2.1 What `packages/chat` owns
 
-目标：
+`packages/chat` is still the source capability layer.
 
-- 把模板从硬编码入口升级为 registry 驱动
-- 把模板目录治理升级为正式质量门槛
+It owns:
 
-建议改动：
+- feature formalization
+- feature resolution
+- preset props
+- preset slices
+- the stable contract that CLI and templates consume
 
-- 定义最小 template registry schema
-- 新增 registry 类型与元数据
-- CLI 入口消费 registry
-- 移除旧的 `coming soon` 模板占位入口
-- 升级 `validate-templates.mjs`
-- 增加 template hygiene tests
+It does not own:
 
-验收标准：
+- template packaging
+- scaffold governance
+- CLI interaction design
+- template lifecycle management
 
-- `basic` 不再只靠 CLI 入口硬编码声明
-- `--template`、交互选择、帮助输出统一来源于 registry
-- 模板目录中的 `node_modules` / `dist` / 未替换占位符会直接校验失败
+### 2.2 What `packages/chat-cli` owns
 
-### Phase B: Agent MCP Template
+`packages/chat-cli` owns the template-facing consumption layer.
 
-目标：
+It should own:
 
-- 正式引入第二个高价值模板 `agent-mcp`
+- template registry
+- template metadata
+- scaffold engine
+- template hygiene validation
+- CLI command flow
+- template-level provider support policy
 
-建议改动：
+It should not:
 
-- 增加 `agent-mcp` 模板目录
-- 接入 MCP bridge 示例、配置示例、README
-- 把模板纳入 registry
-- 补充 scaffold / smoke / hygiene 测试
+- invent new chat-layer abstractions
+- bypass `packages/chat` with handwritten page-level capability logic
+- redefine feature semantics that already belong to `packages/chat`
 
-前置条件：
+### 2.3 Rule Between The Two Packages
 
-- chat 侧最小 MCP feature config 已明确
+The rule is:
 
-### Phase C: Retrieval Contract + Docs Chat
-
-目标：
-
-- 先定义 retrieval contract，再决定是否把 `docs-chat` 升为正式模板
-
-建议改动：
-
-- 定义最小 retrieval route / service contract
-- 再评估 `docs-chat`
-- 若 contract 成熟，再接入模板和测试
-
-### Phase D: Base + Feature Packs
-
-目标：
-
-- 从多完整模板复制，过渡到 `base + feature packs`
-
-建议改动：
-
-- 抽离 `base runtime skeleton`
-- 定义 feature pack 目录与合成规则
-- 设计 `add feature` 或等价机制
+- `packages/chat` stabilizes capability outputs first.
+- `packages/chat-cli` consumes those outputs second.
+- higher-level template and workflow concepts can be built only after that consumption path is real and test-covered.
 
 ---
 
-## 4. 当前不建议做的事
+## 3. Current Implementation Snapshot
 
-- 不建议继续往 CLI 入口里增加更多 `coming soon` 模板名
-- 不建议让 `docs-chat` 和 `agent-mcp` 作为同一优先级落地
-- 不建议让 `basic` 继续承担所有未来模板的公共职责
-- 不建议在 registry 前就先铺开 `assistant-workbench`
+### 3.1 Upstream contract currently exposed by `packages/chat`
+
+Current stable feature keys:
+
+- `attachments`
+- `senderActions`
+- `welcomePrompts`
+- `mcp`
+
+Current stable preset prop keys:
+
+- `attachmentsFeature`
+- `senderActionsFeature`
+- `prompts`
+- `mcpManager`
+- `messageListVariant`
+- `roleConfigs`
+
+Current stable preset slice keys:
+
+- `root`
+- `layout`
+- `welcome`
+- `messageList`
+- `sender`
+
+This means CLI can now reason about both:
+
+- feature enablement
+- template-facing layout and MCP inputs
+
+### 3.2 What the current registry foundation already solves
+
+The current registry foundation already centralizes:
+
+- available stable templates
+- template label and description
+- template directory lookup
+- supported providers
+- post-scaffold steps
+
+This removes the earlier hardcoded template list from the CLI entry path.
+
+### 3.3 What still remains before the registry is considered stable
+
+The registry is not fully mature until:
+
+- `requiredChatFeatures` is actually enforced or validated
+- template hygiene checks are reliable
+- release and prepare steps treat invalid templates as blockers
+- at least one more non-trivial template path proves the metadata shape
 
 ---
 
-## 5. 一句话结论
+## 4. Outdated Statements That Must Not Guide Execution
 
-`packages/chat-cli` 的下一阶段关键不再是“再多做几个模板”，而是：
+The following statements are now outdated and should not guide implementation:
 
-> 先把 template registry 和模板治理做成正式基础设施，再在此基础上引入真正有结构差异的第二模板。
+- "`chat-cli` has not started."
+- "Template selection is still fully hardcoded."
+- "The stable upstream chat contract only includes `attachments / senderActions / welcomePrompts`."
+- "CLI can only see `root / welcome / sender` on the white-box side."
+
+The following statements are still valid:
+
+- "Registry hygiene is not complete."
+- "Feature-aware template metadata is not complete."
+- "Multi-template governance is not complete."
+- "Template generation must stay registry-first."
+
+---
+
+## 5. Recommended Execution Order
+
+### 5.1 Phase A: Finish Registry Foundation + Hygiene
+
+Priority items:
+
+- finish registry-first template metadata
+- make `requiredChatFeatures` meaningful
+- close leftover placeholder wording and dead-end assumptions
+- harden `validate-templates.mjs`
+- make prepare / release gates enforce hygiene
+
+Why this is first:
+
+- without this, adding more templates only grows drift
+- without this, `agent-mcp` and `docs-chat` would be added on unstable metadata
+
+### 5.2 Phase B: `agent-mcp`
+
+Only start after Phase A is stable.
+
+Expected dependency:
+
+- consume `mcp` through the stable chat contract
+- do not wire MCP by bypassing the existing config / adapter / preset chain
+
+### 5.3 Phase C: `docs-chat`
+
+Only start after:
+
+- retrieval contract is clear
+- docs template is not just a UI shell over ad hoc page logic
+
+Expected dependency:
+
+- consume stabilized layout and retrieval-facing capability inputs
+
+### 5.4 Phase D: `base + feature packs + add`
+
+This is later work.
+
+It should build on:
+
+- a stable registry
+- real template metadata
+- at least one or two proven feature-aware templates
+
+It should not arrive before the basic registry and governance path is trustworthy.
+
+---
+
+## 6. Acceptance Standards
+
+### 6.1 Phase A is done when
+
+- registry is the single source of truth for stable template selection
+- CLI help, interactive selection, and validation all read from registry
+- `requiredChatFeatures` is aligned with the stable chat contract
+- invalid template structure is caught by template validation
+- prepare / release flow treats template hygiene failures as blockers
+
+### 6.2 Phase B or later template work may start when
+
+- the above Phase A rules are green
+- the upstream chat contract is not being reopened for the template at hand
+- the new template can consume existing chat capabilities instead of reintroducing handwritten page wiring
+
+---
+
+## 7. Testing Baseline
+
+Current useful verification layers:
+
+1. `packages/chat` contract-level unit tests
+   - verify the CLI consumption surface exposed by chat
+
+2. `packages/chat-cli` typecheck and build
+   - verify registry and CLI entry stay internally consistent
+
+3. CLI scaffold / release / smoke tests
+   - verify generated output still works with the registry-driven path
+
+Recommended commands:
+
+- `pnpm.cmd -F @opentiny/tiny-robot-chat test:unit`
+- `pnpm.cmd -F create-tiny-robot typecheck`
+- `pnpm.cmd -F create-tiny-robot build`
+- `pnpm.cmd -F tiny-robot-test test -- src/chat-cli/scaffold.spec.ts src/chat-cli/release.spec.ts src/chat-cli/smoke.spec.ts`
+
+---
+
+## 8. Documentation Split
+
+Document roles should stay clear:
+
+- [progress.md](./progress.md): short status board, next step, verified commands
+- this review: execution rules, boundaries, sequencing, acceptance standards
+- [../../docs/chat-cli-design.md](../../docs/chat-cli-design.md): long-lived architecture and target model
+
+When state changes:
+
+- update `progress.md` first
+- update this review if the execution rule or acceptance standard changes
+- update the design doc only if the target architecture changes
