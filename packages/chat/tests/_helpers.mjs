@@ -41,6 +41,7 @@ export const CHAT_CLI_CONSUMABLE_PRESET_SLICE_KEYS = adapterModule.CHAT_CLI_CONS
 export const resolveChatFeatures = adapterModule.resolveChatFeatures
 export const resolveAgentPreset = presetsModule.resolveAgentPreset
 export const createChatAdapterFromAgentPreset = presetsModule.createChatAdapterFromAgentPreset
+export const createPresetConsumptionFromAgentPreset = presetsModule.createPresetConsumptionFromAgentPreset
 export const BUILT_IN_AGENT_PRESETS = presetsModule.BUILT_IN_AGENT_PRESETS
 export const BUILT_IN_SKILL_PACKS = presetsModule.BUILT_IN_SKILL_PACKS
 export const getBuiltInAgentPreset = presetsModule.getBuiltInAgentPreset

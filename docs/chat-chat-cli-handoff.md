@@ -5,6 +5,7 @@
 > Primary status boards:
 > - [packages/chat/progress.md](../packages/chat/progress.md)
 > - [packages/chat-cli/progress.md](../packages/chat-cli/progress.md)
+> - [chat-p5-proposal.md](./chat-p5-proposal.md)
 
 ---
 
@@ -20,7 +21,8 @@ Current agreed state:
 - `packages/chat` has completed `P0 / P1 / P2`
 - `packages/chat` has completed `P3 / Template / CLI Consumption`
 - `packages/chat` has completed `P4-A / Agent Preset + Skill Pack Foundation`
-- `packages/chat` is now ready to define `P4-B`
+- `packages/chat` has now started `P4-B` at the first chat-side consumer-helper boundary
+- `packages/chat` is intentionally paused at the first `P4-B` white-box preset entry until a real next consumer appears
 - `packages/chat-cli` has started its own registry-first foundation work
 - the current CLI registry and hygiene baseline is sufficient, so the next active implementation step should stay in `packages/chat`
 
@@ -169,6 +171,62 @@ Important boundary:
 
 - `P4-A` is still a chat-side composition foundation
 - it does not yet introduce CLI input, workflow runtime, marketplace, or remote skill installation
+
+### 2.7 P4-B: First consumer helper boundary
+
+Completed so far:
+
+- `createPresetConsumptionFromAgentPreset()` now exists
+- it returns:
+  - `resolvedPreset`
+  - `chatConfig`
+  - `adapter`
+  - `presetProps`
+  - `presetSlices`
+- it supports `presetOverrides`, so callers can still shape the final props / slices without bypassing the existing chain
+
+Why this matters:
+
+- `P4-A` no longer stops at resolver-only proof
+- `packages/chat` now has a first explicit preset consumer helper
+- the next preset consumer step can stay chat-led instead of jumping too early into CLI-driven expansion
+
+### 2.8 P4-B: First white-box preset entry
+
+Completed:
+
+- `TrChat.PresetRoot` now exists as the first white-box preset entry inside `packages/chat`
+- it consumes:
+  - `baseConfig`
+  - `preset`
+  - optional `presets`
+  - optional `skillPacks`
+  - optional `presetOverrides`
+  - either `chatKit` or `responseProvider`
+- it exposes scoped-slot consumption for:
+  - `resolvedPreset`
+  - `chatConfig`
+  - `adapter`
+  - `presetProps`
+  - `presetSlices`
+  - `chatKit`
+- a dedicated `preset-entry` demo/test scenario now exists in:
+  - `packages/test/src/chat/index.vue`
+- `packages/test/src/chat/preset-entry.spec.ts` now verifies:
+  - built-in preset id exposure
+  - resolved welcome and prompt rendering
+  - prompt click keeps the injected `chatKit` live
+  - `docs` layout placement survives after prompt consumption
+
+Important boundary:
+
+- `TrChat.PresetRoot` is a chat-side white-box consumer entry
+- it is not a new parallel runtime
+- it must continue to resolve through:
+  - preset resolver
+  - adapter
+  - preset props
+  - preset slices
 
 ---
 
@@ -340,6 +398,7 @@ Chat E2E:
 - `packages/test/src/chat/sender-extensions.spec.ts`
 - `packages/test/src/chat/mcp-feature.spec.ts`
 - `packages/test/src/chat/layout-config.spec.ts`
+- `packages/test/src/chat/preset-entry.spec.ts`
 - `packages/test/src/chat/index.spec.ts`
 - `packages/test/src/chat/index.vue`
 
@@ -365,11 +424,16 @@ Done:
 
 Current:
 
-- `P4-B / next consumer or integration boundary not yet defined`
+- `P4-B / first preset consumer boundary has started`
+
+Current concrete shape:
+
+- first consumer helper: `createPresetConsumptionFromAgentPreset()`
+- first white-box entry: `TrChat.PresetRoot`
 
 Later:
 
-- `P5 / Theme / Workspace Shell`
+- `P5 / Theme + Workspace Shell + Content Navigation`
 
 ### 6.2 `packages/chat-cli`
 
@@ -389,7 +453,7 @@ Later:
 
 This is the currently agreed execution order.
 
-### 7.1 `chat` P3 and `P4-A` are complete and `chat` can define `P4-B`
+### 7.1 `chat` P3 and `P4-A` are complete, and `P4-B` has now started at the first consumer helper boundary
 
 What this means:
 
@@ -413,6 +477,24 @@ Current `P4-A` completion judgment:
 - authoring guide exists
 - built-in presets can flow through adapter -> preset props -> preset slices
 - `P4-A` should now be treated as complete, and any further work should be framed as `P4-B`
+
+Current `P4-B` early judgment:
+
+- `createPresetConsumptionFromAgentPreset()` is the first explicit chat-side consumer helper
+- preset output can now be consumed as:
+  - adapter
+  - preset props
+  - preset slices
+- the helper is additive and does not replace the existing resolver or adapter chain
+
+Current `P4-B` next judgment:
+
+- `TrChat.PresetRoot` now proves there is a real white-box consumer entry inside `packages/chat`
+- the project is currently paused at this point on purpose
+- the next `P4-B` step should only begin when a real consumer need appears and should stay additive while answering one of these:
+  - whether a blackbox preset entry is needed at all
+  - whether model/history/feedback should get preset-host level convenience composition
+  - whether the next consumer should remain runtime-side before any broader CLI preset input
 
 ### 7.2 Keep `chat-cli` in small follow-up mode until the next chat-side increment is clear
 
@@ -471,6 +553,21 @@ Do not:
 
 - grow shell behavior into `layout`
 - hide capability enablement inside layout variants
+
+### 8.4 P5 boundary
+
+- `P5` should be treated as:
+  - theme and appearance
+  - workspace shell and regions
+  - content navigation and view state
+- future navigation should attach to the center content host layer
+- user navigation and assistant navigation may share a host, but must not share one source model
+
+Do not:
+
+- treat `P5` as a continuation of `P2 layout`
+- put notebook, full-width mode, or content navigation into `layout.variant`
+- let theme tokens own shell structure
 
 ### 8.3 CLI boundary
 
@@ -533,6 +630,7 @@ Chat:
 - `pnpm.cmd -F @opentiny/tiny-robot-chat type-check`
 - `pnpm.cmd -F @opentiny/tiny-robot-chat test:unit`
 - `pnpm.cmd -F @opentiny/tiny-robot-chat build`
+- `pnpm.cmd -F tiny-robot-test test -- src/chat/preset-entry.spec.ts`
 - `pnpm.cmd -F tiny-robot-test test -- src/chat/welcome-prompts.spec.ts src/chat/sender-actions.spec.ts`
 - `pnpm.cmd -F tiny-robot-test test -- --workers=1 src/chat/sender-extensions.spec.ts`
 - `pnpm.cmd -F tiny-robot-test test -- src/chat/layout-config.spec.ts src/chat/mcp-feature.spec.ts src/chat/index.spec.ts`
@@ -566,7 +664,7 @@ If another LLM needs to resume implementation, the fastest safe path is:
    - `packages/chat-cli/src/index.ts`
 
 4. Pick the next task from this order:
-   - define the next `P4-B` boundary in `packages/chat`
+   - extend the first `P4-B` consumer-helper boundary only if the next consumer need is explicit
    - keep `chat-cli` follow-up work limited to hardening existing sample templates unless a new chat-side contract requires more
    - keep template generation registry-first
    - keep `docs-chat` waiting for retrieval contract clarity
@@ -580,4 +678,34 @@ If another LLM needs to resume implementation, the fastest safe path is:
 
 ## 12. One-sentence Current State
 
-`packages/chat` has already completed `P3` and `P4-A` by stabilizing both a real template-consumption contract and a first preset/skill composition foundation, while `packages/chat-cli` now has a usable registry and hygiene baseline plus two stable white-box sample templates in `basic` and `agent-mcp`.
+`packages/chat` has already completed `P3` and `P4-A`, and has now started `P4-B` with both a first preset consumer helper and a first white-box preset entry, while `packages/chat-cli` stays in a narrow follow-up role with two stable white-box sample templates in `basic` and `agent-mcp`.
+
+---
+
+## 13. Latest P5 Discussion Snapshot
+
+The most recent `P5` discussion added three practical execution rules:
+
+- referenced screenshots currently act as visual shell references first
+- the near-term demo goal is visual validation, not shell-contract proof
+- the first implementation step should favor outer-shell polish before panel semantics
+
+What the screenshots are currently being used for:
+
+- margin around the workspace shell
+- larger shell radius
+- cleaner clipping and page-level breathing room
+- a more refined "chat inside a workspace card" presentation
+
+What they are not being used for yet:
+
+- locking left and right panel semantics
+- locking notebook behavior
+- locking navigation source models
+- defining the final `P5-B` public API
+
+Practical implication:
+
+- when implementation resumes, start from demo-visible shell polish
+- confirm visual direction first
+- only then decide whether to formalize regions, panel hosts, and panel state

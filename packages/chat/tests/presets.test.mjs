@@ -3,6 +3,7 @@ import {
   BUILT_IN_SKILL_PACKS,
   assert,
   createChatAdapterFromAgentPreset,
+  createPresetConsumptionFromAgentPreset,
   createPresetChatProps,
   createPresetChatSlices,
   getBuiltInAgentPreset,
@@ -553,4 +554,93 @@ await runTest('built-in presets can flow through adapter -> preset props -> pres
   assert.equal(slices.messageList.variant, 'docs')
   assert.equal(slices.messageList.showFeedback, true)
   assert.equal(slices.welcome?.title, 'Docs Assistant')
+})
+
+await runTest('createPresetConsumptionFromAgentPreset exposes the first chat-side preset consumer helper', async () => {
+  const mcpManager = useMcpManager()
+
+  const result = createPresetConsumptionFromAgentPreset({
+    baseConfig: {
+      models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+      providers: {
+        openai: {
+          type: 'openai-compatible',
+          endpoint: '/api/chat',
+        },
+      },
+      ui: {
+        brand: {
+          title: 'Base Agent',
+        },
+      },
+    },
+    preset: {
+      id: 'tool-consumer',
+      skills: ['conversation-core', 'tool-agent-core'],
+      ui: {
+        welcome: {
+          title: 'Preset Welcome',
+        },
+      },
+      features: {
+        history: true,
+      },
+      mcp: {
+        manager: mcpManager,
+      },
+    },
+    skillPacks: BUILT_IN_SKILL_PACKS,
+  })
+
+  assert.equal(result.resolvedPreset.presetId, 'tool-consumer')
+  assert.equal(result.chatConfig.ui?.brand?.title, 'Base Agent')
+  assert.equal(result.chatConfig.ui?.welcome?.title, 'Preset Welcome')
+  assert.equal(result.chatConfig.features?.history, true)
+  assert.equal(result.chatConfig.features?.feedback, true)
+  assert.equal(result.chatConfig.features?.mcp?.manager, mcpManager)
+  assert.equal(result.presetProps.brand?.title, 'Base Agent')
+  assert.equal(result.presetProps.welcome?.title, 'Preset Welcome')
+  assert.equal(result.presetProps.showHistory, true)
+  assert.equal(result.presetProps.showFeedback, true)
+  assert.equal(result.presetProps.mcpManager, mcpManager)
+  assert.equal(result.presetSlices.header.title, 'Base Agent')
+  assert.equal(result.presetSlices.history.enabled, true)
+  assert.equal(result.presetSlices.messageList.showFeedback, true)
+  assert.equal(result.presetSlices.root.mcpManager, mcpManager)
+  assert.equal(result.presetSlices.welcome?.title, 'Preset Welcome')
+})
+
+await runTest('createPresetConsumptionFromAgentPreset lets presetOverrides shape the final preset props and slices', async () => {
+  const result = createPresetConsumptionFromAgentPreset({
+    baseConfig: {
+      models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+      providers: {
+        openai: {
+          type: 'openai-compatible',
+          endpoint: '/api/chat',
+        },
+      },
+    },
+    preset: {
+      id: 'override-consumer',
+      features: {
+        history: true,
+      },
+    },
+    presetOverrides: {
+      placeholder: 'Override sender placeholder',
+      senderMode: 'single',
+      maxLength: 280,
+      showHistory: false,
+    },
+  })
+
+  assert.equal(result.presetProps.placeholder, 'Override sender placeholder')
+  assert.equal(result.presetProps.senderMode, 'single')
+  assert.equal(result.presetProps.maxLength, 280)
+  assert.equal(result.presetProps.showHistory, false)
+  assert.equal(result.presetSlices.sender.placeholder, 'Override sender placeholder')
+  assert.equal(result.presetSlices.sender.mode, 'single')
+  assert.equal(result.presetSlices.sender.maxLength, 280)
+  assert.equal(result.presetSlices.history.enabled, false)
 })

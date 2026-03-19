@@ -3,12 +3,14 @@
 > Last updated: `2026-03-18`
 > Design: [docs/chat-kit-design.md](../../docs/chat-kit-design.md)
 > Review: [chat-kit-review-02.md](./chat-kit-review-02.md)
+> P5 Draft: [docs/chat-p5-proposal.md](../../docs/chat-p5-proposal.md)
 
 ## Current Status
 
 - Current track: `P4 - Agent Preset + Skill Pack`
 - Current judgment: `P3 is complete`
 - Current rule: keep `packages/chat` as the source capability layer, treat `P3` as complete, and only let higher-level preset or skill work build on the already-stable capability contract instead of reopening it
+- Current pause point: stop at the first `P4-B` white-box preset entry and wait for a real next consumer before extending preset runtime APIs
 
 ## Phase Status
 
@@ -18,8 +20,8 @@
 | P1 / High-value Features | `done` | `attachments / senderActions / welcomePrompts` are formalized; blackbox and white-box defaults are aligned |
 | P2 / MCP + Layout | `done` | `mcp`, `layout.variant`, `layout.placements`, and `workspace` layout variant are formalized |
 | P3 / Template / CLI Consumption | `done` | stable capability contract, explicit template mapping, and registry-backed consumers are in place |
-| P4 / Agent Preset + Skill Pack | `next` | build higher-level preset composition on top of the locked capability chain |
-| P5 / Theme / Workspace Shell | `later` | not on the active path yet |
+| P4 / Agent Preset + Skill Pack | `in progress` | `P4-A` is complete; `P4-B` has started with chat-side preset consumption |
+| P5 / Theme + Workspace Shell + Content Navigation | `later` | boundaries are now drafted; not on the active path yet |
 
 ## P1 Result
 
@@ -47,13 +49,46 @@
 - Sender extensions remain: `senderProps.extensions`
 - White-box default consumption surface remains: `createPresetChatSlices()`
 - `layout` is responsible for presentation-level variant and placement decisions only
+- `workspace` remains a pure content-layout variant, not a shell bundle
+- future `P5` navigation should attach to center content as a host-level layer, not reopen `P2 layout`
 - `chat-cli` should consume stable chat capability outputs, not invent new chat-layer abstractions
 
 ## Next Step
 
-1. Treat `P4-A` as complete and only open `P4-B` after deciding the next chat-side consumer or integration boundary.
-2. Keep any `P4-B` work additive: it should build on the existing preset resolver layer rather than replacing it.
-3. Do not let `chat-cli` consume any new `P4` outputs until the next preset boundary is explicit and test-covered.
+1. Keep the current stop point at `P4-B` until a real next consumer appears.
+2. If the next need is still inside `packages/chat`, continue `P4-B` in an additive way on top of the current resolver and preset-slice chain.
+3. If the next need is shell or theming, define `P5` boundaries first instead of growing preset APIs speculatively.
+4. Do not let `chat-cli` consume broader `P4` outputs until the next preset boundary is explicit and test-covered.
+
+## P5 Draft Direction
+
+- `P5` is now framed as three internal tracks:
+  - `P5-A / Theme & Appearance`
+  - `P5-B / Workspace Shell & Regions`
+  - `P5-C / Content Navigation & View State`
+- current screenshot usage is intentionally narrow:
+  - visual shell spacing
+  - radius
+  - clipping
+  - page-level polish
+- current first demo goal for `P5` is also intentionally narrow:
+  - add a demo-visible workspace shell treatment
+  - verify margin and rounded-card presentation
+  - avoid treating the first demo as proof of final panel contracts
+- `P2 layout` stays limited to chat content layout:
+  - `bubble / docs / workspace`
+  - role placements
+  - message-list presentation
+- `P5` should own:
+  - shell regions
+  - notebook or right-panel hosting
+  - docked composer hosting
+  - content-attached navigation
+  - runtime view toggles such as notebook and full-width mode
+- `P5` should not:
+  - move shell concerns back into `layout.variant`
+  - collapse user navigation and assistant navigation into one source model
+  - let theme own shell structure
 
 ## P3 Current Progress
 
@@ -271,6 +306,10 @@
 - [x] built-in preset and skill pack examples now exist as internal reference shapes
 - [x] internal authoring guidance now exists in `packages/chat/src/presets/README.md`
 - [x] unit tests now cover both resolver semantics and preset consumption through preset props / slices
+- [x] the first `P4-B` chat-side consumer helper now exists:
+  - `createPresetConsumptionFromAgentPreset()`
+  - output now includes `resolvedPreset / chatConfig / adapter / presetProps / presetSlices`
+  - `presetOverrides` can shape the final preset props and slices without bypassing the existing chain
 
 ## P4-A Done When
 
@@ -284,6 +323,40 @@
 
 - [x] `P4-A` is complete.
 
+## P4-B Early Boundary
+
+- `P4-B` has now started at the smallest useful consumer boundary inside `packages/chat`.
+- The first consumer helper is:
+  - `createPresetConsumptionFromAgentPreset()`
+- Its purpose is:
+  - consume `AgentPreset` through the existing preset resolver layer
+  - return ready-to-use adapter output
+  - return ready-to-use preset props
+  - return ready-to-use preset slices
+- This keeps preset consumption chat-led and avoids pushing the next integration step into `chat-cli` too early.
+
+## P4-B Current Progress
+
+- [x] `TrChat.PresetRoot` now exists as the first white-box preset entry.
+- [x] `TrChat.PresetRoot` consumes:
+  - `baseConfig`
+  - `preset`
+  - optional preset catalog inputs
+  - optional `presetOverrides`
+- [x] `TrChat.PresetRoot` exposes scoped-slot consumption for:
+  - `resolvedPreset`
+  - `chatConfig`
+  - `adapter`
+  - `presetProps`
+  - `presetSlices`
+  - `chatKit`
+- [x] a dedicated `preset-entry` verification scenario now exists in `packages/test/src/chat/index.vue`
+- [x] `packages/test/src/chat/preset-entry.spec.ts` verifies:
+  - built-in preset metadata reaches the white-box entry
+  - resolved welcome and prompt content render through preset slices
+  - prompt click keeps the injected `chatKit` live
+  - `docs` layout placement behavior survives after prompt consumption
+
 ## Verified
 
 - `pnpm.cmd -F @opentiny/tiny-robot-chat type-check`
@@ -292,3 +365,4 @@
 - `pnpm.cmd -F tiny-robot-test test -- src/chat/layout-config.spec.ts src/chat/mcp-feature.spec.ts src/chat/index.spec.ts`
 - `pnpm.cmd -F tiny-robot-test test -- src/chat/welcome-prompts.spec.ts src/chat/sender-actions.spec.ts`
 - `pnpm.cmd -F tiny-robot-test test -- src/chat/sender-extensions.spec.ts`
+- `pnpm.cmd -F tiny-robot-test test -- src/chat/preset-entry.spec.ts`

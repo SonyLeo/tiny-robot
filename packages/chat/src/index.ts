@@ -5,6 +5,7 @@ import './styles/index.css'
 import {
   Chat as TrChat,
   ChatRoot as TrChatRoot,
+  ChatPresetRoot as TrChatPresetRoot,
   ChatLayout as TrChatLayout,
   ChatHeader as TrChatHeader,
   ChatWelcome as TrChatWelcome,
@@ -21,6 +22,7 @@ import { ModelSelector as TrModelSelector } from './components/model-selector'
 // 定义带子组件的 TrChat 类型
 type TrChatWithSubComponents = typeof TrChat & {
   Root: typeof TrChatRoot
+  PresetRoot: typeof TrChatPresetRoot
   Layout: typeof TrChatLayout
   Header: typeof TrChatHeader
   Welcome: typeof TrChatWelcome
@@ -34,6 +36,7 @@ type TrChatWithSubComponents = typeof TrChat & {
 // 挂载白盒子组件到 TrChat 上，实现复合组件模式
 const TrChatFull = TrChat as TrChatWithSubComponents
 TrChatFull.Root = TrChatRoot
+TrChatFull.PresetRoot = TrChatPresetRoot
 TrChatFull.Layout = TrChatLayout
 TrChatFull.Header = TrChatHeader
 TrChatFull.Welcome = TrChatWelcome
@@ -70,7 +73,7 @@ export {
 } from './components/render'
 
 // ===== 新组件 =====
-export { TrModelSelector, TrChatFeedback, TrChatMcpPanel, TrChatLayout, TrChatAttachments }
+export { TrModelSelector, TrChatFeedback, TrChatMcpPanel, TrChatLayout, TrChatAttachments, TrChatPresetRoot }
 
 // ===== Providers =====
 export { matchProvider, createOpenAIFactory, createDeepSeekFactory } from './providers/factories'
@@ -88,7 +91,12 @@ export {
 } from './adapters'
 export { CHAT_FEATURE_REGISTRY, resolveChatFeatures } from './features'
 export { CHAT_MESSAGES } from './messages'
-export { resolveAgentPreset, applyAgentPresetToConfig, createChatAdapterFromAgentPreset } from './presets'
+export {
+  resolveAgentPreset,
+  applyAgentPresetToConfig,
+  createChatAdapterFromAgentPreset,
+  createPresetConsumptionFromAgentPreset,
+} from './presets'
 export { BUILT_IN_AGENT_PRESETS, BUILT_IN_SKILL_PACKS, getBuiltInAgentPreset, getBuiltInSkillPack } from './presets'
 
 // ===== 类型 =====
@@ -174,11 +182,13 @@ export type {
   ResolvedChatFeatures,
 } from './features'
 export type {
+  AgentPresetConsumptionResult,
   AgentPresetInput,
   AgentPresetResolutionResult,
   AgentPresetUiInput,
   BuiltInAgentPresetId,
   BuiltInSkillPackId,
+  CreatePresetConsumptionFromAgentPresetOptions,
   ApplyAgentPresetOptions,
   CreateChatAdapterFromAgentPresetOptions,
   ResolveAgentPresetOptions,

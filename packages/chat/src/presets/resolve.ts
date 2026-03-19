@@ -1,10 +1,12 @@
-import { createChatAdapterFromConfig } from '../adapters/config'
+import { createChatAdapterFromConfig, createPresetChatProps, createPresetChatSlices } from '../adapters/config'
 import type { ChatConfig } from '../adapters/types'
 import type {
+  AgentPresetConsumptionResult,
   AgentPresetInput,
   AgentPresetResolutionResult,
   AgentPresetUiInput,
   ApplyAgentPresetOptions,
+  CreatePresetConsumptionFromAgentPresetOptions,
   CreateChatAdapterFromAgentPresetOptions,
   ResolveAgentPresetOptions,
   ResolvedAgentPreset,
@@ -332,5 +334,19 @@ export function createChatAdapterFromAgentPreset(
     resolvedPreset,
     chatConfig,
     adapter: createChatAdapterFromConfig(chatConfig),
+  }
+}
+
+export function createPresetConsumptionFromAgentPreset(
+  options: CreatePresetConsumptionFromAgentPresetOptions,
+): AgentPresetConsumptionResult {
+  const { presetOverrides, ...presetOptions } = options
+  const adapterResult = createChatAdapterFromAgentPreset(presetOptions)
+  const presetProps = createPresetChatProps(adapterResult.adapter, presetOverrides)
+
+  return {
+    ...adapterResult,
+    presetProps,
+    presetSlices: createPresetChatSlices(presetProps),
   }
 }

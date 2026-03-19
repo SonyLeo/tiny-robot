@@ -79,6 +79,7 @@ export const CHAT_SELECTORS = {
   switchToSenderExtensions: '[data-testid="switch-sender-extensions"]',
   switchToMcpFeature: '[data-testid="switch-mcp-feature"]',
   switchToLayoutConfig: '[data-testid="switch-layout-config"]',
+  switchToPresetEntry: '[data-testid="switch-preset-entry"]',
 
   // === 状态指示器（白盒 Demo 中注入） ===
   statusIndicator: '[data-testid="status-indicator"]',

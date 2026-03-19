@@ -74,6 +74,14 @@ export function createChatTestHelper(page: Page, options: ChatTestHelperOptions 
     })
   }
 
+  const switchToPresetEntry = async () => {
+    await testUtils.clickWhenVisible(selectors.switchToPresetEntry)
+    await page.locator('[data-testid="chat-preset-entry"]').waitFor({
+      state: 'visible',
+      timeout: defaultTimeout,
+    })
+  }
+
   // =====================
   //  消息发送
   // =====================
@@ -436,6 +444,7 @@ export function createChatTestHelper(page: Page, options: ChatTestHelperOptions 
     switchToSenderExtensions,
     switchToMcpFeature,
     switchToLayoutConfig,
+    switchToPresetEntry,
 
     // 消息交互
     typeMessage,

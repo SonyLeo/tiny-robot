@@ -44,6 +44,13 @@
       >
         Layout Config
       </button>
+      <button
+        data-testid="switch-preset-entry"
+        :class="{ active: mode === 'preset-entry' }"
+        @click="mode = 'preset-entry'"
+      >
+        Preset Entry
+      </button>
     </div>
 
     <div v-if="mode === 'blackbox'" data-testid="chat-blackbox" class="chat-wrapper">
@@ -264,6 +271,39 @@
       </div>
     </div>
 
+    <div v-if="mode === 'preset-entry'" data-testid="chat-preset-entry" class="chat-wrapper">
+      <TrChat.PresetRoot
+        :response-provider="presetEntryProvider"
+        :base-config="presetEntryBaseConfig"
+        :preset="presetEntryPreset"
+        :presets="BUILT_IN_AGENT_PRESETS"
+        :skill-packs="BUILT_IN_SKILL_PACKS"
+        :preset-overrides="presetEntryOverrides"
+      >
+        <template #default="{ chatKit: presetEntryChatKit, resolvedPreset, presetSlices }">
+          <TrChat.Layout v-bind="presetSlices.layout">
+            <TrChat.Header v-bind="presetSlices.header">
+              <template #extra>
+                <span data-testid="preset-entry-preset-id">{{ resolvedPreset.presetId }}</span>
+              </template>
+            </TrChat.Header>
+
+            <TrChat.Welcome
+              v-if="presetEntryChatKit.messages.value.length === 0 && presetSlices.welcome"
+              v-bind="presetSlices.welcome"
+              @prompt-click="(description) => presetEntryChatKit.sendMessage(description)"
+            />
+
+            <TrChat.MessageList v-else v-bind="presetSlices.messageList" />
+
+            <TrChat.Footer>
+              <TrChat.Sender v-bind="presetSlices.sender" />
+            </TrChat.Footer>
+          </TrChat.Layout>
+        </template>
+      </TrChat.PresetRoot>
+    </div>
+
     <div v-if="mode === 'whitebox'" data-testid="chat-whitebox" class="chat-wrapper">
       <div class="status-bar">
         <span data-testid="status-indicator">{{ status }}</span>
@@ -373,6 +413,8 @@
 import { computed, ref } from 'vue'
 import { TrSender } from '@opentiny/tiny-robot'
 import {
+  BUILT_IN_AGENT_PRESETS,
+  BUILT_IN_SKILL_PACKS,
   TrChat,
   TrChatFeedback,
   TrChatMcpPanel,
@@ -380,6 +422,7 @@ import {
   createChatAdapterFromConfig,
   createPresetChatProps,
   createPresetChatSlices,
+  getBuiltInAgentPreset,
   useChatKit,
   useMcpManager,
   useModelSelector,
@@ -401,6 +444,7 @@ type ChatMode =
   | 'sender-extensions'
   | 'mcp-feature'
   | 'layout-config'
+  | 'preset-entry'
 
 function getInitialMode(): ChatMode {
   if (typeof window === 'undefined') {
@@ -414,7 +458,8 @@ function getInitialMode(): ChatMode {
     mode === 'welcome-prompts' ||
     mode === 'sender-extensions' ||
     mode === 'mcp-feature' ||
-    mode === 'layout-config'
+    mode === 'layout-config' ||
+    mode === 'preset-entry'
   ) {
     return mode
   }
@@ -667,6 +712,39 @@ const workspaceLayoutWhiteboxChat = useChatKit({
   }),
 })
 const showWorkspaceLayoutWhiteboxWelcome = computed(() => workspaceLayoutWhiteboxChat.messages.value.length === 0)
+
+const presetEntryPreset = getBuiltInAgentPreset('docs-reader')
+if (!presetEntryPreset) {
+  throw new Error('docs-reader preset not found')
+}
+
+const presetEntryBaseConfig = {
+  models: [{ id: 'preset-entry-model', provider: 'openai' }],
+  providers: {
+    openai: {
+      type: 'openai-compatible' as const,
+      endpoint: '/api/chat',
+    },
+  },
+  ui: {
+    brand: {
+      title: 'Preset Entry Base',
+    },
+    welcome: {
+      title: 'Preset Entry Base Welcome',
+      description: 'PresetRoot should consume resolved preset slices through a scoped slot.',
+    },
+  },
+}
+
+const presetEntryProvider = createMockProvider({
+  provider: 'openai',
+  model: 'preset-entry-model',
+})
+
+const presetEntryOverrides = {
+  placeholder: 'Preset entry sender...',
+}
 
 const welcomePromptsAdapter = createChatAdapterFromConfig({
   models: [{ id: 'welcome-prompts-model', provider: 'openai' }],
