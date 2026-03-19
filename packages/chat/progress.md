@@ -51,9 +51,9 @@
 
 ## Next Step
 
-1. Enter `P4` and define the smallest useful `AgentPreset / SkillPack` composition layer on top of the existing capability contract.
-2. Keep `P4` additive: it should resolve to standard feature / prompt / MCP / layout inputs instead of replacing the current chain.
-3. Let `chat-cli` consume any new `P4` outputs only after the chat-side preset boundary is explicit and test-covered.
+1. Treat `P4-A` as complete and only open `P4-B` after deciding the next chat-side consumer or integration boundary.
+2. Keep any `P4-B` work additive: it should build on the existing preset resolver layer rather than replacing it.
+3. Do not let `chat-cli` consume any new `P4` outputs until the next preset boundary is explicit and test-covered.
 
 ## P3 Current Progress
 
@@ -203,6 +203,86 @@
   - adapter
   - feature registry
   - preset / preset slices
+
+## P4 Current Plan
+
+- `P4-A` first delivers:
+  - `AgentPreset` types
+  - `SkillPack` types
+  - a resolver that returns standard chat config patches
+  - unit tests for merge rules and output boundaries
+- `P4-A` does not yet deliver:
+  - CLI flags
+  - template marketplace
+  - remote skill installation
+  - workflow runtime
+- Only after `P4-A` is stable should any `chat-cli` follow-up consumer work begin.
+
+## P4 Current Progress
+
+- [x] `P4-A` has started on the chat side.
+- [x] `packages/chat/src/presets` now exists as the first preset-composition layer.
+- [x] `AgentPreset` and `SkillPack` types now exist.
+- [x] `resolveAgentPreset()` now resolves preset and skill inputs into standard chat config patches.
+- [x] `createChatAdapterFromAgentPreset()` now proves preset output can flow back into the existing adapter chain.
+- [x] merge rules now cover:
+  - `defaults`
+  - `ui.brand`
+  - `ui.welcome`
+  - `ui.prompts`
+  - `layout.variant`
+  - `layout.placements`
+  - nested feature config objects
+- [x] prompt and mcp resolver semantics are now explicit and test-covered:
+  - `ui.prompts` defaults to replace
+  - `ui.promptMode = 'append'` appends prompts to inherited or skill-provided prompts
+  - `mcp` object overrides `mcp: true`
+  - `mcp: false` explicitly disables mcp for the final resolved patch
+- [x] `AgentPreset` now supports minimal preset inheritance through `extends`
+- [x] built-in example preset and skill pack catalog now exists for internal reference:
+  - `assistant-base`
+  - `docs-reader`
+  - `tool-agent`
+  - `conversation-core`
+  - `docs-layout`
+  - `tool-agent-core`
+- [x] `packages/chat/src/presets/README.md` now documents the current authoring contract for presets and skill packs
+- [x] unit tests now cover:
+  - skill pack ordering
+  - preset-last override behavior
+  - missing skill failure
+  - missing inherited preset failure
+  - circular preset inheritance detection
+  - adapter consumption through the existing chain
+  - nested config merge behavior against both skill packs and base config
+  - built-in example resolution behavior
+  - built-in preset consumption through `createPresetChatProps()` and `createPresetChatSlices()`
+
+## P4-A Result
+
+- [x] `AgentPreset` and `SkillPack` types are defined as a higher-level composition layer on top of the stable chat contract
+- [x] preset resolution now supports:
+  - skill pack merge
+  - preset inheritance through `extends`
+  - nested config merge
+  - explicit prompt merge rules
+  - explicit mcp merge rules
+- [x] `createChatAdapterFromAgentPreset()` proves preset output can flow back into the existing adapter chain
+- [x] built-in preset and skill pack examples now exist as internal reference shapes
+- [x] internal authoring guidance now exists in `packages/chat/src/presets/README.md`
+- [x] unit tests now cover both resolver semantics and preset consumption through preset props / slices
+
+## P4-A Done When
+
+- preset and skill pack composition resolves only into the existing chat capability chain
+- merge rules are explicit and test-covered
+- inheritance boundaries and failure cases are explicit and test-covered
+- built-in examples and authoring guidance exist for internal reuse
+- no `P4-A` work requires reopening the `P3` chat-cli consumption contract
+
+## P4-A Status
+
+- [x] `P4-A` is complete.
 
 ## Verified
 

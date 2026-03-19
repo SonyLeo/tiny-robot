@@ -278,6 +278,68 @@ P4 进入条件判断：
   - 模板消费不再依赖页面层手工黑盒兜底
   - `P4` 不需要回头重开 `Phase B / C / D` 边界
 
+当前执行建议：
+
+- 先做 `P4-A`
+- `P4-A` 只做类型、resolver、merge 规则和 unit tests
+- `P4-A` 不直接扩张 CLI 输入面，不做 marketplace，不做 workflow runtime
+- `P4-A` 的输出必须继续回到现有：
+  - `ChatConfig`
+  - adapter
+  - feature registry
+  - preset / preset slices
+
+当前进展判断：
+
+- `P4-A` 已完成
+- 第一轮实现已经建立：
+  - `AgentPreset`
+  - `SkillPack`
+  - `resolveAgentPreset()`
+  - `createChatAdapterFromAgentPreset()`
+- 第一轮测试已经证明：
+  - preset / skill merge 规则存在并可验证
+  - 输出仍然回到现有 adapter 链
+  - 当前没有必要提前打开 CLI 输入面
+- 当前 merge 规则已经覆盖：
+  - `defaults`
+  - `ui.brand`
+  - `ui.welcome`
+  - `ui.prompts`
+  - `layout.variant`
+  - `layout.placements`
+  - nested feature config objects
+- 当前还已经明确写死：
+  - `ui.prompts` 默认 replace
+  - `ui.promptMode = 'append'` 时才做追加
+  - `mcp` object 优先于 `mcp: true`
+  - `mcp: false` 可显式关闭最终结果中的 mcp
+- 当前表达能力已经进一步覆盖：
+  - `AgentPreset.extends`
+  - missing inherited preset failure
+  - circular preset inheritance detection
+- 当前还已经具备一组内建参考 shape：
+  - `assistant-base`
+  - `docs-reader`
+  - `tool-agent`
+  - 以及对应的 skill packs
+- 这意味着 `P4-A` 不再只是抽象 resolver，而是已经有内部可复用、可测试、可说明的示例组合
+- 当前还已经补齐：
+  - `packages/chat/src/presets/README.md` 作为内部 authoring guide
+  - 一层更贴近真实消费的验证：built-in preset 结果继续流入 `createPresetChatProps()` 与 `createPresetChatSlices()`
+
+当前结论：
+
+- `P4-A` 已经完成它应完成的最小范围：
+  - 类型
+  - resolver
+  - merge 规则
+  - inheritance
+  - built-in catalog
+  - authoring guide
+  - unit 验证
+- 后续如果继续推进，应视为 `P4-B` 或更高层的消费阶段，而不是继续把 `P4-A` 保持在进行中
+
 ### Phase F: Theme / Workspace Shell
 
 目标：

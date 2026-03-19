@@ -17,6 +17,7 @@ const chatKitModule = await jiti.import('../src/composables/useChatKit.ts')
 const mcpManagerModule = await jiti.import('../src/composables/useMcpManager.ts')
 const modelSelectorModule = await jiti.import('../src/composables/useModelSelector.ts')
 const adapterModule = await jiti.import('../src/adapters/index.ts')
+const presetsModule = await jiti.import('../src/presets/index.ts')
 const messagesModule = await jiti.import('../src/messages.ts')
 
 export { assert, computed, nextTick, ref, shallowRef }
@@ -38,6 +39,12 @@ export const CHAT_CLI_CONSUMABLE_FEATURE_KEYS = adapterModule.CHAT_CLI_CONSUMABL
 export const CHAT_CLI_CONSUMABLE_PRESET_PROP_KEYS = adapterModule.CHAT_CLI_CONSUMABLE_PRESET_PROP_KEYS
 export const CHAT_CLI_CONSUMABLE_PRESET_SLICE_KEYS = adapterModule.CHAT_CLI_CONSUMABLE_PRESET_SLICE_KEYS
 export const resolveChatFeatures = adapterModule.resolveChatFeatures
+export const resolveAgentPreset = presetsModule.resolveAgentPreset
+export const createChatAdapterFromAgentPreset = presetsModule.createChatAdapterFromAgentPreset
+export const BUILT_IN_AGENT_PRESETS = presetsModule.BUILT_IN_AGENT_PRESETS
+export const BUILT_IN_SKILL_PACKS = presetsModule.BUILT_IN_SKILL_PACKS
+export const getBuiltInAgentPreset = presetsModule.getBuiltInAgentPreset
+export const getBuiltInSkillPack = presetsModule.getBuiltInSkillPack
 
 export const CHAT_MESSAGES = messagesModule.CHAT_MESSAGES
 

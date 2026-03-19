@@ -88,6 +88,8 @@ export {
 } from './adapters'
 export { CHAT_FEATURE_REGISTRY, resolveChatFeatures } from './features'
 export { CHAT_MESSAGES } from './messages'
+export { resolveAgentPreset, applyAgentPresetToConfig, createChatAdapterFromAgentPreset } from './presets'
+export { BUILT_IN_AGENT_PRESETS, BUILT_IN_SKILL_PACKS, getBuiltInAgentPreset, getBuiltInSkillPack } from './presets'
 
 // ===== 类型 =====
 export type {
@@ -171,6 +173,18 @@ export type {
   ChatWelcomePromptsFeatureResolution,
   ResolvedChatFeatures,
 } from './features'
+export type {
+  AgentPresetInput,
+  AgentPresetResolutionResult,
+  AgentPresetUiInput,
+  BuiltInAgentPresetId,
+  BuiltInSkillPackId,
+  ApplyAgentPresetOptions,
+  CreateChatAdapterFromAgentPresetOptions,
+  ResolveAgentPresetOptions,
+  ResolvedAgentPreset,
+  SkillPackInput,
+} from './presets'
 
 // 从 iconMap 导出 KnownProvider 类型
 export { KNOWN_PROVIDERS, type KnownProvider } from './utils/iconMap'

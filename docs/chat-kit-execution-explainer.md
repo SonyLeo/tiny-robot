@@ -25,9 +25,9 @@
 
 ## 2. 一句话主结论
 
-`packages/chat` 接下来的主线，不是继续补聊天基础组件，而是：
+`packages/chat` 当前真正的主线，已经不是继续补聊天基础组件，而是：
 
-> 把已经存在的聊天运行时能力，系统化升级为稳定、声明式、可被黑盒、白盒和 `chat-cli` 共同消费的 feature 契约。
+> 把已经存在的聊天运行时能力，系统化升级为稳定、声明式、可被黑盒、白盒、`chat-cli` 和更高层 preset/skill 共同消费的能力 contract。
 
 这里最重要的关键词不是“新组件”，而是：
 
@@ -35,6 +35,10 @@
 - 声明式
 - 可复用
 - 可生成
+
+如果今天你要拿这份内容去对团队讲，建议在这一节后面立刻补一句：
+
+> 我们不是在继续堆聊天页面，而是在把聊天能力沉淀成一套可声明、可装配、可生成、可组合的工程底座。
 
 ---
 
@@ -248,6 +252,287 @@ ChatConfig
 
 - 手工改 `App.vue`
 - 多份页面逻辑复制
+
+### 7.5 当前阶段补充：`P3` 已完成，`P4-A` 也已经落地
+
+前面这些阶段解释，更适合说明“为什么要这样做”。  
+但如果今天对团队讲，还需要补充一个很现实的问题：
+
+> 现在到底做到哪了？
+
+当前更准确的状态是：
+
+- `P3 / Template / CLI Consumption` 已完成
+- `P4-A / AgentPreset + SkillPack Foundation` 已完成 chat 侧第一轮基础建设
+
+这两件事分别意味着：
+
+#### `P3` 已完成，意味着什么
+
+- `packages/chat` 对 `chat-cli` 已经暴露稳定的 template-facing contract
+- 模板不再靠复制页面来接功能
+- `basic` 和 `agent-mcp` 已经证明：
+  - registry metadata 是真的
+  - `contractUsage` 是真的
+  - scaffold / smoke 是绿的
+
+也就是说，现在如果有人问：
+
+> 模板到底消费的是什么？
+
+答案已经不是“某个页面实现”，而是：
+
+- stable feature keys
+- stable preset prop keys
+- stable preset slice keys
+
+#### `P4-A` 已完成，意味着什么
+
+现在 chat 侧已经具备：
+
+- `AgentPreset`
+- `SkillPack`
+- `resolveAgentPreset()`
+- `applyAgentPresetToConfig()`
+- `createChatAdapterFromAgentPreset()`
+
+并且这不是抽象空壳，而是已经有：
+
+- merge 规则
+- `promptMode`
+- `mcp` merge 语义
+- preset inheritance（`extends`）
+- built-in catalog
+- authoring guide
+- unit tests
+- built-in preset 继续流入 `createPresetChatProps()` 与 `createPresetChatSlices()` 的验证
+
+所以今天更准确的讲法不是：
+
+> “我们准备开始做 preset / skill pack”
+
+而是：
+
+> “我们已经把 preset / skill pack 的第一轮 chat-side foundation 做出来了，后面要讨论的是它如何被更高层应用和 workflow 真正消费。”
+
+### 7.6 为什么这套设计值得做，具体好处体现在哪里
+
+如果团队只听到一堆概念，通常会觉得系统变复杂了。  
+所以宣讲时必须把收益讲成具体的工程收益，而不是抽象收益。
+
+#### 好处一：能力不再散落
+
+以前一个能力很容易散落在：
+
+- 页面逻辑
+- demo
+- slot
+- 模板目录
+- `TrChatProps`
+
+现在能力优先回到：
+
+- `ChatConfig`
+- feature registry
+- adapter
+- preset props / preset slices
+
+具体收益：
+
+- 默认行为更稳定
+- 回归影响面更清楚
+- 新人更容易找到正确入口
+
+#### 好处二：黑盒、白盒、CLI 终于消费同一套结果
+
+这不是“多支持一种用法”那么简单，而是解决三套逻辑漂移的问题。
+
+现在共享的是：
+
+- feature resolution 结果
+- preset props
+- preset slices
+
+具体收益：
+
+- 黑盒默认值不再和白盒装配分叉
+- 白盒不再手工重复推导默认行为
+- CLI 模板不再只能复制一份页面实现
+
+#### 好处三：模板系统终于建立在 capability 上
+
+`P3` 做完以后，模板差异终于开始来自：
+
+- feature 组合
+- layout variant
+- preset slices
+- `contractUsage`
+
+而不是来自：
+
+- 多份 `App.vue`
+- 模板内 if/else
+- 页面层复制
+
+这是从“模板复制器”到“capability consumer”的本质变化。
+
+#### 好处四：高层场景终于可以组合，而不是复制配置
+
+`P4-A` 最大的价值就是：
+
+- `assistant-base`
+- `docs-reader`
+- `tool-agent`
+
+这种高层场景差异现在可以通过：
+
+- `extends`
+- `skills`
+- merge rules
+
+来表达，而不是每次复制一份大对象。
+
+具体收益：
+
+- 场景差异可复用
+- 高层能力包更容易沉淀
+- 后续 workflow / app-level skill integration 有正式接缝
+
+#### 好处五：后续扩展大模型边界终于有稳定挂点
+
+如果没有 `P4-A`，后面应用层想接：
+
+- business skills
+- MCP tools
+- workflow orchestration
+
+很容易回退成页面特判。
+
+现在有了 `AgentPreset / SkillPack` 之后，至少已经有一个明确的“高层场景输入层”：
+
+- skill 不直接改 UI
+- skill 先解析成 chat 能懂的 config patch
+- tool 再通过 MCP / tool bridge 接入
+
+也就是说，后面“扩展模型边界”的动作，不必再直接侵入聊天 UI 层。
+
+### 7.7 为什么不是更少层级的方案
+
+团队里一定会有人问：
+
+> 为什么要拆这么多层？能不能更简单一点？
+
+这个问题是合理的，而且应该正面回答。  
+最有效的讲法不是直接说“现在这套最好”，而是把替代方案和它们的代价讲清楚。
+
+#### 方案 A：继续把能力堆进 `TrChatProps`
+
+这是最直观、最容易想到的做法。
+
+做法大致是：
+
+- 每加一个能力，就往 `TrChatProps` 补字段
+- 页面直接配这些字段
+- 默认行为由组件内部自己兜底
+
+看起来的优点：
+
+- 开发快
+- 上手直观
+- demo 能很快跑起来
+
+但代价是：
+
+- `TrChat` 会越来越像“大 props 容器”
+- 默认值逻辑分散在多个组件内部
+- 黑盒和白盒会逐渐分叉
+- CLI 模板只能继续复制页面，而不是消费正式能力
+
+也就是说，这条路短期最省事，长期维护成本最高。
+
+#### 方案 B：不做 feature registry，继续页面层手工装配
+
+这条路也很常见。
+
+做法大致是：
+
+- 保留 `ChatConfig`
+- 但不正式建立 feature registry / resolver
+- 每个页面、每个模板自己决定怎么接 attachments、MCP、suggestions、history
+
+看起来的优点：
+
+- white-box 自由
+- 页面层很灵活
+- 不需要先想太多概念
+
+但代价是：
+
+- 同一个能力会散落在页面、slot、demo、模板目录
+- docs/chat/workspace 会各自长出自己的实现
+- CLI 模板差异来自页面复制，不来自能力组合
+- 后面越扩越难统一
+
+这条路的本质问题是：
+
+> 用页面组织能力，而不是用能力组织页面。
+
+#### 方案 C：一开始就做完整的 agent/runtime 大框架
+
+还有一种方向，不是更少层，而是更“高层优先”。
+
+做法大致是：
+
+- 一上来就定义 Agent
+- Skill runtime
+- Workflow engine
+- Tool router
+- Plugin marketplace
+
+然后让 `chat` 成为其中一个 UI 外壳。
+
+看起来的优点：
+
+- 感觉一步到位
+- 很容易贴近 agent platform 叙事
+- 高层故事更完整
+
+但代价是：
+
+- 会让尚未完全收稳的底层能力过早被高层抽象绑死
+- `chat-cli` 会被迫提前理解过多 agent/runtime 概念
+- 容易形成“上层想法很多，底层 contract 不够稳”的反向设计
+
+这也是为什么当前没有直接从完整 agent 平台视角起步，而是先把 chat 的能力 contract 收稳。
+
+#### 为什么最后会是现在这套分层
+
+因为我们实际上要同时解决四件不同的事：
+
+1. 运行时怎么工作
+2. 能力怎么声明
+3. UI 怎么消费
+4. 高层场景怎么组合
+
+这四件事如果压成一层，复杂度不会消失，只会重新藏回：
+
+- 页面
+- props
+- demo
+- 模板目录
+
+所以当前这些层不是“为了抽象而抽象”，而是因为这些职责本来就不属于同一层：
+
+- `ChatConfig`：表达业务意图
+- `Adapter`：把业务意图标准化
+- `Feature Registry`：正式定义能力及默认行为
+- `Preset Props / Slices`：给 UI 消费标准结果
+- `AgentPreset / SkillPack`：表达更高层的场景组合
+
+可以直接这样回答同事：
+
+> 我们不是没考虑更少层，而是更少层的方案最后都会把复杂度藏回页面和模板里。  
+> 现在这套层次看起来多一点，但每一层都在解决一个真实问题，而且这些层已经在代码里被实际消费了。
 
 ---
 
@@ -814,16 +1099,16 @@ MCP 官方文档最值得借鉴的是它对边界和能力协商的强调：
 
 如果只给 5 分钟，我建议这样讲：
 
-`packages/chat` 现在缺的不是组件，而是能力装配层。我们已经有 Sender、Attachments、Prompts、MCP Picker 这些基础能力，也已经有 `TrChat`、白盒组合和 `useChatKit`。问题是这些能力还没有被统一声明、统一解析、统一输出，所以它们还停留在“能拼、能接、但不稳定”的状态。
+`packages/chat` 现在已经不只是聊天组件集合了，而是一条稳定的聊天能力装配链路。我们已经有很多运行时能力，比如 Sender、Attachments、Prompts、MCP、history、feedback，也已经有 `TrChat`、白盒组合和 `useChatKit`。真正的问题不是“没有能力”，而是这些能力以前缺少统一声明、统一解析、统一消费的方式，所以页面、demo、模板容易各写各的。
 
-下一阶段首先要做的是 `feature registry + resolver`。这是为了让能力先进入 `ChatConfig -> Adapter -> Preset` 这条正式链路，避免继续在页面和 demo 里散落。然后才是把 attachments、sender actions、suggestions 这些高频能力正式 feature 化。再之后才轮到 MCP 和 layout 边界正式化，最后 `chat-cli` 才能真正基于 capability 生成模板。
+前一个阶段我们已经把这些能力稳定成 contract，再让黑盒、白盒和 `chat-cli` 共同消费这套 contract。现在这件事已经完成了。接着我们在 `P4-A` 里又往上加了一层 `AgentPreset / SkillPack`，让更高层聊天场景可以继承、组合、覆盖，但最终仍然回到现有 `ChatConfig -> Adapter -> Feature Registry -> Preset` 这条主链路。
 
-换句话说，我们不是要多做几个聊天页面，而是先把聊天能力的底层装配方式做对。这样黑盒、白盒和 `chat-cli` 才能消费同一套能力结果，而不是各写各的。
+换句话说，我们不是继续堆页面，而是在把聊天能力沉淀成一套可声明、可装配、可生成、可组合的工程底座。
 
 ---
 
 ## 13. 一句话结论
 
-`packages/chat` 下一阶段最重要的任务，不是继续补聊天基础，不是先扩模板，也不是先扩 shell，而是：
+`packages/chat` 当前最重要的成果，不是“又多了几个聊天页面”，而是：
 
-> 先建立稳定的 feature registry foundation，再把高频聊天能力沉淀为可声明、可解析、可复用、可被 `chat-cli` 稳定消费的能力契约。
+> 我们已经把聊天能力沉淀成一套可声明、可解析、可复用、可被黑盒、白盒、`chat-cli` 和更高层 preset/skill 稳定消费的能力底座。
