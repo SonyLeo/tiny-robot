@@ -173,9 +173,9 @@ __BUILD_COMMAND__
 
 ## 项目结构
 
-- `src/App.vue`：应用入口，只负责渲染 `<TrChat />`
+- `src/App.vue`：应用入口，通过 `TrChat.Root / Layout / Header / MessageList / Sender / History` 组合消费模板能力切片
 - `src/chat.config.ts`：模型、Provider 和 UI 文案配置
-- `src/lib/chat.ts`：聊天适配器和预设组装
+- `src/lib/chat.ts`：聊天适配器与 `chatCapabilitySurface` 组装
 - `src/styles/index.css`：全局基础样式
 - `server/chat-proxy.example.ts`：服务端代理参考实现
 

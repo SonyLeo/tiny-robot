@@ -38,7 +38,7 @@ This keeps the direction clear:
 
 ## 3. Current Upstream Contract
 
-As of `2026-03-19`, the stable contract exposed by `packages/chat` for CLI consumption is:
+As of `2026-03-18`, the stable contract exposed by `packages/chat` for CLI consumption is:
 
 ### 3.1 Feature keys
 
@@ -46,6 +46,8 @@ As of `2026-03-19`, the stable contract exposed by `packages/chat` for CLI consu
 - `senderActions`
 - `welcomePrompts`
 - `mcp`
+- `history`
+- `feedback`
 
 ### 3.2 Preset prop keys
 
@@ -55,14 +57,20 @@ As of `2026-03-19`, the stable contract exposed by `packages/chat` for CLI consu
 - `mcpManager`
 - `messageListVariant`
 - `roleConfigs`
+- `showHistory`
+- `historyProps`
+- `showFeedback`
 
 ### 3.3 Preset slice keys
 
 - `root`
 - `layout`
+- `header`
 - `welcome`
 - `messageList`
 - `sender`
+- `history`
+- `modelSelector`
 
 CLI should treat this as the current stable upstream surface.
 
@@ -125,6 +133,7 @@ Each template definition should eventually describe:
 - `templateDir`
 - `supportedProviders`
 - `requiredChatFeatures`
+- `contractUsage`
 - `postScaffoldSteps`
 
 The short-term goal is not to make this infinitely flexible.

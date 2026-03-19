@@ -8,14 +8,16 @@
 
 ## Current Execution Baseline
 
-Snapshot date: `2026-03-19`
+Snapshot date: `2026-03-18`
 
 Current agreed status:
 
 - `P0` is complete.
 - `P1` is complete.
 - `P2` is complete.
-- The active next step is `P3 / Template / CLI Consumption`.
+- `P3 / Template / CLI Consumption` is complete.
+- The active next step is `P4 / Agent Preset + Skill Pack`.
+- The current CLI baseline is already sufficient to act as a consumer, so the next step should again stay chat-led.
 
 What "P2 is complete" means in practice:
 
@@ -31,6 +33,8 @@ Execution rule from this point:
 - Do not let `chat-cli` invent new chat-layer abstractions.
 - Let `chat-cli` consume stabilized chat outputs from `packages/chat`.
 - Keep `packages/chat` as the single source of truth for capability contracts.
+- Treat `P3` as the locked consumption baseline.
+- After the current CLI baseline is trustworthy, keep further CLI work limited to small follow-up changes that prove chat-side contract or preset updates.
 
 Document split:
 
@@ -113,6 +117,8 @@ Document split:
 - 在 Phase C 完成前，`agent-mcp` 和 `docs-chat` 都不应依赖页面层手工 wiring 存活
 - 在 Phase D 完成前，`agent preset / skill pack` 不应成为正式 CLI 输入
 - 在 Phase E 完成前，workflow 或模板 pack 不应依赖非正式 skill wiring
+- 在当前最小 CLI registry / hygiene 基线已经可用后，后续节奏应回到 `packages/chat`
+- `chat-cli` 只在 `chat` 侧 capability contract 有新增或收口时做最小消费增强
 
 ---
 
@@ -219,17 +225,19 @@ Sender extensions 测试口径补充：
 目标：
 
 - 让 `chat-cli` 真正消费 feature registry 的结果
+- 保持这一阶段仍由 `packages/chat` 主导，而不是让模板体系反向驱动 runtime 设计
 
 范围：
 
 - feature -> template mapping
-- CLI template variants
+- 面向当前 contract 的最小 consumer updates
 - smoke tests
 
 对 `chat-cli` 的输出：
 
 - 正式进入“模板消费 `chat` capability”阶段
 - 模板差异开始从页面复制转向能力组合
+- 但 `chat-cli` 不应成为当前阶段的主动设计面，只应接住已经稳定的 `chat` 输出
 
 验收口径：
 
@@ -261,6 +269,14 @@ Sender extensions 测试口径补充：
 - skill pack 不绕过 feature registry
 - skill pack 至少可解析为标准 feature / prompts / MCP / layout hints 输出
 - 不引入新的状态系统分叉
+
+P4 进入条件判断：
+
+- 当前已经满足进入 P4 的前置条件，因为：
+  - `P3` 已完成
+  - `chat-cli` 已有多个真实 consumer 模板
+  - 模板消费不再依赖页面层手工黑盒兜底
+  - `P4` 不需要回头重开 `Phase B / C / D` 边界
 
 ### Phase F: Theme / Workspace Shell
 
@@ -481,7 +497,7 @@ P1-B 建议按下面的验证清单执行：
 
 1. 先完成 `packages/chat` 自身的 capability 契约化。
 2. 再整理 `MCP config` 与 `layout variant / placement`。
-3. 再让 `chat-cli` 正式消费稳定 capability。
+3. 再让 `chat-cli` 以小幅、跟随式变更消费稳定 capability。
 4. 最后才进入 `Agent Preset / Skill Pack` 与 `Theme / Workspace Shell`。
 
 这条顺序的含义是：
@@ -544,4 +560,4 @@ P1-B 建议按下面的验证清单执行：
 
 `review-02` 的核心结论不是重新定义 `chat`，而是确认：
 
-> 下一阶段的主线应是先做 registry foundation，再逐步把高频聊天能力沉淀为可配置、可复用、可被 `chat-cli` 稳定消费的 feature 契约。
+> `P3` 已经把能力契约、模板消费和脚手架验证打通，下一阶段可以在不重开既有 contract 的前提下进入 `P4 / Agent Preset + Skill Pack`。

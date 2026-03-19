@@ -1,6 +1,6 @@
 # Chat CLI Review 02
 
-> Snapshot date: `2026-03-19`
+> Snapshot date: `2026-03-18`
 > Design: [../../docs/chat-cli-design.md](../../docs/chat-cli-design.md)
 > Chat progress: [../chat/progress.md](../chat/progress.md)
 > CLI progress: [./progress.md](./progress.md)
@@ -15,6 +15,7 @@ Current agreed status:
 - `packages/chat` is now in `P3 / Template / CLI Consumption`.
 - `packages/chat-cli` has started its own `P0 / Template Registry Foundation + Hygiene`.
 - `chat-cli` already has a minimal template registry foundation and is no longer in a "not started" state.
+- the current CLI registry and hygiene baseline is sufficient for now, so active execution should stay chat-led
 
 What is already true in code:
 
@@ -30,13 +31,18 @@ What is already true in code:
   - registry-driven interactive template selection
   - registry-driven help output
   - registry-driven template directory resolution
+  - meaningful `requiredChatFeatures` metadata for `basic`
+  - explicit `contractUsage` metadata for `basic`
+  - template validation that reads registry metadata together with template files
+  - prepare gating that blocks invalid template hygiene
 
 What is not complete yet:
 
-- `requiredChatFeatures` is still mostly a placeholder metadata field.
-- template hygiene and governance are not fully enforced yet.
+- some CLI-facing docs and flows still contain stale placeholder wording.
+- capability-driven template wiring is still not fully in place.
 - the registry currently proves the mechanism with `basic`, not the full future template system.
 - `agent-mcp`, `docs-chat`, and `assistant-workbench` are not ready to be treated as stable templates.
+- the next CLI changes should stay small and contract-following while `packages/chat` remains the active mainline.
 
 ---
 
@@ -100,6 +106,8 @@ Current stable feature keys:
 - `senderActions`
 - `welcomePrompts`
 - `mcp`
+- `history`
+- `feedback`
 
 Current stable preset prop keys:
 
@@ -109,14 +117,20 @@ Current stable preset prop keys:
 - `mcpManager`
 - `messageListVariant`
 - `roleConfigs`
+- `showHistory`
+- `historyProps`
+- `showFeedback`
 
 Current stable preset slice keys:
 
 - `root`
 - `layout`
+- `header`
 - `welcome`
 - `messageList`
 - `sender`
+- `history`
+- `modelSelector`
 
 This means CLI can now reason about both:
 
@@ -139,10 +153,15 @@ This removes the earlier hardcoded template list from the CLI entry path.
 
 The registry is not fully mature until:
 
-- `requiredChatFeatures` is actually enforced or validated
-- template hygiene checks are reliable
-- release and prepare steps treat invalid templates as blockers
+- CLI-facing wording no longer points to dead ends or outdated assumptions
+- capability-driven template wiring consumes the current chat outputs instead of handwritten page logic
 - at least one more non-trivial template path proves the metadata shape
+
+The first item above is now partly addressed for `basic`:
+
+- its required feature set is explicit
+- its contract consumption mode is explicit
+- its consumed preset slices are explicit
 
 ---
 
@@ -166,20 +185,18 @@ The following statements are still valid:
 
 ## 5. Recommended Execution Order
 
-### 5.1 Phase A: Finish Registry Foundation + Hygiene
+### 5.1 Phase A: Keep Registry Foundation + Hygiene Stable
 
 Priority items:
 
-- finish registry-first template metadata
-- make `requiredChatFeatures` meaningful
 - close leftover placeholder wording and dead-end assumptions
-- harden `validate-templates.mjs`
-- make prepare / release gates enforce hygiene
+- keep registry metadata and validation aligned with the current chat contract
+- only make narrow consumer updates when a chat-side capability change requires them
 
 Why this is first:
 
 - without this, adding more templates only grows drift
-- without this, `agent-mcp` and `docs-chat` would be added on unstable metadata
+- however, this should now be maintenance work, not the active driver of the next implementation step
 
 ### 5.2 Phase B: `agent-mcp`
 

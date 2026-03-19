@@ -1,0 +1,340 @@
+import {
+  assert,
+  computed,
+  nextTick,
+  ref,
+  shallowRef,
+  createMemoryStorage,
+  createRetryableProvider,
+  createStreamingProvider,
+  runTest,
+  useChatAttachments,
+  useChatConversation,
+  useChatKit,
+  useChatMessages,
+  useChatRequest,
+  useModelSelector,
+  waitFor,
+} from './_helpers.mjs'
+
+await runTest('useChatMessages manages edit state and resend flow', async () => {
+  const messageList = ref([
+    { role: 'user', content: 'first', state: {} },
+    { role: 'assistant', content: 'second' },
+    { role: 'assistant', content: 'third' },
+  ])
+  const resent = []
+
+  const messageActions = useChatMessages({
+    messages: computed(() => messageList.value),
+    resendMessage: (content) => {
+      resent.push(content)
+    },
+  })
+
+  messageActions.startEditMessage(1)
+  assert.equal(messageActions.isMessageEditing(1), true)
+
+  messageActions.cancelEditMessage(1)
+  assert.equal(messageActions.isMessageEditing(1), false)
+
+  messageActions.editMessage(1, 'updated-second')
+  assert.equal(messageList.value.length, 1)
+  assert.deepEqual(resent, ['updated-second'])
+})
+
+await runTest('useChatRequest derives status, syncs providers, and proxies abort', async () => {
+  const initialProvider = async function* () {}
+  const nextProvider = async function* () {}
+  let aborted = false
+
+  const engine = {
+    requestState: ref('idle'),
+    processingState: ref(undefined),
+    responseProvider: ref(initialProvider),
+  }
+
+  const request = useChatRequest({
+    conversation: {
+      activeConversation: computed(() => ({ engine })),
+      abortActiveRequest: async () => {
+        aborted = true
+      },
+    },
+    responseProviderRef: shallowRef(initialProvider),
+  })
+
+  assert.equal(request.status.value, 'ready')
+
+  engine.requestState.value = 'processing'
+  engine.processingState.value = 'requesting'
+  await nextTick()
+  assert.equal(request.status.value, 'submitted')
+
+  engine.processingState.value = 'completing'
+  await nextTick()
+  assert.equal(request.status.value, 'streaming')
+
+  engine.requestState.value = 'error'
+  await nextTick()
+  assert.equal(request.status.value, 'error')
+
+  request.updateResponseProvider(nextProvider)
+  await nextTick()
+  assert.equal(engine.responseProvider.value, nextProvider)
+
+  await request.abort()
+  assert.equal(aborted, true)
+})
+
+await runTest('useChatConversation bootstraps the first conversation from initial messages and fires onFinish', async () => {
+  const finished = []
+  const storage = createMemoryStorage()
+  const conversation = useChatConversation({
+    responseProviderRef: shallowRef(createStreamingProvider()),
+    initialMessages: [{ role: 'system', content: 'seed-system-message' }],
+    storage,
+    onFinish: (message) => {
+      finished.push(message)
+    },
+  })
+
+  conversation.sendMessage('hello')
+
+  await waitFor(() => {
+    assert.equal(conversation.activeConversation.value?.engine.requestState.value, 'completed')
+  })
+
+  const messages = conversation.activeConversation.value?.engine.messages.value ?? []
+  assert.equal(messages[0].content, 'seed-system-message')
+  assert.equal(messages[1].content, 'hello')
+  assert.equal(messages[2].content, 'reply:hello')
+  assert.equal(finished.length, 1)
+  assert.equal(finished[0].role, 'assistant')
+})
+
+await runTest('useChatConversation keeps manual createConversation empty and surfaces provider errors', async () => {
+  const capturedErrors = []
+  const conversation = useChatConversation({
+    responseProviderRef: shallowRef(createStreamingProvider()),
+    initialMessages: [{ role: 'system', content: 'seed-system-message' }],
+    storage: createMemoryStorage(),
+    onError: (error) => {
+      capturedErrors.push(error.message)
+    },
+  })
+
+  const createdConversation = conversation.createConversation({
+    title: 'manual-conversation',
+    useMessageOptions: {
+      initialMessages: [{ role: 'system', content: 'should-not-leak' }],
+    },
+  })
+
+  assert.equal(createdConversation.engine.messages.value.length, 0)
+
+  conversation.sendMessage('boom')
+
+  await waitFor(() => {
+    assert.deepEqual(capturedErrors, ['boom'])
+  })
+})
+
+await runTest('useChatKit exposes structured errors and annotates failed assistant messages', async () => {
+  const chatKit = useChatKit({
+    responseProvider: createRetryableProvider({
+      failMessage: 'err',
+      errorMessage: 'OpenAI API error 401: Unauthorized',
+    }),
+    storage: createMemoryStorage(),
+  })
+
+  chatKit.sendMessage('err')
+
+  await waitFor(() => {
+    assert.equal(chatKit.status.value, 'error')
+  })
+
+  assert.equal(chatKit.lastError.value?.type, 'auth')
+  assert.equal(chatKit.lastError.value?.retryable, false)
+  assert.equal(chatKit.messages.value[1]?.role, 'assistant')
+  assert.equal(chatKit.messages.value[1]?.state?.error?.message, 'OpenAI API error 401: Unauthorized')
+})
+
+await runTest('useChatKit retry removes the failed turn and resends the last user message', async () => {
+  const chatKit = useChatKit({
+    responseProvider: createRetryableProvider({
+      failMessage: 'err',
+      failOnce: true,
+    }),
+    storage: createMemoryStorage(),
+  })
+
+  chatKit.sendMessage('err')
+
+  await waitFor(() => {
+    assert.equal(chatKit.status.value, 'error')
+  })
+
+  assert.equal(chatKit.lastError.value?.type, 'provider')
+  assert.equal(await chatKit.retry(), true)
+
+  await waitFor(() => {
+    assert.equal(chatKit.status.value, 'ready')
+    assert.equal(chatKit.messages.value[1]?.content, 'reply:err')
+  })
+
+  assert.equal(chatKit.lastError.value, null)
+  assert.equal(chatKit.messages.value.length, 2)
+})
+
+await runTest('useChatKit marks optimistic messages during a pending turn and clears them after completion', async () => {
+  const chatKit = useChatKit({
+    responseProvider: createStreamingProvider({ initialDelay: 80 }),
+    storage: createMemoryStorage(),
+  })
+
+  chatKit.sendMessage('optimistic-turn')
+
+  await waitFor(() => {
+    assert.equal(chatKit.messages.value[0]?.state?.optimistic, true)
+    assert.equal(chatKit.messages.value[1]?.state?.optimistic, true)
+  })
+
+  await waitFor(() => {
+    assert.equal(chatKit.status.value, 'ready')
+  })
+
+  assert.equal(chatKit.messages.value[0]?.state?.optimistic, undefined)
+  assert.equal(chatKit.messages.value[1]?.state?.optimistic, undefined)
+})
+
+await runTest('useChatKit rolls edited history back when the resend fails', async () => {
+  const chatKit = useChatKit({
+    responseProvider: createStreamingProvider(),
+    storage: createMemoryStorage(),
+  })
+
+  chatKit.sendMessage('seed')
+
+  await waitFor(() => {
+    assert.equal(chatKit.status.value, 'ready')
+    assert.equal(chatKit.messages.value[1]?.content, 'reply:seed')
+  })
+
+  chatKit.updateResponseProvider(
+    createRetryableProvider({
+      failMessage: 'edited-seed',
+      errorMessage: 'Mock API Error: provider execution failed',
+    }),
+  )
+
+  chatKit.editMessage(0, 'edited-seed')
+
+  await waitFor(() => {
+    assert.equal(chatKit.status.value, 'error')
+  })
+
+  assert.deepEqual(
+    chatKit.messages.value.map((message) => message.content),
+    ['seed', 'reply:seed'],
+  )
+  assert.equal(chatKit.lastError.value?.type, 'provider')
+})
+
+await runTest('useModelSelector falls back to the first selectable model and syncs the provider', async () => {
+  const currentModel = ref('removed-model')
+  const selected = []
+  const providerCalls = []
+  const providerA = () => {}
+  const providerB = () => {}
+  const models = ref([
+    { value: 'disabled-model', provider: 'openai', disabled: true },
+    { value: 'ready-model', provider: 'deepseek' },
+  ])
+  const providerFactories = ref([
+    {
+      match: (model) => model.value === 'ready-model',
+      createProvider: (model) => {
+        providerCalls.push(model.value)
+        return providerB
+      },
+    },
+    {
+      match: (model) => model.value === 'other-model',
+      createProvider: () => providerA,
+    },
+  ])
+
+  useModelSelector({
+    currentModel,
+    models,
+    providerFactories,
+    chatKit: {
+      updateResponseProvider(provider) {
+        assert.equal(provider, providerB)
+      },
+    },
+    onChange: (model) => {
+      selected.push(model.value)
+    },
+  })
+
+  await nextTick()
+
+  assert.equal(currentModel.value, 'ready-model')
+  assert.deepEqual(providerCalls, ['ready-model'])
+  assert.deepEqual(selected, ['ready-model'])
+})
+
+await runTest('useModelSelector keeps the current model when the next model has no matching provider factory', async () => {
+  const currentModel = ref('ready-model')
+  const providerCalls = []
+  const readyProvider = () => {}
+  const models = ref([
+    { value: 'ready-model', provider: 'deepseek' },
+    { value: 'missing-factory-model', provider: 'openai' },
+  ])
+  const providerFactories = ref([
+    {
+      match: (model) => model.value === 'ready-model',
+      createProvider: (model) => {
+        providerCalls.push(model.value)
+        return readyProvider
+      },
+    },
+  ])
+
+  const selector = useModelSelector({
+    currentModel,
+    models,
+    providerFactories,
+    chatKit: {
+      updateResponseProvider(provider) {
+        assert.equal(provider, readyProvider)
+      },
+    },
+  })
+
+  await nextTick()
+  providerCalls.length = 0
+
+  selector.selectModel(models.value[1])
+
+  assert.equal(currentModel.value, 'ready-model')
+  assert.deepEqual(providerCalls, [])
+  assert.notEqual(selector.currentModelOption.value?.value, 'missing-factory-model')
+})
+
+await runTest('useChatAttachments tracks selected files as attachment items', async () => {
+  const attachments = useChatAttachments()
+  const file = new File(['hello'], 'hello.txt', { type: 'text/plain' })
+
+  attachments.addFiles([file])
+
+  assert.equal(attachments.items.value.length, 1)
+  assert.equal(attachments.items.value[0]?.name, 'hello.txt')
+
+  attachments.clear()
+  assert.equal(attachments.items.value.length, 0)
+})

@@ -4,10 +4,12 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
 import { getCommand, inferPackageManager } from '../../../chat-cli/src/packageManager'
+import { validateChatCliTemplateRegistry } from '../../../chat-cli/src/templateRegistry'
 import {
   collectWorkspacePackageVersions,
   updateTemplateDependencyVersions,
   validateTemplatePackages,
+  validateTemplateRegistry,
 } from '../../../chat-cli/scripts/template-release-utils.mjs'
 
 function createTempDir(prefix: string): string {
@@ -135,5 +137,61 @@ test.describe('chat-cli release helpers', () => {
     } finally {
       rmSync(templatesDir, { recursive: true, force: true })
     }
+  })
+
+  test('validateTemplateRegistry should report missing template files and unsupported feature metadata', async () => {
+    const templatesDir = createTempDir('tiny-robot-chat-cli-registry-')
+
+    try {
+      mkdirSync(join(templatesDir, 'basic'), { recursive: true })
+      writeJson(join(templatesDir, 'basic', 'package.json'), { name: 'example-app' })
+
+      const errors = validateTemplateRegistry({
+        templatesDir,
+        templateDefinitions: [
+          {
+            id: 'basic',
+            templateDir: 'basic',
+            requiredChatFeatures: ['welcomePrompts'],
+          },
+          {
+            id: 'agent-mcp',
+            templateDir: 'agent-mcp',
+            requiredChatFeatures: ['unknown-feature'],
+          },
+        ],
+        validFeatureKeys: ['attachments', 'senderActions', 'welcomePrompts', 'mcp'],
+      })
+
+      expect(errors).toEqual([
+        'Template "agent-mcp" references unknown required feature "unknown-feature"',
+        'Template "agent-mcp" points to missing directory "agent-mcp"',
+      ])
+    } finally {
+      rmSync(templatesDir, { recursive: true, force: true })
+    }
+  })
+
+  test('validateChatCliTemplateRegistry should reject invalid contract usage metadata', async () => {
+    const errors = validateChatCliTemplateRegistry([
+      {
+        id: 'broken-template',
+        label: 'Broken Template',
+        status: 'stable',
+        templateDir: 'broken-template',
+        supportedProviders: ['openai'],
+        requiredChatFeatures: ['welcomePrompts'],
+        contractUsage: {
+          mode: 'whitebox-slices',
+          presetPropKeys: ['unknown-prop'],
+          presetSliceKeys: [],
+        },
+      },
+    ])
+
+    expect(errors).toEqual([
+      'Template "broken-template" declares unsupported preset prop key "unknown-prop"',
+      'Template "broken-template" must declare presetSliceKeys when using "whitebox-slices"',
+    ])
   })
 })

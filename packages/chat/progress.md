@@ -1,14 +1,14 @@
 # Chat Kit Progress
 
-> Last updated: `2026-03-19`
+> Last updated: `2026-03-18`
 > Design: [docs/chat-kit-design.md](../../docs/chat-kit-design.md)
 > Review: [chat-kit-review-02.md](./chat-kit-review-02.md)
 
 ## Current Status
 
-- Current track: `P3 - Template / CLI Consumption`
-- Current judgment: `P2 is complete`
-- Current rule: keep `packages/chat` as the source capability layer, and let `chat-cli` consume stabilized outputs instead of driving new chat abstractions first
+- Current track: `P4 - Agent Preset + Skill Pack`
+- Current judgment: `P3 is complete`
+- Current rule: keep `packages/chat` as the source capability layer, treat `P3` as complete, and only let higher-level preset or skill work build on the already-stable capability contract instead of reopening it
 
 ## Phase Status
 
@@ -17,8 +17,8 @@
 | P0 / Registry Foundation | `done` | `config -> adapter -> preset` pipeline is established |
 | P1 / High-value Features | `done` | `attachments / senderActions / welcomePrompts` are formalized; blackbox and white-box defaults are aligned |
 | P2 / MCP + Layout | `done` | `mcp`, `layout.variant`, `layout.placements`, and `workspace` layout variant are formalized |
-| P3 / Template / CLI Consumption | `next` | let `chat-cli` consume stable chat capabilities and slices |
-| P4 / Agent Preset + Skill Pack | `later` | not on the active path yet |
+| P3 / Template / CLI Consumption | `done` | stable capability contract, explicit template mapping, and registry-backed consumers are in place |
+| P4 / Agent Preset + Skill Pack | `next` | build higher-level preset composition on top of the locked capability chain |
 | P5 / Theme / Workspace Shell | `later` | not on the active path yet |
 
 ## P1 Result
@@ -51,22 +51,63 @@
 
 ## Next Step
 
-1. Start `P3` and define the stable `feature -> template / preset` consumption path for `chat-cli`.
-2. Keep `layout` and feature enablement separated while introducing template-facing capability mapping.
-3. Continue using `packages/chat` outputs as the single source of truth for template consumption.
+1. Enter `P4` and define the smallest useful `AgentPreset / SkillPack` composition layer on top of the existing capability contract.
+2. Keep `P4` additive: it should resolve to standard feature / prompt / MCP / layout inputs instead of replacing the current chain.
+3. Let `chat-cli` consume any new `P4` outputs only after the chat-side preset boundary is explicit and test-covered.
 
 ## P3 Current Progress
 
 - [x] `P3-A` has started on the chat side.
 - [x] `createChatCliCapabilitySurface()` now exposes the stable Phase C contract for CLI consumption.
 - [x] The current contract now covers:
-  - feature keys: `attachments / senderActions / welcomePrompts / mcp`
-  - preset props: `attachmentsFeature / senderActionsFeature / prompts / mcpManager / messageListVariant / roleConfigs`
-  - preset slices: `root / layout / welcome / messageList / sender`
+  - feature keys: `attachments / senderActions / welcomePrompts / mcp / history / feedback`
+  - preset props: `attachmentsFeature / senderActionsFeature / prompts / mcpManager / messageListVariant / roleConfigs / showHistory / historyProps / showFeedback`
+  - preset slices: `root / layout / header / welcome / messageList / sender / history / modelSelector`
 - [x] `P3-B` has started with a minimal template registry foundation in `chat-cli`
-- [ ] `P3-B` feature-aware template metadata and mapping closeout
-- [ ] `P3-C` capability-driven template wiring
-- [ ] `P3-D` scaffold and smoke closeout
+- [x] the minimal `chat-cli` registry and hygiene baseline is now in place:
+  - `requiredChatFeatures` is meaningful for `basic`
+  - `contractUsage` now makes `basic`'s contract consumption mode and consumed slice keys explicit
+  - template validation reads registry metadata and template files
+  - prepare gate blocks invalid template hygiene
+- [x] `basic` now consumes `history` through `features.history` instead of a template-local `showHistory` override
+- [x] `basic` now consumes `chatCapabilitySurface.presetSlices` through a white-box template path instead of binding a handwritten `chatPreset` blackbox object
+- [x] `P3-B` explicit feature-aware mapping closeout is now real for `basic`
+- [x] `P3-C` capability-driven template wiring is now real for `basic`
+- [x] `P3-D` scaffold and smoke closeout is green for the current `basic` consumer path
+- [x] `agent-mcp` now exists as a second registry-backed template that consumes the current `mcp` contract through explicit `contractUsage`
+
+## P3 Result
+
+- [x] `createChatCliCapabilitySurface()` now exposes the stable template-facing contract for CLI consumption
+- [x] stable consumable feature keys now cover:
+  - `attachments`
+  - `senderActions`
+  - `welcomePrompts`
+  - `mcp`
+  - `history`
+  - `feedback`
+- [x] stable consumable preset prop keys now cover:
+  - `attachmentsFeature`
+  - `senderActionsFeature`
+  - `prompts`
+  - `mcpManager`
+  - `messageListVariant`
+  - `roleConfigs`
+  - `showHistory`
+  - `historyProps`
+  - `showFeedback`
+- [x] stable consumable preset slices now cover:
+  - `root`
+  - `layout`
+  - `header`
+  - `welcome`
+  - `messageList`
+  - `sender`
+  - `history`
+  - `modelSelector`
+- [x] template registry metadata is explicit and validated through `requiredChatFeatures` and `contractUsage`
+- [x] `basic` and `agent-mcp` both consume the stable contract through registry-backed white-box template paths
+- [x] scaffold and smoke verification are green for the current stable templates
 
 ## P3 Execution Order
 
@@ -84,6 +125,7 @@
 
 - Introduce or finish the template registry and template metadata path in `packages/chat-cli`.
 - Make `requiredChatFeatures` and related template metadata read from the stabilized chat contract instead of hard-coded page assumptions.
+- Keep this as support work, not the active design driver.
 - Keep the first round small:
   - `basic`
   - currently stabilized chat capabilities
@@ -96,6 +138,7 @@
   - preset prop outputs
   - preset slice outputs
 - Prefer reusing `createChatAdapterFromConfig()`, `createPresetChatProps()`, `createPresetChatSlices()`, and `createChatCliCapabilitySurface()`.
+- Only make the smallest `chat-cli` edits needed to consume the current chat outputs.
 - Do not introduce new chat abstractions in CLI just to make scaffolding easier.
 
 ### P3-D. Close the loop with scaffold and smoke verification
@@ -107,7 +150,7 @@
 
 1. Chat unit tests first.
    - Extend contract-level tests around `createChatCliCapabilitySurface()`.
-   - Verify `attachments / senderActions / welcomePrompts / mcp / layout` are exposed in the expected template-facing shape.
+   - Verify `attachments / senderActions / welcomePrompts / mcp / history / feedback / layout` are exposed in the expected template-facing shape.
 
 2. `chat-cli` registry and mapping tests second.
    - Verify template registry metadata can consume the stable chat contract.
@@ -121,26 +164,51 @@
 
 - `chat-cli` consumes stabilized outputs from `packages/chat` instead of relying on handwritten template logic.
 - `feature -> template / preset` mapping is explicit and test-covered.
+- the active implementation path remained chat-led rather than template-led
 - The current stable capability set is consumable in CLI:
   - `attachments`
   - `senderActions`
   - `welcomePrompts`
   - `mcp`
+  - `history`
+  - `feedback`
   - `layout`
+  - `header`
+  - `modelSelector`
 - Generated template output uses the existing chat capability pipeline rather than inventing a parallel one.
 - Scaffold / smoke verification is green.
 
 ## P4 Entry Criteria
 
-- `P3` is complete.
-- `chat-cli` is already a real consumer of stable chat capabilities.
-- No new P4 idea requires reopening the Phase B or Phase C contract.
-- `AgentPreset / SkillPack` can be modeled as capability consumers on top of the existing chain, not as a replacement for it.
+- [x] `P3` is complete.
+- [x] `chat-cli` is already a real consumer of stable chat capabilities.
+- [x] No new P4 idea requires reopening the Phase B or Phase C contract.
+- [x] `AgentPreset / SkillPack` can be modeled as capability consumers on top of the existing chain, not as a replacement for it.
+
+## P4 Acceptance Standard
+
+- `AgentPreset` or `SkillPack` input is defined as a higher-level composition layer, not a parallel runtime path.
+- `P4` outputs resolve back into the existing capability chain:
+  - feature config
+  - prompts
+  - mcp manager or mcp hints
+  - layout hints when needed
+- the resolver boundary is explicit and test-covered on the chat side before any broad CLI expansion depends on it.
+- no `P4` work reopens:
+  - `senderProps.extensions` boundary
+  - `layout` as presentation-only
+  - the stable `chat-cli` consumption contract established in `P3`
+- at least one concrete `P4` shape is consumable without bypassing:
+  - `ChatConfig`
+  - adapter
+  - feature registry
+  - preset / preset slices
 
 ## Verified
 
 - `pnpm.cmd -F @opentiny/tiny-robot-chat type-check`
 - `pnpm.cmd -F @opentiny/tiny-robot-chat test:unit`
+- `pnpm.cmd -F @opentiny/tiny-robot-chat build`
 - `pnpm.cmd -F tiny-robot-test test -- src/chat/layout-config.spec.ts src/chat/mcp-feature.spec.ts src/chat/index.spec.ts`
 - `pnpm.cmd -F tiny-robot-test test -- src/chat/welcome-prompts.spec.ts src/chat/sender-actions.spec.ts`
 - `pnpm.cmd -F tiny-robot-test test -- src/chat/sender-extensions.spec.ts`

@@ -1,6 +1,6 @@
 # Chat / Chat CLI Handoff
 
-> Snapshot date: `2026-03-19`
+> Snapshot date: `2026-03-18`
 > Purpose: help another LLM or collaborator enter the current implementation state quickly without relying on previous chat history
 > Primary status boards:
 > - [packages/chat/progress.md](../packages/chat/progress.md)
@@ -18,8 +18,10 @@ This repo currently has two related but distinct tracks:
 Current agreed state:
 
 - `packages/chat` has completed `P0 / P1 / P2`
-- `packages/chat` is now in `P3 / Template / CLI Consumption`
+- `packages/chat` has completed `P3 / Template / CLI Consumption`
+- `packages/chat` is now ready to enter `P4 / Agent Preset + Skill Pack`
 - `packages/chat-cli` has started its own registry-first foundation work
+- the current CLI registry and hygiene baseline is sufficient, so the next active implementation step should stay in `packages/chat`
 
 The most important architectural rule is:
 
@@ -145,11 +147,13 @@ Current registry shape:
 - `templateDir`
 - `supportedProviders`
 - `requiredChatFeatures`
+- `contractUsage`
 - `postScaffoldSteps`
 
 Current registry contents:
 
-- only `basic`
+- `basic`
+- `agent-mcp`
 - `status: stable`
 - `supportedProviders: openai / deepseek / custom`
 
@@ -176,15 +180,17 @@ This means the following old statement is now false:
 
 Still pending:
 
-- `requiredChatFeatures` is mostly placeholder metadata
-- template hygiene is not fully enforced
-- `validate-templates.mjs` still needs stronger coverage
-- prepare / release gates do not yet fully enforce template governance
-- registry currently proves the mechanism only with `basic`
+- some CLI-facing docs and flows still contain stale placeholder wording
+- capability-driven template wiring is now real for both `basic` and `agent-mcp`
+- registry shape is now proven across two stable templates, but broader template governance is still incomplete
 
 Current next target inside `chat-cli`:
 
-- finish registry foundation and hygiene before adding `agent-mcp` or `docs-chat`
+- keep follow-up work narrow and only adjust registry or template consumption when the next chat-side capability increment requires it
+- `basic` already moved its history UI enablement from a template-local override to `features.history`
+- `basic` now also consumes `chatCapabilitySurface.presetSlices` through a white-box composition path
+- `basic` now declares its `contractUsage` explicitly in registry metadata
+- `agent-mcp` now proves the second template path using the current `mcp` contract, local MCP bridge starter, and explicit `contractUsage`
 
 ---
 
@@ -209,6 +215,8 @@ Current stable feature keys:
 - `senderActions`
 - `welcomePrompts`
 - `mcp`
+- `history`
+- `feedback`
 
 Current stable preset prop keys:
 
@@ -218,14 +226,20 @@ Current stable preset prop keys:
 - `mcpManager`
 - `messageListVariant`
 - `roleConfigs`
+- `showHistory`
+- `historyProps`
+- `showFeedback`
 
 Current stable preset slice keys:
 
 - `root`
 - `layout`
+- `header`
 - `welcome`
 - `messageList`
 - `sender`
+- `history`
+- `modelSelector`
 
 This contract is the current bridge between `packages/chat` and `packages/chat-cli`.
 
@@ -297,14 +311,14 @@ Done:
 - `P0 / Registry Foundation`
 - `P1 / High-value Features`
 - `P2 / MCP + Layout`
+- `P3 / Template / CLI Consumption`
 
 Current:
 
-- `P3 / Template / CLI Consumption`
+- `P4 / Agent Preset + Skill Pack`
 
 Later:
 
-- `P4 / Agent Preset + Skill Pack`
 - `P5 / Theme / Workspace Shell`
 
 ### 6.2 `packages/chat-cli`
@@ -325,35 +339,41 @@ Later:
 
 This is the currently agreed execution order.
 
-### 7.1 Finish `chat` P3 before opening `chat` P4
+### 7.1 `chat` P3 is complete and `chat` can enter P4
 
-What `chat` P3 still means:
+What this means:
 
-- finish the stable capability consumption path for CLI
-- make `feature -> template / preset` mapping explicit
-- keep template generation based on existing chat capability outputs
+- the stable capability consumption path for CLI is in place
+- `feature -> template / preset` mapping is explicit
+- template generation is based on existing chat capability outputs
+- the implementation path remained chat-led while `chat-cli` only followed where the contract needed to be proven in real generation
 
-Remaining `chat` P3 items from the status board:
+Current `P4` entry judgment:
 
-- `P3-B` feature-aware template metadata and mapping closeout
-- `P3-C` capability-driven template wiring
-- `P3-D` scaffold and smoke closeout
+- `P3` is complete
+- `chat-cli` is already a real consumer of stable chat capabilities
+- no current `P4` idea requires reopening the Phase B or Phase C contract
+- `AgentPreset / SkillPack` can now be modeled as capability consumers on top of the existing chain
 
-### 7.2 Finish `chat-cli` registry hygiene before adding more templates
+### 7.2 Keep `chat-cli` in small follow-up mode until the next chat-side increment is clear
 
 Most immediate CLI work:
 
-- make `requiredChatFeatures` meaningful
 - remove any stale placeholder wording and assumptions
-- strengthen `validate-templates.mjs`
-- make hygiene part of actual gating
+- keep template generation registry-first
+- only add narrow consumer updates that match the current chat contract
 
-### 7.3 Only after that, start `agent-mcp`
+### 7.3 `agent-mcp` has now started as the second stable template
 
-Reason:
+What this proves:
 
-- `mcp` in chat is already stable enough
-- but template governance is not yet stable enough
+- `mcp` in chat is stable enough for a second template
+- the current registry and scaffold path can carry a second white-box contract consumer
+
+What it does not prove yet:
+
+- broader multi-template governance is complete
+- `docs-chat` is ready
 
 ### 7.4 `docs-chat` should still wait for retrieval contract clarity
 
@@ -461,6 +481,8 @@ CLI:
 
 - `pnpm.cmd -F create-tiny-robot typecheck`
 - `pnpm.cmd -F create-tiny-robot build`
+- `pnpm.cmd -F create-tiny-robot prepare:templates`
+- `pnpm.cmd -F @opentiny/tiny-robot-chat build`
 - `pnpm.cmd -F tiny-robot-test test -- src/chat-cli/scaffold.spec.ts src/chat-cli/release.spec.ts src/chat-cli/smoke.spec.ts`
 
 If a future change touches both chat capability contract and CLI registry logic, re-run both groups.
@@ -484,10 +506,10 @@ If another LLM needs to resume implementation, the fastest safe path is:
    - `packages/chat-cli/src/index.ts`
 
 4. Pick the next task from this order:
-   - finish `requiredChatFeatures` metadata
-   - strengthen template hygiene validation
+   - start the smallest useful `P4` preset / skill composition work in `packages/chat`
+   - make the smallest `chat-cli` consumer changes needed only after the `P4` boundary is explicit
    - keep template generation registry-first
-   - only then introduce `agent-mcp`
+   - keep `docs-chat` waiting for retrieval contract clarity
 
 5. After any change:
    - update the matching `progress.md`
@@ -498,4 +520,4 @@ If another LLM needs to resume implementation, the fastest safe path is:
 
 ## 12. One-sentence Current State
 
-`packages/chat` has already stabilized the first useful capability contract for template consumption, and `packages/chat-cli` has started consuming it through a real registry foundation, but CLI metadata and hygiene still need to be finished before the next template wave should begin.
+`packages/chat` has already completed `P3` by stabilizing a real capability contract for template consumption, and `packages/chat-cli` now has a usable registry and hygiene baseline plus two stable white-box consumer paths in `basic` and `agent-mcp`.

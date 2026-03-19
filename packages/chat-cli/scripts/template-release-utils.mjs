@@ -84,3 +84,34 @@ export function validateTemplatePackages(templatesDir) {
 
   return errors
 }
+
+export function validateTemplateRegistry({
+  templatesDir,
+  templateDefinitions,
+  validFeatureKeys = [],
+}) {
+  const errors = []
+  const validFeatureKeySet = new Set(validFeatureKeys)
+
+  for (const template of templateDefinitions) {
+    const templateRoot = join(templatesDir, template.templateDir)
+    const packageJsonPath = join(templateRoot, 'package.json')
+
+    for (const feature of template.requiredChatFeatures ?? []) {
+      if (!validFeatureKeySet.has(feature)) {
+        errors.push(`Template "${template.id}" references unknown required feature "${feature}"`)
+      }
+    }
+
+    if (!existsSync(templateRoot)) {
+      errors.push(`Template "${template.id}" points to missing directory "${template.templateDir}"`)
+      continue
+    }
+
+    if (!existsSync(packageJsonPath)) {
+      errors.push(`Template "${template.id}" is missing package.json in "${template.templateDir}"`)
+    }
+  }
+
+  return errors
+}

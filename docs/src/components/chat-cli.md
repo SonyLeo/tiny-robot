@@ -57,6 +57,10 @@ bun create tiny-robot
 pnpm create tiny-robot my-chat-app --template basic --provider deepseek --yes --no-install
 ```
 
+```bash
+pnpm create tiny-robot my-agent --template agent-mcp --provider openai --yes --no-install
+```
+
 这个命令会：
 
 1. 在当前目录下创建 `my-chat-app`
@@ -79,7 +83,7 @@ pnpm create tiny-robot my-chat-app --template basic --provider deepseek --yes --
 
 | 参数 | 说明 | 当前值或范围 |
 |:--|:--|:--|
-| `--template` | 指定模板 | 当前仅支持 `basic` |
+| `--template` | 指定模板 | `basic` / `agent-mcp` |
 | `--provider` | 指定默认 Provider | `openai` / `deepseek` / `custom` |
 | `--yes` | 使用默认值并跳过交互 | 布尔值 |
 | `--install` | 创建后自动安装依赖 | 布尔值 |
@@ -107,6 +111,33 @@ pnpm create tiny-robot my-chat-app --provider custom --no-install --cwd ./exampl
 
 当前默认模板更偏“配置驱动”，而不是把所有接入逻辑都直接写在 `App.vue` 中。
 
+当前稳定模板有两类：
+
+- `basic`
+  - 默认聊天模板
+  - white-box 消费 `chatCapabilitySurface.presetSlices`
+- `agent-mcp`
+  - 工具型 Agent / MCP 起步模板
+  - 在 `basic` 的 contract consumption 路径上增加 MCP manager、tool plugin 和面板入口
+
+## 如何选择模板
+
+如果你只想先做一个普通聊天产品起点，优先选 `basic`。  
+如果你从第一天就需要工具协作、MCP 面板或 Copilot 风格的起步结构，再选 `agent-mcp`。
+
+可以直接按下面判断：
+
+| 模板 | 更适合什么场景 | 生成后优先改什么 |
+|:--|:--|:--|
+| `basic` | 通用聊天、业务接入、先把主链路跑通 | `src/chat.config.ts`、`server/chat-proxy.example.ts` |
+| `agent-mcp` | 工具型 Agent、Copilot、MCP 插件协作 | `src/chat.config.ts`、`src/lib/mcp.ts`、`server/chat-proxy.example.ts` |
+
+补充判断：
+
+- `basic` 是默认起步模板
+- `agent-mcp` 是 MCP starter，不是完整 agent 平台
+- 如果你还不确定自己要不要 MCP，先从 `basic` 开始通常更稳
+
 典型结构如下：
 
 ```txt
@@ -125,11 +156,11 @@ my-chat-app/
 各文件职责：
 
 - `src/App.vue`
-  - 页面入口，只消费已经组装好的 `chatPreset`
+  - 页面入口，消费 `chatCapabilitySurface.presetSlices`
 - `src/chat.config.ts`
   - 声明默认模型、Provider 和基础 UI 配置
 - `src/lib/chat.ts`
-  - 把 `chat.config.ts` 转成 `adapter` 和 `preset`
+  - 把 `chat.config.ts` 转成 `adapter` 和 `chatCapabilitySurface`
 - `server/chat-proxy.example.ts`
   - 服务端代理的最小参考实现
 - `.env.example`
@@ -209,16 +240,26 @@ my-chat-app/
 
 ## 一个最小入口示例
 
-生成项目后，`App.vue` 通常会类似下面这种结构：
+生成项目后，`App.vue` 不再只是简单绑定一个黑盒 `chatPreset`，而是更明确地消费模板能力切片。典型结构会类似：
 
 ```vue
 <script setup lang="ts">
 import { TrChat } from '@opentiny/tiny-robot-chat'
-import { chatPreset } from './lib/chat'
+import { chatCapabilitySurface } from './lib/chat'
+
+const slices = chatCapabilitySurface.presetSlices
 </script>
 
 <template>
-  <TrChat v-bind="chatPreset" />
+  <TrChat.Root v-bind="slices.root">
+    <TrChat.Layout v-bind="slices.layout">
+      <TrChat.Header v-bind="slices.header" />
+      <TrChat.MessageList v-bind="slices.messageList" />
+      <TrChat.Footer>
+        <TrChat.Sender v-bind="slices.sender" />
+      </TrChat.Footer>
+    </TrChat.Layout>
+  </TrChat.Root>
 </template>
 ```
 
@@ -233,6 +274,12 @@ import { chatPreset } from './lib/chat'
 - 欢迎文案
 - 默认 prompts
 - 默认模型与 Provider
+- 如果是 `agent-mcp`，再改 `src/lib/mcp.ts` 里的 MCP plugin metadata 和 bridge
+
+补充说明：
+
+- 当前稳定模板都经过 registry、校验和构建验证
+- 如果你只是使用 CLI，不需要先理解内部的模板治理字段
 
 ---
 

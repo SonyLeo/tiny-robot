@@ -48,6 +48,9 @@ const cwdFlag = typeof flags.cwd === 'string' ? flags.cwd : undefined
 
 if (flags.help) {
   const availableTemplates = getStableChatCliTemplateIds().join(', ')
+  const templateSummary = getStableChatCliTemplates()
+    .map((item) => `  ${item.id.padEnd(10, ' ')} ${item.description ?? item.label}`)
+    .join('\n')
   console.log(`
 Usage: create-tiny-robot [options] [project-name]
 
@@ -62,9 +65,14 @@ Options:
       --overwrite       Overwrite an existing non-empty directory
       --cwd             Generate project relative to this directory
 
+Templates:
+${templateSummary}
+
 Examples:
   npm create tiny-robot my-app -- --provider openai
   pnpm create tiny-robot my-app --template basic --provider deepseek --no-install
+  pnpm create tiny-robot my-agent --template agent-mcp --provider openai --no-install
+  pnpm create tiny-robot my-agent --template agent-mcp --provider custom --no-install
 `)
   process.exit(0)
 }

@@ -6,11 +6,16 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+import { CHAT_CLI_CONSUMABLE_FEATURE_KEYS } from '../../../chat/src/adapters/index'
 import { getCommand } from '../../../chat-cli/src/packageManager'
 import {
+  CHAT_CLI_CONSUMABLE_PRESET_PROP_KEYS,
+  CHAT_CLI_CONSUMABLE_PRESET_SLICE_KEYS,
+  CHAT_CLI_REQUIRED_FEATURE_KEYS,
   getChatCliTemplateDefinition,
   getChatCliTemplateRegistry,
   getStableChatCliTemplateIds,
+  validateChatCliTemplateRegistry,
 } from '../../../chat-cli/src/templateRegistry'
 import {
   applyTemplateVariables,
@@ -24,6 +29,7 @@ import {
 } from '../../../chat-cli/src/scaffold'
 
 const templateDir = fileURLToPath(new URL('../../../chat-cli/templates/basic', import.meta.url))
+const agentMcpTemplateDir = fileURLToPath(new URL('../../../chat-cli/templates/agent-mcp', import.meta.url))
 const cliEntry = fileURLToPath(new URL('../../../chat-cli/dist/index.js', import.meta.url))
 const cliPackageJson = fileURLToPath(new URL('../../../chat-cli/package.json', import.meta.url))
 
@@ -35,18 +41,62 @@ test.describe('chat-cli scaffold helpers', () => {
   test('template registry should provide the stable CLI template source of truth', async () => {
     const registry = getChatCliTemplateRegistry()
     const basicTemplate = getChatCliTemplateDefinition('basic')
+    const agentMcpTemplate = getChatCliTemplateDefinition('agent-mcp')
 
-    expect(getStableChatCliTemplateIds()).toEqual(['basic'])
-    expect(registry).toHaveLength(1)
+    expect(getStableChatCliTemplateIds()).toEqual(['basic', 'agent-mcp'])
+    expect(CHAT_CLI_REQUIRED_FEATURE_KEYS).toEqual(CHAT_CLI_CONSUMABLE_FEATURE_KEYS)
+    expect(CHAT_CLI_CONSUMABLE_PRESET_PROP_KEYS).toEqual([
+      'attachmentsFeature',
+      'senderActionsFeature',
+      'prompts',
+      'mcpManager',
+      'messageListVariant',
+      'roleConfigs',
+      'showHistory',
+      'historyProps',
+      'showFeedback',
+    ])
+    expect(CHAT_CLI_CONSUMABLE_PRESET_SLICE_KEYS).toEqual([
+      'root',
+      'layout',
+      'header',
+      'welcome',
+      'messageList',
+      'sender',
+      'history',
+      'modelSelector',
+    ])
+    expect(validateChatCliTemplateRegistry()).toEqual([])
+    expect(registry).toHaveLength(2)
     expect(basicTemplate).toEqual({
       id: 'basic',
       label: 'Basic Chat Agent',
-      description: 'Vue 3 + TypeScript + OpenAI/DeepSeek',
+      description: 'General chat starter with white-box chat slices',
       status: 'stable',
       templateDir: 'basic',
       supportedProviders: ['openai', 'deepseek', 'custom'],
-      requiredChatFeatures: [],
+      requiredChatFeatures: ['welcomePrompts', 'history'],
+      contractUsage: {
+        mode: 'whitebox-slices',
+        presetPropKeys: [],
+        presetSliceKeys: ['root', 'layout', 'header', 'welcome', 'messageList', 'sender', 'history', 'modelSelector'],
+      },
       postScaffoldSteps: ['copy-env', 'configure-endpoint', 'run-dev'],
+    })
+    expect(agentMcpTemplate).toEqual({
+      id: 'agent-mcp',
+      label: 'Agent MCP',
+      description: 'MCP panel + tool bridge starter',
+      status: 'stable',
+      templateDir: 'agent-mcp',
+      supportedProviders: ['openai', 'deepseek', 'custom'],
+      requiredChatFeatures: ['welcomePrompts', 'mcp', 'history'],
+      contractUsage: {
+        mode: 'whitebox-slices',
+        presetPropKeys: [],
+        presetSliceKeys: ['root', 'layout', 'header', 'welcome', 'messageList', 'sender', 'history', 'modelSelector'],
+      },
+      postScaffoldSteps: ['copy-env', 'configure-endpoint', 'review-mcp', 'run-dev'],
     })
   })
 
@@ -195,6 +245,7 @@ test.describe('chat-cli scaffold helpers', () => {
       const envFile = join(projectDir, '.env.example')
       const appFile = join(projectDir, 'src', 'App.vue')
       const configFile = join(projectDir, 'src', 'chat.config.ts')
+      const chatLibFile = join(projectDir, 'src', 'lib', 'chat.ts')
       const proxyFile = join(projectDir, 'server', 'chat-proxy.example.ts')
       const packageFile = join(projectDir, 'package.json')
       const readmeFile = join(projectDir, 'README.md')
@@ -209,20 +260,27 @@ test.describe('chat-cli scaffold helpers', () => {
       const envContent = readFileSync(envFile, 'utf-8')
       const appContent = readFileSync(appFile, 'utf-8')
       const configContent = readFileSync(configFile, 'utf-8')
+      const chatLibContent = readFileSync(chatLibFile, 'utf-8')
       const packageContent = readFileSync(packageFile, 'utf-8')
       const readmeContent = readFileSync(readmeFile, 'utf-8')
 
       expect(envContent).toContain('VITE_CHAT_API_ENDPOINT')
       expect(envContent).not.toContain('VITE_API_KEY')
 
-      expect(appContent).toContain('chatPreset')
+      expect(appContent).toContain('chatCapabilitySurface')
+      expect(appContent).toContain('TrChat.Root')
+      expect(appContent).toContain('slices.modelSelector')
       expect(appContent).not.toContain('Authorization: Bearer')
 
       expect(configContent).toContain("'openai-compatible'")
       expect(configContent).toContain('custom-model')
       expect(configContent).toContain('My Chat App')
+      expect(configContent).toContain('history: true')
       expect(configContent).not.toContain('__DEFAULT_PROVIDER__')
       expect(configContent).not.toContain('__DEFAULT_MODEL__')
+      expect(chatLibContent).toContain('createChatCliCapabilitySurface')
+      expect(chatLibContent).toContain('chatCapabilitySurface')
+      expect(chatLibContent).not.toContain('createPresetChatProps')
 
       expect(packageContent).toContain('"name": "my-chat-app"')
       expect(packageContent).not.toContain('__PROJECT_NAME__')
@@ -233,6 +291,49 @@ test.describe('chat-cli scaffold helpers', () => {
       expect(readmeContent).toContain('pnpm run dev')
       expect(readmeContent).toContain('pnpm run build')
       expect(readmeContent).not.toContain('__INSTALL_COMMAND__')
+      expect(readmeContent).toContain('chatCapabilitySurface')
+      expect(chatLibContent).not.toContain('showHistory: true')
+    } finally {
+      rmSync(root, { recursive: true, force: true })
+    }
+  })
+
+  test('scaffoldProject should generate an agent-mcp template that wires MCP through the stable chat contract', async () => {
+    const root = createTempDir('tiny-robot-chat-cli-agent-mcp-')
+    const projectDir = join(root, 'agent-mcp-app')
+
+    try {
+      scaffoldProject({
+        templateDir: agentMcpTemplateDir,
+        projectDir,
+        provider: 'openai',
+        projectName: 'agent-mcp-app',
+        packageManager: 'pnpm',
+      })
+
+      const appContent = readFileSync(join(projectDir, 'src', 'App.vue'), 'utf-8')
+      const configContent = readFileSync(join(projectDir, 'src', 'chat.config.ts'), 'utf-8')
+      const chatLibContent = readFileSync(join(projectDir, 'src', 'lib', 'chat.ts'), 'utf-8')
+      const mcpLibContent = readFileSync(join(projectDir, 'src', 'lib', 'mcp.ts'), 'utf-8')
+      const readmeContent = readFileSync(join(projectDir, 'README.md'), 'utf-8')
+
+      expect(appContent).toContain('TrChatMcpPanel')
+      expect(appContent).toContain('mcpPanelVisible')
+      expect(appContent).toContain('chatCapabilitySurface')
+
+      expect(configContent).toContain('Agent MCP Workspace')
+      expect(configContent).toContain('history: true')
+
+      expect(chatLibContent).toContain('useMcpManager')
+      expect(chatLibContent).toContain('toolPlugin')
+      expect(chatLibContent).toContain('chatCapabilitySurface')
+      expect(chatLibContent).toContain('mcpManager')
+
+      expect(mcpLibContent).toContain('defaultMcpServers')
+      expect(mcpLibContent).toContain('createLocalMcpBridge')
+
+      expect(readmeContent).toContain('Agent MCP')
+      expect(readmeContent).toContain('mock bridge')
     } finally {
       rmSync(root, { recursive: true, force: true })
     }
@@ -317,6 +418,12 @@ test.describe('chat-cli scaffold helpers', () => {
     expect(helpOutput).toContain('--template')
     expect(helpOutput).toContain('--provider')
     expect(helpOutput).toContain('--overwrite')
+    expect(helpOutput).toContain('Templates:')
+    expect(helpOutput).toContain('basic')
+    expect(helpOutput).toContain('agent-mcp')
+    expect(helpOutput).toContain('General chat starter')
+    expect(helpOutput).toContain('MCP panel + tool bridge starter')
+    expect(helpOutput).toContain('--template agent-mcp --provider custom')
     expect(versionOutput.trim()).toBe(`create-tiny-robot v${packageJson.version}`)
   })
 

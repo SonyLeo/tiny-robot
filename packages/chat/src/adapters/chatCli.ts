@@ -2,7 +2,14 @@ import type { TrChatProps } from '../types'
 import { createPresetChatProps, createPresetChatSlices } from './config'
 import type { ChatAdapter, ChatPresetProps, ChatPresetSlices } from './types'
 
-export const CHAT_CLI_CONSUMABLE_FEATURE_KEYS = ['attachments', 'senderActions', 'welcomePrompts', 'mcp'] as const
+export const CHAT_CLI_CONSUMABLE_FEATURE_KEYS = [
+  'attachments',
+  'senderActions',
+  'welcomePrompts',
+  'mcp',
+  'history',
+  'feedback',
+] as const
 export type ChatCliConsumableFeatureKey = (typeof CHAT_CLI_CONSUMABLE_FEATURE_KEYS)[number]
 
 export const CHAT_CLI_CONSUMABLE_PRESET_PROP_KEYS = [
@@ -12,10 +19,22 @@ export const CHAT_CLI_CONSUMABLE_PRESET_PROP_KEYS = [
   'mcpManager',
   'messageListVariant',
   'roleConfigs',
+  'showHistory',
+  'historyProps',
+  'showFeedback',
 ] as const
 export type ChatCliConsumablePresetPropKey = (typeof CHAT_CLI_CONSUMABLE_PRESET_PROP_KEYS)[number]
 
-export const CHAT_CLI_CONSUMABLE_PRESET_SLICE_KEYS = ['root', 'layout', 'welcome', 'messageList', 'sender'] as const
+export const CHAT_CLI_CONSUMABLE_PRESET_SLICE_KEYS = [
+  'root',
+  'layout',
+  'header',
+  'welcome',
+  'messageList',
+  'sender',
+  'history',
+  'modelSelector',
+] as const
 export type ChatCliConsumablePresetSliceKey = (typeof CHAT_CLI_CONSUMABLE_PRESET_SLICE_KEYS)[number]
 
 export interface ChatCliCapabilitySurface {
@@ -40,13 +59,19 @@ export function createChatCliCapabilitySurface(
       mcpManager: preset.mcpManager,
       messageListVariant: preset.messageListVariant,
       roleConfigs: preset.roleConfigs,
+      showHistory: preset.showHistory,
+      historyProps: preset.historyProps,
+      showFeedback: preset.showFeedback,
     },
     presetSlices: {
       root: presetSlices.root,
       layout: presetSlices.layout,
+      header: presetSlices.header,
       welcome: presetSlices.welcome,
       messageList: presetSlices.messageList,
       sender: presetSlices.sender,
+      history: presetSlices.history,
+      modelSelector: presetSlices.modelSelector,
     },
   }
 }

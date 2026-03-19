@@ -1,15 +1,24 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { TrChat, TrChatFeedback, TrModelSelector, useChatKit, useModelSelector } from '@opentiny/tiny-robot-chat'
+import {
+  TrChat,
+  TrChatFeedback,
+  TrChatMcpPanel,
+  TrModelSelector,
+  useChatKit,
+  useModelSelector,
+} from '@opentiny/tiny-robot-chat'
 import type { ModelOption } from '@opentiny/tiny-robot-chat'
-import { chatAdapter, chatCapabilitySurface, chatStorage } from './lib/chat'
+import { chatAdapter, chatCapabilitySurface, chatPlugins, chatStorage } from './lib/chat'
 
 const slices = chatCapabilitySurface.presetSlices
 const initialModel = slices.modelSelector.defaultModel ?? slices.modelSelector.models?.[0]?.value ?? ''
 const selectedModel = ref(initialModel)
+const mcpPanelVisible = ref(false)
 
 const chatKit = useChatKit({
   responseProvider: chatAdapter.createResponseProvider(initialModel || undefined),
+  plugins: chatPlugins,
   storage: chatStorage,
 })
 
@@ -35,7 +44,11 @@ function handleModelChange(model: ModelOption) {
   <div class="app-shell">
     <TrChat.Root :chat-kit="chatKit" v-bind="slices.root">
       <TrChat.Layout v-bind="slices.layout">
-        <TrChat.Header v-bind="slices.header" />
+        <TrChat.Header v-bind="slices.header">
+          <template #extra>
+            <button class="mcp-toggle" type="button" @click="mcpPanelVisible = true">MCP</button>
+          </template>
+        </TrChat.Header>
 
         <TrChat.Welcome
           v-if="showWelcome && slices.welcome"
@@ -68,6 +81,7 @@ function handleModelChange(model: ModelOption) {
         </TrChat.Footer>
 
         <TrChat.History v-if="slices.history.enabled" v-bind="slices.history.props" />
+        <TrChatMcpPanel :visible="mcpPanelVisible" @update:visible="mcpPanelVisible = $event" />
       </TrChat.Layout>
     </TrChat.Root>
   </div>
@@ -87,5 +101,17 @@ function handleModelChange(model: ModelOption) {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.mcp-toggle {
+  border: 1px solid #d0d7e2;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #0f172a;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1;
+  padding: 6px 12px;
 }
 </style>

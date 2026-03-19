@@ -16,21 +16,20 @@ const chatConfig: ChatConfig = {
   },
   defaults: {
     model: '__DEFAULT_MODEL__',
-    systemPrompt: 'You are a helpful assistant.',
+    systemPrompt: 'You are a tool-using assistant. Prefer tool results when a suitable MCP tool is enabled.',
   },
   ui: {
     brand: {
       title: '__PROJECT_TITLE__',
     },
     welcome: {
-      title: 'AI Assistant',
-      description: '你好，我是你的 AI 助手，有什么可以帮你的？',
+      title: 'Agent MCP Workspace',
+      description: '启用右上角 MCP 面板，管理工具并开始一次带工具协作的对话。',
     },
     prompts: [
-      { label: '✍️ 写作', description: '帮我写一篇关于...' },
-      { label: '💻 编程', description: '帮我写一个...' },
-      { label: '📊 分析', description: '帮我分析...' },
-      { label: '🌐 翻译', description: '帮我翻译...' },
+      { label: '工具清单', description: '先告诉我当前可用的 MCP 工具有哪些。' },
+      { label: '天气查询', description: '如果天气工具可用，请查询今天上海的天气。' },
+      { label: '调试计划', description: '请根据当前可用工具，给我一个排查线上问题的计划。' },
     ],
   },
   features: {

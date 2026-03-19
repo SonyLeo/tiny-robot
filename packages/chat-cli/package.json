@@ -18,8 +18,8 @@
     "build": "tsup",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
-    "prepare:templates": "node scripts/update-versions.mjs && node scripts/validate-templates.mjs",
-    "prepublishOnly": "pnpm run prepare:templates && pnpm run build"
+    "prepare:templates": "node scripts/update-versions.mjs && pnpm run build && node scripts/validate-templates.mjs",
+    "prepublishOnly": "pnpm run prepare:templates"
   },
   "dependencies": {
     "@clack/prompts": "^0.9.0",

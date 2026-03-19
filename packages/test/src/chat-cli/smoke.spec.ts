@@ -15,41 +15,54 @@ function createTempDir(prefix: string): string {
 }
 
 test.describe('chat-cli smoke build', () => {
-  test('generated basic template should build with the local workspace toolchain', async () => {
-    const root = createTempDir('tiny-robot-chat-cli-smoke-')
-    const projectDir = join(root, 'smoke-app')
+  for (const templateId of ['basic', 'agent-mcp'] as const) {
+    test(`generated ${templateId} template should build with the local workspace toolchain`, async () => {
+      const root = createTempDir('tiny-robot-chat-cli-smoke-')
+      const projectDir = join(root, 'smoke-app')
 
-    try {
-      execFileSync(
-        process.execPath,
-        [cliEntry, 'smoke-app', '--template', 'basic', '--provider', 'openai', '--yes', '--no-install', '--cwd', root],
-        {
-          env: {
-            ...process.env,
-            npm_config_user_agent: 'pnpm/9.0.0 npm/? node/v20.11.0',
+      try {
+        execFileSync(
+          process.execPath,
+          [
+            cliEntry,
+            'smoke-app',
+            '--template',
+            templateId,
+            '--provider',
+            'openai',
+            '--yes',
+            '--no-install',
+            '--cwd',
+            root,
+          ],
+          {
+            env: {
+              ...process.env,
+              npm_config_user_agent: 'pnpm/9.0.0 npm/? node/v20.11.0',
+            },
+            stdio: 'pipe',
           },
+        )
+
+        symlinkSync(repoNodeModules, join(projectDir, 'node_modules'), 'junction')
+
+        execFileSync(windowsShell, ['/c', join(toolRoot, 'vue-tsc.CMD'), '--noEmit'], {
+          cwd: projectDir,
           stdio: 'pipe',
-        },
-      )
+        })
 
-      symlinkSync(repoNodeModules, join(projectDir, 'node_modules'), 'junction')
+        execFileSync(windowsShell, ['/c', join(toolRoot, 'vite.CMD'), 'build'], {
+          cwd: projectDir,
+          stdio: 'pipe',
+        })
 
-      execFileSync(windowsShell, ['/c', join(toolRoot, 'vue-tsc.CMD'), '--noEmit'], {
-        cwd: projectDir,
-        stdio: 'pipe',
-      })
+        expect(existsSync(join(projectDir, 'dist', 'index.html'))).toBeTruthy()
 
-      execFileSync(windowsShell, ['/c', join(toolRoot, 'vite.CMD'), 'build'], {
-        cwd: projectDir,
-        stdio: 'pipe',
-      })
-
-      expect(existsSync(join(projectDir, 'dist', 'index.html'))).toBeTruthy()
-
-      const packageContent = readFileSync(join(projectDir, 'package.json'), 'utf-8')
-      expect(packageContent).not.toContain('workspace:*')
-    } finally {
-      rmSync(root, { recursive: true, force: true })
-    }
-  })
+        const packageContent = readFileSync(join(projectDir, 'package.json'), 'utf-8')
+        expect(packageContent).not.toContain('workspace:*')
+      } finally {
+        rmSync(root, { recursive: true, force: true })
+      }
+    })
+  }
 })

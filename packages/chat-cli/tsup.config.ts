@@ -6,6 +6,7 @@ export default defineConfig({
     index: 'src/index.ts',
     banner: 'src/banner.ts',
     packageManager: 'src/packageManager.ts',
+    templateRegistry: 'src/templateRegistry.ts',
   },
 
   // 构建产物格式：仅 ESM（package.json 已声明 "type": "module"）
