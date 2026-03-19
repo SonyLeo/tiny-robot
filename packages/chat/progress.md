@@ -4,6 +4,7 @@
 > Design: [docs/chat-kit-design.md](../../docs/chat-kit-design.md)
 > Review: [chat-kit-review-02.md](./chat-kit-review-02.md)
 > P5 Draft: [docs/chat-p5-proposal.md](../../docs/chat-p5-proposal.md)
+> P5-B API Draft: [docs/chat-p5-b-api-draft.md](../../docs/chat-p5-b-api-draft.md)
 
 ## Current Status
 
@@ -66,6 +67,28 @@
   - `P5-A / Theme & Appearance`
   - `P5-B / Workspace Shell & Regions`
   - `P5-C / Content Navigation & View State`
+- `P5-B` now has a minimum API draft covering:
+  - region host config
+  - panel definition config
+  - top-bar and center-layout config
+  - `fullWidth` view-state config
+- `packages/chat` now has first formal `P5-B` runtime skeletons:
+  - `TrChatWorkspaceShell`
+  - `TrChatWorkspacePanelHost`
+- `P5-B` runtime state is now one step more formal:
+  - shell owns controlled/uncontrolled region collapse
+  - shell owns region-level active-panel state
+  - shell emits region collapse and panel change events
+  - panel host supports `activePanelId` and `defaultActivePanelId`
+- a dedicated workspace runtime unit test now covers:
+  - region width resolution
+  - collapse-state resolution
+  - panel definition -> host item mapping
+  - active-panel fallback and lookup behavior
+- the demo `P5` preview now consumes the formal shell and panel-host components instead of local-only shell wrappers
+- `fullWidth` is now consumed through formal `WorkspaceShell.viewState` instead of a demo-only page class
+- `notebook` is intentionally not formalized yet; current shell direction is to reserve generic panel hosts and slots for future panel content
+- `region.panels` now flows through shell runtime slot props before reaching the demo panel host
 - current screenshot usage is intentionally narrow:
   - visual shell spacing
   - radius

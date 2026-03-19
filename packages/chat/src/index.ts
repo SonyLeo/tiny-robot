@@ -18,6 +18,10 @@ import {
 } from './components/chat'
 import { ChatHistory as TrChatHistory } from './components/history'
 import { ModelSelector as TrModelSelector } from './components/model-selector'
+import {
+  WorkspaceShell as TrChatWorkspaceShell,
+  WorkspacePanelHost as TrChatWorkspacePanelHost,
+} from './components/workspace'
 
 // 定义带子组件的 TrChat 类型
 type TrChatWithSubComponents = typeof TrChat & {
@@ -31,6 +35,8 @@ type TrChatWithSubComponents = typeof TrChat & {
   Attachments: typeof TrChatAttachments
   Sender: typeof TrChatSender
   History: typeof TrChatHistory
+  WorkspaceShell: typeof TrChatWorkspaceShell
+  WorkspacePanelHost: typeof TrChatWorkspacePanelHost
 }
 
 // 挂载白盒子组件到 TrChat 上，实现复合组件模式
@@ -45,6 +51,8 @@ TrChatFull.Footer = TrChatFooter
 TrChatFull.Attachments = TrChatAttachments
 TrChatFull.Sender = TrChatSender
 TrChatFull.History = TrChatHistory
+TrChatFull.WorkspaceShell = TrChatWorkspaceShell
+TrChatFull.WorkspacePanelHost = TrChatWorkspacePanelHost
 
 export { TrChatFull as TrChat }
 
@@ -73,7 +81,16 @@ export {
 } from './components/render'
 
 // ===== 新组件 =====
-export { TrModelSelector, TrChatFeedback, TrChatMcpPanel, TrChatLayout, TrChatAttachments, TrChatPresetRoot }
+export {
+  TrModelSelector,
+  TrChatFeedback,
+  TrChatMcpPanel,
+  TrChatLayout,
+  TrChatAttachments,
+  TrChatPresetRoot,
+  TrChatWorkspaceShell,
+  TrChatWorkspacePanelHost,
+}
 
 // ===== Providers =====
 export { matchProvider, createOpenAIFactory, createDeepSeekFactory } from './providers/factories'
@@ -131,6 +148,19 @@ export type {
   ModelOption,
   ModelProviderFactory,
   ProviderFactoryCreator,
+  ChatWorkspaceRegionKey,
+  ChatWorkspacePanelWidth,
+  ChatWorkspaceBuiltInPanelKind,
+  ChatWorkspaceComposerDockMode,
+  ChatWorkspacePanelDefinition,
+  ChatWorkspacePanelHostItem,
+  ChatWorkspaceRegionConfig,
+  ChatWorkspaceShellTopBarConfig,
+  ChatWorkspaceCenterLayoutConfig,
+  ChatWorkspaceViewStateConfig,
+  ChatWorkspaceShellConfig,
+  TrChatWorkspaceShellProps,
+  TrChatWorkspacePanelHostProps,
 } from './types'
 export type { UseDefaultBubbleConfigOptions } from './composables'
 export type { UseMcpManagerBridge, UseMcpManagerOptions, UseModelSelectorOptions } from './composables'

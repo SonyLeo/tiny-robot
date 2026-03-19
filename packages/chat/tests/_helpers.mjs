@@ -19,6 +19,7 @@ const modelSelectorModule = await jiti.import('../src/composables/useModelSelect
 const adapterModule = await jiti.import('../src/adapters/index.ts')
 const presetsModule = await jiti.import('../src/presets/index.ts')
 const messagesModule = await jiti.import('../src/messages.ts')
+const workspaceRuntimeModule = await jiti.import('../src/components/workspace/runtime.ts')
 
 export { assert, computed, nextTick, ref, shallowRef }
 
@@ -48,6 +49,11 @@ export const getBuiltInAgentPreset = presetsModule.getBuiltInAgentPreset
 export const getBuiltInSkillPack = presetsModule.getBuiltInSkillPack
 
 export const CHAT_MESSAGES = messagesModule.CHAT_MESSAGES
+export const resolveWorkspaceRegionWidth = workspaceRuntimeModule.resolveWorkspaceRegionWidth
+export const toWorkspacePanelHostItems = workspaceRuntimeModule.toWorkspacePanelHostItems
+export const resolveWorkspaceCollapsedState = workspaceRuntimeModule.resolveWorkspaceCollapsedState
+export const coerceWorkspacePanelId = workspaceRuntimeModule.coerceWorkspacePanelId
+export const findWorkspacePanelById = workspaceRuntimeModule.findWorkspacePanelById
 
 export function createChunk({ content, role, finishReason = null, model = 'mock-model' }) {
   return {

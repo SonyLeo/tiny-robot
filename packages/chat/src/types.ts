@@ -331,3 +331,77 @@ export interface ModelProviderFactory {
  * 用于简化 ModelProviderFactory 的创建
  */
 export type ProviderFactoryCreator<T extends Record<string, unknown>> = (options: T) => ModelProviderFactory
+
+// ===== P5-B draft workspace shell types =====
+export type ChatWorkspaceRegionKey = 'left' | 'right'
+
+export type ChatWorkspacePanelWidth = 'sm' | 'md' | 'lg' | number
+
+export type ChatWorkspaceBuiltInPanelKind = 'history' | 'mcp' | 'notebook' | 'outline' | 'sources' | 'custom'
+
+export type ChatWorkspaceComposerDockMode = 'bottom' | 'floating-bottom'
+
+export interface ChatWorkspacePanelDefinition {
+  id: string
+  kind?: ChatWorkspaceBuiltInPanelKind
+  label?: string
+  description?: string
+  title?: string
+  closable?: boolean
+  defaultOpen?: boolean
+}
+
+export interface ChatWorkspaceRegionConfig {
+  enabled?: boolean
+  collapsible?: boolean
+  defaultOpen?: boolean
+  width?: ChatWorkspacePanelWidth
+  panels?: ChatWorkspacePanelDefinition[]
+  activePanelId?: string
+}
+
+export interface ChatWorkspaceShellTopBarConfig {
+  enabled?: boolean
+}
+
+export interface ChatWorkspaceCenterLayoutConfig {
+  header?: boolean
+  composerDock?: ChatWorkspaceComposerDockMode
+}
+
+export interface ChatWorkspaceViewStateConfig {
+  fullWidth?: boolean
+}
+
+export interface ChatWorkspaceShellConfig {
+  leftRegion?: ChatWorkspaceRegionConfig
+  rightRegion?: ChatWorkspaceRegionConfig
+  topBar?: ChatWorkspaceShellTopBarConfig
+  centerLayout?: ChatWorkspaceCenterLayoutConfig
+  viewState?: ChatWorkspaceViewStateConfig
+}
+
+export interface TrChatWorkspaceShellProps extends ChatWorkspaceShellConfig {
+  badge?: string
+  title?: string
+  description?: string
+  leftCollapsed?: boolean
+  rightCollapsed?: boolean
+  leftRailLabel?: string
+  rightRailLabel?: string
+}
+
+export interface ChatWorkspacePanelHostItem {
+  id: string
+  label: string
+  description?: string
+}
+
+export interface TrChatWorkspacePanelHostProps {
+  title?: string
+  subtitle?: string
+  items: ChatWorkspacePanelHostItem[]
+  modelValue?: string
+  activePanelId?: string
+  defaultActivePanelId?: string
+}

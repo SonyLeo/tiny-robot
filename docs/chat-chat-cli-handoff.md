@@ -1,11 +1,12 @@
 # Chat / Chat CLI Handoff
 
-> Snapshot date: `2026-03-19`
+> Snapshot date: `2026-03-20`
 > Purpose: help another LLM or collaborator enter the current implementation state quickly without relying on previous chat history
 > Primary status boards:
 > - [packages/chat/progress.md](../packages/chat/progress.md)
 > - [packages/chat-cli/progress.md](../packages/chat-cli/progress.md)
 > - [chat-p5-proposal.md](./chat-p5-proposal.md)
+> - [chat-p5-b-api-draft.md](./chat-p5-b-api-draft.md)
 
 ---
 
@@ -33,6 +34,40 @@ The most important architectural rule is:
 - `chat-cli` must not invent new chat-layer abstractions before consumption is stable
 
 This rule is active and should continue to guide implementation.
+
+For current `P5` work, the most relevant new reference is:
+
+- `docs/chat-p5-b-api-draft.md`
+
+That draft captures the current minimum shell contract derived from the demo validation work.
+
+The current runtime situation is now:
+
+- `packages/chat` contains first formal `P5-B` component skeletons:
+  - `TrChatWorkspaceShell`
+  - `TrChatWorkspacePanelHost`
+- the demo preview has already switched to consuming those formal components
+- `fullWidth` now enters the demo through formal `viewState` consumption on `TrChatWorkspaceShell`
+- `notebook` is not yet a formal runtime view-state commitment; current shell work keeps panel hosting generic so future panel types can mount without locking the API too early
+- panel content is still demo-owned, but shell and host structure are no longer demo-only
+- the current `P5-B` runtime contract is now stronger than the earliest demo-only shell draft:
+  - shell owns region collapse state
+  - shell owns region-level active-panel state
+  - shell emits region collapse and panel change events
+  - shell passes `panels / panelItems / activePanelId / setActivePanel` through region slot props
+  - panel host supports both controlled and default active-panel inputs
+- the current `P5-B` implementation also has a dedicated runtime helper layer in:
+  - `packages/chat/src/components/workspace/runtime.ts`
+  - this helper layer now owns:
+    - region width resolution
+    - collapse-state resolution
+    - panel definition -> host item mapping
+    - active-panel fallback and lookup semantics
+
+One important local rule from the latest work cycle:
+
+- do not modify `packages/components` for `P5-B` shell/layout fixes unless explicitly approved
+- current shell, height-chain, and panel-host fixes should stay inside `packages/chat`
 
 ---
 
@@ -378,6 +413,9 @@ If another LLM needs to continue work quickly, read in this order.
 5. `packages/chat/src/features/types.ts`
 6. `packages/chat/src/components/chat/Chat.vue`
 7. `packages/chat/src/types.ts`
+8. `packages/chat/src/components/workspace/WorkspaceShell.vue`
+9. `packages/chat/src/components/workspace/WorkspacePanelHost.vue`
+10. `packages/chat/src/components/workspace/runtime.ts`
 
 ### 5.3 CLI implementation
 
@@ -390,6 +428,7 @@ If another LLM needs to continue work quickly, read in this order.
 Chat unit:
 
 - `packages/chat/tests/use-chat-slices.test.mjs`
+- `packages/chat/tests/workspace-runtime.test.mjs`
 
 Chat E2E:
 
@@ -523,6 +562,35 @@ Reason:
 - layout formalization is done
 - retrieval contract is not the same thing as docs-looking UI
 
+### 7.5 Current `P5-B` next-step judgment
+
+Current `P5-B` has already moved past pure visual validation.
+
+What is already true:
+
+- `WorkspaceShell` is a formal runtime surface
+- `WorkspacePanelHost` is a formal runtime surface
+- `fullWidth` is already consumed as formal shell `viewState`
+- region panel metadata now flows through shell runtime state before reaching the panel host
+- unit coverage now exists for core runtime semantics
+
+What is still not formalized:
+
+- a shell-owned built-in region host renderer
+- persistence for collapsed state or active panel state
+- drag-to-resize
+- multi-panel split view
+- a public custom-panel registration protocol
+
+Recommended immediate next task for another LLM:
+
+1. keep `P5-B` additive and runtime-focused
+2. avoid reopening `P2 layout`
+3. prefer formalizing one more shell/runtime contract step before expanding demo semantics
+4. likely best next target:
+   - either add minimal E2E verification for current shell/panel-host runtime behavior
+   - or document and formalize the public slot/emit contract more explicitly before adding more features
+
 ---
 
 ## 8. Important Design Boundaries
@@ -619,6 +687,20 @@ Current agreed rule:
 - prioritize `packages/chat` capability work
 - treat demo as a verification aid, not the release-critical path
 
+### 9.4 Demo currently validates formal `P5-B` runtime, but does not define final panel semantics
+
+The current demo page:
+
+- already consumes formal `WorkspaceShell`
+- already consumes formal `WorkspacePanelHost`
+- no longer owns the shell-width logic for `fullWidth`
+- still owns example panel content and presentation copy
+
+Interpretation rule:
+
+- treat demo as proof that the current runtime contract works
+- do not treat the current `history / sources / pinned / notes / mcp / outline` panel examples as final product semantics
+
 ---
 
 ## 10. Verification Baseline
@@ -658,6 +740,9 @@ If another LLM needs to resume implementation, the fastest safe path is:
 
 2. Confirm current upstream contract in:
    - `packages/chat/src/adapters/chatCli.ts`
+   - `packages/chat/src/components/workspace/WorkspaceShell.vue`
+   - `packages/chat/src/components/workspace/WorkspacePanelHost.vue`
+   - `packages/chat/src/components/workspace/runtime.ts`
 
 3. Confirm current CLI registry state in:
    - `packages/chat-cli/src/templateRegistry.ts`
@@ -668,11 +753,19 @@ If another LLM needs to resume implementation, the fastest safe path is:
    - keep `chat-cli` follow-up work limited to hardening existing sample templates unless a new chat-side contract requires more
    - keep template generation registry-first
    - keep `docs-chat` waiting for retrieval contract clarity
+   - for `P5-B`, prefer formal runtime closeout over adding more demo-only affordances
 
 5. After any change:
    - update the matching `progress.md`
    - update review only if execution rules changed
    - run the relevant test baseline
+
+6. For `P5-B` specifically:
+   - do not modify `packages/components` unless explicitly approved
+   - keep shell/layout fixes inside `packages/chat`
+   - preserve the boundary:
+     - `layout.variant` handles content presentation
+     - `WorkspaceShell` handles shell regions and shell state
 
 ---
 
@@ -709,3 +802,37 @@ Practical implication:
 - when implementation resumes, start from demo-visible shell polish
 - confirm visual direction first
 - only then decide whether to formalize regions, panel hosts, and panel state
+
+Current implementation has now moved beyond that initial discussion point:
+
+- shell, panel host, and `fullWidth` are already formal runtime surfaces in `packages/chat`
+- the current remaining `P5-B` work is now about stabilizing runtime contract details rather than proving visual direction
+- current runtime verification should focus on:
+  - collapse control
+  - region panel metadata flow
+  - active-panel state flow
+  - shell-to-demo consumption boundaries
+
+Concretely, the latest finished `P5-B` step is:
+
+- shell slot props now expose:
+  - `collapsed`
+  - `toggle`
+  - `region`
+  - `panels`
+  - `panelItems`
+  - `activePanelId`
+  - `setActivePanel`
+- shell now emits:
+  - `update:leftCollapsed`
+  - `update:rightCollapsed`
+  - `update:leftActivePanelId`
+  - `update:rightActivePanelId`
+  - `left-panel-change`
+  - `right-panel-change`
+- panel host now supports:
+  - `activePanelId`
+  - `defaultActivePanelId`
+  - `update:activePanelId`
+  - `change`
+- unit tests now lock the helper semantics behind those runtime behaviors

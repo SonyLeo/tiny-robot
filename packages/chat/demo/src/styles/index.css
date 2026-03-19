@@ -2,57 +2,44 @@
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body,
+#app {
   margin: 0;
   padding: 0;
   height: 100%;
+}
+
+body {
   overflow: hidden;
+  background:
+    radial-gradient(circle at top left, rgba(217, 234, 255, 0.72), transparent 32%),
+    radial-gradient(circle at bottom right, rgba(234, 239, 245, 0.92), transparent 28%),
+    linear-gradient(180deg, #eef2f7 0%, #f5f7fb 100%);
+  color: #172033;
+  font-family:
+    'Segoe UI',
+    'PingFang SC',
+    'Hiragino Sans GB',
+    'Microsoft YaHei',
+    sans-serif;
 }
 
 .demo-container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  background: #f9fafb;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
-  overflow: hidden;
-}
-
-/* Main */
-.demo-main {
-  flex: 1;
-  display: flex;
-  overflow: hidden;
-  gap: 0;
+  height: 100%;
   min-height: 0;
-}
-
-.demo-section {
-  flex: 1;
-  display: flex;
   overflow: hidden;
-  background: white;
-  min-height: 0;
 }
 
-.demo-chat {
-  flex: 1;
-  background: white;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
-
-/* Footer */
 .demo-footer {
-  background: #fff;
-  border-top: 1px solid #e5e7eb;
-  padding: 12px 40px;
+  background: transparent;
+  border-top: 0;
+  padding: 0 24px 16px;
   text-align: center;
   font-size: 12px;
-  color: #999;
-  box-shadow: none;
+  color: #7b8494;
   flex-shrink: 0;
 }
 
@@ -62,63 +49,20 @@ html, body {
 }
 
 .demo-footer a {
-  color: #667eea;
+  color: #4b70dd;
   text-decoration: none;
   margin: 0 6px;
   font-weight: 600;
-  transition: all 0.3s ease;
-  position: relative;
-}
-
-.demo-footer a::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, #667eea, #764ba2);
-  transform: scaleX(0);
-  transform-origin: right;
-  transition: transform 0.3s ease;
+  transition: color 0.2s ease;
 }
 
 .demo-footer a:hover {
-  color: #764ba2;
+  color: #2b4aa9;
 }
 
-.demo-footer a:hover::after {
-  transform: scaleX(1);
-  transform-origin: left;
-}
-
-/* Responsive */
 @media (max-width: 768px) {
-  .demo-container {
-    flex-direction: column;
-  }
-
-  .demo-main {
-    flex-direction: column;
-    min-height: 0;
-  }
-
-  .demo-section {
-    flex-direction: column;
-    min-height: 0;
-  }
-
-  .demo-chat {
-    flex: 1;
-    min-height: 0;
-  }
-
   .demo-footer {
-    padding: 12px;
+    padding: 0 14px 12px;
     font-size: 11px;
-  }
-
-  .demo-footer a {
-    margin: 0 3px;
   }
 }

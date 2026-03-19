@@ -52,6 +52,7 @@
 .tr-chat__welcome-area {
   display: flex;
   flex: 1;
+  min-height: 0;
   flex-direction: column;
   overflow: hidden;
 }
@@ -59,10 +60,16 @@
 .tr-chat__body {
   display: flex;
   flex: 1;
+  min-height: 0;
   flex-direction: column;
   overflow: hidden;
   padding: var(--chat-body-padding);
   background: var(--chat-body-bg);
+}
+
+.tr-chat__body > .tr-bubble-list {
+  flex: 1;
+  min-height: 0;
 }
 
 .tr-chat__body--docs {
@@ -135,6 +142,7 @@
 .tr-chat__welcome {
   display: flex;
   flex: 1;
+  min-height: 0;
   flex-direction: column;
   align-items: center;
   justify-content: center;
