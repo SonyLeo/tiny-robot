@@ -179,6 +179,47 @@ __BUILD_COMMAND__
 - `src/styles/index.css`：全局基础样式
 - `server/chat-proxy.example.ts`：服务端代理参考实现
 
+## 前 10 分钟建议
+
+如果你刚生成了这个模板，建议按这个顺序改：
+
+1. [src/chat.config.ts](./src/chat.config.ts)
+   - 改品牌标题
+   - 改 welcome 文案
+   - 改默认 prompts
+   - 改模型与 Provider
+2. [server/chat-proxy.example.ts](./server/chat-proxy.example.ts)
+   - 接入你的真实后端
+   - 改上游地址与认证逻辑
+3. 页面跑通后，再看 [src/App.vue](./src/App.vue)
+   - 这里只负责消费 `chatCapabilitySurface.presetSlices`
+   - 不是最推荐的一开始就修改的文件
+
+## 为什么这个模板默认使用 white-box
+
+这个模板没有直接写成：
+
+```vue
+<TrChat v-bind="chatPreset" />
+```
+
+而是显式消费 `chatCapabilitySurface.presetSlices`。这样做不是为了增加复杂度，而是为了把当前稳定的 chat contract 更明确地示范出来：
+
+- `root / layout / header / welcome / messageList / sender / history / modelSelector`
+
+对模板使用者的好处是：
+
+- 你能更清楚看到每一段 UI 从哪份 contract 结果来
+- 后续做业务定制时，不必重新手工推导默认值
+- 这个模板更适合作为 white-box chat 结构的起步样例
+
+如果你只想做最小业务定制，仍然优先改：
+
+- [src/chat.config.ts](./src/chat.config.ts)
+- [server/chat-proxy.example.ts](./server/chat-proxy.example.ts)
+
+而不是先重写 [src/App.vue](./src/App.vue)。
+
 ## 自定义入口
 
 你通常会先从这两个文件开始：
@@ -192,6 +233,14 @@ __BUILD_COMMAND__
 - 聊天接口地址
 - 品牌标题、欢迎文案、提示卡片
 - 服务端认证、限流、日志和错误处理
+
+如果你后续要继续往更高层的场景配置走，例如：
+
+- 应用层 preset
+- skill pack
+- tool-enabled assistant
+
+可以把 [src/lib/chat.ts](./src/lib/chat.ts) 看作接入这些能力的下一层入口，而不是一开始就重写页面结构。
 
 如果你要从 DeepSeek 切到 OpenAI，至少需要同步检查：
 

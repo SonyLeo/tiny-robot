@@ -115,3 +115,65 @@ export function validateTemplateRegistry({
 
   return errors
 }
+
+function getTemplateSourceFiles(templateRoot) {
+  const sourceFiles = []
+  const queue = [join(templateRoot, 'src')]
+
+  while (queue.length > 0) {
+    const current = queue.shift()
+    if (!current || !existsSync(current)) {
+      continue
+    }
+
+    for (const entry of readdirSync(current, { withFileTypes: true })) {
+      const entryPath = join(current, entry.name)
+      if (entry.isDirectory()) {
+        queue.push(entryPath)
+        continue
+      }
+
+      if (/\.(ts|vue|js|mjs)$/.test(entry.name)) {
+        sourceFiles.push(entryPath)
+      }
+    }
+  }
+
+  return sourceFiles
+}
+
+function fileContainsPattern(filePaths, pattern) {
+  return filePaths.some((filePath) => readFileSync(filePath, 'utf-8').includes(pattern))
+}
+
+export function validateTemplateContractUsageSource({
+  templatesDir,
+  templateDefinitions,
+}) {
+  const errors = []
+
+  for (const template of templateDefinitions) {
+    if (template.contractUsage.mode !== 'whitebox-slices') {
+      continue
+    }
+
+    const templateRoot = join(templatesDir, template.templateDir)
+    const sourceFiles = getTemplateSourceFiles(templateRoot)
+
+    if (!fileContainsPattern(sourceFiles, 'chatCapabilitySurface')) {
+      errors.push(`Template "${template.id}" must reference "chatCapabilitySurface" when using "whitebox-slices"`)
+    }
+
+    if (!fileContainsPattern(sourceFiles, 'TrChat.Root')) {
+      errors.push(`Template "${template.id}" must render "TrChat.Root" when using "whitebox-slices"`)
+    }
+
+    for (const sliceKey of template.contractUsage.presetSliceKeys ?? []) {
+      if (!fileContainsPattern(sourceFiles, `slices.${sliceKey}`)) {
+        errors.push(`Template "${template.id}" declares preset slice "${sliceKey}" but does not reference "slices.${sliceKey}"`)
+      }
+    }
+  }
+
+  return errors
+}

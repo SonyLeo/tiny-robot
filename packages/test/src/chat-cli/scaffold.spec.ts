@@ -292,6 +292,9 @@ test.describe('chat-cli scaffold helpers', () => {
       expect(readmeContent).toContain('pnpm run build')
       expect(readmeContent).not.toContain('__INSTALL_COMMAND__')
       expect(readmeContent).toContain('chatCapabilitySurface')
+      expect(readmeContent).toContain('前 10 分钟建议')
+      expect(readmeContent).toContain('为什么这个模板默认使用 white-box')
+      expect(readmeContent).toContain('不是最推荐的一开始就修改的文件')
       expect(chatLibContent).not.toContain('showHistory: true')
     } finally {
       rmSync(root, { recursive: true, force: true })
@@ -334,6 +337,10 @@ test.describe('chat-cli scaffold helpers', () => {
 
       expect(readmeContent).toContain('Agent MCP')
       expect(readmeContent).toContain('mock bridge')
+      expect(readmeContent).toContain('这个模板不是什么')
+      expect(readmeContent).toContain('不是完整 agent runtime')
+      expect(readmeContent).toContain('哪些文件以后最可能被替换')
+      expect(readmeContent).toContain('从 starter 到真实应用的建议路径')
     } finally {
       rmSync(root, { recursive: true, force: true })
     }

@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { execFileSync } from 'node:child_process'
+import { execFileSync, spawn } from 'node:child_process'
 import { existsSync, mkdtempSync, readFileSync, rmSync, symlinkSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -14,11 +14,35 @@ function createTempDir(prefix: string): string {
   return mkdtempSync(join(tmpdir(), prefix))
 }
 
+async function waitForServer(url: string, { timeout = 15000, interval = 250 } = {}): Promise<void> {
+  const startedAt = Date.now()
+
+  while (Date.now() - startedAt < timeout) {
+    try {
+      const response = await fetch(url)
+      if (response.ok) {
+        return
+      }
+    } catch {
+      // Ignore connection errors until the timeout expires.
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, interval))
+  }
+
+  throw new Error(`Timed out waiting for preview server at ${url}`)
+}
+
 test.describe('chat-cli smoke build', () => {
   for (const templateId of ['basic', 'agent-mcp'] as const) {
-    test(`generated ${templateId} template should build with the local workspace toolchain`, async () => {
+    test(`generated ${templateId} template should build with the local workspace toolchain`, async ({
+      page,
+    }, testInfo) => {
       const root = createTempDir('tiny-robot-chat-cli-smoke-')
       const projectDir = join(root, 'smoke-app')
+      const port = 4173 + testInfo.workerIndex
+      const previewUrl = `http://127.0.0.1:${port}/`
+      let previewProcess: ReturnType<typeof spawn> | null = null
 
       try {
         execFileSync(
@@ -60,7 +84,32 @@ test.describe('chat-cli smoke build', () => {
 
         const packageContent = readFileSync(join(projectDir, 'package.json'), 'utf-8')
         expect(packageContent).not.toContain('workspace:*')
+
+        previewProcess = spawn(
+          windowsShell,
+          ['/c', join(toolRoot, 'vite.CMD'), 'preview', '--host', '127.0.0.1', '--port', String(port)],
+          {
+            cwd: projectDir,
+            stdio: 'ignore',
+          },
+        )
+
+        await waitForServer(previewUrl)
+        await page.goto(previewUrl)
+
+        await expect(page.getByRole('heading', { name: /AI Assistant|Agent MCP Workspace/i })).toBeVisible()
+        await expect(page.locator('button[aria-label="选择模型"]')).toBeVisible()
+        await expect(page.locator('button[title="打开历史"]')).toBeVisible()
+
+        if (templateId === 'agent-mcp') {
+          await expect(page.getByRole('button', { name: 'MCP' })).toBeVisible()
+          await page.getByRole('button', { name: 'MCP' }).click()
+          await expect(page.getByText('Weather Service')).toBeVisible()
+        }
       } finally {
+        if (previewProcess && !previewProcess.killed) {
+          previewProcess.kill()
+        }
         rmSync(root, { recursive: true, force: true })
       }
     })

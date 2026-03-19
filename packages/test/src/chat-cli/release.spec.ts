@@ -8,6 +8,7 @@ import { validateChatCliTemplateRegistry } from '../../../chat-cli/src/templateR
 import {
   collectWorkspacePackageVersions,
   updateTemplateDependencyVersions,
+  validateTemplateContractUsageSource,
   validateTemplatePackages,
   validateTemplateRegistry,
 } from '../../../chat-cli/scripts/template-release-utils.mjs'
@@ -193,5 +194,46 @@ test.describe('chat-cli release helpers', () => {
       'Template "broken-template" declares unsupported preset prop key "unknown-prop"',
       'Template "broken-template" must declare presetSliceKeys when using "whitebox-slices"',
     ])
+  })
+
+  test('validateTemplateContractUsageSource should reject white-box templates whose source does not consume declared slices', async () => {
+    const templatesDir = createTempDir('tiny-robot-chat-cli-contract-usage-')
+
+    try {
+      mkdirSync(join(templatesDir, 'basic', 'src'), { recursive: true })
+      writeJson(join(templatesDir, 'basic', 'package.json'), { name: 'example-app' })
+      writeFileSync(
+        join(templatesDir, 'basic', 'src', 'App.vue'),
+        `
+<script setup lang="ts">
+const slices = chatCapabilitySurface.presetSlices
+</script>
+<template>
+  <TrChat.Root v-bind="slices.root">
+    <TrChat.Layout v-bind="slices.layout" />
+  </TrChat.Root>
+</template>
+`.trim(),
+        'utf-8',
+      )
+
+      const errors = validateTemplateContractUsageSource({
+        templatesDir,
+        templateDefinitions: [
+          {
+            id: 'basic',
+            templateDir: 'basic',
+            contractUsage: {
+              mode: 'whitebox-slices',
+              presetSliceKeys: ['root', 'layout', 'header'],
+            },
+          },
+        ],
+      })
+
+      expect(errors).toEqual(['Template "basic" declares preset slice "header" but does not reference "slices.header"'])
+    } finally {
+      rmSync(templatesDir, { recursive: true, force: true })
+    }
   })
 })

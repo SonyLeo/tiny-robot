@@ -1,6 +1,6 @@
 # Chat / Chat CLI Handoff
 
-> Snapshot date: `2026-03-18`
+> Snapshot date: `2026-03-19`
 > Purpose: help another LLM or collaborator enter the current implementation state quickly without relying on previous chat history
 > Primary status boards:
 > - [packages/chat/progress.md](../packages/chat/progress.md)
@@ -19,7 +19,8 @@ Current agreed state:
 
 - `packages/chat` has completed `P0 / P1 / P2`
 - `packages/chat` has completed `P3 / Template / CLI Consumption`
-- `packages/chat` is now ready to enter `P4 / Agent Preset + Skill Pack`
+- `packages/chat` has completed `P4-A / Agent Preset + Skill Pack Foundation`
+- `packages/chat` is now ready to define `P4-B`
 - `packages/chat-cli` has started its own registry-first foundation work
 - the current CLI registry and hygiene baseline is sufficient, so the next active implementation step should stay in `packages/chat`
 
@@ -126,6 +127,49 @@ Tests added / relied on:
 - `packages/test/src/chat/layout-config.spec.ts`
 - `packages/test/src/chat/index.spec.ts`
 
+### 2.5 P3: Template / CLI Consumption
+
+Completed:
+
+- a stable CLI-facing capability contract now exists in `packages/chat/src/adapters/chatCli.ts`
+- contract outputs now cover:
+  - feature keys: `attachments / senderActions / welcomePrompts / mcp / history / feedback`
+  - preset prop keys: `attachmentsFeature / senderActionsFeature / prompts / mcpManager / messageListVariant / roleConfigs / showHistory / historyProps / showFeedback`
+  - preset slice keys: `root / layout / header / welcome / messageList / sender / history / modelSelector`
+- template-facing consumption is now proven by two stable templates:
+  - `basic`
+  - `agent-mcp`
+- scaffold / smoke verification is green for the current stable templates
+
+### 2.6 P4-A: Agent Preset + Skill Pack Foundation
+
+Completed:
+
+- `packages/chat/src/presets` now exists as the first preset-composition layer
+- `AgentPreset` and `SkillPack` types now exist
+- `resolveAgentPreset()` now resolves preset and skill input into standard chat config patches
+- `createChatAdapterFromAgentPreset()` proves preset output can flow back into the existing adapter chain
+- merge rules are now explicit for:
+  - `defaults`
+  - `ui.brand`
+  - `ui.welcome`
+  - `ui.prompts`
+  - `layout.variant`
+  - `layout.placements`
+  - nested feature config objects
+  - `mcp` object / boolean priority
+- `AgentPreset.extends` now supports minimal preset inheritance
+- built-in catalog now exists for internal reference:
+  - presets: `assistant-base / docs-reader / tool-agent`
+  - skill packs: `conversation-core / docs-layout / tool-agent-core`
+- internal authoring guidance now exists in `packages/chat/src/presets/README.md`
+- unit tests now cover both resolver semantics and preset consumption through preset props / slices
+
+Important boundary:
+
+- `P4-A` is still a chat-side composition foundation
+- it does not yet introduce CLI input, workflow runtime, marketplace, or remote skill installation
+
 ---
 
 ## 3. What Has Been Completed In `packages/chat-cli`
@@ -180,17 +224,22 @@ This means the following old statement is now false:
 
 Still pending:
 
-- some CLI-facing docs and flows still contain stale placeholder wording
-- capability-driven template wiring is now real for both `basic` and `agent-mcp`
-- registry shape is now proven across two stable templates, but broader template governance is still incomplete
+- sample-template hardening is still incomplete:
+  - metadata/source alignment is now enforced at a minimal white-box level, but can be strengthened
+  - README tutorialization has improved, but stable template guidance can still be refined
+  - UI-level sample smoke is still in progress and is not yet part of the accepted baseline
+- registry shape is now proven across two stable templates, but broader multi-template governance is still incomplete
 
 Current next target inside `chat-cli`:
 
-- keep follow-up work narrow and only adjust registry or template consumption when the next chat-side capability increment requires it
-- `basic` already moved its history UI enablement from a template-local override to `features.history`
-- `basic` now also consumes `chatCapabilitySurface.presetSlices` through a white-box composition path
-- `basic` now declares its `contractUsage` explicitly in registry metadata
-- `agent-mcp` now proves the second template path using the current `mcp` contract, local MCP bridge starter, and explicit `contractUsage`
+- keep follow-up work narrow and treat `basic` and `agent-mcp` as sample templates to harden rather than expanding template count
+- `basic` already consumes `chatCapabilitySurface.presetSlices` through a white-box composition path
+- `agent-mcp` already proves the second template path using the current `mcp` contract, local MCP bridge starter, and explicit `contractUsage`
+- current follow-up themes in `chat-cli` are:
+  - metadata/source alignment
+  - README tutorialization
+  - stable template governance
+  - UI-level sample smoke when ready
 
 ---
 
@@ -312,10 +361,11 @@ Done:
 - `P1 / High-value Features`
 - `P2 / MCP + Layout`
 - `P3 / Template / CLI Consumption`
+- `P4-A / Agent Preset + Skill Pack Foundation`
 
 Current:
 
-- `P4 / Agent Preset + Skill Pack`
+- `P4-B / next consumer or integration boundary not yet defined`
 
 Later:
 
@@ -339,7 +389,7 @@ Later:
 
 This is the currently agreed execution order.
 
-### 7.1 `chat` P3 is complete and `chat` can enter P4
+### 7.1 `chat` P3 and `P4-A` are complete and `chat` can define `P4-B`
 
 What this means:
 
@@ -355,15 +405,24 @@ Current `P4` entry judgment:
 - no current `P4` idea requires reopening the Phase B or Phase C contract
 - `AgentPreset / SkillPack` can now be modeled as capability consumers on top of the existing chain
 
+Current `P4-A` completion judgment:
+
+- `AgentPreset / SkillPack` types exist
+- resolver and merge rules are explicit and test-covered
+- built-in preset catalog exists
+- authoring guide exists
+- built-in presets can flow through adapter -> preset props -> preset slices
+- `P4-A` should now be treated as complete, and any further work should be framed as `P4-B`
+
 ### 7.2 Keep `chat-cli` in small follow-up mode until the next chat-side increment is clear
 
 Most immediate CLI work:
 
-- remove any stale placeholder wording and assumptions
 - keep template generation registry-first
+- harden the two existing sample templates before adding more
 - only add narrow consumer updates that match the current chat contract
 
-### 7.3 `agent-mcp` has now started as the second stable template
+### 7.3 `agent-mcp` is now established as the second stable template
 
 What this proves:
 
@@ -473,6 +532,7 @@ Chat:
 
 - `pnpm.cmd -F @opentiny/tiny-robot-chat type-check`
 - `pnpm.cmd -F @opentiny/tiny-robot-chat test:unit`
+- `pnpm.cmd -F @opentiny/tiny-robot-chat build`
 - `pnpm.cmd -F tiny-robot-test test -- src/chat/welcome-prompts.spec.ts src/chat/sender-actions.spec.ts`
 - `pnpm.cmd -F tiny-robot-test test -- --workers=1 src/chat/sender-extensions.spec.ts`
 - `pnpm.cmd -F tiny-robot-test test -- src/chat/layout-config.spec.ts src/chat/mcp-feature.spec.ts src/chat/index.spec.ts`
@@ -506,8 +566,8 @@ If another LLM needs to resume implementation, the fastest safe path is:
    - `packages/chat-cli/src/index.ts`
 
 4. Pick the next task from this order:
-   - start the smallest useful `P4` preset / skill composition work in `packages/chat`
-   - make the smallest `chat-cli` consumer changes needed only after the `P4` boundary is explicit
+   - define the next `P4-B` boundary in `packages/chat`
+   - keep `chat-cli` follow-up work limited to hardening existing sample templates unless a new chat-side contract requires more
    - keep template generation registry-first
    - keep `docs-chat` waiting for retrieval contract clarity
 
@@ -520,4 +580,4 @@ If another LLM needs to resume implementation, the fastest safe path is:
 
 ## 12. One-sentence Current State
 
-`packages/chat` has already completed `P3` by stabilizing a real capability contract for template consumption, and `packages/chat-cli` now has a usable registry and hygiene baseline plus two stable white-box consumer paths in `basic` and `agent-mcp`.
+`packages/chat` has already completed `P3` and `P4-A` by stabilizing both a real template-consumption contract and a first preset/skill composition foundation, while `packages/chat-cli` now has a usable registry and hygiene baseline plus two stable white-box sample templates in `basic` and `agent-mcp`.

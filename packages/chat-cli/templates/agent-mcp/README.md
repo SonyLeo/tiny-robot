@@ -71,6 +71,67 @@ __DEV_COMMAND__
 - `defaultMcpServers`
 - `createLocalMcpBridge()`
 
+## 这个模板是什么 / 不是什么
+
+这个模板是什么：
+
+- 一个 tool-enabled starter
+- 一个 MCP integration starter
+- 一个 white-box 消费 `chatCapabilitySurface.presetSlices` 的样例模板
+
+这个模板不是什么：
+
+- 不是完整 agent runtime
+- 不是 workflow 引擎
+- 不是生产级 MCP orchestration 方案
+- 不是 skills marketplace
+
+换句话说，它的目标不是替你做完整平台，而是把最小 MCP 接缝先搭好。
+
+## 前 10 分钟建议
+
+建议按这个顺序看和改：
+
+1. [src/chat.config.ts](./src/chat.config.ts)
+   - 调整模型、Provider、welcome 和 prompts
+2. [src/lib/mcp.ts](./src/lib/mcp.ts)
+   - 替换默认的 MCP plugin metadata
+   - 把 `createLocalMcpBridge()` 换成你的真实 bridge
+3. [server/chat-proxy.example.ts](./server/chat-proxy.example.ts)
+   - 接入你的真实后端代理
+4. 最后再看 [src/App.vue](./src/App.vue)
+   - 这里主要是 white-box 布局和 MCP 面板入口
+
+## 哪些文件以后最可能被替换
+
+最先会被应用层替换的通常是：
+
+- [src/lib/mcp.ts](./src/lib/mcp.ts)
+  - 这里是默认 MCP plugin 列表和 mock bridge
+- [src/lib/chat.ts](./src/lib/chat.ts)
+  - 这里是 `mcpManager`、`toolPlugin` 和 `chatCapabilitySurface` 的 starter wiring
+
+相对更稳定、可以先不急着改的是：
+
+- [src/App.vue](./src/App.vue)
+  - 它主要示范如何消费 slices 和挂 MCP 面板入口
+
+## 从 starter 到真实应用的建议路径
+
+建议按这个演进顺序走：
+
+1. 先让 mock MCP bridge 跑通
+2. 再替换成真实的 MCP/tool bridge
+3. 再接入你的业务 tools 或 services
+4. 最后才考虑更完整的 agent runtime、workflow 或 skill registry
+
+也就是说，这个模板优先帮你解决的是：
+
+- 最小的 MCP UI 接缝
+- 最小的 tool bridge 接缝
+
+而不是一次性解决完整 agent 平台建设。
+
 ## 项目结构
 
 - `src/App.vue`：white-box 聊天布局与 MCP 面板入口
