@@ -1,12 +1,15 @@
 <script setup lang="ts">
+import { ThemeProvider } from '@opentiny/tiny-robot'
 import P5ShellPreview from './components/P5ShellPreview.vue'
 import './styles/index.css'
 </script>
 
 <template>
-  <div class="demo-container">
-    <P5ShellPreview />
-  </div>
+  <ThemeProvider>
+    <div class="demo-container">
+      <P5ShellPreview />
+    </div>
+  </ThemeProvider>
 </template>
 
 <style>

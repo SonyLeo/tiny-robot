@@ -251,6 +251,16 @@ test.describe('Workspace Shell (P5-B)', () => {
     })
   })
 
+  test.describe('Appearance Integration', () => {
+    test('should accept appearance mode on both workspace shell and inner chat root', async ({ page }) => {
+      const shell = page.locator(helper.selectors.workspaceShell)
+      const chat = page.locator(helper.selectors.shellChat)
+
+      await expect(shell).toHaveAttribute('data-tr-color-mode', 'dark')
+      await expect(chat).toHaveAttribute('data-tr-color-mode', 'dark')
+    })
+  })
+
   test.describe('Chat Integration', () => {
     test('should render TrChat inside shell', async ({ page }) => {
       await helper.expectShellChatVisible()

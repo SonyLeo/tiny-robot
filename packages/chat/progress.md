@@ -1,17 +1,16 @@
 # Chat Kit Progress
 
-> Last updated: `2026-03-18`
+> Last updated: `2026-03-20`
 > Design: [docs/chat-kit-design.md](../../docs/chat-kit-design.md)
 > Review: [chat-kit-review-02.md](./chat-kit-review-02.md)
 > P5 Draft: [docs/chat-p5-proposal.md](../../docs/chat-p5-proposal.md)
-> P5-B API Draft: [docs/chat-p5-b-api-draft.md](../../docs/chat-p5-b-api-draft.md)
 
 ## Current Status
 
-- Current track: `P4 - Agent Preset + Skill Pack`
-- Current judgment: `P3 is complete`
-- Current rule: keep `packages/chat` as the source capability layer, treat `P3` as complete, and only let higher-level preset or skill work build on the already-stable capability contract instead of reopening it
-- Current pause point: stop at the first `P4-B` white-box preset entry and wait for a real next consumer before extending preset runtime APIs
+- Current track: `P5-C - Content Navigation & View State`
+- Current judgment: `P5-B minimum runtime closeout and P5-A minimum appearance closeout are complete`
+- Current rule: keep `packages/chat` as the source capability layer, treat `P5-B` as a completed runtime baseline, keep P5-A limited to appearance ownership through the existing ThemeProvider and CSS-token system, and start `P5-C` without reopening `P2 layout`
+- Current pause point: `P4-B` remains paused at the first white-box preset entry; active runtime work can move to `P5-C`
 
 ## Phase Status
 
@@ -21,8 +20,8 @@
 | P1 / High-value Features | `done` | `attachments / senderActions / welcomePrompts` are formalized; blackbox and white-box defaults are aligned |
 | P2 / MCP + Layout | `done` | `mcp`, `layout.variant`, `layout.placements`, and `workspace` layout variant are formalized |
 | P3 / Template / CLI Consumption | `done` | stable capability contract, explicit template mapping, and registry-backed consumers are in place |
-| P4 / Agent Preset + Skill Pack | `in progress` | `P4-A` is complete; `P4-B` has started with chat-side preset consumption |
-| P5 / Theme + Workspace Shell + Content Navigation | `later` | boundaries are now drafted; not on the active path yet |
+| P4 / Agent Preset + Skill Pack | `in progress` | `P4-A` is complete; `P4-B` is intentionally paused at the first white-box preset entry |
+| P5 / Theme + Workspace Shell + Content Navigation | `in progress` | `P5-B` minimum runtime closeout and `P5-A` minimum appearance closeout are complete; `P5-C` is the next active target |
 
 ## P1 Result
 
@@ -56,12 +55,15 @@
 
 ## Next Step
 
-1. Keep the current stop point at `P4-B` until a real next consumer appears.
-2. If the next need is still inside `packages/chat`, continue `P4-B` in an additive way on top of the current resolver and preset-slice chain.
-3. If the next need is shell or theming, define `P5` boundaries first instead of growing preset APIs speculatively.
-4. Do not let `chat-cli` consume broader `P4` outputs until the next preset boundary is explicit and test-covered.
+1. Treat `P5-B` as complete unless a concrete new shell consumer appears; do not keep extending shell APIs just because the demo can carry more panel ideas.
+2. Treat `P5-A` as complete at the minimum stable contract level:
+   - `appearance.mode` now enters the formal chat config chain
+   - `TrChat` and `TrChatWorkspaceShell` both consume appearance mode through root attributes
+   - semantic chat tokens remain owned by `packages/chat`
+3. Start `P5-C` from content-attached navigation and runtime view-state composition, not from theme or shell restyling.
+4. Do not move shell structure, panel ownership, or navigation source models into `theme`, and do not let `chat-cli` consume broader `P4` outputs until the next preset boundary is explicit and test-covered.
 
-## P5 Draft Direction
+## P5 Current Progress
 
 - `P5` is now framed as three internal tracks:
   - `P5-A / Theme & Appearance`
@@ -72,10 +74,10 @@
   - panel definition config
   - top-bar and center-layout config
   - `fullWidth` view-state config
-- `packages/chat` now has first formal `P5-B` runtime skeletons:
+- `packages/chat` now has formal `P5-B` runtime surfaces:
   - `TrChatWorkspaceShell`
   - `TrChatWorkspacePanelHost`
-- `P5-B` runtime state is now one step more formal:
+- `P5-B` runtime closeout now includes:
   - shell owns controlled/uncontrolled region collapse
   - shell owns region-level active-panel state
   - shell emits region collapse and panel change events
@@ -89,6 +91,20 @@
 - `fullWidth` is now consumed through formal `WorkspaceShell.viewState` instead of a demo-only page class
 - `notebook` is intentionally not formalized yet; current shell direction is to reserve generic panel hosts and slots for future panel content
 - `region.panels` now flows through shell runtime slot props before reaching the demo panel host
+- a dedicated browser-level verification path now exists in:
+  - `packages/test/src/chat/workspace-shell.spec.ts`
+- `P5-B` should now be treated as complete at the minimum runtime-contract level:
+  - shell runtime exists
+  - host runtime exists
+  - helper semantics are unit-covered
+  - shell interaction flow is browser-covered
+- `P5-A` minimum appearance closeout now includes:
+  - `appearance.mode` in `ChatConfig`
+  - preset props and preset slices carrying appearance through the formal chat chain
+  - `TrChat` consuming appearance through `ChatLayout`
+  - `TrChatWorkspaceShell` consuming appearance through its own root attributes
+  - chat and workspace roots both mapping `mode = light|dark` onto `data-tr-color-mode`
+- the next active `P5` step should be `P5-C`, not more shell or appearance closeout
 - current screenshot usage is intentionally narrow:
   - visual shell spacing
   - radius
@@ -389,3 +405,4 @@
 - `pnpm.cmd -F tiny-robot-test test -- src/chat/welcome-prompts.spec.ts src/chat/sender-actions.spec.ts`
 - `pnpm.cmd -F tiny-robot-test test -- src/chat/sender-extensions.spec.ts`
 - `pnpm.cmd -F tiny-robot-test test -- src/chat/preset-entry.spec.ts`
+- `pnpm.cmd -F tiny-robot-test test -- src/chat/workspace-shell.spec.ts`

@@ -3,7 +3,7 @@
 > Scope: refine the future `P5` direction for `packages/chat`  
 > 范围：细化 `packages/chat` 未来 `P5` 阶段的方向。
 >
-> Status: draft  
+> Status: active draft baseline; `P5-B` minimum runtime closeout and `P5-A` minimum appearance closeout are complete, and `P5-C` is next.  
 > 状态：草案。
 >
 > Related:  
@@ -54,20 +54,12 @@ Responsible for:
   字体系统
 - radius / border / shadow  
   圆角 / 边框 / 阴影
-- density  
-  密度
-- bubble visual style  
-  bubble 视觉风格
-- surface style  
-  surface 视觉风格
 
 Can provide:  
 可以提供：
 
 - visual defaults  
   视觉默认值
-- appearance presets  
-  外观 preset
 - preferred chat view hints such as `bubble` or `docs`  
   诸如 `bubble` 或 `docs` 这样的聊天视图偏好提示
 
@@ -369,9 +361,6 @@ These are draft types, not implementation commitments.
 ```ts
 type ChatThemeConfig = {
   mode?: 'light' | 'dark' | 'system'
-  appearancePreset?: 'default' | 'minimal' | 'docs'
-  density?: 'compact' | 'comfortable'
-  bubbleStyle?: 'rounded' | 'soft' | 'flat'
   preferredChatView?: 'bubble' | 'docs'
 }
 
@@ -638,33 +627,22 @@ It should also avoid:
 
 ---
 
-## 11. Suggested Implementation Order When P5 Starts
+## 11. Suggested Implementation Order From The Current P5 State
 
-1. Lock boundaries in design and review docs.  
-   先在 design 和 review 文档里锁定边界。
+1. Keep the current `P5-B` boundary stable.  
+   先把当前 `P5-B` 边界视为已完成基线，不再为了 demo 继续扩壳层语义。
 
-2. Define shell and navigation host types only.  
-   先定义 shell 和 navigation host 的类型。
+2. Start `P5-A` with appearance-only config and token mapping.  
+   先从只负责外观的 `P5-A` 配置与 token 映射开始。
 
-3. Start with one runtime-only white-box validation path.  
-   先从一条 runtime-only 的 white-box 验证路径开始。
+3. Reuse `ThemeProvider` and `data-tr-theme` / `data-tr-color-mode` as the theme transport.  
+   复用现有 `ThemeProvider` 和 `data-tr-theme` / `data-tr-color-mode` 作为主题承载机制。
 
-4. Add one concrete navigation source:  
-   然后只补一个具体的 navigation source：
-   - either `turns`
-   - or `active-message-outline`
-   - 要么先做 `turns`
-   - 要么先做 `active-message-outline`
+4. Add verification for color mode and semantic token switching.  
+   再补 color mode 和语义 token 切换验证。
 
-5. Add the first minimal panel-host behavior:  
-   再补第一版最小 panel-host 能力：
-   - `history + mcp` as built-in examples
-   - basic open / close / toggle / active-panel switching
-   - `history + mcp` 作为内建示例
-   - 基础的打开 / 关闭 / 切换 / 激活面板能力
-
-6. Only then consider preset or CLI-facing consumption.  
-   只有做到这里之后，再考虑 preset 或 CLI-facing 的消费面。
+5. With `P5-A` settled at the minimum stable contract level, `P5-C` navigation work can now restart.  
+   现在 `P5-A` 已经在最小稳定契约层面收口，可以继续 `P5-C` 导航工作。
 
 ---
 
@@ -699,9 +677,9 @@ Short rule:
 
 ---
 
-## 14. First Demo Validation Scope
+## 14. Historical First Demo Validation Scope
 
-Before formal `P5` runtime work starts, the demo should provide a lightweight visual validation surface in `packages/chat/demo`.
+Before formal `P5-B` runtime work started, the demo needed to provide a lightweight visual validation surface in `packages/chat/demo`.
 
 The first demo goal is intentionally narrow:
 
@@ -717,13 +695,13 @@ The first demo should not be treated as proof of:
 - final notebook or navigation behavior
 - final `P5-B` extensibility API
 
-This keeps the demo useful as a fast visual check without turning it into an architecture lock-in point.
+This historical constraint remains useful as a reminder that the demo was a visual check first, not the source of truth for the runtime contract.
 
 ---
 
-## 15. Current First-step Implementation Direction
+## 15. Historical First-step Implementation Direction
 
-If implementation starts from the current discussion, the first step should stay presentation-led:
+At the start of `P5-B`, the first step was intentionally presentation-led:
 
 1. add a polished outer shell to the demo
 2. add page-level spacing around the shell
@@ -737,8 +715,47 @@ Only after the visual shell reads correctly should the project decide whether to
 - panel open and close state
 - extensible panel registration
 
-Near-term execution rule:
+That early execution rule was:
 
 - demo-first visual validation
 - boundary confirmation
 - then incremental `P5-B` structure work
+
+---
+
+## 16. Recommended P5-A Start Order
+
+Now that the minimum `P5-B` runtime contract exists, `P5-A` should start in this order:
+
+1. Define a small appearance config surface in `packages/chat`.
+   First cover only:
+   - `mode`
+
+2. Resolve that config into chat-owned semantic tokens.
+   Prefer tokens such as:
+   - shell background / border / shadow
+   - chat body max width
+   - bubble radius / bubble shadow
+   - sender radius / sender surface
+   - prompts surface
+
+3. Transport appearance through existing theme infrastructure.
+   Use:
+   - `ThemeProvider`
+   - `data-tr-theme`
+   - `data-tr-color-mode`
+   - CSS variables
+
+4. Keep token ownership in `packages/chat`.
+   `packages/components` should continue exposing primitive variables.
+   `packages/chat` should map those primitives into chat-scoped appearance decisions.
+
+5. Only then consider:
+   - whether an appearance preset is needed at all
+   - whether a future paper-like surface should be formalized
+   - preset or CLI-facing appearance consumption
+
+Short rule:
+
+- `P5-A` changes how chat looks
+- `P5-A` does not change what shell regions exist

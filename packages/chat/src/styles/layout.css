@@ -74,9 +74,7 @@
 
 .tr-chat__body--docs {
   padding: 0;
-  background:
-    linear-gradient(180deg, rgba(247, 249, 252, 0.96) 0%, rgba(255, 255, 255, 1) 180px),
-    var(--chat-body-bg);
+  background: var(--chat-body-overlay-docs), var(--chat-body-bg);
 }
 
 .tr-chat__body--docs .tr-bubble-list {
@@ -121,9 +119,7 @@
 
 .tr-chat__body--workspace {
   padding: 0;
-  background:
-    linear-gradient(180deg, rgba(248, 250, 252, 0.96) 0%, rgba(255, 255, 255, 1) 220px),
-    var(--chat-body-bg);
+  background: var(--chat-body-overlay-workspace), var(--chat-body-bg);
 }
 
 .tr-chat__body--workspace .tr-bubble-list {

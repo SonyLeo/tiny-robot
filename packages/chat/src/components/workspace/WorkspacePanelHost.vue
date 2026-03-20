@@ -117,6 +117,19 @@ function selectPanel(panelId: string) {
 
 <style scoped>
 .tr-workspace-panel-host {
+  --workspace-panel-header-color: var(--chat-text-primary);
+  --workspace-panel-subtitle-color: var(--chat-text-secondary);
+  --workspace-panel-tab-bg: var(--chat-panel-bg);
+  --workspace-panel-tab-border: var(--chat-panel-border);
+  --workspace-panel-tab-shadow: none;
+  --workspace-panel-tab-hover-bg: var(--chat-panel-bg-muted);
+  --workspace-panel-tab-hover-border: var(--chat-accent-border);
+  --workspace-panel-tab-hover-shadow: var(--chat-panel-shadow);
+  --workspace-panel-tab-active-bg: var(--chat-panel-active-bg);
+  --workspace-panel-tab-active-border: var(--chat-panel-active-border);
+  --workspace-panel-tab-active-text: var(--chat-panel-active-text);
+  --workspace-panel-body-bg: var(--chat-panel-bg-muted);
+  --workspace-panel-body-border: var(--chat-panel-border);
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -133,12 +146,12 @@ function selectPanel(panelId: string) {
 .tr-workspace-panel-host__header strong {
   font-size: 13px;
   font-weight: 700;
-  color: #243043;
+  color: var(--workspace-panel-header-color);
 }
 
 .tr-workspace-panel-host__header span {
   font-size: 11px;
-  color: #7b8798;
+  color: var(--workspace-panel-subtitle-color);
 }
 
 .tr-workspace-panel-host__tabs {
@@ -150,8 +163,9 @@ function selectPanel(panelId: string) {
 .tr-workspace-panel-host__tab {
   padding: 12px 12px 11px;
   border-radius: 13px;
-  border: 1px solid rgba(226, 232, 240, 0.78);
-  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid var(--workspace-panel-tab-border);
+  background: var(--workspace-panel-tab-bg);
+  box-shadow: var(--workspace-panel-tab-shadow);
   text-align: left;
   cursor: pointer;
   transition:
@@ -163,26 +177,31 @@ function selectPanel(panelId: string) {
 
 .tr-workspace-panel-host__tab:hover {
   transform: translateY(-1px);
-  border-color: rgba(59, 130, 246, 0.14);
-  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+  background: var(--workspace-panel-tab-hover-bg);
+  border-color: var(--workspace-panel-tab-hover-border);
+  box-shadow: var(--workspace-panel-tab-hover-shadow);
 }
 
 .tr-workspace-panel-host__tab.is-active {
-  border-color: rgba(59, 130, 246, 0.22);
-  background: rgba(239, 246, 255, 0.7);
+  border-color: var(--workspace-panel-tab-active-border);
+  background: var(--workspace-panel-tab-active-bg);
 }
 
 .tr-workspace-panel-host__tab strong {
   display: block;
   margin-bottom: 4px;
   font-size: 12px;
-  color: #243043;
+  color: var(--workspace-panel-header-color);
 }
 
 .tr-workspace-panel-host__tab span {
   display: block;
   font-size: 11px;
-  color: #8190a5;
+  color: var(--workspace-panel-subtitle-color);
+}
+
+.tr-workspace-panel-host__tab.is-active strong {
+  color: var(--workspace-panel-tab-active-text);
 }
 
 .tr-workspace-panel-host__body {
@@ -193,8 +212,8 @@ function selectPanel(panelId: string) {
   gap: 10px;
   padding: 12px;
   border-radius: 16px;
-  border: 1px solid rgba(226, 232, 240, 0.72);
-  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid var(--workspace-panel-body-border);
+  background: var(--workspace-panel-body-bg);
 }
 
 .tr-workspace-panel-fade-enter-active,

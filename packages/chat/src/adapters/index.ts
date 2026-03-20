@@ -13,6 +13,7 @@ export type {
 } from './chatCli'
 export type {
   ChatAdapter,
+  ChatPresetAppearanceSlice,
   ChatConfig,
   ChatConfigDefaults,
   ChatLayoutConfig,

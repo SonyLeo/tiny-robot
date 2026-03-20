@@ -18,6 +18,7 @@ test.describe('Chat Layout Config', () => {
     await helper.clickPrompt(0, root)
     await helper.waitForAssistantReply(root)
 
+    await expect(page.locator(root)).toHaveAttribute('data-tr-color-mode', 'dark')
     await expect(page.locator(root).locator('.tr-chat__body')).toHaveAttribute('data-variant', 'docs')
     await expect(page.locator(root).locator(helper.selectors.bubbleItem).nth(0)).toHaveAttribute(
       'data-placement',
@@ -35,6 +36,7 @@ test.describe('Chat Layout Config', () => {
     await helper.clickPrompt(0, root)
     await helper.waitForAssistantReply(root)
 
+    await expect(page.locator(root)).toHaveAttribute('data-tr-color-mode', 'dark')
     await expect(page.locator(root).locator('.tr-chat__body')).toHaveAttribute('data-variant', 'docs')
     await expect(page.locator(root).locator(helper.selectors.bubbleItem).nth(0)).toHaveAttribute(
       'data-placement',

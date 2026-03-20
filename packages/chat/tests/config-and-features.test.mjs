@@ -197,6 +197,30 @@ await runTest('loadChatConfig normalizes layout config and createPresetChatProps
   assert.equal(presetProps.roleConfigs?.user?.placement, 'start')
 })
 
+await runTest('loadChatConfig normalizes appearance config and createPresetChatProps exposes it for runtime consumption', async () => {
+  const config = loadChatConfig({
+    models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+    providers: {
+      openai: {
+        type: 'openai-compatible',
+        endpoint: '/api/chat',
+      },
+    },
+    appearance: {
+      mode: 'dark',
+    },
+  })
+
+  assert.deepEqual(config.appearance, {
+    mode: 'dark',
+  })
+
+  const presetProps = createPresetChatProps(createChatAdapterFromConfig(config))
+  assert.deepEqual(presetProps.appearance, {
+    mode: 'dark',
+  })
+})
+
 await runTest('resolveChatFeatures keeps attachments and senderActions outputs independent for runtime composition', async () => {
   const resolved = resolveChatFeatures({
     attachments: {
@@ -387,5 +411,20 @@ await runTest('loadChatConfig rejects invalid feature shapes', async () => {
         },
       }),
     /features\.mcp must be a boolean or an object/,
+  )
+
+  assert.throws(
+    () =>
+      loadChatConfig({
+        models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+        providers: {
+          openai: {
+            type: 'openai-compatible',
+            endpoint: '/api/chat',
+          },
+        },
+        appearance: 'dark',
+      }),
+    /appearance must be an object/,
   )
 })

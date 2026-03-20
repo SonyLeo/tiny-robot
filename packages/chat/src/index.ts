@@ -119,6 +119,8 @@ export { BUILT_IN_AGENT_PRESETS, BUILT_IN_SKILL_PACKS, getBuiltInAgentPreset, ge
 // ===== 类型 =====
 export type {
   BrandConfig,
+  ChatAppearanceConfig,
+  ChatAppearanceMode,
   ResponseProvider,
   ChatStatus,
   ChatErrorType,
@@ -167,6 +169,7 @@ export type { UseMcpManagerBridge, UseMcpManagerOptions, UseModelSelectorOptions
 export type { UseChatAttachmentsReturn } from './composables'
 export type {
   ChatAdapter,
+  ChatPresetAppearanceSlice,
   ChatCliCapabilitySurface,
   ChatCliConsumableFeatureKey,
   ChatCliConsumablePresetPropKey,

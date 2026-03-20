@@ -126,6 +126,31 @@ await runTest('createPresetChatSlices exposes layout variant and placement defau
   assert.equal(slices.layout.roleConfigs?.user?.placement, 'start')
 })
 
+await runTest('createPresetChatSlices exposes appearance config as a dedicated white-box slice', async () => {
+  const adapter = createChatAdapterFromConfig({
+    models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+    providers: {
+      openai: {
+        type: 'openai-compatible',
+        endpoint: '/api/chat',
+      },
+    },
+    appearance: {
+      mode: 'dark',
+    },
+  })
+
+  const presetProps = createPresetChatProps(adapter)
+  const slices = createPresetChatSlices(presetProps)
+
+  assert.deepEqual(presetProps.appearance, {
+    mode: 'dark',
+  })
+  assert.deepEqual(slices.appearance.appearance, {
+    mode: 'dark',
+  })
+})
+
 await runTest('loadChatConfig and preset slices preserve workspace layout variant as a pure layout choice', async () => {
   const config = loadChatConfig({
     models: [{ id: 'gpt-4o-mini', provider: 'openai' }],

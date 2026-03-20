@@ -31,6 +31,9 @@ const emit = defineEmits<{
   'right-panel-change': [panel: ChatWorkspacePanelDefinition | undefined]
 }>()
 const slots = useSlots()
+const colorModeAttr = computed(() => {
+  return props.appearance?.mode === 'light' || props.appearance?.mode === 'dark' ? props.appearance.mode : undefined
+})
 
 const showToolbar = computed(() => Boolean(props.badge || props.title || props.description || slots['toolbar-actions']))
 const showLeftRegion = computed(() => props.leftRegion?.enabled !== false && Boolean(slots.left || props.leftRailLabel))
@@ -223,6 +226,8 @@ function updateRightActivePanelId(nextValue: string) {
   <div
     class="tr-workspace-shell"
     :class="workspaceShellClass"
+    :data-tr-appearance-mode="props.appearance?.mode"
+    :data-tr-color-mode="colorModeAttr"
     :data-full-width="props.viewState?.fullWidth ? 'true' : 'false'"
   >
     <header v-if="showToolbar" class="tr-workspace-shell__toolbar">
@@ -365,17 +370,18 @@ function updateRightActivePanelId(nextValue: string) {
   --workspace-chat-bubbles-max-width: 900px;
   --workspace-chat-welcome-max-width: 920px;
   --workspace-chat-footer-max-width: 920px;
+  --chat-shell-radius: 30px;
+  --chat-shell-toolbar-padding: 16px 24px 12px;
+  --chat-shell-meta-padding: 12px 24px;
   flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border-radius: 30px;
-  border: 1px solid rgba(15, 23, 42, 0.06);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.985) 0%, rgba(248, 250, 252, 0.97) 100%);
-  box-shadow:
-    0 24px 80px rgba(15, 23, 42, 0.06),
-    0 4px 14px rgba(15, 23, 42, 0.04);
+  border-radius: var(--chat-shell-radius);
+  border: 1px solid var(--chat-shell-border-color);
+  background: var(--chat-shell-bg);
+  box-shadow: var(--chat-shell-shadow);
   backdrop-filter: blur(10px);
 }
 
@@ -392,9 +398,9 @@ function updateRightActivePanelId(nextValue: string) {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 16px 24px 12px;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.78) 0%, rgba(248, 250, 252, 0.52) 100%);
+  padding: var(--chat-shell-toolbar-padding);
+  border-bottom: 1px solid var(--chat-shell-toolbar-border-color);
+  background: var(--chat-shell-toolbar-bg);
 }
 
 .tr-workspace-shell__brand {
@@ -411,8 +417,8 @@ function updateRightActivePanelId(nextValue: string) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(224, 236, 255, 0.95) 0%, rgba(243, 247, 255, 0.92) 100%);
-  color: #2859d6;
+  background: var(--chat-shell-badge-bg);
+  color: var(--chat-shell-badge-color);
   font-size: 13px;
   font-weight: 700;
   box-shadow:
@@ -429,13 +435,13 @@ function updateRightActivePanelId(nextValue: string) {
 .tr-workspace-shell__brand-copy strong {
   font-size: 15px;
   font-weight: 700;
-  color: #243043;
+  color: var(--chat-shell-title-color);
   line-height: 1.2;
 }
 
 .tr-workspace-shell__brand-copy span {
   font-size: 12px;
-  color: #7b8494;
+  color: var(--chat-shell-description-color);
   line-height: 1.4;
 }
 
@@ -450,9 +456,9 @@ function updateRightActivePanelId(nextValue: string) {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  padding: 12px 24px;
-  background: rgba(248, 250, 252, 0.52);
-  border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+  padding: var(--chat-shell-meta-padding);
+  background: var(--chat-shell-meta-bg);
+  border-bottom: 1px solid var(--chat-shell-meta-border-color);
 }
 
 .tr-workspace-shell__body {
@@ -460,7 +466,7 @@ function updateRightActivePanelId(nextValue: string) {
   min-height: 0;
   display: flex;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.44);
+  background: var(--chat-shell-body-bg);
 }
 
 .tr-workspace-shell__center {
@@ -469,7 +475,7 @@ function updateRightActivePanelId(nextValue: string) {
   flex-direction: column;
   min-width: 0;
   min-height: 0;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(249, 250, 251, 0.96) 100%);
+  background: var(--chat-shell-center-bg);
 }
 
 .tr-workspace-shell :deep(.tr-chat) {
@@ -501,7 +507,7 @@ function updateRightActivePanelId(nextValue: string) {
   padding-left: var(--workspace-chat-inline-padding);
   padding-right: var(--workspace-chat-inline-padding);
   padding-bottom: 22px;
-  background: linear-gradient(180deg, rgba(249, 250, 251, 0) 0%, rgba(249, 250, 251, 0.9) 36%);
+  background: var(--chat-footer-overlay-bg);
   transition: padding 0.24s ease;
 }
 
@@ -515,7 +521,7 @@ function updateRightActivePanelId(nextValue: string) {
 
 .tr-workspace-shell :deep(.tr-sender) {
   border-radius: 26px;
-  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.05);
+  box-shadow: var(--chat-panel-shadow);
 }
 
 .tr-workspace-shell :deep(.tr-prompts) {
@@ -556,9 +562,9 @@ function updateRightActivePanelId(nextValue: string) {
   width: var(--workspace-region-width);
   min-height: 0;
   overflow: hidden;
-  border-left: 1px solid rgba(148, 163, 184, 0.08);
-  border-right: 1px solid rgba(148, 163, 184, 0.08);
-  background: linear-gradient(180deg, rgba(247, 249, 252, 0.84) 0%, rgba(255, 255, 255, 0.82) 100%);
+  border-left: 1px solid var(--chat-shell-region-border-color);
+  border-right: 1px solid var(--chat-shell-region-border-color);
+  background: var(--chat-shell-region-bg);
   transition:
     width 0.34s cubic-bezier(0.22, 1, 0.36, 1),
     border-color 0.2s ease,
@@ -576,7 +582,7 @@ function updateRightActivePanelId(nextValue: string) {
 
 .tr-workspace-shell__region.is-collapsed {
   width: 44px;
-  background: linear-gradient(180deg, rgba(245, 247, 250, 0.94) 0%, rgba(250, 251, 253, 0.9) 100%);
+  background: var(--chat-shell-region-collapsed-bg);
 }
 
 .tr-workspace-shell__region.is-collapsed.is-collapse-hidden {
@@ -631,7 +637,7 @@ function updateRightActivePanelId(nextValue: string) {
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  color: #8a94a6;
+  color: var(--chat-shell-rail-color);
 }
 
 @media (max-width: 960px) {

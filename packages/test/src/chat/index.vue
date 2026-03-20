@@ -141,7 +141,9 @@
 
       <div data-testid="chat-welcome-prompts-whitebox" class="chat-wrapper">
         <TrChat.Root :chat-kit="whiteboxWelcomePromptsChat" v-bind="whiteboxWelcomePromptsSlices.root">
-          <TrChat.Layout :fullscreen="false">
+          <TrChat.Layout
+            v-bind="{ ...whiteboxWelcomePromptsSlices.layout, ...whiteboxWelcomePromptsSlices.appearance }"
+          >
             <TrChat.Header v-bind="whiteboxWelcomePromptsSlices.header" />
 
             <TrChat.Welcome
@@ -212,7 +214,7 @@
 
       <div data-testid="chat-mcp-feature-whitebox" class="chat-wrapper">
         <TrChat.Root :chat-kit="mcpWhiteboxChat" v-bind="mcpWhiteboxSlices.root">
-          <TrChat.Layout v-bind="mcpWhiteboxSlices.layout">
+          <TrChat.Layout v-bind="{ ...mcpWhiteboxSlices.layout, ...mcpWhiteboxSlices.appearance }">
             <TrChat.Header v-bind="mcpWhiteboxSlices.header">
               <template #extra>
                 <button data-testid="mcp-feature-whitebox-open" @click="mcpWhiteboxPanelVisible = true">
@@ -241,7 +243,7 @@
 
       <div data-testid="chat-layout-config-whitebox" class="chat-wrapper">
         <TrChat.Root :chat-kit="layoutConfigWhiteboxChat" v-bind="layoutConfigWhiteboxSlices.root">
-          <TrChat.Layout v-bind="layoutConfigWhiteboxSlices.layout">
+          <TrChat.Layout v-bind="{ ...layoutConfigWhiteboxSlices.layout, ...layoutConfigWhiteboxSlices.appearance }">
             <TrChat.Header v-bind="layoutConfigWhiteboxSlices.header" />
             <TrChat.Welcome
               v-if="showLayoutConfigWhiteboxWelcome && layoutConfigWhiteboxSlices.welcome"
@@ -262,7 +264,9 @@
 
       <div data-testid="chat-layout-workspace-whitebox" class="chat-wrapper">
         <TrChat.Root :chat-kit="workspaceLayoutWhiteboxChat" v-bind="workspaceLayoutWhiteboxSlices.root">
-          <TrChat.Layout v-bind="workspaceLayoutWhiteboxSlices.layout">
+          <TrChat.Layout
+            v-bind="{ ...workspaceLayoutWhiteboxSlices.layout, ...workspaceLayoutWhiteboxSlices.appearance }"
+          >
             <TrChat.Header v-bind="workspaceLayoutWhiteboxSlices.header" />
             <TrChat.Welcome
               v-if="showWorkspaceLayoutWhiteboxWelcome && workspaceLayoutWhiteboxSlices.welcome"
@@ -288,7 +292,7 @@
         :preset-overrides="presetEntryOverrides"
       >
         <template #default="{ chatKit: presetEntryChatKit, resolvedPreset, presetSlices }">
-          <TrChat.Layout v-bind="presetSlices.layout">
+          <TrChat.Layout v-bind="{ ...presetSlices.layout, ...presetSlices.appearance }">
             <TrChat.Header v-bind="presetSlices.header">
               <template #extra>
                 <span data-testid="preset-entry-preset-id">{{ resolvedPreset.presetId }}</span>
@@ -318,6 +322,7 @@
         title="Workspace Shell Preview"
         :left-collapsed="shellLeftCollapsed"
         :right-collapsed="shellRightCollapsed"
+        :appearance="darkAppearance"
         :left-region="shellLeftRegion"
         :right-region="shellRightRegion"
         :view-state="{ fullWidth: shellFullWidth }"
@@ -364,7 +369,11 @@
         </template>
 
         <div class="shell-chat-area">
-          <TrChat :response-provider="shellChatProvider" message-list-variant="workspace" />
+          <TrChat
+            :response-provider="shellChatProvider"
+            :appearance="darkAppearance"
+            message-list-variant="workspace"
+          />
         </div>
 
         <template #right="{ toggle, panelItems, activePanelId, setActivePanel }">
@@ -444,7 +453,7 @@
     <div v-if="mode === 'whitebox'" class="welcome-prompts-grid">
       <div data-testid="chat-whitebox-slices-default" class="chat-wrapper">
         <TrChat.Root :chat-kit="whiteboxSlicesChat" v-bind="whiteboxFeatureSlices.root">
-          <TrChat.Layout v-bind="whiteboxFeatureSlices.layout">
+          <TrChat.Layout v-bind="{ ...whiteboxFeatureSlices.layout, ...whiteboxFeatureSlices.appearance }">
             <TrChat.Header v-bind="whiteboxFeatureSlices.header" />
 
             <TrChat.Welcome
@@ -465,7 +474,7 @@
 
       <div data-testid="chat-whitebox-slices-slot" class="chat-wrapper">
         <TrChat.Root :chat-kit="whiteboxSlicesSlotChat" v-bind="whiteboxFeatureSlices.root">
-          <TrChat.Layout v-bind="whiteboxFeatureSlices.layout">
+          <TrChat.Layout v-bind="{ ...whiteboxFeatureSlices.layout, ...whiteboxFeatureSlices.appearance }">
             <TrChat.Header v-bind="whiteboxFeatureSlices.header" />
 
             <TrChat.Welcome
@@ -560,6 +569,7 @@ const actionLog = ref('')
 const messageListVariant = ref<ChatListVariant>('bubble')
 const isFullscreen = ref(false)
 const isShow = ref(true)
+const darkAppearance = { mode: 'dark' } as const
 
 const models: ModelOption[] = [
   { value: 'openai-test', label: 'OpenAI Test', provider: 'openai' },
@@ -722,6 +732,9 @@ const layoutConfigAdapter = createChatAdapterFromConfig({
       type: 'openai-compatible',
       endpoint: '/api/chat',
     },
+  },
+  appearance: {
+    mode: darkAppearance.mode,
   },
   ui: {
     brand: {

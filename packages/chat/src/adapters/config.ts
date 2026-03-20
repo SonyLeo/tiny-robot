@@ -1,6 +1,7 @@
 import type {
   ChatAttachmentsListConfig,
   ChatAttachmentsUploadConfig,
+  ChatAppearanceConfig,
   ChatSenderActionsFeaturePreset,
   ModelOption,
   ResponseProvider,
@@ -121,6 +122,29 @@ function normalizeUi(rawUi: unknown): ChatConfigUI | undefined {
     brand,
     welcome,
     prompts,
+  }
+}
+
+function normalizeAppearance(rawAppearance: unknown): ChatAppearanceConfig | undefined {
+  if (rawAppearance === undefined) {
+    return undefined
+  }
+
+  if (!isRecord(rawAppearance)) {
+    throw new Error('[loadChatConfig] appearance must be an object when provided')
+  }
+
+  const mode =
+    rawAppearance.mode === 'light' || rawAppearance.mode === 'dark' || rawAppearance.mode === 'system'
+      ? rawAppearance.mode
+      : undefined
+
+  if (!mode) {
+    return undefined
+  }
+
+  return {
+    mode,
   }
 }
 
@@ -426,6 +450,7 @@ export function loadChatConfig(input: string | ChatConfig | unknown): ChatConfig
   }
 
   const ui = normalizeUi(raw.ui)
+  const appearance = normalizeAppearance(raw.appearance)
   const layout = normalizeLayout(raw.layout)
   const features = normalizeFeatures(raw.features)
 
@@ -433,6 +458,7 @@ export function loadChatConfig(input: string | ChatConfig | unknown): ChatConfig
     models,
     providers,
     defaults,
+    appearance,
     ui,
     layout,
     features,
@@ -513,6 +539,7 @@ export function createPresetChatProps(
     models: adapter.models,
     providerFactories: adapter.providerFactories,
     defaultModel: adapter.defaultModel,
+    appearance: adapter.config.appearance,
     brand: adapter.config.ui?.brand,
     welcome: adapter.config.ui?.welcome,
     prompts: adapter.config.ui?.prompts,
@@ -539,6 +566,9 @@ export function createPresetChatSlices(preset: ChatPresetProps & Partial<TrChatP
       show: preset.show,
       fullscreen: preset.fullscreen,
       roleConfigs: preset.roleConfigs,
+    },
+    appearance: {
+      appearance: preset.appearance,
     },
     header: {
       title: preset.brand?.title,

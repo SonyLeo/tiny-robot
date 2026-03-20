@@ -1,6 +1,7 @@
 import type { PromptProps, SenderProps } from '@opentiny/tiny-robot'
 import type {
   BrandConfig,
+  ChatAppearanceConfig,
   ChatListVariant,
   ModelOption,
   ModelProviderFactory,
@@ -49,6 +50,7 @@ export interface ChatConfig {
   models: ChatConfigModel[]
   providers: Record<string, ChatConfigProvider>
   defaults?: ChatConfigDefaults
+  appearance?: ChatAppearanceConfig
   ui?: ChatConfigUI
   layout?: ChatLayoutConfig
   features?: ChatFeatureConfigMap
@@ -65,7 +67,7 @@ export interface ChatAdapter {
 
 export type ChatPresetProps = Pick<
   TrChatProps,
-  'models' | 'providerFactories' | 'defaultModel' | 'brand' | 'welcome' | 'prompts'
+  'models' | 'providerFactories' | 'defaultModel' | 'appearance' | 'brand' | 'welcome' | 'prompts'
 > &
   ChatFeaturePresetProps
 
@@ -80,6 +82,10 @@ export interface ChatPresetLayoutSlice {
   show?: TrChatProps['show']
   fullscreen?: TrChatProps['fullscreen']
   roleConfigs?: TrChatProps['roleConfigs']
+}
+
+export interface ChatPresetAppearanceSlice {
+  appearance?: TrChatProps['appearance']
 }
 
 export interface ChatPresetHeaderSlice {
@@ -126,6 +132,7 @@ export interface ChatPresetModelSelectorSlice {
 export interface ChatPresetSlices {
   root: ChatPresetRootSlice
   layout: ChatPresetLayoutSlice
+  appearance: ChatPresetAppearanceSlice
   header: ChatPresetHeaderSlice
   welcome?: ChatPresetWelcomeSlice
   messageList: ChatPresetMessageListSlice

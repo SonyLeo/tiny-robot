@@ -6,7 +6,6 @@
 > - [packages/chat/progress.md](../packages/chat/progress.md)
 > - [packages/chat-cli/progress.md](../packages/chat-cli/progress.md)
 > - [chat-p5-proposal.md](./chat-p5-proposal.md)
-> - [chat-p5-b-api-draft.md](./chat-p5-b-api-draft.md)
 
 ---
 
@@ -22,8 +21,10 @@ Current agreed state:
 - `packages/chat` has completed `P0 / P1 / P2`
 - `packages/chat` has completed `P3 / Template / CLI Consumption`
 - `packages/chat` has completed `P4-A / Agent Preset + Skill Pack Foundation`
-- `packages/chat` has now started `P4-B` at the first chat-side consumer-helper boundary
-- `packages/chat` is intentionally paused at the first `P4-B` white-box preset entry until a real next consumer appears
+- `packages/chat` has started `P4-B` at the first chat-side consumer-helper boundary and is intentionally paused there
+- `packages/chat` has completed the minimum `P5-B / Workspace Shell & Regions` runtime closeout
+- `packages/chat` has completed the minimum `P5-A / Theme & Appearance` closeout
+- the next active implementation step in `packages/chat` should now be `P5-C / Content Navigation & View State`
 - `packages/chat-cli` has started its own registry-first foundation work
 - the current CLI registry and hygiene baseline is sufficient, so the next active implementation step should stay in `packages/chat`
 
@@ -35,15 +36,20 @@ The most important architectural rule is:
 
 This rule is active and should continue to guide implementation.
 
-For current `P5` work, the most relevant new reference is:
+For current `P5` work, the most relevant references are:
 
-- `docs/chat-p5-b-api-draft.md`
+- `docs/chat-p5-proposal.md`
 
-That draft captures the current minimum shell contract derived from the demo validation work.
+Together they capture:
+
+- the current `P5` boundary split
+- the completed minimum `P5-B` runtime contract
+- the completed minimum `P5-A` appearance contract
+- the next `P5-C` design direction
 
 The current runtime situation is now:
 
-- `packages/chat` contains first formal `P5-B` component skeletons:
+- `packages/chat` contains formal `P5-B` runtime surfaces:
   - `TrChatWorkspaceShell`
   - `TrChatWorkspacePanelHost`
 - the demo preview has already switched to consuming those formal components
@@ -63,6 +69,11 @@ The current runtime situation is now:
     - collapse-state resolution
     - panel definition -> host item mapping
     - active-panel fallback and lookup semantics
+- `P5-B` also now has browser-level verification in:
+  - `packages/test/src/chat/workspace-shell.spec.ts`
+- current judgment:
+  - the minimum `P5-B` runtime contract should now be treated as complete
+  - active implementation focus should move to `P5-C`
 
 One important local rule from the latest work cycle:
 
@@ -460,19 +471,25 @@ Done:
 - `P2 / MCP + Layout`
 - `P3 / Template / CLI Consumption`
 - `P4-A / Agent Preset + Skill Pack Foundation`
+- `P5-B / Workspace Shell & Regions` minimum runtime closeout
 
 Current:
 
-- `P4-B / first preset consumer boundary has started`
+- `P4-B / first preset consumer boundary is paused at the first white-box entry`
+- `P5-C / Content Navigation & View State should start next`
 
 Current concrete shape:
 
 - first consumer helper: `createPresetConsumptionFromAgentPreset()`
 - first white-box entry: `TrChat.PresetRoot`
+- first shell runtime closeout:
+  - `TrChatWorkspaceShell`
+  - `TrChatWorkspacePanelHost`
+  - `packages/chat/src/components/workspace/runtime.ts`
 
 Later:
 
-- `P5 / Theme + Workspace Shell + Content Navigation`
+- `P5-C / Content Navigation & View State`
 
 ### 6.2 `packages/chat-cli`
 
@@ -492,50 +509,48 @@ Later:
 
 This is the currently agreed execution order.
 
-### 7.1 `chat` P3 and `P4-A` are complete, and `P4-B` has now started at the first consumer helper boundary
+### 7.1 Treat `P5-B` as complete at the minimum runtime-contract level
 
-What this means:
+What is already true:
 
-- the stable capability consumption path for CLI is in place
-- `feature -> template / preset` mapping is explicit
-- template generation is based on existing chat capability outputs
-- the implementation path remained chat-led while `chat-cli` only followed where the contract needed to be proven in real generation
+- shell, panel host, helper runtime, and demo consumption are all formalized in `packages/chat`
+- the runtime contract is covered by both unit tests and a dedicated browser-level spec
+- `P5-B` no longer needs more work just to prove the shell idea is viable
 
-Current `P4` entry judgment:
+Execution rule:
 
-- `P3` is complete
-- `chat-cli` is already a real consumer of stable chat capabilities
-- no current `P4` idea requires reopening the Phase B or Phase C contract
-- `AgentPreset / SkillPack` can now be modeled as capability consumers on top of the existing chain
+- keep `P5-B` additive only for:
+  - bug fixes
+  - contract clarifications
+  - a concrete new runtime consumer
 
-Current `P4-A` completion judgment:
+Do not use `P5-B` as the default bucket for:
 
-- `AgentPreset / SkillPack` types exist
-- resolver and merge rules are explicit and test-covered
-- built-in preset catalog exists
-- authoring guide exists
-- built-in presets can flow through adapter -> preset props -> preset slices
-- `P4-A` should now be treated as complete, and any further work should be framed as `P4-B`
+- more demo-only panel semantics
+- notebook-specific commitments
+- speculative navigation APIs
+- shell state persistence before `P5-A` is settled
 
-Current `P4-B` early judgment:
+### 7.2 Start `P5-C / Content Navigation & View State` next
 
-- `createPresetConsumptionFromAgentPreset()` is the first explicit chat-side consumer helper
-- preset output can now be consumed as:
-  - adapter
-  - preset props
-  - preset slices
-- the helper is additive and does not replace the existing resolver or adapter chain
+Recommended first `P5-C` targets:
 
-Current `P4-B` next judgment:
+- define a content-attached navigation host that mounts inside the center workspace
+- keep user navigation and assistant navigation on separate source models
+- start from one concrete navigation consumer such as:
+  - `turn-list`
+  - `active-message-outline`
+- keep the first round limited to navigation host behavior and runtime view-state composition
 
-- `TrChat.PresetRoot` now proves there is a real white-box consumer entry inside `packages/chat`
-- the project is currently paused at this point on purpose
-- the next `P4-B` step should only begin when a real consumer need appears and should stay additive while answering one of these:
-  - whether a blackbox preset entry is needed at all
-  - whether model/history/feedback should get preset-host level convenience composition
-  - whether the next consumer should remain runtime-side before any broader CLI preset input
+Most important boundary:
 
-### 7.2 Keep `chat-cli` in small follow-up mode until the next chat-side increment is clear
+- `P5-C` owns navigation and view state only
+- it must not take ownership of:
+  - theme tokens
+  - shell structure
+  - low-level message rendering rules
+
+### 7.3 Keep `chat-cli` in small follow-up mode until the next chat-side increment is clear
 
 Most immediate CLI work:
 
@@ -543,7 +558,7 @@ Most immediate CLI work:
 - harden the two existing sample templates before adding more
 - only add narrow consumer updates that match the current chat contract
 
-### 7.3 `agent-mcp` is now established as the second stable template
+### 7.4 `agent-mcp` is now established as the second stable template
 
 What this proves:
 
@@ -555,41 +570,29 @@ What it does not prove yet:
 - broader multi-template governance is complete
 - `docs-chat` is ready
 
-### 7.4 `docs-chat` should still wait for retrieval contract clarity
+### 7.5 `docs-chat` should still wait for retrieval contract clarity
 
 Reason:
 
 - layout formalization is done
 - retrieval contract is not the same thing as docs-looking UI
 
-### 7.5 Current `P5-B` next-step judgment
+### 7.6 Current `P5-C` next-step judgment
 
-Current `P5-B` has already moved past pure visual validation.
+The next useful implementation step is not more shell or appearance work. It is to formalize a navigation layer that can attach to:
 
-What is already true:
+- default chat
+- docs view
+- workspace shell center content
 
-- `WorkspaceShell` is a formal runtime surface
-- `WorkspacePanelHost` is a formal runtime surface
-- `fullWidth` is already consumed as formal shell `viewState`
-- region panel metadata now flows through shell runtime state before reaching the panel host
-- unit coverage now exists for core runtime semantics
-
-What is still not formalized:
-
-- a shell-owned built-in region host renderer
-- persistence for collapsed state or active panel state
-- drag-to-resize
-- multi-panel split view
-- a public custom-panel registration protocol
+without making navigation responsible for theme or shell structure.
 
 Recommended immediate next task for another LLM:
 
-1. keep `P5-B` additive and runtime-focused
-2. avoid reopening `P2 layout`
-3. prefer formalizing one more shell/runtime contract step before expanding demo semantics
-4. likely best next target:
-   - either add minimal E2E verification for current shell/panel-host runtime behavior
-   - or document and formalize the public slot/emit contract more explicitly before adding more features
+1. add a minimal content-navigation config and runtime type surface
+2. start from one concrete navigation source model only
+3. keep user navigation and assistant navigation schemas separate
+4. add verification for navigation-host rendering and basic active-anchor state flow
 
 ---
 
@@ -750,28 +753,30 @@ If another LLM needs to resume implementation, the fastest safe path is:
 
 4. Pick the next task from this order:
    - extend the first `P4-B` consumer-helper boundary only if the next consumer need is explicit
+   - start `P5-A` before reopening `P5-B`
    - keep `chat-cli` follow-up work limited to hardening existing sample templates unless a new chat-side contract requires more
    - keep template generation registry-first
    - keep `docs-chat` waiting for retrieval contract clarity
-   - for `P5-B`, prefer formal runtime closeout over adding more demo-only affordances
+   - keep `P5-B` additive only for concrete runtime fixes or consumer-driven contract work
 
 5. After any change:
    - update the matching `progress.md`
    - update review only if execution rules changed
    - run the relevant test baseline
 
-6. For `P5-B` specifically:
+6. For `P5-A` and `P5-B` specifically:
    - do not modify `packages/components` unless explicitly approved
-   - keep shell/layout fixes inside `packages/chat`
+   - keep shell and appearance formalization inside `packages/chat`
    - preserve the boundary:
      - `layout.variant` handles content presentation
      - `WorkspaceShell` handles shell regions and shell state
+     - `theme` handles appearance tokens and presets only
 
 ---
 
 ## 12. One-sentence Current State
 
-`packages/chat` has already completed `P3` and `P4-A`, and has now started `P4-B` with both a first preset consumer helper and a first white-box preset entry, while `packages/chat-cli` stays in a narrow follow-up role with two stable white-box sample templates in `basic` and `agent-mcp`.
+`packages/chat` has already completed `P3`, `P4-A`, the minimum `P5-B` workspace-shell runtime closeout, and the minimum `P5-A` appearance closeout, while `P4-B` remains intentionally paused at the first preset consumer entry and the next active runtime target should be `P5-C / Content Navigation & View State`.
 
 ---
 
@@ -806,12 +811,13 @@ Practical implication:
 Current implementation has now moved beyond that initial discussion point:
 
 - shell, panel host, and `fullWidth` are already formal runtime surfaces in `packages/chat`
-- the current remaining `P5-B` work is now about stabilizing runtime contract details rather than proving visual direction
-- current runtime verification should focus on:
+- the current runtime verification already covers:
   - collapse control
   - region panel metadata flow
   - active-panel state flow
   - shell-to-demo consumption boundaries
+  - browser-level interaction flow in `packages/test/src/chat/workspace-shell.spec.ts`
+- the current remaining `P5` work should now shift from `P5-B` runtime proof to `P5-A` appearance formalization
 
 Concretely, the latest finished `P5-B` step is:
 
@@ -836,3 +842,16 @@ Concretely, the latest finished `P5-B` step is:
   - `update:activePanelId`
   - `change`
 - unit tests now lock the helper semantics behind those runtime behaviors
+- browser tests now lock the visible shell behavior behind:
+  - collapse / expand
+  - panel switching
+  - `fullWidth` toggling
+  - chat interaction inside the shell
+
+This should now be treated as the `P5-B` completion baseline.
+
+The next `P5` execution rule is:
+
+- start `P5-A` with semantic appearance tokens and color mode only
+- keep `ThemeProvider` as the underlying theme transport
+- do not move shell structure or navigation state into theme

@@ -55,6 +55,12 @@ export interface ChatMessageActionPayload {
 
 export type ChatListVariant = 'bubble' | 'docs' | 'workspace'
 
+export type ChatAppearanceMode = 'light' | 'dark' | 'system'
+
+export interface ChatAppearanceConfig {
+  mode?: ChatAppearanceMode
+}
+
 // ===== useChatKit 选项 =====
 export interface UseChatKitOptions {
   responseProvider: ResponseProvider
@@ -161,6 +167,7 @@ export interface TrChatProps {
   onError?: (error: Error) => void
   mcpManager?: UseMcpManagerReturn
   attachmentsManager?: UseChatAttachmentsReturn
+  appearance?: ChatAppearanceConfig
   // === 品牌配置（UI-B1）===
   brand?: BrandConfig
   welcome?: WelcomeConfig
@@ -418,6 +425,7 @@ export interface ChatWorkspaceViewStateConfig {
 }
 
 export interface ChatWorkspaceShellConfig {
+  appearance?: ChatAppearanceConfig
   leftRegion?: ChatWorkspaceRegionConfig
   rightRegion?: ChatWorkspaceRegionConfig
   topBar?: ChatWorkspaceShellTopBarConfig

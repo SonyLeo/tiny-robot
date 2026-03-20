@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { useTheme } from '@opentiny/tiny-robot'
 import {
   TrChat,
   TrChatWorkspacePanelHost,
@@ -17,6 +18,8 @@ import { wrapDemoRetryProviderFactories } from '../utils/demoRetryProvider'
 defineEmits<{
   error: [error: Error]
 }>()
+
+const { resolvedColorMode, setColorMode } = useTheme()
 
 const deepseekApiKey = import.meta.env.VITE_DEEPSEEK_API_KEY || ''
 const openaiApiKey = import.meta.env.VITE_OPENAI_API_KEY || ''
@@ -97,6 +100,7 @@ const shellPreset = createPresetChatProps(chatAdapter, {
 })
 
 const providerSummary = computed(() => chatAdapter.models.map((model) => model.label).join(' / '))
+const currentColorMode = computed(() => resolvedColorMode?.value ?? 'light')
 
 const leftCollapsed = ref(false)
 const rightCollapsed = ref(false)
@@ -131,10 +135,18 @@ const rightRegionConfig = computed(() => ({
 function toggleFullWidth() {
   fullWidth.value = !fullWidth.value
 }
+
+function setLightMode() {
+  setColorMode('light')
+}
+
+function setDarkMode() {
+  setColorMode('dark')
+}
 </script>
 
 <template>
-  <div class="p5-shell-page">
+  <div class="p5-shell-page" :data-color-mode="currentColorMode">
     <main class="p5-shell-stage">
       <TrChatWorkspaceShell
         badge="P5"
@@ -162,6 +174,24 @@ function toggleFullWidth() {
         >
           <div class="p5-shell-actions">
             <span class="p5-shell-pill">Preview</span>
+            <div class="p5-shell-segment">
+              <button
+                class="p5-shell-toggle"
+                :class="{ 'is-active': currentColorMode === 'light' }"
+                type="button"
+                @click="setLightMode"
+              >
+                Light
+              </button>
+              <button
+                class="p5-shell-toggle"
+                :class="{ 'is-active': currentColorMode === 'dark' }"
+                type="button"
+                @click="setDarkMode"
+              >
+                Dark
+              </button>
+            </div>
             <button class="p5-shell-toggle" type="button" @click="toggleFullWidth">
               {{ fullWidth ? 'Reading width' : 'Full width' }}
             </button>
@@ -179,6 +209,7 @@ function toggleFullWidth() {
           <span class="p5-shell-chip">Page margin</span>
           <span class="p5-shell-chip">Clipped inner layout</span>
           <span class="p5-shell-chip">Region host preview</span>
+          <span class="p5-shell-chip">Mode: {{ currentColorMode }}</span>
           <span class="p5-shell-chip">{{ fullWidth ? 'Full width on' : 'Reading width on' }}</span>
           <span class="p5-shell-chip">Left active: {{ leftChangedPanel }}</span>
           <span class="p5-shell-chip">Right active: {{ rightChangedPanel }}</span>
@@ -278,6 +309,24 @@ function toggleFullWidth() {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  transition:
+    background 0.24s ease,
+    color 0.24s ease;
+}
+
+.p5-shell-page[data-color-mode='light'] {
+  background:
+    radial-gradient(circle at top left, rgba(219, 234, 254, 0.7), transparent 28%),
+    radial-gradient(circle at bottom right, rgba(226, 232, 240, 0.7), transparent 24%),
+    linear-gradient(180deg, #eef4fb 0%, #f7f9fc 100%);
+}
+
+.p5-shell-page[data-color-mode='dark'] {
+  background:
+    radial-gradient(circle at top left, rgba(37, 99, 235, 0.16), transparent 24%),
+    radial-gradient(circle at bottom right, rgba(120, 113, 108, 0.16), transparent 22%),
+    linear-gradient(180deg, #0f172a 0%, #111827 46%, #1f2937 100%);
+  color: #e5edf7;
 }
 
 .p5-shell-stage {
@@ -292,8 +341,19 @@ function toggleFullWidth() {
 .p5-shell-actions {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
   flex-shrink: 0;
+}
+
+.p5-shell-segment {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.42);
+  border: 1px solid rgba(203, 213, 225, 0.34);
 }
 
 .p5-shell-pill {
@@ -321,6 +381,13 @@ function toggleFullWidth() {
     border-color 0.2s ease,
     color 0.2s ease,
     transform 0.2s ease;
+}
+
+.p5-shell-toggle.is-active {
+  border-color: rgba(59, 130, 246, 0.28);
+  color: #1d4ed8;
+  background: rgba(219, 234, 254, 0.92);
+  box-shadow: 0 6px 18px rgba(59, 130, 246, 0.14);
 }
 
 .p5-shell-toggle:hover {
@@ -356,6 +423,67 @@ function toggleFullWidth() {
   flex-direction: column;
   padding: 16px 12px;
   background: linear-gradient(180deg, rgba(248, 250, 252, 0.56) 0%, rgba(255, 255, 255, 0.4) 100%);
+  transition:
+    padding 0.22s ease,
+    background 0.22s ease;
+}
+
+.p5-shell-page[data-color-mode='dark'] .p5-shell-segment {
+  background: rgba(15, 23, 42, 0.42);
+  border-color: rgba(71, 85, 105, 0.52);
+}
+
+.p5-shell-page[data-color-mode='dark'] .p5-shell-pill {
+  background: rgba(15, 23, 42, 0.72);
+  border-color: rgba(71, 85, 105, 0.72);
+  color: #cdd8e7;
+}
+
+.p5-shell-page[data-color-mode='dark'] .p5-shell-toggle {
+  border-color: rgba(71, 85, 105, 0.56);
+  background: rgba(15, 23, 42, 0.62);
+  color: #d4deeb;
+}
+
+.p5-shell-page[data-color-mode='dark'] .p5-shell-toggle:hover {
+  border-color: rgba(96, 165, 250, 0.42);
+  color: #dbeafe;
+  background: rgba(30, 41, 59, 0.9);
+}
+
+.p5-shell-page[data-color-mode='dark'] .p5-shell-toggle.is-active {
+  background: rgba(30, 64, 175, 0.56);
+  border-color: rgba(96, 165, 250, 0.48);
+  color: #eff6ff;
+  box-shadow: 0 8px 22px rgba(30, 64, 175, 0.2);
+}
+
+.p5-shell-page[data-color-mode='dark'] .p5-shell-chip {
+  background: rgba(15, 23, 42, 0.64);
+  border-color: rgba(71, 85, 105, 0.72);
+  color: #cdd8e7;
+}
+
+.p5-shell-page[data-color-mode='dark'] .p5-shell-panel {
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.44) 0%, rgba(30, 41, 59, 0.3) 100%);
+}
+
+.p5-shell-page[data-color-mode='dark'] .p5-shell-panel-content strong,
+.p5-shell-page[data-color-mode='dark'] .p5-shell-note strong {
+  color: #eff6ff;
+}
+
+.p5-shell-page[data-color-mode='dark'] .p5-shell-panel-content p,
+.p5-shell-page[data-color-mode='dark'] .p5-shell-note span,
+.p5-shell-page[data-color-mode='dark'] .p5-shell-list {
+  color: #cbd5e1;
+}
+
+.p5-shell-page[data-color-mode='dark'] .p5-shell-panel-close,
+.p5-shell-page[data-color-mode='dark'] .p5-shell-note {
+  background: rgba(15, 23, 42, 0.56);
+  border-color: rgba(71, 85, 105, 0.56);
+  color: #cbd5e1;
 }
 
 .p5-shell-panel-content {
@@ -374,22 +502,22 @@ function toggleFullWidth() {
 .p5-shell-panel-content strong {
   font-size: 13px;
   font-weight: 700;
-  color: #243043;
+  color: var(--chat-text-primary);
 }
 
 .p5-shell-panel-content p {
   margin: 0;
   font-size: 11px;
   line-height: 1.5;
-  color: #7b8798;
+  color: var(--chat-text-secondary);
 }
 
 .p5-shell-panel-close {
   padding: 5px 8px;
-  border: 1px solid rgba(203, 213, 225, 0.48);
+  border: 1px solid var(--chat-panel-border);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.78);
-  color: #7b8798;
+  background: var(--chat-panel-bg);
+  color: var(--chat-text-secondary);
   font-size: 10px;
   font-weight: 600;
   cursor: pointer;
@@ -401,7 +529,7 @@ function toggleFullWidth() {
   display: flex;
   flex-direction: column;
   gap: 7px;
-  color: #536173;
+  color: var(--chat-text-secondary);
   font-size: 12px;
 }
 
@@ -411,18 +539,19 @@ function toggleFullWidth() {
   gap: 6px;
   padding: 12px;
   border-radius: 14px;
-  border: 1px solid rgba(226, 232, 240, 0.74);
-  background: rgba(255, 255, 255, 0.74);
+  border: 1px solid var(--chat-panel-border);
+  background: var(--chat-panel-bg);
+  box-shadow: var(--chat-panel-shadow);
 }
 
 .p5-shell-note span {
   font-size: 11px;
-  color: #8190a5;
+  color: var(--chat-text-secondary);
 }
 
 .p5-shell-note strong {
   font-size: 12px;
-  color: #243043;
+  color: var(--chat-text-primary);
 }
 
 @media (max-width: 960px) {

@@ -112,7 +112,12 @@ function handleSelectedModelChange(model: ModelOption) {
     :attachments-feature="props.attachmentsFeature"
     :sender-actions-feature="props.senderActionsFeature"
   >
-    <ChatLayout :show="props.show !== false" :fullscreen="props.fullscreen" :role-configs="props.roleConfigs">
+    <ChatLayout
+      :show="props.show !== false"
+      :fullscreen="props.fullscreen"
+      :role-configs="props.roleConfigs"
+      :appearance="props.appearance"
+    >
       <template v-if="$slots.header">
         <slot name="header" />
       </template>
