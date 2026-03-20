@@ -119,6 +119,7 @@ const leftRegionConfig = computed(() => ({
 const rightRegionConfig = computed(() => ({
   width: 'lg' as const,
   collapsible: true,
+  collapseMode: 'hidden',
   defaultOpen: true,
   panels: [
     { id: 'notes', kind: 'custom' as const, label: 'Notes', description: 'Flexible content companion panel' },

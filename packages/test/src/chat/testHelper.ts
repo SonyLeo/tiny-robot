@@ -435,6 +435,175 @@ export function createChatTestHelper(page: Page, options: ChatTestHelperOptions 
     await expect(btn).toBeVisible({ timeout: defaultTimeout })
   }
 
+  // =====================
+  //  Workspace Shell (P5-B)
+  // =====================
+
+  /** 点击左侧区域折叠按钮 */
+  const clickLeftToggle = async () => {
+    const btn = page.locator(selectors.leftToggle)
+    await btn.waitFor({ state: 'visible', timeout: defaultTimeout })
+    await btn.click()
+  }
+
+  /** 点击右侧区域折叠按钮 */
+  const clickRightToggle = async () => {
+    const btn = page.locator(selectors.rightToggle)
+    await btn.waitFor({ state: 'visible', timeout: defaultTimeout })
+    await btn.click()
+  }
+
+  /** 点击 fullWidth 切换按钮 */
+  const clickFullWidthToggle = async () => {
+    const btn = page.locator(selectors.fullWidthToggle)
+    await btn.waitFor({ state: 'visible', timeout: defaultTimeout })
+    await btn.click()
+  }
+
+  /** 检查左侧区域是否折叠 */
+  const expectLeftCollapsed = async (collapsed: boolean) => {
+    const region = page.locator(selectors.leftRegion)
+    if (collapsed) {
+      await expect(region).toHaveClass(/is-collapsed/, { timeout: defaultTimeout })
+    } else {
+      await expect(region).not.toHaveClass(/is-collapsed/, { timeout: defaultTimeout })
+    }
+  }
+
+  /** 检查右侧区域是否折叠 */
+  const expectRightCollapsed = async (collapsed: boolean) => {
+    const region = page.locator(selectors.rightRegion)
+    if (collapsed) {
+      await expect(region).toHaveClass(/is-collapsed/, { timeout: defaultTimeout })
+    } else {
+      await expect(region).not.toHaveClass(/is-collapsed/, { timeout: defaultTimeout })
+    }
+  }
+
+  /** 检查左侧 rail 是否可见 */
+  const expectLeftRailVisible = async (visible: boolean) => {
+    const rail = page.locator(selectors.leftRail)
+    if (visible) {
+      await expect(rail).toHaveClass(/is-visible/, { timeout: defaultTimeout })
+    } else {
+      await expect(rail).not.toHaveClass(/is-visible/, { timeout: defaultTimeout })
+    }
+  }
+
+  /** 检查右侧 rail 是否可见 */
+  const expectRightRailVisible = async (visible: boolean) => {
+    const rail = page.locator(selectors.rightRail)
+    if (visible) {
+      await expect(rail).toHaveClass(/is-visible/, { timeout: defaultTimeout })
+    } else {
+      await expect(rail).not.toHaveClass(/is-visible/, { timeout: defaultTimeout })
+    }
+  }
+
+  /** 点击左侧 rail 恢复区域 */
+  const clickLeftRail = async () => {
+    const rail = page.locator(selectors.leftRail)
+    await expect(rail).toHaveClass(/is-visible/, { timeout: defaultTimeout })
+    await rail.click()
+  }
+
+  /** 点击右侧 rail 恢复区域 */
+  const clickRightRail = async () => {
+    const rail = page.locator(selectors.rightRail)
+    await expect(rail).toHaveClass(/is-visible/, { timeout: defaultTimeout })
+    await rail.click()
+  }
+
+  /** 点击面板标签切换激活面板（若区域已折叠则先展开，切换后恢复折叠状态） */
+  const clickPanelTab = async (panelId: string, region: 'left' | 'right' = 'left') => {
+    const regionSelector = region === 'left' ? selectors.leftRegion : selectors.rightRegion
+    const regionEl = page.locator(regionSelector)
+
+    // 若区域已折叠，先展开，切换后再折叠回去
+    const isCollapsed = await regionEl.evaluate((el) => el.classList.contains('is-collapsed'))
+    if (isCollapsed) {
+      if (region === 'left') {
+        await clickLeftToggle()
+      } else {
+        await clickRightToggle()
+      }
+    }
+
+    const tab = page.locator(regionSelector).locator(selectors.panelTab, { hasText: new RegExp(panelId, 'i') })
+    await tab.waitFor({ state: 'visible', timeout: defaultTimeout })
+    await tab.click()
+
+    // 若原来是折叠状态，切换面板后重新折叠
+    if (isCollapsed) {
+      if (region === 'left') {
+        await clickLeftToggle()
+      } else {
+        await clickRightToggle()
+      }
+    }
+  }
+
+  /** 检查激活的面板 ID */
+  const expectActivePanelId = async (panelId: string, region: 'left' | 'right' = 'left') => {
+    const regionSelector = region === 'left' ? selectors.leftRegion : selectors.rightRegion
+    const activeTab = page.locator(regionSelector).locator(selectors.activePanelTab)
+    await expect(activeTab).toContainText(panelId, { timeout: defaultTimeout })
+  }
+
+  /** 检查 fullWidth 模式是否启用 */
+  const expectFullWidthMode = async (enabled: boolean) => {
+    const shell = page.locator(selectors.workspaceShell)
+    if (enabled) {
+      await expect(shell).toHaveAttribute('data-full-width', 'true', { timeout: defaultTimeout })
+    } else {
+      await expect(shell).toHaveAttribute('data-full-width', 'false', { timeout: defaultTimeout })
+    }
+  }
+
+  /** 检查 shell 内的 chat 是否可见 */
+  const expectShellChatVisible = async () => {
+    const chat = page.locator(selectors.shellChat)
+    await expect(chat).toBeVisible({ timeout: defaultTimeout })
+  }
+
+  /** 在 shell 内发送消息 */
+  const sendMessageInShell = async (text: string) => {
+    const input = page.locator(selectors.shellChat).locator(selectors.senderInput)
+    await input.waitFor({ state: 'visible', timeout: defaultTimeout })
+    await input.fill(text)
+    const btn = page.locator(selectors.shellChat).locator(selectors.senderSubmitBtn)
+    await btn.click()
+  }
+
+  /** 等待 shell 内的 assistant 回复，可指定最少消息数，并等待流式完成 */
+  const waitForShellAssistantReply = async (minCount: number = 2) => {
+    const messages = page.locator(selectors.shellChat).locator(selectors.bubbleItem)
+    await expect(messages.nth(minCount - 1)).toBeVisible({ timeout: defaultTimeout * 3 })
+    // 等待流式完成（cancel 按钮消失，submit 按钮恢复）
+    const cancelBtn = page.locator(selectors.shellChat).locator(selectors.senderCancelBtn)
+    await expect(cancelBtn).not.toBeVisible({ timeout: defaultTimeout * 4 })
+  }
+
+  /** 检查左侧区域内容是否隐藏 */
+  const expectLeftRegionContentHidden = async (hidden: boolean) => {
+    const content = page.locator(selectors.leftRegionContent)
+    if (hidden) {
+      await expect(content).toHaveClass(/is-hidden/, { timeout: defaultTimeout })
+    } else {
+      await expect(content).not.toHaveClass(/is-hidden/, { timeout: defaultTimeout })
+    }
+  }
+
+  /** 检查右侧区域内容是否隐藏 */
+  const expectRightRegionContentHidden = async (hidden: boolean) => {
+    const content = page.locator(selectors.rightRegionContent)
+    if (hidden) {
+      await expect(content).toHaveClass(/is-hidden/, { timeout: defaultTimeout })
+    } else {
+      await expect(content).not.toHaveClass(/is-hidden/, { timeout: defaultTimeout })
+    }
+  }
+
   return {
     // 模式切换
     switchToBlackbox,
@@ -508,6 +677,25 @@ export function createChatTestHelper(page: Page, options: ChatTestHelperOptions 
 
     // 可访问性（UI-H2）
     expectHistoryBtnTitle,
+
+    // Workspace Shell (P5-B)
+    clickLeftToggle,
+    clickRightToggle,
+    clickFullWidthToggle,
+    expectLeftCollapsed,
+    expectRightCollapsed,
+    expectLeftRailVisible,
+    expectRightRailVisible,
+    clickLeftRail,
+    clickRightRail,
+    clickPanelTab,
+    expectActivePanelId,
+    expectFullWidthMode,
+    expectShellChatVisible,
+    sendMessageInShell,
+    waitForShellAssistantReply,
+    expectLeftRegionContentHidden,
+    expectRightRegionContentHidden,
 
     // 基础工具
     ...testUtils,

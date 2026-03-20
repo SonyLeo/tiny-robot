@@ -13,13 +13,21 @@ defineOptions({ name: 'TrChatWorkspaceShell' })
 
 const props = defineProps<TrChatWorkspaceShellProps>()
 const emit = defineEmits<{
+  /** v-model sync — emitted on every toggle request regardless of controlled/uncontrolled mode */
   'update:leftCollapsed': [value: boolean]
+  /** v-model sync — emitted on every toggle request regardless of controlled/uncontrolled mode */
   'update:rightCollapsed': [value: boolean]
+  /** v-model sync — emitted when the active left panel changes */
   'update:leftActivePanelId': [value: string]
+  /** v-model sync — emitted when the active right panel changes */
   'update:rightActivePanelId': [value: string]
+  /** Side-effect event: true = collapsed, false = expanded. Fires after update:leftCollapsed. */
   'left-toggle': [value: boolean]
+  /** Side-effect event: true = collapsed, false = expanded. Fires after update:rightCollapsed. */
   'right-toggle': [value: boolean]
+  /** Fires when the active left panel changes; undefined when no matching panel is found */
   'left-panel-change': [panel: ChatWorkspacePanelDefinition | undefined]
+  /** Fires when the active right panel changes; undefined when no matching panel is found */
   'right-panel-change': [panel: ChatWorkspacePanelDefinition | undefined]
 }>()
 const slots = useSlots()
@@ -37,6 +45,8 @@ const rightRegionStyle = computed(() => ({
 }))
 const isLeftCollapsible = computed(() => props.leftRegion?.collapsible !== false)
 const isRightCollapsible = computed(() => props.rightRegion?.collapsible !== false)
+const isLeftHiddenMode = computed(() => (props.leftRegion?.collapseMode ?? 'hidden') === 'hidden')
+const isRightHiddenMode = computed(() => (props.rightRegion?.collapseMode ?? 'hidden') === 'hidden')
 const uncontrolledLeftCollapsed = ref(props.leftRegion?.defaultOpen === false)
 const uncontrolledRightCollapsed = ref(props.rightRegion?.defaultOpen === false)
 const uncontrolledLeftActivePanelId = ref(props.leftRegion?.activePanelId ?? props.leftRegion?.panels?.[0]?.id)
@@ -225,6 +235,14 @@ function updateRightActivePanelId(nextValue: string) {
       </div>
 
       <div v-if="$slots['toolbar-actions']" class="tr-workspace-shell__actions">
+        <!--
+          slot: toolbar-actions
+          scope:
+            leftCollapsed  boolean  — current left region collapse state
+            rightCollapsed boolean  — current right region collapse state
+            toggleLeft     ()=>void — toggle left region collapse
+            toggleRight    ()=>void — toggle right region collapse
+        -->
         <slot
           name="toolbar-actions"
           :leftCollapsed="leftCollapsedState"
@@ -236,6 +254,7 @@ function updateRightActivePanelId(nextValue: string) {
     </header>
 
     <div v-if="$slots.meta" class="tr-workspace-shell__meta">
+      <!-- slot: meta — chip/tag row rendered below the toolbar, no scope -->
       <slot name="meta" />
     </div>
 
@@ -243,10 +262,14 @@ function updateRightActivePanelId(nextValue: string) {
       <aside
         v-if="showLeftRegion"
         class="tr-workspace-shell__region tr-workspace-shell__region--left"
-        :class="{ 'is-collapsed': leftCollapsedState }"
+        :class="{
+          'is-collapsed': leftCollapsedState,
+          'is-collapse-hidden': leftCollapsedState && isLeftHiddenMode,
+        }"
         :style="leftRegionStyle"
       >
         <div
+          v-if="!(isLeftHiddenMode && leftCollapsedState)"
           class="tr-workspace-shell__rail"
           :class="{ 'is-visible': isLeftCollapsible && leftCollapsedState, 'is-interactive': isLeftCollapsible }"
           @click="isLeftCollapsible && leftCollapsedState && toggleLeftRegion()"
@@ -257,6 +280,17 @@ function updateRightActivePanelId(nextValue: string) {
           class="tr-workspace-shell__region-content"
           :class="{ 'is-hidden': isLeftCollapsible && leftCollapsedState }"
         >
+          <!--
+            slot: left
+            scope:
+              collapsed      boolean                        — whether the region is currently collapsed
+              toggle         ()=>void                       — toggle collapse state
+              region         ChatWorkspaceRegionConfig      — the leftRegion prop value
+              panels         ChatWorkspacePanelDefinition[] — resolved panel definitions
+              panelItems     ChatWorkspacePanelHostItem[]   — tab-bar items derived from panels
+              activePanelId  string                         — currently active panel id (coerced to first panel if unset)
+              setActivePanel (id: string)=>void             — activate a panel by id; emits update:leftActivePanelId + left-panel-change
+          -->
           <slot
             name="left"
             :collapsed="leftCollapsedState"
@@ -271,16 +305,21 @@ function updateRightActivePanelId(nextValue: string) {
       </aside>
 
       <section class="tr-workspace-shell__center">
+        <!-- slot: default — center content area, typically a TrChat instance -->
         <slot />
       </section>
 
       <aside
         v-if="showRightRegion"
         class="tr-workspace-shell__region tr-workspace-shell__region--right"
-        :class="{ 'is-collapsed': rightCollapsedState }"
+        :class="{
+          'is-collapsed': rightCollapsedState,
+          'is-collapse-hidden': rightCollapsedState && isRightHiddenMode,
+        }"
         :style="rightRegionStyle"
       >
         <div
+          v-if="!(isRightHiddenMode && rightCollapsedState)"
           class="tr-workspace-shell__rail"
           :class="{ 'is-visible': isRightCollapsible && rightCollapsedState, 'is-interactive': isRightCollapsible }"
           @click="isRightCollapsible && rightCollapsedState && toggleRightRegion()"
@@ -291,6 +330,17 @@ function updateRightActivePanelId(nextValue: string) {
           class="tr-workspace-shell__region-content"
           :class="{ 'is-hidden': isRightCollapsible && rightCollapsedState }"
         >
+          <!--
+            slot: right
+            scope:
+              collapsed      boolean                        — whether the region is currently collapsed
+              toggle         ()=>void                       — toggle collapse state
+              region         ChatWorkspaceRegionConfig      — the rightRegion prop value
+              panels         ChatWorkspacePanelDefinition[] — resolved panel definitions
+              panelItems     ChatWorkspacePanelHostItem[]   — tab-bar items derived from panels
+              activePanelId  string                         — currently active panel id (coerced to first panel if unset)
+              setActivePanel (id: string)=>void             — activate a panel by id; emits update:rightActivePanelId + right-panel-change
+          -->
           <slot
             name="right"
             :collapsed="rightCollapsedState"
@@ -529,9 +579,16 @@ function updateRightActivePanelId(nextValue: string) {
   background: linear-gradient(180deg, rgba(245, 247, 250, 0.94) 0%, rgba(250, 251, 253, 0.9) 100%);
 }
 
+.tr-workspace-shell__region.is-collapsed.is-collapse-hidden {
+  width: 0;
+  border: 0;
+  overflow: hidden;
+}
+
 .tr-workspace-shell__rail {
   position: absolute;
   inset: 0;
+  z-index: 1;
   height: 100%;
   display: flex;
   align-items: center;
@@ -550,6 +607,7 @@ function updateRightActivePanelId(nextValue: string) {
 
 .tr-workspace-shell__rail.is-visible {
   opacity: 1;
+  pointer-events: auto;
   transform: translateX(0);
 }
 

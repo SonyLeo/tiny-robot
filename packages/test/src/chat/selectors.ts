@@ -88,6 +88,26 @@ export const CHAT_SELECTORS = {
   onActionLog: '[data-testid="on-action-log"]',
   variantIndicator: '[data-testid="variant-indicator"]',
   toggleMessageVariant: '[data-testid="toggle-message-variant"]',
+
+  // === Workspace Shell (P5-B) ===
+  workspaceShell: '.tr-workspace-shell',
+  workspaceShellRoot: '[data-testid="p5-shell-preview"]',
+  leftRegion: '.tr-workspace-shell__region--left',
+  rightRegion: '.tr-workspace-shell__region--right',
+  leftRail: '.tr-workspace-shell__region--left .tr-workspace-shell__rail',
+  rightRail: '.tr-workspace-shell__region--right .tr-workspace-shell__rail',
+  leftRegionContent: '.tr-workspace-shell__region--left .tr-workspace-shell__region-content',
+  rightRegionContent: '.tr-workspace-shell__region--right .tr-workspace-shell__region-content',
+  panelHost: '.tr-workspace-panel-host',
+  panelTab: '.tr-workspace-panel-host__tab',
+  activePanelTab: '.tr-workspace-panel-host__tab.is-active',
+  panelBody: '.tr-workspace-panel-host__body',
+  fullWidthToggle: '[data-testid="toggle-full-width"]',
+  leftToggle: '[data-testid="toggle-left"]',
+  rightToggle: '[data-testid="toggle-right"]',
+  shellChat: '[data-testid="p5-shell-preview"] .tr-chat',
+  shellMeta: '.tr-workspace-shell__meta',
+  shellChip: '.shell-chip',
 } as const
 
 export type ChatSelectors = typeof CHAT_SELECTORS

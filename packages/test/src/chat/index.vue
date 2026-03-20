@@ -51,6 +51,13 @@
       >
         Preset Entry
       </button>
+      <button
+        data-testid="switch-p5-shell-preview"
+        :class="{ active: mode === 'p5-shell-preview' }"
+        @click="mode = 'p5-shell-preview'"
+      >
+        P5 Shell Preview
+      </button>
     </div>
 
     <div v-if="mode === 'blackbox'" data-testid="chat-blackbox" class="chat-wrapper">
@@ -276,8 +283,8 @@
         :response-provider="presetEntryProvider"
         :base-config="presetEntryBaseConfig"
         :preset="presetEntryPreset"
-        :presets="BUILT_IN_AGENT_PRESETS"
-        :skill-packs="BUILT_IN_SKILL_PACKS"
+        :presets="BUILT_IN_AGENT_PRESETS as any"
+        :skill-packs="BUILT_IN_SKILL_PACKS as any"
         :preset-overrides="presetEntryOverrides"
       >
         <template #default="{ chatKit: presetEntryChatKit, resolvedPreset, presetSlices }">
@@ -302,6 +309,81 @@
           </TrChat.Layout>
         </template>
       </TrChat.PresetRoot>
+    </div>
+
+    <div v-if="mode === 'p5-shell-preview'" data-testid="p5-shell-preview-root" class="p5-shell-wrapper">
+      <TrChatWorkspaceShell
+        data-testid="p5-shell-preview"
+        badge="P5"
+        title="Workspace Shell Preview"
+        :left-collapsed="shellLeftCollapsed"
+        :right-collapsed="shellRightCollapsed"
+        :left-region="shellLeftRegion"
+        :right-region="shellRightRegion"
+        :view-state="{ fullWidth: shellFullWidth }"
+        left-rail-label="History"
+        right-rail-label="Tools"
+        @update:left-collapsed="shellLeftCollapsed = $event"
+        @update:right-collapsed="shellRightCollapsed = $event"
+        @left-panel-change="shellLeftActivePanel = $event?.id ?? shellLeftActivePanel"
+        @right-panel-change="shellRightActivePanel = $event?.id ?? shellRightActivePanel"
+      >
+        <template #toolbar-actions="{ toggleLeft, toggleRight }">
+          <button data-testid="toggle-full-width" type="button" @click="shellFullWidth = !shellFullWidth">
+            {{ shellFullWidth ? 'Reading width' : 'Full width' }}
+          </button>
+          <button data-testid="toggle-left" type="button" @click="toggleLeft()">Toggle Left</button>
+          <button data-testid="toggle-right" type="button" @click="toggleRight()">Toggle Right</button>
+        </template>
+
+        <template #meta>
+          <span class="shell-chip">Rounded shell</span>
+          <span class="shell-chip">Page margin</span>
+          <span class="shell-chip">Clipped inner layout</span>
+          <span class="shell-chip">Region host preview</span>
+          <span class="shell-chip">{{ shellFullWidth ? 'Full width on' : 'Reading width on' }}</span>
+          <span class="shell-chip">Left active: {{ shellLeftActivePanel }}</span>
+          <span class="shell-chip">Right active: {{ shellRightActivePanel }}</span>
+        </template>
+
+        <template #left="{ toggle, panelItems, activePanelId, setActivePanel }">
+          <div class="shell-panel">
+            <TrChatWorkspacePanelHost
+              :items="panelItems"
+              :active-panel-id="activePanelId"
+              @update:active-panel-id="setActivePanel"
+            >
+              <template #default="{ activePanel }">
+                <div>
+                  <button type="button" @click="toggle()">Collapse</button>
+                  <p>{{ activePanel?.label }}</p>
+                </div>
+              </template>
+            </TrChatWorkspacePanelHost>
+          </div>
+        </template>
+
+        <div class="shell-chat-area">
+          <TrChat :response-provider="shellChatProvider" message-list-variant="workspace" />
+        </div>
+
+        <template #right="{ toggle, panelItems, activePanelId, setActivePanel }">
+          <div class="shell-panel">
+            <TrChatWorkspacePanelHost
+              :items="panelItems"
+              :active-panel-id="activePanelId"
+              @update:active-panel-id="setActivePanel"
+            >
+              <template #default="{ activePanel }">
+                <div>
+                  <button type="button" @click="toggle()">Collapse</button>
+                  <p>{{ activePanel?.label }}</p>
+                </div>
+              </template>
+            </TrChatWorkspacePanelHost>
+          </div>
+        </template>
+      </TrChatWorkspaceShell>
     </div>
 
     <div v-if="mode === 'whitebox'" data-testid="chat-whitebox" class="chat-wrapper">
@@ -426,6 +508,8 @@ import {
   useChatKit,
   useMcpManager,
   useModelSelector,
+  TrChatWorkspaceShell,
+  TrChatWorkspacePanelHost,
 } from '../../../chat/src'
 import type {
   ChatListVariant,
@@ -445,6 +529,7 @@ type ChatMode =
   | 'mcp-feature'
   | 'layout-config'
   | 'preset-entry'
+  | 'p5-shell-preview'
 
 function getInitialMode(): ChatMode {
   if (typeof window === 'undefined') {
@@ -459,7 +544,8 @@ function getInitialMode(): ChatMode {
     mode === 'sender-extensions' ||
     mode === 'mcp-feature' ||
     mode === 'layout-config' ||
-    mode === 'preset-entry'
+    mode === 'preset-entry' ||
+    mode === 'p5-shell-preview'
   ) {
     return mode
   }
@@ -960,6 +1046,42 @@ function handleWorkspaceLayoutWhiteboxPromptClick(description: string) {
 function handleModelChange(model: ModelOption) {
   selectModel(model)
 }
+
+// =====================
+//  P5 Shell Preview state
+// =====================
+
+const shellLeftCollapsed = ref(false)
+const shellRightCollapsed = ref(false)
+const shellFullWidth = ref(false)
+const shellLeftActivePanel = ref('history')
+const shellRightActivePanel = ref('notes')
+
+const shellLeftRegion = {
+  width: 'md' as const,
+  collapsible: true,
+  defaultOpen: true,
+  collapseMode: 'rail' as const,
+  panels: [
+    { id: 'history', label: 'History', description: 'Conversation timeline' },
+    { id: 'sources', label: 'Sources', description: 'Attached references' },
+    { id: 'pinned', label: 'Pinned', description: 'Reusable shortcuts' },
+  ],
+}
+
+const shellRightRegion = {
+  width: 'lg' as const,
+  collapsible: true,
+  defaultOpen: true,
+  collapseMode: 'rail' as const,
+  panels: [
+    { id: 'notes', label: 'Notes', description: 'Flexible content companion panel' },
+    { id: 'mcp', label: 'MCP', description: 'Tool and server surface' },
+    { id: 'outline', label: 'Outline', description: 'Content navigation layer' },
+  ],
+}
+
+const shellChatProvider = createMockProvider({ provider: 'openai', model: 'shell-model' })
 </script>
 
 <style scoped>
@@ -1036,5 +1158,30 @@ function handleModelChange(model: ModelOption) {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.p5-shell-wrapper {
+  height: calc(100vh - 100px);
+  display: flex;
+  flex-direction: column;
+}
+
+.shell-panel {
+  height: 100%;
+  padding: 12px;
+}
+
+.shell-chat-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.shell-chip {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #e8eefb;
+  font-size: 11px;
 }
 </style>

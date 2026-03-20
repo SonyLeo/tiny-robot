@@ -332,31 +332,74 @@ export interface ModelProviderFactory {
  */
 export type ProviderFactoryCreator<T extends Record<string, unknown>> = (options: T) => ModelProviderFactory
 
-// ===== P5-B draft workspace shell types =====
+// ===== P5-B Workspace Shell types =====
+
 export type ChatWorkspaceRegionKey = 'left' | 'right'
 
+/** Region panel width preset or explicit pixel value */
 export type ChatWorkspacePanelWidth = 'sm' | 'md' | 'lg' | number
 
+/** Built-in panel kinds with first-class runtime support */
 export type ChatWorkspaceBuiltInPanelKind = 'history' | 'mcp' | 'notebook' | 'outline' | 'sources' | 'custom'
 
 export type ChatWorkspaceComposerDockMode = 'bottom' | 'floating-bottom'
 
+/** Definition of a single panel registered in a region */
 export interface ChatWorkspacePanelDefinition {
+  /** Unique identifier used for activation and event payloads */
   id: string
+  /** Optional built-in kind; enables first-class rendering when supported */
   kind?: ChatWorkspaceBuiltInPanelKind
+  /** Short display label shown in the tab bar */
   label?: string
+  /** Subtitle shown below the label in the tab */
   description?: string
+  /** Full title rendered inside the panel body header */
   title?: string
+  /** Whether the panel can be closed by the user (not yet implemented) */
   closable?: boolean
+  /** Whether the panel starts open by default (not yet implemented) */
   defaultOpen?: boolean
 }
 
+/** Configuration for a collapsible side region (left or right) */
 export interface ChatWorkspaceRegionConfig {
+  /** Set to false to hide the region entirely. Default: true */
   enabled?: boolean
+  /**
+   * Whether the region can be collapsed by the user.
+   * When false the region is always visible and no toggle/rail is rendered.
+   * Default: true
+   */
   collapsible?: boolean
+  /**
+   * Initial open state for uncontrolled mode.
+   * Ignored when the parent controls collapse via `leftCollapsed`/`rightCollapsed`.
+   * Default: true (open)
+   */
   defaultOpen?: boolean
+  /**
+   * Controls the visual behavior when the region is collapsed.
+   * - `'rail'` (default): shrinks to a 44px strip showing the rail label; user can click to restore.
+   * - `'hidden'`: region is removed from layout entirely (width → 0, no rail rendered);
+   *   center area expands to fill the space. Restore requires an external trigger
+   *   (e.g. a button in the `toolbar-actions` slot).
+   */
+  collapseMode?: 'rail' | 'hidden'
+  /**
+   * Width of the region when expanded.
+   * Accepts a preset ('sm' = 220px, 'md' = 248px, 'lg' = 286px) or an explicit pixel number.
+   * Default: 'md' for left, 'lg' for right.
+   */
   width?: ChatWorkspacePanelWidth
+  /** Ordered list of panels available in this region */
   panels?: ChatWorkspacePanelDefinition[]
+  /**
+   * Controlled active panel ID.
+   * When provided the region operates in controlled panel mode;
+   * emit `update:leftActivePanelId` / `update:rightActivePanelId` to update it.
+   * When omitted the region manages active panel state internally.
+   */
   activePanelId?: string
 }
 
@@ -370,6 +413,7 @@ export interface ChatWorkspaceCenterLayoutConfig {
 }
 
 export interface ChatWorkspaceViewStateConfig {
+  /** When true the center chat area expands to full width (removes max-width constraints) */
   fullWidth?: boolean
 }
 
@@ -381,13 +425,62 @@ export interface ChatWorkspaceShellConfig {
   viewState?: ChatWorkspaceViewStateConfig
 }
 
+/**
+ * Props for `TrChatWorkspaceShell`.
+ *
+ * ## Collapse — controlled vs uncontrolled
+ * - **Uncontrolled** (default): omit `leftCollapsed`/`rightCollapsed`.
+ *   The shell manages collapse state internally; listen to `left-toggle`/`right-toggle` for side-effects.
+ * - **Controlled**: bind `v-model:leftCollapsed` / `v-model:rightCollapsed`.
+ *   The shell emits `update:leftCollapsed` / `update:rightCollapsed` on every toggle request
+ *   but will not change state until the prop is updated by the parent.
+ *
+ * ## Panel active state — controlled vs uncontrolled
+ * - **Uncontrolled** (default): omit `leftRegion.activePanelId` / `rightRegion.activePanelId`.
+ * - **Controlled**: set `activePanelId` inside the region config and handle
+ *   `update:leftActivePanelId` / `update:rightActivePanelId` to keep it in sync.
+ *
+ * ## Slots
+ * | Name | Scope | Description |
+ * |---|---|---|
+ * | `default` | — | Center content area (typically `TrChat`) |
+ * | `toolbar-actions` | `{ leftCollapsed, rightCollapsed, toggleLeft, toggleRight }` | Buttons rendered in the top-right toolbar |
+ * | `meta` | — | Chip/tag row rendered below the toolbar |
+ * | `left` | `{ collapsed, toggle, region, panels, panelItems, activePanelId, setActivePanel }` | Left region content |
+ * | `right` | `{ collapsed, toggle, region, panels, panelItems, activePanelId, setActivePanel }` | Right region content |
+ *
+ * ## Emits
+ * | Event | Payload | Description |
+ * |---|---|---|
+ * | `update:leftCollapsed` | `boolean` | v-model sync for left collapse state |
+ * | `update:rightCollapsed` | `boolean` | v-model sync for right collapse state |
+ * | `update:leftActivePanelId` | `string` | v-model sync for left active panel |
+ * | `update:rightActivePanelId` | `string` | v-model sync for right active panel |
+ * | `left-toggle` | `boolean` | Fires after every left collapse/expand (collapsed = true) |
+ * | `right-toggle` | `boolean` | Fires after every right collapse/expand (collapsed = true) |
+ * | `left-panel-change` | `ChatWorkspacePanelDefinition \| undefined` | Fires when the active left panel changes |
+ * | `right-panel-change` | `ChatWorkspacePanelDefinition \| undefined` | Fires when the active right panel changes |
+ */
 export interface TrChatWorkspaceShellProps extends ChatWorkspaceShellConfig {
+  /** Short badge text displayed in the top-left brand area (e.g. "P5") */
   badge?: string
+  /** Brand title shown next to the badge */
   title?: string
+  /** Brand subtitle shown below the title */
   description?: string
+  /**
+   * Controlled left collapse state.
+   * Omit to use uncontrolled mode. Use with `v-model:leftCollapsed`.
+   */
   leftCollapsed?: boolean
+  /**
+   * Controlled right collapse state.
+   * Omit to use uncontrolled mode. Use with `v-model:rightCollapsed`.
+   */
   rightCollapsed?: boolean
+  /** Label shown in the left rail when the region is collapsed */
   leftRailLabel?: string
+  /** Label shown in the right rail when the region is collapsed */
   rightRailLabel?: string
 }
 
