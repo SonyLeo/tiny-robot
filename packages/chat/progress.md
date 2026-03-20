@@ -390,7 +390,7 @@
   - `presetSlices`
   - `chatKit`
 - [x] a dedicated `preset-entry` verification scenario now exists in `packages/test/src/chat/index.vue`
-- [x] `packages/test/src/chat/preset-entry.spec.ts` verifies:
+- [x] `packages/test/src/chat/scenario-specs/preset-entry.spec.ts` verifies:
   - built-in preset metadata reaches the white-box entry
   - resolved welcome and prompt content render through preset slices
   - prompt click keeps the injected `chatKit` live
@@ -401,8 +401,8 @@
 - `pnpm.cmd -F @opentiny/tiny-robot-chat type-check`
 - `pnpm.cmd -F @opentiny/tiny-robot-chat test:unit`
 - `pnpm.cmd -F @opentiny/tiny-robot-chat build`
-- `pnpm.cmd -F tiny-robot-test test -- src/chat/layout-config.spec.ts src/chat/mcp-feature.spec.ts src/chat/index.spec.ts`
-- `pnpm.cmd -F tiny-robot-test test -- src/chat/welcome-prompts.spec.ts src/chat/sender-actions.spec.ts`
-- `pnpm.cmd -F tiny-robot-test test -- src/chat/sender-extensions.spec.ts`
-- `pnpm.cmd -F tiny-robot-test test -- src/chat/preset-entry.spec.ts`
+- `pnpm.cmd -F tiny-robot-test test -- src/chat/scenario-specs/layout-config.spec.ts src/chat/scenario-specs/mcp-feature.spec.ts src/chat/index.spec.ts`
+- `pnpm.cmd -F tiny-robot-test test -- src/chat/scenario-specs/welcome-prompts.spec.ts src/chat/sender-actions.spec.ts`
+- `pnpm.cmd -F tiny-robot-test test -- src/chat/scenario-specs/sender-extensions.spec.ts`
+- `pnpm.cmd -F tiny-robot-test test -- src/chat/scenario-specs/preset-entry.spec.ts`
 - `pnpm.cmd -F tiny-robot-test test -- src/chat/workspace-shell.spec.ts`

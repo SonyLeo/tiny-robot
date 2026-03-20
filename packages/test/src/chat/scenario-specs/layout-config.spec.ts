@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { createChatTestHelper } from './testHelper'
+import { createChatTestHelper } from '../testHelper'
 
 test.describe('Chat Layout Config', () => {
   let helper: ReturnType<typeof createChatTestHelper>
@@ -9,7 +9,7 @@ test.describe('Chat Layout Config', () => {
     await page.locator('nav').getByRole('link').nth(2).click()
     await expect(page.locator('h2')).toContainText('Chat')
     helper = createChatTestHelper(page)
-    await helper.switchToLayoutConfig()
+    await page.locator('[data-testid="chat-layout-config-blackbox"]').waitFor()
   })
 
   test('blackbox layout config should drive docs variant and custom placements', async ({ page }) => {

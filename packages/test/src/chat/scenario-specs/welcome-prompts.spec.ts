@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { createChatTestHelper } from './testHelper'
+import { createChatTestHelper } from '../testHelper'
 
 test.describe('Chat Welcome Prompts Feature', () => {
   let helper: ReturnType<typeof createChatTestHelper>

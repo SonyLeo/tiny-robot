@@ -1,15 +1,15 @@
 import { expect, test } from '@playwright/test'
-import { createChatTestHelper } from './testHelper'
+import { createChatTestHelper } from '../testHelper'
 
 test.describe('Chat Sender Extensions Passthrough', () => {
   let helper: ReturnType<typeof createChatTestHelper>
 
   test.beforeEach(async ({ page }) => {
-    await page.goto('/')
+    await page.goto('/?chatMode=sender-extensions')
     await page.locator('nav').getByRole('link').nth(2).click()
     await expect(page.locator('h2')).toContainText('Chat')
     helper = createChatTestHelper(page)
-    await helper.switchToSenderExtensions()
+    await page.locator('[data-testid="chat-sender-extensions-blackbox"]').waitFor()
   })
 
   test('blackbox senderProps.extensions should render suggestion UI and allow selection', async ({ page }) => {

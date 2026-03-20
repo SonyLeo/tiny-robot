@@ -45,43 +45,6 @@ export function createChatTestHelper(page: Page, options: ChatTestHelperOptions 
     await page.locator('[data-testid="chat-blackbox-edge"]').waitFor({ state: 'visible', timeout: defaultTimeout })
   }
 
-  const switchToWelcomePrompts = async () => {
-    await testUtils.clickWhenVisible(selectors.switchToWelcomePrompts)
-    await page.locator('[data-testid="chat-welcome-prompts"]').waitFor({ state: 'visible', timeout: defaultTimeout })
-  }
-
-  const switchToSenderExtensions = async () => {
-    await testUtils.clickWhenVisible(selectors.switchToSenderExtensions)
-    await page.locator('[data-testid="chat-sender-extensions-blackbox"]').waitFor({
-      state: 'visible',
-      timeout: defaultTimeout,
-    })
-  }
-
-  const switchToMcpFeature = async () => {
-    await testUtils.clickWhenVisible(selectors.switchToMcpFeature)
-    await page.locator('[data-testid="chat-mcp-feature-blackbox"]').waitFor({
-      state: 'visible',
-      timeout: defaultTimeout,
-    })
-  }
-
-  const switchToLayoutConfig = async () => {
-    await testUtils.clickWhenVisible(selectors.switchToLayoutConfig)
-    await page.locator('[data-testid="chat-layout-config-blackbox"]').waitFor({
-      state: 'visible',
-      timeout: defaultTimeout,
-    })
-  }
-
-  const switchToPresetEntry = async () => {
-    await testUtils.clickWhenVisible(selectors.switchToPresetEntry)
-    await page.locator('[data-testid="chat-preset-entry"]').waitFor({
-      state: 'visible',
-      timeout: defaultTimeout,
-    })
-  }
-
   // =====================
   //  消息发送
   // =====================
@@ -609,11 +572,6 @@ export function createChatTestHelper(page: Page, options: ChatTestHelperOptions 
     switchToBlackbox,
     switchToWhitebox,
     switchToBlackboxEdge,
-    switchToWelcomePrompts,
-    switchToSenderExtensions,
-    switchToMcpFeature,
-    switchToLayoutConfig,
-    switchToPresetEntry,
 
     // 消息交互
     typeMessage,

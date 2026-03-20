@@ -1,7 +1,8 @@
 import { expect, test } from '@playwright/test'
-import { createChatTestHelper } from './testHelper'
+import { createChatTestHelper } from '../testHelper'
 
 test.describe('Chat MCP Feature', () => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let helper: ReturnType<typeof createChatTestHelper>
 
   test.beforeEach(async ({ page }) => {
@@ -9,7 +10,7 @@ test.describe('Chat MCP Feature', () => {
     await page.locator('nav').getByRole('link').nth(2).click()
     await expect(page.locator('h2')).toContainText('Chat')
     helper = createChatTestHelper(page)
-    await helper.switchToMcpFeature()
+    await page.locator('[data-testid="chat-mcp-feature-blackbox"]').waitFor()
   })
 
   test('blackbox mcp feature should inject the manager into TrChatMcpPanel', async ({ page }) => {

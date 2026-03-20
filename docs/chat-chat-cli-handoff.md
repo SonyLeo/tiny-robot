@@ -118,9 +118,9 @@ Important boundary:
 Tests added / relied on:
 
 - `packages/chat/tests/use-chat-slices.test.mjs`
-- `packages/test/src/chat/welcome-prompts.spec.ts`
+- `packages/test/src/chat/scenario-specs/welcome-prompts.spec.ts`
 - `packages/test/src/chat/sender-actions.spec.ts`
-- `packages/test/src/chat/sender-extensions.spec.ts`
+- `packages/test/src/chat/scenario-specs/sender-extensions.spec.ts`
 - `packages/test/src/chat/index.spec.ts`
 
 ### 2.3 P1 blackbox / white-box alignment
@@ -171,8 +171,8 @@ Key files:
 Tests added / relied on:
 
 - `packages/chat/tests/use-chat-slices.test.mjs`
-- `packages/test/src/chat/mcp-feature.spec.ts`
-- `packages/test/src/chat/layout-config.spec.ts`
+- `packages/test/src/chat/scenario-specs/mcp-feature.spec.ts`
+- `packages/test/src/chat/scenario-specs/layout-config.spec.ts`
 - `packages/test/src/chat/index.spec.ts`
 
 ### 2.5 P3: Template / CLI Consumption
@@ -258,7 +258,7 @@ Completed:
   - `chatKit`
 - a dedicated `preset-entry` demo/test scenario now exists in:
   - `packages/test/src/chat/index.vue`
-- `packages/test/src/chat/preset-entry.spec.ts` now verifies:
+- `packages/test/src/chat/scenario-specs/preset-entry.spec.ts` now verifies:
   - built-in preset id exposure
   - resolved welcome and prompt rendering
   - prompt click keeps the injected `chatKit` live
@@ -443,12 +443,12 @@ Chat unit:
 
 Chat E2E:
 
-- `packages/test/src/chat/welcome-prompts.spec.ts`
+- `packages/test/src/chat/scenario-specs/welcome-prompts.spec.ts`
 - `packages/test/src/chat/sender-actions.spec.ts`
-- `packages/test/src/chat/sender-extensions.spec.ts`
-- `packages/test/src/chat/mcp-feature.spec.ts`
-- `packages/test/src/chat/layout-config.spec.ts`
-- `packages/test/src/chat/preset-entry.spec.ts`
+- `packages/test/src/chat/scenario-specs/sender-extensions.spec.ts`
+- `packages/test/src/chat/scenario-specs/mcp-feature.spec.ts`
+- `packages/test/src/chat/scenario-specs/layout-config.spec.ts`
+- `packages/test/src/chat/scenario-specs/preset-entry.spec.ts`
 - `packages/test/src/chat/index.spec.ts`
 - `packages/test/src/chat/index.vue`
 
@@ -715,10 +715,10 @@ Chat:
 - `pnpm.cmd -F @opentiny/tiny-robot-chat type-check`
 - `pnpm.cmd -F @opentiny/tiny-robot-chat test:unit`
 - `pnpm.cmd -F @opentiny/tiny-robot-chat build`
-- `pnpm.cmd -F tiny-robot-test test -- src/chat/preset-entry.spec.ts`
-- `pnpm.cmd -F tiny-robot-test test -- src/chat/welcome-prompts.spec.ts src/chat/sender-actions.spec.ts`
-- `pnpm.cmd -F tiny-robot-test test -- --workers=1 src/chat/sender-extensions.spec.ts`
-- `pnpm.cmd -F tiny-robot-test test -- src/chat/layout-config.spec.ts src/chat/mcp-feature.spec.ts src/chat/index.spec.ts`
+- `pnpm.cmd -F tiny-robot-test test -- src/chat/scenario-specs/preset-entry.spec.ts`
+- `pnpm.cmd -F tiny-robot-test test -- src/chat/scenario-specs/welcome-prompts.spec.ts src/chat/sender-actions.spec.ts`
+- `pnpm.cmd -F tiny-robot-test test -- --workers=1 src/chat/scenario-specs/sender-extensions.spec.ts`
+- `pnpm.cmd -F tiny-robot-test test -- src/chat/scenario-specs/layout-config.spec.ts src/chat/scenario-specs/mcp-feature.spec.ts src/chat/index.spec.ts`
 
 CLI:
 

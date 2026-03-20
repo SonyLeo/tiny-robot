@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { createChatTestHelper } from './testHelper'
+import { createChatTestHelper } from '../testHelper'
 
 test.describe('Chat Preset Entry', () => {
   let helper: ReturnType<typeof createChatTestHelper>
@@ -9,7 +9,7 @@ test.describe('Chat Preset Entry', () => {
     await page.locator('nav').getByRole('link').nth(2).click()
     await expect(page.locator('h2')).toContainText('Chat')
     helper = createChatTestHelper(page)
-    await helper.switchToPresetEntry()
+    await page.locator('[data-testid="chat-preset-entry"]').waitFor()
   })
 
   test('white-box preset entry should expose built-in preset slices through scoped slot composition', async ({
