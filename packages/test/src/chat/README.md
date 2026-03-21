@@ -14,8 +14,17 @@ This folder contains the E2E-facing chat demo entry, scenario fixtures, and Play
   - Specs for independent scene pages that are entered with `?chatMode=...`.
   - Current examples: `layout-config`, `mcp-feature`, `preset-entry`, `sender-extensions`, `welcome-prompts`.
 - top-level `*.spec.ts`
-  - Keep only core entry and cross-scene regression specs here.
-  - Current examples: `index.spec.ts`, `model-switch.spec.ts`, `sender-actions.spec.ts`, `workspace-shell.spec.ts`.
+  - Keep entry smoke specs, root-entry capability specs, and cross-scene regression specs here.
+  - Current examples:
+    - `index.spec.ts`
+    - `attachments.spec.ts`
+    - `history.spec.ts`
+    - `request-lifecycle.spec.ts`
+    - `feedback.spec.ts`
+    - `edge-overrides.spec.ts`
+    - `model-switch.spec.ts`
+    - `sender-actions.spec.ts`
+    - `workspace-shell.spec.ts`
 - `testHelper.ts`
   - Shared chat interaction helpers and assertions.
 - `selectors.ts`
@@ -27,6 +36,7 @@ This folder contains the E2E-facing chat demo entry, scenario fixtures, and Play
 - Add a new file under `scenario-specs/` when the spec targets one dedicated `chatMode` scene.
 - Keep a spec at the top level only when it verifies:
   - the main entry switching flow
+  - a root-entry capability that still uses the shared blackbox/whitebox demo entry
   - behavior spanning multiple scenes
   - shared helper behavior
   - workspace shell behavior that is still treated as a core regression surface
@@ -62,6 +72,7 @@ When a test still depends on the top-level demo entry, use `helper.switchToBlack
 - Prefer `data-testid` for scene roots and demo-only controls.
 - Prefer semantic selectors already used by the component when they are stable enough across specs.
 - Do not add ad-hoc long CSS chains into multiple specs. If a selector is reused, move it into `selectors.ts` or a helper method.
+- Keep workspace shell specs focused on user-visible shell contracts. Exact width math, CSS custom-property internals, and slot-prop plumbing belong in runtime/unit tests unless the browser behavior is the product contract.
 
 ## Assertion Rules
 

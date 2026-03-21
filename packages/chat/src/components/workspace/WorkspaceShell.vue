@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, useSlots, watch } from 'vue'
-import type { TrChatWorkspaceShellProps, ChatWorkspacePanelDefinition } from '../../types'
+import type { TrChatWorkspaceShellProps, ChatWorkspacePanelDefinition } from '@/types'
 import {
   coerceWorkspacePanelId,
   findWorkspacePanelById,

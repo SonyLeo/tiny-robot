@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useChatKit } from '../../composables'
-import type { AgentPresetInput, SkillPackInput } from '../../presets'
-import { createPresetConsumptionFromAgentPreset } from '../../presets'
-import type { ChatConfig } from '../../adapters'
-import type { TrChatProps, TrChatRootProps, UseChatKitOptions, UseChatKitReturn } from '../../types'
-import { conditionalProp } from '../../utils'
+import { useChatKit } from '@/composables'
+import type { AgentPresetInput, SkillPackInput } from '@/presets'
+import { createPresetConsumptionFromAgentPreset } from '@/presets'
+import type { ChatConfig } from '@/adapters'
+import type { TrChatProps, TrChatRootProps, UseChatKitOptions, UseChatKitReturn } from '@/types'
+import { conditionalProp } from '@/utils'
 import ChatRoot from './ChatRoot.vue'
 
 defineOptions({ name: 'TrChatPresetRoot' })

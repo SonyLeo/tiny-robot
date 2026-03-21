@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch, watchEffect } from 'vue'
-import type { ChatConversationTurnNavigationItem, TrChatConversationTurnNavigationProps } from '../../../types'
+import type { ChatConversationTurnNavigationItem, TrChatConversationTurnNavigationProps } from '@/types'
 import ContentNavigationHost from './ContentNavigationHost.vue'
-import { coerceContentNavigationItemId } from '../../../utils/contentNavigation'
+import { coerceContentNavigationItemId } from '@/utils/contentNavigation'
 import { resolveConversationTurnNavigationItems } from './turn-navigation'
 
 defineOptions({ name: 'TrChatConversationTurnNavigation' })

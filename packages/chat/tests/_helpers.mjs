@@ -5,6 +5,7 @@ import createJiti from 'jiti'
 
 const jiti = createJiti(import.meta.url, {
   alias: {
+    '@': fileURLToPath(new URL('../src', import.meta.url)),
     '@opentiny/tiny-robot-svgs': fileURLToPath(new URL('../../svgs/dist/tiny-robot-svgs.js', import.meta.url)),
   },
 })
