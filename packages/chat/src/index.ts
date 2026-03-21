@@ -21,6 +21,8 @@ import { ModelSelector as TrModelSelector } from './components/model-selector'
 import {
   WorkspaceShell as TrChatWorkspaceShell,
   WorkspacePanelHost as TrChatWorkspacePanelHost,
+  ContentNavigationHost as TrChatContentNavigationHost,
+  ConversationTurnNavigation as TrChatConversationTurnNavigation,
 } from './components/workspace'
 
 // 定义带子组件的 TrChat 类型
@@ -37,6 +39,8 @@ type TrChatWithSubComponents = typeof TrChat & {
   History: typeof TrChatHistory
   WorkspaceShell: typeof TrChatWorkspaceShell
   WorkspacePanelHost: typeof TrChatWorkspacePanelHost
+  ContentNavigationHost: typeof TrChatContentNavigationHost
+  ConversationTurnNavigation: typeof TrChatConversationTurnNavigation
 }
 
 // 挂载白盒子组件到 TrChat 上，实现复合组件模式
@@ -53,6 +57,8 @@ TrChatFull.Sender = TrChatSender
 TrChatFull.History = TrChatHistory
 TrChatFull.WorkspaceShell = TrChatWorkspaceShell
 TrChatFull.WorkspacePanelHost = TrChatWorkspacePanelHost
+TrChatFull.ContentNavigationHost = TrChatContentNavigationHost
+TrChatFull.ConversationTurnNavigation = TrChatConversationTurnNavigation
 
 export { TrChatFull as TrChat }
 
@@ -90,6 +96,8 @@ export {
   TrChatPresetRoot,
   TrChatWorkspaceShell,
   TrChatWorkspacePanelHost,
+  TrChatContentNavigationHost,
+  TrChatConversationTurnNavigation,
 }
 
 // ===== Providers =====
@@ -160,8 +168,14 @@ export type {
   ChatWorkspaceShellTopBarConfig,
   ChatWorkspaceCenterLayoutConfig,
   ChatWorkspaceViewStateConfig,
+  ChatContentNavigationPlacement,
+  ChatContentNavigationConfig,
+  ChatContentNavigationItem,
+  ChatConversationTurnNavigationItem,
   ChatWorkspaceShellConfig,
   TrChatWorkspaceShellProps,
+  TrChatContentNavigationHostProps,
+  TrChatConversationTurnNavigationProps,
   TrChatWorkspacePanelHostProps,
 } from './types'
 export type { UseDefaultBubbleConfigOptions } from './composables'

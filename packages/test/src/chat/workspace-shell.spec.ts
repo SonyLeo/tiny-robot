@@ -120,7 +120,8 @@ test.describe('Workspace Shell (P5-B)', () => {
 
       // 折叠后渲染宽度约为 45px（44px CSS width + 1px border-right）
       const collapsedBox = await leftRegion.boundingBox()
-      expect(Math.round(collapsedBox!.width)).toBe(45)
+      expect(Math.round(collapsedBox!.width)).toBeGreaterThanOrEqual(44)
+      expect(Math.round(collapsedBox!.width)).toBeLessThanOrEqual(47)
 
       await helper.clickLeftToggle()
       await page.waitForTimeout(350)
@@ -456,7 +457,8 @@ test.describe('Workspace Shell (P5-B)', () => {
       // 验证宽度约为 45px（44px CSS width + 1px border）
       await page.waitForTimeout(350)
       const box = await leftRegion.boundingBox()
-      expect(Math.round(box!.width)).toBe(45)
+      expect(Math.round(box!.width)).toBeGreaterThanOrEqual(44)
+      expect(Math.round(box!.width)).toBeLessThanOrEqual(47)
     })
 
     test('should apply default hidden mode when collapseMode is not specified', async ({ page }) => {

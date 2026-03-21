@@ -424,6 +424,33 @@ export interface ChatWorkspaceViewStateConfig {
   fullWidth?: boolean
 }
 
+export type ChatContentNavigationPlacement = 'left' | 'right'
+
+export interface ChatContentNavigationConfig {
+  /** Set to false to hide the navigation host entirely */
+  enabled?: boolean
+  /** Attach the navigation host to the left or right side of the center workspace */
+  placement?: ChatContentNavigationPlacement
+}
+
+export interface ChatContentNavigationItem {
+  /** Stable item identifier used for active state and click events */
+  id: string
+  /** Primary item label shown in the navigation host */
+  label: string
+  /** Optional secondary text */
+  description?: string
+  /** Optional depth/indent hint for hierarchical views */
+  level?: number
+}
+
+export interface ChatConversationTurnNavigationItem extends ChatContentNavigationItem {
+  /** Original message index inside the active conversation */
+  messageIndex: number
+  /** First-round turn navigation only indexes user turns */
+  role: 'user'
+}
+
 export interface ChatWorkspaceShellConfig {
   appearance?: ChatAppearanceConfig
   leftRegion?: ChatWorkspaceRegionConfig
@@ -431,6 +458,7 @@ export interface ChatWorkspaceShellConfig {
   topBar?: ChatWorkspaceShellTopBarConfig
   centerLayout?: ChatWorkspaceCenterLayoutConfig
   viewState?: ChatWorkspaceViewStateConfig
+  contentNavigation?: ChatContentNavigationConfig
 }
 
 /**
@@ -452,6 +480,7 @@ export interface ChatWorkspaceShellConfig {
  * | Name | Scope | Description |
  * |---|---|---|
  * | `default` | — | Center content area (typically `TrChat`) |
+ * | `navigation` | — | Content-attached navigation host rendered inside the center workspace |
  * | `toolbar-actions` | `{ leftCollapsed, rightCollapsed, toggleLeft, toggleRight }` | Buttons rendered in the top-right toolbar |
  * | `meta` | — | Chip/tag row rendered below the toolbar |
  * | `left` | `{ collapsed, toggle, region, panels, panelItems, activePanelId, setActivePanel }` | Left region content |
@@ -490,6 +519,36 @@ export interface TrChatWorkspaceShellProps extends ChatWorkspaceShellConfig {
   leftRailLabel?: string
   /** Label shown in the right rail when the region is collapsed */
   rightRailLabel?: string
+}
+
+export interface TrChatContentNavigationHostProps extends ChatContentNavigationConfig {
+  /** Navigation items rendered by the host */
+  items: ChatContentNavigationItem[]
+  /** Currently active item ID */
+  activeItemId?: string
+  /** Hide the host when item count is below the threshold. Default: 2 */
+  minItems?: number
+  /** Optional host title */
+  title?: string
+  /** Optional host subtitle */
+  subtitle?: string
+}
+
+export interface TrChatConversationTurnNavigationProps extends ChatContentNavigationConfig {
+  /** Active conversation messages */
+  messages: ChatMessage[]
+  /** Scrollable message container used for active-state tracking and scroll-to-target */
+  scrollContainer?: HTMLElement | null
+  /** Controlled active message index */
+  activeMessageIndex?: number
+  /** Hide the host when item count is below the threshold. Default: 2 */
+  minItems?: number
+  /** Extra top offset reserved for sticky headers/toolbars. Default: 100 */
+  topOffset?: number
+  /** Optional host title */
+  title?: string
+  /** Optional host subtitle */
+  subtitle?: string
 }
 
 export interface ChatWorkspacePanelHostItem {

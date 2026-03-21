@@ -22,6 +22,7 @@
 import { computed, ref, type Component } from 'vue'
 import BlackboxEdgeScene from './scenarios/BlackboxEdgeScene.vue'
 import BlackboxScene from './scenarios/BlackboxScene.vue'
+import ContentNavigationScene from './scenarios/ContentNavigationScene.vue'
 import LayoutConfigScene from './scenarios/LayoutConfigScene.vue'
 import McpFeatureScene from './scenarios/McpFeatureScene.vue'
 import PresetEntryScene from './scenarios/PresetEntryScene.vue'
@@ -39,6 +40,7 @@ type ChatMode =
   | 'mcp-feature'
   | 'layout-config'
   | 'preset-entry'
+  | 'content-navigation'
   | 'p5-shell-preview'
 
 const modeOptions: ReadonlyArray<{ value: ChatMode; label: string; testId: string }> = [
@@ -50,6 +52,7 @@ const modeOptions: ReadonlyArray<{ value: ChatMode; label: string; testId: strin
   { value: 'mcp-feature', label: 'MCP Feature', testId: 'switch-mcp-feature' },
   { value: 'layout-config', label: 'Layout Config', testId: 'switch-layout-config' },
   { value: 'preset-entry', label: 'Preset Entry', testId: 'switch-preset-entry' },
+  { value: 'content-navigation', label: 'Content Navigation', testId: 'switch-content-navigation' },
   { value: 'p5-shell-preview', label: 'P5 Shell Preview', testId: 'switch-p5-shell-preview' },
 ]
 
@@ -62,6 +65,7 @@ const sceneByMode: Record<ChatMode, Component> = {
   'mcp-feature': McpFeatureScene,
   'layout-config': LayoutConfigScene,
   'preset-entry': PresetEntryScene,
+  'content-navigation': ContentNavigationScene,
   'p5-shell-preview': WorkspaceShellScene,
 }
 

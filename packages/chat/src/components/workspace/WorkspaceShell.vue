@@ -40,6 +40,10 @@ const showLeftRegion = computed(() => props.leftRegion?.enabled !== false && Boo
 const showRightRegion = computed(
   () => props.rightRegion?.enabled !== false && Boolean(slots.right || props.rightRailLabel),
 )
+const showNavigationLayer = computed(() => props.contentNavigation?.enabled !== false && Boolean(slots.navigation))
+const navigationPlacementClass = computed(() =>
+  props.contentNavigation?.placement === 'left' ? 'is-left' : 'is-right',
+)
 const leftRegionStyle = computed(() => ({
   '--workspace-region-width': resolveWorkspaceRegionWidth(props.leftRegion?.width, 'left'),
 }))
@@ -155,6 +159,9 @@ const rightCollapsedState = computed(() => {
 })
 const workspaceShellClass = computed(() => ({
   'is-full-width': props.viewState?.fullWidth,
+  'has-content-navigation': showNavigationLayer.value,
+  'has-content-navigation-left': showNavigationLayer.value && props.contentNavigation?.placement === 'left',
+  'has-content-navigation-right': showNavigationLayer.value && props.contentNavigation?.placement !== 'left',
 }))
 const leftPanels = computed(() => props.leftRegion?.panels ?? [])
 const rightPanels = computed(() => props.rightRegion?.panels ?? [])
@@ -310,6 +317,13 @@ function updateRightActivePanelId(nextValue: string) {
       </aside>
 
       <section class="tr-workspace-shell__center">
+        <div
+          v-if="showNavigationLayer"
+          class="tr-workspace-shell__content-navigation"
+          :class="navigationPlacementClass"
+        >
+          <slot name="navigation" />
+        </div>
         <!-- slot: default — center content area, typically a TrChat instance -->
         <slot />
       </section>
@@ -366,10 +380,19 @@ function updateRightActivePanelId(nextValue: string) {
 .tr-workspace-shell {
   --workspace-chat-header-inline-padding: 28px;
   --workspace-chat-inline-padding: clamp(28px, 4vw, 44px);
-  --workspace-chat-prompts-max-width: 760px;
-  --workspace-chat-bubbles-max-width: 900px;
-  --workspace-chat-welcome-max-width: 920px;
-  --workspace-chat-footer-max-width: 920px;
+  --workspace-chat-prompts-base-max-width: 760px;
+  --workspace-chat-bubbles-base-max-width: 900px;
+  --workspace-chat-welcome-base-max-width: 920px;
+  --workspace-chat-footer-base-max-width: 920px;
+  --workspace-chat-prompts-max-width: var(--workspace-chat-prompts-base-max-width);
+  --workspace-chat-bubbles-max-width: var(--workspace-chat-bubbles-base-max-width);
+  --workspace-chat-welcome-max-width: var(--workspace-chat-welcome-base-max-width);
+  --workspace-chat-footer-max-width: var(--workspace-chat-footer-base-max-width);
+  --workspace-navigation-expanded-width: 258px;
+  --workspace-navigation-inline-offset: 14px;
+  --workspace-navigation-reading-reserved-space: 28px;
+  --workspace-navigation-full-width-reserved-space: 40px;
+  --workspace-navigation-reserved-space: 0px;
   --chat-shell-radius: 30px;
   --chat-shell-toolbar-padding: 16px 24px 12px;
   --chat-shell-meta-padding: 12px 24px;
@@ -386,11 +409,23 @@ function updateRightActivePanelId(nextValue: string) {
 }
 
 .tr-workspace-shell[data-full-width='true'] {
-  --workspace-chat-inline-padding: 20px;
+  --workspace-chat-inline-padding: 28px;
   --workspace-chat-prompts-max-width: 100%;
   --workspace-chat-bubbles-max-width: 100%;
   --workspace-chat-welcome-max-width: 100%;
   --workspace-chat-footer-max-width: 100%;
+}
+
+.tr-workspace-shell.has-content-navigation {
+  --workspace-navigation-reserved-space: var(--workspace-navigation-reading-reserved-space);
+}
+
+.tr-workspace-shell.has-content-navigation[data-full-width='true'] {
+  --workspace-navigation-reserved-space: var(--workspace-navigation-full-width-reserved-space);
+  --workspace-chat-prompts-max-width: calc(100% - (var(--workspace-navigation-reserved-space) * 2));
+  --workspace-chat-bubbles-max-width: calc(100% - (var(--workspace-navigation-reserved-space) * 2));
+  --workspace-chat-welcome-max-width: calc(100% - (var(--workspace-navigation-reserved-space) * 2));
+  --workspace-chat-footer-max-width: calc(100% - (var(--workspace-navigation-reserved-space) * 2));
 }
 
 .tr-workspace-shell__toolbar {
@@ -470,12 +505,33 @@ function updateRightActivePanelId(nextValue: string) {
 }
 
 .tr-workspace-shell__center {
+  position: relative;
   flex: 1;
   display: flex;
   flex-direction: column;
   min-width: 0;
   min-height: 0;
   background: var(--chat-shell-center-bg);
+}
+
+.tr-workspace-shell__content-navigation {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  pointer-events: none;
+  padding: 0 var(--workspace-navigation-inline-offset);
+}
+
+.tr-workspace-shell__content-navigation.is-right {
+  right: 0;
+}
+
+.tr-workspace-shell__content-navigation.is-left {
+  left: 0;
 }
 
 .tr-workspace-shell :deep(.tr-chat) {
@@ -537,7 +593,30 @@ function updateRightActivePanelId(nextValue: string) {
   max-width: var(--workspace-chat-bubbles-max-width);
   margin-left: auto;
   margin-right: auto;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(15, 23, 42, 0.18) transparent;
   transition: max-width 0.28s ease;
+}
+
+.tr-workspace-shell :deep(.tr-bubble-list::-webkit-scrollbar) {
+  width: 8px;
+}
+
+.tr-workspace-shell :deep(.tr-bubble-list::-webkit-scrollbar-track) {
+  background: transparent;
+}
+
+.tr-workspace-shell :deep(.tr-bubble-list::-webkit-scrollbar-thumb) {
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  background-color: rgba(15, 23, 42, 0.18);
+  transition: background-color 0.2s ease;
+}
+
+.tr-workspace-shell :deep(.tr-bubble-list::-webkit-scrollbar-thumb:hover) {
+  background-color: rgba(15, 23, 42, 0.24);
 }
 
 .tr-workspace-shell :deep(.tr-chat__welcome-area) {
@@ -669,6 +748,14 @@ function updateRightActivePanelId(nextValue: string) {
 
   .tr-workspace-shell__body {
     flex-direction: column;
+  }
+
+  .tr-workspace-shell__content-navigation {
+    display: none;
+  }
+
+  .tr-workspace-shell {
+    --workspace-navigation-reserved-space: 0px;
   }
 
   .tr-workspace-shell__region--left,
