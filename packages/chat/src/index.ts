@@ -10,6 +10,8 @@ import {
   ChatHeader as TrChatHeader,
   ChatWelcome as TrChatWelcome,
   ChatMessageList as TrChatMessageList,
+  AssistantOutline as TrChatAssistantOutline,
+  AssistantOutlineTrigger as TrChatAssistantOutlineTrigger,
   ChatFooter as TrChatFooter,
   ChatAttachments as TrChatAttachments,
   ChatSender as TrChatSender,
@@ -33,6 +35,8 @@ type TrChatWithSubComponents = typeof TrChat & {
   Header: typeof TrChatHeader
   Welcome: typeof TrChatWelcome
   MessageList: typeof TrChatMessageList
+  AssistantOutline: typeof TrChatAssistantOutline
+  AssistantOutlineTrigger: typeof TrChatAssistantOutlineTrigger
   Footer: typeof TrChatFooter
   Attachments: typeof TrChatAttachments
   Sender: typeof TrChatSender
@@ -51,6 +55,8 @@ TrChatFull.Layout = TrChatLayout
 TrChatFull.Header = TrChatHeader
 TrChatFull.Welcome = TrChatWelcome
 TrChatFull.MessageList = TrChatMessageList
+TrChatFull.AssistantOutline = TrChatAssistantOutline
+TrChatFull.AssistantOutlineTrigger = TrChatAssistantOutlineTrigger
 TrChatFull.Footer = TrChatFooter
 TrChatFull.Attachments = TrChatAttachments
 TrChatFull.Sender = TrChatSender
@@ -94,6 +100,8 @@ export {
   TrChatLayout,
   TrChatAttachments,
   TrChatPresetRoot,
+  TrChatAssistantOutline,
+  TrChatAssistantOutlineTrigger,
   TrChatWorkspaceShell,
   TrChatWorkspacePanelHost,
   TrChatContentNavigationHost,
@@ -172,10 +180,13 @@ export type {
   ChatContentNavigationConfig,
   ChatContentNavigationItem,
   ChatConversationTurnNavigationItem,
+  ChatAssistantOutlineItem,
   ChatWorkspaceShellConfig,
   TrChatWorkspaceShellProps,
   TrChatContentNavigationHostProps,
   TrChatConversationTurnNavigationProps,
+  TrChatAssistantOutlineProps,
+  TrChatAssistantOutlineTriggerProps,
   TrChatWorkspacePanelHostProps,
 } from './types'
 export type { UseDefaultBubbleConfigOptions } from './composables'

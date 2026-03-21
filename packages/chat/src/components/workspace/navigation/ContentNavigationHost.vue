@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import type { TrChatContentNavigationHostProps } from '../../../types'
-import { shouldRenderContentNavigation } from './runtime'
 
 defineOptions({ name: 'TrChatContentNavigationHost' })
 
@@ -15,7 +14,12 @@ const emit = defineEmits<{
   select: [itemId: string]
 }>()
 
-const shouldShow = computed(() => props.enabled !== false && shouldRenderContentNavigation(props.items, props.minItems))
+function shouldRenderContentNavigation(minItems: number | undefined) {
+  const threshold = minItems ?? 2
+  return (props.items?.length ?? 0) >= threshold
+}
+
+const shouldShow = computed(() => props.enabled !== false && shouldRenderContentNavigation(props.minItems))
 const searchKeyword = ref('')
 const isHovered = ref(false)
 const isInputFocused = ref(false)

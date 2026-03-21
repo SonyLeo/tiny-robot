@@ -1,4 +1,4 @@
-import type { ChatConversationTurnNavigationItem } from '../../../../types'
+import type { ChatConversationTurnNavigationItem } from '../../../types'
 import type { ChatMessage } from '@opentiny/tiny-robot-kit'
 
 function getMessageText(message: ChatMessage) {

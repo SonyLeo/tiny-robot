@@ -1,10 +1,16 @@
 import {
   assert,
   coerceContentNavigationItemId,
+  resolveAssistantOutlineItems,
   resolveConversationTurnNavigationItems,
   runTest,
-  shouldRenderContentNavigation,
+  slugifyAssistantOutlineHeading,
 } from './_helpers.mjs'
+
+function shouldRenderContentNavigation(items, minItems) {
+  const threshold = minItems ?? 2
+  return (items?.length ?? 0) >= threshold
+}
 
 await runTest('content navigation runtime hides the host below the minimum item threshold', async () => {
   assert.equal(shouldRenderContentNavigation([], 2), false)
@@ -61,4 +67,34 @@ await runTest('turn navigation runtime indexes non-empty user turns with stable 
   assert.equal(items[1].label.endsWith('...'), true)
   assert.equal(items[1].label.length <= 75, true)
   assert.equal(items[1].label.startsWith('Second user turn with a very long message'), true)
+})
+
+await runTest('assistant outline runtime normalizes stable heading slugs', async () => {
+  assert.equal(slugifyAssistantOutlineHeading('Workspace Shell Rollout'), 'workspace-shell-rollout')
+  assert.equal(slugifyAssistantOutlineHeading('  中文 标题  '), '中文-标题')
+  assert.equal(slugifyAssistantOutlineHeading(''), 'heading')
+})
+
+await runTest('assistant outline runtime maps heading entries into host items', async () => {
+  const items = resolveAssistantOutlineItems([
+    { id: 'assistant-outline-rollout', text: 'Workspace Shell Rollout', level: 1 },
+    {
+      id: 'assistant-outline-content-navigation',
+      text: 'Add content navigation after the shell container stabilizes and the appearance model lands cleanly.',
+      level: 2,
+    },
+  ])
+
+  assert.equal(items.length, 2)
+  assert.deepEqual(items[0], {
+    id: 'assistant-outline-rollout',
+    headingId: 'assistant-outline-rollout',
+    label: 'Workspace Shell Rollout',
+    description: undefined,
+    level: 1,
+  })
+  assert.equal(items[1].headingId, 'assistant-outline-content-navigation')
+  assert.equal(items[1].level, 2)
+  assert.equal(items[1].label.endsWith('...'), true)
+  assert.equal(items[1].label.length <= 72, true)
 })

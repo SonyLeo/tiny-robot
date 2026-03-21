@@ -1,193 +1,193 @@
 # Chat Kit Feature Design
 
-> 面向 `packages/chat` 下一阶段能力演进的内部设计文档。
-> 本文档负责说明为什么做、目标架构是什么、哪些原则必须坚持。
+> 面向 `packages/chat` 下一阶段能力演进的内部设计文档。  
+> 本文档回答三个问题：
+> 1. 当前基线已经是什么
+> 2. 下一阶段应该把什么正式沉淀为能力契约
+> 3. 哪些边界必须继续坚持，避免后续 feature、layout 和 `chat-cli` 继续耦合
+>
 > 执行拆解见 [packages/chat/chat-kit-review-02.md](../packages/chat/chat-kit-review-02.md)，实时状态见 [packages/chat/progress.md](../packages/chat/progress.md)。
 
 ---
 
-## 1. 文档角色
+## 1. 文档分层
 
-这份文档只回答三类问题：
+为了避免文档继续膨胀，`chat` 相关文档现在只保留下面几类主文档：
 
-- 当前 `packages/chat` 的真实基线是什么
-- 下一阶段的设计目标和边界是什么
-- 哪些原则会影响后续 feature、layout 和 `chat-cli` 的接入方式
+- 设计主文档：[`docs/chat-kit-design.md`](./chat-kit-design.md)
+  - 回答“为什么这样设计、当前正式架构是什么、哪些边界不能动”。
+- 运行时状态板：[`packages/chat/progress.md`](../packages/chat/progress.md)
+  - 回答“当前做到哪一步、下一步是什么、哪些能力已经正式收口”。
+- 交接文档：[`docs/chat-chat-cli-handoff.md`](./chat-chat-cli-handoff.md)
+  - 回答“另一个协作者接手时应该先看什么、当前哪些事实最关键”。
+- CLI 设计文档：[`docs/chat-cli-design.md`](./chat-cli-design.md)
+  - 只保留 `chat-cli` 自己的消费层设计。
 
-它不是进度台账，也不是逐项任务清单。
+其余文档如果只是阶段性解释、专项实现说明或局部状态记录，应优先并回以上主文档，而不是继续新增独立入口。
+
+历史草稿或评审文档只作为背景参考，不再作为当前主入口，例如：
+
+- `docs/chat-p5-proposal.md`
+- `packages/chat/chat-kit-review-02.md`
+
+使用规则是：
+
+- 先看主文档
+- 只有在需要追溯阶段性决策时，再回看历史文档
 
 ---
 
-## 2. 当前基线
+## 2. 当前判断
 
 当前 `packages/chat` 已经具备一条可用的聊天主链路，重点不再是“把基础补齐”，而是“把已有运行时能力进一步沉淀为更稳定的能力契约”。
 
-目前已经形成的基础包括：
+这条主链路已经覆盖：
 
 - 黑盒入口：`TrChat`
 - 白盒入口：`TrChat.Root / Layout / Header / Welcome / MessageList / Footer / Sender / History`
-- 状态组合层：`useChatKit`
-- 模型切换层：`useModelSelector`
-- MCP 管理层：`useMcpManager`
-- 配置链路：`ChatConfig -> createChatAdapterFromConfig() -> createPresetChatProps()`
-- 已收敛的运行时能力：历史、反馈、模型切换、重试、optimistic / rollback、docs variant、统一消息动作入口
+- 组合层：`useChatKit`
+- 配置链路：`ChatConfig -> Adapter -> Preset`
+- 已经正式化的高频能力：`attachments / senderActions / welcomePrompts / mcp / history / feedback`
+- 已经正式化的布局层能力：`layout.variant / layout.placements / workspace`
+- 已经完成最小收口的壳层能力：`P5-A appearance` 与 `P5-B workspace shell`
 
-因此，当前阶段更准确的问题定义是：
+因此，下一阶段的主问题不是“是否继续堆 demo 能力”，而是：
 
-> 运行时能力已经不算少，真正偏窄的是配置层、adapter 层和 feature 级装配层。
+> 如何把已经跑通的聊天运行时能力，继续整理成稳定、可声明、可复用、可被黑盒、白盒和 `chat-cli` 同时消费的能力面。
 
 ---
 
 ## 3. 设计目标
 
-下一阶段设计需要同时满足四个目标：
+### 2.1 继续把 `packages/chat` 视为能力层，而不是页面层
 
-### 3.1 保持 `chat` 作为聊天场景基座
+`packages/chat` 的职责不是承接所有页面拼装逻辑，而是为聊天场景提供稳定的：
 
-`packages/chat` 的职责不是平移原子组件，而是为聊天场景提供一条更稳定的组装链路，并继续服务 `chat-cli` 和模板体系。
+- 配置入口
+- 运行时契约
+- preset 输出
+- white-box 组合切面
 
-### 3.2 让运行时能力逐步变成声明式能力
+### 2.2 能力沉淀优先于组件平移
 
-后续高价值能力不应只停留在：
+下一阶段进入 `packages/chat` 的东西，优先满足下列条件：
 
-- 原子组件存在
-- demo 可拼
-- 页面里手工装配
+1. 高频出现在聊天场景
+2. 依赖消息状态、会话状态或布局状态
+3. 适合通过 config / adapter / preset 正式声明
 
-而应逐步进入稳定的 config / adapter / preset 链路。
+这意味着我们优先沉淀“能力”，而不是简单把 demo 组件挪进正式目录。
 
-### 3.3 保持黑盒和白盒共享同一底座
+### 2.3 黑盒、白盒、CLI 必须共享同一条能力主链
 
-黑盒适合快速落地，白盒适合深度定制，但二者不应分裂成两套状态链路或两套能力入口。
+任何正式进入 `chat` 的能力，都应尽量同时服务：
 
-### 3.4 继续支撑 `chat-cli`
+- `TrChat` 黑盒默认消费
+- `TrChat.*` 白盒组合消费
+- `chat-cli` 的 preset / template 消费
 
-`chat-cli` 需要的是可稳定消费的能力输入，而不是继续在模板里堆手写页面逻辑。
+不接受再长出第二条平行运行时。
 
-### 3.5 为后续 Agent Preset / Skill Pack 预留扩展面
+### 2.4 保持 feature、layout、shell、theme 四层边界
 
-当前阶段不直接把 `agent preset / skill pack` 作为 `chat` 的基础原语引入，但应保证后续可以在稳定 capability 层之上增加这类组合能力，而不推翻现有：
+- `features` 决定是否启用能力
+- `layout` 决定内容如何排列
+- `shell` 决定 workspace 外层区域与附着式宿主
+- `theme / appearance` 只负责外观与 token
 
-- `ChatConfig`
-- `Adapter`
-- `Feature Registry`
-- `Preset`
+这些边界不能重新混回一个 props 包里。
 
 ---
 
 ## 4. 当前最关键的设计差距
 
-### 4.1 运行时能力与配置能力不对称
+### 3.1 运行时能力已经不少，但能力契约仍需继续收口
 
-当前很多能力已经存在于运行时，但还没有稳定、统一、声明式的配置入口。
+当前代码里的运行时能力已经明显强于最早的 demo 阶段，但仍有一类风险：
 
-直接影响是：
+- demo 能力已经存在
+- 测试已经覆盖了核心行为
+- 但设计语义和正式文档还停留在旧模型
 
-- 黑盒难以稳定模板化
-- 白盒难以声明式复用
-- `chat-cli` 很难基于能力组合生成稳定模板差异
+`P5-C` 就是这一类典型能力：
 
-### 4.2 高价值能力仍停留在“组件级存在”
+- 右侧会话 turn navigation 已经进入正式运行时
+- assistant outline 也已经从 demo 草稿进入正式链路
+- 但文档仍容易把它误写成“左右对称双导航”或“workspace 左侧导航”
 
-这类能力最典型的包括：
+### 3.2 assistant outline 的真实语义需要被正式写清
 
-- attachments
-- sender actions
-- `Prompts` / welcome prompts
-- `Sender` extensions（`Suggestion` / `Mention` / `Template`）
-- `SuggestionPills` / `SuggestionPopover`
-- drag upload
-- conversations navigation
-- 更完整的 MCP 管理链路
+当前实现已经证明：
 
-它们不是完全缺失，而是还没有被提升为 `chat` 的场景能力。
+- 右侧导航是 `workspace` 级的 conversation turn navigation
+- 左侧 outline 不是 shell 左导航
+- 左侧 outline 是 assistant 消息内容内部的 outline 消费形态
 
-### 4.3 feature 与 layout 的边界仍需正式化
+也就是说，左侧并不是“第二个对称导航栏”，而是：
 
-未来的 attachments、MCP、welcome prompts、`Sender` extensions、`SuggestionPills` / `SuggestionPopover`、docs / workspace 等能力会不断带来一个共同问题：
+> 一个绑定到当前 active assistant response 的内容级 outline。
 
-- 是否启用能力
-- 以什么布局形态呈现
-- 放在哪个区域
+### 3.3 P5-C 不应回头侵入 P2 layout
 
-这些问题必须被拆开，而不能继续混在单一组件 props 里。
+`workspace` 仍然只是 layout variant，不应重新承担：
 
----
+- 内容导航 source schema
+- notebook 语义
+- shell 交互逻辑
+- assistant outline 选择逻辑
 
-## 5. 设计原则
-
-### 5.1 不做“组件平移”，只做“能力沉淀”
-
-`packages/components` 继续承担原子能力层职责。
-
-`packages/chat` 应优先吸收满足下列条件的能力：
-
-1. 高频出现在聊天场景
-2. 需要消息状态、会话状态或布局编排参与
-3. 适合声明式配置驱动
-
-同时建议坚持一个额外原则：
-
-> 设计命名尽量直接映射到现有组件或能力原语，不发明容易混淆的总称。
-
-例如：
-
-- 欢迎区入口卡片就是 `Prompts` / `welcome prompts`
-- 输入框智能联想就是 `Sender Suggestion`
-- 提及就是 `Sender Mention`
-- 模板填充就是 `Sender Template`
-- 底部快捷入口继续沿用 `SuggestionPills` / `SuggestionPopover`
-
-不建议继续用一个泛化的 `suggestions` 同时指代以上所有能力。
-
-### 5.2 先统一装配层，再评估统一 props 入口
-
-下一阶段优先统一的是：
-
-```text
-ChatConfig
-  -> Adapter Layer
-  -> Feature Resolution
-  -> Preset / Shared Foundation
-  -> TrChat / White-box Composition
-```
-
-而不是立刻继续扩大 `TrChat` 的 props 面。
-
-### 5.3 feature 与 layout 必须分离
-
-推荐坚持：
-
-- `features` 决定是否启用某种能力
-- `layout` 决定能力放在哪里、以什么视图呈现
-
-不要把“能力是否启用”和“布局如何摆放”绑死在一起。
-
-### 5.4 黑盒与白盒共享同一能力底座
-
-任何进入 `chat` 的 feature，都应尽量同时服务：
-
-- 黑盒默认编排
-- 白盒组合消费
-- `chat-cli` 的配置驱动输出
-
-### 5.5 theme 与壳层能力后置
-
-theme、workspace shell 等能力有价值，但不应早于高频聊天能力的契约化。
-
-### 5.6 先能力原语，后技能组合
-
-对未来可能出现的 `agent preset / skill pack`，建议坚持：
-
-- 它们应建立在稳定的 feature / MCP / prompt / layout 能力之上
-- 它们应解析为标准 capability 输出，而不是绕过 registry 形成新黑盒入口
-- 当前阶段只保留扩展面，不引入完整 runtime、marketplace 或安装体系
+这些都应该停留在 `P5` 自己的能力边界内。
 
 ---
 
-## 6. 目标架构
+## 5. P5-C 的最终设计判断
 
-建议后续演进方向保持为：
+### 4.1 右侧：workspace conversation navigation
+
+右侧能力已经可以视为正式模型：
+
+- 归属层：`workspace`
+- source：当前会话中的 user turns
+- 宿主：`WorkspaceShell` 中心内容右侧的 navigation host
+- 主要职责：
+  - turn item 生成
+  - active turn 追踪
+  - click-to-scroll
+  - `fullWidth` 共存
+
+它是会话级导航，不依赖 assistant markdown headings。
+
+### 4.2 左侧：assistant outline
+
+左侧能力现在也应正式定义为：
+
+- 归属层：`chat content`
+- source：当前 active assistant response 内部的 headings
+- 宿主方式：通过 `MessageList` 的 `prefix` 槽挂载 `AssistantOutlineTrigger`
+- 主要职责：
+  - 从 active assistant 内容提取 headings
+  - 生成稳定 outline items
+  - 维护 active heading
+  - 提供局部 click-to-scroll
+
+它不是 shell 左导航，也不与右侧 turn navigation 共享一个 source schema。
+
+### 4.3 prefix 挂载是当前最合理的实现入口
+
+assistant outline 现在走 `prefix` 链路，是一个重要的架构收口：
+
+- 它天然跟随 assistant bubble
+- `fullWidth` 与非 `fullWidth` 下都能继承已有内容列布局
+- 水平方向不需要再依赖 shell 全局猜位
+- 真正需要处理的是 bubble 局部坐标修正与纵向跟随
+
+这比“全局 overlay 猜位置”更符合 TinyRobot 现有主渲染链路。
+
+---
+
+## 6. 当前正式架构
+
+建议把当前正式架构理解为：
 
 ```text
 ChatConfig
@@ -195,241 +195,176 @@ ChatConfig
   -> Feature Registry
   -> Preset / Context Layer
   -> TrChat Blackbox / White-box Composition
+
+P5-C runtime
+  -> WorkspaceShell right-side conversation navigation
+  -> Chat MessageList prefix-based assistant outline
 ```
 
-各层职责如下：
+具体分工如下。
 
-### 6.1 ChatConfig
+### 5.1 WorkspaceShell
 
-描述业务意图：
+`WorkspaceShell` 负责：
 
-- 模型
-- provider
-- 启用哪些能力
-- 使用哪种布局变体
-- 基础 UI 默认内容
+- workspace 外层承载
+- region / panel / `fullWidth` 等视图状态
+- 右侧 conversation navigation host 的附着位置
 
-### 6.2 Adapter Layer
+它不再负责 assistant outline。
 
-负责把声明式输入解析为标准化运行时输入：
+### 5.2 ConversationTurnNavigation
 
-- 模型解析
-- provider 解析
-- feature 配置解析
-- preset 所需上下文整理
+`ConversationTurnNavigation` 负责：
 
-### 6.3 Feature Registry
+- 读取 conversation turns
+- 归一化 turn items
+- 驱动右侧 host
+- turn 点击与 active turn 状态
 
-负责组织 feature 的默认行为与解析逻辑：
+### 5.3 AssistantOutline
 
-- feature 是否启用
-- feature 需要哪些状态能力
-- feature 如何映射到 preset
-- feature 如何被黑盒和白盒共享消费
+`AssistantOutline` 现在更适合作为 renderless provider 理解：
 
-### 6.4 Preset / Context Layer
+- 注册 assistant source
+- 选择 active assistant message
+- 提取 headings
+- 维护 active heading
+- 向 trigger 提供共享上下文
 
-负责输出稳定的聊天运行时输入：
+### 5.4 AssistantOutlineTrigger
 
-- 合并 feature resolution 结果
-- 产出稳定的 `TrChatProps`
-- 在需要 white-box 组装时，继续向下切出稳定的 preset slices（如 `root / header / welcome / sender / history`）
-- 向黑盒和白盒共享同一份装配结果
+`AssistantOutlineTrigger` 负责：
 
-### 6.5 Blackbox / White-box
-
-负责界面消费：
-
-- 黑盒提供默认编排
-- 白盒保留布局与插槽自由度
-
-### 6.6 后续扩展边界
-
-当 first-party features、MCP config、layout formalization 与 `chat-cli` 的 capability consumption 稳定后，可以在现有主链路之上增加：
-
-- `Agent Preset`
-- `Skill Pack`
-
-但它们的职责应是“组合标准能力输入”，而不是替代当前：
-
-- `ChatConfig`
-- `Feature Registry`
-- `Preset / Context Layer`
-
-也就是说，未来就算引入 skill pack，它也应被解析为：
-
-- feature config
-- welcome prompts / commands
-- MCP / tool bindings
-- layout hints
-
-而不是直接越过基础装配层改写运行时。
+- 挂载到 assistant bubble 的 `prefix`
+- 渲染左侧 rail / hover 面板
+- 做 bubble 局部坐标修正
+- 绑定当前 assistant source 的 outline 交互
 
 ---
 
-## 7. 下一阶段重点设计主题
+## 7. 必须继续坚持的边界
 
-### 7.1 Feature Registry Foundation
+### 6.1 不把 navigation 放回 `layout.variant`
 
-这是下一阶段最关键的设计支点。
+不要把：
 
-目标不是做开放插件市场，而是先把 first-party feature 的默认行为、解析入口和共享消费方式统一起来。
+- content navigation
+- assistant outline
+- notebook
+- shell 状态
 
-### 7.2 Attachments
+重新塞回 `layout.variant` 或 `layout.placements`。
 
-优先沉淀附件消息展示、sender 输入契约和相关状态结构，而不是一开始就承诺完整多模态 transport 栈。
+### 6.2 不把 assistant outline 误建模成左侧 shell 导航
 
-### 7.3 Sender Actions
+不要重新引入：
 
-把 upload、voice、word count、default actions 等能力从 demo 级 slot 拼装提升为 feature 级能力。
+- `navigation-left`
+- `leftContentNavigation`
+- `rightContentNavigation`
+- 对称式 shell 双导航 API
 
-### 7.4 Welcome Prompts
+这类 API 会把左侧 outline 错误提升成全局壳层语义。
 
-把当前通过 `ChatWelcome` / `TrPrompts` 呈现的欢迎区入口卡片正式纳入配置与 preset 主链路。
+### 6.3 不把 outline 解析塞进低层 bubble render core
 
-这一层解决的是：
+assistant outline 虽然依赖已渲染 heading，但不应把 heading extraction 直接揉进底层 bubble 渲染规则。
 
-- 初始欢迎态入口
-- 点击后转成发送动作
-- `ui.prompts` 与 preset 的稳定映射
+更合理的边界是：
 
-它不等于 `Sender` 的智能联想能力。
+- bubble render 负责内容呈现
+- outline runtime 负责 heading 读取与导航同步
 
-### 7.5 Sender Extensions
+### 6.4 不让 theme 接管 shell 或 navigation 结构
 
-`Sender` 文档里真正的输入增强能力包括：
+`theme / appearance` 可以控制：
 
-- `Suggestion`
-- `Mention`
-- `Template`
+- 颜色
+- token
+- 视觉状态
 
-这三类能力都属于 `TrSender` 的 extension 原语，应在后续设计中单独看待，而不是继续合并到一个模糊的 `suggestions` 名称中。
+但不应控制：
 
-优先级建议：
-
-1. `Sender Suggestion`
-2. `Sender Mention`
-3. `Sender Template`
-
-其中：
-
-- `Sender Suggestion` 是真正对应“智能联想”的能力
-- `Sender Mention` 与 `Sender Template` 也应进入基本测试与装配层规划
-
-当前阶段建议进一步明确边界：
-
-| 能力 | 当前归属层 | 本阶段结论 | 原因 |
-|:--|:--|:--|:--|
-| `welcome prompts` | `chat` 场景能力 | 继续推进为 first-party feature | 它属于欢迎态入口与默认编排，不属于编辑器扩展 |
-| `Sender Suggestion` | `TrSender` extension | 暂不进入 `chat` feature registry | 它是输入补全、过滤、自动回填、键盘交互等编辑器级行为 |
-| `Sender Mention` | `TrSender` extension | 暂不进入 `chat` feature registry | 它直接参与 `structuredData` 产出，属于输入结构建模而非场景编排 |
-| `Sender Template` | `TrSender` extension | 暂不进入 `chat` feature registry | 它直接参与模板块编辑与 `structuredData` 产出，属于编辑器原语 |
-
-也就是说，Phase B 当前更合适的目标不是“把 Sender extensions feature 化”，而是：
-
-- 明确它们与 `welcome prompts` 不是一回事
-- 保持它们继续由 `TrSender` / `senderProps.extensions` 主导装配
-- 在 `chat` 侧只保留对这些输入增强能力的边界说明、命名收敛与后续测试策略
-
-只有在后续出现稳定的场景级需求时，才再评估是否需要在 `chat` 层增加：
-
-- 标准化的数据源注入
-- preset / template 层的受控装配入口
-- 面向 `chat-cli` 的 capability consumption
-
-### 7.6 SuggestionPills / SuggestionPopover
-
-参考 [Assistant.vue](./demos/examples/Assistant.vue)，`SuggestionPills` 与 `SuggestionPopover` 更适合作为：
-
-- 底部快捷入口
-- 热门问题入口
-- shell / footer / workspace 级辅助内容面
-
-它们不是 `Sender Suggestion` 的替代物，也不应直接归并到 `Sender` extensions。
-
-### 7.7 MCP Config 化
-
-下一步重点不是“再造 MCP 能力”，而是把现有 MCP 接入提升为配置可声明、preset 可消费的能力。
-
-### 7.8 Layout Variants
-
-逐步把 `bubble / docs / workspace` 视为 layout variant，而不是各自发展独立状态系统。
-
-### 7.9 Agent Preset / Skill Pack Foundation（后置扩展）
-
-这不是当前阶段的主任务，但应明确后续接入顺序。
-
-推荐只在下面这些前置输出稳定后再进入实现：
-
-1. Feature Registry Foundation 完成
-2. attachments / sender actions / welcome prompts 完成正式 feature 化
-3. `Sender Suggestion / Mention / Template` 的基础边界与测试策略明确
-4. MCP config 与 layout variant / placement 边界稳定
-5. `chat-cli` 已完成 feature -> template / preset 的正式消费闭环
-
-在此前提下，`agent preset / skill pack` 更适合作为“能力组合层”进入 `chat`，其首轮职责建议限制为：
-
-- 预设一组标准 feature 组合
-- 预设 welcome prompts / commands / MCP bindings
-- 向 workflow / CLI 暴露稳定消费输入
-
-不建议首轮就承诺：
-
-- marketplace
-- 远程安装
-- 独立 runtime
-- 绕过 feature registry 的技能黑盒
+- shell 区域结构
+- navigation source schema
+- assistant source 选择策略
 
 ---
 
-## 8. 非目标
+## 8. 和 chat-cli 的关系
 
-当前阶段不建议把下列方向当成首要目标：
+`chat-cli` 当前仍然应该消费稳定输出，而不是自己定义导航抽象。
 
-- 继续给 `TrChat` 增加大量离散 props
-- 把 `packages/components` 中所有组件平移为 `TrChat.*`
-- 先在 demo 中拼出新能力，再反向要求 `chat` 适配
-- 在 feature 契约尚未稳定前，大量扩张 CLI flags 或模板分支
-- 在 attachments / sender actions / welcome prompts / sender extensions / MCP 之前优先推进 theme 或 workspace 壳层
-- 在 capability 主链路稳定前，优先引入 `agent preset / skill pack` runtime 或 marketplace
+对 `P5-C` 来说，这意味着：
 
----
+- `chat-cli` 现在不需要先消费 assistant outline 细节
+- `chat-cli` 未来如果要消费 `P5-C`，也应建立在稳定 config / preset surface 之上
+- 不应因为模板方便，就把 `P5-C` 的 source model 再抽成另一个 CLI 特化模型
 
-## 9. 与 `chat-cli` 的关系
+也就是说：
 
-`chat-cli` 最适合消费的不是页面级手工逻辑，而是：
-
-```text
-ChatConfig
-  -> Adapter
-  -> Preset
-  -> Template Variant
-```
-
-因此，`packages/chat` 的设计是否成功，一个关键标准就是：
-
-> 新增能力能否以稳定、声明式、可生成的方式进入 `chat-cli` 的消费链路。
-
-对 `agent preset / skill pack` 来说，这意味着：
-
-- 在 feature -> template / preset consumption 稳定前，不应让它成为正式 CLI 输入
-- 它们后续应作为 capability consumer 出现，而不是重新把模板拉回页面拼装路线
+> `packages/chat` 继续定义能力契约，`chat-cli` 在契约稳定后再消费，而不是反过来倒逼 runtime 命名。
 
 ---
 
-## 10. 参考视角
+## 9. 当前优化方向
 
-这份设计主要借鉴以下公开方案的思路，而不是照搬具体实现：
+`P5-C` 已经具备可用实现，但后续仍有几类优化值得继续推进。
 
-- Vercel AI SDK：前后端职责分离、稳定聊天状态主链路
-- LobeChat / LobeHub：能力切片、registry 思维、布局与能力分层
-- Ant Design X：黑盒与白盒并存、场景层强调编排而非简单复制
-- MCP 官方设计：先定义协作能力边界，再定义 UI 消费层
+### 8.1 active assistant source 选择策略
+
+当前 assistant outline 的 active source 仍偏视口驱动。后续可以继续评估：
+
+- 是否继续使用 viewport-nearest
+- 是否引入更显式的 active assistant contract
+- 是否需要对长文档 / 多 assistant 同屏场景做更稳定的选择规则
+
+### 8.2 prefix trigger 的几何稳定性
+
+当前 prefix 挂载已经是正确方向，但仍可继续优化：
+
+- bubble 局部水平修正的稳定性
+- `fullWidth` 与非 `fullWidth` 下的 rail gutter
+- rail 与 panel 的展开几何一致性
+
+### 8.3 assistant outline 的视觉收口
+
+当前视觉已经接近 `ChatTocTrigger.vue` 参考方向，但仍可继续细抠：
+
+- 短横线疏密
+- hover 展开宽度
+- active heading 强度
+- 截断 tooltip 与面板宽度的一致性
+
+### 8.4 scroll / anchor 稳定性
+
+下一轮可以继续加强：
+
+- heading anchor 生成与复用
+- scroll offset 对 sticky 区域的补偿
+- active heading 切换阈值
+
+### 8.5 文档与 capability surface 的同步
+
+既然 `P5-C` 已经从讨论转为正式实现，后续应逐步把：
+
+- 最小公开类型
+- demo/test 接法
+- 交接文档
+
+全部收敛到一致表述，避免再次出现“代码已经变了，设计还停在旧模型”。
 
 ---
 
-## 11. 一句话结论
+## 10. 一句话结论
 
-`packages/chat` 现在最重要的任务，不是继续补聊天基础，而是：
+`packages/chat` 下一阶段最重要的工作，不是继续增加 demo 特性，而是：
 
-> 把已经存在的运行时能力，系统化升级为稳定、声明式、可被黑盒、白盒和 `chat-cli` 共同消费的 feature 契约。
+> 把已经跑通的聊天运行时能力，继续整理成稳定、分层清晰、能被黑盒、白盒和 `chat-cli` 一致理解的正式能力契约。
+
+对于 `P5-C`，这条结论已经具体化为：
+
+- 右侧保留 workspace conversation navigation
+- 左侧 assistant outline 作为内容级 prefix-trigger outline 落地
+- 二者并列存在，但不再被误写成左右对称双导航

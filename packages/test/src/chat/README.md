@@ -116,9 +116,11 @@ When moving or adding specs:
 
 ## P5-C Note
 
-For upcoming `P5-C` work:
+For current and follow-up `P5-C` work:
 
 - add new demo fixtures under `scenarios/`
 - add new scene-specific browser specs under `scenario-specs/`
 - keep runtime unit tests for workspace/navigation logic under `packages/chat/tests/`
 - avoid reopening `index.vue` as a large one-file demo
+- keep right-side turn-navigation assertions in scene/browser specs instead of shell-only specs unless the behavior is truly shell-owned
+- treat assistant outline as a chat-level provider + `prefix` trigger flow, not as a shell-level left-navigation API

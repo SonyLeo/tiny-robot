@@ -451,6 +451,13 @@ export interface ChatConversationTurnNavigationItem extends ChatContentNavigatio
   role: 'user'
 }
 
+export interface ChatAssistantOutlineItem extends ChatContentNavigationItem {
+  /** Stable heading anchor id inside the active assistant content */
+  headingId: string
+  /** Normalized heading level used for optional indentation */
+  level: 1 | 2 | 3 | 4
+}
+
 export interface ChatWorkspaceShellConfig {
   appearance?: ChatAppearanceConfig
   leftRegion?: ChatWorkspaceRegionConfig
@@ -534,7 +541,9 @@ export interface TrChatContentNavigationHostProps extends ChatContentNavigationC
   subtitle?: string
 }
 
-export interface TrChatConversationTurnNavigationProps extends ChatContentNavigationConfig {
+export interface TrChatConversationTurnNavigationProps {
+  /** Set to false to hide the navigation host entirely */
+  enabled?: boolean
   /** Active conversation messages */
   messages: ChatMessage[]
   /** Scrollable message container used for active-state tracking and scroll-to-target */
@@ -549,6 +558,22 @@ export interface TrChatConversationTurnNavigationProps extends ChatContentNaviga
   title?: string
   /** Optional host subtitle */
   subtitle?: string
+}
+
+export interface TrChatAssistantOutlineProps {
+  /** Set to false to hide the outline overlay entirely */
+  enabled?: boolean
+  /** Scrollable message container used for outline tracking and scroll-to-heading */
+  scrollContainer?: HTMLElement | null
+  /** Hide the host when item count is below the threshold. Default: 2 */
+  minItems?: number
+  /** Extra top offset reserved for sticky headers/toolbars. Default: 100 */
+  topOffset?: number
+}
+
+export interface TrChatAssistantOutlineTriggerProps {
+  role?: string
+  messageIndexes?: number[]
 }
 
 export interface ChatWorkspacePanelHostItem {

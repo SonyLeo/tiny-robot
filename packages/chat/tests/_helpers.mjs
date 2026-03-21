@@ -20,9 +20,10 @@ const adapterModule = await jiti.import('../src/adapters/index.ts')
 const presetsModule = await jiti.import('../src/presets/index.ts')
 const messagesModule = await jiti.import('../src/messages.ts')
 const workspaceRuntimeModule = await jiti.import('../src/components/workspace/runtime.ts')
-const contentNavigationRuntimeModule = await jiti.import('../src/components/workspace/navigation/runtime.ts')
-const turnNavigationRuntimeModule = await jiti.import(
-  '../src/components/workspace/navigation/turn-navigation/runtime.ts'
+const contentNavigationCommonModule = await jiti.import('../src/utils/contentNavigation.ts')
+const turnNavigationRuntimeModule = await jiti.import('../src/components/workspace/navigation/turn-navigation.ts')
+const assistantOutlineRuntimeModule = await jiti.import(
+  '../src/components/chat/assistant-outline/runtime.ts'
 )
 
 export { assert, computed, nextTick, ref, shallowRef }
@@ -58,9 +59,10 @@ export const toWorkspacePanelHostItems = workspaceRuntimeModule.toWorkspacePanel
 export const resolveWorkspaceCollapsedState = workspaceRuntimeModule.resolveWorkspaceCollapsedState
 export const coerceWorkspacePanelId = workspaceRuntimeModule.coerceWorkspacePanelId
 export const findWorkspacePanelById = workspaceRuntimeModule.findWorkspacePanelById
-export const shouldRenderContentNavigation = contentNavigationRuntimeModule.shouldRenderContentNavigation
-export const coerceContentNavigationItemId = contentNavigationRuntimeModule.coerceContentNavigationItemId
+export const coerceContentNavigationItemId = contentNavigationCommonModule.coerceContentNavigationItemId
 export const resolveConversationTurnNavigationItems = turnNavigationRuntimeModule.resolveConversationTurnNavigationItems
+export const resolveAssistantOutlineItems = assistantOutlineRuntimeModule.resolveAssistantOutlineItems
+export const slugifyAssistantOutlineHeading = assistantOutlineRuntimeModule.slugifyAssistantOutlineHeading
 
 export function createChunk({ content, role, finishReason = null, model = 'mock-model' }) {
   return {

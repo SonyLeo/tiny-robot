@@ -18,28 +18,41 @@ test.describe('Content Navigation (P5-C)', () => {
   })
 
   test('should render a workspace-attached turn navigation host with active state', async ({ page }) => {
-    const host = page.locator('[data-testid="content-navigation-host"]')
-    const items = page.locator('[data-testid="content-navigation-item"]')
-    const activeItem = page.locator('[data-testid="content-navigation-item"][data-active="true"]')
+    const host = page.locator('[data-testid="conversation-turn-navigation"] [data-testid="content-navigation-host"]')
+    const items = page.locator('[data-testid="conversation-turn-navigation"] [data-testid="content-navigation-item"]')
+    const activeItem = page.locator(
+      '[data-testid="conversation-turn-navigation"] [data-testid="content-navigation-item"][data-active="true"]',
+    )
 
     await expect(host).toBeVisible()
     await expect(items).toHaveCount(4)
     await expect(activeItem).toHaveCount(1)
     await expect(activeItem).not.toBeEmpty()
-    await expect(page.locator('[data-testid="content-navigation-placement"]')).toContainText('Placement: right')
+  })
+
+  test('should render an assistant outline overlay for the active assistant response', async ({ page }) => {
+    const rail = page.locator('[data-testid="assistant-outline-rail"]')
+    const items = page.locator('[data-testid="assistant-outline-item"]')
+    const markers = page.locator('[data-testid="assistant-outline-marker"]')
+
+    await expect(rail).toBeVisible()
+    await expect(markers).toHaveCount(5)
+    await expect(items).toHaveCount(5)
+    await expect(items.nth(0)).toContainText('Plan overview')
+    await expect(items.nth(1)).toContainText('Stabilize the shell container')
   })
 
   test('should expand the right rail into a lightweight panel on hover', async ({ page }) => {
-    const host = page.locator('[data-testid="content-navigation-host"]')
+    const host = page.locator('[data-testid="conversation-turn-navigation"] [data-testid="content-navigation-host"]')
     const activeMarker = page.locator(
-      '[data-testid="content-navigation-item"][data-active="true"] .tr-content-navigation-host__marker',
+      '[data-testid="conversation-turn-navigation"] [data-testid="content-navigation-item"][data-active="true"] .tr-content-navigation-host__marker',
     )
     const markerBefore = await activeMarker.boundingBox()
 
     await host.hover()
 
     await expect(host).toHaveAttribute('data-expanded', 'true')
-    await expect(page.locator('[data-testid="content-navigation-search"]')).toBeVisible()
+    await expect(host.locator('[data-testid="content-navigation-search"]')).toBeVisible()
 
     const markerAfter = await activeMarker.boundingBox()
 
@@ -50,20 +63,22 @@ test.describe('Content Navigation (P5-C)', () => {
   })
 
   test('should update the active turn when a navigation item is selected', async ({ page }) => {
-    const items = page.locator('[data-testid="content-navigation-item"]')
+    const items = page.locator('[data-testid="conversation-turn-navigation"] [data-testid="content-navigation-item"]')
 
     await items.nth(2).click()
 
-    await expect(page.locator('[data-testid="content-navigation-item"][data-active="true"]')).toContainText(
-      'Call out the rollout risks for content navigation phase one.',
-    )
+    await expect(
+      page.locator(
+        '[data-testid="conversation-turn-navigation"] [data-testid="content-navigation-item"][data-active="true"]',
+      ),
+    ).toContainText('Call out the rollout risks for content navigation phase one.')
     await expect(page.locator('[data-testid="content-navigation-active"]')).toContainText(
       'Active turn: Call out the rollout risks for content navigation phase',
     )
   })
 
   test('should highlight only the user bubble box when a navigation item is selected', async ({ page }) => {
-    const items = page.locator('[data-testid="content-navigation-item"]')
+    const items = page.locator('[data-testid="conversation-turn-navigation"] [data-testid="content-navigation-item"]')
     const targetBubble = page.locator('.tr-bubble[data-role="user"]').nth(2)
     const targetBox = targetBubble.locator('.tr-bubble__box')
 
@@ -93,9 +108,13 @@ test.describe('Content Navigation (P5-C)', () => {
     await helper.sendMessage('Add one more rollout note.', root)
     await expect(page.locator(root).locator(helper.selectors.bubbleItem)).toHaveCount(10)
 
-    await expect(page.locator('[data-testid="content-navigation-item"]')).toHaveCount(5)
-    await expect(page.locator('[data-testid="content-navigation-item"]').nth(4)).toContainText(
-      'Add one more rollout note.',
+    const turnItems = page.locator(
+      '[data-testid="conversation-turn-navigation"] [data-testid="content-navigation-item"]',
     )
+
+    await expect(turnItems).toHaveCount(5)
+    await expect(turnItems.nth(4)).toContainText('Add one more rollout note.')
+
+    await expect(page.locator('[data-testid="assistant-outline-item"]')).toHaveCount(5)
   })
 })

@@ -1,10 +1,11 @@
 # Chat / Chat CLI Handoff
 
-> Snapshot date: `2026-03-20`
+> Snapshot date: `2026-03-21`
 > Purpose: help another LLM or collaborator enter the current implementation state quickly without relying on previous chat history
-> Primary status boards:
+> Primary docs:
 > - [packages/chat/progress.md](../packages/chat/progress.md)
 > - [packages/chat-cli/progress.md](../packages/chat-cli/progress.md)
+> Historical references:
 > - [chat-p5-proposal.md](./chat-p5-proposal.md)
 
 ---
@@ -24,7 +25,7 @@ Current agreed state:
 - `packages/chat` has started `P4-B` at the first chat-side consumer-helper boundary and is intentionally paused there
 - `packages/chat` has completed the minimum `P5-B / Workspace Shell & Regions` runtime closeout
 - `packages/chat` has completed the minimum `P5-A / Theme & Appearance` closeout
-- the next active implementation step in `packages/chat` should now be `P5-C / Content Navigation & View State`
+- `packages/chat` has landed the first usable `P5-C / Content Navigation & View State` runtime shape and is now in refinement mode there
 - `packages/chat-cli` has started its own registry-first foundation work
 - the current CLI registry and hygiene baseline is sufficient, so the next active implementation step should stay in `packages/chat`
 
@@ -36,16 +37,18 @@ The most important architectural rule is:
 
 This rule is active and should continue to guide implementation.
 
-For current `P5` work, the most relevant references are:
+For current `P5` work, the most relevant active references are:
 
-- `docs/chat-p5-proposal.md`
+- `packages/chat/progress.md`
+- `docs/chat-kit-design.md`
+- this handoff document
 
 Together they capture:
 
 - the current `P5` boundary split
 - the completed minimum `P5-B` runtime contract
 - the completed minimum `P5-A` appearance contract
-- the next `P5-C` design direction
+- the current `P5-C` runtime shape and next refinement direction
 
 The current runtime situation is now:
 
@@ -73,7 +76,8 @@ The current runtime situation is now:
   - `packages/test/src/chat/workspace-shell.spec.ts`
 - current judgment:
   - the minimum `P5-B` runtime contract should now be treated as complete
-  - active implementation focus should move to `P5-C`
+  - `P5-C` has started and landed its first stable runtime shape
+  - active implementation focus should stay on `P5-C` refinement, not on reopening shell structure
 
 One important local rule from the latest work cycle:
 
@@ -427,6 +431,10 @@ If another LLM needs to continue work quickly, read in this order.
 8. `packages/chat/src/components/workspace/WorkspaceShell.vue`
 9. `packages/chat/src/components/workspace/WorkspacePanelHost.vue`
 10. `packages/chat/src/components/workspace/runtime.ts`
+11. `packages/chat/src/components/workspace/navigation/ConversationTurnNavigation.vue`
+12. `packages/chat/src/components/chat/assistant-outline/AssistantOutline.vue`
+13. `packages/chat/src/components/chat/assistant-outline/AssistantOutlineTrigger.vue`
+14. `packages/chat/src/components/chat/assistant-outline/runtime.ts`
 
 ### 5.3 CLI implementation
 
@@ -449,6 +457,7 @@ Chat E2E:
 - `packages/test/src/chat/scenario-specs/mcp-feature.spec.ts`
 - `packages/test/src/chat/scenario-specs/layout-config.spec.ts`
 - `packages/test/src/chat/scenario-specs/preset-entry.spec.ts`
+- `packages/test/src/chat/scenario-specs/content-navigation.spec.ts`
 - `packages/test/src/chat/index.spec.ts`
 - `packages/test/src/chat/index.vue`
 
@@ -476,7 +485,7 @@ Done:
 Current:
 
 - `P4-B / first preset consumer boundary is paused at the first white-box entry`
-- `P5-C / Content Navigation & View State should start next`
+- `P5-C / Content Navigation & View State` has already started and now needs refinement work, not a fresh architecture pass
 
 Current concrete shape:
 
@@ -531,24 +540,22 @@ Do not use `P5-B` as the default bucket for:
 - speculative navigation APIs
 - shell state persistence before `P5-A` is settled
 
-### 7.2 Start `P5-C / Content Navigation & View State` next
+### 7.2 Current `P5-C` state
 
-Recommended first `P5-C` targets:
+`P5-C` is no longer only a next-step design target. A first usable implementation has already landed.
 
-- define a content-attached navigation host that mounts inside the center workspace
-- keep user navigation and assistant navigation on separate source models
-- start from one concrete navigation consumer such as:
-  - `turn-list`
-  - `active-message-outline`
-- keep the first round limited to navigation host behavior and runtime view-state composition
+Current shape:
 
-Most important boundary:
+- right-side conversation turn navigation remains attached to `WorkspaceShell`
+- assistant outline has moved out of workspace navigation and into `components/chat/assistant-outline/`
+- assistant outline now uses a provider + `prefix` trigger shape instead of a shell-level left-navigation host
+- user navigation and assistant navigation remain on separate source models
 
-- `P5-C` owns navigation and view state only
-- it must not take ownership of:
-  - theme tokens
-  - shell structure
-  - low-level message rendering rules
+Current execution rule:
+
+- treat `P5-C` as architecture-complete enough for refinement work
+- do not reopen shell symmetry or move navigation back into `layout.variant`
+- prefer polishing geometry, source selection, and public naming over inventing new host abstractions
 
 ### 7.3 Keep `chat-cli` in small follow-up mode until the next chat-side increment is clear
 
@@ -579,20 +586,19 @@ Reason:
 
 ### 7.6 Current `P5-C` next-step judgment
 
-The next useful implementation step is not more shell or appearance work. It is to formalize a navigation layer that can attach to:
+The next useful implementation step is no longer “start `P5-C`”.
 
-- default chat
-- docs view
-- workspace shell center content
+The useful next step is to refine the current runtime in three areas:
 
-without making navigation responsible for theme or shell structure.
+1. assistant-outline trigger geometry and hover fidelity
+2. active assistant-source selection heuristics
+3. public-surface and documentation cleanup around the final architecture
 
-Recommended immediate next task for another LLM:
+Do not spend the next round on:
 
-1. add a minimal content-navigation config and runtime type surface
-2. start from one concrete navigation source model only
-3. keep user navigation and assistant navigation schemas separate
-4. add verification for navigation-host rendering and basic active-anchor state flow
+- reopening left/right shell navigation symmetry
+- pushing content navigation into `layout.variant`
+- adding search or persistence before the current geometry and source-selection behavior are stable
 
 ---
 
@@ -631,8 +637,11 @@ Do not:
   - theme and appearance
   - workspace shell and regions
   - content navigation and view state
-- future navigation should attach to the center content host layer
-- user navigation and assistant navigation may share a host, but must not share one source model
+- future navigation should stay attached to content and shell host layers without reopening `P2 layout`
+- user navigation and assistant navigation must stay on separate source models
+- the current final split is:
+  - right-side turn navigation in `WorkspaceShell`
+  - assistant outline in chat-content `prefix` rendering
 
 Do not:
 

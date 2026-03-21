@@ -2,14 +2,13 @@
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch, watchEffect } from 'vue'
 import type { ChatConversationTurnNavigationItem, TrChatConversationTurnNavigationProps } from '../../../types'
 import ContentNavigationHost from './ContentNavigationHost.vue'
-import { coerceContentNavigationItemId } from './runtime'
-import { resolveConversationTurnNavigationItems } from './turn-navigation/runtime'
+import { coerceContentNavigationItemId } from '../../../utils/contentNavigation'
+import { resolveConversationTurnNavigationItems } from './turn-navigation'
 
 defineOptions({ name: 'TrChatConversationTurnNavigation' })
 
 const props = withDefaults(defineProps<TrChatConversationTurnNavigationProps>(), {
   enabled: true,
-  placement: 'right',
   minItems: 2,
   topOffset: 100,
   title: 'Turns',
@@ -310,12 +309,17 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div ref="hostRef" class="tr-conversation-turn-navigation" :style="floatingStyle">
+  <div
+    ref="hostRef"
+    class="tr-conversation-turn-navigation"
+    data-testid="conversation-turn-navigation"
+    :style="floatingStyle"
+  >
     <ContentNavigationHost
       :items="state.items"
       :active-item-id="state.activeItemId"
       :min-items="props.minItems"
-      :placement="props.placement"
+      placement="right"
       :title="props.title"
       :subtitle="props.subtitle"
       @select="handleSelect"

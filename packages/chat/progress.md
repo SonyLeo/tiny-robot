@@ -1,15 +1,15 @@
 # Chat Kit Progress
 
-> Last updated: `2026-03-20`
+> Last updated: `2026-03-21`
 > Design: [docs/chat-kit-design.md](../../docs/chat-kit-design.md)
 > Review: [chat-kit-review-02.md](./chat-kit-review-02.md)
-> P5 Draft: [docs/chat-p5-proposal.md](../../docs/chat-p5-proposal.md)
+> Handoff: [docs/chat-chat-cli-handoff.md](../../docs/chat-chat-cli-handoff.md)
 
 ## Current Status
 
 - Current track: `P5-C - Content Navigation & View State`
-- Current judgment: `P5-B minimum runtime closeout and P5-A minimum appearance closeout are complete`
-- Current rule: keep `packages/chat` as the source capability layer, treat `P5-B` as a completed runtime baseline, keep P5-A limited to appearance ownership through the existing ThemeProvider and CSS-token system, and start `P5-C` without reopening `P2 layout`
+- Current judgment: `P5-B minimum runtime closeout, P5-A minimum appearance closeout, and the first usable P5-C runtime shape are complete`
+- Current rule: keep `packages/chat` as the source capability layer, treat `P5-B` as a completed runtime baseline, keep P5-A limited to appearance ownership through the existing ThemeProvider and CSS-token system, and continue refining `P5-C` without reopening `P2 layout`
 - Current pause point: `P4-B` remains paused at the first white-box preset entry; active runtime work can move to `P5-C`
 
 ## Phase Status
@@ -21,7 +21,7 @@
 | P2 / MCP + Layout | `done` | `mcp`, `layout.variant`, `layout.placements`, and `workspace` layout variant are formalized |
 | P3 / Template / CLI Consumption | `done` | stable capability contract, explicit template mapping, and registry-backed consumers are in place |
 | P4 / Agent Preset + Skill Pack | `in progress` | `P4-A` is complete; `P4-B` is intentionally paused at the first white-box preset entry |
-| P5 / Theme + Workspace Shell + Content Navigation | `in progress` | `P5-B` minimum runtime closeout and `P5-A` minimum appearance closeout are complete; `P5-C` is the next active target |
+| P5 / Theme + Workspace Shell + Content Navigation | `in progress` | `P5-B` minimum runtime closeout, `P5-A` minimum appearance closeout, and the first `P5-C` implementation are complete; the current work is refinement and contract cleanup |
 
 ## P1 Result
 
@@ -60,7 +60,7 @@
    - `appearance.mode` now enters the formal chat config chain
    - `TrChat` and `TrChatWorkspaceShell` both consume appearance mode through root attributes
    - semantic chat tokens remain owned by `packages/chat`
-3. Start `P5-C` from content-attached navigation and runtime view-state composition, not from theme or shell restyling.
+3. Keep `P5-C` attached to content and runtime view-state composition, not to theme or shell restyling.
 4. Do not move shell structure, panel ownership, or navigation source models into `theme`, and do not let `chat-cli` consume broader `P4` outputs until the next preset boundary is explicit and test-covered.
 
 ## P5 Current Progress
@@ -104,7 +104,7 @@
   - `TrChat` consuming appearance through `ChatLayout`
   - `TrChatWorkspaceShell` consuming appearance through its own root attributes
   - chat and workspace roots both mapping `mode = light|dark` onto `data-tr-color-mode`
-- the next active `P5` step should be `P5-C`, not more shell or appearance closeout
+- `P5-C` is no longer only a next-step target; a first usable implementation now exists and should move into refinement mode
 - current screenshot usage is intentionally narrow:
   - visual shell spacing
   - radius
@@ -128,6 +128,10 @@
   - move shell concerns back into `layout.variant`
   - collapse user navigation and assistant navigation into one source model
   - let theme own shell structure
+- `P5-C` current runtime shape is now:
+  - right-side conversation turn navigation stays in `WorkspaceShell`
+  - assistant outline lives in `components/chat/assistant-outline/`
+  - assistant outline is provider + `prefix` trigger based, not a shell-level left navigation host
 
 ## P3 Current Progress
 

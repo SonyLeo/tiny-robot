@@ -41,9 +41,6 @@ const showRightRegion = computed(
   () => props.rightRegion?.enabled !== false && Boolean(slots.right || props.rightRailLabel),
 )
 const showNavigationLayer = computed(() => props.contentNavigation?.enabled !== false && Boolean(slots.navigation))
-const navigationPlacementClass = computed(() =>
-  props.contentNavigation?.placement === 'left' ? 'is-left' : 'is-right',
-)
 const leftRegionStyle = computed(() => ({
   '--workspace-region-width': resolveWorkspaceRegionWidth(props.leftRegion?.width, 'left'),
 }))
@@ -160,8 +157,6 @@ const rightCollapsedState = computed(() => {
 const workspaceShellClass = computed(() => ({
   'is-full-width': props.viewState?.fullWidth,
   'has-content-navigation': showNavigationLayer.value,
-  'has-content-navigation-left': showNavigationLayer.value && props.contentNavigation?.placement === 'left',
-  'has-content-navigation-right': showNavigationLayer.value && props.contentNavigation?.placement !== 'left',
 }))
 const leftPanels = computed(() => props.leftRegion?.panels ?? [])
 const rightPanels = computed(() => props.rightRegion?.panels ?? [])
@@ -317,11 +312,7 @@ function updateRightActivePanelId(nextValue: string) {
       </aside>
 
       <section class="tr-workspace-shell__center">
-        <div
-          v-if="showNavigationLayer"
-          class="tr-workspace-shell__content-navigation"
-          :class="navigationPlacementClass"
-        >
+        <div v-if="showNavigationLayer" class="tr-workspace-shell__content-navigation is-right">
           <slot name="navigation" />
         </div>
         <!-- slot: default — center content area, typically a TrChat instance -->

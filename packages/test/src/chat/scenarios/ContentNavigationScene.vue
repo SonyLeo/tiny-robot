@@ -4,9 +4,9 @@
       data-testid="content-navigation-shell"
       badge="P5-C"
       title="Content Navigation"
-      description="Workspace-attached turn navigation"
+      description="Workspace conversation navigation + assistant outline"
       :appearance="lightAppearance"
-      :content-navigation="{ placement: 'right' }"
+      :content-navigation="{ enabled: true }"
       :view-state="{ fullWidth }"
     >
       <template #toolbar-actions>
@@ -20,14 +20,15 @@
           {{ activeTurnSummary }}
         </span>
         <span class="scene-chip" data-testid="content-navigation-count"> Turns: {{ turnNavigationItems.length }} </span>
-        <span class="scene-chip" data-testid="content-navigation-placement"> Placement: right </span>
+        <span class="scene-chip" data-testid="assistant-outline-active">
+          {{ activeHeadingSummary }}
+        </span>
       </template>
 
       <template #navigation>
         <TrChatConversationTurnNavigation
           :messages="messages"
           :scroll-container="scrollContainer"
-          placement="right"
           title="Turns"
           subtitle="Current conversation"
           @update:active-message-index="activeMessageIndex = $event"
@@ -39,7 +40,18 @@
           <TrChat.Layout :appearance="lightAppearance">
             <TrChat.Header title="Turn navigation demo" />
 
-            <TrChat.MessageList v-if="messages.length > 0" variant="workspace" />
+            <div v-if="messages.length > 0" class="content-navigation-scene__message-stage">
+              <TrChatAssistantOutline
+                :scroll-container="scrollContainer"
+                @update:active-heading-id="activeHeadingId = $event"
+              >
+                <TrChat.MessageList variant="workspace">
+                  <template #prefix="{ role, messageIndexes }">
+                    <TrChatAssistantOutlineTrigger :role="role" :message-indexes="messageIndexes" />
+                  </template>
+                </TrChat.MessageList>
+              </TrChatAssistantOutline>
+            </div>
 
             <TrChat.Welcome
               v-else
@@ -60,8 +72,15 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import type { ChatMessage } from '@opentiny/tiny-robot-kit'
-import { TrChat, TrChatConversationTurnNavigation, TrChatWorkspaceShell, useChatKit } from '../../../../chat/src'
-import { resolveConversationTurnNavigationItems } from '../../../../chat/src/components/workspace/navigation/turn-navigation/runtime'
+import {
+  TrChat,
+  TrChatAssistantOutline,
+  TrChatAssistantOutlineTrigger,
+  TrChatConversationTurnNavigation,
+  TrChatWorkspaceShell,
+  useChatKit,
+} from '../../../../chat/src'
+import { resolveConversationTurnNavigationItems } from '../../../../chat/src/components/workspace/navigation/turn-navigation'
 import { createMockProvider } from '../mockProvider'
 
 const lightAppearance = { mode: 'light' } as const
@@ -71,33 +90,45 @@ const initialMessages: ChatMessage[] = [
   {
     role: 'assistant',
     content: [
-      'Plan overview:',
-      '1. Stabilize the shell container.',
-      '2. Land appearance and panel state support.',
-      '3. Add content navigation once the shell API is steady.',
-      '4. Verify build and browser regressions before moving on.',
+      '# Plan overview',
+      '## Stabilize the shell container',
+      'Confirm the center layout, panel spacing, and shell height contract first.',
+      '## Land appearance and panel state support',
+      'Add the remaining appearance props and controlled panel state wiring.',
+      '## Add content navigation once the shell API is steady',
+      'Introduce navigation only after the shell host API stops moving.',
+      '## Verify build and browser regressions before moving on',
+      'Run build, unit, and browser checks before advancing to the next phase.',
     ].join('\n'),
   },
   { role: 'user', content: 'List the test checkpoints we should cover before merge.' },
   {
     role: 'assistant',
     content: [
-      'Testing checklist:',
-      '1. Unit coverage for runtime coercion and item generation.',
-      '2. Browser checks for host rendering, active state, and click-to-scroll.',
-      '3. Workspace-shell regression checks for collapse and fullWidth state.',
-      '4. Package build verification after the new exports land.',
+      '# Testing checklist',
+      '## Runtime coercion coverage',
+      'Verify item normalization and active-state coercion paths.',
+      '## Browser host rendering',
+      'Check host rendering, active markers, hover expansion, and click-to-scroll.',
+      '## Workspace-shell regressions',
+      'Cover collapse behavior, spacing rules, and fullWidth layout changes.',
+      '## Package verification',
+      'Confirm the package build and public exports stay intact.',
     ].join('\n'),
   },
   { role: 'user', content: 'Call out the rollout risks for content navigation phase one.' },
   {
     role: 'assistant',
     content: [
-      'Primary risks:',
-      '1. Tying navigation too tightly to bubble DOM details.',
-      '2. Regressing workspace shell spacing and panel behavior.',
-      '3. Flaky scrolling assertions in browser tests.',
-      '4. Mixing turn navigation with assistant outline too early.',
+      '# Primary risks',
+      '## DOM coupling',
+      'Avoid tying navigation to unstable bubble internals whenever possible.',
+      '## Workspace regressions',
+      'Watch for spacing, collapse, and panel host regressions in the shell.',
+      '## Browser flakiness',
+      'Keep scrolling assertions tolerant enough for browser rounding differences.',
+      '## Mixed navigation models',
+      'Keep turn navigation and assistant outline concerns separate in phase one.',
     ].join('\n'),
   },
 ]
@@ -113,6 +144,7 @@ const chat = useChatKit({
 const { messages } = chat
 const fullWidth = ref(false)
 const activeMessageIndex = ref<number | undefined>(0)
+const activeHeadingId = ref<string | undefined>()
 const chatAreaRef = ref<HTMLElement | null>(null)
 const scrollContainer = ref<HTMLElement | null>(null)
 const turnNavigationItems = computed(() => resolveConversationTurnNavigationItems(messages.value))
@@ -127,6 +159,14 @@ const activeTurnSummary = computed(() => {
   }
 
   return `Active turn: ${normalized.slice(0, 56)}${normalized.length > 56 ? '...' : ''}`
+})
+
+const activeHeadingSummary = computed(() => {
+  if (!activeHeadingId.value) {
+    return 'Active outline: none'
+  }
+
+  return `Active outline: ${activeHeadingId.value}`
 })
 
 function syncScrollContainer() {
@@ -161,6 +201,13 @@ watch(
   min-height: 0;
   display: flex;
   flex-direction: column;
+}
+
+.content-navigation-scene__message-stage {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-height: 0;
 }
 
 .scene-chip {
