@@ -36,10 +36,13 @@ test.describe('Content Navigation (P5-C)', () => {
     const markers = page.locator('[data-testid="assistant-outline-marker"]')
 
     await expect(rail).toBeVisible()
+    await expect(rail).toHaveAttribute('role', 'navigation')
+    await expect(rail).toHaveAttribute('aria-label', 'Assistant response outline')
     await expect(markers).toHaveCount(5)
     await expect(items).toHaveCount(5)
     await expect(items.nth(0)).toContainText('Plan overview')
     await expect(items.nth(1)).toContainText('Stabilize the shell container')
+    await expect(items.nth(0)).toHaveAttribute('aria-label', /Jump to section/)
   })
 
   test('should expand the right rail into a lightweight panel on hover', async ({ page }) => {

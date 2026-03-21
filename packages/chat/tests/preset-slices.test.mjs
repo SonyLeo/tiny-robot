@@ -258,7 +258,7 @@ await runTest('createPresetChatSlices keeps root feature defaults while sender s
   assert.equal(slices.sender.allowSpeech, false)
 })
 
-await runTest('createPresetChatProps and createPresetChatSlices expose mcp manager through the feature pipeline', async () => {
+await runTest('createPresetChatProps and createPresetChatSlices expose mcp manager through the runtime pipeline', async () => {
   const mcpManager = useMcpManager({
     initialPlugins: [
       {
@@ -297,7 +297,8 @@ await runTest('createPresetChatProps and createPresetChatSlices expose mcp manag
   })
 
   assert.equal(adapter.resolvedFeatures.entries.mcp.enabled, true)
-  assert.equal(adapter.resolvedFeatures.entries.mcp.config?.manager, mcpManager)
+  assert.equal(adapter.resolvedFeatures.entries.mcp.config?.manager, undefined)
+  assert.equal(adapter.config.runtime?.mcpManager, mcpManager)
 
   const presetProps = createPresetChatProps(adapter)
   const presetSlices = createPresetChatSlices(presetProps)
@@ -306,7 +307,7 @@ await runTest('createPresetChatProps and createPresetChatSlices expose mcp manag
   assert.equal(presetSlices.root.mcpManager, mcpManager)
 })
 
-await runTest('createPresetChatProps lets explicit mcpManager override win over resolved mcp feature defaults', async () => {
+await runTest('createPresetChatProps lets explicit mcpManager override win over resolved runtime defaults', async () => {
   const featureManager = useMcpManager()
   const overrideManager = useMcpManager()
   const adapter = createChatAdapterFromConfig({
@@ -329,4 +330,71 @@ await runTest('createPresetChatProps lets explicit mcpManager override win over 
   })
 
   assert.equal(presetProps.mcpManager, overrideManager)
+})
+
+await runTest('feature registry output flows into preset props and white-box slices through a stable mapping contract', async () => {
+  const mcpManager = useMcpManager()
+  const adapter = createChatAdapterFromConfig({
+    models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+    providers: {
+      openai: {
+        type: 'openai-compatible',
+        endpoint: '/api/chat',
+      },
+    },
+    ui: {
+      welcome: {
+        title: 'Feature Welcome',
+      },
+    },
+    features: {
+      attachments: {
+        upload: {
+          accept: '.md',
+        },
+      },
+      senderActions: {
+        voice: {
+          enabled: true,
+          tooltip: 'voice from feature',
+        },
+      },
+      welcomePrompts: {
+        welcome: [{ label: 'feature prompt', description: 'feature prompt' }],
+      },
+      mcp: {
+        manager: mcpManager,
+      },
+      history: {
+        props: {
+          selected: 'conversation-3',
+        },
+      },
+      feedback: true,
+    },
+  })
+
+  const presetProps = createPresetChatProps(adapter)
+  const slices = createPresetChatSlices(presetProps)
+
+  assert.equal(presetProps.attachmentsFeature?.upload?.accept, '.md')
+  assert.equal(presetProps.senderActionsFeature?.voice?.tooltip, 'voice from feature')
+  assert.equal(presetProps.prompts?.[0]?.label, 'feature prompt')
+  assert.equal(presetProps.mcpManager, mcpManager)
+  assert.equal(presetProps.showHistory, true)
+  assert.equal(presetProps.showFeedback, true)
+  assert.deepEqual(presetProps.historyProps, {
+    selected: 'conversation-3',
+  })
+
+  assert.equal(slices.root.attachmentsFeature?.upload?.accept, '.md')
+  assert.equal(slices.root.senderActionsFeature?.voice?.tooltip, 'voice from feature')
+  assert.equal(slices.root.mcpManager, mcpManager)
+  assert.equal(slices.welcome?.prompts?.[0]?.label, 'feature prompt')
+  assert.equal(slices.header.showHistory, true)
+  assert.equal(slices.history.enabled, true)
+  assert.deepEqual(slices.history.props, {
+    selected: 'conversation-3',
+  })
+  assert.equal(slices.messageList.showFeedback, true)
 })

@@ -342,6 +342,48 @@ await runTest('resolveChatFeatures keeps disabled features out of preset props',
   assert.equal(resolved.entries.feedback.enabled, false)
 })
 
+await runTest('loadChatConfig hoists mcp runtime objects out of declarative features into runtime', async () => {
+  const mcpManager = { id: 'manager' }
+
+  const config = loadChatConfig({
+    models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+    providers: {
+      openai: {
+        type: 'openai-compatible',
+        endpoint: '/api/chat',
+      },
+    },
+    features: {
+      mcp: {
+        manager: mcpManager,
+      },
+    },
+  })
+
+  assert.equal(config.features?.mcp?.enabled, undefined)
+  assert.equal(config.features?.mcp?.manager, undefined)
+  assert.equal(config.runtime?.mcpManager, mcpManager)
+
+  const explicitRuntimeConfig = loadChatConfig({
+    models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+    providers: {
+      openai: {
+        type: 'openai-compatible',
+        endpoint: '/api/chat',
+      },
+    },
+    features: {
+      mcp: true,
+    },
+    runtime: {
+      mcpManager,
+    },
+  })
+
+  assert.equal(explicitRuntimeConfig.features?.mcp, true)
+  assert.equal(explicitRuntimeConfig.runtime?.mcpManager, mcpManager)
+})
+
 await runTest('loadChatConfig rejects invalid feature shapes', async () => {
   assert.throws(
     () =>

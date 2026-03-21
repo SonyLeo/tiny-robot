@@ -12,6 +12,7 @@ import {
   useModelSelector,
   createChatAdapterFromConfig,
   createPresetChatProps,
+  createPresetChatSlices,
 } from '@opentiny/tiny-robot-chat'
 import type { ChatListVariant, ChatMessageActionPayload } from '@opentiny/tiny-robot-chat'
 import { localStorageStrategyFactory, toolPlugin } from '@opentiny/tiny-robot-kit'
@@ -29,6 +30,11 @@ const openaiApiKey = import.meta.env.VITE_OPENAI_API_KEY || ''
 
 const actionLog = ref('')
 const messageListVariant = ref<ChatListVariant>('bubble')
+
+const mcpManager = useMcpManager({
+  initialPlugins: defaultMcpServers,
+  bridge: createDemoMcpBridge(),
+})
 
 const chatAdapter = createChatAdapterFromConfig({
   models: [
@@ -63,6 +69,9 @@ const chatAdapter = createChatAdapterFromConfig({
     welcome: WELCOME_CONFIG,
     prompts: PROMPTS,
   },
+  runtime: {
+    mcpManager,
+  },
   features: {
     attachments: {
       upload: {
@@ -85,11 +94,6 @@ const chatAdapter = createChatAdapterFromConfig({
   },
 })
 
-const mcpManager = useMcpManager({
-  initialPlugins: defaultMcpServers,
-  bridge: createDemoMcpBridge(),
-})
-
 const toolPluginInstance = toolPlugin({
   getTools: mcpManager.getTools,
   callTool: mcpManager.callTool,
@@ -99,6 +103,7 @@ const demoProviderFactories = wrapDemoRetryProviderFactories(chatAdapter.provide
 const whiteboxPreset = createPresetChatProps(chatAdapter, {
   providerFactories: demoProviderFactories,
 })
+const whiteboxSlices = createPresetChatSlices(whiteboxPreset)
 
 function getProviderForModel(modelValue?: string) {
   const model = chatAdapter.models.find((item) => item.value === modelValue) ?? chatAdapter.models[0]
@@ -158,6 +163,7 @@ function toggleMessageListVariant() {
   <div class="demo-chat-shell">
     <div class="demo-status-bar">
       <span data-testid="demo-variant-indicator">{{ messageListVariant }}</span>
+      <span>preset slices</span>
       <button class="demo-status-btn" @click="toggleMessageListVariant">
         {{ messageListVariant === 'bubble' ? 'Switch to docs' : 'Switch to bubble' }}
       </button>
@@ -166,26 +172,35 @@ function toggleMessageListVariant() {
 
     <TrChat.Root
       :chat-kit="chatKit"
-      :mcp-manager="mcpManager"
-      :attachments-feature="whiteboxPreset.attachmentsFeature"
-      :sender-actions-feature="whiteboxPreset.senderActionsFeature"
+      :messages="whiteboxSlices.root.messages"
+      :mcp-manager="whiteboxSlices.root.mcpManager"
+      :attachments-feature="whiteboxSlices.root.attachmentsFeature"
+      :sender-actions-feature="whiteboxSlices.root.senderActionsFeature"
     >
-      <TrChat.Layout>
-        <TrChat.Header :title="BRAND_CONFIG.title" show-history />
+      <TrChat.Layout
+        :show="whiteboxSlices.layout.show"
+        :fullscreen="whiteboxSlices.layout.fullscreen"
+        :role-configs="whiteboxSlices.layout.roleConfigs"
+        :appearance="whiteboxSlices.appearance.appearance"
+      >
+        <TrChat.Header
+          :title="whiteboxSlices.header.title || BRAND_CONFIG.title"
+          :show-history="whiteboxSlices.header.showHistory"
+        />
 
         <div v-if="showWelcome" class="tr-chat__welcome-area">
           <TrChat.Welcome
-            :title="whiteboxPreset.welcome?.title || WELCOME_CONFIG.title"
-            :icon="whiteboxPreset.welcome?.icon || WELCOME_CONFIG.icon"
-            :description="whiteboxPreset.welcome?.description || WELCOME_CONFIG.description"
-            :prompts="whiteboxPreset.prompts || PROMPTS"
+            :title="whiteboxSlices.welcome?.title || WELCOME_CONFIG.title"
+            :icon="whiteboxSlices.welcome?.icon || WELCOME_CONFIG.icon"
+            :description="whiteboxSlices.welcome?.description || WELCOME_CONFIG.description"
+            :prompts="whiteboxSlices.welcome?.prompts || PROMPTS"
             @prompt-click="handlePromptClick"
           />
         </div>
         <TrChat.MessageList
           v-else
-          group-strategy="consecutive"
-          auto-scroll
+          :group-strategy="whiteboxSlices.messageList.groupStrategy"
+          :auto-scroll="whiteboxSlices.messageList.autoScroll"
           :variant="messageListVariant"
           :on-action-click="handleMessageAction"
         >
@@ -199,8 +214,8 @@ function toggleMessageListVariant() {
             <div class="tr-chat-footer-toolbar">
               <TrModelSelector
                 v-model="selectedModel"
-                :models="whiteboxPreset.models || chatAdapter.models"
-                :provider-factories="demoProviderFactories"
+                :models="whiteboxSlices.modelSelector.models || chatAdapter.models"
+                :provider-factories="whiteboxSlices.modelSelector.providerFactories || demoProviderFactories"
                 @change="handleModelChange"
               />
               <ActionButton :icon="mcpPanelIcon" @click="handleToggleMcpPanel" />
@@ -208,11 +223,15 @@ function toggleMessageListVariant() {
           </template>
           <div class="tr-chat-footer-wrapper">
             <TrChat.Attachments />
-            <TrChat.Sender />
+            <TrChat.Sender
+              :placeholder="whiteboxSlices.sender.placeholder"
+              :mode="whiteboxSlices.sender.mode"
+              :max-length="whiteboxSlices.sender.maxLength"
+            />
           </div>
         </TrChat.Footer>
 
-        <TrChat.History />
+        <TrChat.History v-if="whiteboxSlices.history.enabled" />
         <TrChatMcpPanel :visible="mcpPanelVisible" @update:visible="mcpPanelVisible = $event" />
       </TrChat.Layout>
     </TrChat.Root>

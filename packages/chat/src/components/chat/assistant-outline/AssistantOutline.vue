@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, shallowRef, watch } from 'vue'
 import type { PropType } from 'vue'
-import type { ChatAssistantOutlineItem } from '../../../types'
-import { coerceContentNavigationItemId } from '../../../utils/contentNavigation'
+import type { ChatAssistantOutlineItem } from '@/types'
+import { coerceContentNavigationItemId } from '@/utils/contentNavigation'
 import { provideAssistantOutlineContext, type AssistantOutlineRegistration } from './context'
 import {
   extractAssistantOutlineHeadings,

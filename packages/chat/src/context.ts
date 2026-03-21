@@ -2,6 +2,7 @@ import type { ComputedRef, InjectionKey, Ref } from 'vue'
 import type {
   ChatAttachmentsFeaturePreset,
   ChatMessageActionPayload,
+  ChatMessages,
   ChatSenderActionsFeaturePreset,
   UseChatKitReturn,
 } from './types'
@@ -28,6 +29,8 @@ export const CHAT_ATTACHMENTS_KEY: InjectionKey<{
 export const CHAT_SENDER_ACTIONS_KEY: InjectionKey<{
   feature: ChatSenderActionsFeaturePreset
 }> = Symbol('chatSenderActions')
+
+export const CHAT_MESSAGES_KEY: InjectionKey<ComputedRef<ChatMessages>> = Symbol('chatMessages')
 
 export const MESSAGE_ACTION_KEY: InjectionKey<((payload: ChatMessageActionPayload) => void) | undefined> =
   Symbol('messageAction')

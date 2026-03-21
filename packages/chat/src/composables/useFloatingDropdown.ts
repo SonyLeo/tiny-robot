@@ -1,5 +1,6 @@
-import { ref, nextTick, onMounted, onUnmounted, watch } from 'vue'
+import { ref, nextTick, onScopeDispose, watch } from 'vue'
 import { computePosition, flip, shift, offset, autoUpdate } from '@floating-ui/dom'
+import { onClickOutside, useEventListener } from '@vueuse/core'
 
 export function useFloatingDropdown(
   referenceEl: ReturnType<typeof ref<HTMLElement | null>>,
@@ -38,29 +39,30 @@ export function useFloatingDropdown(
     cleanupAutoUpdate = null
   }
 
-  // 点击外部关闭
-  const handleClickOutside = (event: MouseEvent) => {
-    const target = event.target as Node
-    if (referenceEl.value?.contains(target)) return
-    if (floatingEl.value?.contains(target)) return
-    isOpen.value = false
-  }
+  onClickOutside(
+    floatingEl,
+    () => {
+      if (!isOpen.value) {
+        return
+      }
 
-  const handleKeydown = (event: KeyboardEvent) => {
-    if (event.key === 'Escape') {
       isOpen.value = false
+    },
+    {
+      ignore: [referenceEl],
+    },
+  )
+
+  useEventListener(document, 'keydown', (event: KeyboardEvent) => {
+    if (!isOpen.value) {
+      return
     }
-  }
 
-  onMounted(() => {
-    document.addEventListener('click', handleClickOutside)
-    document.addEventListener('keydown', handleKeydown)
-  })
-
-  onUnmounted(() => {
-    document.removeEventListener('click', handleClickOutside)
-    document.removeEventListener('keydown', handleKeydown)
-    stopAutoUpdate()
+    if (event.key === 'Escape') {
+      event.preventDefault()
+      isOpen.value = false
+      referenceEl.value?.focus()
+    }
   })
 
   watch(isOpen, async (newVal) => {
@@ -71,6 +73,16 @@ export function useFloatingDropdown(
     } else {
       stopAutoUpdate()
     }
+  })
+
+  watch([referenceEl, floatingEl], () => {
+    if (!isOpen.value) {
+      stopAutoUpdate()
+    }
+  })
+
+  onScopeDispose(() => {
+    stopAutoUpdate()
   })
 
   return { isOpen, updatePosition }

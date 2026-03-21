@@ -1,4 +1,4 @@
-import type { ChatWorkspacePanelDefinition, ChatWorkspacePanelHostItem, ChatWorkspacePanelWidth } from '../../types'
+import type { ChatWorkspacePanelDefinition, ChatWorkspacePanelHostItem, ChatWorkspacePanelWidth } from '@/types'
 
 export function resolveWorkspaceRegionWidth(width: ChatWorkspacePanelWidth | undefined, side: 'left' | 'right') {
   if (typeof width === 'number') {

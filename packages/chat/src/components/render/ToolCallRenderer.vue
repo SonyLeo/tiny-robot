@@ -3,7 +3,7 @@ import { useTheme, useToolCall, type BubbleContentRendererProps } from '@opentin
 import { IconCancelled, IconError, IconLoading, IconPlugin } from '@opentiny/tiny-robot-svgs'
 import { MarkdownCodeBlockNode } from 'markstream-vue'
 import { computed, reactive, useAttrs, watchEffect, type Component } from 'vue'
-import { CHAT_MESSAGES } from '../../messages'
+import { useResolvedChatMessages } from '@/messages'
 
 const props = defineProps<BubbleContentRendererProps & { toolCallIndex: number }>()
 
@@ -13,6 +13,7 @@ defineOptions({
 
 const attrs = useAttrs()
 const { toolCall, toolCallWithResult, state } = useToolCall(props)
+const chatMessages = useResolvedChatMessages()
 
 const node = reactive({
   type: 'code_block' as const,
@@ -32,10 +33,10 @@ const { resolvedColorMode } = useTheme()
 
 const textAndIcon = computed(() => {
   const textAndIconMap = new Map<string, { text: string; icon: Component }>([
-    ['running', { text: CHAT_MESSAGES.toolCall.running, icon: IconLoading }],
-    ['success', { text: CHAT_MESSAGES.toolCall.success, icon: IconPlugin }],
-    ['failed', { text: CHAT_MESSAGES.toolCall.failed, icon: IconError }],
-    ['cancelled', { text: CHAT_MESSAGES.toolCall.cancelled, icon: IconCancelled }],
+    ['running', { text: chatMessages.value.toolCall.running, icon: IconLoading }],
+    ['success', { text: chatMessages.value.toolCall.success, icon: IconPlugin }],
+    ['failed', { text: chatMessages.value.toolCall.failed, icon: IconError }],
+    ['cancelled', { text: chatMessages.value.toolCall.cancelled, icon: IconCancelled }],
   ])
 
   return textAndIconMap.get(state.value?.status || '') || { text: '', icon: IconPlugin }
@@ -55,7 +56,7 @@ const textAndIcon = computed(() => {
           <component :is="textAndIcon.icon" class="header-icon" :class="`icon-${state.status}`" />
           <span>
             <span>{{ textAndIcon.text }}&nbsp;</span>
-            <span class="title">{{ toolCall?.function.name || CHAT_MESSAGES.toolCall.untitled }} </span>
+            <span class="title">{{ toolCall?.function.name || chatMessages.toolCall.untitled }} </span>
           </span>
         </div>
       </template>

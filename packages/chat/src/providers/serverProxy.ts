@@ -1,6 +1,6 @@
-import { sseStreamToGenerator } from '@opentiny/tiny-robot-kit'
 import type { ModelProviderFactory, ResponseProvider } from '../types'
 import { matchProvider } from './factories'
+import { createOpenAICompatibleSseProvider } from './shared'
 
 export interface ServerProxyProviderOptions {
   baseURL?: string
@@ -45,39 +45,16 @@ export function createServerProxyProvider(options: ServerProxyProviderOptions): 
   const { model = 'gpt-4o-mini', systemPrompt, temperature, maxTokens, headers = {}, credentials } = options
   const endpoint = resolveEndpoint(options)
 
-  return async function* (requestBody, abortSignal) {
-    const messages = systemPrompt
-      ? [{ role: 'system', content: systemPrompt }, ...requestBody.messages]
-      : requestBody.messages
-
-    const body: Record<string, unknown> = {
-      model,
-      messages,
-      stream: true,
-    }
-
-    if (temperature !== undefined) body.temperature = temperature
-    if (maxTokens !== undefined) body.max_tokens = maxTokens
-
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'text/event-stream',
-        ...headers,
-      },
-      body: JSON.stringify(body),
-      signal: abortSignal,
-      credentials,
-    })
-
-    if (!response.ok) {
-      const text = await response.text()
-      throw new Error(`Server proxy error ${response.status}: ${text}`)
-    }
-
-    yield* sseStreamToGenerator(response, { signal: abortSignal })
-  }
+  return createOpenAICompatibleSseProvider({
+    provider: 'server_proxy',
+    endpoint,
+    model,
+    systemPrompt,
+    temperature,
+    maxTokens,
+    headers,
+    credentials,
+  })
 }
 
 export function createServerProxyFactory(options: ServerProxyFactoryOptions): ModelProviderFactory {

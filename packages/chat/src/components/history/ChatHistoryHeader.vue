@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { inject } from 'vue'
 import { IconNewSession } from '@opentiny/tiny-robot-svgs'
-import { CHAT_HISTORY_KEY, CHAT_KIT_KEY, CHAT_UI_KEY } from '../../context'
-import { CHAT_MESSAGES } from '../../messages'
+import { CHAT_HISTORY_KEY, CHAT_KIT_KEY, CHAT_UI_KEY } from '@/context'
+import { useResolvedChatMessages } from '@/messages'
 
 const historyState = inject(CHAT_HISTORY_KEY)!
 const chatKit = inject(CHAT_KIT_KEY)!
 const { showHistoryDrawer } = inject(CHAT_UI_KEY)!
+const chatMessages = useResolvedChatMessages()
 
 function handleCreateNewSession() {
   chatKit.createConversation()
@@ -25,10 +26,10 @@ function handleToggleManagement() {
   <div class="tr-chat-history-header">
     <button class="new-session-btn" @click="handleCreateNewSession">
       <IconNewSession />
-      {{ CHAT_MESSAGES.history.newSession }}
+      {{ chatMessages.history.newSession }}
     </button>
     <button class="manage-btn" :class="{ active: historyState.isManagementMode.value }" @click="handleToggleManagement">
-      {{ historyState.isManagementMode.value ? CHAT_MESSAGES.history.done : CHAT_MESSAGES.history.manage }}
+      {{ historyState.isManagementMode.value ? chatMessages.history.done : chatMessages.history.manage }}
     </button>
   </div>
 </template>

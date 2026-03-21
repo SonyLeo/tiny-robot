@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { computed, inject } from 'vue'
 import { IconClose, IconDelete } from '@opentiny/tiny-robot-svgs'
-import { CHAT_HISTORY_KEY, CHAT_KIT_KEY } from '../../context'
-import { CHAT_MESSAGES } from '../../messages'
+import { CHAT_HISTORY_KEY, CHAT_KIT_KEY } from '@/context'
+import { useResolvedChatMessages } from '@/messages'
 
 const historyState = inject(CHAT_HISTORY_KEY)!
 const chatKit = inject(CHAT_KIT_KEY)!
+const chatMessages = useResolvedChatMessages()
 
 const selectedCount = computed(() => historyState.selectedItems.value.length)
 const allConversationIds = computed(() => chatKit.conversations.value.map((conversation) => conversation.id))
@@ -51,14 +52,14 @@ function handleClosePanel() {
           class="delete-icon-btn"
           :disabled="selectedCount === 0"
           @click="handleBatchDelete"
-          :title="CHAT_MESSAGES.history.deleteSelected"
+          :title="chatMessages.history.deleteSelected"
         >
           <IconDelete />
         </button>
 
         <div class="divider"></div>
 
-        <button class="close-icon-btn" @click="handleClosePanel" :title="CHAT_MESSAGES.history.cancel">
+        <button class="close-icon-btn" @click="handleClosePanel" :title="chatMessages.history.cancel">
           <IconClose />
         </button>
       </div>

@@ -1,4 +1,6 @@
-import type { ChatMessages } from './types'
+import { computed, inject } from 'vue'
+import { CHAT_MESSAGES_KEY } from './context'
+import type { ChatMessages, ChatMessagesOverrides } from './types'
 
 /**
  * Centralized chat-owned copy.
@@ -49,4 +51,27 @@ export const CHAT_MESSAGES: ChatMessages = {
     defaultMessage: '发生错误',
     retry: '重试',
   },
+}
+
+export function resolveChatMessages(overrides?: ChatMessagesOverrides): ChatMessages {
+  if (!overrides) {
+    return CHAT_MESSAGES
+  }
+
+  return {
+    header: { ...CHAT_MESSAGES.header, ...overrides.header },
+    history: { ...CHAT_MESSAGES.history, ...overrides.history },
+    sender: { ...CHAT_MESSAGES.sender, ...overrides.sender },
+    feedback: { ...CHAT_MESSAGES.feedback, ...overrides.feedback },
+    editMessage: { ...CHAT_MESSAGES.editMessage, ...overrides.editMessage },
+    toolCall: { ...CHAT_MESSAGES.toolCall, ...overrides.toolCall },
+    error: { ...CHAT_MESSAGES.error, ...overrides.error },
+  }
+}
+
+export function useResolvedChatMessages() {
+  return inject(
+    CHAT_MESSAGES_KEY,
+    computed(() => CHAT_MESSAGES),
+  )
 }

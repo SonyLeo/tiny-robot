@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { inject, computed } from 'vue'
 import { TrAttachments } from '@opentiny/tiny-robot'
-import { CHAT_ATTACHMENTS_KEY } from '../../context'
+import { CHAT_ATTACHMENTS_KEY } from '@/context'
 
 defineOptions({ name: 'TrChatAttachments' })
 

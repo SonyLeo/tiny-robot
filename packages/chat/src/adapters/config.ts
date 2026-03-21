@@ -27,11 +27,12 @@ import type {
   ChatConfigProvider,
   ChatLayoutConfig,
   ChatConfigModel,
+  ChatConfigRuntime,
   ChatConfigUI,
   ChatPresetProps,
   ChatPresetSlices,
 } from './types'
-import { CHAT_MESSAGES } from '../messages'
+import { resolveChatMessages } from '../messages'
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
@@ -381,7 +382,26 @@ function normalizeMcpFeature(rawFeature: unknown): ChatMcpFeatureConfig | undefi
 
   return {
     enabled: typeof rawFeature.enabled === 'boolean' ? rawFeature.enabled : undefined,
-    manager: rawFeature.manager as TrChatProps['mcpManager'],
+  }
+}
+
+function normalizeRuntime(rawRuntime: unknown, rawFeatures: unknown): ChatConfigRuntime | undefined {
+  if (rawRuntime !== undefined && !isRecord(rawRuntime)) {
+    throw new Error('[loadChatConfig] runtime must be an object when provided')
+  }
+
+  const runtimeRecord = isRecord(rawRuntime) ? rawRuntime : undefined
+  const rawMcpFeature = isRecord(rawFeatures) && isRecord(rawFeatures.mcp) ? rawFeatures.mcp : undefined
+  const mcpManager =
+    (runtimeRecord?.mcpManager as TrChatProps['mcpManager'] | undefined) ??
+    (rawMcpFeature?.manager as TrChatProps['mcpManager'] | undefined)
+
+  if (!mcpManager) {
+    return undefined
+  }
+
+  return {
+    mcpManager,
   }
 }
 
@@ -453,6 +473,7 @@ export function loadChatConfig(input: string | ChatConfig | unknown): ChatConfig
   const appearance = normalizeAppearance(raw.appearance)
   const layout = normalizeLayout(raw.layout)
   const features = normalizeFeatures(raw.features)
+  const runtime = normalizeRuntime(raw.runtime, raw.features)
 
   return {
     models,
@@ -462,6 +483,7 @@ export function loadChatConfig(input: string | ChatConfig | unknown): ChatConfig
     ui,
     layout,
     features,
+    runtime,
   }
 }
 
@@ -546,6 +568,7 @@ export function createPresetChatProps(
     messageListVariant: adapter.config.layout?.variant,
     roleConfigs: layoutRoleConfigs,
     ...adapter.resolvedFeatures.presetProps,
+    ...(adapter.config.runtime?.mcpManager ? { mcpManager: adapter.config.runtime.mcpManager } : {}),
     ...overrides,
   }
 }
@@ -561,6 +584,7 @@ export function createPresetChatSlices(preset: ChatPresetProps & Partial<TrChatP
       attachmentsManager: preset.attachmentsManager,
       attachmentsFeature: preset.attachmentsFeature,
       senderActionsFeature: preset.senderActionsFeature,
+      messages: preset.messages,
     },
     layout: {
       show: preset.show,
@@ -594,7 +618,7 @@ export function createPresetChatSlices(preset: ChatPresetProps & Partial<TrChatP
       ...(preset.bubbleListProps ?? {}),
     },
     sender: {
-      placeholder: preset.placeholder ?? CHAT_MESSAGES.sender.placeholder,
+      placeholder: preset.placeholder ?? resolveChatMessages(preset.messages).sender.placeholder,
       mode: preset.senderMode ?? 'multiple',
       maxLength: preset.maxLength,
       ...senderProps,

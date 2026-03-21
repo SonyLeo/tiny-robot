@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { inject } from 'vue'
-import { CHAT_HISTORY_KEY } from '../../context'
-import { CHAT_MESSAGES } from '../../messages'
+import { CHAT_HISTORY_KEY } from '@/context'
+import { useResolvedChatMessages } from '@/messages'
 
 const historyState = inject(CHAT_HISTORY_KEY)!
+const chatMessages = useResolvedChatMessages()
 </script>
 
 <template>
@@ -11,7 +12,7 @@ const historyState = inject(CHAT_HISTORY_KEY)!
     <input
       v-model="historyState.searchQuery.value"
       type="text"
-      :placeholder="CHAT_MESSAGES.history.searchPlaceholder"
+      :placeholder="chatMessages.history.searchPlaceholder"
       class="search-input"
     />
   </div>

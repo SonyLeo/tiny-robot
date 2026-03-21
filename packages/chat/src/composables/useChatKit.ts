@@ -8,13 +8,13 @@ import { useChatRequest } from './useChatRequest'
 
 interface RetryContext {
   conversationId: string
+  turnId: string
   userContent: string
-  failedTurnStartIndex: number
 }
 
 interface OptimisticTurnContext {
   conversationId: string
-  userContent: string
+  turnId: string
   userMessage: ChatMessage | null
   assistantMessage: ChatMessage | null
 }
@@ -37,14 +37,32 @@ function setMessageOptimistic(message: ChatMessage | null, isOptimistic: boolean
   state.optimistic = isOptimistic || undefined
 }
 
-function findLatestUserMessage(messages: ChatMessage[], userContent: string): ChatMessage | null {
-  return (
-    [...messages]
-      .reverse()
-      .find(
-        (message) => message.role === 'user' && typeof message.content === 'string' && message.content === userContent,
-      ) ?? null
-  )
+function createTurnId() {
+  return `turn-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
+}
+
+function getMessageTurnId(message: ChatMessage | null | undefined) {
+  const turnId = message?.state?.turnId
+  return typeof turnId === 'string' ? turnId : undefined
+}
+
+function setMessageTurnId(message: ChatMessage | null, turnId: string) {
+  if (!message) return
+
+  const state = ensureMessageState(message)
+  state.turnId = turnId
+}
+
+function findLatestUserMessageWithoutTurnId(messages: ChatMessage[]): ChatMessage | null {
+  return [...messages].reverse().find((message) => message.role === 'user' && !getMessageTurnId(message)) ?? null
+}
+
+function findUserMessageByTurnId(messages: ChatMessage[], turnId: string): ChatMessage | null {
+  return messages.find((message) => message.role === 'user' && getMessageTurnId(message) === turnId) ?? null
+}
+
+function findAssistantMessageByTurnId(messages: ChatMessage[], turnId: string): ChatMessage | null {
+  return messages.find((message) => getMessageTurnId(message) === turnId && message.role !== 'user') ?? null
 }
 
 function findAssistantMessageForTurn(messages: ChatMessage[], userMessage: ChatMessage | null): ChatMessage | null {
@@ -130,10 +148,14 @@ export function useChatKit(options: UseChatKitOptions): UseChatKitReturn {
         typeof userMessage.content === 'string' &&
         normalizedError.retryable
       ) {
+        const turnId = getMessageTurnId(userMessage) ?? createTurnId()
+        setMessageTurnId(userMessage, turnId)
+        setMessageTurnId(failedAssistantMessage ?? null, turnId)
+
         retryContext.value = {
           conversationId: currentConversationId,
+          turnId,
           userContent: userMessage.content,
-          failedTurnStartIndex: context.messages.findIndex((message) => message === userMessage),
         }
       } else {
         retryContext.value = null
@@ -151,7 +173,7 @@ export function useChatKit(options: UseChatKitOptions): UseChatKitReturn {
 
   function resendMessage(content: string) {
     conversation.sendMessage(content)
-    markOptimisticTurn(content)
+    markOptimisticTurn()
   }
 
   const messageActions = useChatMessages({
@@ -171,21 +193,24 @@ export function useChatKit(options: UseChatKitOptions): UseChatKitReturn {
     },
   })
 
-  function markOptimisticTurn(content: string) {
+  function markOptimisticTurn() {
     const currentConversationId = conversation.activeConversationId.value
     const activeMessages = conversation.activeConversation.value?.engine.messages.value
     if (!currentConversationId || !activeMessages) return
 
-    const userMessage = findLatestUserMessage(activeMessages, content)
+    const turnId = createTurnId()
+    const userMessage = findLatestUserMessageWithoutTurnId(activeMessages)
     if (!userMessage) return
 
+    setMessageTurnId(userMessage, turnId)
     const assistantMessage = findAssistantMessageForTurn(activeMessages, userMessage)
+    setMessageTurnId(assistantMessage, turnId)
     setMessageOptimistic(userMessage, true)
     setMessageOptimistic(assistantMessage, true)
 
     optimisticTurn.value = {
       conversationId: currentConversationId,
-      userContent: content,
+      turnId,
       userMessage,
       assistantMessage,
     }
@@ -202,15 +227,15 @@ export function useChatKit(options: UseChatKitOptions): UseChatKitReturn {
     }
 
     if (!optimisticTurn.value.userMessage) {
-      optimisticTurn.value.userMessage = findLatestUserMessage(activeMessages, optimisticTurn.value.userContent)
+      optimisticTurn.value.userMessage = findUserMessageByTurnId(activeMessages, optimisticTurn.value.turnId)
       setMessageOptimistic(optimisticTurn.value.userMessage, true)
     }
 
     if (!optimisticTurn.value.assistantMessage) {
-      optimisticTurn.value.assistantMessage = findAssistantMessageForTurn(
-        activeMessages,
-        optimisticTurn.value.userMessage,
-      )
+      optimisticTurn.value.assistantMessage =
+        findAssistantMessageByTurnId(activeMessages, optimisticTurn.value.turnId) ??
+        findAssistantMessageForTurn(activeMessages, optimisticTurn.value.userMessage)
+      setMessageTurnId(optimisticTurn.value.assistantMessage, optimisticTurn.value.turnId)
       setMessageOptimistic(optimisticTurn.value.assistantMessage, true)
     }
 
@@ -249,11 +274,12 @@ export function useChatKit(options: UseChatKitOptions): UseChatKitReturn {
       return false
     }
 
-    if (
-      currentRetryContext.failedTurnStartIndex >= 0 &&
-      activeMessages[currentRetryContext.failedTurnStartIndex]?.content === currentRetryContext.userContent
-    ) {
-      activeMessages.splice(currentRetryContext.failedTurnStartIndex)
+    const failedTurnStartIndex = activeMessages.findIndex(
+      (message) => message.role === 'user' && getMessageTurnId(message) === currentRetryContext.turnId,
+    )
+
+    if (failedTurnStartIndex >= 0) {
+      activeMessages.splice(failedTurnStartIndex)
     }
 
     clearFailureState()

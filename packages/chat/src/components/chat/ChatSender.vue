@@ -3,8 +3,8 @@ import { inject, ref, computed, useSlots, useAttrs } from 'vue'
 import type { PropType, Slot } from 'vue'
 import { TrSender, UploadButton, VoiceButton } from '@opentiny/tiny-robot'
 import type { StructuredData } from '@opentiny/tiny-robot'
-import { CHAT_ATTACHMENTS_KEY, CHAT_KIT_KEY, CHAT_SENDER_ACTIONS_KEY } from '../../context'
-import { CHAT_MESSAGES } from '../../messages'
+import { CHAT_ATTACHMENTS_KEY, CHAT_KIT_KEY, CHAT_SENDER_ACTIONS_KEY } from '@/context'
+import { useResolvedChatMessages } from '@/messages'
 
 // 支持透传完整 TrSender props
 defineOptions({ name: 'TrChatSender', inheritAttrs: false })
@@ -16,13 +16,14 @@ const props = defineProps({
   },
   placeholder: {
     type: String,
-    default: CHAT_MESSAGES.sender.placeholder,
+    default: undefined,
   },
 })
 
 const chatKit = inject(CHAT_KIT_KEY)!
 const attachmentsContext = inject(CHAT_ATTACHMENTS_KEY, null)
 const senderActionsContext = inject(CHAT_SENDER_ACTIONS_KEY, null)
+const chatMessages = useResolvedChatMessages()
 const attrs = useAttrs()
 
 const inputValue = ref('')
@@ -33,6 +34,7 @@ const uploadActionConfig = computed(() => senderActionsFeature.value?.upload ?? 
 const voiceActionConfig = computed(() => senderActionsFeature.value?.voice)
 const showDefaultUploadButton = computed(() => Boolean(uploadActionConfig.value?.enabled !== false))
 const showDefaultVoiceButton = computed(() => Boolean(voiceActionConfig.value?.enabled))
+const senderPlaceholder = computed(() => props.placeholder ?? chatMessages.value.sender.placeholder)
 const mergedSenderAttrs = computed(() => ({
   showWordLimit: senderActionsFeature.value?.wordCount || undefined,
   defaultActions: senderActionsFeature.value?.defaultActions,
@@ -70,7 +72,7 @@ const forwardedSlots = computed<Partial<Record<string, Slot>>>(() =>
     v-model="inputValue"
     :loading="isLoading"
     :mode="props.mode"
-    :placeholder="props.placeholder"
+    :placeholder="senderPlaceholder"
     v-bind="mergedSenderAttrs"
     @submit="handleSend"
     @cancel="handleAbort"

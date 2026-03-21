@@ -18,6 +18,11 @@ const messageListVariant = ref<ChatListVariant>('bubble')
 const deepseekApiKey = import.meta.env.VITE_DEEPSEEK_API_KEY || ''
 const openaiApiKey = import.meta.env.VITE_OPENAI_API_KEY || ''
 
+const mcpManager = useMcpManager({
+  initialPlugins: defaultMcpServers,
+  bridge: createDemoMcpBridge(),
+})
+
 const chatAdapter = createChatAdapterFromConfig({
   models: [
     { id: 'deepseek-chat', label: 'DeepSeek Chat', provider: 'deepseek' },
@@ -51,11 +56,9 @@ const chatAdapter = createChatAdapterFromConfig({
     welcome: WELCOME_CONFIG,
     prompts: PROMPTS,
   },
-})
-
-const mcpManager = useMcpManager({
-  initialPlugins: defaultMcpServers,
-  bridge: createDemoMcpBridge(),
+  runtime: {
+    mcpManager,
+  },
 })
 
 const toolPluginInstance = toolPlugin({
@@ -67,7 +70,6 @@ const demoProviderFactories = wrapDemoRetryProviderFactories(chatAdapter.provide
 
 const chatPreset = createPresetChatProps(chatAdapter, {
   providerFactories: demoProviderFactories,
-  mcpManager,
   plugins: [toolPluginInstance],
   showFeedback: true,
   showHistory: true,

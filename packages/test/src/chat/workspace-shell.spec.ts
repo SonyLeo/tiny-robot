@@ -35,6 +35,18 @@ test.describe('Workspace Shell', () => {
     await helper.expectRightRailVisible(false)
   })
 
+  test('should expose accessible rail controls and support keyboard restore', async ({ page }) => {
+    await helper.clickLeftToggle()
+    await helper.expectLeftCollapsed(true)
+
+    const leftRail = page.locator(helper.selectors.leftRail)
+    await expect(leftRail).toHaveAttribute('aria-label', 'Expand History panel')
+    await leftRail.focus()
+    await page.keyboard.press('Enter')
+
+    await helper.expectLeftCollapsed(false)
+  })
+
   test('should hide region content while collapsed', async () => {
     await helper.expectLeftRegionContentHidden(false)
     await helper.expectRightRegionContentHidden(false)

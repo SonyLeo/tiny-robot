@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, ref, useAttrs, useSlots, watch, type Slot } from 'vue'
-import { useChatKit, useModelSelector, useSlotFilter } from '../../composables'
-import { BUBBLE_LIST_SLOTS } from '../../context'
-import { CHAT_MESSAGES } from '../../messages'
-import type { ChatListVariant, ModelOption, TrChatProps } from '../../types'
+import { useChatKit, useModelSelector, useSlotFilter } from '@/composables'
+import { BUBBLE_LIST_SLOTS } from '@/context'
+import { resolveChatMessages } from '@/messages'
+import type { ChatListVariant, ModelOption, TrChatProps } from '@/types'
 import { ChatHistory } from '../history'
 import ChatFooter from './ChatFooter.vue'
 import ChatAttachments from './ChatAttachments.vue'
@@ -76,7 +76,8 @@ watch(
 
 const showWelcome = computed(() => chatKit.messages.value.length === 0)
 const welcomeIcon = computed(() => props.welcome?.icon ?? props.brand?.logo)
-const senderPlaceholder = computed(() => props.placeholder ?? CHAT_MESSAGES.sender.placeholder)
+const chatMessages = computed(() => resolveChatMessages(props.messages))
+const senderPlaceholder = computed(() => props.placeholder ?? chatMessages.value.sender.placeholder)
 const showModelSelector = computed(() => Boolean(props.models?.length && props.providerFactories?.length))
 const messageListVariant = computed<ChatListVariant>(() => {
   const attrVariant = attrs['message-list-variant'] ?? attrs.messageListVariant
@@ -111,6 +112,7 @@ function handleSelectedModelChange(model: ModelOption) {
     :attachments-manager="props.attachmentsManager"
     :attachments-feature="props.attachmentsFeature"
     :sender-actions-feature="props.senderActionsFeature"
+    :messages="props.messages"
   >
     <ChatLayout
       :show="props.show !== false"

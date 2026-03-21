@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useChatKit } from '@/composables'
 import type { AgentPresetInput, SkillPackInput } from '@/presets'
 import { createPresetConsumptionFromAgentPreset } from '@/presets'
 import type { ChatConfig } from '@/adapters'
-import type { TrChatProps, TrChatRootProps, UseChatKitOptions, UseChatKitReturn } from '@/types'
-import { conditionalProp } from '@/utils'
+import type { TrChatProps, TrChatRootProps, UseChatKitReturn } from '@/types'
 import ChatRoot from './ChatRoot.vue'
+import { resolveRootChatKit } from './resolveRootChatKit'
 
 defineOptions({ name: 'TrChatPresetRoot' })
 
@@ -29,23 +28,7 @@ interface PresetRootSlotProps {
 
 const props = defineProps<Props>()
 
-const providedChatKit = conditionalProp(props, 'chatKit')
-const providedResponseProvider = conditionalProp(props, 'responseProvider')
-
-if (!providedChatKit && !providedResponseProvider) {
-  throw new Error('[TrChatPresetRoot] Either chatKit or responseProvider must be provided')
-}
-
-const chatKit =
-  providedChatKit ??
-  useChatKit({
-    responseProvider: providedResponseProvider as UseChatKitOptions['responseProvider'],
-    plugins: conditionalProp(props, 'plugins'),
-    storage: conditionalProp(props, 'storage'),
-    initialMessages: conditionalProp(props, 'initialMessages'),
-    onFinish: conditionalProp(props, 'onFinish'),
-    onError: conditionalProp(props, 'onError'),
-  })
+const chatKit = resolveRootChatKit('TrChatPresetRoot', props)
 
 const consumption = computed(() =>
   createPresetConsumptionFromAgentPreset({
@@ -61,10 +44,19 @@ const slotProps = computed<PresetRootSlotProps>(() => ({
   chatKit,
   ...consumption.value,
 }))
+
+const rootBindings = computed(() => ({
+  ...consumption.value.presetSlices.root,
+  mcpManager: props.mcpManager ?? consumption.value.presetSlices.root.mcpManager,
+  attachmentsManager: props.attachmentsManager ?? consumption.value.presetSlices.root.attachmentsManager,
+  attachmentsFeature: props.attachmentsFeature ?? consumption.value.presetSlices.root.attachmentsFeature,
+  senderActionsFeature: props.senderActionsFeature ?? consumption.value.presetSlices.root.senderActionsFeature,
+  messages: props.messages ?? consumption.value.presetSlices.root.messages,
+}))
 </script>
 
 <template>
-  <ChatRoot :chat-kit="chatKit" v-bind="consumption.presetSlices.root">
+  <ChatRoot :chat-kit="chatKit" v-bind="rootBindings">
     <slot v-bind="slotProps" />
   </ChatRoot>
 </template>

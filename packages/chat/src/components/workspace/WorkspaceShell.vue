@@ -1,13 +1,7 @@
 <script setup lang="ts">
-import { computed, ref, useSlots, watch } from 'vue'
+import { computed, useSlots } from 'vue'
 import type { TrChatWorkspaceShellProps, ChatWorkspacePanelDefinition } from '@/types'
-import {
-  coerceWorkspacePanelId,
-  findWorkspacePanelById,
-  resolveWorkspaceCollapsedState,
-  resolveWorkspaceRegionWidth,
-  toWorkspacePanelHostItems,
-} from './runtime'
+import { useWorkspaceRegion } from './useWorkspaceRegion'
 
 defineOptions({ name: 'TrChatWorkspaceShell' })
 
@@ -41,187 +35,60 @@ const showRightRegion = computed(
   () => props.rightRegion?.enabled !== false && Boolean(slots.right || props.rightRailLabel),
 )
 const showNavigationLayer = computed(() => props.contentNavigation?.enabled !== false && Boolean(slots.navigation))
-const leftRegionStyle = computed(() => ({
-  '--workspace-region-width': resolveWorkspaceRegionWidth(props.leftRegion?.width, 'left'),
-}))
-const rightRegionStyle = computed(() => ({
-  '--workspace-region-width': resolveWorkspaceRegionWidth(props.rightRegion?.width, 'right'),
-}))
-const isLeftCollapsible = computed(() => props.leftRegion?.collapsible !== false)
-const isRightCollapsible = computed(() => props.rightRegion?.collapsible !== false)
-const isLeftHiddenMode = computed(() => (props.leftRegion?.collapseMode ?? 'hidden') === 'hidden')
-const isRightHiddenMode = computed(() => (props.rightRegion?.collapseMode ?? 'hidden') === 'hidden')
-const uncontrolledLeftCollapsed = ref(props.leftRegion?.defaultOpen === false)
-const uncontrolledRightCollapsed = ref(props.rightRegion?.defaultOpen === false)
-const uncontrolledLeftActivePanelId = ref(props.leftRegion?.activePanelId ?? props.leftRegion?.panels?.[0]?.id)
-const uncontrolledRightActivePanelId = ref(props.rightRegion?.activePanelId ?? props.rightRegion?.panels?.[0]?.id)
-
-watch(
-  () => props.leftCollapsed,
-  (nextValue) => {
-    if (nextValue !== undefined) {
-      uncontrolledLeftCollapsed.value = nextValue
-    }
-  },
-)
-
-watch(
-  () => props.rightCollapsed,
-  (nextValue) => {
-    if (nextValue !== undefined) {
-      uncontrolledRightCollapsed.value = nextValue
-    }
-  },
-)
-
-watch(
-  () => props.leftRegion?.defaultOpen,
-  (defaultOpen) => {
-    if (props.leftCollapsed === undefined && isLeftCollapsible.value) {
-      uncontrolledLeftCollapsed.value = defaultOpen === false
-    }
-  },
-)
-
-watch(
-  () => props.leftRegion?.activePanelId,
-  (activePanelId) => {
-    if (activePanelId !== undefined) {
-      uncontrolledLeftActivePanelId.value = activePanelId
-    }
-  },
-)
-
-watch(
-  () => props.rightRegion?.activePanelId,
-  (activePanelId) => {
-    if (activePanelId !== undefined) {
-      uncontrolledRightActivePanelId.value = activePanelId
-    }
-  },
-)
-
-watch(
-  () => props.rightRegion?.defaultOpen,
-  (defaultOpen) => {
-    if (props.rightCollapsed === undefined && isRightCollapsible.value) {
-      uncontrolledRightCollapsed.value = defaultOpen === false
-    }
-  },
-)
-
-watch(isLeftCollapsible, (collapsible) => {
-  if (!collapsible) {
-    uncontrolledLeftCollapsed.value = false
-  }
-})
-
-watch(isRightCollapsible, (collapsible) => {
-  if (!collapsible) {
-    uncontrolledRightCollapsed.value = false
-  }
-})
-
-watch(
-  () => props.leftRegion?.panels,
-  (panels) => {
-    const currentId = props.leftRegion?.activePanelId ?? uncontrolledLeftActivePanelId.value
-    uncontrolledLeftActivePanelId.value = coerceWorkspacePanelId({ items: panels, requestedId: currentId })
-  },
-  { deep: true },
-)
-
-watch(
-  () => props.rightRegion?.panels,
-  (panels) => {
-    const currentId = props.rightRegion?.activePanelId ?? uncontrolledRightActivePanelId.value
-    uncontrolledRightActivePanelId.value = coerceWorkspacePanelId({ items: panels, requestedId: currentId })
-  },
-  { deep: true },
-)
-
-const leftCollapsedState = computed(() => {
-  return resolveWorkspaceCollapsedState({
-    collapsible: isLeftCollapsible.value,
-    controlledCollapsed: props.leftCollapsed,
-    uncontrolledCollapsed: uncontrolledLeftCollapsed.value,
-  })
-})
-const rightCollapsedState = computed(() => {
-  return resolveWorkspaceCollapsedState({
-    collapsible: isRightCollapsible.value,
-    controlledCollapsed: props.rightCollapsed,
-    uncontrolledCollapsed: uncontrolledRightCollapsed.value,
-  })
-})
 const workspaceShellClass = computed(() => ({
   'is-full-width': props.viewState?.fullWidth,
   'has-content-navigation': showNavigationLayer.value,
 }))
-const leftPanels = computed(() => props.leftRegion?.panels ?? [])
-const rightPanels = computed(() => props.rightRegion?.panels ?? [])
-const leftPanelItems = computed(() => toWorkspacePanelHostItems(leftPanels.value))
-const rightPanelItems = computed(() => toWorkspacePanelHostItems(rightPanels.value))
-const leftActivePanelIdState = computed(() =>
-  coerceWorkspacePanelId({
-    items: leftPanels.value,
-    requestedId: props.leftRegion?.activePanelId ?? uncontrolledLeftActivePanelId.value,
-  }),
-)
-const rightActivePanelIdState = computed(() =>
-  coerceWorkspacePanelId({
-    items: rightPanels.value,
-    requestedId: props.rightRegion?.activePanelId ?? uncontrolledRightActivePanelId.value,
-  }),
-)
+const leftRailLabel = computed(() => props.leftRailLabel || 'Left')
+const rightRailLabel = computed(() => props.rightRailLabel || 'Right')
+const leftRailAriaLabel = computed(() => `Expand ${leftRailLabel.value} panel`)
+const rightRailAriaLabel = computed(() => `Expand ${rightRailLabel.value} panel`)
+const leftRegionConfig = computed(() => props.leftRegion)
+const rightRegionConfig = computed(() => props.rightRegion)
+const controlledLeftCollapsed = computed(() => props.leftCollapsed)
+const controlledRightCollapsed = computed(() => props.rightCollapsed)
 
-function updateLeftCollapsed(nextValue: boolean) {
-  const resolvedValue = isLeftCollapsible.value ? nextValue : false
+const leftRegionState = useWorkspaceRegion({
+  side: 'left',
+  region: leftRegionConfig,
+  controlledCollapsed: controlledLeftCollapsed,
+  onUpdateCollapsed: (value) => emit('update:leftCollapsed', value),
+  onToggle: (value) => emit('left-toggle', value),
+  onUpdateActivePanelId: (value) => emit('update:leftActivePanelId', value),
+  onPanelChange: (panel) => emit('left-panel-change', panel),
+})
+const {
+  regionStyle: leftRegionStyle,
+  isCollapsible: isLeftCollapsible,
+  isHiddenMode: isLeftHiddenMode,
+  panels: leftPanels,
+  panelItems: leftPanelItems,
+  collapsedState: leftCollapsedState,
+  activePanelIdState: leftActivePanelIdState,
+  updateActivePanelId: updateLeftActivePanelId,
+  toggleRegion: toggleLeftRegion,
+} = leftRegionState
 
-  if (props.leftCollapsed === undefined) {
-    uncontrolledLeftCollapsed.value = resolvedValue
-  }
-
-  emit('update:leftCollapsed', resolvedValue)
-  emit('left-toggle', resolvedValue)
-}
-
-function updateRightCollapsed(nextValue: boolean) {
-  const resolvedValue = isRightCollapsible.value ? nextValue : false
-
-  if (props.rightCollapsed === undefined) {
-    uncontrolledRightCollapsed.value = resolvedValue
-  }
-
-  emit('update:rightCollapsed', resolvedValue)
-  emit('right-toggle', resolvedValue)
-}
-
-function toggleLeftRegion() {
-  updateLeftCollapsed(!leftCollapsedState.value)
-}
-
-function toggleRightRegion() {
-  updateRightCollapsed(!rightCollapsedState.value)
-}
-
-function updateLeftActivePanelId(nextValue: string) {
-  if (props.leftRegion?.activePanelId === undefined) {
-    uncontrolledLeftActivePanelId.value = nextValue
-  }
-
-  emit('update:leftActivePanelId', nextValue)
-  emit('left-panel-change', findWorkspacePanelById(leftPanels.value, nextValue))
-}
-
-function updateRightActivePanelId(nextValue: string) {
-  if (props.rightRegion?.activePanelId === undefined) {
-    uncontrolledRightActivePanelId.value = nextValue
-  }
-
-  emit('update:rightActivePanelId', nextValue)
-  emit('right-panel-change', findWorkspacePanelById(rightPanels.value, nextValue))
-}
+const rightRegionState = useWorkspaceRegion({
+  side: 'right',
+  region: rightRegionConfig,
+  controlledCollapsed: controlledRightCollapsed,
+  onUpdateCollapsed: (value) => emit('update:rightCollapsed', value),
+  onToggle: (value) => emit('right-toggle', value),
+  onUpdateActivePanelId: (value) => emit('update:rightActivePanelId', value),
+  onPanelChange: (panel) => emit('right-panel-change', panel),
+})
+const {
+  regionStyle: rightRegionStyle,
+  isCollapsible: isRightCollapsible,
+  isHiddenMode: isRightHiddenMode,
+  panels: rightPanels,
+  panelItems: rightPanelItems,
+  collapsedState: rightCollapsedState,
+  activePanelIdState: rightActivePanelIdState,
+  updateActivePanelId: updateRightActivePanelId,
+  toggleRegion: toggleRightRegion,
+} = rightRegionState
 </script>
 
 <template>
@@ -275,14 +142,20 @@ function updateRightActivePanelId(nextValue: string) {
         }"
         :style="leftRegionStyle"
       >
-        <div
+        <button
           v-if="!(isLeftHiddenMode && leftCollapsedState)"
+          type="button"
           class="tr-workspace-shell__rail"
-          :class="{ 'is-visible': isLeftCollapsible && leftCollapsedState, 'is-interactive': isLeftCollapsible }"
+          :class="{
+            'is-visible': isLeftCollapsible && leftCollapsedState,
+            'is-interactive': isLeftCollapsible,
+          }"
+          :aria-label="leftRailAriaLabel"
+          :disabled="!isLeftCollapsible || !leftCollapsedState"
           @click="isLeftCollapsible && leftCollapsedState && toggleLeftRegion()"
         >
-          <span class="tr-workspace-shell__rail-label">{{ props.leftRailLabel || 'Left' }}</span>
-        </div>
+          <span class="tr-workspace-shell__rail-label">{{ leftRailLabel }}</span>
+        </button>
         <div
           class="tr-workspace-shell__region-content"
           :class="{ 'is-hidden': isLeftCollapsible && leftCollapsedState }"
@@ -316,7 +189,9 @@ function updateRightActivePanelId(nextValue: string) {
           <slot name="navigation" />
         </div>
         <!-- slot: default — center content area, typically a TrChat instance -->
-        <slot />
+        <div class="tr-workspace-shell__center-content">
+          <slot />
+        </div>
       </section>
 
       <aside
@@ -328,14 +203,20 @@ function updateRightActivePanelId(nextValue: string) {
         }"
         :style="rightRegionStyle"
       >
-        <div
+        <button
           v-if="!(isRightHiddenMode && rightCollapsedState)"
+          type="button"
           class="tr-workspace-shell__rail"
-          :class="{ 'is-visible': isRightCollapsible && rightCollapsedState, 'is-interactive': isRightCollapsible }"
+          :class="{
+            'is-visible': isRightCollapsible && rightCollapsedState,
+            'is-interactive': isRightCollapsible,
+          }"
+          :aria-label="rightRailAriaLabel"
+          :disabled="!isRightCollapsible || !rightCollapsedState"
           @click="isRightCollapsible && rightCollapsedState && toggleRightRegion()"
         >
-          <span class="tr-workspace-shell__rail-label">{{ props.rightRailLabel || 'Right' }}</span>
-        </div>
+          <span class="tr-workspace-shell__rail-label">{{ rightRailLabel }}</span>
+        </button>
         <div
           class="tr-workspace-shell__region-content"
           :class="{ 'is-hidden': isRightCollapsible && rightCollapsedState }"
@@ -387,6 +268,17 @@ function updateRightActivePanelId(nextValue: string) {
   --chat-shell-radius: 30px;
   --chat-shell-toolbar-padding: 16px 24px 12px;
   --chat-shell-meta-padding: 12px 24px;
+  --chat-header-padding: 0 var(--workspace-chat-header-inline-padding);
+  --chat-body-padding: 0 var(--workspace-chat-inline-padding);
+  --chat-footer-padding: 0 var(--workspace-chat-inline-padding) 22px;
+  --chat-footer-bg: var(--chat-footer-overlay-bg);
+  --chat-footer-inner-max-width: var(--workspace-chat-footer-max-width);
+  --chat-welcome-area-max-width: var(--workspace-chat-welcome-max-width);
+  --chat-welcome-prompts-max-width: var(--workspace-chat-prompts-max-width);
+  --chat-bubble-list-max-width: var(--workspace-chat-bubbles-max-width);
+  --chat-bubble-list-scrollbar-thumb: rgba(15, 23, 42, 0.18);
+  --chat-bubble-list-scrollbar-thumb-hover: rgba(15, 23, 42, 0.24);
+  --tr-sender-box-shadow: var(--chat-panel-shadow);
   flex: 1;
   min-height: 0;
   display: flex;
@@ -505,6 +397,13 @@ function updateRightActivePanelId(nextValue: string) {
   background: var(--chat-shell-center-bg);
 }
 
+.tr-workspace-shell__center-content {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  width: 100%;
+}
+
 .tr-workspace-shell__content-navigation {
   position: absolute;
   top: 0;
@@ -523,107 +422,6 @@ function updateRightActivePanelId(nextValue: string) {
 
 .tr-workspace-shell__content-navigation.is-left {
   left: 0;
-}
-
-.tr-workspace-shell :deep(.tr-chat) {
-  flex: 1;
-  height: 100%;
-}
-
-.tr-workspace-shell :deep(.tr-chat__layout) {
-  background: transparent;
-}
-
-.tr-workspace-shell :deep(.tr-chat__header) {
-  padding-left: 0;
-  padding-right: 0;
-}
-
-.tr-workspace-shell :deep(.tr-chat__header-inner) {
-  padding-left: var(--workspace-chat-header-inline-padding);
-  padding-right: var(--workspace-chat-header-inline-padding);
-}
-
-.tr-workspace-shell :deep(.tr-chat__body) {
-  padding-left: var(--workspace-chat-inline-padding);
-  padding-right: var(--workspace-chat-inline-padding);
-  transition: padding 0.24s ease;
-}
-
-.tr-workspace-shell :deep(.tr-chat__footer) {
-  padding-left: var(--workspace-chat-inline-padding);
-  padding-right: var(--workspace-chat-inline-padding);
-  padding-bottom: 22px;
-  background: var(--chat-footer-overlay-bg);
-  transition: padding 0.24s ease;
-}
-
-.tr-workspace-shell :deep(.tr-chat__footer-inner) {
-  width: 100%;
-  max-width: var(--workspace-chat-footer-max-width);
-  margin-left: auto;
-  margin-right: auto;
-  transition: max-width 0.28s ease;
-}
-
-.tr-workspace-shell :deep(.tr-sender) {
-  border-radius: 26px;
-  box-shadow: var(--chat-panel-shadow);
-}
-
-.tr-workspace-shell :deep(.tr-prompts) {
-  width: 100%;
-  max-width: var(--workspace-chat-prompts-max-width);
-  margin-left: auto;
-  margin-right: auto;
-  transition: max-width 0.28s ease;
-}
-
-.tr-workspace-shell :deep(.tr-bubble-list) {
-  width: 100%;
-  max-width: var(--workspace-chat-bubbles-max-width);
-  margin-left: auto;
-  margin-right: auto;
-  scrollbar-gutter: stable;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(15, 23, 42, 0.18) transparent;
-  transition: max-width 0.28s ease;
-}
-
-.tr-workspace-shell :deep(.tr-bubble-list::-webkit-scrollbar) {
-  width: 8px;
-}
-
-.tr-workspace-shell :deep(.tr-bubble-list::-webkit-scrollbar-track) {
-  background: transparent;
-}
-
-.tr-workspace-shell :deep(.tr-bubble-list::-webkit-scrollbar-thumb) {
-  border-radius: 999px;
-  border: 2px solid transparent;
-  background-clip: padding-box;
-  background-color: rgba(15, 23, 42, 0.18);
-  transition: background-color 0.2s ease;
-}
-
-.tr-workspace-shell :deep(.tr-bubble-list::-webkit-scrollbar-thumb:hover) {
-  background-color: rgba(15, 23, 42, 0.24);
-}
-
-.tr-workspace-shell :deep(.tr-chat__welcome-area) {
-  width: 100%;
-  max-width: var(--workspace-chat-welcome-max-width);
-  margin-left: auto;
-  margin-right: auto;
-  transition: max-width 0.28s ease;
-}
-
-.tr-workspace-shell :deep(.tr-chat__welcome) {
-  width: 100%;
-}
-
-.tr-workspace-shell :deep(.tr-chat__welcome-prompts) {
-  width: 100%;
 }
 
 .tr-workspace-shell__region {
@@ -675,10 +473,22 @@ function updateRightActivePanelId(nextValue: string) {
     opacity 0.18s ease,
     transform 0.24s ease;
   transform: translateX(4px);
+  border: 0;
+  background: transparent;
+  padding: 0;
 }
 
 .tr-workspace-shell__rail.is-interactive {
   cursor: pointer;
+}
+
+.tr-workspace-shell__rail:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--chat-accent-color) 72%, transparent);
+  outline-offset: -2px;
+}
+
+.tr-workspace-shell__rail:disabled {
+  cursor: default;
 }
 
 .tr-workspace-shell__rail.is-visible {

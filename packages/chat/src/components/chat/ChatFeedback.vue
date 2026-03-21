@@ -3,9 +3,9 @@ import { TrFeedback } from '@opentiny/tiny-robot'
 import type { BubbleMessage } from '@opentiny/tiny-robot'
 import type { ChatMessage } from '@opentiny/tiny-robot-kit'
 import { computed, inject } from 'vue'
-import { useChatFeedback } from '../../composables/useChatFeedback'
-import { CHAT_KIT_KEY, MESSAGE_ACTION_KEY } from '../../context'
-import type { ChatMessageActionPayload, UseChatKitReturn } from '../../types'
+import { useChatFeedback } from '@/composables/useChatFeedback'
+import { CHAT_KIT_KEY, MESSAGE_ACTION_KEY } from '@/context'
+import type { ChatMessageActionPayload, UseChatKitReturn } from '@/types'
 
 defineOptions({ name: 'TrChatFeedback' })
 
@@ -114,12 +114,14 @@ function handleAction(name: string) {
 </script>
 
 <template>
-  <TrFeedback v-if="shouldRenderFeedback" :actions="feedbackActions" @action="handleAction" />
+  <div v-if="shouldRenderFeedback" class="tr-chat-feedback" data-testid="chat-feedback">
+    <TrFeedback :actions="feedbackActions" @action="handleAction" />
+  </div>
 </template>
 
 <style scoped>
-:deep(.tr-feedback .tr-feedback__operations) {
-  justify-content: flex-start !important;
+:global(.tr-chat-feedback .tr-feedback__operations) {
+  justify-content: flex-start;
   padding: 0 2px;
 }
 </style>

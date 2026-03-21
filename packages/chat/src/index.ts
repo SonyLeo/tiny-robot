@@ -113,9 +113,11 @@ export { matchProvider, createOpenAIFactory, createDeepSeekFactory } from './pro
 export { createOpenAIProvider } from './providers/openai'
 export { createDeepSeekProvider } from './providers/deepseek'
 export { createServerProxyProvider, createServerProxyFactory } from './providers/serverProxy'
+export { ChatProviderError, createOpenAICompatibleSseProvider } from './providers/shared'
 
 // ===== Adapters =====
 export { loadChatConfig, createChatAdapterFromConfig, createPresetChatProps, createPresetChatSlices } from './adapters'
+export { CHAT_CAPABILITY_MANIFEST, createChatCapabilityManifest } from './capabilities'
 export {
   CHAT_CLI_CONSUMABLE_FEATURE_KEYS,
   CHAT_CLI_CONSUMABLE_PRESET_PROP_KEYS,
@@ -123,7 +125,7 @@ export {
   createChatCliCapabilitySurface,
 } from './adapters'
 export { CHAT_FEATURE_REGISTRY, resolveChatFeatures } from './features'
-export { CHAT_MESSAGES } from './messages'
+export { CHAT_MESSAGES, resolveChatMessages } from './messages'
 export {
   resolveAgentPreset,
   applyAgentPresetToConfig,
@@ -160,6 +162,7 @@ export type {
   UseChatAttachmentsOptions,
   WelcomeConfig,
   ChatMessages,
+  ChatMessagesOverrides,
   OpenAIProviderOptions,
   DeepSeekProviderOptions,
   UseMessageResponseProvider,
@@ -201,6 +204,7 @@ export type {
   ChatCliConsumablePresetSliceKey,
   ChatConfig,
   ChatConfigDefaults,
+  ChatConfigRuntime,
   ChatLayoutConfig,
   ChatLayoutPlacementsConfig,
   ChatConfigModel,
@@ -218,6 +222,7 @@ export type {
   ChatPresetWelcomeSlice,
   OpenAICompatibleProviderConfig,
 } from './adapters'
+export type { ChatCapabilityManifest, ChatCapabilityCatalogEntry, ChatCapabilityPresetEntry } from './capabilities'
 export type {
   ChatAttachmentsFeatureConfig,
   ChatAttachmentsFeatureResolution,
@@ -243,6 +248,7 @@ export type {
   AgentPresetConsumptionResult,
   AgentPresetInput,
   AgentPresetResolutionResult,
+  AgentPresetRuntimeInput,
   AgentPresetUiInput,
   BuiltInAgentPresetId,
   BuiltInSkillPackId,

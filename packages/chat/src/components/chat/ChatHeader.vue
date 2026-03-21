@@ -2,8 +2,8 @@
 import { computed, inject } from 'vue'
 import { TrIconButton } from '@opentiny/tiny-robot'
 import { IconCancelFullScreen, IconClose, IconFullScreen, IconHistory, IconNewSession } from '@opentiny/tiny-robot-svgs'
-import { CHAT_ATTACHMENTS_KEY, CHAT_KIT_KEY, CHAT_UI_KEY } from '../../context'
-import { CHAT_MESSAGES } from '../../messages'
+import { CHAT_ATTACHMENTS_KEY, CHAT_KIT_KEY, CHAT_UI_KEY } from '@/context'
+import { useResolvedChatMessages } from '@/messages'
 
 defineOptions({ name: 'TrChatHeader' })
 
@@ -33,6 +33,7 @@ const emit = defineEmits<{
 const chatKit = inject(CHAT_KIT_KEY)!
 const attachmentsContext = inject(CHAT_ATTACHMENTS_KEY, null)
 const { showHistoryDrawer } = inject(CHAT_UI_KEY)!
+const chatMessages = useResolvedChatMessages()
 
 function handleNewChat() {
   attachmentsContext?.manager.clear()
@@ -41,10 +42,10 @@ function handleNewChat() {
 
 const fullScreenIcon = computed(() => (props.isFullscreen ? IconCancelFullScreen : IconFullScreen))
 const fullscreenTitle = computed(() =>
-  props.isFullscreen ? CHAT_MESSAGES.header.exitFullscreen : CHAT_MESSAGES.header.enterFullscreen,
+  props.isFullscreen ? chatMessages.value.header.exitFullscreen : chatMessages.value.header.enterFullscreen,
 )
 const historyBtnLabel = computed(() =>
-  showHistoryDrawer.value ? CHAT_MESSAGES.header.closeHistory : CHAT_MESSAGES.header.openHistory,
+  showHistoryDrawer.value ? chatMessages.value.header.closeHistory : chatMessages.value.header.openHistory,
 )
 </script>
 
@@ -64,8 +65,8 @@ const historyBtnLabel = computed(() =>
           :icon="IconNewSession"
           size="28"
           svg-size="20"
-          :title="CHAT_MESSAGES.header.newChat"
-          :aria-label="CHAT_MESSAGES.header.newChat"
+          :title="chatMessages.header.newChat"
+          :aria-label="chatMessages.header.newChat"
           @click="handleNewChat"
         />
         <TrIconButton
@@ -88,8 +89,8 @@ const historyBtnLabel = computed(() =>
         />
         <TrIconButton
           v-if="props.showClose"
-          :title="CHAT_MESSAGES.header.close"
-          :aria-label="CHAT_MESSAGES.header.close"
+          :title="chatMessages.header.close"
+          :aria-label="chatMessages.header.close"
           :icon="IconClose"
           size="28"
           svg-size="20"

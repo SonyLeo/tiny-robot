@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { nextTick, onMounted, ref, watch, inject } from 'vue'
 import { useMessageContent, type BubbleContentRendererProps } from '@opentiny/tiny-robot'
-import { CHAT_KIT_KEY } from '../../context'
-import { CHAT_MESSAGES } from '../../messages'
-import type { UseChatKitReturn } from '../../types'
+import { CHAT_KIT_KEY } from '@/context'
+import { useResolvedChatMessages } from '@/messages'
+import type { UseChatKitReturn } from '@/types'
 
 const props = defineProps<BubbleContentRendererProps>()
 const chatKit = inject<UseChatKitReturn>(CHAT_KIT_KEY)
+const chatMessages = useResolvedChatMessages()
 
 const { contentText } = useMessageContent(props)
 
@@ -86,16 +87,16 @@ onMounted(() => {
           rows="1"
           @keydown="handleKeydown"
           @input="adjustHeight"
-          :placeholder="CHAT_MESSAGES.editMessage.placeholder"
+          :placeholder="chatMessages.editMessage.placeholder"
           autofocus
         />
       </div>
       <div class="edit-input-actions">
         <button class="cancel-btn" @click="handleCancel">
-          <span>{{ CHAT_MESSAGES.editMessage.cancel }}</span>
+          <span>{{ chatMessages.editMessage.cancel }}</span>
         </button>
         <button class="save-btn" @click="handleSave" :disabled="isSaving">
-          <span>{{ isSaving ? CHAT_MESSAGES.editMessage.saving : CHAT_MESSAGES.editMessage.save }}</span>
+          <span>{{ isSaving ? chatMessages.editMessage.saving : chatMessages.editMessage.save }}</span>
         </button>
       </div>
     </div>

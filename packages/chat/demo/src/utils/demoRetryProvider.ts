@@ -42,7 +42,7 @@ function getLastUserMessageContent(requestBody: { messages?: Array<{ role?: stri
 }
 
 export function wrapDemoRetryProvider(provider: ResponseProvider): ResponseProvider {
-  return async (requestBody, abortSignal) => {
+  return (requestBody, abortSignal) => {
     const userContent = getLastUserMessageContent(requestBody)
 
     if (userContent === DEMO_RETRY_TRIGGER) {
@@ -56,7 +56,10 @@ export function wrapDemoRetryProvider(provider: ResponseProvider): ResponseProvi
     }
 
     if (userContent === DEMO_OPTIMISTIC_TRIGGER) {
-      await waitWithAbort(DEMO_OPTIMISTIC_DELAY, abortSignal)
+      return (async () => {
+        await waitWithAbort(DEMO_OPTIMISTIC_DELAY, abortSignal)
+        return provider(requestBody, abortSignal)
+      })() as ReturnType<ResponseProvider>
     }
 
     return provider(requestBody, abortSignal)

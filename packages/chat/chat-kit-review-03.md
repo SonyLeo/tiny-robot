@@ -811,11 +811,38 @@ TrChatFull.Layout = TrChatLayout
 1. **R1-1 `WorkspaceShell` 提取 `useWorkspaceRegion`**
 2. **R1-2 `types.ts` 按领域拆分**
 3. **R2-1 optimisticTurn 改为 turnId / 稳定 ID 匹配**
-4. **R2-4 i18n / messages 提供统一注入入口**
-5. **R2-3 建立 Feature → Prop → Slice 映射表**
+4. **R2-4 i18n / messages 提供统一注入入口**（已完成）
+5. **R2-3 建立 Feature → Prop → Slice 映射表**（已完成）
 6. **R1-4 + R2-5 作为低风险整理并行推进**（目录主干不大搬，`@` 导入风格渐进收口）
 
 这 6 项之外的内容，默认都视为第二梯队或长期方向，不应阻塞首轮实现。
+
+### 4.1.2 当前已完成项（2026-03-21）
+
+结合当前工作区最新实现进度，以下任务已经完成：
+
+1. **R1-1 `WorkspaceShell` 提取 `useWorkspaceRegion`**  
+   已新增 `useWorkspaceRegion` composable，并将 `WorkspaceShell.vue` 左右 region 的镜像状态逻辑收拢到统一抽象中；外部 API 未变化
+2. **R1-2 `types.ts` 按领域拆分**  
+   已拆分为按领域聚合的类型文件，并保留 `types.ts` 作为兼容的统一 re-export 入口
+3. **R2-1 optimisticTurn 改为稳定 ID / turnId 匹配**  
+   已将 optimistic turn 与 retry 的追踪方式从 `content` 匹配切换为稳定 `turnId`，并补充“重复内容消息”回归测试
+4. **R2-4 i18n / messages 提供统一注入入口**  
+   已新增 root-level `messages` 覆盖入口与 context 注入，`header / sender / history / feedback / renderers` 改为消费统一消息源，并补充 messages merge / preset override 回归测试
+5. **R2-3 建立 Feature → Prop → Slice 映射表**  
+   已在 review 文档中补齐显式映射表，并用 contract test 锁定 `features -> presetProps -> presetSlices` 的稳定消费链
+6. **R1-3 WorkspaceShell CSS `:deep()` 迁移**  
+   已将 `WorkspaceShell` 对 chat 内部布局的控制收敛为 CSS 变量传递，移除 `WorkspaceShell.vue` 中的 `:deep()` 穿透，并完成 workspace/content-navigation 回归验证
+7. **R2-2 Root chatKit 创建逻辑统一**  
+   已提取共享的 root chatKit 解析 helper，统一 `ChatRoot / ChatPresetRoot` 的 `chatKit vs responseProvider` 处理路径，并补充纯逻辑回归测试
+8. **R1-4 保持目录主干稳定，仅做局部收口**  
+   已按“不做大规模目录搬迁”的原则完成本轮整理：通过 `types` 拆分、workspace/root helper 提取、局部样式收口解决膨胀点，目录主干保持不变
+9. **R2-5 统一 `@` 别名导入风格**  
+   已将 `components/*`、`workspace/*`、`assistant-outline/*` 等跨层依赖渐进收敛为 `@/` 导入，减少后续目录调整时的路径连锁修改
+
+当前建议的下一步主线顺序：
+
+1. `R3-3` 标记为 deferred，仅在 config 面继续显著膨胀、或需要统一支撑 CLI/文档/schema 复用时再启动
 
 ### 4.2 分阶段建议
 
@@ -823,39 +850,68 @@ TrChatFull.Layout = TrChatLayout
 
 | 编号 | Action | 预估工作量 | 说明 |
 |:-----|:-------|:---------|:-----|
-| **R1-1** | WorkspaceShell 提取 `useWorkspaceRegion` | 中 | C1 修复。消除 left/right 重复逻辑。**不改变外部 API** |
-| **R1-2** | types.ts 按领域拆分 | 小 | C2 修复。保持 `types.ts` 作为聚合re-export 入口，内部按领域拆文件 |
-| **R1-3** | WorkspaceShell CSS `:deep()` 迁移 | 中 | C7 修复。将穿透规则改为 CSS 变量继承。**需要同步调整 Chat 内部组件的样式消费方式** |
-| **R1-4** | 保持目录主干稳定，仅做局部收口 | 小 | C9 补充结论。**不做大规模目录搬迁**，只处理膨胀文件与局部领域边界 |
-| **R1-5** | AssistantOutline CSS Token 化 | 小 | C11 修复。将硬编码颜色迁移到 CSS 变量，使 dark mode 和 P5-A appearance 生效 |
+| **R1-1** | WorkspaceShell 提取 `useWorkspaceRegion` | 中 | C1 修复。消除 left/right 重复逻辑。**已完成（2026-03-21）** |
+| **R1-2** | types.ts 按领域拆分 | 小 | C2 修复。保持 `types.ts` 作为聚合re-export 入口，内部按领域拆文件。**已完成（2026-03-21）** |
+| **R1-3** | WorkspaceShell CSS `:deep()` 迁移 | 中 | C7 修复。将穿透规则改为 CSS 变量继承。**已完成（2026-03-21）** |
+| **R1-4** | 保持目录主干稳定，仅做局部收口 | 小 | C9 补充结论。**不做大规模目录搬迁**，只处理膨胀文件与局部领域边界。**已完成（2026-03-21）** |
+| **R1-5** | AssistantOutline CSS Token 化 | 小 | C11 修复。将硬编码颜色迁移到 CSS 变量，使 dark mode 和 P5-A appearance 生效。**已完成（2026-03-21）** |
 
 #### Phase R2：健壮性增强（提升日常开发信心）
 
 | 编号 | Action | 预估工作量 | 说明 |
 |:-----|:-------|:---------|:-----|
-| **R2-1** | optimisticTurn 改用 turnId 匹配 | 小 | C4 修复。消除 content 匹配的潜在冲突。需确认不影响 edit 回滚 |
-| **R2-2** | Root chatKit 创建逻辑统一 | 小 | C8 修复。提取 `resolveRootChatKit` 工具 |
-| **R2-3** | Feature → Prop → Slice 映射表 | 小 | C6 修复。文档级，不改代码 |
-| **R2-4** | i18n 消息统一注入入口 | 小 | C5 短期方案。优先提供 context 或 root-level `messages` 入口，避免各组件零散覆盖 |
-| **R2-5** | 统一 `@` 别名导入风格 | 小 | C10 补充结论。已接入配置，后续只需渐进式替换深层相对导入 |
-| **R2-6** | ChatFeedback 消除 `:deep(!important)` | 小 | C12 修复。review-01 P1-3 遗留项 |
-| **R2-7** | `useFloatingDropdown` 改用 VueUse 事件绑定 | 小 | C14 修复。消除直接 DOM 操纵和 document 级事件泄漏风险 |
-| **R2-8** | AssistantOutlineTrigger + WorkspaceShell rail a11y 补全 | 小 | C17 短期方案。补 `aria-label` / `role` / `tabindex` |
-| **R2-9** | 补齐包内最小单元测试与统一 test harness | 中 | C16 修复。**基于现有 `packages/chat/tests/*.mjs` 继续补强**，为 adapter/feature/provider 层增加更细粒度测试 |
+| **R2-1** | optimisticTurn 改用 turnId 匹配 | 小 | C4 修复。消除 content 匹配的潜在冲突。需确认不影响 edit 回滚。**已完成（2026-03-21）** |
+| **R2-2** | Root chatKit 创建逻辑统一 | 小 | C8 修复。提取 `resolveRootChatKit` 工具。**已完成（2026-03-21）** |
+| **R2-3** | Feature → Prop → Slice 映射表 | 小 | C6 修复。文档级，不改代码。**已完成（2026-03-21）** |
+| **R2-4** | i18n 消息统一注入入口 | 小 | C5 短期方案。优先提供 context 或 root-level `messages` 入口，避免各组件零散覆盖。**已完成（2026-03-21）** |
+| **R2-5** | 统一 `@` 别名导入风格 | 小 | C10 补充结论。已接入配置，后续只需渐进式替换深层相对导入。**已完成（2026-03-21）** |
+| **R2-6** | ChatFeedback 消除 `:deep(!important)` | 小 | C12 修复。review-01 P1-3 遗留项。已改为组件根范围收敛，不再依赖 `:deep` 与 `!important`。**已完成（2026-03-21）** |
+| **R2-7** | `useFloatingDropdown` 改用 VueUse 事件绑定 | 小 | C14 修复。已改用 `onClickOutside` / `useEventListener`，移除手写 document 级事件绑定。**已完成（2026-03-21）** |
+| **R2-8** | AssistantOutlineTrigger + WorkspaceShell rail a11y 补全 | 小 | C17 短期方案。补 `aria-label` / `role` / 键盘可达性。**已完成（2026-03-21）** |
+| **R2-9** | 补齐包内最小单元测试与统一 test harness | 中 | C16 修复。已新增统一 harness、`run-all.mjs` 全量入口和 provider/factory 单测，`pnpm -F @opentiny/tiny-robot-chat test` 可直接跑完整包内测试。**已完成（2026-03-21）** |
 
 #### Phase R3：长期方向（下一季度考虑）
 
 | 编号 | Action | 预估工作量 | 说明 |
 |:-----|:-------|:---------|:-----|
 | **R3-1** | Workspace 组件独立命名空间 | 中 | 3.3 中建议。`TrChat.WorkspaceShell` → `TrWorkspace.Shell`。**破坏性变更** |
-| **R3-2** | ChatConfig 声明式/运行时分离 | 中 | 3.1 中建议。运行时 manager/callback 不混入 ChatConfig |
-| **R3-3** | config normalize 引入 schema validator | 中 | C3 中建议。依赖选型决策（valibot / arktype 等） |
+| **R3-2** | ChatConfig 声明式/运行时分离 | 中 | 3.1 中建议。已新增 `runtime` 面并将 legacy `features.mcp.manager` 兼容迁移到 `runtime.mcpManager`，保留现有 preset/CLI 消费链。**已完成（2026-03-21）** |
+| **R3-3** | config normalize 引入 schema validator | 中 | C3 中建议。**延期（deferred）**：以当前包体量和配置复杂度看，不构成本轮阻塞；仅在 config 面继续扩张，或需要统一支撑 CLI/文档/schema 复用时再启动。 |
 | **R3-4** | Kit 层 responseProvider 传 Ref | 小 | 3.2 中建议。需跨包协调 |
-| **R3-5** | capability manifest / external metadata surface | 小 | 3.4 中建议。为 `chat-cli` 和未来 `chat-skills` 提供共同的结构化能力输入 |
+| **R3-5** | capability manifest / external metadata surface | 小 | 3.4 中建议。已新增只读 manifest 出口，统一暴露 stable feature keys、preset prop/slice keys、built-in skill pack / preset 元数据，不引入新的运行时路径。**已完成（2026-03-21）** |
 | **R3-6** | ThoughtChain / Reasoning 组件 | 大 | 1.2 中对标。随 o1/R1 模型普及，需独立组件支持推理过程展示 |
-| **R3-7** | Provider 层提取共用 SSE 工厂 + Error 结构化扩展 | 中 | C13 + C15 修复。openai/serverProxy 去重 + ChatErrorInfo 增加 httpStatus/code |
+| **R3-7** | Provider 层提取共用 SSE 工厂 + Error 结构化扩展 | 中 | C13 + C15 修复。已提取共享 OpenAI-compatible SSE provider helper，并为 `ChatErrorInfo` 增加 `httpStatus/code/provider`，provider 侧开始抛结构化错误。**已完成（2026-03-21）** |
 
-### 4.3 建议执行顺序
+### 4.3 R2-3 Feature → Prop → Slice 映射表
+
+这部分用于把 `features/registry.ts -> createPresetChatProps() -> createPresetChatSlices()` 的实际消费链路显式化，作为 review-03、白盒消费、`chat-cli` 契约和后续 `chat-skills` 的共同参考面。
+
+| Feature Key | Registry 输出的 `presetProps` | `createPresetChatSlices()` 消费结果 | 运行时主要入口 |
+|:-----|:-----|:-----|:-----|
+| `attachments` | `attachmentsFeature` | `root.attachmentsFeature` | `ChatRoot` provide attachments context；`ChatAttachments` / `ChatSender` 消费 |
+| `senderActions` | `senderActionsFeature` | `root.senderActionsFeature` | `ChatRoot` provide sender actions context；`ChatSender` 消费 |
+| `welcomePrompts` | `prompts` | `welcome.prompts`（仅当 `welcome` slice 存在） | `ChatWelcome` 渲染欢迎提示；若无 `ui.welcome`，则保留在黑盒 `Chat` 的顶层 props 上 |
+| `mcp` | 无直接 feature preset prop；由 `config.runtime.mcpManager` 注入 `presetProps.mcpManager` | `root.mcpManager` | `ChatRoot` provide MCP manager；`ChatMcpPanel` 和工具调用桥接消费 |
+| `history` | `showHistory` + `historyProps` | `header.showHistory` + `history.enabled/history.props` | `ChatHeader` 控制入口，`ChatHistory` / history 子组件消费 |
+| `feedback` | `showFeedback` | `messageList.showFeedback` | `ChatMessageList` 的 assistant `after` slot 渲染 `ChatFeedback` |
+
+补充说明：
+
+1. `layout.variant` 和 `layout.placements` 不属于 feature registry，但会在 `createPresetChatProps()` 中映射到 `messageListVariant` 和 `roleConfigs`，随后进入 `messageList.variant` 与 `layout.roleConfigs`。
+2. `messages` 同样不属于 feature registry，而是 root-level 覆盖入口：`presetProps.messages -> root.messages -> ChatRoot provide -> header/sender/history/renderers/feedback`。
+3. `history` 和 `feedback` 的特点是 registry 先产出“黑盒开关语义”，再由 slices 分别落到 `header` / `history` / `messageList` 三处，因此它们是最需要 contract test 护栏的 feature。
+4. `mcp` 从 review-03 起拆分为“声明式启用”与“运行时 manager 注入”两部分：`features.mcp` 只表达能力是否开启，`runtime.mcpManager` 负责把运行时对象送进 `ChatRoot`。legacy `features.mcp.manager` 仍兼容，但会在 `loadChatConfig()` 中自动迁移到 `runtime.mcpManager`。
+
+当前对应的代码锚点：
+
+- `packages/chat/src/features/registry.ts`
+- `packages/chat/src/features/types.ts`
+- `packages/chat/src/adapters/config.ts`
+- `packages/chat/tests/config-and-features.test.mjs`
+- `packages/chat/tests/preset-slices.test.mjs`
+- `packages/chat/tests/chat-cli-contract.test.mjs`
+
+### 4.4 建议执行顺序
 
 ```mermaid
 graph LR
@@ -877,11 +933,11 @@ graph LR
     style R3-2 fill:#e0e7ff
 ```
 
-**建议的首批动手项**：R1-1 + R1-2 + R2-1 + R2-4（主线）  
-**建议同步完成的文档/契约项**：R2-3  
-**已可直接采纳的低风险整理项**：R1-4 + R2-5
+**已完成的首批主线项**：R1-1 + R1-2 + R1-3 + R1-4 + R1-5 + R2-1 + R2-2 + R2-4 + R2-5 + R2-6 + R2-7 + R2-8 + R2-9 + R3-2 + R3-5 + R3-7  
+**已完成的文档/契约项**：R2-3 + R3-2 + R3-5 + R3-7  
+**已完成的低风险整理项**：R1-4 + R2-5 + R2-6 + R2-7 + R2-8
 
-### 4.4 测试基线建议
+### 4.5 测试基线建议
 
 review-03 实施阶段建议默认依赖两层测试基线：
 
@@ -972,7 +1028,7 @@ review-03 实施阶段建议默认依赖两层测试基线：
 |:-----|:-----|
 | review-01 | 初始架构评审 → **已落地结论** |
 | review-02 | 能力契约化执行决议 → **当前执行规范** |
-| review-03（本文） | 代码健康度评审 + 重构方向 → **讨论稿** |
+| review-03（本文） | 代码健康度评审 + 重构执行收口 → **本轮已完成** |
 
 ### 7.2 核心判断
 
@@ -984,6 +1040,7 @@ review-03 实施阶段建议默认依赖两层测试基线：
 6. 包内测试现状应修正为“**已有 runtime/integration tests，但仍需补齐更标准化的 unit test harness**”，而不是“完全没有包内测试”
 7. 若未来要推进 `chat-skills`，建议先在 `packages/chat` 补齐结构化 `capability manifest`，作为 `chat-cli` 和技能层的共同输入，而不是直接从 markdown 或源码分散读取
 8. R3 中的长期方向（Transport 层、消息 Parts 模型、capability metadata surface、ThoughtChain 组件）可以作为后续季度的规划输入
+9. 从当前包体量和配置复杂度看，`R3-3 schema validator` 不构成当前阻塞，更适合作为 deferred 项保留，而不是继续拉长 review-03 交付周期
 
 ### 7.3 对标修正结论
 
@@ -991,7 +1048,11 @@ review-03 实施阶段建议默认依赖两层测试基线：
 2. Vercel AI SDK 5 的消息持久化更准确的表述是“官方提供 `UIMessage[]` 持久化模式与示例”，而不是存在固定的 `saveChatMessages()` / `loadChatMessages()` API
 3. “传入现成 Chat 实例”这一点是成立的，但文档表述应避免写成确定存在某个固定 `new Chat()` 公共 API 的口吻
 
-### 7.4 一句话总结
+### 7.4 本轮状态
+
+> review-03 的 R1 / R2 主线和当前值得落地的 R3 收口项已经完成；剩余 `R3-3 / R3-1 / R3-4 / R3-6` 均属于后续阶段议题，不影响将本轮 review 视为完成。
+
+### 7.5 一句话总结
 
 > `packages/chat` 的架构骨架已经立住，但多轮快速迭代让 WorkspaceShell 和配置层积累了可观的结构性债务。  
-> 下一步建议是 **先拆解巨型文件、稳定目录边界、统一 `@` 导入风格、完善映射文档**，然后再进入新功能研发。
+> 本轮已完成的重点是 **先拆解巨型文件、稳定目录边界、统一 `@` 导入风格、完善映射文档并补齐测试护栏**；下一步可以转向上层应用、CLI、模板与 skills 方向，而不是继续延长 review-03。

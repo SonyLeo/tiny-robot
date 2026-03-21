@@ -4,6 +4,7 @@ import type {
   AgentPresetConsumptionResult,
   AgentPresetInput,
   AgentPresetResolutionResult,
+  AgentPresetRuntimeInput,
   AgentPresetUiInput,
   ApplyAgentPresetOptions,
   CreatePresetConsumptionFromAgentPresetOptions,
@@ -29,6 +30,16 @@ function cloneUi(ui: AgentPresetUiInput | undefined): AgentPresetUiInput | undef
     ...(ui.brand ? { brand: { ...ui.brand } } : {}),
     ...(ui.welcome ? { welcome: { ...ui.welcome } } : {}),
     ...(ui.prompts ? { prompts: [...ui.prompts] } : {}),
+  }
+}
+
+function cloneRuntime(runtime: AgentPresetRuntimeInput | undefined): AgentPresetRuntimeInput | undefined {
+  if (!runtime) {
+    return undefined
+  }
+
+  return {
+    ...runtime,
   }
 }
 
@@ -114,12 +125,25 @@ function mergeFeatures(
   return next
 }
 
-function toChatConfigPatch(input: Pick<AgentPresetInput, 'defaults' | 'ui' | 'layout' | 'features' | 'mcp'>) {
+function toChatConfigPatch(
+  input: Pick<AgentPresetInput, 'defaults' | 'ui' | 'layout' | 'features' | 'mcp' | 'runtime'>,
+) {
   const features = input.features ? { ...input.features } : undefined
+  let runtime = cloneRuntime(input.runtime)
 
   if (input.mcp !== undefined) {
     const nextFeatures = features ?? {}
-    nextFeatures.mcp = input.mcp
+    nextFeatures.mcp =
+      typeof input.mcp === 'boolean'
+        ? input.mcp
+        : {
+            enabled: input.mcp.enabled,
+          }
+
+    if (typeof input.mcp === 'object' && input.mcp !== null && input.mcp.manager !== undefined) {
+      ;(runtime ??= {}).mcpManager = input.mcp.manager
+    }
+
     return {
       defaults: input.defaults ? { ...input.defaults } : undefined,
       ui: cloneUi(input.ui),
@@ -130,6 +154,7 @@ function toChatConfigPatch(input: Pick<AgentPresetInput, 'defaults' | 'ui' | 'la
           }
         : undefined,
       features: nextFeatures,
+      runtime,
     }
   }
 
@@ -143,6 +168,7 @@ function toChatConfigPatch(input: Pick<AgentPresetInput, 'defaults' | 'ui' | 'la
         }
       : undefined,
     features,
+    runtime,
   }
 }
 
@@ -201,10 +227,30 @@ function mergeLayout(
   }
 }
 
+function mergeRuntime(
+  target: ChatConfig['runtime'] | undefined,
+  patch: ChatConfig['runtime'] | undefined,
+): ChatConfig['runtime'] | undefined {
+  if (!patch) {
+    return target
+  }
+
+  const next = {
+    ...(target ?? {}),
+    ...patch,
+  }
+
+  if (Object.values(next).every((value) => value === undefined)) {
+    return undefined
+  }
+
+  return next
+}
+
 function mergeChatConfigPatch(
-  target: Partial<Pick<ChatConfig, 'defaults' | 'ui' | 'layout' | 'features'>>,
-  patch: Partial<Pick<ChatConfig, 'defaults' | 'ui' | 'layout' | 'features'>>,
-): Partial<Pick<ChatConfig, 'defaults' | 'ui' | 'layout' | 'features'>> {
+  target: Partial<Pick<ChatConfig, 'defaults' | 'ui' | 'layout' | 'features' | 'runtime'>>,
+  patch: Partial<Pick<ChatConfig, 'defaults' | 'ui' | 'layout' | 'features' | 'runtime'>>,
+): Partial<Pick<ChatConfig, 'defaults' | 'ui' | 'layout' | 'features' | 'runtime'>> {
   const next = { ...target }
 
   if (patch.defaults) {
@@ -224,6 +270,10 @@ function mergeChatConfigPatch(
 
   if (patch.features) {
     next.features = mergeFeatures(next.features, patch.features)
+  }
+
+  if (patch.runtime) {
+    next.runtime = mergeRuntime(next.runtime, patch.runtime)
   }
 
   return next
@@ -321,6 +371,7 @@ export function applyAgentPresetToConfig(options: ApplyAgentPresetOptions): Chat
     ui: mergeUi(options.baseConfig.ui, resolvedPreset.chatConfigPatch.ui),
     layout: mergeLayout(options.baseConfig.layout, resolvedPreset.chatConfigPatch.layout),
     features: mergeFeatures(options.baseConfig.features, resolvedPreset.chatConfigPatch.features),
+    runtime: mergeRuntime(options.baseConfig.runtime, resolvedPreset.chatConfigPatch.runtime),
   }
 }
 

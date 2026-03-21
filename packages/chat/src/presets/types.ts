@@ -7,6 +7,10 @@ export interface AgentPresetUiInput extends Partial<ChatConfigUI> {
   promptMode?: 'replace' | 'append'
 }
 
+export interface AgentPresetRuntimeInput {
+  mcpManager?: TrChatProps['mcpManager']
+}
+
 export interface AgentPresetInput {
   id: string
   label?: string
@@ -16,6 +20,7 @@ export interface AgentPresetInput {
   layout?: ChatLayoutConfig
   features?: ChatFeatureConfigMap
   mcp?: ChatMcpFeatureConfig
+  runtime?: AgentPresetRuntimeInput
   skills?: string[]
 }
 
@@ -27,13 +32,14 @@ export interface SkillPackInput {
   layout?: ChatLayoutConfig
   features?: ChatFeatureConfigMap
   mcp?: ChatMcpFeatureConfig
+  runtime?: AgentPresetRuntimeInput
 }
 
 export interface ResolvedAgentPreset {
   presetId: string
   presetChain: AgentPresetInput[]
   skillPacks: SkillPackInput[]
-  chatConfigPatch: Partial<Pick<ChatConfig, 'defaults' | 'ui' | 'layout' | 'features'>>
+  chatConfigPatch: Partial<Pick<ChatConfig, 'defaults' | 'ui' | 'layout' | 'features' | 'runtime'>>
 }
 
 export interface ResolveAgentPresetOptions {

@@ -46,6 +46,10 @@ export interface ChatLayoutConfig {
   placements?: ChatLayoutPlacementsConfig
 }
 
+export interface ChatConfigRuntime {
+  mcpManager?: TrChatProps['mcpManager']
+}
+
 export interface ChatConfig {
   models: ChatConfigModel[]
   providers: Record<string, ChatConfigProvider>
@@ -54,6 +58,7 @@ export interface ChatConfig {
   ui?: ChatConfigUI
   layout?: ChatLayoutConfig
   features?: ChatFeatureConfigMap
+  runtime?: ChatConfigRuntime
 }
 
 export interface ChatAdapter {
@@ -67,7 +72,7 @@ export interface ChatAdapter {
 
 export type ChatPresetProps = Pick<
   TrChatProps,
-  'models' | 'providerFactories' | 'defaultModel' | 'appearance' | 'brand' | 'welcome' | 'prompts'
+  'models' | 'providerFactories' | 'defaultModel' | 'appearance' | 'brand' | 'welcome' | 'prompts' | 'messages'
 > &
   ChatFeaturePresetProps
 
@@ -76,6 +81,7 @@ export interface ChatPresetRootSlice {
   attachmentsManager?: TrChatProps['attachmentsManager']
   attachmentsFeature?: TrChatProps['attachmentsFeature']
   senderActionsFeature?: TrChatProps['senderActionsFeature']
+  messages?: TrChatProps['messages']
 }
 
 export interface ChatPresetLayoutSlice {

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { fileURLToPath } from 'node:url'
 import { computed, nextTick, ref, shallowRef } from 'vue'
 import createJiti from 'jiti'
+import { expectThrowsAsync, runTest } from './_harness.mjs'
 
 const jiti = createJiti(import.meta.url, {
   alias: {
@@ -20,12 +21,18 @@ const modelSelectorModule = await jiti.import('../src/composables/useModelSelect
 const adapterModule = await jiti.import('../src/adapters/index.ts')
 const presetsModule = await jiti.import('../src/presets/index.ts')
 const messagesModule = await jiti.import('../src/messages.ts')
+const capabilitiesModule = await jiti.import('../src/capabilities.ts')
 const workspaceRuntimeModule = await jiti.import('../src/components/workspace/runtime.ts')
+const rootChatKitModule = await jiti.import('../src/components/chat/resolveRootChatKit.ts')
 const contentNavigationCommonModule = await jiti.import('../src/utils/contentNavigation.ts')
 const turnNavigationRuntimeModule = await jiti.import('../src/components/workspace/navigation/turn-navigation.ts')
 const assistantOutlineRuntimeModule = await jiti.import(
   '../src/components/chat/assistant-outline/runtime.ts'
 )
+const providersFactoriesModule = await jiti.import('../src/providers/factories.ts')
+const openAiProviderModule = await jiti.import('../src/providers/openai.ts')
+const serverProxyModule = await jiti.import('../src/providers/serverProxy.ts')
+const sharedProviderModule = await jiti.import('../src/providers/shared.ts')
 
 export { assert, computed, nextTick, ref, shallowRef }
 
@@ -55,6 +62,11 @@ export const getBuiltInAgentPreset = presetsModule.getBuiltInAgentPreset
 export const getBuiltInSkillPack = presetsModule.getBuiltInSkillPack
 
 export const CHAT_MESSAGES = messagesModule.CHAT_MESSAGES
+export const resolveChatMessages = messagesModule.resolveChatMessages
+export const createChatCapabilityManifest = capabilitiesModule.createChatCapabilityManifest
+export const CHAT_CAPABILITY_MANIFEST = capabilitiesModule.CHAT_CAPABILITY_MANIFEST
+export const getRootChatKitResolution = rootChatKitModule.getRootChatKitResolution
+export const resolveRootChatKit = rootChatKitModule.resolveRootChatKit
 export const resolveWorkspaceRegionWidth = workspaceRuntimeModule.resolveWorkspaceRegionWidth
 export const toWorkspacePanelHostItems = workspaceRuntimeModule.toWorkspacePanelHostItems
 export const resolveWorkspaceCollapsedState = workspaceRuntimeModule.resolveWorkspaceCollapsedState
@@ -64,6 +76,13 @@ export const coerceContentNavigationItemId = contentNavigationCommonModule.coerc
 export const resolveConversationTurnNavigationItems = turnNavigationRuntimeModule.resolveConversationTurnNavigationItems
 export const resolveAssistantOutlineItems = assistantOutlineRuntimeModule.resolveAssistantOutlineItems
 export const slugifyAssistantOutlineHeading = assistantOutlineRuntimeModule.slugifyAssistantOutlineHeading
+export const matchProvider = providersFactoriesModule.matchProvider
+export const createOpenAIProvider = openAiProviderModule.createOpenAIProvider
+export const createServerProxyProvider = serverProxyModule.createServerProxyProvider
+export const createServerProxyFactory = serverProxyModule.createServerProxyFactory
+export const ChatProviderError = sharedProviderModule.ChatProviderError
+export const createOpenAICompatibleSseProvider = sharedProviderModule.createOpenAICompatibleSseProvider
+export { expectThrowsAsync, runTest }
 
 export function createChunk({ content, role, finishReason = null, model = 'mock-model' }) {
   return {
@@ -198,12 +217,3 @@ export async function waitFor(assertion, { timeout = 1500, interval = 20 } = {})
   return assertion()
 }
 
-export async function runTest(name, fn) {
-  try {
-    await fn()
-    console.log(`ok - ${name}`)
-  } catch (error) {
-    console.error(`not ok - ${name}`)
-    throw error
-  }
-}

@@ -3,7 +3,7 @@ import { useClipboard } from '@vueuse/core'
 import { IconEditPen } from '@opentiny/tiny-robot-svgs'
 import { IconButton } from '@opentiny/tiny-robot'
 import type { BubbleMessage, FeedbackProps } from '@opentiny/tiny-robot'
-import { CHAT_MESSAGES } from '../messages'
+import { useResolvedChatMessages } from '../messages'
 import type { UseChatKitReturn } from '../types'
 
 export interface UseChatFeedbackOptions {
@@ -16,6 +16,7 @@ export interface UseChatFeedbackOptions {
 export function useChatFeedback(options: UseChatFeedbackOptions) {
   const { messages, messageIndexes, role, chatKit = null } = options
   const { copy } = useClipboard()
+  const chatMessages = useResolvedChatMessages()
 
   const lastContent = computed(() => {
     const last = [...messages].reverse().find((message) => message.role === 'assistant' || !message.role)
@@ -57,16 +58,16 @@ export function useChatFeedback(options: UseChatFeedbackOptions) {
   const feedbackActions = computed<FeedbackProps['actions']>(() => {
     if (role === 'user') {
       return [
-        { name: 'copy', label: CHAT_MESSAGES.feedback.copy, icon: 'copy' },
-        { name: 'edit', label: CHAT_MESSAGES.feedback.edit, icon: h(IconButton, { icon: IconEditPen }) },
+        { name: 'copy', label: chatMessages.value.feedback.copy, icon: 'copy' },
+        { name: 'edit', label: chatMessages.value.feedback.edit, icon: h(IconButton, { icon: IconEditPen }) },
       ]
     }
 
     return [
-      { name: 'copy', label: CHAT_MESSAGES.feedback.copy, icon: 'copy' },
-      { name: 'refresh', label: CHAT_MESSAGES.feedback.regenerate, icon: 'refresh' },
-      { name: 'like', label: CHAT_MESSAGES.feedback.like, icon: 'like' },
-      { name: 'dislike', label: CHAT_MESSAGES.feedback.dislike, icon: 'dislike' },
+      { name: 'copy', label: chatMessages.value.feedback.copy, icon: 'copy' },
+      { name: 'refresh', label: chatMessages.value.feedback.regenerate, icon: 'refresh' },
+      { name: 'like', label: chatMessages.value.feedback.like, icon: 'like' },
+      { name: 'dislike', label: chatMessages.value.feedback.dislike, icon: 'dislike' },
     ]
   })
 

@@ -32,6 +32,7 @@ const isActive = computed(() => {
 })
 const items = computed(() => (isActive.value && context ? context.items.value : []))
 const activeItemId = computed(() => (isActive.value && context ? context.activeItemId.value : undefined))
+const outlineLabel = 'Assistant response outline'
 
 function handleSelect(itemId: string) {
   if (!context || messageIndex.value === undefined) {
@@ -57,6 +58,13 @@ function onItemMouseLeave(itemId: string) {
   if (hoveredIndex.value === itemId) {
     hoveredIndex.value = null
     isHoveredTruncated.value = false
+  }
+}
+
+function onShellFocusOut(event: FocusEvent) {
+  const nextTarget = event.relatedTarget as Node | null
+  if (!nextTarget || !listRef.value?.contains(nextTarget)) {
+    isExpanded.value = false
   }
 }
 
@@ -209,8 +217,12 @@ onBeforeUnmount(() => {
       class="tr-assistant-outline__list-shell"
       :class="{ 'is-expanded': isExpanded }"
       data-testid="assistant-outline-rail"
+      role="navigation"
+      :aria-label="outlineLabel"
       @mouseenter="isExpanded = true"
       @mouseleave="isExpanded = false"
+      @focusin="isExpanded = true"
+      @focusout="onShellFocusOut"
     >
       <button
         v-for="item in items"
@@ -225,6 +237,8 @@ onBeforeUnmount(() => {
         ]"
         :data-tooltip="item.label"
         data-testid="assistant-outline-item"
+        :aria-label="`Jump to section ${item.label}`"
+        :aria-current="item.id === activeItemId ? 'location' : undefined"
         @mouseenter="onItemMouseEnter($event, item.id)"
         @mouseleave="onItemMouseLeave(item.id)"
         @click.stop="handleSelect(item.id)"
@@ -238,6 +252,18 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .tr-assistant-outline {
+  --chat-assistant-outline-expanded-width: 248px;
+  --chat-assistant-outline-shell-bg: color-mix(in srgb, var(--chat-surface-bg) 96%, white 4%);
+  --chat-assistant-outline-shell-border: color-mix(in srgb, var(--chat-surface-border-subtle) 72%, transparent);
+  --chat-assistant-outline-shell-shadow: 0 12px 30px color-mix(in srgb, var(--chat-text-primary) 12%, transparent);
+  --chat-assistant-outline-tooltip-bg: color-mix(in srgb, var(--chat-surface-bg) 98%, white 2%);
+  --chat-assistant-outline-tooltip-color: color-mix(in srgb, var(--chat-text-primary) 78%, transparent);
+  --chat-assistant-outline-tooltip-shadow: 0 8px 18px color-mix(in srgb, var(--chat-text-primary) 12%, transparent);
+  --chat-assistant-outline-line-color: color-mix(in srgb, var(--chat-text-primary) 18%, transparent);
+  --chat-assistant-outline-label-color: color-mix(in srgb, var(--chat-text-primary) 72%, transparent);
+  --chat-assistant-outline-active-color: var(--chat-accent-color);
+  --chat-assistant-outline-item-hover-bg: color-mix(in srgb, var(--chat-surface-bg-hover) 72%, transparent);
+  --chat-assistant-outline-label-max-width: 220px;
   position: absolute;
   left: 0;
   top: 0;
@@ -262,10 +288,10 @@ onBeforeUnmount(() => {
 }
 
 .tr-assistant-outline__list-shell.is-expanded {
-  width: 248px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+  width: var(--chat-assistant-outline-expanded-width);
+  background: var(--chat-assistant-outline-shell-bg);
+  border: 1px solid var(--chat-assistant-outline-shell-border);
+  box-shadow: var(--chat-assistant-outline-shell-shadow);
 }
 
 .tr-assistant-outline__item {
@@ -296,14 +322,14 @@ onBeforeUnmount(() => {
   max-width: 320px;
   padding: 6px 12px;
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.98);
-  color: rgba(15, 23, 42, 0.78);
+  background: var(--chat-assistant-outline-tooltip-bg);
+  color: var(--chat-assistant-outline-tooltip-color);
   font-size: 13px;
   line-height: 1.45;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
+  box-shadow: var(--chat-assistant-outline-tooltip-shadow);
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.15s ease;
@@ -315,7 +341,7 @@ onBeforeUnmount(() => {
   min-width: 14px;
   height: 2px;
   border-radius: 999px;
-  background: rgba(15, 23, 42, 0.18);
+  background: var(--chat-assistant-outline-line-color);
   transition: background-color 0.18s ease;
 }
 
@@ -323,7 +349,7 @@ onBeforeUnmount(() => {
   max-width: 0;
   opacity: 0;
   overflow: hidden;
-  color: rgba(15, 23, 42, 0.72);
+  color: var(--chat-assistant-outline-label-color);
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 13px;
@@ -335,11 +361,11 @@ onBeforeUnmount(() => {
 }
 
 .tr-assistant-outline__item.is-active .tr-assistant-outline__item-line {
-  background: #2f7bf6;
+  background: var(--chat-assistant-outline-active-color);
 }
 
 .tr-assistant-outline__item.is-active .tr-assistant-outline__item-label {
-  color: #2f7bf6;
+  color: var(--chat-assistant-outline-active-color);
 }
 
 .tr-assistant-outline__list-shell.is-expanded .tr-assistant-outline__item {
@@ -348,7 +374,7 @@ onBeforeUnmount(() => {
 }
 
 .tr-assistant-outline__list-shell.is-expanded .tr-assistant-outline__item:hover {
-  background: rgba(15, 23, 42, 0.04);
+  background: var(--chat-assistant-outline-item-hover-bg);
 }
 
 .tr-assistant-outline__list-shell.is-expanded .tr-assistant-outline__item.is-truncated:hover::after {
@@ -356,7 +382,7 @@ onBeforeUnmount(() => {
 }
 
 .tr-assistant-outline__list-shell.is-expanded .tr-assistant-outline__item-label {
-  max-width: 220px;
+  max-width: var(--chat-assistant-outline-label-max-width);
   opacity: 1;
 }
 

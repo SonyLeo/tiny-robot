@@ -1,4 +1,4 @@
-import type { ChatAssistantOutlineItem } from '../../../types'
+import type { ChatAssistantOutlineItem } from '@/types'
 
 export interface AssistantOutlineHeadingEntry {
   id?: string

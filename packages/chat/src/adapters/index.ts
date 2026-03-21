@@ -16,6 +16,7 @@ export type {
   ChatPresetAppearanceSlice,
   ChatConfig,
   ChatConfigDefaults,
+  ChatConfigRuntime,
   ChatLayoutConfig,
   ChatLayoutPlacementsConfig,
   ChatConfigModel,

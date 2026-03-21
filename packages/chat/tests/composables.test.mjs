@@ -157,6 +157,8 @@ await runTest('useChatKit exposes structured errors and annotates failed assista
 
   assert.equal(chatKit.lastError.value?.type, 'auth')
   assert.equal(chatKit.lastError.value?.retryable, false)
+  assert.equal(chatKit.lastError.value?.httpStatus, 401)
+  assert.equal(chatKit.lastError.value?.statusCode, 401)
   assert.equal(chatKit.messages.value[1]?.role, 'assistant')
   assert.equal(chatKit.messages.value[1]?.state?.error?.message, 'OpenAI API error 401: Unauthorized')
 })
@@ -207,6 +209,56 @@ await runTest('useChatKit marks optimistic messages during a pending turn and cl
 
   assert.equal(chatKit.messages.value[0]?.state?.optimistic, undefined)
   assert.equal(chatKit.messages.value[1]?.state?.optimistic, undefined)
+})
+
+await runTest('useChatKit keeps optimistic and retry tracking stable for duplicate user content', async () => {
+  const chatKit = useChatKit({
+    responseProvider: createStreamingProvider(),
+    storage: createMemoryStorage(),
+  })
+
+  chatKit.sendMessage('same')
+
+  await waitFor(() => {
+    assert.equal(chatKit.status.value, 'ready')
+    assert.equal(chatKit.messages.value[1]?.content, 'reply:same')
+  })
+
+  chatKit.updateResponseProvider(createStreamingProvider({ initialDelay: 80 }))
+  chatKit.sendMessage('same')
+
+  await waitFor(() => {
+    assert.equal(chatKit.messages.value[2]?.state?.optimistic, true)
+  })
+
+  assert.equal(chatKit.messages.value[0]?.state?.optimistic, undefined)
+
+  await waitFor(() => {
+    assert.equal(chatKit.status.value, 'ready')
+  })
+
+  chatKit.updateResponseProvider(
+    createRetryableProvider({
+      failMessage: 'same',
+      failOnce: true,
+    }),
+  )
+
+  chatKit.sendMessage('same')
+
+  await waitFor(() => {
+    assert.equal(chatKit.status.value, 'error')
+  })
+
+  assert.equal(await chatKit.retry(), true)
+
+  await waitFor(() => {
+    assert.equal(chatKit.status.value, 'ready')
+    assert.deepEqual(
+      chatKit.messages.value.map((message) => message.content),
+      ['same', 'reply:same', 'same', 'reply:same', 'same', 'reply:same'],
+    )
+  })
 })
 
 await runTest('useChatKit rolls edited history back when the resend fails', async () => {

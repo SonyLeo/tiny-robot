@@ -3,17 +3,18 @@ import { syncRef } from '@vueuse/core'
 import { computed, inject, ref } from 'vue'
 import { TrHistory } from '@opentiny/tiny-robot'
 import type { HistoryItem, HistoryMenuItem } from '@opentiny/tiny-robot'
-import { CHAT_HISTORY_KEY, CHAT_KIT_KEY, CHAT_UI_KEY } from '../../context'
-import { CHAT_MESSAGES } from '../../messages'
+import { CHAT_HISTORY_KEY, CHAT_KIT_KEY, CHAT_UI_KEY } from '@/context'
+import { useResolvedChatMessages } from '@/messages'
 
 const historyState = inject(CHAT_HISTORY_KEY)!
 const chatKit = inject(CHAT_KIT_KEY)!
 const { showHistoryDrawer } = inject(CHAT_UI_KEY)!
+const chatMessages = useResolvedChatMessages()
 
 const filteredHistoryData = computed<HistoryItem[]>(() => {
   const data = chatKit.conversations.value.map((conversation) => ({
     id: conversation.id,
-    title: conversation.title || CHAT_MESSAGES.history.defaultConversationTitle,
+    title: conversation.title || chatMessages.value.history.defaultConversationTitle,
   }))
 
   if (!historyState.searchQuery.value) {

@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { useBubbleContentRenderer, type BubbleContentRendererProps } from '@opentiny/tiny-robot'
 import { computed, inject } from 'vue'
-import { CHAT_KIT_KEY } from '../../context'
-import { CHAT_MESSAGES } from '../../messages'
-import type { UseChatKitReturn } from '../../types'
+import { CHAT_KIT_KEY } from '@/context'
+import { useResolvedChatMessages } from '@/messages'
+import type { UseChatKitReturn } from '@/types'
 
 const props = defineProps<
   BubbleContentRendererProps<
@@ -19,6 +19,7 @@ const props = defineProps<
 
 const error = computed(() => props.message.state?.error)
 const chatKit = inject<UseChatKitReturn | null>(CHAT_KIT_KEY, null)
+const chatMessages = useResolvedChatMessages()
 const canRetry = computed(() => Boolean(error.value?.retryable && chatKit?.lastError.value?.retryable))
 const messageWithoutError = computed(() => {
   return {
@@ -41,7 +42,7 @@ function handleRetry() {
 <template>
   <component :is="renderer" v-bind="props" :message="messageWithoutError" />
   <div class="error-renderer">
-    <code>{{ error?.message || CHAT_MESSAGES.error.defaultMessage }}</code>
+    <code>{{ error?.message || chatMessages.error.defaultMessage }}</code>
     <button
       v-if="canRetry"
       class="error-renderer__retry"
@@ -49,7 +50,7 @@ function handleRetry() {
       type="button"
       @click="handleRetry"
     >
-      {{ CHAT_MESSAGES.error.retry }}
+      {{ chatMessages.error.retry }}
     </button>
   </div>
 </template>

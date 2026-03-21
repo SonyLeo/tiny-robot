@@ -9,6 +9,7 @@ import {
   createChatAdapterFromConfig,
   createPresetChatProps,
 } from '@opentiny/tiny-robot-chat'
+import type { ChatWorkspaceRegionConfig } from '@opentiny/tiny-robot-chat'
 import { toolPlugin } from '@opentiny/tiny-robot-kit'
 import { defaultMcpServers } from '../data/mcpServers'
 import { WELCOME_CONFIG, PROMPTS, BRAND_CONFIG } from '../constants'
@@ -23,6 +24,11 @@ const { resolvedColorMode, setColorMode } = useTheme()
 
 const deepseekApiKey = import.meta.env.VITE_DEEPSEEK_API_KEY || ''
 const openaiApiKey = import.meta.env.VITE_OPENAI_API_KEY || ''
+
+const mcpManager = useMcpManager({
+  initialPlugins: defaultMcpServers,
+  bridge: createDemoMcpBridge(),
+})
 
 const chatAdapter = createChatAdapterFromConfig({
   models: [
@@ -57,6 +63,9 @@ const chatAdapter = createChatAdapterFromConfig({
     welcome: WELCOME_CONFIG,
     prompts: PROMPTS,
   },
+  runtime: {
+    mcpManager,
+  },
   features: {
     attachments: {
       upload: {
@@ -79,11 +88,6 @@ const chatAdapter = createChatAdapterFromConfig({
   },
 })
 
-const mcpManager = useMcpManager({
-  initialPlugins: defaultMcpServers,
-  bridge: createDemoMcpBridge(),
-})
-
 const toolPluginInstance = toolPlugin({
   getTools: mcpManager.getTools,
   callTool: mcpManager.callTool,
@@ -93,7 +97,6 @@ const demoProviderFactories = wrapDemoRetryProviderFactories(chatAdapter.provide
 
 const shellPreset = createPresetChatProps(chatAdapter, {
   providerFactories: demoProviderFactories,
-  mcpManager,
   plugins: [toolPluginInstance],
   showFeedback: true,
   showHistory: true,
@@ -109,7 +112,7 @@ const fullWidth = ref(false)
 const leftChangedPanel = ref('history')
 const rightChangedPanel = ref('notes')
 
-const leftRegionConfig = computed(() => ({
+const leftRegionConfig = computed<ChatWorkspaceRegionConfig>(() => ({
   width: 'md' as const,
   collapsible: true,
   defaultOpen: true,
@@ -120,10 +123,10 @@ const leftRegionConfig = computed(() => ({
   ],
 }))
 
-const rightRegionConfig = computed(() => ({
+const rightRegionConfig = computed<ChatWorkspaceRegionConfig>(() => ({
   width: 'lg' as const,
   collapsible: true,
-  collapseMode: 'hidden',
+  collapseMode: 'hidden' as const,
   defaultOpen: true,
   panels: [
     { id: 'notes', kind: 'custom' as const, label: 'Notes', description: 'Flexible content companion panel' },
@@ -323,10 +326,70 @@ function setDarkMode() {
 
 .p5-shell-page[data-color-mode='dark'] {
   background:
-    radial-gradient(circle at top left, rgba(37, 99, 235, 0.16), transparent 24%),
-    radial-gradient(circle at bottom right, rgba(120, 113, 108, 0.16), transparent 22%),
-    linear-gradient(180deg, #0f172a 0%, #111827 46%, #1f2937 100%);
-  color: #e5edf7;
+    radial-gradient(circle at top left, rgba(56, 189, 248, 0.16), transparent 24%),
+    radial-gradient(circle at 82% 18%, rgba(99, 102, 241, 0.14), transparent 22%),
+    radial-gradient(circle at bottom right, rgba(15, 118, 110, 0.12), transparent 20%),
+    linear-gradient(180deg, #08101d 0%, #0b1323 42%, #0f1729 100%);
+  color: #e6eefc;
+}
+
+.p5-shell-page[data-color-mode='dark'] :deep(.tr-workspace-shell) {
+  --chat-surface-bg: #0f1728;
+  --chat-surface-bg-muted: #162033;
+  --chat-surface-bg-hover: rgba(51, 65, 85, 0.72);
+  --chat-surface-bg-active: rgba(71, 85, 105, 0.82);
+  --chat-surface-border: rgba(148, 163, 184, 0.16);
+  --chat-surface-border-subtle: rgba(148, 163, 184, 0.12);
+  --chat-text-primary: #edf4ff;
+  --chat-text-secondary: #9fb1cd;
+  --chat-text-tertiary: #70809d;
+  --chat-accent-color: #8ab4ff;
+  --chat-accent-bg: rgba(96, 165, 250, 0.18);
+  --chat-accent-border: rgba(96, 165, 250, 0.42);
+  --chat-shell-shadow: 0 30px 70px rgba(2, 6, 23, 0.48), 0 10px 24px rgba(8, 15, 31, 0.32);
+  --chat-shell-border-color: rgba(148, 163, 184, 0.14);
+  --chat-shell-bg: linear-gradient(180deg, rgba(12, 20, 36, 0.96) 0%, rgba(10, 17, 31, 0.98) 100%);
+  --chat-shell-toolbar-bg: linear-gradient(180deg, rgba(18, 28, 46, 0.94) 0%, rgba(12, 20, 36, 0.88) 100%);
+  --chat-shell-toolbar-border-color: rgba(148, 163, 184, 0.14);
+  --chat-shell-meta-bg: linear-gradient(180deg, rgba(14, 23, 39, 0.9) 0%, rgba(11, 19, 33, 0.84) 100%);
+  --chat-shell-meta-border-color: rgba(148, 163, 184, 0.12);
+  --chat-shell-body-bg: linear-gradient(180deg, rgba(7, 14, 26, 0.92) 0%, rgba(7, 13, 24, 0.98) 100%);
+  --chat-shell-center-bg:
+    radial-gradient(circle at top, rgba(59, 130, 246, 0.08), transparent 34%),
+    linear-gradient(180deg, rgba(8, 15, 28, 0.98) 0%, rgba(10, 18, 34, 1) 100%);
+  --chat-shell-region-bg: linear-gradient(180deg, rgba(17, 25, 42, 0.98) 0%, rgba(13, 21, 36, 0.98) 100%);
+  --chat-shell-region-border-color: rgba(148, 163, 184, 0.12);
+  --chat-shell-region-collapsed-bg: linear-gradient(180deg, rgba(18, 28, 46, 0.94) 0%, rgba(12, 20, 36, 0.92) 100%);
+  --chat-shell-badge-bg: linear-gradient(135deg, rgba(96, 165, 250, 0.22) 0%, rgba(14, 165, 233, 0.12) 100%);
+  --chat-shell-badge-color: #dbeafe;
+  --chat-shell-rail-color: #8fa3c7;
+  --chat-body-bg: linear-gradient(180deg, #0a1324 0%, #0c1629 100%);
+  --chat-body-overlay-workspace:
+    radial-gradient(circle at top, rgba(96, 165, 250, 0.1), transparent 30%),
+    linear-gradient(180deg, rgba(9, 17, 31, 0.28) 0%, rgba(9, 17, 31, 0.02) 220px);
+  --chat-footer-overlay-bg: linear-gradient(180deg, rgba(10, 19, 35, 0) 0%, rgba(10, 18, 33, 0.9) 30%);
+  --chat-footer-bg: linear-gradient(180deg, rgba(11, 19, 34, 0.82) 0%, rgba(9, 16, 29, 0.96) 100%);
+  --chat-footer-border-top: 1px solid rgba(148, 163, 184, 0.12);
+  --chat-header-bg: linear-gradient(180deg, rgba(17, 27, 46, 0.96) 0%, rgba(12, 20, 36, 0.92) 100%);
+  --chat-header-border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  --chat-panel-bg: rgba(19, 30, 49, 0.92);
+  --chat-panel-bg-muted: rgba(13, 21, 36, 0.88);
+  --chat-panel-border: rgba(96, 116, 148, 0.34);
+  --chat-panel-shadow: 0 12px 28px rgba(2, 6, 23, 0.28);
+  --tr-bubble-box-bg: rgba(20, 31, 50, 0.92);
+  --tr-bubble-box-border: 1px solid rgba(96, 116, 148, 0.28);
+  --tr-bubble-text-color: var(--chat-text-primary);
+  --tr-sender-bg-color: rgba(9, 17, 31, 0.92);
+  --tr-sender-border-color: rgba(96, 116, 148, 0.34);
+  --tr-sender-text-color: var(--chat-text-primary);
+  --tr-sender-placeholder-color: #7f93b3;
+  --tr-sender-button-hover-bg: rgba(28, 42, 67, 0.82);
+  --tr-prompt-bg: rgba(18, 30, 49, 0.92);
+  --tr-prompt-bg-hover: rgba(24, 39, 63, 0.96);
+  --tr-prompt-bg-active: rgba(31, 49, 78, 0.98);
+  --tr-prompt-shadow: 0 16px 36px rgba(2, 6, 23, 0.22);
+  --tr-prompt-title-color: var(--chat-text-primary);
+  --tr-prompt-description-color: #b7c7e3;
 }
 
 .p5-shell-stage {
@@ -429,43 +492,43 @@ function setDarkMode() {
 }
 
 .p5-shell-page[data-color-mode='dark'] .p5-shell-segment {
-  background: rgba(15, 23, 42, 0.42);
-  border-color: rgba(71, 85, 105, 0.52);
+  background: rgba(12, 20, 36, 0.72);
+  border-color: rgba(96, 116, 148, 0.42);
 }
 
 .p5-shell-page[data-color-mode='dark'] .p5-shell-pill {
-  background: rgba(15, 23, 42, 0.72);
-  border-color: rgba(71, 85, 105, 0.72);
-  color: #cdd8e7;
+  background: rgba(18, 30, 49, 0.82);
+  border-color: rgba(96, 116, 148, 0.44);
+  color: #d7e5fb;
 }
 
 .p5-shell-page[data-color-mode='dark'] .p5-shell-toggle {
-  border-color: rgba(71, 85, 105, 0.56);
-  background: rgba(15, 23, 42, 0.62);
-  color: #d4deeb;
+  border-color: rgba(96, 116, 148, 0.42);
+  background: rgba(17, 28, 46, 0.82);
+  color: #d3def0;
 }
 
 .p5-shell-page[data-color-mode='dark'] .p5-shell-toggle:hover {
-  border-color: rgba(96, 165, 250, 0.42);
-  color: #dbeafe;
-  background: rgba(30, 41, 59, 0.9);
+  border-color: rgba(129, 170, 255, 0.52);
+  color: #eef4ff;
+  background: rgba(24, 39, 63, 0.94);
 }
 
 .p5-shell-page[data-color-mode='dark'] .p5-shell-toggle.is-active {
-  background: rgba(30, 64, 175, 0.56);
-  border-color: rgba(96, 165, 250, 0.48);
-  color: #eff6ff;
-  box-shadow: 0 8px 22px rgba(30, 64, 175, 0.2);
+  background: linear-gradient(180deg, rgba(48, 83, 166, 0.72) 0%, rgba(30, 64, 175, 0.56) 100%);
+  border-color: rgba(129, 170, 255, 0.58);
+  color: #f8fbff;
+  box-shadow: 0 10px 26px rgba(37, 99, 235, 0.22);
 }
 
 .p5-shell-page[data-color-mode='dark'] .p5-shell-chip {
-  background: rgba(15, 23, 42, 0.64);
-  border-color: rgba(71, 85, 105, 0.72);
-  color: #cdd8e7;
+  background: rgba(15, 24, 40, 0.82);
+  border-color: rgba(96, 116, 148, 0.36);
+  color: #bed0eb;
 }
 
 .p5-shell-page[data-color-mode='dark'] .p5-shell-panel {
-  background: linear-gradient(180deg, rgba(15, 23, 42, 0.44) 0%, rgba(30, 41, 59, 0.3) 100%);
+  background: linear-gradient(180deg, rgba(14, 23, 39, 0.48) 0%, rgba(11, 18, 31, 0.24) 100%);
 }
 
 .p5-shell-page[data-color-mode='dark'] .p5-shell-panel-content strong,
@@ -481,9 +544,9 @@ function setDarkMode() {
 
 .p5-shell-page[data-color-mode='dark'] .p5-shell-panel-close,
 .p5-shell-page[data-color-mode='dark'] .p5-shell-note {
-  background: rgba(15, 23, 42, 0.56);
-  border-color: rgba(71, 85, 105, 0.56);
-  color: #cbd5e1;
+  background: rgba(18, 30, 49, 0.84);
+  border-color: rgba(96, 116, 148, 0.34);
+  color: #c9d7ec;
 }
 
 .p5-shell-panel-content {

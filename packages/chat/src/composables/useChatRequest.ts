@@ -2,6 +2,7 @@ import { computed, shallowRef, watchEffect } from 'vue'
 import type { ComputedRef, ShallowRef } from 'vue'
 import type { UseConversationReturn } from '@opentiny/tiny-robot-kit'
 import type { ChatErrorInfo, ChatStatus, ResponseProvider, UseMessageResponseProvider } from '../types'
+import { ChatProviderError } from '@/providers/shared'
 
 interface UseChatRequestOptions {
   conversation: Pick<UseConversationReturn, 'activeConversation' | 'abortActiveRequest'>
@@ -16,25 +17,53 @@ function extractStatusCode(message: string): number | undefined {
 function normalizeChatError(error: unknown): ChatErrorInfo {
   const normalizedError = error instanceof Error ? error : new Error(String(error))
   const message = normalizedError.message || 'Unknown error'
-  const statusCode = extractStatusCode(message)
+  const httpStatus =
+    error instanceof ChatProviderError
+      ? error.httpStatus
+      : typeof (error as { httpStatus?: unknown })?.httpStatus === 'number'
+        ? (error as { httpStatus: number }).httpStatus
+        : typeof (error as { statusCode?: unknown })?.statusCode === 'number'
+          ? (error as { statusCode: number }).statusCode
+          : extractStatusCode(message)
+  const statusCode = httpStatus
+  const code =
+    error instanceof ChatProviderError
+      ? error.code
+      : typeof (error as { code?: unknown })?.code === 'string'
+        ? (error as { code: string }).code
+        : undefined
+  const provider =
+    error instanceof ChatProviderError
+      ? error.provider
+      : typeof (error as { provider?: unknown })?.provider === 'string'
+        ? (error as { provider: string }).provider
+        : undefined
   const lowerCasedMessage = message.toLowerCase()
+  const retryable =
+    error instanceof ChatProviderError && typeof error.retryable === 'boolean' ? error.retryable : undefined
 
-  if (statusCode === 401 || statusCode === 403 || lowerCasedMessage.includes('api key')) {
+  if (statusCode === 401 || statusCode === 403 || lowerCasedMessage.includes('api key') || code === 'invalid_api_key') {
     return {
       type: 'auth',
       message,
-      retryable: false,
+      retryable: retryable ?? false,
+      httpStatus,
       statusCode,
+      code,
+      provider,
       originalError: error,
     }
   }
 
-  if (statusCode === 429 || lowerCasedMessage.includes('rate limit')) {
+  if (statusCode === 429 || lowerCasedMessage.includes('rate limit') || code === 'rate_limit_exceeded') {
     return {
       type: 'rate_limit',
       message,
-      retryable: true,
+      retryable: retryable ?? true,
+      httpStatus,
       statusCode,
+      code,
+      provider,
       originalError: error,
     }
   }
@@ -43,8 +72,11 @@ function normalizeChatError(error: unknown): ChatErrorInfo {
     return {
       type: 'server',
       message,
-      retryable: true,
+      retryable: retryable ?? true,
+      httpStatus,
       statusCode,
+      code,
+      provider,
       originalError: error,
     }
   }
@@ -53,8 +85,11 @@ function normalizeChatError(error: unknown): ChatErrorInfo {
     return {
       type: 'timeout',
       message,
-      retryable: true,
+      retryable: retryable ?? true,
+      httpStatus,
       statusCode,
+      code,
+      provider,
       originalError: error,
     }
   }
@@ -67,8 +102,11 @@ function normalizeChatError(error: unknown): ChatErrorInfo {
     return {
       type: 'network',
       message,
-      retryable: true,
+      retryable: retryable ?? true,
+      httpStatus,
       statusCode,
+      code,
+      provider,
       originalError: error,
     }
   }
@@ -77,8 +115,11 @@ function normalizeChatError(error: unknown): ChatErrorInfo {
     return {
       type: 'provider',
       message,
-      retryable: true,
+      retryable: retryable ?? true,
+      httpStatus,
       statusCode,
+      code,
+      provider,
       originalError: error,
     }
   }
@@ -86,8 +127,11 @@ function normalizeChatError(error: unknown): ChatErrorInfo {
   return {
     type: 'unknown',
     message,
-    retryable: true,
+    retryable: retryable ?? true,
+    httpStatus,
     statusCode,
+    code,
+    provider,
     originalError: error,
   }
 }

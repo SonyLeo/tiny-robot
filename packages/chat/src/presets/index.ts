@@ -10,6 +10,7 @@ export type {
   AgentPresetConsumptionResult,
   AgentPresetInput,
   AgentPresetResolutionResult,
+  AgentPresetRuntimeInput,
   AgentPresetUiInput,
   CreatePresetConsumptionFromAgentPresetOptions,
   ApplyAgentPresetOptions,

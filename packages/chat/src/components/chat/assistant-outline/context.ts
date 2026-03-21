@@ -1,5 +1,5 @@
 import { inject, provide, type InjectionKey, type Ref } from 'vue'
-import type { ChatAssistantOutlineItem } from '../../../types'
+import type { ChatAssistantOutlineItem } from '@/types'
 
 export interface AssistantOutlineRegistration {
   messageIndex: number

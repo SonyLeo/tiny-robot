@@ -72,7 +72,8 @@ await runTest('resolveAgentPreset merges listed skill packs first and lets the p
   assert.equal(resolved.chatConfigPatch.layout?.placements?.assistant, 'end')
   assert.equal(resolved.chatConfigPatch.features?.feedback, true)
   assert.equal(resolved.chatConfigPatch.features?.history, true)
-  assert.equal(resolved.chatConfigPatch.features?.mcp?.manager, mcpManager)
+  assert.equal(resolved.chatConfigPatch.features?.mcp?.enabled, undefined)
+  assert.equal(resolved.chatConfigPatch.runtime?.mcpManager, mcpManager)
   assert.deepEqual(
     resolved.presetChain.map((item) => item.id),
     ['tool-agent'],
@@ -254,10 +255,10 @@ await runTest('createChatAdapterFromAgentPreset resolves back into the existing 
   assert.equal(chatConfig.layout?.variant, 'workspace')
   assert.equal(chatConfig.features?.history, true)
   assert.equal(chatConfig.features?.feedback, true)
-  assert.equal(chatConfig.features?.mcp?.manager, mcpManager)
+  assert.equal(chatConfig.runtime?.mcpManager, mcpManager)
 
   assert.deepEqual(adapter.resolvedFeatures.enabledKeys, ['mcp', 'history', 'feedback'])
-  assert.equal(adapter.resolvedFeatures.entries.mcp.config?.manager, mcpManager)
+  assert.equal(adapter.resolvedFeatures.entries.mcp.config?.manager, undefined)
   assert.equal(adapter.resolvedFeatures.entries.history.enabled, true)
   assert.equal(adapter.resolvedFeatures.entries.feedback.enabled, true)
 })
@@ -499,7 +500,7 @@ await runTest('resolveAgentPreset applies explicit mcp priority rules: object ov
     ],
   })
 
-  assert.equal(objectWins.chatConfigPatch.features?.mcp?.manager, mcpManager)
+  assert.equal(objectWins.chatConfigPatch.runtime?.mcpManager, mcpManager)
 
   const falseWins = resolveAgentPreset({
     preset: {
@@ -597,7 +598,7 @@ await runTest('createPresetConsumptionFromAgentPreset exposes the first chat-sid
   assert.equal(result.chatConfig.ui?.welcome?.title, 'Preset Welcome')
   assert.equal(result.chatConfig.features?.history, true)
   assert.equal(result.chatConfig.features?.feedback, true)
-  assert.equal(result.chatConfig.features?.mcp?.manager, mcpManager)
+  assert.equal(result.chatConfig.runtime?.mcpManager, mcpManager)
   assert.equal(result.presetProps.brand?.title, 'Base Agent')
   assert.equal(result.presetProps.welcome?.title, 'Preset Welcome')
   assert.equal(result.presetProps.showHistory, true)
@@ -632,6 +633,11 @@ await runTest('createPresetConsumptionFromAgentPreset lets presetOverrides shape
       senderMode: 'single',
       maxLength: 280,
       showHistory: false,
+      messages: {
+        sender: {
+          placeholder: 'Override sender message placeholder',
+        },
+      },
     },
   })
 
@@ -639,8 +645,23 @@ await runTest('createPresetConsumptionFromAgentPreset lets presetOverrides shape
   assert.equal(result.presetProps.senderMode, 'single')
   assert.equal(result.presetProps.maxLength, 280)
   assert.equal(result.presetProps.showHistory, false)
+  assert.equal(result.presetProps.messages?.sender?.placeholder, 'Override sender message placeholder')
   assert.equal(result.presetSlices.sender.placeholder, 'Override sender placeholder')
   assert.equal(result.presetSlices.sender.mode, 'single')
   assert.equal(result.presetSlices.sender.maxLength, 280)
   assert.equal(result.presetSlices.history.enabled, false)
+  assert.equal(result.presetSlices.root.messages?.sender?.placeholder, 'Override sender message placeholder')
+})
+
+await runTest('createPresetChatSlices falls back to overridden sender messages when placeholder prop is not provided', async () => {
+  const slices = createPresetChatSlices({
+    messages: {
+      sender: {
+        placeholder: 'Preset messages placeholder',
+      },
+    },
+  })
+
+  assert.equal(slices.sender.placeholder, 'Preset messages placeholder')
+  assert.equal(slices.root.messages?.sender?.placeholder, 'Preset messages placeholder')
 })
