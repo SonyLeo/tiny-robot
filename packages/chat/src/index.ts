@@ -18,7 +18,7 @@ import {
   ChatFeedback as TrChatFeedback,
   ChatMcpPanel as TrChatMcpPanel,
 } from './components/chat'
-import { ChatHistory as TrChatHistory } from './components/history'
+import { ChatHistory as TrChatHistory, ChatHistorySurface as TrChatHistorySurface } from './components/history'
 import { ModelSelector as TrModelSelector } from './components/model-selector'
 import {
   WorkspaceShell as TrChatWorkspaceShell,
@@ -41,6 +41,7 @@ type TrChatWithSubComponents = typeof TrChat & {
   Attachments: typeof TrChatAttachments
   Sender: typeof TrChatSender
   History: typeof TrChatHistory
+  HistorySurface: typeof TrChatHistorySurface
   WorkspaceShell: typeof TrChatWorkspaceShell
   WorkspacePanelHost: typeof TrChatWorkspacePanelHost
   ContentNavigationHost: typeof TrChatContentNavigationHost
@@ -61,6 +62,7 @@ TrChatFull.Footer = TrChatFooter
 TrChatFull.Attachments = TrChatAttachments
 TrChatFull.Sender = TrChatSender
 TrChatFull.History = TrChatHistory
+TrChatFull.HistorySurface = TrChatHistorySurface
 TrChatFull.WorkspaceShell = TrChatWorkspaceShell
 TrChatFull.WorkspacePanelHost = TrChatWorkspacePanelHost
 TrChatFull.ContentNavigationHost = TrChatContentNavigationHost
@@ -99,6 +101,7 @@ export {
   TrChatMcpPanel,
   TrChatLayout,
   TrChatAttachments,
+  TrChatHistorySurface,
   TrChatPresetRoot,
   TrChatAssistantOutline,
   TrChatAssistantOutlineTrigger,

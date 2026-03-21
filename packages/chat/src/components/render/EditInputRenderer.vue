@@ -103,27 +103,35 @@ onMounted(() => {
   </Transition>
 </template>
 
-<style scoped lang="less">
+<style scoped>
 .edit-input-container {
-  background: #fff;
-  border: 1px solid #1476ff;
-  border-radius: 8px;
-  padding: 7px 15px;
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--chat-edit-surface-bg);
+  border: 1px solid var(--chat-edit-surface-border);
+  border-radius: 12px;
+  box-shadow: var(--chat-edit-surface-shadow);
+  padding: 10px 14px;
 
   textarea {
     display: flex;
     width: 100%;
+    min-height: 28px;
     border: none;
     outline: none;
     resize: none;
-    font-size: 16px;
+    font-size: 15px;
     line-height: 1.5;
     background: transparent;
-    color: #333;
+    color: var(--chat-edit-text);
     font-family: inherit;
 
     &:focus {
       outline: none;
+    }
+
+    &::placeholder {
+      color: var(--chat-edit-placeholder);
     }
   }
 
@@ -131,13 +139,14 @@ onMounted(() => {
     display: flex;
     gap: 8px;
     justify-content: flex-end;
-    margin-top: 6px;
+    margin-top: 8px;
 
     button {
-      padding: 3px 20px;
+      padding: 4px 18px;
       border-radius: 999px;
       cursor: pointer;
       font-size: 12px;
+      font-weight: 600;
       line-height: 1.5;
       transition: all 0.2s ease;
 
@@ -147,23 +156,23 @@ onMounted(() => {
     }
 
     .cancel-btn {
-      border: 1px solid #d0d0d0;
-      background: transparent;
-      color: #666;
+      border: 1px solid var(--chat-edit-cancel-border);
+      background: var(--chat-edit-cancel-bg);
+      color: var(--chat-edit-cancel-text);
 
       &:hover {
-        border-color: #999;
+        background: var(--chat-edit-cancel-bg-hover);
       }
     }
 
     .save-btn {
-      border: 1px solid #1476ff;
-      background: #1476ff;
-      color: #fff;
+      border: 1px solid var(--chat-edit-save-border);
+      background: var(--chat-edit-save-bg);
+      color: var(--chat-edit-save-text);
 
       &:hover {
-        background: #0d5ccc;
-        border-color: #0d5ccc;
+        background: var(--chat-edit-save-bg-hover);
+        border-color: var(--chat-edit-save-bg-hover);
       }
     }
   }

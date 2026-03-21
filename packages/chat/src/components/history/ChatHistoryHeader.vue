@@ -39,16 +39,18 @@ function handleToggleManagement() {
   display: flex;
   align-items: center;
   padding: 16px;
-  border-bottom: 1px solid var(--tr-border-color-default);
+  border-bottom: none;
   flex-shrink: 0;
   gap: 8px;
 }
 
 .btn-base {
   padding: 8px 16px;
-  border: 1px solid var(--tr-border-color-default);
+  border: 1px solid var(--chat-history-control-border);
   border-radius: 12px;
-  background: var(--tr-container-bg-default);
+  background: var(--chat-history-control-bg);
+  color: var(--chat-history-control-text);
+  box-shadow: var(--chat-history-control-shadow);
   cursor: pointer;
   font-size: 14px;
   transition: all 0.2s;
@@ -57,8 +59,16 @@ function handleToggleManagement() {
   justify-content: center;
 
   &:hover {
-    background: var(--tr-container-bg-hover);
-    border-color: var(--tr-color-primary);
+    background: var(--chat-history-control-bg-hover);
+    border-color: var(--chat-history-control-border-hover);
+  }
+
+  &:focus-visible {
+    outline: none;
+    border-color: var(--chat-history-control-active-border);
+    box-shadow:
+      0 0 0 3px color-mix(in srgb, var(--chat-history-control-active-border) 35%, transparent),
+      var(--chat-history-control-shadow);
   }
 }
 
@@ -73,9 +83,10 @@ function handleToggleManagement() {
   flex: 1;
 
   &.active {
-    background: var(--tr-color-primary-light);
-    border-color: var(--tr-color-primary);
-    color: var(--tr-color-primary);
+    background: var(--chat-history-control-active-bg);
+    border-color: var(--chat-history-control-active-border);
+    color: var(--chat-history-control-active-text);
+    box-shadow: var(--chat-history-control-active-shadow);
   }
 }
 </style>

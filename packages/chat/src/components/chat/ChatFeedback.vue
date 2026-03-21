@@ -67,12 +67,24 @@ const isPendingAssistantTurn = computed(() => {
 const hasError = computed(() => props.messages.some((message) => Boolean((message as ChatMessage).state?.error)))
 
 const shouldRenderFeedback = computed(() => {
-  if (props.role !== 'assistant') return false
   if (isEditing.value) return false
-  if (hasError.value) return false
-  if (isPendingAssistantTurn.value) return false
+  if (props.role === 'assistant') {
+    if (hasError.value) return false
+    if (isPendingAssistantTurn.value) return false
+    return true
+  }
+
+  if (props.role === 'user') {
+    return true
+  }
+
   return true
 })
+
+const feedbackClass = computed(() => ({
+  'tr-chat-feedback--assistant': props.role === 'assistant',
+  'tr-chat-feedback--user': props.role === 'user',
+}))
 
 function emitAction(action: string) {
   const payload: ChatMessageActionPayload = {
@@ -114,14 +126,44 @@ function handleAction(name: string) {
 </script>
 
 <template>
-  <div v-if="shouldRenderFeedback" class="tr-chat-feedback" data-testid="chat-feedback">
+  <div v-if="shouldRenderFeedback" class="tr-chat-feedback" :class="feedbackClass" data-testid="chat-feedback">
     <TrFeedback :actions="feedbackActions" @action="handleAction" />
   </div>
 </template>
 
 <style scoped>
-:global(.tr-chat-feedback .tr-feedback__operations) {
+:global(.tr-chat-feedback) {
+  margin-top: 8px;
+}
+
+:global(.tr-bubble[data-role='assistant'] .tr-chat-feedback) {
+  align-self: flex-start;
+}
+
+:global(.tr-bubble[data-role='assistant'] .tr-chat-feedback .tr-feedback__operations) {
   justify-content: flex-start;
+  padding: 0 2px;
+}
+
+:global(.tr-bubble[data-role='user'] .tr-chat-feedback) {
+  align-self: flex-end;
+  opacity: 0;
+  transform: translateY(-2px);
+  pointer-events: none;
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
+}
+
+:global(.tr-bubble[data-role='user']:hover .tr-chat-feedback),
+:global(.tr-bubble[data-role='user']:focus-within .tr-chat-feedback) {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+:global(.tr-bubble[data-role='user'] .tr-chat-feedback .tr-feedback__operations) {
+  justify-content: flex-end;
   padding: 0 2px;
 }
 </style>

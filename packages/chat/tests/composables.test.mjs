@@ -294,6 +294,7 @@ await runTest('useChatKit rolls edited history back when the resend fails', asyn
   assert.equal(chatKit.lastError.value?.type, 'provider')
 })
 
+
 await runTest('useModelSelector falls back to the first selectable model and syncs the provider', async () => {
   const currentModel = ref('removed-model')
   const selected = []

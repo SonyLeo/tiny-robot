@@ -64,6 +64,101 @@
     rgba(255, 255, 255, 1) 220px
   );
   --chat-footer-overlay-bg: linear-gradient(180deg, rgba(249, 250, 251, 0) 0%, rgba(249, 250, 251, 0.9) 36%);
+  --chat-markdown-text-color: var(--chat-text-primary);
+  --chat-markdown-muted-color: var(--chat-text-secondary);
+  --chat-markdown-border-color: var(--chat-panel-border);
+  --chat-markdown-surface-muted: var(--chat-panel-bg-muted);
+  --chat-history-surface-border: var(--chat-panel-border);
+  --chat-history-surface-bg: var(--chat-drawer-bg, var(--chat-panel-bg));
+  --chat-history-surface-shadow: var(--chat-panel-shadow);
+  --chat-history-surface-radius: 18px;
+  --tr-bubble-box-bg: color-mix(in srgb, var(--chat-surface-bg-muted) 68%, white 32%);
+  --tr-bubble-box-border: 1px solid color-mix(in srgb, var(--chat-surface-border-subtle) 88%, white 12%);
+  --tr-bubble-text-color: var(--chat-text-primary);
+  --chat-edit-surface-bg: var(--chat-surface-bg);
+  --chat-edit-surface-border: var(--chat-accent-border);
+  --chat-edit-surface-shadow:
+    0 0 0 1px color-mix(in srgb, var(--chat-accent-border) 36%, transparent),
+    var(--chat-shadow-sm);
+  --chat-edit-max-width: 680px;
+  --chat-edit-min-width: 320px;
+  --chat-edit-text: var(--chat-text-primary);
+  --chat-edit-placeholder: var(--chat-text-tertiary);
+  --chat-edit-cancel-bg: transparent;
+  --chat-edit-cancel-border: var(--chat-surface-border-subtle);
+  --chat-edit-cancel-text: var(--chat-text-secondary);
+  --chat-edit-cancel-bg-hover: var(--chat-surface-bg-hover);
+  --chat-edit-save-bg: var(--chat-accent-color);
+  --chat-edit-save-border: var(--chat-accent-color);
+  --chat-edit-save-text: #fff;
+  --chat-edit-save-bg-hover: color-mix(in srgb, var(--chat-accent-color) 88%, black 12%);
+  --chat-history-control-bg: var(--chat-panel-bg);
+  --chat-history-control-bg-hover: var(--chat-panel-bg-muted);
+  --chat-history-control-border: var(--chat-panel-border);
+  --chat-history-control-border-hover: var(--chat-accent-border);
+  --chat-history-control-shadow: var(--chat-history-surface-shadow);
+  --chat-history-control-text: var(--chat-text-primary);
+  --chat-history-control-active-bg: var(--chat-panel-active-bg);
+  --chat-history-control-active-border: var(--chat-panel-active-border);
+  --chat-history-control-active-text: var(--chat-panel-active-text);
+  --chat-history-control-active-shadow: inset 0 0 0 1px var(--chat-panel-active-border);
+  --chat-history-search-bg: var(--chat-panel-bg);
+  --chat-history-search-bg-focus: var(--chat-panel-bg-muted);
+  --chat-history-search-border: var(--chat-panel-border);
+  --chat-history-search-border-focus: var(--chat-accent-border);
+  --chat-history-search-text: var(--chat-text-primary);
+  --chat-history-search-placeholder: var(--chat-text-tertiary);
+  --chat-history-search-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.08);
+  --chat-history-search-focus-ring: color-mix(in srgb, var(--chat-accent-color) 16%, transparent);
+  --tr-history-group-title-color: var(--chat-text-tertiary);
+  --tr-history-item-color: var(--chat-text-primary);
+  --tr-history-item-hover-bg: var(--chat-panel-bg-muted);
+  --tr-history-item-selected-bg: var(--chat-panel-bg);
+  --tr-history-item-selected-color: var(--chat-text-primary);
+  --tr-history-item-action-bg-hover: var(--chat-panel-bg);
+  --tr-history-item-editor-border-color: var(--chat-panel-border);
+  --tr-history-menu-list-bg: var(--chat-panel-bg);
+  --tr-history-menu-list-bg-hover: var(--chat-panel-bg-muted);
+  --tr-history-menu-list-box-shadow: var(--chat-panel-shadow);
+  --tr-history-menu-item-color: var(--chat-text-primary);
+  --tr-history-menu-item-text-color-hover: var(--chat-accent-color);
+  --model-selector-bg: var(--chat-panel-bg, var(--tr-container-bg-default, #fff));
+  --model-selector-border-color: var(--chat-panel-border, var(--tr-border-color-default, #c2c2c2));
+  --model-selector-border-color-hover: color-mix(
+    in srgb,
+    var(--model-selector-border-color) 76%,
+    var(--chat-accent-border, #3b82f6) 24%
+  );
+  --model-selector-text-primary: var(--chat-text-primary, var(--tr-color-text-primary, #191919));
+  --model-selector-text-secondary: var(--chat-text-secondary, #5a5a5a);
+  --model-selector-text-blue: var(--chat-accent-color, #1e40af);
+  --model-selector-text-gray: var(--chat-text-tertiary, #808080);
+  --model-selector-border-blue: var(--chat-accent-border, #3b82f6);
+  --model-selector-shadow-blue: color-mix(in srgb, var(--chat-accent-color, #3b82f6) 22%, transparent);
+  --model-selector-shadow-dropdown: var(--chat-panel-shadow, 0 10px 25px rgba(0, 0, 0, 0.1));
+  --model-selector-bg-light: var(--chat-surface-bg-hover, #f5f5f5);
+  --model-selector-bg-gray: var(--chat-panel-bg-muted, #efefef);
+  --model-selector-bg-gray-dark: color-mix(
+    in srgb,
+    var(--chat-panel-bg-muted, #e8e8e8) 84%,
+    var(--chat-accent-bg, #eff6ff) 16%
+  );
+  --model-selector-bg-blue-light: var(--chat-panel-active-bg, #eff6ff);
+  --model-selector-bg-blue-lighter: color-mix(
+    in srgb,
+    var(--chat-panel-active-bg, #dbeafe) 82%,
+    var(--chat-accent-border, #3b82f6) 18%
+  );
+  --model-selector-scrollbar-color: color-mix(
+    in srgb,
+    var(--model-selector-border-color) 78%,
+    transparent
+  );
+  --model-selector-scrollbar-color-hover: color-mix(
+    in srgb,
+    var(--model-selector-border-color-hover) 88%,
+    transparent
+  );
 }
 
 .tr-chat {
@@ -134,6 +229,15 @@
   --chat-shell-title-color: var(--chat-text-primary);
   --chat-shell-description-color: var(--chat-text-secondary);
   --chat-shell-rail-color: var(--chat-text-tertiary);
+  --workspace-panel-tabs-bg: rgba(255, 255, 255, 0.86);
+  --workspace-panel-tabs-border: rgba(212, 219, 230, 0.88);
+  --workspace-panel-tabs-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+  --workspace-panel-tab-horizontal-text: #5f6b7c;
+  --workspace-panel-tab-horizontal-subtitle: rgba(95, 107, 124, 0.75);
+  --workspace-panel-tab-horizontal-hover-bg: rgba(15, 23, 42, 0.03);
+  --workspace-panel-tab-horizontal-active-bg: #eef4ff;
+  --workspace-panel-tab-horizontal-active-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.18);
+  --workspace-panel-tab-horizontal-active-text: #1d4ed8;
 }
 
 [data-tr-color-mode='dark'] {
@@ -188,4 +292,90 @@
   --tr-prompt-shadow: var(--chat-shadow-sm);
   --tr-prompt-title-color: var(--chat-text-primary);
   --tr-prompt-description-color: #cbd5e1;
+  --chat-history-surface-border: rgba(91, 107, 134, 0.34);
+  --chat-history-surface-bg: linear-gradient(180deg, rgba(26, 34, 48, 0.98) 0%, rgba(21, 28, 40, 0.98) 100%);
+  --chat-history-surface-shadow: 0 14px 28px rgba(2, 6, 23, 0.18);
+  --chat-history-control-bg: linear-gradient(180deg, rgba(28, 36, 49, 0.94) 0%, rgba(24, 31, 43, 0.94) 100%);
+  --chat-history-control-bg-hover: linear-gradient(
+    180deg,
+    rgba(33, 43, 58, 0.96) 0%,
+    rgba(28, 37, 51, 0.96) 100%
+  );
+  --chat-history-control-border: rgba(95, 109, 133, 0.58);
+  --chat-history-control-border-hover: rgba(124, 168, 255, 0.3);
+  --chat-history-control-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+  --chat-history-control-active-bg: linear-gradient(
+    180deg,
+    rgba(52, 78, 123, 0.72) 0%,
+    rgba(41, 63, 101, 0.78) 100%
+  );
+  --chat-history-control-active-border: rgba(124, 168, 255, 0.3);
+  --chat-history-control-active-text: #eef4ff;
+  --chat-history-control-active-shadow:
+    inset 0 0 0 1px rgba(124, 168, 255, 0.24),
+    0 8px 18px rgba(2, 6, 23, 0.12);
+  --chat-history-search-bg: rgba(21, 28, 40, 0.96);
+  --chat-history-search-bg-focus: rgba(25, 33, 47, 0.98);
+  --chat-history-search-border: rgba(67, 80, 101, 0.54);
+  --chat-history-search-border-focus: rgba(124, 168, 255, 0.34);
+  --chat-history-search-placeholder: #6f7d93;
+  --chat-history-search-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+  --chat-history-search-focus-ring: rgba(124, 168, 255, 0.12);
+  --tr-history-item-hover-bg: rgba(43, 54, 72, 0.76);
+  --tr-history-item-selected-bg: rgba(33, 44, 61, 0.94);
+  --tr-history-item-selected-color: #f8fbff;
+  --tr-history-item-action-bg-hover: rgba(52, 65, 86, 0.86);
+  --tr-history-item-editor-border-color: rgba(95, 109, 133, 0.58);
+  --tr-history-menu-list-bg: rgba(26, 34, 48, 0.98);
+  --tr-history-menu-list-bg-hover: rgba(43, 54, 72, 0.76);
+  --tr-history-menu-list-box-shadow: 0 18px 38px rgba(2, 6, 23, 0.26);
+  --model-selector-bg: var(--chat-panel-bg, var(--tr-container-bg-default, #1f1f1f));
+  --model-selector-border-color: var(--chat-panel-border, var(--tr-border-color-default, #404040));
+  --model-selector-border-color-hover: color-mix(
+    in srgb,
+    var(--model-selector-border-color) 72%,
+    var(--chat-accent-border, #60a5fa) 28%
+  );
+  --model-selector-text-primary: var(--chat-text-primary, var(--tr-color-text-primary, #e5e5e5));
+  --model-selector-text-secondary: var(--chat-text-secondary, #a3a3a3);
+  --model-selector-text-blue: var(--chat-accent-color, #60a5fa);
+  --model-selector-text-gray: var(--chat-text-tertiary, #737373);
+  --model-selector-bg-light: var(--chat-surface-bg-hover, #2a2a2a);
+  --model-selector-bg-gray: var(--chat-panel-bg-muted, #333333);
+  --model-selector-bg-gray-dark: color-mix(
+    in srgb,
+    var(--chat-panel-bg-muted, #404040) 84%,
+    var(--chat-accent-bg, #1e3a8a) 16%
+  );
+  --model-selector-bg-blue-light: var(--chat-panel-active-bg, #1e3a8a);
+  --model-selector-bg-blue-lighter: color-mix(
+    in srgb,
+    var(--chat-panel-active-bg, #1e40af) 82%,
+    var(--chat-accent-border, #60a5fa) 18%
+  );
+  --model-selector-scrollbar-color: color-mix(
+    in srgb,
+    var(--model-selector-border-color) 82%,
+    transparent
+  );
+  --model-selector-scrollbar-color-hover: color-mix(
+    in srgb,
+    var(--model-selector-border-color-hover) 88%,
+    transparent
+  );
+  --workspace-panel-tabs-bg: linear-gradient(180deg, rgba(28, 36, 49, 0.94) 0%, rgba(24, 31, 43, 0.94) 100%);
+  --workspace-panel-tabs-border: rgba(91, 107, 134, 0.34);
+  --workspace-panel-tabs-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  --workspace-panel-tab-horizontal-text: #aeb8c8;
+  --workspace-panel-tab-horizontal-subtitle: #778296;
+  --workspace-panel-tab-horizontal-hover-bg: rgba(43, 54, 72, 0.76);
+  --workspace-panel-tab-horizontal-active-bg: linear-gradient(
+    180deg,
+    rgba(52, 78, 123, 0.72) 0%,
+    rgba(41, 63, 101, 0.78) 100%
+  );
+  --workspace-panel-tab-horizontal-active-shadow:
+    inset 0 0 0 1px rgba(124, 168, 255, 0.26),
+    0 8px 18px rgba(2, 6, 23, 0.12);
+  --workspace-panel-tab-horizontal-active-text: #eef4ff;
 }

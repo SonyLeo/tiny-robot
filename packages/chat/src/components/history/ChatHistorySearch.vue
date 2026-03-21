@@ -26,15 +26,24 @@ const chatMessages = useResolvedChatMessages()
 
 .search-input {
   width: 100%;
-  padding: 8px 12px;
-  border: 1px solid var(--tr-border-color-default);
-  border-radius: 6px;
+  padding: 10px 14px;
+  border: 1px solid var(--chat-history-search-border);
+  border-radius: 12px;
   font-size: 14px;
+  color: var(--chat-history-search-text);
+  background: var(--chat-history-search-bg);
+  box-shadow: var(--chat-history-search-shadow);
   outline: none;
-  transition: border-color 0.2s;
+  transition: all 0.2s ease;
+
+  &::placeholder {
+    color: var(--chat-history-search-placeholder);
+  }
 
   &:focus {
-    border-color: var(--tr-color-primary);
+    background: var(--chat-history-search-bg-focus);
+    border-color: var(--chat-history-search-border-focus);
+    box-shadow: 0 0 0 3px var(--chat-history-search-focus-ring);
   }
 }
 </style>

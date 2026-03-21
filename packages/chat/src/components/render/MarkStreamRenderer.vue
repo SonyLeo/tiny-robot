@@ -23,8 +23,18 @@ const { contentText: content } = useMessageContent(props)
 }
 
 .mark-stream-renderer.markstream-vue {
+  color: var(--chat-markdown-text-color, var(--tr-bubble-text-color, inherit));
+  --rc-text-default: var(--chat-markdown-text-color, var(--tr-bubble-text-color, inherit));
+  --rc-text-secondary: var(--chat-markdown-muted-color, var(--chat-text-secondary, inherit));
+  --rc-border-default: var(--chat-markdown-border-color, var(--chat-panel-border));
   --hr-border-color: var(--rc-border-default-5);
   --table-border: var(--rc-border-default);
+  --rc-border-default-5: color-mix(
+    in srgb,
+    var(--chat-markdown-border-color, var(--chat-panel-border)) 72%,
+    transparent
+  );
+  --rc-bg-default-2: var(--chat-markdown-surface-muted, var(--chat-panel-bg-muted));
 
   & > .node-slot:first-child > .node-content > *:first-child {
     margin-top: 0.25rem;

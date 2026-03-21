@@ -8,6 +8,7 @@ defineOptions({ name: 'TrChatWorkspacePanelHost' })
 interface WorkspacePanelHostProps {
   title?: string
   subtitle?: string
+  layout?: 'horizontal' | 'vertical'
   items: ChatWorkspacePanelHostItem[]
   modelValue?: string
   activePanelId?: string
@@ -17,6 +18,7 @@ interface WorkspacePanelHostProps {
 const props = withDefaults(defineProps<WorkspacePanelHostProps>(), {
   title: undefined,
   subtitle: undefined,
+  layout: 'horizontal',
   modelValue: undefined,
   activePanelId: undefined,
   defaultActivePanelId: undefined,
@@ -87,7 +89,7 @@ function selectPanel(panelId: string) {
 </script>
 
 <template>
-  <div class="tr-workspace-panel-host">
+  <div class="tr-workspace-panel-host" :class="`is-layout-${props.layout}`">
     <div v-if="props.title || props.subtitle" class="tr-workspace-panel-host__header">
       <strong v-if="props.title">{{ props.title }}</strong>
       <span v-if="props.subtitle">{{ props.subtitle }}</span>
@@ -204,16 +206,70 @@ function selectPanel(panelId: string) {
   color: var(--workspace-panel-tab-active-text);
 }
 
+/* ============================
+   Horizontal Layout Override
+   ============================ */
+
+.tr-workspace-panel-host.is-layout-horizontal .tr-workspace-panel-host__tabs {
+  flex-direction: row;
+  padding: 6px;
+  gap: 8px;
+  border-radius: 18px;
+  border: 1px solid var(--workspace-panel-tabs-border);
+  background: var(--workspace-panel-tabs-bg);
+  box-shadow: var(--workspace-panel-tabs-shadow);
+}
+
+.tr-workspace-panel-host.is-layout-horizontal .tr-workspace-panel-host__tab {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+.tr-workspace-panel-host.is-layout-horizontal .tr-workspace-panel-host__tab strong {
+  margin-bottom: 2px;
+  color: var(--workspace-panel-tab-horizontal-text);
+  font-weight: 500;
+  transition:
+    color 0.2s ease,
+    font-weight 0.2s ease;
+}
+
+.tr-workspace-panel-host.is-layout-horizontal .tr-workspace-panel-host__tab span {
+  color: var(--workspace-panel-tab-horizontal-subtitle);
+}
+
+.tr-workspace-panel-host.is-layout-horizontal .tr-workspace-panel-host__tab:hover {
+  background: var(--workspace-panel-tab-horizontal-hover-bg);
+  transform: none;
+  box-shadow: none;
+}
+
+.tr-workspace-panel-host.is-layout-horizontal .tr-workspace-panel-host__tab.is-active {
+  background: var(--workspace-panel-tab-horizontal-active-bg);
+  box-shadow: var(--workspace-panel-tab-horizontal-active-shadow);
+}
+
+.tr-workspace-panel-host.is-layout-horizontal .tr-workspace-panel-host__tab.is-active strong,
+.tr-workspace-panel-host.is-layout-horizontal .tr-workspace-panel-host__tab.is-active span {
+  color: var(--workspace-panel-tab-horizontal-active-text);
+  font-weight: 600;
+}
+
 .tr-workspace-panel-host__body {
   min-height: 0;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 12px;
-  border-radius: 16px;
-  border: 1px solid var(--workspace-panel-body-border);
-  background: var(--workspace-panel-body-bg);
 }
 
 .tr-workspace-panel-fade-enter-active,

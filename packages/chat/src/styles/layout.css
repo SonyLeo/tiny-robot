@@ -70,6 +70,7 @@
   overflow: hidden;
   padding: var(--chat-body-padding);
   background: var(--chat-body-bg);
+  color: var(--chat-text-primary);
   transition: padding 0.24s ease;
 }
 
@@ -204,9 +205,36 @@
   border-top: var(--chat-footer-border-top);
 }
 
-.tr-chat :where(.tr-bubble__box[data-optimistic='true']) {
+.tr-chat .tr-bubble__box[data-optimistic='true'] {
   opacity: 0.78;
   transition: opacity 0.18s ease;
+}
+
+.tr-chat .tr-bubble__box[data-editing='true'] {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  overflow: visible;
+}
+
+.tr-chat .tr-bubble__content:has(.tr-bubble__box[data-editing='true']) {
+  gap: 0;
+}
+
+.tr-chat .tr-bubble:has(.tr-bubble__box[data-editing='true']) .tr-bubble__body {
+  width: 100%;
+}
+
+.tr-chat .tr-bubble__box[data-editing='true'] {
+  width: min(100%, var(--chat-edit-max-width)) !important;
+  max-width: min(100%, var(--chat-edit-max-width)) !important;
+  min-width: min(100%, var(--chat-edit-min-width)) !important;
+}
+
+.tr-chat .tr-bubble__box[data-editing='true'] .edit-input-container {
+  width: 100%;
+  min-width: 0;
 }
 
 .tr-chat__footer-inner {
