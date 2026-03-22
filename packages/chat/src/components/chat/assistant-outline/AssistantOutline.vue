@@ -51,6 +51,10 @@ const minItems = computed(() => props.minItems)
 const topOffset = computed(() => props.topOffset)
 const scrollContainer = computed(() => props.scrollContainer ?? null)
 
+function getVisibleHeight(rect: DOMRect, containerRect: DOMRect) {
+  return Math.max(0, Math.min(rect.bottom, containerRect.bottom) - Math.max(rect.top, containerRect.top))
+}
+
 function resolveSources() {
   return Array.from(registrations.value.values())
     .map((registration) => {
@@ -90,6 +94,13 @@ function pickActiveSource(sources: AssistantOutlineSource[]) {
 
       const closestRect = closest.bodyEl.getBoundingClientRect()
       const sourceRect = source.bodyEl.getBoundingClientRect()
+      const closestVisibleHeight = getVisibleHeight(closestRect, containerRect)
+      const sourceVisibleHeight = getVisibleHeight(sourceRect, containerRect)
+
+      if (sourceVisibleHeight !== closestVisibleHeight) {
+        return sourceVisibleHeight > closestVisibleHeight ? source : closest
+      }
+
       const closestDistance = Math.abs(closestRect.top + closestRect.height / 2 - viewportCenter)
       const sourceDistance = Math.abs(sourceRect.top + sourceRect.height / 2 - viewportCenter)
 
@@ -174,7 +185,7 @@ function registerSource(registration: AssistantOutlineRegistration) {
 }
 
 function selectItem(messageIndex: number, itemId: string) {
-  const source = activeSource.value
+  const source = resolveSources().find((entry) => entry.messageIndex === messageIndex) ?? activeSource.value
   const container = scrollContainer.value
   if (!source || !container || source.messageIndex !== messageIndex) {
     return

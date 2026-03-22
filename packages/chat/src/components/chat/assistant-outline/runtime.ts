@@ -56,7 +56,7 @@ export function extractAssistantOutlineHeadings(container: Element): AssistantOu
 
   nodes.forEach((node) => {
     const level = coerceHeadingLevel(node.tagName)
-    if (!level || level > 2) {
+    if (!level || level > 3) {
       return
     }
 

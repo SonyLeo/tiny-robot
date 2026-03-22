@@ -1,14 +1,18 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import type { PropType } from 'vue'
 import { useAssistantOutlineContext } from './context'
+import { extractAssistantOutlineHeadings, resolveAssistantOutlineItems } from './runtime'
 
 defineOptions({ name: 'TrChatAssistantOutlineTrigger' })
 
 const MAX_TEXT_WIDTH = 220
-const OUTLINE_GUTTER = 0
+const OUTLINE_GUTTER = -5
 const OUTLINE_TOP_PADDING = 48
 const OUTLINE_BOTTOM_PADDING = 8
+const INLINE_OUTLINE_MIN_ITEMS = 2
+const INLINE_OUTLINE_OVERFLOW_THRESHOLD = 24
+const INLINE_OUTLINE_MIN_VISIBLE_HEIGHT = 96
 
 const props = defineProps({
   role: {
@@ -27,14 +31,22 @@ const listRef = ref<HTMLElement | null>(null)
 const isExpanded = ref(false)
 const hoveredIndex = ref<string | null>(null)
 const isHoveredTruncated = ref(false)
-const messageIndex = computed(() => props.messageIndexes?.[0])
-const isAssistant = computed(() => props.role === 'assistant')
-const isActive = computed(() => {
-  return Boolean(context && isAssistant.value && context.activeMessageIndex.value === messageIndex.value)
-})
-const items = computed(() => (isActive.value && context ? context.items.value : []))
-const activeItemId = computed(() => (isActive.value && context ? context.activeItemId.value : undefined))
+const shouldShowRail = ref(false)
+const localItems = ref<ReturnType<typeof resolveAssistantOutlineItems>>([])
+const messageIndex = ref<number | undefined>(props.messageIndexes?.[0])
+const isAssistant = ref(props.role === 'assistant')
 const outlineLabel = 'Assistant response outline'
+
+function resolveBubbleElements(rootEl = rootRef.value) {
+  const bubbleEl = rootEl?.closest('.tr-bubble') as HTMLElement | null
+  const bodyEl = bubbleEl?.querySelector<HTMLElement>('.tr-bubble__body') ?? bubbleEl
+
+  return { bubbleEl, bodyEl }
+}
+
+function schedulePositionUpdate() {
+  requestAnimationFrame(updateFloatingPosition)
+}
 
 function handleSelect(itemId: string) {
   if (!context || messageIndex.value === undefined) {
@@ -48,19 +60,16 @@ function onItemMouseEnter(event: MouseEvent, itemId: string) {
   hoveredIndex.value = itemId
   const button = event.currentTarget as HTMLElement
   const textSpan = button.querySelector('.tr-assistant-outline__item-label') as HTMLElement | null
-
-  if (textSpan && textSpan.scrollWidth > MAX_TEXT_WIDTH) {
-    isHoveredTruncated.value = true
-  } else {
-    isHoveredTruncated.value = false
-  }
+  isHoveredTruncated.value = Boolean(textSpan && textSpan.scrollWidth > MAX_TEXT_WIDTH)
 }
 
 function onItemMouseLeave(itemId: string) {
-  if (hoveredIndex.value === itemId) {
-    hoveredIndex.value = null
-    isHoveredTruncated.value = false
+  if (hoveredIndex.value !== itemId) {
+    return
   }
+
+  hoveredIndex.value = null
+  isHoveredTruncated.value = false
 }
 
 function onShellFocusOut(event: FocusEvent) {
@@ -70,28 +79,54 @@ function onShellFocusOut(event: FocusEvent) {
   }
 }
 
+function syncLocalItems() {
+  const { bodyEl } = resolveBubbleElements()
+
+  if (!bodyEl) {
+    localItems.value = []
+    return
+  }
+
+  localItems.value = resolveAssistantOutlineItems(extractAssistantOutlineHeadings(bodyEl))
+}
+
+function syncRailVisibility() {
+  const container = context?.scrollContainer.value
+  const { bodyEl } = resolveBubbleElements()
+
+  if (!bodyEl || !container || localItems.value.length < INLINE_OUTLINE_MIN_ITEMS) {
+    shouldShowRail.value = false
+    return
+  }
+
+  const bodyRect = bodyEl.getBoundingClientRect()
+  const containerRect = container.getBoundingClientRect()
+  const visibleBodyHeight = Math.max(0, containerRect.height - OUTLINE_TOP_PADDING - OUTLINE_BOTTOM_PADDING)
+  const overflowHeight = bodyRect.height - visibleBodyHeight
+  const visibleSliceHeight = Math.max(
+    0,
+    Math.min(bodyRect.bottom, containerRect.bottom) - Math.max(bodyRect.top, containerRect.top),
+  )
+
+  shouldShowRail.value =
+    overflowHeight > INLINE_OUTLINE_OVERFLOW_THRESHOLD && visibleSliceHeight >= INLINE_OUTLINE_MIN_VISIBLE_HEIGHT
+}
+
 function updateFloatingPosition() {
   const rootEl = rootRef.value
   const listEl = listRef.value
   const container = context?.scrollContainer.value
+  const { bubbleEl, bodyEl } = resolveBubbleElements(rootEl)
 
-  if (!rootEl || !listEl || !container || !isActive.value) {
+  syncRailVisibility()
+
+  if (!rootEl || !listEl || !container || !bubbleEl || !bodyEl || !shouldShowRail.value) {
     return
   }
-
-  const bubbleEl = rootEl.closest('.tr-bubble') as HTMLElement | null
-  if (!bubbleEl) {
-    return
-  }
-
-  // 优先使用 .tr-bubble__content 作为内容区参照，它不含 avatar 列，
-  // bodyRect.left 才能正确对齐文字内容左边缘（而非 .tr-bubble__body 含 avatar 的 left）。
-  // Y 轴高度仍从 .tr-bubble__body 取，保证覆盖完整内容高度。
-  const bodyEl = bubbleEl.querySelector<HTMLElement>('.tr-bubble__body') ?? bubbleEl
 
   const rootRect = rootEl.getBoundingClientRect()
   const bodyRect = bodyEl.getBoundingClientRect()
-  const listHeight = listEl.getBoundingClientRect().height || items.value.length * 18 + 12
+  const listHeight = listEl.getBoundingClientRect().height || localItems.value.length * 18 + 12
   const containerRect = container.getBoundingClientRect()
 
   if (!bodyRect.height || !containerRect.height || !listHeight) {
@@ -100,21 +135,12 @@ function updateFloatingPosition() {
 
   const viewportCenter = containerRect.top + containerRect.height / 2
   const idealTop = viewportCenter - listHeight / 2
-
-  // 第一层约束（视口坐标）：outline 必须在 body 内容范围内（避免与头像重叠 / 超过内容底部）
   const minTop = bodyRect.top + OUTLINE_TOP_PADDING
   const maxTop = Math.max(minTop, bodyRect.bottom - listHeight)
   const bodyClampedTop = Math.max(minTop, Math.min(idealTop, maxTop))
-
-  // 第二层约束（偏移空间）：限制 list 底部不超出容器可见区域（留 8px 边距）
-  // 使用 rootRect.top（listEl 的实际 containing block 顶部）而非 bubbleRect.top，
-  // 修复 .tr-bubble 缺少 position:relative 时 containing block 偏移导致的系统性定位误差。
   const rawOffsetY = bodyClampedTop - rootRect.top
   const maxOffsetY = containerRect.bottom - OUTLINE_BOTTOM_PADDING - listHeight - rootRect.top
-
   const offsetY = Math.max(0, Math.min(rawOffsetY, maxOffsetY))
-
-  // X 轴：对齐到内容区左边缘（.tr-bubble__content），排除 avatar 列的影响
   const targetLeft = bodyRect.left - OUTLINE_GUTTER
   const offsetX = Math.round(targetLeft - rootRect.left)
 
@@ -124,6 +150,8 @@ function updateFloatingPosition() {
 let cleanupRegistration: (() => void) | null = null
 let boundContainer: HTMLElement | null = null
 let listResizeObserver: ResizeObserver | null = null
+let bodyMutationObserver: MutationObserver | null = null
+let observedBodyEl: HTMLElement | null = null
 
 function syncRegistration() {
   cleanupRegistration?.()
@@ -133,8 +161,7 @@ function syncRegistration() {
     return
   }
 
-  const bubbleEl = rootRef.value.closest('.tr-bubble') as HTMLElement | null
-  const bodyEl = bubbleEl?.querySelector<HTMLElement>('.tr-bubble__body') ?? bubbleEl
+  const { bubbleEl, bodyEl } = resolveBubbleElements()
   if (!bubbleEl || !bodyEl) {
     return
   }
@@ -143,6 +170,29 @@ function syncRegistration() {
     messageIndex: messageIndex.value,
     bubbleEl,
     bodyEl,
+  })
+
+  if (observedBodyEl === bodyEl) {
+    return
+  }
+
+  bodyMutationObserver?.disconnect()
+  observedBodyEl = bodyEl
+
+  if (typeof MutationObserver === 'undefined') {
+    return
+  }
+
+  bodyMutationObserver = new MutationObserver(() => {
+    syncLocalItems()
+    syncRailVisibility()
+    schedulePositionUpdate()
+  })
+
+  bodyMutationObserver.observe(bodyEl, {
+    childList: true,
+    subtree: true,
+    characterData: true,
   })
 }
 
@@ -163,18 +213,37 @@ function bindContainer(container: HTMLElement | null) {
 }
 
 watch(
-  [rootRef, messageIndex, isAssistant],
-  () => {
-    syncRegistration()
-    requestAnimationFrame(updateFloatingPosition)
+  () => props.messageIndexes?.[0],
+  (value) => {
+    messageIndex.value = value
   },
   { immediate: true },
 )
 
 watch(
-  [items, activeItemId, isActive],
+  () => props.role,
+  (value) => {
+    isAssistant.value = value === 'assistant'
+  },
+  { immediate: true },
+)
+
+watch(
+  [rootRef, messageIndex, isAssistant],
   () => {
-    requestAnimationFrame(updateFloatingPosition)
+    syncLocalItems()
+    syncRegistration()
+    syncRailVisibility()
+    schedulePositionUpdate()
+  },
+  { immediate: true },
+)
+
+watch(
+  localItems,
+  () => {
+    syncRailVisibility()
+    schedulePositionUpdate()
   },
   { deep: true },
 )
@@ -183,7 +252,8 @@ watch(
   () => context?.scrollContainer.value ?? null,
   (container) => {
     bindContainer(container)
-    requestAnimationFrame(updateFloatingPosition)
+    syncRailVisibility()
+    schedulePositionUpdate()
   },
   { immediate: true },
 )
@@ -217,6 +287,7 @@ onBeforeUnmount(() => {
     window.removeEventListener('resize', updateFloatingPosition)
   }
   listResizeObserver?.disconnect()
+  bodyMutationObserver?.disconnect()
 })
 </script>
 
@@ -228,7 +299,7 @@ onBeforeUnmount(() => {
     data-testid="assistant-outline"
   >
     <div
-      v-if="isActive && items.length > 0"
+      v-if="localItems.length > 0 && shouldShowRail"
       ref="listRef"
       class="tr-assistant-outline__list-shell"
       :class="{ 'is-expanded': isExpanded }"
@@ -241,20 +312,16 @@ onBeforeUnmount(() => {
       @focusout="onShellFocusOut"
     >
       <button
-        v-for="item in items"
+        v-for="item in localItems"
         :key="item.id"
         type="button"
         class="tr-assistant-outline__item"
-        :class="[
-          {
-            'is-active': item.id === activeItemId,
-            'is-truncated': hoveredIndex === item.id && isHoveredTruncated,
-          },
-        ]"
+        :class="{
+          'is-truncated': hoveredIndex === item.id && isHoveredTruncated,
+        }"
         :data-tooltip="item.label"
         data-testid="assistant-outline-item"
         :aria-label="`Jump to section ${item.label}`"
-        :aria-current="item.id === activeItemId ? 'location' : undefined"
         @mouseenter="onItemMouseEnter($event, item.id)"
         @mouseleave="onItemMouseLeave(item.id)"
         @click.stop="handleSelect(item.id)"
@@ -374,14 +441,6 @@ onBeforeUnmount(() => {
     max-width 0.24s cubic-bezier(0.4, 0, 0.2, 1),
     opacity 0.18s ease,
     color 0.18s ease;
-}
-
-.tr-assistant-outline__item.is-active .tr-assistant-outline__item-line {
-  background: var(--chat-assistant-outline-active-color);
-}
-
-.tr-assistant-outline__item.is-active .tr-assistant-outline__item-label {
-  color: var(--chat-assistant-outline-active-color);
 }
 
 .tr-assistant-outline__list-shell.is-expanded .tr-assistant-outline__item {
