@@ -6,7 +6,9 @@ import { useAssistantOutlineContext } from './context'
 defineOptions({ name: 'TrChatAssistantOutlineTrigger' })
 
 const MAX_TEXT_WIDTH = 220
-const OUTLINE_GUTTER = -10
+const OUTLINE_GUTTER = 0
+const OUTLINE_TOP_PADDING = 48
+const OUTLINE_BOTTOM_PADDING = 8
 
 const props = defineProps({
   role: {
@@ -78,14 +80,17 @@ function updateFloatingPosition() {
   }
 
   const bubbleEl = rootEl.closest('.tr-bubble') as HTMLElement | null
-  const bodyEl = bubbleEl?.querySelector<HTMLElement>('.tr-bubble__body') ?? bubbleEl
-  if (!bubbleEl || !bodyEl) {
+  if (!bubbleEl) {
     return
   }
 
-  const bubbleRect = bubbleEl.getBoundingClientRect()
-  const bodyRect = bodyEl.getBoundingClientRect()
+  // 优先使用 .tr-bubble__content 作为内容区参照，它不含 avatar 列，
+  // bodyRect.left 才能正确对齐文字内容左边缘（而非 .tr-bubble__body 含 avatar 的 left）。
+  // Y 轴高度仍从 .tr-bubble__body 取，保证覆盖完整内容高度。
+  const bodyEl = bubbleEl.querySelector<HTMLElement>('.tr-bubble__body') ?? bubbleEl
+
   const rootRect = rootEl.getBoundingClientRect()
+  const bodyRect = bodyEl.getBoundingClientRect()
   const listHeight = listEl.getBoundingClientRect().height || items.value.length * 18 + 12
   const containerRect = container.getBoundingClientRect()
 
@@ -95,10 +100,21 @@ function updateFloatingPosition() {
 
   const viewportCenter = containerRect.top + containerRect.height / 2
   const idealTop = viewportCenter - listHeight / 2
-  const minTop = bodyRect.top + 48
+
+  // 第一层约束（视口坐标）：outline 必须在 body 内容范围内（避免与头像重叠 / 超过内容底部）
+  const minTop = bodyRect.top + OUTLINE_TOP_PADDING
   const maxTop = Math.max(minTop, bodyRect.bottom - listHeight)
-  const clampedTop = Math.max(minTop, Math.min(idealTop, maxTop))
-  const offsetY = Math.max(0, clampedTop - bubbleRect.top)
+  const bodyClampedTop = Math.max(minTop, Math.min(idealTop, maxTop))
+
+  // 第二层约束（偏移空间）：限制 list 底部不超出容器可见区域（留 8px 边距）
+  // 使用 rootRect.top（listEl 的实际 containing block 顶部）而非 bubbleRect.top，
+  // 修复 .tr-bubble 缺少 position:relative 时 containing block 偏移导致的系统性定位误差。
+  const rawOffsetY = bodyClampedTop - rootRect.top
+  const maxOffsetY = containerRect.bottom - OUTLINE_BOTTOM_PADDING - listHeight - rootRect.top
+
+  const offsetY = Math.max(0, Math.min(rawOffsetY, maxOffsetY))
+
+  // X 轴：对齐到内容区左边缘（.tr-bubble__content），排除 avatar 列的影响
   const targetLeft = bodyRect.left - OUTLINE_GUTTER
   const offsetX = Math.round(targetLeft - rootRect.left)
 
