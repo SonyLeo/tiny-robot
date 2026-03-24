@@ -218,7 +218,6 @@ TrChat
 - `ui`
 - `layout`
 - `features`
-- `runtime`
 
 所以它回答的问题是：
 
@@ -227,6 +226,19 @@ TrChat
 注意这里非常关键的一点：
 
 > `ChatConfig` 还不是运行时，它只是声明。
+
+并且当前实现里，`runtime` 也不属于 `ChatConfig` 字段本身。  
+真正的运行时是在更后面的 Root 层才建立出来的，顺序是：
+
+```text
+responseProvider / chatKit
+  -> resolveRootChatKit
+  -> useChatKit
+  -> ChatRoot provide
+  -> components inject
+```
+
+所以如果一开始就把 `runtime` 也算进 `ChatConfig`，会把“声明式配置” 和 “运行时建立” 这两层混在一起。
 
 也就是说，`ChatConfig` 不负责：
 
@@ -793,6 +805,48 @@ preset chain
 
 这一步是“配置世界”和“运行时世界”的交界处。
 
+### 8.5 这里最好单独补一张“运行时进入图”
+
+如果你要给别人讲清楚运行时链，建议直接把入口分成三条讲：
+
+```text
+黑盒入口
+  Chat.vue
+    -> useChatKit()
+    -> ChatRoot
+    -> provide runtime context
+    -> Header / MessageList / Sender / History
+
+白盒入口（传 responseProvider）
+  TrChat.Root
+    -> resolveRootChatKit()
+    -> useChatKit()
+    -> ChatRoot
+    -> provide runtime context
+    -> White-box consumers
+
+白盒入口（传 chatKit）
+  external chatKit
+    -> TrChat.Root
+    -> ChatRoot
+    -> provide runtime context
+    -> White-box consumers
+```
+
+这张图最重要的意义是把三件事拆开：
+
+- 运行时入口是谁
+- 运行时主引擎是谁
+- 运行时分发层是谁
+
+更准确地说：
+
+- `useChatKit` 是运行时主引擎
+- `ChatRoot + context.ts` 是运行时分发层
+- `Header / MessageList / Sender / History` 是运行时消费者
+
+这样讲，黑盒和白盒为什么能共享同一套 runtime，就会清楚很多。
+
 ---
 
 ## 9. 第六步：单独读 `useChatKit.ts`，它才是运行时核心
@@ -802,6 +856,18 @@ preset chain
 - [packages/chat/src/composables/useChatKit.ts](../packages/chat/src/composables/useChatKit.ts)
 
 如果说前面几步是在讲“系统怎么装配”，那么这一节就是在讲“系统怎么真正跑起来”。
+
+但这里最好补一句边界说明：
+
+> `useChatKit` 是运行时主引擎，不是完整运行时链的全部。
+
+完整运行时链至少还包括：
+
+- 入口解析：`Chat.vue` / `resolveRootChatKit.ts`
+- 主引擎建立：`useChatKit.ts`
+- 运行时分发：`ChatRoot.vue`
+- 上下文契约：`context.ts`
+- 最终消费：`Header / MessageList / Sender / History`
 
 ### 9.1 为什么一定要单独看它
 
@@ -833,6 +899,19 @@ preset chain
 ```text
 useChatKit
   = chat runtime facade
+```
+
+但如果你要给别人讲得更准确，最好再补一句：
+
+```text
+useChatKit
+  = runtime engine / facade
+
+ChatRoot + context
+  = runtime distribution layer
+
+components
+  = runtime consumers
 ```
 
 ### 9.3 这个文件最值得重点看的几段
@@ -889,14 +968,15 @@ useChatKit
 
 ### 10.1 `ChatRoot.vue` 是什么角色
 
-这个文件不是普通壳组件，它是运行时装配点。
+这个文件不是普通壳组件，它更准确地说是运行时解析与分发点。
 
 它主要做几件事：
 
-1. 解析 `chatKit`
-2. 解析 messages 文案
-3. 建立附件管理器
-4. 通过 provide 把 root 级能力下发给子树
+1. 解析 `chatKit` 或 `responseProvider`
+2. 在需要时通过 `resolveRootChatKit()` 建立 runtime
+3. 解析 messages 文案
+4. 建立附件管理器
+5. 通过 provide 把 root 级能力下发给子树
 
 它 provide 的内容包括：
 
@@ -922,6 +1002,10 @@ useChatKit
 它本质上是在告诉你：
 
 > 当前组件树共享 runtime 的方式，不是层层 props 传递，而是 provide/inject。
+
+如果要讲得更清楚，还可以直接把它定义成：
+
+> `context.ts` 不是附录文件，而是运行时分发契约本身。
 
 ### 10.3 为什么这一步能解释黑盒/白盒共享问题
 
@@ -1181,15 +1265,15 @@ useChatKit
 
 ### 14.5 第五句讲 runtime 怎么建立
 
-再开 `ChatPresetRoot.vue + resolveRootChatKit.ts + useChatKit.ts`，讲：
+再开 `Chat.vue + ChatPresetRoot.vue + resolveRootChatKit.ts + useChatKit.ts`，讲：
 
-> 装配链产出的结果要先接到 Root，再由 `useChatKit` 统一建立聊天 runtime，这里才是真正的会话、请求、重试、编辑回滚所在。
+> 黑盒会在 `Chat.vue` 里直接建立 `chatKit`，白盒会在 `TrChat.Root / resolveRootChatKit` 里决定是复用外部 `chatKit` 还是内部创建，但真正统一的运行时主引擎始终是 `useChatKit`，这里才是真正的会话、请求、重试、编辑回滚所在。
 
-### 14.6 第六句讲组件层只是消费面
+### 14.6 第六句讲 runtime 怎么分发，再讲组件层只是消费面
 
-再开 `ChatRoot.vue + Chat.vue + ChatMessageList.vue + ChatSender.vue`，讲：
+再开 `ChatRoot.vue + context.ts + Chat.vue + ChatMessageList.vue + ChatSender.vue`，讲：
 
-> 组件层不是从零定义聊天逻辑，而是在消费同一个 runtime 和同一组 root context。
+> `ChatRoot + context.ts` 负责把同一个 runtime 分发给整棵组件树；组件层不是从零定义聊天逻辑，而是在消费同一个 runtime 和同一组 root context。
 
 ### 14.7 第七句用 CLI 收尾
 

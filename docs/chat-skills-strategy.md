@@ -247,6 +247,161 @@ feature
 
 > `chat-skills` 是模板产品化之前的孵化层。
 
+### 5.4 如果未来让 `AgentPreset` 成为 `chat-cli` 的主能力消费面
+
+这是一个值得认真考虑的方向。  
+更准确地说，推荐未来逐步演进到：
+
+```text
+AgentPreset / SkillPack
+  -> 作为 chat 场景能力来源
+
+template registry
+  -> 作为 scaffold 与集成来源
+```
+
+也就是说，推荐的抽象不是：
+
+```text
+template = preset
+```
+
+而是：
+
+```text
+template = preset / skill packs + template-owned integrations
+```
+
+其中：
+
+- `preset / skill packs` 负责表达 chat 场景能力
+- `template` 负责表达脚手架、工程结构、README、环境变量、bridge、本地启动方式等集成细节
+
+这条路线的好处是：
+
+1. chat 场景能力定义回到 `packages/chat`
+2. 模板不再重复维护大段 `chat.config.ts` 场景拼装
+3. `chat-cli` 更像在消费 `chat` 的正式能力目录，而不是在模板里手工再拼一遍
+4. 未来 `appearance / runtime / navigation` 等能力进入主链后，模板可以自然跟进，而不是到处重复迁移
+
+但如果要真正走到这一步，`packages/chat` 还需要继续补齐若干前置能力。  
+当前已经具备的基础有：
+
+- `AgentPreset / SkillPack` 类型
+- `resolveAgentPreset()`
+- `createChatAdapterFromAgentPreset()`
+- `createPresetConsumptionFromAgentPreset()`
+- `CHAT_CAPABILITY_MANIFEST`
+
+这些基础说明方向是可行的，但还不够直接支撑 `chat-cli` 把 preset 当成主消费面。  
+至少还需要补齐下面几件事：
+
+#### A. `preset-first` 的 CLI contract
+
+当前 `chat-cli` 稳定消费面仍主要是：
+
+```text
+ChatConfig
+  -> adapter
+  -> createChatCliCapabilitySurface()
+```
+
+如果要让 preset 成为主消费面，还需要补一条正式 contract：
+
+```text
+AgentPreset / SkillPack
+  -> preset consumption
+  -> template-facing capability surface
+```
+
+也就是说，需要一个稳定的 `preset-first` 消费入口，而不只是当前的 adapter-first surface。
+
+#### B. 面向模板的 preset catalog / manifest
+
+当前 capability manifest 已经能导出：
+
+- feature keys
+- preset prop keys
+- preset slice keys
+- built-in skill packs
+- built-in presets
+
+但如果要给 `chat-cli` 做模板能力抽取，这份 manifest 还不够。  
+它还需要能表达例如：
+
+- 哪些 preset 适合作为 template base preset
+- 推荐 blackbox 还是 whitebox 消费
+- 推荐组合哪些 skill packs
+- 是否依赖额外 runtime integration
+- 是否属于 `stable / experimental`
+
+一句话：
+
+> 当前 manifest 更像目录；未来需要把它提升为模板选择依据。
+
+#### C. 稳定的 `presetId -> consumption` 入口
+
+如果未来 `chat-cli` registry 希望只声明：
+
+- `basePresetId`
+- `skillPackIds`
+
+那么 `packages/chat` 需要提供更稳定的按 id 消费入口，例如概念上支持：
+
+```text
+presetId
+  -> resolve preset catalog entry
+  -> merge skill packs
+  -> apply overrides
+  -> output presetProps / presetSlices
+```
+
+这意味着 chat 包需要对 built-in preset ids 和 catalog 访问方式承担更明确的稳定性责任。
+
+#### D. runtime patch 边界继续澄清
+
+当前 preset 已经可以表达一部分 runtime patch，例如：
+
+- `mcpManager`
+
+但如果 preset 要进一步成为模板能力来源，还要继续明确：
+
+- 哪些 runtime 输入属于 chat 场景能力
+- 哪些必须留在 template 层自己持有
+
+否则会出现：
+
+- 一部分集成逻辑进了 preset
+- 一部分仍散落在模板 `lib/chat.ts`
+- 边界不清，维护成本升高
+
+推荐原则是：
+
+- chat 场景能力进 preset
+- 项目集成能力留在 template
+
+#### E. override 边界与消费模式边界
+
+如果未来 `chat-cli` registry 基于 preset 工作，还要明确：
+
+- 模板允许覆盖哪些 preset 输出
+- 黑盒模板允许消费哪些字段
+- 白盒模板允许消费哪些 slices
+- template overrides 是否允许越过 preset contract
+
+否则虽然表面上“基于 preset”，本质上仍会退化成模板层手工二次拼装。
+
+#### F. 测试、文档与版本治理
+
+最后还必须补齐：
+
+- preset-first CLI contract tests
+- preset catalog / manifest tests
+- built-in preset id 稳定性说明
+- 何时允许把 preset 晋升为 template base 的文档规则
+
+如果这些治理层没有补齐，那么即使技术上能跑通，`preset` 也很难真正成为 `chat-cli` 的主能力消费面。
+
 ---
 
 ## 6. 为什么不建议一开始就把所有最小 feature 做成独立 skill
