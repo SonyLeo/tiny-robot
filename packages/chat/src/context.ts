@@ -1,4 +1,4 @@
-import type { ComputedRef, InjectionKey, Ref } from 'vue'
+import { inject, type ComputedRef, type InjectionKey, type Ref } from 'vue'
 import type {
   ChatAttachmentsFeaturePreset,
   ChatMessageActionPayload,
@@ -9,6 +9,7 @@ import type {
 import type { UseMcpManagerReturn } from './composables/useMcpManager'
 import type { UseChatAttachmentsReturn } from './composables/useChatAttachments'
 import type { BubbleListProps } from '@opentiny/tiny-robot'
+import type { TrChatScaffoldContextValue } from './components/chat/scaffold'
 
 // 主状态注入 key：由 TrChatRoot provide，所有子组件 inject
 export const CHAT_KIT_KEY: InjectionKey<UseChatKitReturn> = Symbol('chatKit')
@@ -31,6 +32,7 @@ export const CHAT_SENDER_ACTIONS_KEY: InjectionKey<{
 }> = Symbol('chatSenderActions')
 
 export const CHAT_MESSAGES_KEY: InjectionKey<ComputedRef<ChatMessages>> = Symbol('chatMessages')
+export const CHAT_SCAFFOLD_KEY: InjectionKey<TrChatScaffoldContextValue> = Symbol('chatScaffold')
 
 export const MESSAGE_ACTION_KEY: InjectionKey<((payload: ChatMessageActionPayload) => void) | undefined> =
   Symbol('messageAction')
@@ -52,3 +54,7 @@ export const CHAT_HISTORY_KEY: InjectionKey<{
   selectAll: (ids: string[]) => void
   clearSelection: () => void
 }> = Symbol('chatHistory')
+
+export function useChatScaffoldContext() {
+  return inject(CHAT_SCAFFOLD_KEY, null)
+}

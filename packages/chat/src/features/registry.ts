@@ -1,4 +1,4 @@
-import type { TrChatProps } from '../types'
+import type { TrChatPresetOverrides } from '../types'
 import type {
   BuiltInChatFeatureKey,
   ChatAttachmentsFeatureResolution,
@@ -196,7 +196,7 @@ const historyFeature: ChatFeatureDefinition<'history', ChatHistoryFeatureConfig,
       presetProps: enabled
         ? {
             showHistory: true,
-            historyProps: resolvedConfig?.props as TrChatProps['historyProps'],
+            historyProps: resolvedConfig?.props as TrChatPresetOverrides['historyProps'],
           }
         : {},
     }

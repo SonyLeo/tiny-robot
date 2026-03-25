@@ -9,7 +9,9 @@
       "@": ["../src"],
       "@/*": ["../src/*"],
       "@demo": ["./src"],
-      "@demo/*": ["./src/*"]
+      "@demo/*": ["./src/*"],
+      "@opentiny/tiny-robot-chat": ["../src/index.ts"],
+      "@opentiny/tiny-robot-chat/*": ["../src/*"]
     },
     "skipLibCheck": true,
     "esModuleInterop": true,

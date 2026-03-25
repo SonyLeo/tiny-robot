@@ -5,7 +5,7 @@ import type {
   ChatSenderActionsFeaturePreset,
   ModelOption,
   ResponseProvider,
-  TrChatProps,
+  TrChatPresetOverrides,
   WelcomeConfig,
 } from '../types'
 import type { SenderProps } from '@opentiny/tiny-robot'
@@ -217,7 +217,7 @@ function normalizeHistoryFeature(rawFeature: unknown): ChatHistoryFeatureConfig 
 
   return {
     enabled: typeof rawFeature.enabled === 'boolean' ? rawFeature.enabled : undefined,
-    props: props as TrChatProps['historyProps'],
+    props: props as TrChatPresetOverrides['historyProps'],
   }
 }
 
@@ -393,8 +393,8 @@ function normalizeRuntime(rawRuntime: unknown, rawFeatures: unknown): ChatConfig
   const runtimeRecord = isRecord(rawRuntime) ? rawRuntime : undefined
   const rawMcpFeature = isRecord(rawFeatures) && isRecord(rawFeatures.mcp) ? rawFeatures.mcp : undefined
   const mcpManager =
-    (runtimeRecord?.mcpManager as TrChatProps['mcpManager'] | undefined) ??
-    (rawMcpFeature?.manager as TrChatProps['mcpManager'] | undefined)
+    (runtimeRecord?.mcpManager as TrChatPresetOverrides['mcpManager'] | undefined) ??
+    (rawMcpFeature?.manager as TrChatPresetOverrides['mcpManager'] | undefined)
 
   if (!mcpManager) {
     return undefined
@@ -536,8 +536,8 @@ export function createChatAdapterFromConfig(input: string | ChatConfig | unknown
 
 export function createPresetChatProps(
   adapter: ChatAdapter,
-  overrides: Partial<TrChatProps> = {},
-): ChatPresetProps & Partial<TrChatProps> {
+  overrides: Partial<TrChatPresetOverrides> = {},
+): ChatPresetProps & Partial<TrChatPresetOverrides> {
   const layoutRoleConfigs = adapter.config.layout?.placements
     ? ({
         ...(adapter.config.layout.placements.assistant
@@ -554,7 +554,7 @@ export function createPresetChatProps(
               },
             }
           : {}),
-      } satisfies NonNullable<TrChatProps['roleConfigs']>)
+      } satisfies NonNullable<TrChatPresetOverrides['roleConfigs']>)
     : undefined
 
   return {
@@ -573,7 +573,7 @@ export function createPresetChatProps(
   }
 }
 
-export function createPresetChatSlices(preset: ChatPresetProps & Partial<TrChatProps>): ChatPresetSlices {
+export function createPresetChatSlices(preset: ChatPresetProps & Partial<TrChatPresetOverrides>): ChatPresetSlices {
   const senderProps = preset.senderProps ?? {}
   const models = preset.models
   const providerFactories = preset.providerFactories

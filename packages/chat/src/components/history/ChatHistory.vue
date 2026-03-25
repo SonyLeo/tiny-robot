@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { inject, provide } from 'vue'
-import { CHAT_UI_KEY, CHAT_HISTORY_KEY } from '@/context'
+import { computed, inject, provide } from 'vue'
+import { CHAT_UI_KEY, CHAT_HISTORY_KEY, useChatScaffoldContext } from '@/context'
 import { useHistoryState } from '@/composables/useHistoryState'
+import { triStateBooleanProp } from '@/utils'
 import ChatHistoryHeader from './ChatHistoryHeader.vue'
 import ChatHistorySearch from './ChatHistorySearch.vue'
 import ChatHistoryList from './ChatHistoryList.vue'
@@ -9,24 +10,26 @@ import ChatHistoryPanel from './ChatHistoryPanel.vue'
 
 defineOptions({ name: 'TrChatHistory' })
 
+const props = defineProps({
+  enabled: triStateBooleanProp,
+})
+const scaffoldContext = useChatScaffoldContext()
 const { showHistoryDrawer } = inject(CHAT_UI_KEY)!
+const resolvedEnabled = computed(() => props.enabled ?? scaffoldContext?.presetSlices.value.history.enabled ?? true)
 
-// 创建并 provide 历史面板状态
 const historyState = useHistoryState()
 provide(CHAT_HISTORY_KEY, historyState)
 </script>
 
 <template>
-  <!-- 遮罩层：点击关闭 Drawer -->
-  <div class="tr-chat-drawer-overlay" :class="{ 'is-open': showHistoryDrawer }" @click="showHistoryDrawer = false" />
+  <template v-if="resolvedEnabled">
+    <div class="tr-chat-drawer-overlay" :class="{ 'is-open': showHistoryDrawer }" @click="showHistoryDrawer = false" />
 
-  <!-- Drawer 面板 -->
-  <div class="tr-chat-drawer" :class="{ 'is-open': showHistoryDrawer }">
-    <ChatHistoryHeader />
-    <ChatHistorySearch />
-    <!-- 列表区：管理模式下底部留出悬浮面板的空间 -->
-    <ChatHistoryList />
-    <!-- 悬浮操作面板：仅管理模式下出现 -->
-    <ChatHistoryPanel />
-  </div>
+    <div class="tr-chat-drawer" :class="{ 'is-open': showHistoryDrawer }">
+      <ChatHistoryHeader />
+      <ChatHistorySearch />
+      <ChatHistoryList />
+      <ChatHistoryPanel />
+    </div>
+  </template>
 </template>

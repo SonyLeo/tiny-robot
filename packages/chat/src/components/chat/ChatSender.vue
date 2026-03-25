@@ -3,7 +3,7 @@ import { inject, ref, computed, useSlots, useAttrs } from 'vue'
 import type { PropType, Slot } from 'vue'
 import { TrSender, UploadButton, VoiceButton } from '@opentiny/tiny-robot'
 import type { StructuredData } from '@opentiny/tiny-robot'
-import { CHAT_ATTACHMENTS_KEY, CHAT_KIT_KEY, CHAT_SENDER_ACTIONS_KEY } from '@/context'
+import { CHAT_ATTACHMENTS_KEY, CHAT_KIT_KEY, CHAT_SENDER_ACTIONS_KEY, useChatScaffoldContext } from '@/context'
 import { useResolvedChatMessages } from '@/messages'
 
 // 支持透传完整 TrSender props
@@ -12,11 +12,12 @@ defineOptions({ name: 'TrChatSender', inheritAttrs: false })
 const props = defineProps({
   mode: {
     type: String as PropType<'single' | 'multiple'>,
-    default: 'multiple',
   },
   placeholder: {
     type: String,
-    default: undefined,
+  },
+  maxLength: {
+    type: Number,
   },
 })
 
@@ -25,19 +26,49 @@ const attachmentsContext = inject(CHAT_ATTACHMENTS_KEY, null)
 const senderActionsContext = inject(CHAT_SENDER_ACTIONS_KEY, null)
 const chatMessages = useResolvedChatMessages()
 const attrs = useAttrs()
+const scaffoldContext = useChatScaffoldContext()
 
 const inputValue = ref('')
 
 const isLoading = computed(() => chatKit.status.value === 'submitted' || chatKit.status.value === 'streaming')
 const senderActionsFeature = computed(() => senderActionsContext?.feature)
+const senderSlice = computed(() => scaffoldContext?.presetSlices.value.sender)
 const uploadActionConfig = computed(() => senderActionsFeature.value?.upload ?? attachmentsContext?.feature.upload)
 const voiceActionConfig = computed(() => senderActionsFeature.value?.voice)
 const showDefaultUploadButton = computed(() => Boolean(uploadActionConfig.value?.enabled !== false))
 const showDefaultVoiceButton = computed(() => Boolean(voiceActionConfig.value?.enabled))
-const senderPlaceholder = computed(() => props.placeholder ?? chatMessages.value.sender.placeholder)
+const senderMode = computed<'single' | 'multiple'>(() => {
+  const modeFromSlice = senderSlice.value?.mode
+  return (
+    props.mode ?? (modeFromSlice === 'single' || modeFromSlice === 'multiple' ? modeFromSlice : undefined) ?? 'multiple'
+  )
+})
+const senderPlaceholder = computed(() => {
+  return (
+    props.placeholder ??
+    (typeof senderSlice.value?.placeholder === 'string' ? senderSlice.value.placeholder : undefined) ??
+    chatMessages.value.sender.placeholder
+  )
+})
+const senderMaxLength = computed(() => {
+  return props.maxLength ?? (typeof senderSlice.value?.maxLength === 'number' ? senderSlice.value.maxLength : undefined)
+})
+const fallbackSenderAttrs = computed(() => {
+  if (!senderSlice.value) return {}
+
+  return Object.fromEntries(
+    Object.entries(senderSlice.value).filter(([key, value]) => {
+      if (key === 'mode' || key === 'placeholder' || key === 'maxLength') return false
+      if (value === undefined) return false
+      return !(key in attrs)
+    }),
+  )
+})
 const mergedSenderAttrs = computed(() => ({
   showWordLimit: senderActionsFeature.value?.wordCount || undefined,
   defaultActions: senderActionsFeature.value?.defaultActions,
+  maxLength: senderMaxLength.value,
+  ...fallbackSenderAttrs.value,
   ...attrs,
 }))
 
@@ -71,7 +102,7 @@ const forwardedSlots = computed<Partial<Record<string, Slot>>>(() =>
   <TrSender
     v-model="inputValue"
     :loading="isLoading"
-    :mode="props.mode"
+    :mode="senderMode"
     :placeholder="senderPlaceholder"
     v-bind="mergedSenderAttrs"
     @submit="handleSend"

@@ -1,6 +1,6 @@
 import type { ChatAdapter, ChatConfig, ChatConfigDefaults, ChatConfigUI, ChatLayoutConfig } from '../adapters/types'
 import type { ChatPresetProps, ChatPresetSlices } from '../adapters/types'
-import type { TrChatProps } from '../types'
+import type { TrChatPresetOverrides } from '../types'
 import type { ChatFeatureConfigMap, ChatMcpFeatureConfig } from '../features'
 
 export interface AgentPresetUiInput extends Partial<ChatConfigUI> {
@@ -8,7 +8,7 @@ export interface AgentPresetUiInput extends Partial<ChatConfigUI> {
 }
 
 export interface AgentPresetRuntimeInput {
-  mcpManager?: TrChatProps['mcpManager']
+  mcpManager?: TrChatPresetOverrides['mcpManager']
 }
 
 export interface AgentPresetInput {
@@ -61,10 +61,10 @@ export interface AgentPresetResolutionResult {
 }
 
 export interface CreatePresetConsumptionFromAgentPresetOptions extends CreateChatAdapterFromAgentPresetOptions {
-  presetOverrides?: Partial<TrChatProps>
+  presetOverrides?: Partial<TrChatPresetOverrides>
 }
 
 export interface AgentPresetConsumptionResult extends AgentPresetResolutionResult {
-  presetProps: ChatPresetProps & Partial<TrChatProps>
+  presetProps: ChatPresetProps & Partial<TrChatPresetOverrides>
   presetSlices: ChatPresetSlices
 }

@@ -6,7 +6,7 @@ import type {
   ModelOption,
   ModelProviderFactory,
   ResponseProvider,
-  TrChatProps,
+  TrChatPresetOverrides,
   WelcomeConfig,
 } from '../types'
 import type { ChatFeatureConfigMap, ChatFeaturePresetProps, ResolvedChatFeatures } from '../features'
@@ -47,7 +47,7 @@ export interface ChatLayoutConfig {
 }
 
 export interface ChatConfigRuntime {
-  mcpManager?: TrChatProps['mcpManager']
+  mcpManager?: TrChatPresetOverrides['mcpManager']
 }
 
 export interface ChatConfig {
@@ -71,27 +71,27 @@ export interface ChatAdapter {
 }
 
 export type ChatPresetProps = Pick<
-  TrChatProps,
+  TrChatPresetOverrides,
   'models' | 'providerFactories' | 'defaultModel' | 'appearance' | 'brand' | 'welcome' | 'prompts' | 'messages'
 > &
   ChatFeaturePresetProps
 
 export interface ChatPresetRootSlice {
-  mcpManager?: TrChatProps['mcpManager']
-  attachmentsManager?: TrChatProps['attachmentsManager']
-  attachmentsFeature?: TrChatProps['attachmentsFeature']
-  senderActionsFeature?: TrChatProps['senderActionsFeature']
-  messages?: TrChatProps['messages']
+  mcpManager?: TrChatPresetOverrides['mcpManager']
+  attachmentsManager?: TrChatPresetOverrides['attachmentsManager']
+  attachmentsFeature?: TrChatPresetOverrides['attachmentsFeature']
+  senderActionsFeature?: TrChatPresetOverrides['senderActionsFeature']
+  messages?: TrChatPresetOverrides['messages']
 }
 
 export interface ChatPresetLayoutSlice {
-  show?: TrChatProps['show']
-  fullscreen?: TrChatProps['fullscreen']
-  roleConfigs?: TrChatProps['roleConfigs']
+  show?: TrChatPresetOverrides['show']
+  fullscreen?: TrChatPresetOverrides['fullscreen']
+  roleConfigs?: TrChatPresetOverrides['roleConfigs']
 }
 
 export interface ChatPresetAppearanceSlice {
-  appearance?: TrChatProps['appearance']
+  appearance?: TrChatPresetOverrides['appearance']
 }
 
 export interface ChatPresetHeaderSlice {
@@ -111,28 +111,28 @@ export interface ChatPresetWelcomeSlice {
 
 export type ChatPresetMessageListSlice = {
   autoScroll?: boolean
-  variant?: TrChatProps['messageListVariant']
-  onActionClick?: TrChatProps['onMessageAction']
-  groupStrategy?: TrChatProps['groupStrategy']
+  variant?: TrChatPresetOverrides['messageListVariant']
+  onActionClick?: TrChatPresetOverrides['onMessageAction']
+  groupStrategy?: TrChatPresetOverrides['groupStrategy']
   showFeedback?: boolean
-} & NonNullable<TrChatProps['bubbleListProps']>
+} & NonNullable<TrChatPresetOverrides['bubbleListProps']>
 
 export type ChatPresetSenderSlice = {
   placeholder?: string
-  mode?: TrChatProps['senderMode']
-  maxLength?: TrChatProps['maxLength']
+  mode?: TrChatPresetOverrides['senderMode']
+  maxLength?: TrChatPresetOverrides['maxLength']
 } & Partial<SenderProps>
 
 export interface ChatPresetHistorySlice {
   enabled: boolean
-  props?: TrChatProps['historyProps']
+  props?: TrChatPresetOverrides['historyProps']
 }
 
 export interface ChatPresetModelSelectorSlice {
   enabled: boolean
-  models?: TrChatProps['models']
-  providerFactories?: TrChatProps['providerFactories']
-  defaultModel?: TrChatProps['defaultModel']
+  models?: TrChatPresetOverrides['models']
+  providerFactories?: TrChatPresetOverrides['providerFactories']
+  defaultModel?: TrChatPresetOverrides['defaultModel']
 }
 
 export interface ChatPresetSlices {

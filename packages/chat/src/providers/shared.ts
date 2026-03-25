@@ -17,6 +17,7 @@ export class ChatProviderError extends Error {
   statusCode?: number
   code?: string
   retryable?: boolean
+  cause?: unknown
 
   constructor(options: ChatProviderErrorOptions) {
     super(options.message)

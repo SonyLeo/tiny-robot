@@ -3,11 +3,12 @@ import { computed } from 'vue'
 import { TrWelcome, TrPrompts } from '@opentiny/tiny-robot'
 import type { Component, VNode } from 'vue'
 import type { PromptProps } from '@opentiny/tiny-robot'
+import { useChatScaffoldContext } from '@/context'
 
 defineOptions({ name: 'TrChatWelcome' })
 
 interface Props {
-  title: string
+  title?: string
   description?: string
   icon?: VNode | Component
   prompts?: PromptProps[]
@@ -15,8 +16,14 @@ interface Props {
 
 const props = defineProps<Props>()
 const emit = defineEmits<{ 'prompt-click': [description: string] }>()
+const scaffoldContext = useChatScaffoldContext()
+const welcomeSlice = computed(() => scaffoldContext?.presetSlices.value.welcome)
 
-const iconVNode = computed(() => props.icon as VNode | undefined)
+const resolvedTitle = computed(() => props.title ?? welcomeSlice.value?.title ?? '')
+const resolvedDescription = computed(() => props.description ?? welcomeSlice.value?.description ?? '')
+const resolvedPrompts = computed(() => props.prompts ?? welcomeSlice.value?.prompts)
+const iconVNode = computed(() => (props.icon ?? welcomeSlice.value?.icon) as VNode | undefined)
+
 const welcomeStyle = computed(() => ({
   '--title-color': 'var(--chat-text-primary)',
   '--description-color': 'var(--chat-text-secondary)',
@@ -25,14 +32,19 @@ const welcomeStyle = computed(() => ({
 
 <template>
   <div class="tr-chat__welcome">
-    <TrWelcome :title="props.title" :description="props.description || ''" :icon="iconVNode" :style="welcomeStyle" />
-    <!-- UI-W2：传 wrap=true 使 Prompt 卡片可换行；添加容器类供布局测试锚点 -->
+    <TrWelcome :title="resolvedTitle" :description="resolvedDescription" :icon="iconVNode" :style="welcomeStyle" />
     <TrPrompts
-      v-if="props.prompts?.length"
-      :items="props.prompts"
+      v-if="resolvedPrompts?.length"
+      :items="resolvedPrompts"
       :wrap="true"
       class="tr-chat__welcome-prompts"
       @item-click="(_ev, item) => emit('prompt-click', item.description ?? item.label)"
     />
   </div>
 </template>
+
+<style scoped>
+:deep(.tr-welcome__icon) {
+  font-size: 32px;
+}
+</style>

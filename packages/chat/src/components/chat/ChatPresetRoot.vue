@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import type { AgentPresetInput, SkillPackInput } from '@/presets'
 import { createPresetConsumptionFromAgentPreset } from '@/presets'
 import type { ChatConfig } from '@/adapters'
-import type { TrChatProps, TrChatRootProps, UseChatKitReturn } from '@/types'
+import type { TrChatPresetOverrides, TrChatRootProps, UseChatKitReturn } from '@/types'
 import ChatRoot from './ChatRoot.vue'
 import { resolveRootChatKit } from './resolveRootChatKit'
 
@@ -14,7 +14,7 @@ type Props = TrChatRootProps & {
   preset: AgentPresetInput
   presets?: AgentPresetInput[]
   skillPacks?: SkillPackInput[]
-  presetOverrides?: Partial<TrChatProps>
+  presetOverrides?: Partial<TrChatPresetOverrides>
 }
 
 interface PresetRootSlotProps {

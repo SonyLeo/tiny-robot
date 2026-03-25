@@ -1,5 +1,4 @@
 import type { Component, VNode } from 'vue'
-import type { ConversationStorageStrategy, ChatMessage, UseMessagePlugin } from '@opentiny/tiny-robot-kit'
 import type {
   Attachment,
   AttachmentListProps,
@@ -11,12 +10,12 @@ import type {
 } from '@opentiny/tiny-robot'
 import type { UseMcpManagerReturn } from '../composables/useMcpManager'
 import type { UseChatAttachmentsReturn } from '../composables/useChatAttachments'
+import type { ChatScaffoldCallbacks, ChatScaffoldRuntimeInput } from '../components/chat/scaffold'
 import type {
   BrandConfig,
   ChatAppearanceConfig,
   ChatListVariant,
   ChatMessageActionPayload,
-  ResponseProvider,
   UseChatKitOptions,
   UseChatKitReturn,
 } from './core'
@@ -126,13 +125,7 @@ export interface UseChatAttachmentsOptions {
   initialItems?: Attachment[]
 }
 
-export interface TrChatProps {
-  responseProvider?: ResponseProvider
-  plugins?: UseMessagePlugin[]
-  storage?: ConversationStorageStrategy
-  initialMessages?: ChatMessage[]
-  onFinish?: (message: ChatMessage) => void
-  onError?: (error: Error) => void
+export interface TrChatPresetOverrides {
   mcpManager?: UseMcpManagerReturn
   attachmentsManager?: UseChatAttachmentsReturn
   appearance?: ChatAppearanceConfig
@@ -162,6 +155,13 @@ export interface TrChatProps {
   defaultModel?: string
   providerFactories?: ModelProviderFactory[]
   onModelChange?: (model: ModelOption) => void
+}
+
+export interface TrChatProps {
+  config: unknown
+  runtime?: ChatScaffoldRuntimeInput
+  callbacks?: ChatScaffoldCallbacks
+  presetOverrides?: TrChatPresetOverrides
 }
 
 type TrChatRootSharedProps = {
@@ -201,7 +201,7 @@ export interface TrChatHeaderProps {
 }
 
 export interface TrChatWelcomeProps {
-  title: string
+  title?: string
   description?: string
   icon?: VNode | Component
   prompts?: PromptProps[]
@@ -211,9 +211,11 @@ export interface TrChatMessageListProps {
   autoScroll?: boolean
   variant?: ChatListVariant
   onActionClick?: (payload: ChatMessageActionPayload) => void
+  groupStrategy?: BubbleListProps['groupStrategy']
 }
 
 export interface TrChatSenderProps {
   mode?: 'single' | 'multiple'
   placeholder?: string
+  maxLength?: number
 }

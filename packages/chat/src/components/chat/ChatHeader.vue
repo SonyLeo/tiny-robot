@@ -2,28 +2,22 @@
 import { computed, inject } from 'vue'
 import { TrIconButton } from '@opentiny/tiny-robot'
 import { IconCancelFullScreen, IconClose, IconFullScreen, IconHistory, IconNewSession } from '@opentiny/tiny-robot-svgs'
-import { CHAT_ATTACHMENTS_KEY, CHAT_KIT_KEY, CHAT_UI_KEY } from '@/context'
+import { CHAT_ATTACHMENTS_KEY, CHAT_KIT_KEY, CHAT_UI_KEY, useChatScaffoldContext } from '@/context'
 import { useResolvedChatMessages } from '@/messages'
+import { triStateBooleanProp } from '@/utils'
 
 defineOptions({ name: 'TrChatHeader' })
 
-interface Props {
-  showHistory?: boolean
-  showNewChat?: boolean
-  showFullScreen?: boolean
-  isFullscreen?: boolean
-  showClose?: boolean
-  title?: string
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  showHistory: false,
-  showNewChat: true,
-  showFullScreen: false,
-  isFullscreen: false,
-  showClose: false,
-  title: '',
+const props = defineProps({
+  showHistory: triStateBooleanProp,
+  showNewChat: triStateBooleanProp,
+  showFullScreen: triStateBooleanProp,
+  isFullscreen: triStateBooleanProp,
+  showClose: triStateBooleanProp,
+  title: String,
 })
+const scaffoldContext = useChatScaffoldContext()
+const headerSlice = computed(() => scaffoldContext?.presetSlices.value.header)
 
 const emit = defineEmits<{
   (e: 'update:fullscreen', value: boolean): void
@@ -34,15 +28,21 @@ const chatKit = inject(CHAT_KIT_KEY)!
 const attachmentsContext = inject(CHAT_ATTACHMENTS_KEY, null)
 const { showHistoryDrawer } = inject(CHAT_UI_KEY)!
 const chatMessages = useResolvedChatMessages()
+const resolvedTitle = computed(() => props.title ?? headerSlice.value?.title ?? '')
+const resolvedShowHistory = computed(() => props.showHistory ?? headerSlice.value?.showHistory ?? false)
+const resolvedShowNewChat = computed(() => props.showNewChat ?? true)
+const resolvedShowFullScreen = computed(() => props.showFullScreen ?? headerSlice.value?.showFullScreen ?? false)
+const resolvedIsFullscreen = computed(() => props.isFullscreen ?? headerSlice.value?.isFullscreen ?? false)
+const resolvedShowClose = computed(() => props.showClose ?? headerSlice.value?.showClose ?? false)
 
 function handleNewChat() {
   attachmentsContext?.manager.clear()
   chatKit.createConversation()
 }
 
-const fullScreenIcon = computed(() => (props.isFullscreen ? IconCancelFullScreen : IconFullScreen))
+const fullScreenIcon = computed(() => (resolvedIsFullscreen.value ? IconCancelFullScreen : IconFullScreen))
 const fullscreenTitle = computed(() =>
-  props.isFullscreen ? chatMessages.value.header.exitFullscreen : chatMessages.value.header.enterFullscreen,
+  resolvedIsFullscreen.value ? chatMessages.value.header.exitFullscreen : chatMessages.value.header.enterFullscreen,
 )
 const historyBtnLabel = computed(() =>
   showHistoryDrawer.value ? chatMessages.value.header.closeHistory : chatMessages.value.header.openHistory,
@@ -54,14 +54,14 @@ const historyBtnLabel = computed(() =>
     <div class="tr-chat__header-inner">
       <div class="tr-chat__header-left">
         <slot name="title">
-          <h3 v-if="props.title" class="tr-chat__header-brand">{{ props.title }}</h3>
+          <h3 v-if="resolvedTitle" class="tr-chat__header-brand">{{ resolvedTitle }}</h3>
         </slot>
       </div>
 
       <div class="tr-chat__header-right">
         <slot name="extra" />
         <TrIconButton
-          v-if="props.showNewChat"
+          v-if="resolvedShowNewChat"
           :icon="IconNewSession"
           size="28"
           svg-size="20"
@@ -70,7 +70,7 @@ const historyBtnLabel = computed(() =>
           @click="handleNewChat"
         />
         <TrIconButton
-          v-if="props.showHistory"
+          v-if="resolvedShowHistory"
           :icon="IconHistory"
           size="28"
           svg-size="20"
@@ -79,16 +79,16 @@ const historyBtnLabel = computed(() =>
           @click="showHistoryDrawer = !showHistoryDrawer"
         />
         <TrIconButton
-          v-if="props.showFullScreen"
+          v-if="resolvedShowFullScreen"
           :title="fullscreenTitle"
           :aria-label="fullscreenTitle"
           :icon="fullScreenIcon"
           size="28"
           svg-size="20"
-          @click="emit('update:fullscreen', !props.isFullscreen)"
+          @click="emit('update:fullscreen', !resolvedIsFullscreen)"
         />
         <TrIconButton
-          v-if="props.showClose"
+          v-if="resolvedShowClose"
           :title="chatMessages.header.close"
           :aria-label="chatMessages.header.close"
           :icon="IconClose"

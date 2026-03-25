@@ -1,4 +1,11 @@
 export type {
+  ChatScaffoldCallbacks,
+  ChatScaffoldRuntimeInput,
+  TrChatScaffoldContextValue,
+  TrChatScaffoldProps,
+} from '../components/chat/scaffold'
+
+export type {
   BrandConfig,
   ChatAppearanceConfig,
   ChatAppearanceMode,
@@ -24,6 +31,7 @@ export type {
   ChatSenderActionVoiceConfig,
   TrChatHeaderProps,
   TrChatMessageListProps,
+  TrChatPresetOverrides,
   TrChatProps,
   TrChatRootProps,
   TrChatSenderProps,

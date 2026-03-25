@@ -1,10 +1,10 @@
 import type { PromptProps } from '@opentiny/tiny-robot'
-import type { ChatAttachmentsFeaturePreset, ChatSenderActionsFeaturePreset, TrChatProps } from '../types'
+import type { ChatAttachmentsFeaturePreset, ChatSenderActionsFeaturePreset, TrChatPresetOverrides } from '../types'
 
 export type ChatFeatureInput<TConfig extends object = object> = boolean | ({ enabled?: boolean } & TConfig)
 
 export interface ChatHistoryFeatureOptions {
-  props?: TrChatProps['historyProps']
+  props?: TrChatPresetOverrides['historyProps']
 }
 
 export type ChatAttachmentsFeatureConfig = ChatFeatureInput<ChatAttachmentsFeaturePreset>
@@ -14,7 +14,7 @@ export interface ChatWelcomePromptsFeatureOptions {
 }
 export type ChatWelcomePromptsFeatureConfig = ChatFeatureInput<ChatWelcomePromptsFeatureOptions>
 export interface ChatMcpFeatureOptions {
-  manager?: TrChatProps['mcpManager']
+  manager?: TrChatPresetOverrides['mcpManager']
 }
 export type ChatMcpFeatureConfig = ChatFeatureInput<ChatMcpFeatureOptions>
 export type ChatHistoryFeatureConfig = ChatFeatureInput<ChatHistoryFeatureOptions>
@@ -33,7 +33,7 @@ export type BuiltInChatFeatureKey = 'attachments' | 'senderActions' | 'welcomePr
 
 export type ChatFeaturePresetProps = Partial<
   Pick<
-    TrChatProps,
+    TrChatPresetOverrides,
     | 'attachmentsFeature'
     | 'senderActionsFeature'
     | 'prompts'

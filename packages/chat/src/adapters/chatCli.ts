@@ -1,4 +1,4 @@
-import type { TrChatProps } from '../types'
+import type { TrChatPresetOverrides } from '../types'
 import { createPresetChatProps, createPresetChatSlices } from './config'
 import type { ChatAdapter, ChatPresetProps, ChatPresetSlices } from './types'
 
@@ -39,13 +39,13 @@ export type ChatCliConsumablePresetSliceKey = (typeof CHAT_CLI_CONSUMABLE_PRESET
 
 export interface ChatCliCapabilitySurface {
   featureKeys: readonly ChatCliConsumableFeatureKey[]
-  presetProps: Pick<ChatPresetProps & Partial<TrChatProps>, ChatCliConsumablePresetPropKey>
+  presetProps: Pick<ChatPresetProps & Partial<TrChatPresetOverrides>, ChatCliConsumablePresetPropKey>
   presetSlices: Pick<ChatPresetSlices, ChatCliConsumablePresetSliceKey>
 }
 
 export function createChatCliCapabilitySurface(
   adapter: ChatAdapter,
-  overrides: Partial<TrChatProps> = {},
+  overrides: Partial<TrChatPresetOverrides> = {},
 ): ChatCliCapabilitySurface {
   const preset = createPresetChatProps(adapter, overrides)
   const presetSlices = createPresetChatSlices(preset)

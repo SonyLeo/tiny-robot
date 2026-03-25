@@ -4,6 +4,7 @@ import './styles/index.css'
 // ===== 黑盒组件（同时挂载白盒子组件）=====
 import {
   Chat as TrChat,
+  ChatScaffold as TrChatScaffold,
   ChatRoot as TrChatRoot,
   ChatPresetRoot as TrChatPresetRoot,
   ChatLayout as TrChatLayout,
@@ -29,6 +30,7 @@ import {
 
 // 定义带子组件的 TrChat 类型
 type TrChatWithSubComponents = typeof TrChat & {
+  Scaffold: typeof TrChatScaffold
   Root: typeof TrChatRoot
   PresetRoot: typeof TrChatPresetRoot
   Layout: typeof TrChatLayout
@@ -50,6 +52,7 @@ type TrChatWithSubComponents = typeof TrChat & {
 
 // 挂载白盒子组件到 TrChat 上，实现复合组件模式
 const TrChatFull = TrChat as TrChatWithSubComponents
+TrChatFull.Scaffold = TrChatScaffold
 TrChatFull.Root = TrChatRoot
 TrChatFull.PresetRoot = TrChatPresetRoot
 TrChatFull.Layout = TrChatLayout
@@ -97,6 +100,7 @@ export {
 // ===== 新组件 =====
 export {
   TrModelSelector,
+  TrChatScaffold,
   TrChatFeedback,
   TrChatMcpPanel,
   TrChatLayout,
@@ -140,6 +144,8 @@ export { BUILT_IN_AGENT_PRESETS, BUILT_IN_SKILL_PACKS, getBuiltInAgentPreset, ge
 // ===== 类型 =====
 export type {
   BrandConfig,
+  ChatScaffoldCallbacks,
+  ChatScaffoldRuntimeInput,
   ChatAppearanceConfig,
   ChatAppearanceMode,
   ResponseProvider,
@@ -152,9 +158,11 @@ export type {
   UseChatKitReturn,
   TrChatProps,
   TrChatRootProps,
+  TrChatScaffoldProps,
   TrChatHeaderProps,
   TrChatWelcomeProps,
   TrChatMessageListProps,
+  TrChatPresetOverrides,
   TrChatSenderProps,
   ChatAttachmentsFeaturePreset,
   ChatAttachmentsListConfig,
@@ -194,6 +202,7 @@ export type {
   TrChatAssistantOutlineProps,
   TrChatAssistantOutlineTriggerProps,
   TrChatWorkspacePanelHostProps,
+  TrChatScaffoldContextValue,
 } from './types'
 export type { UseDefaultBubbleConfigOptions } from './composables'
 export type { UseMcpManagerBridge, UseMcpManagerOptions, UseModelSelectorOptions } from './composables'

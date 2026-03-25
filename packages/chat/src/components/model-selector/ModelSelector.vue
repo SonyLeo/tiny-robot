@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed, inject, ref, type Ref } from 'vue'
 import type { ModelOption, ModelProviderFactory } from '@/types'
+import { CHAT_KIT_KEY, useChatScaffoldContext } from '@/context'
 import { getProviderIcon } from '@/utils/iconMap'
 import { useModelSelector } from '@/composables'
 import { useFloatingDropdown } from '@/composables/useFloatingDropdown'
@@ -9,7 +10,7 @@ import { useKeyboardNavigation } from '@/composables/useKeyboardNavigation'
 defineOptions({ name: 'TrModelSelector' })
 
 const props = defineProps<{
-  models: ModelOption[]
+  models?: ModelOption[]
   providerFactories?: ModelProviderFactory[]
 }>()
 
@@ -17,7 +18,21 @@ const emit = defineEmits<{
   change: [value: ModelOption]
 }>()
 
-const currentModel = defineModel<string>({ default: '' })
+const modelValue = defineModel<string>()
+const scaffoldContext = useChatScaffoldContext()
+const chatKit = inject(CHAT_KIT_KEY, null)
+
+const resolvedModels = computed(() => props.models ?? scaffoldContext?.models.value ?? [])
+const resolvedProviderFactories = computed(() => props.providerFactories ?? scaffoldContext?.providerFactories.value)
+const currentModel = computed<string>({
+  get: () => modelValue.value ?? scaffoldContext?.currentModel.value ?? '',
+  set: (value) => {
+    modelValue.value = value
+    if (scaffoldContext) {
+      scaffoldContext.currentModel.value = value
+    }
+  },
+}) as Ref<string>
 
 const referenceEl = ref<HTMLElement | null>(null)
 const floatingEl = ref<HTMLElement | null>(null)
@@ -25,7 +40,9 @@ const floatingEl = ref<HTMLElement | null>(null)
 const { isOpen } = useFloatingDropdown(referenceEl, floatingEl)
 const { currentProvider, selectModel } = useModelSelector({
   currentModel,
-  models: computed(() => props.models),
+  models: resolvedModels,
+  providerFactories: resolvedProviderFactories,
+  chatKit,
   onChange: (model) => {
     emit('change', model)
   },
@@ -33,10 +50,13 @@ const { currentProvider, selectModel } = useModelSelector({
 
 const { highlightedIndex, setHighlightedIndex } = useKeyboardNavigation({
   enabled: isOpen,
-  itemCount: computed(() => props.models.length),
-  isItemDisabled: (index) => !!props.models[index]?.disabled,
+  itemCount: computed(() => resolvedModels.value.length),
+  isItemDisabled: (index) => !!resolvedModels.value[index]?.disabled,
   onSelect: (index) => {
-    handleSelectModel(props.models[index])
+    const model = resolvedModels.value[index]
+    if (model) {
+      handleSelectModel(model)
+    }
   },
   onClose: () => {
     isOpen.value = false
@@ -48,9 +68,9 @@ function handleSelectModel(model: ModelOption) {
   isOpen.value = false
 }
 
-const handleOpenDropdown = () => {
+function handleOpenDropdown() {
   isOpen.value = true
-  const currentIndex = props.models.findIndex((model) => model.value === currentModel.value)
+  const currentIndex = resolvedModels.value.findIndex((model) => model.value === currentModel.value)
   setHighlightedIndex(currentIndex >= 0 ? currentIndex : 0)
 }
 
@@ -63,7 +83,7 @@ function toggleDropdown() {
 }
 
 function handleMouseEnter(index: number) {
-  if (props.models[index]?.disabled) {
+  if (resolvedModels.value[index]?.disabled) {
     return
   }
 
@@ -104,7 +124,7 @@ function handleMouseEnter(index: number) {
         <div class="tr-model-selector__dropdown">
           <div class="tr-model-selector__content">
             <div
-              v-for="(model, index) in models"
+              v-for="(model, index) in resolvedModels"
               :key="model.value"
               class="tr-model-selector__item"
               @mouseenter="handleMouseEnter(index)"
