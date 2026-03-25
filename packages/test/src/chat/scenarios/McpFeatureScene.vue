@@ -1,7 +1,11 @@
 <template>
   <div class="scene-grid">
     <div data-testid="chat-mcp-feature-blackbox" class="chat-wrapper">
-      <TrChat v-bind="mcpBlackboxPreset">
+      <TrChat
+        :config="mcpFeatureConfig"
+        :runtime="{ mcpManager: mcpBlackboxManager }"
+        :preset-overrides="mcpBlackboxPresetOverrides"
+      >
         <template #header-extra>
           <button data-testid="mcp-feature-blackbox-open" @click="mcpBlackboxPanelVisible = true">Open MCP</button>
           <TrChatMcpPanel :visible="mcpBlackboxPanelVisible" @update:visible="mcpBlackboxPanelVisible = $event" />
@@ -44,6 +48,7 @@ import {
   useMcpManager,
 } from '../../../../chat/src'
 import { createMockProvider } from '../mockProvider'
+import { createChatSceneConfig, sharedProviderFactories } from './sharedDemoFixtures'
 
 const mcpFeaturePlugins = [
   {
@@ -72,46 +77,26 @@ const mcpWhiteboxManager = useMcpManager({
   initialPlugins: mcpFeaturePlugins,
 })
 
-const mcpFeatureBaseConfig = {
-  models: [{ id: 'mcp-feature-model', provider: 'openai' }],
-  providers: {
-    openai: {
-      type: 'openai-compatible' as const,
-      endpoint: '/api/chat',
-    },
-  },
+const mcpFeatureConfig = createChatSceneConfig({
   ui: {
     brand: {
       title: 'MCP Feature',
     },
     welcome: {
       title: 'MCP Feature Welcome',
-      description: 'MCP manager should travel through feature -> preset -> root.',
+      description: 'MCP manager should travel through runtime / preset / root.',
     },
   },
+})
+
+const mcpBlackboxPresetOverrides = {
+  providerFactories: sharedProviderFactories,
 }
 
-const mcpBlackboxAdapter = createChatAdapterFromConfig({
-  ...mcpFeatureBaseConfig,
-  features: {
-    mcp: {
-      manager: mcpBlackboxManager,
-    },
-  },
-})
-const mcpBlackboxPreset = createPresetChatProps(mcpBlackboxAdapter, {
-  responseProvider: createMockProvider({
-    provider: 'openai',
-    model: 'mcp-feature-model',
-  }),
-})
-
 const mcpWhiteboxAdapter = createChatAdapterFromConfig({
-  ...mcpFeatureBaseConfig,
-  features: {
-    mcp: {
-      manager: mcpWhiteboxManager,
-    },
+  ...mcpFeatureConfig,
+  runtime: {
+    mcpManager: mcpWhiteboxManager,
   },
 })
 const mcpWhiteboxPreset = createPresetChatProps(mcpWhiteboxAdapter)
@@ -119,7 +104,7 @@ const mcpWhiteboxSlices = createPresetChatSlices(mcpWhiteboxPreset)
 const mcpWhiteboxChat = useChatKit({
   responseProvider: createMockProvider({
     provider: 'openai',
-    model: 'mcp-feature-model',
+    model: 'openai-test',
   }),
 })
 

@@ -1,19 +1,19 @@
 <template>
   <div data-testid="chat-welcome-prompts" class="welcome-prompts-grid">
     <div data-testid="chat-welcome-prompts-enabled" class="chat-wrapper">
-      <TrChat v-bind="welcomePromptsPreset" />
+      <TrChat :config="welcomePromptsConfig" :preset-overrides="welcomePromptsBlackboxOverrides" />
     </div>
 
     <div data-testid="chat-welcome-prompts-disabled" class="chat-wrapper">
-      <TrChat v-bind="disabledWelcomePromptsPreset" />
+      <TrChat :config="disabledWelcomePromptsConfig" :preset-overrides="disabledWelcomePromptsBlackboxOverrides" />
     </div>
 
     <div data-testid="chat-welcome-prompts-override" class="chat-wrapper">
-      <TrChat v-bind="overrideWelcomePromptsPreset" />
+      <TrChat :config="welcomePromptsConfig" :preset-overrides="overrideWelcomePromptsBlackboxOverrides" />
     </div>
 
     <div data-testid="chat-welcome-prompts-slot" class="chat-wrapper">
-      <TrChat v-bind="welcomePromptsPreset">
+      <TrChat :config="welcomePromptsConfig" :preset-overrides="welcomePromptsBlackboxOverrides">
         <template #welcome>
           <div data-testid="welcome-slot-content">Custom welcome slot</div>
         </template>
@@ -55,15 +55,9 @@ import {
   useChatKit,
 } from '../../../../chat/src'
 import { createMockProvider } from '../mockProvider'
+import { createChatSceneConfig, sharedProviderFactories } from './sharedDemoFixtures'
 
-const welcomePromptsAdapter = createChatAdapterFromConfig({
-  models: [{ id: 'welcome-prompts-model', provider: 'openai' }],
-  providers: {
-    openai: {
-      type: 'openai-compatible',
-      endpoint: '/api/chat',
-    },
-  },
+const welcomePromptsConfig = createChatSceneConfig({
   ui: {
     brand: {
       title: 'Welcome Prompts Test',
@@ -85,21 +79,11 @@ const welcomePromptsAdapter = createChatAdapterFromConfig({
   },
 })
 
-const welcomePromptsPreset = createPresetChatProps(welcomePromptsAdapter, {
-  responseProvider: createMockProvider({
-    provider: 'openai',
-    model: 'welcome-prompts-model',
-  }),
-})
+const welcomePromptsBlackboxOverrides = {
+  providerFactories: sharedProviderFactories,
+}
 
-const disabledWelcomePromptsAdapter = createChatAdapterFromConfig({
-  models: [{ id: 'welcome-prompts-disabled-model', provider: 'openai' }],
-  providers: {
-    openai: {
-      type: 'openai-compatible',
-      endpoint: '/api/chat',
-    },
-  },
+const disabledWelcomePromptsConfig = createChatSceneConfig({
   ui: {
     brand: {
       title: 'Welcome Prompts Disabled Test',
@@ -115,27 +99,22 @@ const disabledWelcomePromptsAdapter = createChatAdapterFromConfig({
   },
 })
 
-const disabledWelcomePromptsPreset = createPresetChatProps(disabledWelcomePromptsAdapter, {
-  responseProvider: createMockProvider({
-    provider: 'openai',
-    model: 'welcome-prompts-disabled-model',
-  }),
-})
+const disabledWelcomePromptsBlackboxOverrides = {
+  providerFactories: sharedProviderFactories,
+}
 
-const overrideWelcomePromptsPreset = createPresetChatProps(welcomePromptsAdapter, {
-  responseProvider: createMockProvider({
-    provider: 'openai',
-    model: 'welcome-prompts-model',
-  }),
+const overrideWelcomePromptsBlackboxOverrides = {
+  providerFactories: sharedProviderFactories,
   prompts: [{ label: 'override prompt', description: 'override prompt' }],
-})
+}
 
-const whiteboxWelcomePromptsPreset = createPresetChatProps(welcomePromptsAdapter)
+const whiteboxWelcomePromptsAdapter = createChatAdapterFromConfig(welcomePromptsConfig)
+const whiteboxWelcomePromptsPreset = createPresetChatProps(whiteboxWelcomePromptsAdapter)
 const whiteboxWelcomePromptsSlices = createPresetChatSlices(whiteboxWelcomePromptsPreset)
 const whiteboxWelcomePromptsChat = useChatKit({
   responseProvider: createMockProvider({
     provider: 'openai',
-    model: 'welcome-prompts-model',
+    model: 'openai-test',
   }),
 })
 const showWhiteboxWelcomePrompts = computed(() => whiteboxWelcomePromptsChat.messages.value.length === 0)

@@ -158,3 +158,35 @@ await runTest('presetOverrides remain the highest-priority defaults in scaffold 
   assert.equal(consumption.presetSlices.sender.maxLength, 120)
   assert.equal(consumption.presetSlices.root.messages?.sender?.placeholder, 'messages-level placeholder')
 })
+
+await runTest('presetOverrides can force system appearance mode and keep it in scaffold slices', async () => {
+  const consumption = createPresetConsumptionFromAgentPreset({
+    baseConfig: {
+      models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+      providers: {
+        openai: {
+          type: 'openai-compatible',
+          endpoint: '/api/chat',
+        },
+      },
+      appearance: {
+        mode: 'light',
+      },
+    },
+    preset: {
+      id: 'scaffold-system-appearance-override',
+    },
+    presetOverrides: {
+      appearance: {
+        mode: 'system',
+      },
+    },
+  })
+
+  assert.deepEqual(consumption.presetProps.appearance, {
+    mode: 'system',
+  })
+  assert.deepEqual(consumption.presetSlices.appearance.appearance, {
+    mode: 'system',
+  })
+})

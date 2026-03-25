@@ -151,6 +151,31 @@ await runTest('createPresetChatSlices exposes appearance config as a dedicated w
   })
 })
 
+await runTest('createPresetChatSlices keeps system appearance mode as a dedicated white-box slice value', async () => {
+  const adapter = createChatAdapterFromConfig({
+    models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+    providers: {
+      openai: {
+        type: 'openai-compatible',
+        endpoint: '/api/chat',
+      },
+    },
+    appearance: {
+      mode: 'system',
+    },
+  })
+
+  const presetProps = createPresetChatProps(adapter)
+  const slices = createPresetChatSlices(presetProps)
+
+  assert.deepEqual(presetProps.appearance, {
+    mode: 'system',
+  })
+  assert.deepEqual(slices.appearance.appearance, {
+    mode: 'system',
+  })
+})
+
 await runTest('loadChatConfig and preset slices preserve workspace layout variant as a pure layout choice', async () => {
   const config = loadChatConfig({
     models: [{ id: 'gpt-4o-mini', provider: 'openai' }],

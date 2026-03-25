@@ -4,54 +4,110 @@
       <span data-testid="on-error-log">{{ errorLog }}</span>
     </div>
 
-    <TrChat
-      :response-provider="edgeResponseProvider"
-      :brand="sharedBrand"
-      :attachments-feature="edgeAttachmentsFeature"
-      :sender-actions-feature="edgeSenderActionsFeature"
-      placeholder="请输入消息..."
-      show-history
-      enable-fullscreen
-      v-model:fullscreen="isFullscreen"
-      v-model:show="isShow"
-      :role-configs="{ user: { placement: 'start' }, assistant: { placement: 'end' } }"
-      :sender-props="{ maxLength: 5 }"
-      :on-finish="handleFinish"
-      :on-error="handleError"
-    >
-      <template #header-extra>
-        <button data-testid="custom-header-btn">自定义按钮</button>
-      </template>
+    <TrChat.Scaffold :config="edgeConfig" :callbacks="edgeCallbacks" :preset-overrides="edgePresetOverrides">
+      <template #default="{ chatKit, presetSlices }">
+        <TrChat.Layout
+          :show="isShow"
+          :fullscreen="isFullscreen"
+          :appearance="presetSlices.appearance.appearance"
+          :role-configs="presetSlices.layout.roleConfigs"
+        >
+          <TrChat.Header
+            :title="presetSlices.header.title"
+            :show-history="presetSlices.header.showHistory"
+            :show-new-chat="false"
+            :show-full-screen="true"
+            :is-fullscreen="isFullscreen"
+            show-close
+            @update:fullscreen="isFullscreen = $event"
+            @close="isShow = false"
+          >
+            <template #extra>
+              <button data-testid="custom-header-btn">自定义按钮</button>
+            </template>
+          </TrChat.Header>
 
-      <template #footer-extra>
-        <div data-testid="custom-footer-extra">这是 Footer 额外区域</div>
+          <TrChat.Welcome
+            v-if="chatKit.messages.value.length === 0 && presetSlices.welcome"
+            v-bind="presetSlices.welcome"
+            @prompt-click="chatKit.sendMessage($event)"
+          />
+
+          <TrChat.MessageList v-else v-bind="presetSlices.messageList" />
+
+          <TrChat.Footer>
+            <template #extra>
+              <div data-testid="custom-footer-extra">这是 Footer 额外区域</div>
+            </template>
+            <TrChat.Attachments />
+            <TrChat.Sender v-bind="presetSlices.sender" />
+          </TrChat.Footer>
+
+          <TrChat.History :enabled="presetSlices.history.enabled" />
+        </TrChat.Layout>
       </template>
-    </TrChat>
+    </TrChat.Scaffold>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { TrChat } from '../../../../chat/src'
+import type { ModelProviderFactory } from '../../../../chat/src/types'
 import {
+  createChatSceneConfig,
   createEdgeResponseProvider,
   edgeAttachmentsFeature,
   edgeSenderActionsFeature,
   sharedBrand,
+  sharedPrompts,
+  sharedWelcome,
 } from './sharedDemoFixtures'
 
 const errorLog = ref('')
 const isFullscreen = ref(false)
 const isShow = ref(true)
-const edgeResponseProvider = createEdgeResponseProvider()
 
-function handleFinish(msg: { content?: string }) {
-  errorLog.value = `finish:${msg.content?.slice(0, 40) ?? ''}`
+const edgeConfig = createChatSceneConfig({
+  models: [{ id: 'edge-model', label: 'Edge Model', provider: 'edge' }],
+  ui: {
+    brand: sharedBrand,
+    welcome: sharedWelcome,
+    prompts: sharedPrompts,
+  },
+  features: {
+    attachments: edgeAttachmentsFeature,
+    senderActions: edgeSenderActionsFeature,
+    history: true,
+  },
+})
+
+const edgeProviderFactories: ModelProviderFactory[] = [
+  {
+    match: (model) => model.provider === 'edge',
+    createProvider: () => createEdgeResponseProvider(),
+  },
+]
+
+const edgeCallbacks = {
+  onFinish(message: { content?: string }) {
+    errorLog.value = `finish:${message.content?.slice(0, 40) ?? ''}`
+  },
+  onError(error: Error) {
+    errorLog.value = `error:${error.message}`
+  },
 }
 
-function handleError(err: Error) {
-  errorLog.value = `error:${err.message}`
-}
+const edgePresetOverrides = computed(() => ({
+  providerFactories: edgeProviderFactories,
+  roleConfigs: {
+    user: { placement: 'start' },
+    assistant: { placement: 'end' },
+  },
+  senderProps: {
+    maxLength: 5,
+  },
+}))
 </script>
 
 <style scoped>

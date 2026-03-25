@@ -12,7 +12,7 @@ This folder contains the E2E-facing chat demo entry, scenario fixtures, and Play
   - Put demo-only Vue scenes here, not Playwright specs.
 - `scenario-specs/`
   - Specs for independent scene pages that are entered with `?chatMode=...`.
-  - Current examples: `layout-config`, `mcp-feature`, `sender-extensions`, `welcome-prompts`.
+  - Current examples: `layout-config`, `mcp-feature`, `sender-extensions`, `surface-api`, `welcome-prompts`.
 - top-level `*.spec.ts`
   - Keep entry smoke specs, root-entry capability specs, and cross-scene regression specs here.
   - Current examples:
@@ -98,6 +98,46 @@ When a test still depends on the top-level demo entry, use `helper.switchToBlack
 - Scene components should preserve existing `data-testid` values once a spec depends on them.
 - Shared scene data belongs in `scenarios/sharedDemoFixtures.ts` when reused across multiple scenes.
 - `index.vue` should remain a thin scene router, not a large fixture dump.
+
+## E2E Coverage Checklist
+
+Use this checklist when changing `packages/chat` public behavior.
+
+- `TrChat` blackbox scaffold flow
+  - `config` drives brand, welcome, prompts, appearance, layout variant, and role placement.
+  - `callbacks` cover `onFinish`, `onError`, `onMessageAction`, and `onModelChange`.
+  - `presetOverrides` cover provider factories, placeholder, maxLength, sender mode, fullscreen affordance, history, feedback, and role config overrides.
+- `TrChat` default renderer slots
+  - `header`
+  - `header-extra`
+  - `welcome`
+  - `empty`
+  - `message-list`
+  - `sender`
+  - `footer-extra`
+  - bubble passthrough slots: `prefix`, `suffix`, `after`, `content-footer`
+- `TrChat.Scaffold`
+  - slot props expose `chatKit`, `adapter`, `presetProps`, `presetSlices`, `currentModel`, and `selectModel`
+  - custom composition still renders and model switching still works
+- `TrChat.Root`
+  - `chatKit` branch
+  - `responseProvider` branch
+  - feature/message injections remain available to descendants
+- Leaf component surfaces
+  - `TrChat.Layout`
+  - `TrChat.Header`
+  - `TrChat.Welcome`
+  - `TrChat.MessageList`
+  - `TrChat.Footer`
+  - `TrChat.Sender`
+  - `TrChat.Attachments`
+  - `TrChat.History`
+  - `TrChat.HistorySurface`
+  - `TrModelSelector`
+  - `TrChatFeedback`
+  - `TrChatMcpPanel`
+  - `TrChat.AssistantOutline`
+  - `TrChat.AssistantOutlineTrigger`
 
 ## Helper Conventions
 

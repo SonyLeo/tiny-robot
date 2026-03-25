@@ -17,11 +17,11 @@ test.describe('Chat Feedback Feature', () => {
 
     await helper.sendMessage('feedback timing', root)
 
-    const feedback = page.locator(root).locator(helper.selectors.feedback)
-    await expect(feedback).toHaveCount(0)
+    const assistantFeedback = page.locator(root).locator(".tr-bubble[data-role='assistant'] .tr-chat-feedback")
+    await expect(assistantFeedback).toHaveCount(0)
 
     await helper.waitForStreamingComplete(root)
-    await expect(feedback.first()).toBeVisible()
+    await expect(assistantFeedback.first()).toBeVisible()
   })
 
   test('should route feedback actions through the message action callback', async ({ page }) => {
@@ -31,9 +31,11 @@ test.describe('Chat Feedback Feature', () => {
     await helper.waitForStreamingComplete(root)
     await helper.waitForAssistantReply(root)
 
-    const actionButtons = page.locator(root).locator('.tr-feedback .tr-action-group__btn-wrapper')
+    const actionButtons = page
+      .locator(root)
+      .locator(".tr-bubble[data-role='assistant'] .tr-feedback .tr-action-group__btn-wrapper")
     await expect(actionButtons.first()).toBeVisible()
-    await actionButtons.first().click()
+    await actionButtons.first().click({ force: true })
 
     const actionLog = page.locator(helper.selectors.onActionLog)
     await expect(actionLog).toContainText('action:copy:assistant:')

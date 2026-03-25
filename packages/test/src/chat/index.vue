@@ -25,6 +25,7 @@ import BlackboxScene from './scenarios/BlackboxScene.vue'
 import LayoutConfigScene from './scenarios/LayoutConfigScene.vue'
 import McpFeatureScene from './scenarios/McpFeatureScene.vue'
 import SenderExtensionsScene from './scenarios/SenderExtensionsScene.vue'
+import SurfaceApiScene from './scenarios/SurfaceApiScene.vue'
 import WelcomePromptsScene from './scenarios/WelcomePromptsScene.vue'
 import WhiteboxScene from './scenarios/WhiteboxScene.vue'
 
@@ -36,6 +37,7 @@ type ChatMode =
   | 'sender-extensions'
   | 'mcp-feature'
   | 'layout-config'
+  | 'surface-api'
 
 const modeOptions: ReadonlyArray<{ value: ChatMode; label: string; testId: string }> = [
   { value: 'blackbox', label: '黑盒模式', testId: 'switch-blackbox' },
@@ -45,6 +47,7 @@ const modeOptions: ReadonlyArray<{ value: ChatMode; label: string; testId: strin
   { value: 'sender-extensions', label: 'Sender Extensions', testId: 'switch-sender-extensions' },
   { value: 'mcp-feature', label: 'MCP Feature', testId: 'switch-mcp-feature' },
   { value: 'layout-config', label: 'Layout Config', testId: 'switch-layout-config' },
+  { value: 'surface-api', label: 'Surface API', testId: 'switch-surface-api' },
 ]
 
 const sceneByMode: Record<ChatMode, Component> = {
@@ -55,6 +58,7 @@ const sceneByMode: Record<ChatMode, Component> = {
   'sender-extensions': SenderExtensionsScene,
   'mcp-feature': McpFeatureScene,
   'layout-config': LayoutConfigScene,
+  'surface-api': SurfaceApiScene,
 }
 
 function isChatMode(value: string | null): value is ChatMode {

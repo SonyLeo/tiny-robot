@@ -221,6 +221,30 @@ await runTest('loadChatConfig normalizes appearance config and createPresetChatP
   })
 })
 
+await runTest('loadChatConfig preserves system appearance mode and createPresetChatProps forwards it for runtime resolution', async () => {
+  const config = loadChatConfig({
+    models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+    providers: {
+      openai: {
+        type: 'openai-compatible',
+        endpoint: '/api/chat',
+      },
+    },
+    appearance: {
+      mode: 'system',
+    },
+  })
+
+  assert.deepEqual(config.appearance, {
+    mode: 'system',
+  })
+
+  const presetProps = createPresetChatProps(createChatAdapterFromConfig(config))
+  assert.deepEqual(presetProps.appearance, {
+    mode: 'system',
+  })
+})
+
 await runTest('resolveChatFeatures keeps attachments and senderActions outputs independent for runtime composition', async () => {
   const resolved = resolveChatFeatures({
     attachments: {

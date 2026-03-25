@@ -1,10 +1,15 @@
 import type { ChatCompletion } from '../../../../kit/src/vue/message/types'
-import type { ModelOption, ModelProviderFactory } from '../../../../chat/src/types'
+import type { ChatConfig, ModelOption, ModelProviderFactory } from '../../../../chat/src'
 import { createMockFactory, createMockProvider } from '../mockProvider'
 
 export const sharedModels: ModelOption[] = [
   { value: 'openai-test', label: 'OpenAI Test', provider: 'openai' },
   { value: 'deepseek-test', label: 'DeepSeek Test', provider: 'deepseek' },
+]
+
+export const sharedChatModels: NonNullable<ChatConfig['models']> = [
+  { id: 'openai-test', label: 'OpenAI Test', provider: 'openai' },
+  { id: 'deepseek-test', label: 'DeepSeek Test', provider: 'deepseek' },
 ]
 
 export const sharedProviderFactories: ModelProviderFactory[] = [
@@ -18,7 +23,7 @@ export const sharedBrand = {
 
 export const sharedWelcome = {
   title: 'TinyRobot',
-  description: '这里用于验证 Chat Kit 的黑盒接入和 E2E 场景。',
+  description: '这里用于验证 Chat Kit 的默认渲染链和 E2E 场景。',
 }
 
 export const sharedPrompts = [
@@ -54,6 +59,42 @@ export const edgeSenderActionsFeature = {
   upload: {
     enabled: false,
   },
+}
+
+export function createMockProviders(providerIds: string[]) {
+  return Object.fromEntries(
+    providerIds.map((providerId) => [
+      providerId,
+      {
+        type: 'openai-compatible' as const,
+        endpoint: `/api/${providerId}`,
+      },
+    ]),
+  )
+}
+
+export function createChatSceneConfig(
+  overrides: Omit<Partial<ChatConfig>, 'models' | 'providers'> & {
+    models?: NonNullable<ChatConfig['models']>
+    providers?: NonNullable<ChatConfig['providers']>
+  } = {},
+): ChatConfig {
+  const models = overrides.models ?? sharedChatModels
+  const providerIds = [...new Set(models.map((model) => model.provider))]
+
+  return {
+    models,
+    providers: overrides.providers ?? createMockProviders(providerIds),
+    defaults: {
+      model: overrides.defaults?.model ?? models[0]?.id,
+      systemPrompt: overrides.defaults?.systemPrompt,
+    },
+    appearance: overrides.appearance,
+    ui: overrides.ui,
+    layout: overrides.layout,
+    features: overrides.features,
+    runtime: overrides.runtime,
+  }
 }
 
 export function createEdgeResponseProvider() {

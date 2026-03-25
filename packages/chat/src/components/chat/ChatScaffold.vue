@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, provide, ref, watchEffect } from 'vue'
+import { computed, provide, ref, useSlots, watchEffect } from 'vue'
 import { createChatAdapterFromConfig, createPresetChatProps, createPresetChatSlices } from '@/adapters'
 import { useChatKit, useModelSelector } from '@/composables'
 import { CHAT_SCAFFOLD_KEY } from '@/context'
@@ -20,6 +20,7 @@ interface ScaffoldSlotProps {
 }
 
 const props = defineProps<TrChatScaffoldProps>()
+const slots = useSlots()
 
 const adapter = computed(() => createChatAdapterFromConfig(props.config))
 const resolvedDefaultModel = computed(() => props.presetOverrides?.defaultModel ?? adapter.value.defaultModel)
@@ -128,12 +129,28 @@ const slotProps = computed<ScaffoldSlotProps>(() => ({
   selectModel,
 }))
 
+const namedSlots = computed(() =>
+  Object.fromEntries(Object.entries(slots).filter(([name]) => name !== 'default' && slots[name] !== undefined)),
+)
+
+function handleDefaultRendererModelUpdate(modelValue: string) {
+  currentModel.value = modelValue
+  const model = resolvedModels.value.find((item) => item.value === modelValue)
+  if (model) {
+    props.callbacks?.onModelChange?.(model)
+  }
+}
+
 provide(CHAT_SCAFFOLD_KEY, scaffoldContext)
 </script>
 
 <template>
   <ChatRoot :chat-kit="chatKit" v-bind="presetSlices.root">
     <slot v-if="$slots.default" v-bind="slotProps" />
-    <ChatDefaultRenderer v-else />
+    <ChatDefaultRenderer v-else @update:model="handleDefaultRendererModelUpdate">
+      <template v-for="(_, name) in namedSlots" #[name]="defaultSlotProps" :key="name">
+        <slot :name="name" v-bind="defaultSlotProps ?? {}" />
+      </template>
+    </ChatDefaultRenderer>
   </ChatRoot>
 </template>

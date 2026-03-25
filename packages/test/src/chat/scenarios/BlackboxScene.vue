@@ -4,41 +4,24 @@
       <span data-testid="on-finish-log">{{ finishLog }}</span>
       <span data-testid="on-action-log">{{ actionLog }}</span>
       <span data-testid="variant-indicator">{{ messageListVariant }}</span>
+      <span data-testid="model-change-log">{{ modelChangeLog }}</span>
       <button data-testid="toggle-message-variant" @click="toggleMessageListVariant">
         {{ messageListVariant === 'bubble' ? 'docs variant' : 'bubble variant' }}
       </button>
     </div>
 
-    <TrChat
-      :brand="sharedBrand"
-      :welcome="sharedWelcome"
-      :prompts="sharedPrompts"
-      :attachments-feature="sharedAttachmentsFeature"
-      :sender-actions-feature="sharedSenderActionsFeature"
-      :models="sharedModels"
-      :provider-factories="sharedProviderFactories"
-      default-model="openai-test"
-      placeholder="请输入消息..."
-      :max-length="20"
-      show-history
-      show-feedback
-      :message-list-variant="messageListVariant"
-      :on-finish="handleFinish"
-      :on-error="handleError"
-      :on-message-action="handleMessageAction"
-      v-model:fullscreen="isFullscreen"
-    />
+    <TrChat :config="blackboxConfig" :callbacks="blackboxCallbacks" :preset-overrides="blackboxPresetOverrides" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { TrChat } from '../../../../chat/src'
-import type { ChatListVariant, ChatMessageActionPayload } from '../../../../chat/src/types'
+import type { ChatListVariant, ChatMessageActionPayload, ModelOption } from '../../../../chat/src/types'
 import {
+  createChatSceneConfig,
   sharedAttachmentsFeature,
   sharedBrand,
-  sharedModels,
   sharedPrompts,
   sharedProviderFactories,
   sharedSenderActionsFeature,
@@ -47,20 +30,44 @@ import {
 
 const finishLog = ref('')
 const actionLog = ref('')
+const modelChangeLog = ref('')
 const messageListVariant = ref<ChatListVariant>('bubble')
-const isFullscreen = ref(false)
 
-function handleFinish(msg: { content?: string }) {
-  finishLog.value = `finish:${msg.content?.slice(0, 40) ?? ''}`
+const blackboxConfig = createChatSceneConfig({
+  ui: {
+    brand: sharedBrand,
+    welcome: sharedWelcome,
+    prompts: sharedPrompts,
+  },
+  features: {
+    attachments: sharedAttachmentsFeature,
+    senderActions: sharedSenderActionsFeature,
+    history: true,
+    feedback: true,
+  },
+})
+
+const blackboxCallbacks = {
+  onFinish(message: { content?: string }) {
+    finishLog.value = `finish:${message.content?.slice(0, 40) ?? ''}`
+  },
+  onError(error: Error) {
+    finishLog.value = `error:${error.message}`
+  },
+  onMessageAction(payload: ChatMessageActionPayload) {
+    actionLog.value = `action:${payload.action}:${payload.role ?? ''}:${payload.messageIndex ?? -1}`
+  },
+  onModelChange(model: ModelOption) {
+    modelChangeLog.value = `model:${model.value}`
+  },
 }
 
-function handleError(err: Error) {
-  finishLog.value = `error:${err.message}`
-}
-
-function handleMessageAction(payload: ChatMessageActionPayload) {
-  actionLog.value = `action:${payload.action}:${payload.role ?? ''}:${payload.messageIndex ?? -1}`
-}
+const blackboxPresetOverrides = computed(() => ({
+  providerFactories: sharedProviderFactories,
+  placeholder: '请输入消息...',
+  maxLength: 20,
+  messageListVariant: messageListVariant.value,
+}))
 
 function toggleMessageListVariant() {
   messageListVariant.value = messageListVariant.value === 'bubble' ? 'docs' : 'bubble'

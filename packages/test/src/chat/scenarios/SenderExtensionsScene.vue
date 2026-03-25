@@ -1,15 +1,7 @@
 <template>
   <div class="sender-extensions-grid">
     <div data-testid="chat-sender-extensions-blackbox" class="chat-wrapper">
-      <TrChat
-        :brand="{ title: 'Sender Extensions Blackbox' }"
-        :welcome="senderExtensionsWelcome"
-        :response-provider="senderExtensionsProvider"
-        :sender-props="{
-          extensions: senderSuggestionExtensions,
-          placeholder: 'Type ECS to trigger suggestions...',
-        }"
-      />
+      <TrChat :config="senderExtensionsConfig" :preset-overrides="senderExtensionsBlackboxOverrides" />
     </div>
 
     <div data-testid="chat-sender-extensions-whitebox" class="chat-wrapper">
@@ -39,6 +31,7 @@ import { computed } from 'vue'
 import { TrSender } from '@opentiny/tiny-robot'
 import { TrChat, useChatKit } from '../../../../chat/src'
 import { createMockProvider } from '../mockProvider'
+import { createChatSceneConfig } from './sharedDemoFixtures'
 
 const senderExtensionSuggestions = [
   { content: 'ECS instance startup issue' },
@@ -48,18 +41,48 @@ const senderExtensionSuggestions = [
 
 const senderSuggestionExtensions = [TrSender.suggestion(senderExtensionSuggestions)]
 
-const senderExtensionsWelcome = {
-  title: 'Sender Extensions',
-  description: 'Type ECS in the sender to verify senderProps.extensions passthrough.',
-}
-
-const senderExtensionsProvider = createMockProvider({
-  provider: 'openai',
-  model: 'sender-extensions-model',
+const senderExtensionsConfig = createChatSceneConfig({
+  ui: {
+    brand: {
+      title: 'Sender Extensions Blackbox',
+    },
+    welcome: {
+      title: 'Sender Extensions',
+      description: 'Type ECS in the sender to verify senderProps.extensions passthrough.',
+    },
+  },
 })
 
+const senderExtensionsBlackboxOverrides = {
+  providerFactories: [
+    {
+      match: (model: { provider?: string }) => model.provider === 'openai',
+      createProvider: () =>
+        createMockProvider({
+          provider: 'openai',
+          model: 'openai-test',
+        }),
+    },
+    {
+      match: (model: { provider?: string }) => model.provider === 'deepseek',
+      createProvider: () =>
+        createMockProvider({
+          provider: 'deepseek',
+          model: 'deepseek-test',
+        }),
+    },
+  ],
+  senderProps: {
+    extensions: senderSuggestionExtensions,
+    placeholder: 'Type ECS to trigger suggestions...',
+  },
+}
+
 const senderExtensionsWhiteboxChat = useChatKit({
-  responseProvider: senderExtensionsProvider,
+  responseProvider: createMockProvider({
+    provider: 'openai',
+    model: 'sender-extensions-model',
+  }),
 })
 const showSenderExtensionsWhiteboxWelcome = computed(() => senderExtensionsWhiteboxChat.messages.value.length === 0)
 </script>

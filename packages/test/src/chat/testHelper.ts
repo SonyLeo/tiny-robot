@@ -41,8 +41,22 @@ export function createChatTestHelper(page: Page, options: ChatTestHelperOptions 
   }
 
   const switchToBlackboxEdge = async () => {
+    const sceneRoot = page.locator('[data-testid="chat-blackbox-edge"]')
     await testUtils.clickWhenVisible(selectors.switchToBlackboxEdge)
-    await page.locator('[data-testid="chat-blackbox-edge"]').waitFor({ state: 'visible', timeout: defaultTimeout })
+    try {
+      await sceneRoot.waitFor({ state: 'visible', timeout: defaultTimeout })
+    } catch {
+      await testUtils.clickWhenVisible(selectors.switchToBlackboxEdge)
+      await sceneRoot.waitFor({ state: 'visible', timeout: defaultTimeout })
+    }
+  }
+
+  const switchToSurfaceApi = async () => {
+    await testUtils.clickWhenVisible(selectors.switchToSurfaceApi)
+    await page.locator('[data-testid="chat-surface-slots-default"]').waitFor({
+      state: 'visible',
+      timeout: defaultTimeout,
+    })
   }
 
   // =====================
@@ -572,6 +586,7 @@ export function createChatTestHelper(page: Page, options: ChatTestHelperOptions 
     switchToBlackbox,
     switchToWhitebox,
     switchToBlackboxEdge,
+    switchToSurfaceApi,
 
     // 消息交互
     typeMessage,

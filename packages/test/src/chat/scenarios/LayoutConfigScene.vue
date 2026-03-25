@@ -1,7 +1,7 @@
 <template>
   <div class="scene-grid">
     <div data-testid="chat-layout-config-blackbox" class="chat-wrapper">
-      <TrChat v-bind="layoutConfigBlackboxPreset" />
+      <TrChat :config="layoutConfigConfig" :preset-overrides="layoutConfigBlackboxOverrides" />
     </div>
 
     <div data-testid="chat-layout-config-whitebox" class="chat-wrapper">
@@ -22,7 +22,7 @@
     </div>
 
     <div data-testid="chat-layout-workspace-blackbox" class="chat-wrapper">
-      <TrChat v-bind="workspaceLayoutBlackboxPreset" />
+      <TrChat :config="workspaceLayoutConfig" :preset-overrides="workspaceLayoutBlackboxOverrides" />
     </div>
 
     <div data-testid="chat-layout-workspace-whitebox" class="chat-wrapper">
@@ -56,17 +56,11 @@ import {
   useChatKit,
 } from '../../../../chat/src'
 import { createMockProvider } from '../mockProvider'
+import { createChatSceneConfig, sharedProviderFactories } from './sharedDemoFixtures'
 
 const darkAppearance = { mode: 'dark' } as const
 
-const layoutConfigAdapter = createChatAdapterFromConfig({
-  models: [{ id: 'layout-config-model', provider: 'openai' }],
-  providers: {
-    openai: {
-      type: 'openai-compatible',
-      endpoint: '/api/chat',
-    },
-  },
+const layoutConfigConfig = createChatSceneConfig({
   appearance: {
     mode: darkAppearance.mode,
   },
@@ -89,30 +83,22 @@ const layoutConfigAdapter = createChatAdapterFromConfig({
   },
 })
 
-const layoutConfigBlackboxPreset = createPresetChatProps(layoutConfigAdapter, {
-  responseProvider: createMockProvider({
-    provider: 'openai',
-    model: 'layout-config-model',
-  }),
-})
+const layoutConfigBlackboxOverrides = {
+  providerFactories: sharedProviderFactories,
+}
+
+const layoutConfigAdapter = createChatAdapterFromConfig(layoutConfigConfig)
 const layoutConfigWhiteboxPreset = createPresetChatProps(layoutConfigAdapter)
 const layoutConfigWhiteboxSlices = createPresetChatSlices(layoutConfigWhiteboxPreset)
 const layoutConfigWhiteboxChat = useChatKit({
   responseProvider: createMockProvider({
     provider: 'openai',
-    model: 'layout-config-model',
+    model: 'openai-test',
   }),
 })
 const showLayoutConfigWhiteboxWelcome = computed(() => layoutConfigWhiteboxChat.messages.value.length === 0)
 
-const workspaceLayoutAdapter = createChatAdapterFromConfig({
-  models: [{ id: 'workspace-layout-model', provider: 'openai' }],
-  providers: {
-    openai: {
-      type: 'openai-compatible',
-      endpoint: '/api/chat',
-    },
-  },
+const workspaceLayoutConfig = createChatSceneConfig({
   ui: {
     brand: {
       title: 'Workspace Layout',
@@ -132,18 +118,17 @@ const workspaceLayoutAdapter = createChatAdapterFromConfig({
   },
 })
 
-const workspaceLayoutBlackboxPreset = createPresetChatProps(workspaceLayoutAdapter, {
-  responseProvider: createMockProvider({
-    provider: 'openai',
-    model: 'workspace-layout-model',
-  }),
-})
+const workspaceLayoutBlackboxOverrides = {
+  providerFactories: sharedProviderFactories,
+}
+
+const workspaceLayoutAdapter = createChatAdapterFromConfig(workspaceLayoutConfig)
 const workspaceLayoutWhiteboxPreset = createPresetChatProps(workspaceLayoutAdapter)
 const workspaceLayoutWhiteboxSlices = createPresetChatSlices(workspaceLayoutWhiteboxPreset)
 const workspaceLayoutWhiteboxChat = useChatKit({
   responseProvider: createMockProvider({
     provider: 'openai',
-    model: 'workspace-layout-model',
+    model: 'openai-test',
   }),
 })
 const showWorkspaceLayoutWhiteboxWelcome = computed(() => workspaceLayoutWhiteboxChat.messages.value.length === 0)

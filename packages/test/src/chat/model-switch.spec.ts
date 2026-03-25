@@ -1,10 +1,11 @@
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 import { createChatTestHelper } from './testHelper'
 
-test.describe('Chat 模型切换回归', () => {
+test.describe('Chat Model Switching', () => {
   test('dropdown should close on outside click and Escape without breaking later model switching', async ({ page }) => {
     await page.goto('/')
-    await page.click('text=Chat 组件')
+    await page.locator('nav').getByRole('link').nth(2).click()
+    await expect(page.locator('h2')).toContainText('Chat')
 
     const helper = createChatTestHelper(page)
     await helper.switchToBlackbox()
@@ -32,15 +33,20 @@ test.describe('Chat 模型切换回归', () => {
     await expect(contents.last()).toContainText('[deepseek:deepseek-test]')
   })
 
-  test('blackbox 切换模型后应使用新的 provider 回复', async ({ page }) => {
+  test('blackbox should use the newly selected provider and emit onModelChange', async ({ page }) => {
     await page.goto('/')
-    await page.click('text=Chat 组件')
+    await page.locator('nav').getByRole('link').nth(2).click()
+    await expect(page.locator('h2')).toContainText('Chat')
 
     const helper = createChatTestHelper(page)
     await helper.switchToBlackbox()
 
     const root = helper.selectors.blackboxChat
     await helper.selectModel('DeepSeek Test', root)
+
+    const modelLog = page.getByTestId('model-change-log')
+    await expect(modelLog).toContainText('model:deepseek-test')
+
     await helper.sendMessage('switch-blackbox', root)
     await helper.waitForStreamingComplete(root)
 
@@ -48,9 +54,10 @@ test.describe('Chat 模型切换回归', () => {
     await expect(contents.last()).toContainText('[deepseek:deepseek-test]')
   })
 
-  test('whitebox 切换模型后应更新 chatKit provider', async ({ page }) => {
+  test('whitebox should update the injected chatKit provider after model switching', async ({ page }) => {
     await page.goto('/')
-    await page.click('text=Chat 组件')
+    await page.locator('nav').getByRole('link').nth(2).click()
+    await expect(page.locator('h2')).toContainText('Chat')
 
     const helper = createChatTestHelper(page)
     await helper.switchToWhitebox()

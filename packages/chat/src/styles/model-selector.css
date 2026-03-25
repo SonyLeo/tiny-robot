@@ -37,13 +37,6 @@
   flex-shrink: 0;
 }
 
-.tr-model-selector__value {
-  max-width: 140px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .tr-model-selector__chevron {
   flex-shrink: 0;
   margin-left: auto;
