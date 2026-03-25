@@ -121,7 +121,7 @@ const handlePluginCreateEvent = async (type: 'form' | 'code', data: unknown) => 
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.45);
+  background: var(--chat-mcp-overlay-bg);
   z-index: 999;
   cursor: pointer;
 }

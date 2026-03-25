@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { ThemeProvider } from '@opentiny/tiny-robot'
+import type { ColorMode } from '@opentiny/tiny-robot'
 import BlackboxDemo from './components/BlackboxDemo.vue'
 import WhiteboxDemo from './components/WhiteboxDemo.vue'
 import './styles/index.css'
@@ -19,11 +20,17 @@ const demoCases = [
 ] as const
 
 const activeCaseId = ref<(typeof demoCases)[number]['id']>('blackbox')
+const colorMode = ref<ColorMode>('auto')
+const colorModeOptions: Array<{ value: ColorMode; label: string }> = [
+  { value: 'auto', label: 'Auto' },
+  { value: 'light', label: 'Light' },
+  { value: 'dark', label: 'Dark' },
+]
 const activeCase = computed(() => demoCases.find((item) => item.id === activeCaseId.value) ?? demoCases[0])
 </script>
 
 <template>
-  <ThemeProvider>
+  <ThemeProvider v-model:color-mode="colorMode">
     <div class="demo-app">
       <header class="demo-app__toolbar">
         <div class="demo-app__switch" role="tablist" aria-label="Chat demo cases">
@@ -38,6 +45,23 @@ const activeCase = computed(() => demoCases.find((item) => item.id === activeCas
           >
             {{ item.label }}
           </button>
+        </div>
+
+        <div class="demo-app__theme" role="group" aria-label="Theme mode">
+          <span class="demo-app__theme-label">Theme</span>
+          <div class="demo-app__theme-buttons">
+            <button
+              v-for="option in colorModeOptions"
+              :key="option.value"
+              type="button"
+              class="demo-app__theme-button"
+              :class="{ 'is-active': option.value === colorMode }"
+              :aria-pressed="option.value === colorMode"
+              @click="colorMode = option.value"
+            >
+              {{ option.label }}
+            </button>
+          </div>
         </div>
       </header>
 

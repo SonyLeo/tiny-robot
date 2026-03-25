@@ -30,6 +30,7 @@ watchEffect(() => {
 })
 
 const { resolvedColorMode } = useTheme()
+const isDarkMode = computed(() => resolvedColorMode?.value === 'dark')
 
 const textAndIcon = computed(() => {
   const textAndIconMap = new Map<string, { text: string; icon: Component }>([
@@ -45,12 +46,7 @@ const textAndIcon = computed(() => {
 
 <template>
   <div class="markstream-vue" v-bind="attrs">
-    <MarkdownCodeBlockNode
-      :node="node"
-      :stream="true"
-      :is-dark="resolvedColorMode === 'dark'"
-      :showFontSizeButtons="false"
-    >
+    <MarkdownCodeBlockNode :node="node" :stream="true" :is-dark="isDarkMode" :showFontSizeButtons="false">
       <template #header-left>
         <div class="header-left">
           <component :is="textAndIcon.icon" class="header-icon" :class="`icon-${state.status}`" />
@@ -96,12 +92,12 @@ const textAndIcon = computed(() => {
     flex-shrink: 0;
 
     &.icon-running {
-      color: #898989;
+      color: var(--chat-icon-muted);
       animation: spin 1s linear infinite;
     }
 
     &.icon-success {
-      color: #898989;
+      color: var(--chat-icon-muted);
     }
 
     &.icon-failed,

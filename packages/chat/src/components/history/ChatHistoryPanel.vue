@@ -80,7 +80,7 @@ function handleClosePanel() {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--chat-history-panel-shadow);
   z-index: 100;
 
   &.tr-slide-up-enter-active,
@@ -163,8 +163,8 @@ function handleClosePanel() {
 
 .delete-icon-btn {
   &:hover:not(:disabled) {
-    background: rgba(245, 108, 108, 0.1);
-    color: #f56c6c;
+    background: var(--chat-danger-soft-bg);
+    color: var(--chat-danger-text);
   }
 
   &:disabled {

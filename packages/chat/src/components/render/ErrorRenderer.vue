@@ -69,9 +69,9 @@ function handleRetry() {
 }
 
 .error-renderer__retry {
-  border: 1px solid var(--tr-color-primary, #1476ff);
-  background: #fff;
-  color: var(--tr-color-primary, #1476ff);
+  border: 1px solid var(--chat-error-retry-border);
+  background: var(--chat-error-retry-bg);
+  color: var(--chat-error-retry-text);
   border-radius: 999px;
   padding: 4px 12px;
   cursor: pointer;

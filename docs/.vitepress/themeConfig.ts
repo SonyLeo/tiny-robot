@@ -1,4 +1,4 @@
-// 定义共享的侧边栏配置
+// Shared sidebar configuration
 const sharedSidebarItems = [
   {
     text: '指南',
@@ -43,7 +43,12 @@ const sharedSidebarItems = [
     text: 'Chat Suite',
     base: '/components/',
     items: [
-      { text: 'Chat 聊天套件', link: 'chat' },
+      { text: 'Chat 总览', link: 'chat' },
+      { text: 'Chat 黑盒配置', link: 'chat-config' },
+      { text: 'Chat Scaffold 与 Root', link: 'chat-scaffold' },
+      { text: 'Chat Slots 与渲染定制', link: 'chat-slots' },
+      { text: 'Chat Features', link: 'chat-features' },
+      { text: 'Chat 进阶能力', link: 'chat-advanced' },
       { text: 'Chat CLI 脚手架', link: 'chat-cli' },
     ],
   },

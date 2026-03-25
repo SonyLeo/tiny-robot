@@ -335,3 +335,32 @@ pnpm.cmd -F @opentiny/tiny-robot-chat test:unit
 pnpm.cmd -F @opentiny/tiny-robot-chat-demo type-check
 pnpm.cmd -F @opentiny/tiny-robot-chat-demo build
 ```
+
+## Theme Responsibility Split
+
+To keep light/dark switching consistent across runtime and styles, the chat package follows a two-layer token model:
+
+- `components` owns reusable theme tokens (`--tr-*`) and their light/dark values.
+- `chat` owns scene-level tokens (`--chat-*`) for layout-specific surfaces such as header, panel, docs/workspace overlays, and history shell controls.
+
+Guidelines:
+
+- Do not re-introduce a parallel dark palette for reusable `--tr-*` tokens in `packages/chat/src/styles/variables.css`.
+- If a visual requirement is reusable across component surfaces, add or update `--tr-*` in `packages/components`.
+- If a visual requirement is chat-scene-only, keep it in `--chat-*`.
+
+## Appearance Runtime Flow
+
+`appearance.mode` remains part of the config and preset contract and supports:
+
+- `light`
+- `dark`
+- `system`
+
+Runtime behavior:
+
+- `ChatLayout` bridges `appearance.mode` through `ThemeProvider` instead of writing `data-tr-color-mode` directly.
+- `system` maps to ThemeProvider auto resolution.
+- Runtime consumers that rely on `useTheme().resolvedColorMode` (for example tool/code renderers) read from the same source as CSS token switching.
+
+This keeps DOM theme attributes and runtime theme state aligned, so style rendering and renderer-level dark-mode logic cannot drift.
