@@ -12,7 +12,7 @@ This folder contains the E2E-facing chat demo entry, scenario fixtures, and Play
   - Put demo-only Vue scenes here, not Playwright specs.
 - `scenario-specs/`
   - Specs for independent scene pages that are entered with `?chatMode=...`.
-  - Current examples: `layout-config`, `mcp-feature`, `preset-entry`, `sender-extensions`, `welcome-prompts`.
+  - Current examples: `layout-config`, `mcp-feature`, `sender-extensions`, `welcome-prompts`.
 - top-level `*.spec.ts`
   - Keep entry smoke specs, root-entry capability specs, and cross-scene regression specs here.
   - Current examples:
@@ -24,7 +24,6 @@ This folder contains the E2E-facing chat demo entry, scenario fixtures, and Play
     - `edge-overrides.spec.ts`
     - `model-switch.spec.ts`
     - `sender-actions.spec.ts`
-    - `workspace-shell.spec.ts`
 - `testHelper.ts`
   - Shared chat interaction helpers and assertions.
 - `selectors.ts`
@@ -39,7 +38,6 @@ This folder contains the E2E-facing chat demo entry, scenario fixtures, and Play
   - a root-entry capability that still uses the shared blackbox/whitebox demo entry
   - behavior spanning multiple scenes
   - shared helper behavior
-  - workspace shell behavior that is still treated as a core regression surface
 - Do not mix Vue scene code and Playwright spec code in the same file.
 
 ## Spec Writing Pattern
@@ -72,7 +70,6 @@ When a test still depends on the top-level demo entry, use `helper.switchToBlack
 - Prefer `data-testid` for scene roots and demo-only controls.
 - Prefer semantic selectors already used by the component when they are stable enough across specs.
 - Do not add ad-hoc long CSS chains into multiple specs. If a selector is reused, move it into `selectors.ts` or a helper method.
-- Keep workspace shell specs focused on user-visible shell contracts. Exact width math, CSS custom-property internals, and slot-prop plumbing belong in runtime/unit tests unless the browser behavior is the product contract.
 
 ## Assertion Rules
 
@@ -115,7 +112,6 @@ Common targeted runs:
 ```powershell
 pnpm.cmd -F tiny-robot-test test -- src/chat/index.spec.ts
 pnpm.cmd -F tiny-robot-test test -- src/chat/scenario-specs/layout-config.spec.ts
-pnpm.cmd -F tiny-robot-test test -- src/chat/workspace-shell.spec.ts
 ```
 
 When moving or adding specs:
@@ -125,13 +121,6 @@ When moving or adding specs:
 3. rerun the affected spec on the new path
 4. update any docs or progress notes that hardcode the old path
 
-## P5-C Note
+## Historical Note
 
-For current and follow-up `P5-C` work:
-
-- add new demo fixtures under `scenarios/`
-- add new scene-specific browser specs under `scenario-specs/`
-- keep runtime unit tests for workspace/navigation logic under `packages/chat/tests/`
-- avoid reopening `index.vue` as a large one-file demo
-- keep right-side turn-navigation assertions in scene/browser specs instead of shell-only specs unless the behavior is truly shell-owned
-- treat assistant outline as a chat-level provider + `prefix` trigger flow, not as a shell-level left-navigation API
+`workspace` scenes and `TrChat.PresetRoot` coverage were removed after the underlying chat package APIs were deleted. New demo scenes and Playwright specs should target the retained `TrChat`, `TrChat.Scaffold`, `ChatRoot`, `ChatLayout`, and assistant-outline surfaces.

@@ -47,8 +47,8 @@ await runTest('getRootChatKitResolution derives useChatKit options from root pro
 
 await runTest('resolveRootChatKit throws a component-scoped error when neither chatKit nor responseProvider is provided', async () => {
   assert.throws(
-    () => resolveRootChatKit('TrChatPresetRoot', {}),
-    /\[TrChatPresetRoot\] Either chatKit or responseProvider must be provided/,
+    () => resolveRootChatKit('TrChatRoot', {}),
+    /\[TrChatRoot\] Either chatKit or responseProvider must be provided/,
   )
 })
 

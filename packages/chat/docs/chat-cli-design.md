@@ -3,7 +3,6 @@
 > Last updated: `2026-03-19`
 > Review: [../packages/chat-cli/chat-cli-review-02.md](../packages/chat-cli/chat-cli-review-02.md)
 > Progress: [../packages/chat-cli/progress.md](../packages/chat-cli/progress.md)
-> Upstream chat design: [./chat-kit-design.md](./chat-kit-design.md)
 
 ---
 

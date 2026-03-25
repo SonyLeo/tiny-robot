@@ -1,7 +1,6 @@
 export { default as Chat } from './Chat.vue'
 export { default as ChatScaffold } from './ChatScaffold.vue'
 export { default as ChatRoot } from './ChatRoot.vue'
-export { default as ChatPresetRoot } from './ChatPresetRoot.vue'
 export { default as ChatLayout } from './ChatLayout.vue'
 export { default as ChatHeader } from './ChatHeader.vue'
 export { default as ChatWelcome } from './ChatWelcome.vue'

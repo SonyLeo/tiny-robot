@@ -84,7 +84,7 @@ export const CHAT_SELECTORS = {
   variantIndicator: '[data-testid="variant-indicator"]',
   toggleMessageVariant: '[data-testid="toggle-message-variant"]',
 
-  // === Workspace Shell (P5-B) ===
+  // === Historical workspace / navigation selectors ===
   workspaceShell: '.tr-workspace-shell',
   workspaceShellRoot: '[data-testid="p5-shell-preview"]',
   leftRegion: '.tr-workspace-shell__region--left',

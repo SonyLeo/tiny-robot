@@ -6,7 +6,6 @@ import {
   Chat as TrChat,
   ChatScaffold as TrChatScaffold,
   ChatRoot as TrChatRoot,
-  ChatPresetRoot as TrChatPresetRoot,
   ChatLayout as TrChatLayout,
   ChatHeader as TrChatHeader,
   ChatWelcome as TrChatWelcome,
@@ -21,18 +20,11 @@ import {
 } from './components/chat'
 import { ChatHistory as TrChatHistory, ChatHistorySurface as TrChatHistorySurface } from './components/history'
 import { ModelSelector as TrModelSelector } from './components/model-selector'
-import {
-  WorkspaceShell as TrChatWorkspaceShell,
-  WorkspacePanelHost as TrChatWorkspacePanelHost,
-  ContentNavigationHost as TrChatContentNavigationHost,
-  ConversationTurnNavigation as TrChatConversationTurnNavigation,
-} from './components/workspace'
 
 // 定义带子组件的 TrChat 类型
 type TrChatWithSubComponents = typeof TrChat & {
   Scaffold: typeof TrChatScaffold
   Root: typeof TrChatRoot
-  PresetRoot: typeof TrChatPresetRoot
   Layout: typeof TrChatLayout
   Header: typeof TrChatHeader
   Welcome: typeof TrChatWelcome
@@ -44,17 +36,12 @@ type TrChatWithSubComponents = typeof TrChat & {
   Sender: typeof TrChatSender
   History: typeof TrChatHistory
   HistorySurface: typeof TrChatHistorySurface
-  WorkspaceShell: typeof TrChatWorkspaceShell
-  WorkspacePanelHost: typeof TrChatWorkspacePanelHost
-  ContentNavigationHost: typeof TrChatContentNavigationHost
-  ConversationTurnNavigation: typeof TrChatConversationTurnNavigation
 }
 
 // 挂载白盒子组件到 TrChat 上，实现复合组件模式
 const TrChatFull = TrChat as TrChatWithSubComponents
 TrChatFull.Scaffold = TrChatScaffold
 TrChatFull.Root = TrChatRoot
-TrChatFull.PresetRoot = TrChatPresetRoot
 TrChatFull.Layout = TrChatLayout
 TrChatFull.Header = TrChatHeader
 TrChatFull.Welcome = TrChatWelcome
@@ -66,10 +53,6 @@ TrChatFull.Attachments = TrChatAttachments
 TrChatFull.Sender = TrChatSender
 TrChatFull.History = TrChatHistory
 TrChatFull.HistorySurface = TrChatHistorySurface
-TrChatFull.WorkspaceShell = TrChatWorkspaceShell
-TrChatFull.WorkspacePanelHost = TrChatWorkspacePanelHost
-TrChatFull.ContentNavigationHost = TrChatContentNavigationHost
-TrChatFull.ConversationTurnNavigation = TrChatConversationTurnNavigation
 
 export { TrChatFull as TrChat }
 
@@ -106,13 +89,8 @@ export {
   TrChatLayout,
   TrChatAttachments,
   TrChatHistorySurface,
-  TrChatPresetRoot,
   TrChatAssistantOutline,
   TrChatAssistantOutlineTrigger,
-  TrChatWorkspaceShell,
-  TrChatWorkspacePanelHost,
-  TrChatContentNavigationHost,
-  TrChatConversationTurnNavigation,
 }
 
 // ===== Providers =====
@@ -180,28 +158,12 @@ export type {
   ModelOption,
   ModelProviderFactory,
   ProviderFactoryCreator,
-  ChatWorkspaceRegionKey,
-  ChatWorkspacePanelWidth,
-  ChatWorkspaceBuiltInPanelKind,
-  ChatWorkspaceComposerDockMode,
-  ChatWorkspacePanelDefinition,
-  ChatWorkspacePanelHostItem,
-  ChatWorkspaceRegionConfig,
-  ChatWorkspaceShellTopBarConfig,
-  ChatWorkspaceCenterLayoutConfig,
-  ChatWorkspaceViewStateConfig,
   ChatContentNavigationPlacement,
   ChatContentNavigationConfig,
   ChatContentNavigationItem,
-  ChatConversationTurnNavigationItem,
   ChatAssistantOutlineItem,
-  ChatWorkspaceShellConfig,
-  TrChatWorkspaceShellProps,
-  TrChatContentNavigationHostProps,
-  TrChatConversationTurnNavigationProps,
   TrChatAssistantOutlineProps,
   TrChatAssistantOutlineTriggerProps,
-  TrChatWorkspacePanelHostProps,
   TrChatScaffoldContextValue,
 } from './types'
 export type { UseDefaultBubbleConfigOptions } from './composables'

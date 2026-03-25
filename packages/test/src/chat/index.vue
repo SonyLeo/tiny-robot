@@ -22,14 +22,11 @@
 import { computed, ref, type Component } from 'vue'
 import BlackboxEdgeScene from './scenarios/BlackboxEdgeScene.vue'
 import BlackboxScene from './scenarios/BlackboxScene.vue'
-import ContentNavigationScene from './scenarios/ContentNavigationScene.vue'
 import LayoutConfigScene from './scenarios/LayoutConfigScene.vue'
 import McpFeatureScene from './scenarios/McpFeatureScene.vue'
-import PresetEntryScene from './scenarios/PresetEntryScene.vue'
 import SenderExtensionsScene from './scenarios/SenderExtensionsScene.vue'
 import WelcomePromptsScene from './scenarios/WelcomePromptsScene.vue'
 import WhiteboxScene from './scenarios/WhiteboxScene.vue'
-import WorkspaceShellScene from './scenarios/WorkspaceShellScene.vue'
 
 type ChatMode =
   | 'blackbox'
@@ -39,9 +36,6 @@ type ChatMode =
   | 'sender-extensions'
   | 'mcp-feature'
   | 'layout-config'
-  | 'preset-entry'
-  | 'content-navigation'
-  | 'p5-shell-preview'
 
 const modeOptions: ReadonlyArray<{ value: ChatMode; label: string; testId: string }> = [
   { value: 'blackbox', label: '黑盒模式', testId: 'switch-blackbox' },
@@ -51,9 +45,6 @@ const modeOptions: ReadonlyArray<{ value: ChatMode; label: string; testId: strin
   { value: 'sender-extensions', label: 'Sender Extensions', testId: 'switch-sender-extensions' },
   { value: 'mcp-feature', label: 'MCP Feature', testId: 'switch-mcp-feature' },
   { value: 'layout-config', label: 'Layout Config', testId: 'switch-layout-config' },
-  { value: 'preset-entry', label: 'Preset Entry', testId: 'switch-preset-entry' },
-  { value: 'content-navigation', label: 'Content Navigation', testId: 'switch-content-navigation' },
-  { value: 'p5-shell-preview', label: 'P5 Shell Preview', testId: 'switch-p5-shell-preview' },
 ]
 
 const sceneByMode: Record<ChatMode, Component> = {
@@ -64,9 +55,6 @@ const sceneByMode: Record<ChatMode, Component> = {
   'sender-extensions': SenderExtensionsScene,
   'mcp-feature': McpFeatureScene,
   'layout-config': LayoutConfigScene,
-  'preset-entry': PresetEntryScene,
-  'content-navigation': ContentNavigationScene,
-  'p5-shell-preview': WorkspaceShellScene,
 }
 
 function isChatMode(value: string | null): value is ChatMode {

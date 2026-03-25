@@ -22,10 +22,8 @@ const adapterModule = await jiti.import('../src/adapters/index.ts')
 const presetsModule = await jiti.import('../src/presets/index.ts')
 const messagesModule = await jiti.import('../src/messages.ts')
 const capabilitiesModule = await jiti.import('../src/capabilities.ts')
-const workspaceRuntimeModule = await jiti.import('../src/components/workspace/runtime.ts')
 const rootChatKitModule = await jiti.import('../src/components/chat/resolveRootChatKit.ts')
 const contentNavigationCommonModule = await jiti.import('../src/utils/contentNavigation.ts')
-const turnNavigationRuntimeModule = await jiti.import('../src/components/workspace/navigation/turn-navigation.ts')
 const assistantOutlineRuntimeModule = await jiti.import(
   '../src/components/chat/assistant-outline/runtime.ts'
 )
@@ -67,13 +65,7 @@ export const createChatCapabilityManifest = capabilitiesModule.createChatCapabil
 export const CHAT_CAPABILITY_MANIFEST = capabilitiesModule.CHAT_CAPABILITY_MANIFEST
 export const getRootChatKitResolution = rootChatKitModule.getRootChatKitResolution
 export const resolveRootChatKit = rootChatKitModule.resolveRootChatKit
-export const resolveWorkspaceRegionWidth = workspaceRuntimeModule.resolveWorkspaceRegionWidth
-export const toWorkspacePanelHostItems = workspaceRuntimeModule.toWorkspacePanelHostItems
-export const resolveWorkspaceCollapsedState = workspaceRuntimeModule.resolveWorkspaceCollapsedState
-export const coerceWorkspacePanelId = workspaceRuntimeModule.coerceWorkspacePanelId
-export const findWorkspacePanelById = workspaceRuntimeModule.findWorkspacePanelById
 export const coerceContentNavigationItemId = contentNavigationCommonModule.coerceContentNavigationItemId
-export const resolveConversationTurnNavigationItems = turnNavigationRuntimeModule.resolveConversationTurnNavigationItems
 export const resolveAssistantOutlineItems = assistantOutlineRuntimeModule.resolveAssistantOutlineItems
 export const slugifyAssistantOutlineHeading = assistantOutlineRuntimeModule.slugifyAssistantOutlineHeading
 export const matchProvider = providersFactoriesModule.matchProvider
