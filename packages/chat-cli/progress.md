@@ -1,8 +1,11 @@
 # Chat CLI Progress
 
-> Last updated: `2026-03-18`
+> Last updated: `2026-03-26`
 > Design: [docs/chat-cli-design.md](../../docs/chat-cli-design.md)
+> Strategy: [review/template-strategy.md](./review/template-strategy.md)
 > Review: [chat-cli-review-02.md](./chat-cli-review-02.md)
+> Release Playbook: [release-playbook.md](./release-playbook.md)
+> Split Guide Redirect: [review/refactor-and-release-guide.md](./review/refactor-and-release-guide.md)
 > Upstream chat status: [packages/chat/progress.md](../chat/progress.md)
 
 ## Current Status

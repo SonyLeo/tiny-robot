@@ -1,5 +1,5 @@
 import type { TrChatPresetOverrides } from '../types'
-import { createPresetChatProps, createPresetChatSlices } from './config'
+import { createPresetChatProps, createPresetChatSlices } from './configProjection'
 import type { ChatAdapter, ChatPresetProps, ChatPresetSlices } from './types'
 
 export const CHAT_CLI_CONSUMABLE_FEATURE_KEYS = [

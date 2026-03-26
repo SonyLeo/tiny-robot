@@ -11,7 +11,6 @@ defineOptions({ name: 'TrChatLayout' })
 
 const props = defineProps({
   show: triStateBooleanProp,
-  fullscreen: triStateBooleanProp,
   roleConfigs: Object as PropType<BubbleListProps['roleConfigs']>,
   appearance: Object as PropType<ChatAppearanceConfig>,
 })
@@ -21,7 +20,6 @@ const appearanceSlice = computed(() => scaffoldContext?.presetSlices.value.appea
 
 const { contentMatches, boxMatches, roles: defaultRoles } = useDefaultBubbleConfig()
 const resolvedShow = computed(() => props.show ?? layoutSlice.value?.show ?? true)
-const resolvedFullscreen = computed(() => props.fullscreen ?? layoutSlice.value?.fullscreen ?? false)
 const resolvedAppearance = computed(() => props.appearance ?? appearanceSlice.value)
 const themeScopeId = `tr-chat-theme-scope-${getCurrentInstance()?.uid ?? 'fallback'}`
 const scopedThemeTargetElement = `#${themeScopeId}`
@@ -59,24 +57,12 @@ provide(BUBBLE_CONFIG_KEY, {
       :target-element="scopedThemeTargetElement"
       :color-mode="scopedColorMode"
     >
-      <div
-        :id="themeScopeId"
-        v-show="resolvedShow"
-        class="tr-chat"
-        :class="{ 'tr-chat--fullscreen': resolvedFullscreen }"
-        :data-tr-appearance-mode="resolvedAppearance?.mode"
-      >
+      <div :id="themeScopeId" v-show="resolvedShow" class="tr-chat" :data-tr-appearance-mode="resolvedAppearance?.mode">
         <slot />
       </div>
     </ThemeProvider>
 
-    <div
-      v-else
-      v-show="resolvedShow"
-      class="tr-chat"
-      :class="{ 'tr-chat--fullscreen': resolvedFullscreen }"
-      :data-tr-appearance-mode="resolvedAppearance?.mode"
-    >
+    <div v-else v-show="resolvedShow" class="tr-chat" :data-tr-appearance-mode="resolvedAppearance?.mode">
       <slot />
     </div>
   </BubbleProvider>

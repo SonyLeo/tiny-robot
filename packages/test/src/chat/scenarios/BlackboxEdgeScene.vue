@@ -8,7 +8,6 @@
       <template #default="{ chatKit, presetSlices }">
         <TrChat.Layout
           :show="isShow"
-          :fullscreen="isFullscreen"
           :appearance="presetSlices.appearance.appearance"
           :role-configs="presetSlices.layout.roleConfigs"
         >
@@ -16,10 +15,7 @@
             :title="presetSlices.header.title"
             :show-history="presetSlices.header.showHistory"
             :show-new-chat="false"
-            :show-full-screen="true"
-            :is-fullscreen="isFullscreen"
             show-close
-            @update:fullscreen="isFullscreen = $event"
             @close="isShow = false"
           >
             <template #extra>
@@ -65,7 +61,6 @@ import {
 } from './sharedDemoFixtures'
 
 const errorLog = ref('')
-const isFullscreen = ref(false)
 const isShow = ref(true)
 
 const edgeConfig = createChatSceneConfig({

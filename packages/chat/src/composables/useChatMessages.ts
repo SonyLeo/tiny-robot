@@ -1,5 +1,6 @@
 import type { ComputedRef } from 'vue'
 import type { ChatMessage } from '@opentiny/tiny-robot-kit'
+import { isChatMessageEditing, setChatMessageEditing } from './chatMessageState'
 
 interface UseChatMessagesOptions {
   messages: ComputedRef<ChatMessage[]>
@@ -41,22 +42,16 @@ export function useChatMessages(options: UseChatMessagesOptions) {
       return
     }
 
-    if (!message.state) {
-      message.state = {}
-    }
-
-    message.state.isEditing = true
+    setChatMessageEditing(message, true)
   }
 
   function cancelEditMessage(messageIndex: number): void {
     const message = options.messages.value[messageIndex]
-    if (message?.state) {
-      message.state.isEditing = false
-    }
+    setChatMessageEditing(message ?? null, false)
   }
 
   function isMessageEditing(messageIndex: number): boolean {
-    return options.messages.value[messageIndex]?.state?.isEditing === true
+    return isChatMessageEditing(options.messages.value[messageIndex])
   }
 
   function editMessage(messageIndex: number, newContent: string): void {

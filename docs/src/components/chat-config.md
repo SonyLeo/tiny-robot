@@ -340,8 +340,6 @@ const callbacks = {
 | `messageListVariant` | 覆盖消息列表变体 |
 | `showHistory` | 开关历史抽屉 |
 | `showFeedback` | 开关反馈入口 |
-| `fullscreen` | 当前全屏状态 |
-| `enableFullscreen` | 是否显示全屏入口 |
 | `show` | 当前场景显隐状态 |
 
 ### 常见运行时覆盖

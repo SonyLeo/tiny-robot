@@ -32,8 +32,6 @@ export interface ChatMessages {
     newChat: string
     openHistory: string
     closeHistory: string
-    enterFullscreen: string
-    exitFullscreen: string
     close: string
   }
   history: {
@@ -140,8 +138,6 @@ export interface TrChatPresetOverrides {
   messageListVariant?: ChatListVariant
   showHistory?: boolean
   showFeedback?: boolean
-  fullscreen?: boolean
-  enableFullscreen?: boolean
   show?: boolean
   onMessageAction?: (payload: ChatMessageActionPayload) => void
   roleConfigs?: BubbleListProps['roleConfigs']
@@ -210,6 +206,11 @@ export interface TrChatMessageListProps {
   variant?: ChatListVariant
   onActionClick?: (payload: ChatMessageActionPayload) => void
   groupStrategy?: BubbleListProps['groupStrategy']
+}
+
+export interface TrChatHistorySurfaceProps {
+  chatKit?: UseChatKitReturn
+  messages?: ChatMessagesOverrides
 }
 
 export interface TrChatSenderProps {

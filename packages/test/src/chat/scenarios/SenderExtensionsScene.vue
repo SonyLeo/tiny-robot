@@ -6,7 +6,7 @@
 
     <div data-testid="chat-sender-extensions-whitebox" class="chat-wrapper">
       <TrChat.Root :chat-kit="senderExtensionsWhiteboxChat">
-        <TrChat.Layout :fullscreen="false">
+        <TrChat.Layout>
           <TrChat.Header title="Sender Extensions Whitebox" />
 
           <TrChat.Welcome

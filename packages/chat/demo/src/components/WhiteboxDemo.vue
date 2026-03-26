@@ -127,16 +127,14 @@ const scaffoldPresetOverrides = {
           </template>
         </TrChat.MessageList>
 
-        <TrChat.Footer>
-          <div class="tr-chat-footer-wrapper">
-            <TrChat.Attachments />
-            <TrChat.Sender>
-              <template #footer>
-                <TrModelSelector />
-                <TrMcpTrigger />
-              </template>
-            </TrChat.Sender>
-          </div>
+        <TrChat.Footer class="tr-chat-footer-wrapper">
+          <TrChat.Attachments />
+          <TrChat.Sender>
+            <template #footer>
+              <TrModelSelector />
+              <TrMcpTrigger />
+            </template>
+          </TrChat.Sender>
         </TrChat.Footer>
 
         <TrChat.History />

@@ -87,6 +87,12 @@ interface TrChatProps {
 - `TrChatFeedback`
 - `TrChatMcpPanel`
 
+其中 `TrChat.HistorySurface` 的当前约束是：
+
+- 在 `TrChat.Root` 下使用时，可以直接消费根上下文
+- 在独立白盒组合中使用时，应显式传入 `chatKit`
+- 它自身会提供 history surface 所需的本地 history/UI 上下文，不再假设调用方一定使用 drawer 形态
+
 ## 运行时流程
 
 ### 1. 黑盒流程
@@ -171,7 +177,9 @@ ChatConfig
 
 文件：
 
-- `packages/chat/src/adapters/config.ts`
+- `packages/chat/src/adapters/index.ts`
+- `packages/chat/src/adapters/configLoader.ts`
+- `packages/chat/src/adapters/configProjection.ts`
 - `packages/chat/src/adapters/types.ts`
 - `packages/chat/src/adapters/chatCli.ts`
 - `packages/chat/src/presets/resolve.ts`

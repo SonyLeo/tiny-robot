@@ -18,7 +18,6 @@ import { ChatHistory } from '../history'
 defineOptions({ name: 'TrChatDefaultRenderer', inheritAttrs: false })
 
 const emit = defineEmits<{
-  (e: 'update:fullscreen', value: boolean): void
   (e: 'update:show', value: boolean): void
   (e: 'update:model', value: string): void
 }>()
@@ -64,7 +63,7 @@ function handleModelChange(model: ModelOption) {
     <template v-if="$slots.header">
       <slot name="header" />
     </template>
-    <ChatHeader v-else @update:fullscreen="emit('update:fullscreen', $event)" @close="emit('update:show', false)">
+    <ChatHeader v-else @close="emit('update:show', false)">
       <template v-if="$slots['header-extra']" #extra>
         <slot name="header-extra" />
       </template>

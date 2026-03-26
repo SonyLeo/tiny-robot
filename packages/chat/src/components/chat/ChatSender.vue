@@ -38,10 +38,6 @@ const uploadActionConfig = computed(() => senderActionsFeature.value?.upload ?? 
 const voiceActionConfig = computed(() => senderActionsFeature.value?.voice)
 const showDefaultUploadButton = computed(() => Boolean(uploadActionConfig.value?.enabled !== false))
 const showDefaultVoiceButton = computed(() => Boolean(voiceActionConfig.value?.enabled))
-const showDefaultFooterRightActions = computed(
-  () =>
-    !slots['footer-right'] && ((attachmentsContext && showDefaultUploadButton.value) || showDefaultVoiceButton.value),
-)
 const senderMode = computed<'single' | 'multiple'>(() => {
   const modeFromSlice = senderSlice.value?.mode
   return (
@@ -119,7 +115,10 @@ const forwardedSlots = computed<Partial<Record<string, Slot>>>(() =>
     <template v-if="$slots['footer-right']" #footer-right="slotProps">
       <slot name="footer-right" v-bind="slotProps ?? {}" />
     </template>
-    <template v-else-if="showDefaultFooterRightActions" #footer-right>
+    <template
+      v-else-if="!$slots['footer-right'] && ((attachmentsContext && showDefaultUploadButton) || showDefaultVoiceButton)"
+      #footer-right
+    >
       <span v-if="attachmentsContext && showDefaultUploadButton" data-testid="chat-attachments-upload">
         <UploadButton v-bind="uploadActionConfig" @select="handleFileSelect" />
       </span>

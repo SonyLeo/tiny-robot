@@ -1,18 +1,17 @@
 <script setup lang="ts">
-import { inject } from 'vue'
+import { useRequiredInject, CHAT_KIT_KEY, CHAT_UI_KEY } from '@/context'
 import { IconNewSession } from '@opentiny/tiny-robot-svgs'
-import { CHAT_KIT_KEY, CHAT_UI_KEY } from '@/context'
 import { useResolvedChatMessages } from '@/messages'
 
 defineOptions({ name: 'TrChatHistoryNewSession' })
 
-const chatKit = inject(CHAT_KIT_KEY)!
-const { showHistoryDrawer } = inject(CHAT_UI_KEY)!
+const chatKit = useRequiredInject(CHAT_KIT_KEY, 'chat kit')
+const chatUi = useRequiredInject(CHAT_UI_KEY, 'chat ui')
 const chatMessages = useResolvedChatMessages()
 
 function handleCreateNewSession() {
   chatKit.createConversation()
-  showHistoryDrawer.value = false
+  chatUi.history.close()
 }
 </script>
 

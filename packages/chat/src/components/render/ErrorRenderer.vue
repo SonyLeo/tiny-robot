@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useBubbleContentRenderer, type BubbleContentRendererProps } from '@opentiny/tiny-robot'
 import { computed, inject } from 'vue'
+import { getChatMessageError, getChatMessageState } from '@/composables/chatMessageState'
 import { CHAT_KIT_KEY } from '@/context'
 import { useResolvedChatMessages } from '@/messages'
 import type { UseChatKitReturn } from '@/types'
@@ -17,15 +18,17 @@ const props = defineProps<
   >
 >()
 
-const error = computed(() => props.message.state?.error)
+const error = computed(() => getChatMessageError(props.message))
 const chatKit = inject<UseChatKitReturn | null>(CHAT_KIT_KEY, null)
 const chatMessages = useResolvedChatMessages()
 const canRetry = computed(() => Boolean(error.value?.retryable && chatKit?.lastError.value?.retryable))
 const messageWithoutError = computed(() => {
+  const messageState = getChatMessageState(props.message)
+
   return {
     ...props.message,
     state: {
-      ...props.message.state,
+      ...(messageState ?? {}),
       error: undefined,
     },
   }

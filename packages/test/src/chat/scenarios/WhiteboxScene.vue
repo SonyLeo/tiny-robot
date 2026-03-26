@@ -17,7 +17,7 @@
         :attachments-feature="sharedAttachmentsFeature"
         :sender-actions-feature="sharedSenderActionsFeature"
       >
-        <TrChat.Layout :fullscreen="false">
+        <TrChat.Layout>
           <TrChat.Header show-history />
 
           <TrChat.Welcome

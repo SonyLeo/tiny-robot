@@ -47,8 +47,6 @@ await runTest('createPresetChatSlices exposes white-box slices that preserve bla
       maxLength: 120,
     },
     show: true,
-    enableFullscreen: true,
-    fullscreen: false,
     messageListVariant: 'docs',
     groupStrategy: 'consecutive',
   })
@@ -59,7 +57,6 @@ await runTest('createPresetChatSlices exposes white-box slices that preserve bla
   assert.deepEqual(slices.root.senderActionsFeature, presetProps.senderActionsFeature)
   assert.equal(slices.header.title, 'Preset Slice Brand')
   assert.equal(slices.header.showHistory, true)
-  assert.equal(slices.header.showFullScreen, true)
   assert.equal(slices.header.showClose, true)
   assert.equal(slices.welcome?.title, 'Preset Slice Welcome')
   assert.equal(slices.welcome?.icon, 'brand-logo')
@@ -90,7 +87,6 @@ await runTest('createPresetChatSlices keeps white-box slices empty when optional
   const slices = createPresetChatSlices(createPresetChatProps(adapter))
 
   assert.equal(slices.header.showHistory, false)
-  assert.equal(slices.header.showFullScreen, false)
   assert.equal(slices.header.showClose, false)
   assert.equal(slices.welcome, undefined)
   assert.equal(slices.messageList.autoScroll, true)

@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { computed, inject } from 'vue'
+import { computed } from 'vue'
 import { IconClose, IconDelete } from '@opentiny/tiny-robot-svgs'
-import { CHAT_HISTORY_KEY, CHAT_KIT_KEY } from '@/context'
+import { CHAT_HISTORY_KEY, CHAT_KIT_KEY, useRequiredInject } from '@/context'
 import { useResolvedChatMessages } from '@/messages'
 
-const historyState = inject(CHAT_HISTORY_KEY)!
-const chatKit = inject(CHAT_KIT_KEY)!
+const historyState = useRequiredInject(CHAT_HISTORY_KEY, 'history state')
+const chatKit = useRequiredInject(CHAT_KIT_KEY, 'chat kit')
 const chatMessages = useResolvedChatMessages()
 
 const selectedCount = computed(() => historyState.selectedItems.value.length)

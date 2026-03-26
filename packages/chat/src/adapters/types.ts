@@ -86,7 +86,6 @@ export interface ChatPresetRootSlice {
 
 export interface ChatPresetLayoutSlice {
   show?: TrChatPresetOverrides['show']
-  fullscreen?: TrChatPresetOverrides['fullscreen']
   roleConfigs?: TrChatPresetOverrides['roleConfigs']
 }
 
@@ -97,8 +96,6 @@ export interface ChatPresetAppearanceSlice {
 export interface ChatPresetHeaderSlice {
   title?: string
   showHistory?: boolean
-  showFullScreen?: boolean
-  isFullscreen?: boolean
   showClose?: boolean
 }
 

@@ -31,6 +31,7 @@ export type {
   ChatSenderActionVoiceConfig,
   TrChatHeaderProps,
   TrChatMessageListProps,
+  TrChatHistorySurfaceProps,
   TrChatPresetOverrides,
   TrChatProps,
   TrChatRootProps,

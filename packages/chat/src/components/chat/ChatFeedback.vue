@@ -4,6 +4,7 @@ import type { BubbleMessage } from '@opentiny/tiny-robot'
 import type { ChatMessage } from '@opentiny/tiny-robot-kit'
 import { computed, inject } from 'vue'
 import { useChatFeedback } from '@/composables/useChatFeedback'
+import { getChatMessageError } from '@/composables/chatMessageState'
 import { CHAT_KIT_KEY, MESSAGE_ACTION_KEY } from '@/context'
 import type { ChatMessageActionPayload, UseChatKitReturn } from '@/types'
 
@@ -64,7 +65,7 @@ const isPendingAssistantTurn = computed(() => {
   return props.messageIndexes.includes(latestIndex) && chatKit.status.value !== 'ready'
 })
 
-const hasError = computed(() => props.messages.some((message) => Boolean((message as ChatMessage).state?.error)))
+const hasError = computed(() => props.messages.some((message) => Boolean(getChatMessageError(message as ChatMessage))))
 
 const shouldRenderFeedback = computed(() => {
   if (isEditing.value) return false

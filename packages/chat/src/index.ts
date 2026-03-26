@@ -134,6 +134,7 @@ export type {
   TrChatHeaderProps,
   TrChatWelcomeProps,
   TrChatMessageListProps,
+  TrChatHistorySurfaceProps,
   TrChatPresetOverrides,
   TrChatSenderProps,
   ChatAttachmentsFeaturePreset,

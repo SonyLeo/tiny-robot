@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { inject } from 'vue'
-import { CHAT_HISTORY_KEY } from '@/context'
+import { CHAT_HISTORY_KEY, useRequiredInject } from '@/context'
 import { useResolvedChatMessages } from '@/messages'
 
-const historyState = inject(CHAT_HISTORY_KEY)!
+defineOptions({ name: 'TrChatHistorySearch' })
+
+const historyState = useRequiredInject(CHAT_HISTORY_KEY, 'history state')
 const chatMessages = useResolvedChatMessages()
 </script>
 

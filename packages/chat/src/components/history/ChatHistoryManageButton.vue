@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { computed, inject } from 'vue'
+import { computed } from 'vue'
 import { IconCheck, IconEditPen } from '@opentiny/tiny-robot-svgs'
-import { CHAT_HISTORY_KEY } from '@/context'
+import { CHAT_HISTORY_KEY, useRequiredInject } from '@/context'
 import { useResolvedChatMessages } from '@/messages'
 
 defineOptions({ name: 'TrChatHistoryManageButton' })
 
-const historyState = inject(CHAT_HISTORY_KEY)!
+const historyState = useRequiredInject(CHAT_HISTORY_KEY, 'history state')
 const chatMessages = useResolvedChatMessages()
 
 const buttonTitle = computed(() =>

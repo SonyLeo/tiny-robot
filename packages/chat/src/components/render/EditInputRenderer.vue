@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { nextTick, onMounted, ref, watch, inject } from 'vue'
 import { useMessageContent, type BubbleContentRendererProps } from '@opentiny/tiny-robot'
+import { ensureChatMessageState } from '@/composables/chatMessageState'
 import { CHAT_KIT_KEY } from '@/context'
 import { useResolvedChatMessages } from '@/messages'
 import type { UseChatKitReturn } from '@/types'
@@ -18,8 +19,8 @@ const isSaving = ref(false)
 watch(
   () => props.message,
   (message) => {
-    if (message && !message.state) {
-      message.state = {}
+    if (message) {
+      ensureChatMessageState(message)
     }
   },
   { immediate: true },

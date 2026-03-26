@@ -28,7 +28,26 @@ const resolvedModels = computed(() => props.presetOverrides?.models ?? adapter.v
 const resolvedProviderFactories = computed(
   () => props.presetOverrides?.providerFactories ?? adapter.value.providerFactories,
 )
-const currentModel = ref('')
+
+function resolveInitialModelValue() {
+  const models = resolvedModels.value
+  if (!models.length) {
+    return ''
+  }
+
+  const controlledModel = props.runtime?.selectedModel
+  if (controlledModel && models.some((model) => model.value === controlledModel)) {
+    return controlledModel
+  }
+
+  return resolvedDefaultModel.value ?? models[0]?.value ?? ''
+}
+
+function findModelByValue(modelValue: string) {
+  return resolvedModels.value.find((item) => item.value === modelValue)
+}
+
+const currentModel = ref(resolveInitialModelValue())
 
 function createScaffoldResponseProvider(modelValue?: string) {
   const models = resolvedModels.value
@@ -46,23 +65,6 @@ function createScaffoldResponseProvider(modelValue?: string) {
 
   return adapter.value.createResponseProvider(model.value)
 }
-
-watchEffect(() => {
-  const models = resolvedModels.value
-  if (!models.length) {
-    currentModel.value = ''
-    return
-  }
-
-  if (props.runtime?.selectedModel && models.some((model) => model.value === props.runtime?.selectedModel)) {
-    currentModel.value = props.runtime.selectedModel
-    return
-  }
-
-  if (!models.some((model) => model.value === currentModel.value)) {
-    currentModel.value = resolvedDefaultModel.value ?? models[0]?.value ?? ''
-  }
-})
 
 const chatKit =
   props.runtime?.chatKit ??
@@ -83,6 +85,24 @@ const { selectModel } = useModelSelector({
   onChange: (model) => {
     props.callbacks?.onModelChange?.(model)
   },
+})
+
+watchEffect(() => {
+  const models = resolvedModels.value
+  if (!models.length) {
+    currentModel.value = ''
+    return
+  }
+
+  const selectedModelValue = props.runtime?.selectedModel
+  if (!selectedModelValue || selectedModelValue === currentModel.value) {
+    return
+  }
+
+  const selectedModel = findModelByValue(selectedModelValue)
+  if (selectedModel) {
+    selectModel(selectedModel, { notifyChange: false })
+  }
 })
 
 const presetProps = computed(() => {
@@ -134,8 +154,7 @@ const namedSlots = computed(() =>
 )
 
 function handleDefaultRendererModelUpdate(modelValue: string) {
-  currentModel.value = modelValue
-  const model = resolvedModels.value.find((item) => item.value === modelValue)
+  const model = findModelByValue(modelValue)
   if (model) {
     props.callbacks?.onModelChange?.(model)
   }

@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { syncRef } from '@vueuse/core'
-import { computed, inject, ref } from 'vue'
+import { computed, ref } from 'vue'
 import { TrHistory } from '@opentiny/tiny-robot'
 import type { HistoryItem, HistoryMenuItem } from '@opentiny/tiny-robot'
-import { CHAT_HISTORY_KEY, CHAT_KIT_KEY, CHAT_UI_KEY } from '@/context'
+import { CHAT_HISTORY_KEY, CHAT_KIT_KEY, CHAT_UI_KEY, useRequiredInject } from '@/context'
 import { useResolvedChatMessages } from '@/messages'
 
-const historyState = inject(CHAT_HISTORY_KEY)!
-const chatKit = inject(CHAT_KIT_KEY)!
-const { showHistoryDrawer } = inject(CHAT_UI_KEY)!
+const historyState = useRequiredInject(CHAT_HISTORY_KEY, 'history state')
+const chatKit = useRequiredInject(CHAT_KIT_KEY, 'chat kit')
+const chatUi = useRequiredInject(CHAT_UI_KEY, 'chat ui')
 const chatMessages = useResolvedChatMessages()
 
 const filteredHistoryData = computed<HistoryItem[]>(() => {
@@ -35,7 +35,7 @@ async function handleItemClick(item: HistoryItem) {
 
   try {
     await chatKit.switchConversation(item.id!)
-    showHistoryDrawer.value = false
+    chatUi.history.close()
   } catch (error) {
     console.error('[TrChatHistoryList] Failed to switch conversation', error)
   }

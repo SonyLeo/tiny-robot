@@ -11,8 +11,6 @@ export const CHAT_MESSAGES: ChatMessages = {
     newChat: '新建对话',
     openHistory: '打开历史',
     closeHistory: '关闭历史',
-    enterFullscreen: '全屏',
-    exitFullscreen: '退出全屏',
     close: '关闭',
   },
   history: {

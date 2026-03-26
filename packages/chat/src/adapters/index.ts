@@ -1,4 +1,5 @@
-export { loadChatConfig, createChatAdapterFromConfig, createPresetChatProps, createPresetChatSlices } from './config'
+export { loadChatConfig } from './configLoader'
+export { createChatAdapterFromConfig, createPresetChatProps, createPresetChatSlices } from './configProjection'
 export {
   CHAT_CLI_CONSUMABLE_FEATURE_KEYS,
   CHAT_CLI_CONSUMABLE_PRESET_PROP_KEYS,

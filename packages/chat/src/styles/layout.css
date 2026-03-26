@@ -259,26 +259,3 @@
 .tr-chat-attachments-area {
   padding: 8px 0 4px;
 }
-
-.tr-chat--fullscreen {
-  position: fixed;
-  inset: 0;
-  z-index: var(--chat-drawer-z-index, 100);
-  border-radius: 0;
-  background: var(--chat-body-bg);
-}
-
-.tr-chat--fullscreen .tr-chat__header,
-.tr-chat--fullscreen .tr-chat__footer {
-  width: 100%;
-}
-
-.tr-chat--fullscreen .tr-chat__body,
-.tr-chat--fullscreen .tr-chat__welcome,
-.tr-chat--fullscreen .tr-chat__header-inner,
-.tr-chat--fullscreen .tr-chat__footer-inner {
-  width: 100%;
-  max-width: var(--chat-content-max-width, 1280px);
-  margin-left: auto;
-  margin-right: auto;
-}

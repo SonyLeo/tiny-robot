@@ -10,6 +10,10 @@ export interface UseModelSelectorOptions {
   onChange?: (model: ModelOption) => void
 }
 
+interface CommitModelOptions {
+  notifyChange?: boolean
+}
+
 export function useModelSelector(options: UseModelSelectorOptions) {
   const models = computed(() => toValue(options.models))
   const providerFactories = computed(() => toValue(options.providerFactories))
@@ -38,7 +42,9 @@ export function useModelSelector(options: UseModelSelectorOptions) {
     return Boolean(resolveProviderFactory(model))
   }
 
-  function commitModel(model: ModelOption, notifyChange = true) {
+  function commitModel(model: ModelOption, commitOptions: CommitModelOptions = {}) {
+    const { notifyChange = true } = commitOptions
+
     if (!canSelectModel(model)) {
       return false
     }
@@ -75,8 +81,8 @@ export function useModelSelector(options: UseModelSelectorOptions) {
     }
   })
 
-  function selectModel(model: ModelOption) {
-    commitModel(model)
+  function selectModel(model: ModelOption, options?: CommitModelOptions) {
+    commitModel(model, options)
   }
 
   return {

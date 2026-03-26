@@ -1,5 +1,5 @@
-import { createChatAdapterFromConfig, createPresetChatProps, createPresetChatSlices } from '../adapters/config'
-import type { ChatConfig } from '../adapters/types'
+import { createChatAdapterFromConfig, createPresetChatProps, createPresetChatSlices } from '../adapters'
+import type { ChatConfig } from '../adapters'
 import type {
   AgentPresetConsumptionResult,
   AgentPresetInput,

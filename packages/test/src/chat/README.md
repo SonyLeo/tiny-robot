@@ -106,7 +106,7 @@ Use this checklist when changing `packages/chat` public behavior.
 - `TrChat` blackbox scaffold flow
   - `config` drives brand, welcome, prompts, appearance, layout variant, and role placement.
   - `callbacks` cover `onFinish`, `onError`, `onMessageAction`, and `onModelChange`.
-  - `presetOverrides` cover provider factories, placeholder, maxLength, sender mode, fullscreen affordance, history, feedback, and role config overrides.
+  - `presetOverrides` cover provider factories, placeholder, maxLength, sender mode, history, feedback, and role config overrides.
 - `TrChat` default renderer slots
   - `header`
   - `header-extra`

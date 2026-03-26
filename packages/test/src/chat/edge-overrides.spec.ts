@@ -12,18 +12,6 @@ test.describe('Chat Edge Overrides', () => {
     await helper.switchToBlackboxEdge()
   })
 
-  test('fullscreen should toggle through the scaffold-composed edge header', async ({ page }) => {
-    const chat = page.getByTestId('chat-blackbox-edge').locator('.tr-chat')
-    const headerButtons = chat.locator('.tr-chat__header-right button')
-    const btn = headerButtons.nth(2)
-
-    await expect(chat).not.toHaveClass(/tr-chat--fullscreen/)
-    await btn.click()
-    await expect(chat).toHaveClass(/tr-chat--fullscreen/)
-    await btn.click()
-    await expect(chat).not.toHaveClass(/tr-chat--fullscreen/)
-  })
-
   test('senderProps maxLength should disable submit without truncating the typed content', async ({ page }) => {
     const root = '[data-testid="chat-blackbox-edge"] .tr-chat'
     const input = page.locator(root).locator('.tiptap')
@@ -61,7 +49,7 @@ test.describe('Chat Edge Overrides', () => {
 
   test('close action should hide the composed edge chat shell', async ({ page }) => {
     const chatNode = page.getByTestId('chat-blackbox-edge')
-    const closeButton = chatNode.locator('.tr-chat').locator('.tr-chat__header-right button').nth(3)
+    const closeButton = chatNode.locator('.tr-chat').locator('.tr-chat__header-right button').nth(2)
 
     await closeButton.click()
     await expect(chatNode).toHaveCount(0)

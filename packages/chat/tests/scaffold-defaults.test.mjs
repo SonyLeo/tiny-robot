@@ -134,8 +134,6 @@ await runTest('presetOverrides remain the highest-priority defaults in scaffold 
       senderMode: 'single',
       maxLength: 120,
       show: true,
-      enableFullscreen: true,
-      fullscreen: false,
       messages: {
         sender: {
           placeholder: 'messages-level placeholder',
@@ -151,8 +149,6 @@ await runTest('presetOverrides remain the highest-priority defaults in scaffold 
   assert.equal(consumption.presetSlices.header.showHistory, false)
   assert.equal(consumption.presetSlices.layout.roleConfigs?.assistant?.placement, 'end')
   assert.equal(consumption.presetSlices.layout.show, true)
-  assert.equal(consumption.presetSlices.layout.fullscreen, false)
-  assert.equal(consumption.presetSlices.header.showFullScreen, true)
   assert.equal(consumption.presetSlices.sender.placeholder, 'sender override placeholder')
   assert.equal(consumption.presetSlices.sender.mode, 'single')
   assert.equal(consumption.presetSlices.sender.maxLength, 120)

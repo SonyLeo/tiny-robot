@@ -379,6 +379,58 @@ await runTest('useModelSelector keeps the current model when the next model has 
   assert.notEqual(selector.currentModelOption.value?.value, 'missing-factory-model')
 })
 
+await runTest('useModelSelector can sync a model without firing onChange', async () => {
+  const currentModel = ref('ready-model')
+  const selected = []
+  const providerCalls = []
+  const readyProvider = () => {}
+  const nextProvider = () => {}
+  const models = ref([
+    { value: 'ready-model', provider: 'deepseek' },
+    { value: 'next-model', provider: 'openai' },
+  ])
+  const providerFactories = ref([
+    {
+      match: (model) => model.value === 'ready-model',
+      createProvider: (model) => {
+        providerCalls.push(model.value)
+        return readyProvider
+      },
+    },
+    {
+      match: (model) => model.value === 'next-model',
+      createProvider: (model) => {
+        providerCalls.push(model.value)
+        return nextProvider
+      },
+    },
+  ])
+
+  const selector = useModelSelector({
+    currentModel,
+    models,
+    providerFactories,
+    chatKit: {
+      updateResponseProvider(provider) {
+        assert.equal(provider, nextProvider)
+      },
+    },
+    onChange: (model) => {
+      selected.push(model.value)
+    },
+  })
+
+  await nextTick()
+  providerCalls.length = 0
+  selected.length = 0
+
+  selector.selectModel(models.value[1], { notifyChange: false })
+
+  assert.equal(currentModel.value, 'next-model')
+  assert.deepEqual(providerCalls, ['next-model'])
+  assert.deepEqual(selected, [])
+})
+
 await runTest('useChatAttachments tracks selected files as attachment items', async () => {
   const attachments = useChatAttachments()
   const file = new File(['hello'], 'hello.txt', { type: 'text/plain' })
@@ -390,4 +442,37 @@ await runTest('useChatAttachments tracks selected files as attachment items', as
 
   attachments.clear()
   assert.equal(attachments.items.value.length, 0)
+})
+
+await runTest('useChatAttachments revokes owned object urls when items are removed', async () => {
+  const originalCreateObjectURL = URL.createObjectURL
+  const originalRevokeObjectURL = URL.revokeObjectURL
+  const revokedUrls = []
+  let index = 0
+
+  URL.createObjectURL = () => `blob:mock-${++index}`
+  URL.revokeObjectURL = (url) => {
+    revokedUrls.push(url)
+  }
+
+  try {
+    const attachments = useChatAttachments()
+    const fileA = new File(['a'], 'a.txt', { type: 'text/plain' })
+    const fileB = new File(['b'], 'b.txt', { type: 'text/plain' })
+
+    attachments.addFiles([fileA, fileB])
+    const [itemA, itemB] = attachments.items.value
+
+    attachments.removeItem(itemA)
+    assert.deepEqual(revokedUrls, ['blob:mock-1'])
+
+    attachments.setItems([itemB])
+    assert.deepEqual(revokedUrls, ['blob:mock-1'])
+
+    attachments.clear()
+    assert.deepEqual(revokedUrls, ['blob:mock-1', 'blob:mock-2'])
+  } finally {
+    URL.createObjectURL = originalCreateObjectURL
+    URL.revokeObjectURL = originalRevokeObjectURL
+  }
 })

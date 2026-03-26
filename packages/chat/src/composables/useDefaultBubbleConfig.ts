@@ -9,6 +9,7 @@ import {
   AttachmentsRenderer,
   MarkStreamRenderer,
 } from '../components/render'
+import { hasChatMessageError, isChatMessageEditing, isChatMessageOptimistic } from './chatMessageState'
 
 /**
  * 默认 Bubble 配置
@@ -28,12 +29,12 @@ export function useDefaultBubbleConfig(options?: UseDefaultBubbleConfigOptions) 
    */
   const contentMatches: BubbleContentRendererMatch[] = [
     {
-      find: (message) => Boolean(message.state?.error),
+      find: (message) => hasChatMessageError(message),
       renderer: markRaw(ErrorRenderer),
       priority: BubbleRendererMatchPriority.NORMAL,
     },
     {
-      find: (message) => message.state?.isEditing === true,
+      find: (message) => isChatMessageEditing(message),
       renderer: markRaw(EditInputRenderer),
       priority: BubbleRendererMatchPriority.NORMAL,
     },
@@ -57,13 +58,13 @@ export function useDefaultBubbleConfig(options?: UseDefaultBubbleConfigOptions) 
    */
   const boxMatches: BubbleBoxRendererMatch[] = [
     {
-      find: (messages) => messages.length === 1 && messages[0].state?.isEditing === true,
+      find: (messages) => messages.length === 1 && isChatMessageEditing(messages[0]),
       renderer: BubbleRenderers.Box,
       priority: BubbleRendererMatchPriority.NORMAL,
       attributes: { 'data-editing': 'true', 'data-shape': 'none' },
     },
     {
-      find: (messages) => messages.length === 1 && messages[0].state?.optimistic === true,
+      find: (messages) => messages.length === 1 && isChatMessageOptimistic(messages[0]),
       renderer: BubbleRenderers.Box,
       priority: BubbleRendererMatchPriority.NORMAL,
       attributes: { 'data-optimistic': 'true' },
