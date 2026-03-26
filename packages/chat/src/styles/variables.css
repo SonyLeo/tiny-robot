@@ -165,6 +165,21 @@
     var(--model-selector-border-color-hover) 88%,
     transparent
   );
+  --mcp-trigger-bg: var(--chat-panel-bg, var(--tr-container-bg-default, #fff));
+  --mcp-trigger-border-color: var(--chat-panel-border, var(--tr-border-color-default, #c2c2c2));
+  --mcp-trigger-border-color-hover: color-mix(
+    in srgb,
+    var(--mcp-trigger-border-color) 76%,
+    var(--chat-accent-border, #3b82f6) 24%
+  );
+  --mcp-trigger-text-primary: var(--chat-text-primary, var(--tr-text-primary, #191919));
+  --mcp-trigger-text-blue: var(--chat-accent-color, #1e40af);
+  --mcp-trigger-border-blue: var(--chat-accent-border, #3b82f6);
+  --mcp-trigger-shadow-blue: color-mix(in srgb, var(--chat-accent-color, #3b82f6) 22%, transparent);
+  --mcp-trigger-bg-light: var(--chat-surface-bg-hover, #f5f5f5);
+  --mcp-trigger-bg-blue-light: var(--chat-panel-active-bg, #eff6ff);
+  --mcp-trigger-count-bg: var(--chat-accent-color, #1476ff);
+  --mcp-trigger-count-text: #fff;
 }
 
 .tr-chat {

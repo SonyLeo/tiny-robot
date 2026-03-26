@@ -33,12 +33,30 @@ outline: deep
 
 - 仍然建议放在 `TrChat.Root` 之下，让它消费同一套会话上下文
 
+### `TrMcpTrigger`
+
+`TrMcpTrigger` 是 chat 层提供的 MCP 面板触发器，内部同时组合了触发按钮、激活数量和 `TrChatMcpPanel`。
+
+它适合：
+
+- 放在 sender footer 工具条
+- 在白盒页面里单独暴露 MCP 入口
+- 复用 chat 层默认的桌面端 / 移动端触发样式
+
+前提：
+
+- 需要上层已有 `mcpManager`
+- 默认 renderer 在检测到 `mcpManager` 时，会自动把它放进 sender footer
+- 桌面端默认显示“图标 + 文案 + 激活数字”
+- 移动端默认只显示“图标 + 激活数字”
+
 ### `TrChatMcpPanel`
 
-`TrChatMcpPanel` 用于承接聊天场景中的 MCP 面板能力。
+`TrChatMcpPanel` 用于承接聊天场景中的 MCP 面板本体能力。
 
 适合：
 
+- 已有自己的 MCP 入口按钮，只想复用面板本体
 - 在 header / toolbar 中提供 MCP 面板入口
 - 与 `mcpManager` 配合，展示插件与工具列表
 

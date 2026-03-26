@@ -133,6 +133,7 @@ Use this checklist when changing `packages/chat` public behavior.
   - `TrChat.Attachments`
   - `TrChat.History`
   - `TrChat.HistorySurface`
+  - `TrMcpTrigger`
   - `TrModelSelector`
   - `TrChatFeedback`
   - `TrChatMcpPanel`

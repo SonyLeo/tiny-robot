@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, inject, useAttrs, useSlots, type Slot } from 'vue'
-import { BUBBLE_LIST_SLOTS, CHAT_KIT_KEY, useChatScaffoldContext } from '@/context'
+import { BUBBLE_LIST_SLOTS, CHAT_KIT_KEY, MCP_MANAGER_KEY, useChatScaffoldContext } from '@/context'
 import { useSlotFilter } from '@/composables'
 import type { ChatListVariant, ModelOption } from '@/types'
 import ChatFooter from './ChatFooter.vue'
@@ -11,6 +11,7 @@ import ChatLayout from './ChatLayout.vue'
 import ChatMessageList from './ChatMessageList.vue'
 import ChatSender from './ChatSender.vue'
 import ChatWelcome from './ChatWelcome.vue'
+import McpTrigger from '../mcp-trigger/McpTrigger.vue'
 import ModelSelector from '../model-selector/ModelSelector.vue'
 import { ChatHistory } from '../history'
 
@@ -26,6 +27,7 @@ const attrs = useAttrs()
 const slots = useSlots() as Record<string, Slot | undefined>
 const bubbleSlots = useSlotFilter(slots, BUBBLE_LIST_SLOTS)
 const chatKit = inject(CHAT_KIT_KEY)!
+const mcpManager = inject(MCP_MANAGER_KEY, null)
 const scaffoldContext = useChatScaffoldContext()
 
 const showWelcome = computed(() => chatKit.messages.value.length === 0)
@@ -49,6 +51,8 @@ const showModelSelector = computed(() =>
     modelSelectorSlice.value.providerFactories?.length,
   ),
 )
+const showMcpTrigger = computed(() => Boolean(mcpManager))
+const showFooterTools = computed(() => showModelSelector.value || showMcpTrigger.value)
 
 function handleModelChange(model: ModelOption) {
   emit('update:model', model.value)
@@ -103,8 +107,11 @@ function handleModelChange(model: ModelOption) {
       <div class="tr-chat-footer-content">
         <ChatAttachments />
         <ChatSender>
-          <template #footer>
-            <ModelSelector v-if="showModelSelector" @change="handleModelChange" />
+          <template v-if="showFooterTools" #footer>
+            <div class="tr-chat-footer-tools">
+              <McpTrigger v-if="showMcpTrigger" />
+              <ModelSelector v-if="showModelSelector" @change="handleModelChange" />
+            </div>
           </template>
         </ChatSender>
       </div>
@@ -119,5 +126,12 @@ function handleModelChange(model: ModelOption) {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.tr-chat-footer-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
 }
 </style>

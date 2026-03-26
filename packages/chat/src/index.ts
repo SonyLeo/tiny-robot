@@ -17,6 +17,7 @@ import {
   ChatMcpPanel as TrChatMcpPanel,
 } from './components/chat'
 import { ChatHistory as TrChatHistory, ChatHistorySurface as TrChatHistorySurface } from './components/history'
+import { McpTrigger as TrMcpTrigger } from './components/mcp-trigger'
 import { ModelSelector as TrModelSelector } from './components/model-selector'
 
 // 定义带子组件的 TrChat 类型
@@ -76,6 +77,7 @@ export {
 
 // ===== 新组件 =====
 export {
+  TrMcpTrigger,
   TrModelSelector,
   TrChatScaffold,
   TrChatFeedback,

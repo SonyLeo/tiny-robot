@@ -65,6 +65,7 @@ await runTest('public source no longer exposes removed workspace/preset branches
 
 await runTest('named exports still advertise the retained scaffold and helper surface', async () => {
   const retainedExports = [
+    'TrMcpTrigger',
     'TrModelSelector',
     'TrChatScaffold',
     'TrChatFeedback',

@@ -26,6 +26,7 @@ const attachmentsContext = inject(CHAT_ATTACHMENTS_KEY, null)
 const senderActionsContext = inject(CHAT_SENDER_ACTIONS_KEY, null)
 const chatMessages = useResolvedChatMessages()
 const attrs = useAttrs()
+const slots = useSlots() as Record<string, Slot | undefined>
 const scaffoldContext = useChatScaffoldContext()
 
 const inputValue = ref('')
@@ -37,6 +38,10 @@ const uploadActionConfig = computed(() => senderActionsFeature.value?.upload ?? 
 const voiceActionConfig = computed(() => senderActionsFeature.value?.voice)
 const showDefaultUploadButton = computed(() => Boolean(uploadActionConfig.value?.enabled !== false))
 const showDefaultVoiceButton = computed(() => Boolean(voiceActionConfig.value?.enabled))
+const showDefaultFooterRightActions = computed(
+  () =>
+    !slots['footer-right'] && ((attachmentsContext && showDefaultUploadButton.value) || showDefaultVoiceButton.value),
+)
 const senderMode = computed<'single' | 'multiple'>(() => {
   const modeFromSlice = senderSlice.value?.mode
   return (
@@ -87,7 +92,6 @@ function handleFileSelect(files: File[]) {
 }
 
 // 获取所有插槽以支持透传
-const slots = useSlots() as Record<string, Slot | undefined>
 const forwardedSlots = computed<Partial<Record<string, Slot>>>(() =>
   Object.fromEntries(
     Object.entries(slots)
@@ -115,17 +119,11 @@ const forwardedSlots = computed<Partial<Record<string, Slot>>>(() =>
     <template v-if="$slots['footer-right']" #footer-right="slotProps">
       <slot name="footer-right" v-bind="slotProps ?? {}" />
     </template>
-    <template v-else-if="(attachmentsContext && showDefaultUploadButton) || showDefaultVoiceButton" #footer-right>
-      <span
-        v-if="attachmentsContext && showDefaultUploadButton && !$slots.footer && !$slots['footer-right']"
-        data-testid="chat-attachments-upload"
-      >
+    <template v-else-if="showDefaultFooterRightActions" #footer-right>
+      <span v-if="attachmentsContext && showDefaultUploadButton" data-testid="chat-attachments-upload">
         <UploadButton v-bind="uploadActionConfig" @select="handleFileSelect" />
       </span>
-      <span
-        v-if="showDefaultVoiceButton && !$slots.footer && !$slots['footer-right']"
-        data-testid="chat-sender-action-voice"
-      >
+      <span v-if="showDefaultVoiceButton" data-testid="chat-sender-action-voice">
         <VoiceButton v-bind="voiceActionConfig" />
       </span>
     </template>

@@ -216,6 +216,7 @@ TrChat.Root
 如果你要使用这些能力，也建议一起考虑：
 
 - `TrChat.Attachments`
+- `TrMcpTrigger`
 - `TrModelSelector`
 - `TrChatMcpPanel`
 - `TrChat.HistorySurface`

@@ -5,31 +5,25 @@
         :config="mcpFeatureConfig"
         :runtime="{ mcpManager: mcpBlackboxManager }"
         :preset-overrides="mcpBlackboxPresetOverrides"
-      >
-        <template #header-extra>
-          <button data-testid="mcp-feature-blackbox-open" @click="mcpBlackboxPanelVisible = true">Open MCP</button>
-          <TrChatMcpPanel :visible="mcpBlackboxPanelVisible" @update:visible="mcpBlackboxPanelVisible = $event" />
-        </template>
-      </TrChat>
+      />
     </div>
 
     <div data-testid="chat-mcp-feature-whitebox" class="chat-wrapper">
       <TrChat.Root :chat-kit="mcpWhiteboxChat" v-bind="mcpWhiteboxSlices.root">
         <TrChat.Layout v-bind="{ ...mcpWhiteboxSlices.layout, ...mcpWhiteboxSlices.appearance }">
-          <TrChat.Header v-bind="mcpWhiteboxSlices.header">
-            <template #extra>
-              <button data-testid="mcp-feature-whitebox-open" @click="mcpWhiteboxPanelVisible = true">Open MCP</button>
-            </template>
-          </TrChat.Header>
+          <TrChat.Header v-bind="mcpWhiteboxSlices.header" />
           <TrChat.Welcome
             v-if="showMcpWhiteboxWelcome && mcpWhiteboxSlices.welcome"
             v-bind="mcpWhiteboxSlices.welcome"
           />
           <TrChat.MessageList v-else v-bind="mcpWhiteboxSlices.messageList" />
           <TrChat.Footer>
-            <TrChat.Sender v-bind="mcpWhiteboxSlices.sender" />
+            <TrChat.Sender v-bind="mcpWhiteboxSlices.sender">
+              <template #footer>
+                <TrMcpTrigger />
+              </template>
+            </TrChat.Sender>
           </TrChat.Footer>
-          <TrChatMcpPanel :visible="mcpWhiteboxPanelVisible" @update:visible="mcpWhiteboxPanelVisible = $event" />
         </TrChat.Layout>
       </TrChat.Root>
     </div>
@@ -37,10 +31,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import {
   TrChat,
-  TrChatMcpPanel,
+  TrMcpTrigger,
   createChatAdapterFromConfig,
   createPresetChatProps,
   createPresetChatSlices,
@@ -109,8 +103,6 @@ const mcpWhiteboxChat = useChatKit({
 })
 
 const showMcpWhiteboxWelcome = computed(() => mcpWhiteboxChat.messages.value.length === 0)
-const mcpBlackboxPanelVisible = ref(false)
-const mcpWhiteboxPanelVisible = ref(false)
 </script>
 
 <style scoped>

@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 import { createChatTestHelper } from '../testHelper'
 
 test.describe('Chat MCP Feature', () => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   let helper: ReturnType<typeof createChatTestHelper>
 
   test.beforeEach(async ({ page }) => {
@@ -13,21 +13,34 @@ test.describe('Chat MCP Feature', () => {
     await page.locator('[data-testid="chat-mcp-feature-blackbox"]').waitFor()
   })
 
-  test('blackbox mcp feature should inject the manager into TrChatMcpPanel', async ({ page }) => {
-    const root = page.locator('[data-testid="chat-mcp-feature-blackbox"]')
+  test('blackbox default renderer should render the MCP trigger and open the panel', async ({ page }) => {
+    const scene = page.locator('[data-testid="chat-mcp-feature-blackbox"]')
+    const root = '[data-testid="chat-mcp-feature-blackbox"] .tr-chat'
 
-    await page.getByTestId('mcp-feature-blackbox-open').click()
+    await expect(page.locator(root).locator(helper.selectors.mcpTriggerLabel)).toBeVisible()
+    await expect(page.locator(root).locator(helper.selectors.mcpTriggerCount)).toContainText('1')
+    await helper.openMcpTrigger(root)
 
-    await expect(root).toContainText('Weather Service')
-    await expect(root).toContainText('Get Weather')
+    await expect(scene).toContainText('Weather Service')
+    await expect(scene).toContainText('Get Weather')
   })
 
-  test('whitebox preset slices should inject the mcp manager into TrChat.Root', async ({ page }) => {
-    const root = page.locator('[data-testid="chat-mcp-feature-whitebox"]')
+  test('blackbox MCP trigger should hide the label on mobile while keeping the count visible', async ({ page }) => {
+    const root = '[data-testid="chat-mcp-feature-blackbox"] .tr-chat'
 
-    await page.getByTestId('mcp-feature-whitebox-open').click()
+    await page.setViewportSize({ width: 390, height: 844 })
 
-    await expect(root).toContainText('Weather Service')
-    await expect(root).toContainText('Get Weather')
+    await expect(page.locator(root).locator(helper.selectors.mcpTriggerLabel)).toBeHidden()
+    await expect(page.locator(root).locator(helper.selectors.mcpTriggerCount)).toBeVisible()
+  })
+
+  test('whitebox sender footer should open the MCP panel through TrMcpTrigger', async ({ page }) => {
+    const scene = page.locator('[data-testid="chat-mcp-feature-whitebox"]')
+    const root = '[data-testid="chat-mcp-feature-whitebox"] .tr-chat'
+
+    await helper.openMcpTrigger(root)
+
+    await expect(scene).toContainText('Weather Service')
+    await expect(scene).toContainText('Get Weather')
   })
 })

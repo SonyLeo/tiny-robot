@@ -113,6 +113,13 @@ export function createChatTestHelper(page: Page, options: ChatTestHelperOptions 
     await trigger.click()
   }
 
+  /** 打开 MCP 面板触发器 */
+  const openMcpTrigger = async (root: string = selectors.blackboxChat) => {
+    const trigger = page.locator(root).locator(selectors.mcpTrigger)
+    await trigger.waitFor({ state: 'visible', timeout: defaultTimeout })
+    await trigger.click()
+  }
+
   /** 选择模型 */
   const selectModel = async (label: string, root: string = selectors.blackboxChat) => {
     await openModelSelector(root)
@@ -595,6 +602,7 @@ export function createChatTestHelper(page: Page, options: ChatTestHelperOptions 
     uploadAttachment,
     clickAbort,
     openModelSelector,
+    openMcpTrigger,
     selectModel,
 
     // 欢迎页

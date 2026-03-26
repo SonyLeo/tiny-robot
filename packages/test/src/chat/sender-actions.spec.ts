@@ -56,6 +56,12 @@ test.describe('Chat Sender Actions Feature', () => {
 
       await helper.expectVoiceActionVisible(true, root)
     })
+
+    test('default footer tools should keep the upload action visible alongside footer controls', async () => {
+      const root = helper.selectors.blackboxChat
+
+      await helper.expectUploadActionVisible(true, root)
+    })
   })
 
   test.describe('blackbox edge overrides', () => {

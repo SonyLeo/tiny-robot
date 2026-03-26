@@ -264,6 +264,7 @@ ChatConfig
 - `TrChat.Sender`
 - `TrChat.History`
 - `TrChat.HistorySurface`
+- `TrMcpTrigger`
 - `TrModelSelector`
 - `TrChatMcpPanel`
 - `TrChatFeedback`

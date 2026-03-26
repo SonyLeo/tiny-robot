@@ -177,7 +177,8 @@ const chatConfig = {
 常见配合方式：
 
 - 在 `runtime` 或 `presetOverrides` 注入 `mcpManager`
-- 配合 `TrChatMcpPanel` 提供 MCP 面板入口
+- 默认 renderer 会在 sender footer 自动渲染 `TrMcpTrigger`
+- 配合 `TrMcpTrigger` 或 `TrChatMcpPanel` 提供 MCP 面板入口
 
 如果你要做 MCP，通常不只是一处 UI 开关，而是：
 
