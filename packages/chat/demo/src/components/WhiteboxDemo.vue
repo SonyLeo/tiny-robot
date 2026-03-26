@@ -1,12 +1,9 @@
 <script setup lang="ts">
-import { computed, h, ref } from 'vue'
-import { ActionButton } from '@opentiny/tiny-robot'
-import { IconPlugin } from '@opentiny/tiny-robot-svgs'
 import {
   TrChat,
   TrChatFeedback,
+  TrMcpTrigger,
   TrModelSelector,
-  TrChatMcpPanel,
   useMcpManager,
   createChatAdapterFromConfig,
 } from '@opentiny/tiny-robot-chat'
@@ -87,13 +84,6 @@ const toolPluginInstance = toolPlugin({
 
 const demoProviderFactories = wrapDemoRetryProviderFactories(chatAdapter.providerFactories)
 
-const mcpPanelVisible = ref(false)
-const mcpPanelIcon = computed(() => () => h(IconPlugin, { style: { fontSize: '24px' } }))
-
-function handleToggleMcpPanel() {
-  mcpPanelVisible.value = !mcpPanelVisible.value
-}
-
 function handleMessageAction(payload: ChatMessageActionPayload) {
   console.debug('Whitebox message action:', payload)
 }
@@ -138,23 +128,18 @@ const scaffoldPresetOverrides = {
         </TrChat.MessageList>
 
         <TrChat.Footer>
-          <template #extra>
-            <div class="tr-chat-footer-toolbar">
-              <ActionButton :icon="mcpPanelIcon" @click="handleToggleMcpPanel" />
-            </div>
-          </template>
           <div class="tr-chat-footer-wrapper">
             <TrChat.Attachments />
             <TrChat.Sender>
               <template #footer>
                 <TrModelSelector />
+                <TrMcpTrigger />
               </template>
             </TrChat.Sender>
           </div>
         </TrChat.Footer>
 
         <TrChat.History />
-        <TrChatMcpPanel :visible="mcpPanelVisible" @update:visible="mcpPanelVisible = $event" />
       </TrChat.Layout>
     </TrChat.Scaffold>
   </div>

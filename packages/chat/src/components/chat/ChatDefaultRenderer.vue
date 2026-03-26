@@ -109,8 +109,8 @@ function handleModelChange(model: ModelOption) {
         <ChatSender>
           <template v-if="showFooterTools" #footer>
             <div class="tr-chat-footer-tools">
-              <McpTrigger v-if="showMcpTrigger" />
               <ModelSelector v-if="showModelSelector" @change="handleModelChange" />
+              <McpTrigger v-if="showMcpTrigger" />
             </div>
           </template>
         </ChatSender>

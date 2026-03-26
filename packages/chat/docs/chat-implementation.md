@@ -274,7 +274,9 @@ Registry 输出驱动 `presetProps`，再流向 `presetSlices` 。
 ### 历史层
 
 - `ChatHistory.vue`
-- `ChatHistoryHeader.vue`
+- `ChatHistoryNewSession.vue`
+- `ChatHistoryToolbar.vue`
+- `ChatHistoryManageButton.vue`
 - `ChatHistorySearch.vue`
 - `ChatHistoryList.vue`
 - `ChatHistoryPanel.vue`

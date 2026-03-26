@@ -2,10 +2,7 @@
 import { provide } from 'vue'
 import { CHAT_HISTORY_KEY } from '@/context'
 import { useHistoryState } from '@/composables/useHistoryState'
-import ChatHistoryHeader from './ChatHistoryHeader.vue'
-import ChatHistorySearch from './ChatHistorySearch.vue'
-import ChatHistoryList from './ChatHistoryList.vue'
-import ChatHistoryPanel from './ChatHistoryPanel.vue'
+import ChatHistoryContent from './ChatHistoryContent.vue'
 
 defineOptions({ name: 'TrChatHistorySurface' })
 
@@ -15,10 +12,7 @@ provide(CHAT_HISTORY_KEY, historyState)
 
 <template>
   <div class="tr-chat-history-surface">
-    <ChatHistoryHeader />
-    <ChatHistorySearch />
-    <ChatHistoryList />
-    <ChatHistoryPanel />
+    <ChatHistoryContent />
   </div>
 </template>
 

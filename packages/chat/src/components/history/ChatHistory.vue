@@ -3,10 +3,7 @@ import { computed, inject, provide } from 'vue'
 import { CHAT_UI_KEY, CHAT_HISTORY_KEY, useChatScaffoldContext } from '@/context'
 import { useHistoryState } from '@/composables/useHistoryState'
 import { triStateBooleanProp } from '@/utils'
-import ChatHistoryHeader from './ChatHistoryHeader.vue'
-import ChatHistorySearch from './ChatHistorySearch.vue'
-import ChatHistoryList from './ChatHistoryList.vue'
-import ChatHistoryPanel from './ChatHistoryPanel.vue'
+import ChatHistoryContent from './ChatHistoryContent.vue'
 
 defineOptions({ name: 'TrChatHistory' })
 
@@ -26,10 +23,7 @@ provide(CHAT_HISTORY_KEY, historyState)
     <div class="tr-chat-drawer-overlay" :class="{ 'is-open': showHistoryDrawer }" @click="showHistoryDrawer = false" />
 
     <div class="tr-chat-drawer" :class="{ 'is-open': showHistoryDrawer }">
-      <ChatHistoryHeader />
-      <ChatHistorySearch />
-      <ChatHistoryList />
-      <ChatHistoryPanel />
+      <ChatHistoryContent />
     </div>
   </template>
 </template>

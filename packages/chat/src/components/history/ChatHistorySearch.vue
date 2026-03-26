@@ -20,7 +20,6 @@ const chatMessages = useResolvedChatMessages()
 
 <style lang="less" scoped>
 .tr-chat-history-search {
-  padding: 16px;
   flex-shrink: 0;
 }
 
