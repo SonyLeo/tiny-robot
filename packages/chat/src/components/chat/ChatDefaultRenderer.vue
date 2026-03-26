@@ -102,8 +102,11 @@ function handleModelChange(model: ModelOption) {
       </template>
       <div class="tr-chat-footer-content">
         <ChatAttachments />
-        <ModelSelector v-if="showModelSelector" @change="handleModelChange" />
-        <ChatSender />
+        <ChatSender>
+          <template #footer>
+            <ModelSelector v-if="showModelSelector" @change="handleModelChange" />
+          </template>
+        </ChatSender>
       </div>
     </ChatFooter>
 

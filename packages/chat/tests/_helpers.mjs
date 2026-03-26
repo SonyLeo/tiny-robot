@@ -23,10 +23,6 @@ const presetsModule = await jiti.import('../src/presets/index.ts')
 const messagesModule = await jiti.import('../src/messages.ts')
 const capabilitiesModule = await jiti.import('../src/capabilities.ts')
 const rootChatKitModule = await jiti.import('../src/components/chat/resolveRootChatKit.ts')
-const contentNavigationCommonModule = await jiti.import('../src/utils/contentNavigation.ts')
-const assistantOutlineRuntimeModule = await jiti.import(
-  '../src/components/chat/assistant-outline/runtime.ts'
-)
 const providersFactoriesModule = await jiti.import('../src/providers/factories.ts')
 const openAiProviderModule = await jiti.import('../src/providers/openai.ts')
 const serverProxyModule = await jiti.import('../src/providers/serverProxy.ts')
@@ -65,9 +61,6 @@ export const createChatCapabilityManifest = capabilitiesModule.createChatCapabil
 export const CHAT_CAPABILITY_MANIFEST = capabilitiesModule.CHAT_CAPABILITY_MANIFEST
 export const getRootChatKitResolution = rootChatKitModule.getRootChatKitResolution
 export const resolveRootChatKit = rootChatKitModule.resolveRootChatKit
-export const coerceContentNavigationItemId = contentNavigationCommonModule.coerceContentNavigationItemId
-export const resolveAssistantOutlineItems = assistantOutlineRuntimeModule.resolveAssistantOutlineItems
-export const slugifyAssistantOutlineHeading = assistantOutlineRuntimeModule.slugifyAssistantOutlineHeading
 export const matchProvider = providersFactoriesModule.matchProvider
 export const createOpenAIProvider = openAiProviderModule.createOpenAIProvider
 export const createServerProxyProvider = serverProxyModule.createServerProxyProvider

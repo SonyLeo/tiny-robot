@@ -85,7 +85,7 @@ export const CHAT_SELECTORS = {
   variantIndicator: '[data-testid="variant-indicator"]',
   toggleMessageVariant: '[data-testid="toggle-message-variant"]',
 
-  // === Historical workspace / navigation selectors ===
+  // === Historical workspace selectors ===
   workspaceShell: '.tr-workspace-shell',
   workspaceShellRoot: '[data-testid="p5-shell-preview"]',
   leftRegion: '.tr-workspace-shell__region--left',
@@ -104,11 +104,6 @@ export const CHAT_SELECTORS = {
   shellChat: '[data-testid="p5-shell-preview"] .tr-chat',
   shellMeta: '.tr-workspace-shell__meta',
   shellChip: '.shell-chip',
-  contentNavigationScene: '[data-testid="content-navigation-scene"]',
-  contentNavigationShell: '[data-testid="content-navigation-shell"]',
-  contentNavigationHost: '[data-testid="content-navigation-host"]',
-  contentNavigationItem: '[data-testid="content-navigation-item"]',
-  activeContentNavigationItem: '[data-testid="content-navigation-item"][data-active="true"]',
 } as const
 
 export type ChatSelectors = typeof CHAT_SELECTORS

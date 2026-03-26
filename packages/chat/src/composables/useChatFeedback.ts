@@ -66,8 +66,6 @@ export function useChatFeedback(options: UseChatFeedbackOptions) {
     return [
       { name: 'copy', label: chatMessages.value.feedback.copy, icon: 'copy' },
       { name: 'refresh', label: chatMessages.value.feedback.regenerate, icon: 'refresh' },
-      { name: 'like', label: chatMessages.value.feedback.like, icon: 'like' },
-      { name: 'dislike', label: chatMessages.value.feedback.dislike, icon: 'dislike' },
     ]
   })
 

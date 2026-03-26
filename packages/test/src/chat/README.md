@@ -136,8 +136,6 @@ Use this checklist when changing `packages/chat` public behavior.
   - `TrModelSelector`
   - `TrChatFeedback`
   - `TrChatMcpPanel`
-  - `TrChat.AssistantOutline`
-  - `TrChat.AssistantOutlineTrigger`
 
 ## Helper Conventions
 
@@ -163,4 +161,4 @@ When moving or adding specs:
 
 ## Historical Note
 
-`workspace` scenes and `TrChat.PresetRoot` coverage were removed after the underlying chat package APIs were deleted. New demo scenes and Playwright specs should target the retained `TrChat`, `TrChat.Scaffold`, `ChatRoot`, `ChatLayout`, and assistant-outline surfaces.
+`workspace` scenes and `TrChat.PresetRoot` coverage were removed after the underlying chat package APIs were deleted. New demo scenes and Playwright specs should target the retained `TrChat`, `TrChat.Scaffold`, `ChatRoot`, and `ChatLayout` surfaces.

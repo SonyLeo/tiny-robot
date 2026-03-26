@@ -77,13 +77,6 @@ const chatAdapter = createChatAdapterFromConfig({
         wrap: true,
       },
     },
-    senderActions: {
-      voice: {
-        enabled: true,
-        tooltip: '语音输入',
-      },
-      wordCount: true,
-    },
   },
 })
 
@@ -147,13 +140,16 @@ const scaffoldPresetOverrides = {
         <TrChat.Footer>
           <template #extra>
             <div class="tr-chat-footer-toolbar">
-              <TrModelSelector />
               <ActionButton :icon="mcpPanelIcon" @click="handleToggleMcpPanel" />
             </div>
           </template>
           <div class="tr-chat-footer-wrapper">
             <TrChat.Attachments />
-            <TrChat.Sender></TrChat.Sender>
+            <TrChat.Sender>
+              <template #footer>
+                <TrModelSelector />
+              </template>
+            </TrChat.Sender>
           </div>
         </TrChat.Footer>
 

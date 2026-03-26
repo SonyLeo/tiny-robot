@@ -6,7 +6,7 @@
 .tr-model-selector__trigger {
   display: flex;
   width: fit-content;
-  min-height: 36px;
+  min-height: 30px;
   align-items: center;
   gap: 8px;
   padding: 6px 12px;

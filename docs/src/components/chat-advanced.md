@@ -79,18 +79,6 @@ outline: deep
 - 作为 `after` slot 内容
 - 只对 assistant 气泡渲染
 
-### `TrChat.AssistantOutline`
-
-`TrChat.AssistantOutline` 和 `TrChat.AssistantOutlineTrigger` 用于构建更高级的内容导航体验。
-
-适合：
-
-- assistant 输出是长文档
-- 需要按标题生成导航
-- 需要在消息区内做内容结构定位
-
-这组能力属于更高阶的页面增强，不建议在最初接入阶段优先使用。
-
 ## adapter / preset 工具链
 
 除了组件，`chat` 包还公开了配置归一化与 preset 工具链。
@@ -166,7 +154,6 @@ const slices = createPresetChatSlices(presetProps)
 - 默认抽屉历史不够，需要独立历史面板
 - 默认 sender 工具条不够，需要单独放模型选择器
 - 要做 MCP 面板
-- 要做长文本导航
 - 要做脚手架、模板或平台化消费
 
 如果你还在“先把聊天页跑起来”的阶段，优先看：

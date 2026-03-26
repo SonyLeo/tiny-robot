@@ -4,7 +4,7 @@
 
 本文件将 `packages/chat/tests` 的单元覆盖映射到当前活跃实现面，方便确认边界、检查已覆盖场景，并判断哪些责任需要交由 E2E。
 
-当前单元测试文件数量：13。
+当前单元测试文件数量：12。
 
 ## 覆盖概览
 
@@ -14,7 +14,6 @@
 | chat-cli 合约 | `chat-cli-contract.test.mjs` | 消费契约的稳定性 | 高 |
 | 可复用逻辑 | `composables.test.mjs` | 运行时状态、重试、model selector、附件 | 高 |
 | 配置与功能 | `config-and-features.test.mjs` | 配置归一、功能投影 | 高 |
-| 内容导航/大纲工具 | `content-navigation-runtime.test.mjs` | 导航阈值、outline 映射 | 中 |
 | 消息默认 | `messages.test.mjs` | 消息拷贝默认与覆盖 | 高 |
 | 预设切片 | `preset-slices.test.mjs` | 白盒/默认 slice 生成 | 高 |
 | 预设解析 | `presets.test.mjs` | 预设合并链、内置预设目录 | 高 |
@@ -57,35 +56,31 @@
 
 `packages/chat/tests/config-and-features.test.mjs` 关注配置归一、feature 投影、prompt 优先级、legacy 兼容、mcp runtime 处理。缺口为 `TrChat` 黑盒接口的单元测试尚未增加。
 
-### 5. 内容导航与大纲工具
-
-`packages/chat/tests/content-navigation-runtime.test.mjs` 验证内容导航阈值、active id 回退、助理大纲 slug 归一与映射。残缺是未对 `AssistantOutline`/`AssistantOutlineTrigger` 及滚动交互做 mount 测试。
-
-### 6. 消息默认
+### 5. 消息默认
 
 `packages/chat/tests/messages.test.mjs` 验证 `resolveChatMessages` 的覆盖/默认合并，缺口为未做 UI 快照/渲染层验证。
 
-### 7. 预设切片
+### 6. 预设切片
 
 `packages/chat/tests/preset-slices.test.mjs` 包括 layout variant、appearance、sender passthrough、mcp runtime 等输出。缺口是未通过白盒渲染验证这些 slice 的实际呈现。
 
-### 8. 预设解析
+### 7. 预设解析
 
 `packages/chat/tests/presets.test.mjs` 覆盖 skill pack/preset 合并、继承、错误、内置目录、createPresetConsumptionFromAgentPreset 等。缺口是缺少组件层面的消费渲染测试。
 
-### 9. Provider 工厂
+### 8. Provider 工厂
 
 `packages/chat/tests/provider-factories.test.mjs` 验证 provider 匹配、代理请求、错误格式化。缺口是未在浏览器级别覆盖真实代理。
 
-### 10. 根 chatKit 解析
+### 9. 根 chatKit 解析
 
 `packages/chat/tests/root-chat-kit.test.mjs` 覆盖 `getRootChatKitResolution` 与 `resolveRootChatKit`，缺口是 `ChatRoot` 提供层未做 mount 验证。
 
-### 11. Scaffold 默认
+### 10. Scaffold 默认
 
 `packages/chat/tests/scaffold-defaults.test.mjs` 验证 `createPresetConsumptionFromAgentPreset` 为叶子组件输出默认，缺口是未做渲染层消耗验证。
 
-### 12. 聚合
+### 11. 聚合
 
 `packages/chat/tests/use-chat-slices.test.mjs` 仅负责套件导入，本身无断言。
 
@@ -117,7 +112,6 @@
 7. MCP 面板打开与管理器行为
 8. 附件/发送器动作的呈现
 9. 反馈交互
-10. 助理大纲触发行为
 
 ## 使用建议
 

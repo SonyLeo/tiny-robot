@@ -47,12 +47,3 @@ export type {
   OpenAIProviderOptions,
   ProviderFactoryCreator,
 } from './model'
-
-export type {
-  ChatAssistantOutlineItem,
-  ChatContentNavigationConfig,
-  ChatContentNavigationItem,
-  ChatContentNavigationPlacement,
-  TrChatAssistantOutlineProps,
-  TrChatAssistantOutlineTriggerProps,
-} from './navigation'

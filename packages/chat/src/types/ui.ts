@@ -52,8 +52,6 @@ export interface ChatMessages {
     copy: string
     edit: string
     regenerate: string
-    like: string
-    dislike: string
   }
   editMessage: {
     placeholder: string

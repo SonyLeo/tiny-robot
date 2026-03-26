@@ -267,8 +267,6 @@ ChatConfig
 - `TrModelSelector`
 - `TrChatMcpPanel`
 - `TrChatFeedback`
-- `TrChat.AssistantOutline`
-- `TrChat.AssistantOutlineTrigger`
 - `createChatAdapterFromConfig`
 - `createPresetChatProps`
 - `createPresetChatSlices`

@@ -84,8 +84,6 @@ interface TrChatProps {
 - `TrChat.HistorySurface`
 - `TrModelSelector`
 - `TrChat.Attachments`
-- `TrChat.AssistantOutline`
-- `TrChat.AssistantOutlineTrigger`
 - `TrChatFeedback`
 - `TrChatMcpPanel`
 
@@ -290,13 +288,6 @@ Registry 输出驱动 `presetProps`，再流向 `presetSlices` 。
 - `ToolCallsRenderer.vue`
 - `ToolCallRenderer.vue`
 - `AttachmentsRenderer.vue`
-
-### 助手大纲
-
-- `AssistantOutline.vue`
-- `AssistantOutlineTrigger.vue`
-- `assistant-outline/context.ts`
-- `assistant-outline/runtime.ts`
 
 ## Demo 对齐
 

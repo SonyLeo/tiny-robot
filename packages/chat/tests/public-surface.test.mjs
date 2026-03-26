@@ -18,8 +18,6 @@ await runTest('TrChat compound source keeps the retained subcomponents', async (
     'TrChatFull.Header = TrChatHeader',
     'TrChatFull.Welcome = TrChatWelcome',
     'TrChatFull.MessageList = TrChatMessageList',
-    'TrChatFull.AssistantOutline = TrChatAssistantOutline',
-    'TrChatFull.AssistantOutlineTrigger = TrChatAssistantOutlineTrigger',
     'TrChatFull.Footer = TrChatFooter',
     'TrChatFull.Attachments = TrChatAttachments',
     'TrChatFull.Sender = TrChatSender',
@@ -34,11 +32,18 @@ await runTest('TrChat compound source keeps the retained subcomponents', async (
 
 await runTest('public source no longer exposes removed workspace/preset branches and keeps named helper exports', async () => {
   const removedSurfaceTokens = [
+    'TrChatFull.AssistantOutline',
+    'TrChatFull.AssistantOutlineTrigger',
     'TrChatFull.PresetRoot',
     'TrChatFull.WorkspaceShell',
     'TrChatFull.WorkspacePanelHost',
     'TrChatFull.ContentNavigationHost',
     'TrChatFull.ConversationTurnNavigation',
+    'TrChatAssistantOutline',
+    'TrChatAssistantOutlineTrigger',
+    'ChatAssistantOutlineItem',
+    'TrChatAssistantOutlineProps',
+    'TrChatAssistantOutlineTriggerProps',
     'TrChatPresetRoot',
     'TrChatWorkspaceShell',
     'TrChatWorkspacePanelHost',
@@ -51,11 +56,14 @@ await runTest('public source no longer exposes removed workspace/preset branches
   removedSurfaceTokens.forEach((token) => {
     assert.equal(chatIndexSource.includes(token), false)
   })
+  assert.equal(chatComponentsIndexSource.includes('AssistantOutline'), false)
+  assert.equal(chatComponentsIndexSource.includes('AssistantOutlineTrigger'), false)
   assert.equal(chatComponentsIndexSource.includes('ChatPresetRoot'), false)
+  assert.equal(chatTypesIndexSource.includes("from './navigation'"), false)
   assert.equal(chatTypesIndexSource.includes("from './workspace'"), false)
 })
 
-await runTest('named exports still advertise the retained scaffold, outline, and helper surface', async () => {
+await runTest('named exports still advertise the retained scaffold and helper surface', async () => {
   const retainedExports = [
     'TrModelSelector',
     'TrChatScaffold',
@@ -64,15 +72,10 @@ await runTest('named exports still advertise the retained scaffold, outline, and
     'TrChatLayout',
     'TrChatAttachments',
     'TrChatHistorySurface',
-    'TrChatAssistantOutline',
-    'TrChatAssistantOutlineTrigger',
     'createPresetConsumptionFromAgentPreset',
   ]
 
   retainedExports.forEach((token) => {
     assert.equal(chatIndexSource.includes(token), true)
   })
-  assert.equal(chatComponentsIndexSource.includes('AssistantOutline'), true)
-  assert.equal(chatComponentsIndexSource.includes('AssistantOutlineTrigger'), true)
-  assert.equal(chatTypesIndexSource.includes("from './navigation'"), true)
 })

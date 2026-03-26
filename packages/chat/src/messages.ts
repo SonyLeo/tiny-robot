@@ -31,8 +31,6 @@ export const CHAT_MESSAGES: ChatMessages = {
     copy: '复制',
     edit: '编辑',
     regenerate: '重新生成',
-    like: '赞',
-    dislike: '踩',
   },
   editMessage: {
     placeholder: '编辑消息内容...',

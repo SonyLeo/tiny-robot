@@ -136,41 +136,11 @@
         <TrChat.HistorySurface />
       </TrChat.Root>
     </div>
-
-    <div ref="outlineMountRef" data-testid="chat-surface-outline" class="chat-wrapper">
-      <TrChat.Root :chat-kit="outlineChat">
-        <TrChat.AssistantOutline :scroll-container="outlineScrollContainer" :min-items="2" :top-offset="48">
-          <TrChat.Layout>
-            <TrChat.Header title="Assistant Outline Surface" />
-            <TrChat.MessageList variant="docs">
-              <template #after="{ role }">
-                <TrChat.AssistantOutlineTrigger v-if="role === 'assistant'" role="assistant" :message-indexes="[1]" />
-              </template>
-            </TrChat.MessageList>
-          </TrChat.Layout>
-        </TrChat.AssistantOutline>
-      </TrChat.Root>
-    </div>
-
-    <div ref="outlineDisabledMountRef" data-testid="chat-surface-outline-disabled" class="chat-wrapper">
-      <TrChat.Root :chat-kit="outlineDisabledChat">
-        <TrChat.AssistantOutline :enabled="false" :scroll-container="outlineDisabledScrollContainer">
-          <TrChat.Layout>
-            <TrChat.Header title="Assistant Outline Disabled" />
-            <TrChat.MessageList variant="docs">
-              <template #after="{ role }">
-                <TrChat.AssistantOutlineTrigger v-if="role === 'assistant'" role="assistant" :message-indexes="[1]" />
-              </template>
-            </TrChat.MessageList>
-          </TrChat.Layout>
-        </TrChat.AssistantOutline>
-      </TrChat.Root>
-    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { nextTick, onMounted, ref, watchEffect } from 'vue'
+import { ref } from 'vue'
 import { TrChat, useChatKit } from '../../../../chat/src'
 import { createMockProvider } from '../mockProvider'
 import { createChatSceneConfig, sharedProviderFactories } from './sharedDemoFixtures'
@@ -284,81 +254,6 @@ function seedHistorySurface() {
   historySurfaceChat.createConversation({ title: 'Beta Surface' })
   void historySurfaceChat.switchConversation(firstConversation.id)
 }
-
-const outlineMarkdown = `# Workspace rollout
-
-${'This section exists to make the assistant response tall enough for the outline rail. '.repeat(36)}
-
-## Shell behavior
-
-${'Shell behavior details remain visible while the list scrolls. '.repeat(44)}
-
-## History controls
-
-${'History controls should keep the outline rail rendered for assistant messages. '.repeat(44)}
-`
-
-const outlineInitialMessages = [
-  {
-    id: 'outline-user',
-    role: 'user',
-    content: 'outline prompt',
-  },
-  {
-    id: 'outline-assistant',
-    role: 'assistant',
-    content: outlineMarkdown,
-  },
-]
-
-const outlineChat = useChatKit({
-  responseProvider: createMockProvider({
-    provider: 'outline',
-    model: 'outline-model',
-  }),
-  initialMessages: outlineInitialMessages,
-})
-
-const outlineDisabledChat = useChatKit({
-  responseProvider: createMockProvider({
-    provider: 'outline',
-    model: 'outline-model',
-  }),
-  initialMessages: outlineInitialMessages,
-})
-
-const outlineMountRef = ref<HTMLElement | null>(null)
-const outlineScrollContainer = ref<HTMLElement | null>(null)
-const outlineDisabledMountRef = ref<HTMLElement | null>(null)
-const outlineDisabledScrollContainer = ref<HTMLElement | null>(null)
-
-onMounted(() => {
-  if (!outlineChat.activeConversationId.value) {
-    outlineChat.createConversation({
-      title: 'Outline Surface',
-      useMessageOptions: {
-        initialMessages: outlineInitialMessages,
-      },
-    })
-  }
-
-  if (!outlineDisabledChat.activeConversationId.value) {
-    outlineDisabledChat.createConversation({
-      title: 'Outline Surface Disabled',
-      useMessageOptions: {
-        initialMessages: outlineInitialMessages,
-      },
-    })
-  }
-})
-
-watchEffect(async () => {
-  await nextTick()
-  outlineScrollContainer.value = outlineMountRef.value?.querySelector('.tr-chat__bubble-list') as HTMLElement | null
-  outlineDisabledScrollContainer.value = outlineDisabledMountRef.value?.querySelector(
-    '.tr-chat__bubble-list',
-  ) as HTMLElement | null
-})
 </script>
 
 <style scoped>
@@ -371,12 +266,6 @@ watchEffect(async () => {
 .chat-wrapper {
   position: relative;
   height: calc(100vh - 100px);
-}
-
-[data-testid='chat-surface-outline'],
-[data-testid='chat-surface-outline-disabled'] {
-  grid-column: 1 / -1;
-  height: 420px;
 }
 
 .surface-custom-sender {
