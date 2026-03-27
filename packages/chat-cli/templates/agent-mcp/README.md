@@ -1,9 +1,9 @@
 # __PROJECT_TITLE__
 
-一个基于 Tiny Robot Chat Kit 的 Agent MCP 模板，默认包含：
+一个基于 Tiny Robot Chat Kit 的 Agent MCP starter，默认包含：
 
-- 一条配置驱动的聊天主链路
-- 一个最小的 MCP 面板入口
+- `TrChat.Scaffold` 白盒接入
+- MCP manager 运行时注入
 - 本地示例 MCP plugin 列表与 mock bridge
 - 前端请求你的服务端代理，服务端再请求模型提供商
 
@@ -57,10 +57,15 @@ __DEV_COMMAND__
 这个模板在 [src/lib/chat.ts](./src/lib/chat.ts) 中做了三件事：
 
 - 创建 `mcpManager`
-- 把 `toolPlugin` 接到 `useChatKit`
-- 用 `createChatCliCapabilitySurface()` 产出 `chatCapabilitySurface`
+- 把 `toolPlugin` 接到聊天 runtime
+- 通过 `TrChat.Scaffold` 把运行时与默认配置连接起来
 
-[src/App.vue](./src/App.vue) 通过 white-box 方式消费 `chatCapabilitySurface.presetSlices`，并在 Header 右侧挂了一个 MCP 面板入口。
+[src/App.vue](./src/App.vue) 通过 `TrChat.Scaffold` 做白盒布局组合，并把：
+
+- `TrModelSelector`
+- `TrMcpTrigger`
+
+挂在 sender footer 上。
 
 默认的 MCP 示例数据和 mock bridge 在：
 
@@ -77,7 +82,7 @@ __DEV_COMMAND__
 
 - 一个 tool-enabled starter
 - 一个 MCP integration starter
-- 一个 white-box 消费 `chatCapabilitySurface.presetSlices` 的样例模板
+- 一个基于 `TrChat.Scaffold` 的白盒布局样例
 
 这个模板不是什么：
 
@@ -85,8 +90,6 @@ __DEV_COMMAND__
 - 不是 workflow 引擎
 - 不是生产级 MCP orchestration 方案
 - 不是 skills marketplace
-
-换句话说，它的目标不是替你做完整平台，而是把最小 MCP 接缝先搭好。
 
 ## 前 10 分钟建议
 
@@ -100,21 +103,21 @@ __DEV_COMMAND__
 3. [server/chat-proxy.example.ts](./server/chat-proxy.example.ts)
    - 接入你的真实后端代理
 4. 最后再看 [src/App.vue](./src/App.vue)
-   - 这里主要是 white-box 布局和 MCP 面板入口
+   - 这里主要是 `Scaffold` 白盒布局与 MCP 工具位组织
 
 ## 哪些文件以后最可能被替换
 
 最先会被应用层替换的通常是：
 
 - [src/lib/mcp.ts](./src/lib/mcp.ts)
-  - 这里是默认 MCP plugin 列表和 mock bridge
+  - 默认 MCP plugin 列表和 mock bridge
 - [src/lib/chat.ts](./src/lib/chat.ts)
-  - 这里是 `mcpManager`、`toolPlugin` 和 `chatCapabilitySurface` 的 starter wiring
+  - `mcpManager`、`toolPlugin` 和 runtime wiring
 
 相对更稳定、可以先不急着改的是：
 
 - [src/App.vue](./src/App.vue)
-  - 它主要示范如何消费 slices 和挂 MCP 面板入口
+  - 它主要示范如何用 `TrChat.Scaffold` 组织页面结构
 
 ## 从 starter 到真实应用的建议路径
 
@@ -125,18 +128,11 @@ __DEV_COMMAND__
 3. 再接入你的业务 tools 或 services
 4. 最后才考虑更完整的 agent runtime、workflow 或 skill registry
 
-也就是说，这个模板优先帮你解决的是：
-
-- 最小的 MCP UI 接缝
-- 最小的 tool bridge 接缝
-
-而不是一次性解决完整 agent 平台建设。
-
 ## 项目结构
 
-- `src/App.vue`：white-box 聊天布局与 MCP 面板入口
+- `src/App.vue`：基于 `TrChat.Scaffold` 的白盒聊天布局
 - `src/chat.config.ts`：模型、Provider 和基础 UI 配置
-- `src/lib/chat.ts`：适配器、MCP manager、tool plugin 和 `chatCapabilitySurface`
+- `src/lib/chat.ts`：MCP manager、tool plugin 和聊天 runtime 注入
 - `src/lib/mcp.ts`：本地 MCP 示例数据和 mock bridge
 - `server/chat-proxy.example.ts`：服务端代理参考实现
 

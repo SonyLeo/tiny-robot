@@ -31,6 +31,18 @@ export function getTemplatePackageJsonPaths(templatesDir) {
     .filter((filePath) => existsSync(filePath))
 }
 
+function readJson(filePath) {
+  return JSON.parse(readFileSync(filePath, 'utf-8'))
+}
+
+function getTopLevelDependencies(pkg) {
+  return {
+    ...(pkg.dependencies ?? {}),
+    ...(pkg.devDependencies ?? {}),
+    ...(pkg.peerDependencies ?? {}),
+  }
+}
+
 export function updateTemplateDependencyVersions({
   templatesDir,
   packagesDir,
@@ -40,7 +52,7 @@ export function updateTemplateDependencyVersions({
   let updatedCount = 0
 
   for (const packageJsonPath of getTemplatePackageJsonPaths(templatesDir)) {
-    const pkg = JSON.parse(readFileSync(packageJsonPath, 'utf-8'))
+    const pkg = readJson(packageJsonPath)
     let changed = false
 
     for (const section of ['dependencies', 'devDependencies', 'peerDependencies']) {
@@ -85,6 +97,90 @@ export function validateTemplatePackages(templatesDir) {
   return errors
 }
 
+export function validateTemplateDependencyClosure({
+  templatesDir,
+  packagesDir,
+  packageDirectoryMap = packageMap,
+}) {
+  const errors = []
+  const packageJsonCache = new Map()
+
+  function getWorkspacePackageJson(packageName) {
+    const cached = packageJsonCache.get(packageName)
+    if (cached !== undefined) {
+      return cached
+    }
+
+    const dir = packageDirectoryMap[packageName]
+    if (!dir) {
+      packageJsonCache.set(packageName, null)
+      return null
+    }
+
+    const packageJsonPath = join(packagesDir, dir, 'package.json')
+    if (!existsSync(packageJsonPath)) {
+      packageJsonCache.set(packageName, null)
+      return null
+    }
+
+    const pkg = readJson(packageJsonPath)
+    packageJsonCache.set(packageName, pkg)
+    return pkg
+  }
+
+  for (const packageJsonPath of getTemplatePackageJsonPaths(templatesDir)) {
+    const templateName = packageJsonPath.split(/[\\/]/).at(-2) ?? packageJsonPath
+    const pkg = readJson(packageJsonPath)
+    const topLevelDependencies = getTopLevelDependencies(pkg)
+    const visitedWorkspacePackages = new Set()
+    const reportedMissingPeers = new Set()
+
+    function visitWorkspacePackage(packageName) {
+      if (visitedWorkspacePackages.has(packageName)) {
+        return
+      }
+      visitedWorkspacePackages.add(packageName)
+
+      const workspacePackageJson = getWorkspacePackageJson(packageName)
+      if (!workspacePackageJson) {
+        return
+      }
+
+      for (const peerName of Object.keys(workspacePackageJson.peerDependencies ?? {})) {
+        if (topLevelDependencies[peerName]) {
+          continue
+        }
+
+        const reportKey = `${templateName}:${packageName}:${peerName}`
+        if (reportedMissingPeers.has(reportKey)) {
+          continue
+        }
+
+        errors.push(`${templateName}/package.json is missing peer dependency "${peerName}" required by "${packageName}"`)
+        reportedMissingPeers.add(reportKey)
+      }
+
+      for (const dependencyName of Object.keys(workspacePackageJson.dependencies ?? {})) {
+        if (!packageDirectoryMap[dependencyName]) {
+          continue
+        }
+
+        visitWorkspacePackage(dependencyName)
+      }
+    }
+
+    for (const dependencyName of Object.keys(topLevelDependencies)) {
+      if (!packageDirectoryMap[dependencyName]) {
+        continue
+      }
+
+      visitWorkspacePackage(dependencyName)
+    }
+  }
+
+  return errors
+}
+
 export function validateTemplateRegistry({
   templatesDir,
   templateDefinitions,
@@ -93,13 +189,30 @@ export function validateTemplateRegistry({
   const errors = []
   const validFeatureKeySet = new Set(validFeatureKeys)
 
+  function getTemplateLayerDirs(template) {
+    return [
+      ...(template.baseTemplateDir ? [join(templatesDir, template.baseTemplateDir)] : []),
+      join(templatesDir, template.templateDir),
+    ]
+  }
+
+  function hasTemplateFile(template, relativePath) {
+    return getTemplateLayerDirs(template).some((dir) => existsSync(join(dir, relativePath)))
+  }
+
   for (const template of templateDefinitions) {
     const templateRoot = join(templatesDir, template.templateDir)
-    const packageJsonPath = join(templateRoot, 'package.json')
 
     for (const feature of template.requiredChatFeatures ?? []) {
       if (!validFeatureKeySet.has(feature)) {
         errors.push(`Template "${template.id}" references unknown required feature "${feature}"`)
+      }
+    }
+
+    if (template.baseTemplateDir !== undefined) {
+      const baseTemplateRoot = join(templatesDir, template.baseTemplateDir)
+      if (!existsSync(baseTemplateRoot)) {
+        errors.push(`Template "${template.id}" points to missing base directory "${template.baseTemplateDir}"`)
       }
     }
 
@@ -108,8 +221,8 @@ export function validateTemplateRegistry({
       continue
     }
 
-    if (!existsSync(packageJsonPath)) {
-      errors.push(`Template "${template.id}" is missing package.json in "${template.templateDir}"`)
+    if (!hasTemplateFile(template, 'package.json')) {
+      errors.push(`Template "${template.id}" is missing package.json across its template layers`)
     }
   }
 
@@ -153,12 +266,53 @@ export function validateTemplateContractUsageSource({
   const errors = []
 
   for (const template of templateDefinitions) {
-    if (template.contractUsage.mode !== 'whitebox-slices') {
+    const templateRoots = [
+      ...(template.baseTemplateDir ? [join(templatesDir, template.baseTemplateDir)] : []),
+      join(templatesDir, template.templateDir),
+    ]
+    const sourceFiles = templateRoots.flatMap((templateRoot) => getTemplateSourceFiles(templateRoot))
+    const mode = template.contractUsage.mode
+
+    if (mode === 'blackbox-component') {
+      if (!fileContainsPattern(sourceFiles, 'TrChat')) {
+        errors.push(`Template "${template.id}" must reference "TrChat" when using "blackbox-component"`)
+      }
+
+      if (fileContainsPattern(sourceFiles, 'chatCapabilitySurface')) {
+        errors.push(`Template "${template.id}" must not reference "chatCapabilitySurface" when using "blackbox-component"`)
+      }
+
+      if (fileContainsPattern(sourceFiles, 'TrChat.Root')) {
+        errors.push(`Template "${template.id}" must not render "TrChat.Root" when using "blackbox-component"`)
+      }
+
       continue
     }
 
-    const templateRoot = join(templatesDir, template.templateDir)
-    const sourceFiles = getTemplateSourceFiles(templateRoot)
+    if (mode === 'scaffold-slots') {
+      if (!fileContainsPattern(sourceFiles, 'TrChat.Scaffold')) {
+        errors.push(`Template "${template.id}" must reference "TrChat.Scaffold" when using "scaffold-slots"`)
+      }
+
+      for (const pattern of ['TrChat.Layout', 'TrChat.Header', 'TrChat.MessageList', 'TrChat.Sender']) {
+        if (!fileContainsPattern(sourceFiles, pattern)) {
+          errors.push(`Template "${template.id}" must reference "${pattern}" when using "scaffold-slots"`)
+        }
+      }
+
+      const requiresMcp = (template.requiredChatFeatures ?? []).includes('mcp')
+      if (requiresMcp && !fileContainsPattern(sourceFiles, 'TrMcpTrigger') && !fileContainsPattern(sourceFiles, 'TrChatMcpPanel')) {
+        errors.push(
+          `Template "${template.id}" must reference "TrMcpTrigger" or "TrChatMcpPanel" when requiring "mcp"`,
+        )
+      }
+
+      continue
+    }
+
+    if (mode !== 'whitebox-slices') {
+      continue
+    }
 
     if (!fileContainsPattern(sourceFiles, 'chatCapabilitySurface')) {
       errors.push(`Template "${template.id}" must reference "chatCapabilitySurface" when using "whitebox-slices"`)

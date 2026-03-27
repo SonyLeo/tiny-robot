@@ -1,10 +1,11 @@
 export type ChatCliSupportedProvider = 'openai' | 'deepseek' | 'custom'
 export type ChatCliTemplateStatus = 'stable' | 'planned'
-export type ChatCliTemplateConsumptionMode = 'blackbox-props' | 'whitebox-slices'
+export type ChatCliTemplateConsumptionMode = 'blackbox-component' | 'scaffold-slots' | 'whitebox-slices'
+export type ChatCliPostScaffoldStep = 'copy-env' | 'configure-endpoint' | 'review-mcp' | 'run-dev'
 
 export const CHAT_CLI_SUPPORTED_PROVIDERS = ['openai', 'deepseek', 'custom'] as const
 export const CHAT_CLI_TEMPLATE_STATUSES = ['stable', 'planned'] as const
-export const CHAT_CLI_TEMPLATE_CONSUMPTION_MODES = ['blackbox-props', 'whitebox-slices'] as const
+export const CHAT_CLI_TEMPLATE_CONSUMPTION_MODES = ['blackbox-component', 'scaffold-slots', 'whitebox-slices'] as const
 export const CHAT_CLI_REQUIRED_FEATURE_KEYS = [
   'attachments',
   'senderActions',
@@ -51,40 +52,43 @@ export interface ChatCliTemplateDefinition {
   description?: string
   status: ChatCliTemplateStatus
   templateDir: string
+  baseTemplateDir?: string
   supportedProviders: readonly ChatCliSupportedProvider[]
   requiredChatFeatures: readonly ChatCliRequiredFeatureKey[]
   contractUsage: ChatCliTemplateContractUsage
-  postScaffoldSteps?: readonly string[]
+  postScaffoldSteps?: readonly ChatCliPostScaffoldStep[]
 }
 
 export const CHAT_CLI_TEMPLATE_REGISTRY = [
   {
     id: 'basic',
     label: 'Basic Chat Agent',
-    description: 'General chat starter with white-box chat slices',
+    description: 'General chat starter with TrChat black-box composition',
     status: 'stable',
     templateDir: 'basic',
+    baseTemplateDir: 'base',
     supportedProviders: ['openai', 'deepseek', 'custom'],
-    requiredChatFeatures: ['welcomePrompts', 'history'],
+    requiredChatFeatures: ['history'],
     contractUsage: {
-      mode: 'whitebox-slices',
+      mode: 'blackbox-component',
       presetPropKeys: [],
-      presetSliceKeys: ['root', 'layout', 'header', 'welcome', 'messageList', 'sender', 'history', 'modelSelector'],
+      presetSliceKeys: [],
     },
     postScaffoldSteps: ['copy-env', 'configure-endpoint', 'run-dev'],
   },
   {
     id: 'agent-mcp',
     label: 'Agent MCP',
-    description: 'MCP panel + tool bridge starter',
+    description: 'MCP panel + tool bridge starter with scaffold layout',
     status: 'stable',
     templateDir: 'agent-mcp',
+    baseTemplateDir: 'base',
     supportedProviders: ['openai', 'deepseek', 'custom'],
-    requiredChatFeatures: ['welcomePrompts', 'mcp', 'history'],
+    requiredChatFeatures: ['mcp', 'history'],
     contractUsage: {
-      mode: 'whitebox-slices',
+      mode: 'scaffold-slots',
       presetPropKeys: [],
-      presetSliceKeys: ['root', 'layout', 'header', 'welcome', 'messageList', 'sender', 'history', 'modelSelector'],
+      presetSliceKeys: [],
     },
     postScaffoldSteps: ['copy-env', 'configure-endpoint', 'review-mcp', 'run-dev'],
   },
@@ -115,6 +119,10 @@ export function validateChatCliTemplateRegistry(
 
     if (!validStatuses.has(template.status)) {
       errors.push(`Template "${template.id}" has unsupported status "${template.status}"`)
+    }
+
+    if (template.baseTemplateDir !== undefined && !template.baseTemplateDir) {
+      errors.push(`Template "${template.id}" declares an empty baseTemplateDir`)
     }
 
     if (template.supportedProviders.length === 0) {

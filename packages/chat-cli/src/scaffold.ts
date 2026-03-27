@@ -12,7 +12,8 @@ import { join, resolve } from 'node:path'
 import pc from 'picocolors'
 
 export interface ScaffoldProjectOptions {
-  templateDir: string
+  templateDir?: string
+  templateDirs?: string[]
   projectDir: string
   provider: string
   projectName?: string
@@ -230,12 +231,19 @@ export function replaceWorkspaceProtocolDeps(projectDir: string, templateDir: st
 }
 
 export function scaffoldProject(options: ScaffoldProjectOptions): void {
+  const templateDirs = options.templateDirs ?? (options.templateDir ? [options.templateDir] : [])
+  if (templateDirs.length === 0) {
+    throw new Error('scaffoldProject requires at least one template directory')
+  }
+
   mkdirSync(options.projectDir, { recursive: true })
-  copyTemplateFiles(options.templateDir, options.projectDir)
+  for (const templateDir of templateDirs) {
+    copyTemplateFiles(templateDir, options.projectDir)
+  }
   renameSpecialFiles(options.projectDir)
   applyTemplateVariables(options.projectDir, {
     ...getTemplateVariables(options.provider),
     ...getScaffoldMetadata(options.projectName ?? 'my-chat-app', options.packageManager ?? 'npm'),
   })
-  replaceWorkspaceProtocolDeps(options.projectDir, options.templateDir)
+  replaceWorkspaceProtocolDeps(options.projectDir, templateDirs[0])
 }

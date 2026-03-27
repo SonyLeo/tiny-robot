@@ -2,10 +2,16 @@
 
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { validateTemplateContractUsageSource, validateTemplatePackages, validateTemplateRegistry } from './template-release-utils.mjs'
+import {
+  validateTemplateContractUsageSource,
+  validateTemplateDependencyClosure,
+  validateTemplatePackages,
+  validateTemplateRegistry,
+} from './template-release-utils.mjs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const templatesDir = join(__dirname, '../templates')
+const packagesDir = join(__dirname, '../..')
 
 let registryModule
 
@@ -26,6 +32,10 @@ const errors = [
     templatesDir,
     templateDefinitions: getChatCliTemplateRegistry(),
     validFeatureKeys: CHAT_CLI_REQUIRED_FEATURE_KEYS,
+  }),
+  ...validateTemplateDependencyClosure({
+    templatesDir,
+    packagesDir,
   }),
   ...validateTemplateContractUsageSource({
     templatesDir,

@@ -40,14 +40,14 @@ A minimal chat application with:
 - Vue 3 Composition API
 - TypeScript support
 - Vite for fast development
-- White-box consumption of `chatCapabilitySurface.presetSlices`
+- Black-box `TrChat` composition
 - Environment configuration
 
 ### Agent MCP
 
 A minimal Agent / MCP starter with:
 - Vue 3 Composition API
-- White-box consumption of `chatCapabilitySurface.presetSlices`
+- `TrChat.Scaffold` white-box layout composition
 - Built-in MCP panel entry
 - Local MCP plugin metadata and mock bridge starter
 - `toolPlugin` wiring through the current stable `mcp` contract
@@ -101,7 +101,7 @@ Before adding a new stable template, answer these questions:
 
 1. Is the upstream chat contract it depends on already stable?
 2. Can its `requiredChatFeatures` be written down explicitly?
-3. Does it consume the contract through `blackbox-props` or `whitebox-slices`?
+3. Does it consume the contract through `blackbox-component`, `scaffold-slots`, or another justified mode?
 4. Can it pass scaffold / smoke, rather than only looking reasonable in the template directory?
 
 ## Stable Template Rules

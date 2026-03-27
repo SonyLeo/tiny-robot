@@ -1,8 +1,9 @@
 # Chat CLI Design
 
-> Last updated: `2026-03-19`
+> Last updated: `2026-03-27`
 > Review: [../packages/chat-cli/chat-cli-review-02.md](../packages/chat-cli/chat-cli-review-02.md)
 > Progress: [../packages/chat-cli/progress.md](../packages/chat-cli/progress.md)
+> Related: [Chat Sidebar Shell 默认布局规划](./chat-sidebar-shell-plan.md)
 
 ---
 
@@ -72,6 +73,18 @@ As of `2026-03-18`, the stable contract exposed by `packages/chat` for CLI consu
 - `modelSelector`
 
 CLI should treat this as the current stable upstream surface.
+
+### 3.4 Planned upstream expansion
+
+`packages/chat` is now planning a sidebar-shell default-layout upgrade.
+
+The important CLI rule is:
+
+- CLI must not invent its own sidebar abstraction ahead of `packages/chat`
+- templates should consume the future upstream `shell` contract after it stabilizes
+- template authors should not fork page-level shell logic inside `basic` / `agent-mcp` just to get ahead of the package contract
+
+Until that shell contract lands, the list above remains the current stable surface.
 
 ---
 
@@ -168,6 +181,7 @@ Objectives:
 
 - scaffold a template that consumes stabilized layout inputs
 - depend on a real retrieval contract, not only docs-facing UI
+- avoid baking template-local sidebar shell behavior before the upstream shell contract is stable
 
 ### Phase D: `base + feature packs + add`
 
@@ -207,7 +221,8 @@ Rules that should guide implementation:
 After CLI can stably consume existing chat capabilities:
 
 - `packages/chat` can continue into `P4 / Agent Preset + Skill Pack`
-- later `P5 / Theme / Workspace Shell` can layer on top of stable capability bundles
+- sidebar-shell formalization should be consumed as an upstream chat capability rather than reimplemented inside template code
+- broader theme / workspace-shell evolution can then layer on top of that stabilized shell contract
 - CLI can then grow broader template packs and workflow tooling without reopening the lower-level contract
 
 This ordering is intentional.

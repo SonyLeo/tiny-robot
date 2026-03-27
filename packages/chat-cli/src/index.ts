@@ -12,6 +12,7 @@ import { getBanner } from './banner.js'
 import { getCommand, inferPackageManager, type PackageManager } from './packageManager.js'
 import { emptyDir, scaffoldProject } from './scaffold.js'
 import {
+  type ChatCliPostScaffoldStep,
   type ChatCliSupportedProvider,
   getChatCliTemplateDefinition,
   getStableChatCliTemplateIds,
@@ -216,7 +217,10 @@ async function init(): Promise<void> {
   }
 
   scaffoldProject({
-    templateDir: join(templatesDir, templateDefinition.templateDir),
+    templateDirs: [
+      ...(templateDefinition.baseTemplateDir ? [join(templatesDir, templateDefinition.baseTemplateDir)] : []),
+      join(templatesDir, templateDefinition.templateDir),
+    ],
     projectDir,
     provider,
     projectName,
@@ -245,6 +249,7 @@ async function init(): Promise<void> {
     projectDir,
     targetRoot,
     shouldInstall,
+    postScaffoldSteps: templateDefinition.postScaffoldSteps,
   })
 }
 
@@ -254,6 +259,7 @@ function printNextSteps(options: {
   projectDir: string
   targetRoot: string
   shouldInstall: boolean
+  postScaffoldSteps?: readonly ChatCliPostScaffoldStep[]
 }): void {
   console.log(`\n  ${pc.bold('Next steps:')}`)
 
@@ -261,13 +267,33 @@ function printNextSteps(options: {
     console.log(`  ${pc.cyan(`cd ${options.projectName}`)}`)
   }
 
-  console.log(`  ${pc.cyan('Copy .env.example to .env.local')}   ${pc.gray('# configure your local endpoint')}`)
-
   if (!options.shouldInstall) {
     console.log(`  ${pc.cyan(getCommand(options.packageManager, 'install'))}`)
   }
 
-  console.log(`  ${pc.cyan(getCommand(options.packageManager, 'dev'))}`)
+  const steps = options.postScaffoldSteps ?? ['copy-env', 'configure-endpoint', 'run-dev']
+
+  for (const step of steps) {
+    switch (step) {
+      case 'copy-env':
+        console.log(`  ${pc.cyan('Copy .env.example to .env.local')}   ${pc.gray('# configure your local endpoint')}`)
+        break
+      case 'configure-endpoint':
+        console.log(
+          `  ${pc.cyan('Review src/chat.config.ts and server/chat-proxy.example.ts')}   ${pc.gray(
+            '# verify provider and proxy settings',
+          )}`,
+        )
+        break
+      case 'review-mcp':
+        console.log(`  ${pc.cyan('Review src/lib/mcp.ts')}   ${pc.gray('# replace demo MCP servers and bridge')}`)
+        break
+      case 'run-dev':
+        console.log(`  ${pc.cyan(getCommand(options.packageManager, 'dev'))}`)
+        break
+    }
+  }
+
   console.log('')
 }
 

@@ -1,6 +1,6 @@
 # Chat CLI 检视报告 02
 
-> 最近更新：`2026-03-26`
+> 最近更新：`2026-03-27`
 > 检视范围：`packages/chat-cli` 当前实现、模板目录、`packages/chat` 的上游消费 contract，以及 `packages/test` 中与脚手架相关的验证路径
 > 相关文档：
 > - [发布手册](./release-playbook.md)
@@ -15,37 +15,47 @@
 这份文档专门回答三个问题：
 
 1. 当前 `chat-cli` 做到了什么
-2. 当前实现里有哪些具体问题和技术债
-3. 后续应该按什么顺序收口，而不是继续叠加模板复杂度
+2. 当前这轮检视中，哪些问题已经处理
+3. 由于 `packages/chat` 仍在持续演进，哪些问题先停在这里，不继续往下扩
 
 它是检视报告，不是发布手册。
 
-发布流程、外部命令、`dist-tag` 策略等内容，见 [release-playbook.md](./release-playbook.md)。
+外部命令、演示发布、`dist-tag` 策略等内容，见：
+
+- [release-playbook.md](./release-playbook.md)
 
 ---
 
 ## 2. 当前状态判断
 
-截至 `2026-03-26`，`chat-cli` 已经具备这些基础能力：
+截至 `2026-03-27`，`chat-cli` 已经不再是一个“纯目录复制器”。
+
+当前它已经具备：
 
 - registry 驱动的模板选择，而不是 CLI 入口里写死模板列表
 - 模板目录复制、变量替换、工作区依赖版本替换
-- 模板目录与 registry 元数据的基本一致性校验
+- 模板目录与 registry 元数据的一致性校验
 - 两个稳定模板：
   - `basic`
   - `agent-mcp`
-- scaffold / release / smoke 三层验证
+- scaffold / release / smoke 三层验证框架
 
-这意味着：
+同时，上一轮检视里最核心的几项模板问题，已经完成第一阶段收口：
 
-- `chat-cli` 已经不再是“纯目录复制器”
-- 但它还没有收口成“对外可长期维护的 starter 产品层”
+- `basic` 已收口为黑盒 `TrChat` starter
+- `agent-mcp` 已收口为 `TrChat.Scaffold` 白盒 starter
+- 共享模板文件已抽到 `templates/base`
+- 模板依赖闭包已增加静态校验
+- 模板校验已从只会认 `whitebox-slices`，升级为 mode-aware 校验
+- `postScaffoldSteps` 已真正接到 CLI 的 next steps 输出
 
-当前最核心的问题不是“没有能力”，而是：
+因此，当前 `chat-cli` 的判断不再是：
 
-- 模板角色边界不清
-- 公开模板承担了太多底层 contract 展示职责
-- 模板实现、模板元数据、模板文档、发布验证之间存在重复和漂移风险
+- “能力不够”
+
+而是：
+
+- “主模板路径已基本收口，但更深的 contract 单源化和对外发布门禁，还不适合在 `chat` 主线仍持续变化时继续深入”
 
 ---
 
@@ -53,19 +63,17 @@
 
 ### 3.1 CLI 入口层
 
-当前 CLI 入口集中在：
+当前 CLI 入口在：
 
 - `packages/chat-cli/src/index.ts`
 
-它已经负责：
+已具备：
 
-- 解析命令行参数
-- 支持 `--template`、`--provider`、`--yes`、`--install`、`--no-install`、`--overwrite`、`--cwd`
-- 通过 registry 提供模板选择
-- 调用 scaffold helper 生成项目
+- 命令行参数解析
+- `--template` / `--provider` / `--yes` / `--install` / `--no-install` / `--overwrite` / `--cwd`
+- registry 驱动的模板选择
 - 可选自动安装依赖
-
-这是目前 `chat-cli` 已经较成熟的一层。
+- mode 无关的模板生成入口
 
 ### 3.2 模板注册表层
 
@@ -73,16 +81,17 @@
 
 - `packages/chat-cli/src/templateRegistry.ts`
 
-它已经表达：
+目前已经表达：
 
 - 稳定模板 id
 - 模板目录
+- `baseTemplateDir`
 - 支持的 provider
 - `requiredChatFeatures`
 - `contractUsage`
 - `postScaffoldSteps`
 
-也就是说，`chat-cli` 已经在尝试把模板从“目录集合”提升为“有元数据的模板集合”。
+也就是说，模板已经不再只是“目录名”，而是具备一定程度的模板元数据能力。
 
 ### 3.3 模板实现层
 
@@ -91,17 +100,22 @@
 - `packages/chat-cli/templates/basic`
 - `packages/chat-cli/templates/agent-mcp`
 
-当前这两个模板的共同点是：
+当前共享模板层：
 
-- 都基于 Vue 3 + TypeScript + Vite
-- 都默认走 server proxy 路径
-- 都消费 `@opentiny/tiny-robot-chat`
-- 都是白盒路径
-- 都不是纯黑盒 starter
+- `packages/chat-cli/templates/base`
+
+模板角色目前已经比较明确：
+
+- `basic`
+  - 面向通用 agent
+  - 使用黑盒 `TrChat`
+- `agent-mcp`
+  - 面向带 MCP 的工具型 agent
+  - 使用 `TrChat.Scaffold`
 
 ### 3.4 上游 `chat` 消费 contract
 
-`packages/chat` 目前已经暴露了专门面向 CLI 消费的能力面，主要在：
+`packages/chat` 已经暴露了专门面向 CLI 消费的能力面，主要在：
 
 - `packages/chat/src/adapters/chatCli.ts`
 - `packages/chat/src/capabilities.ts`
@@ -113,430 +127,301 @@
 - preset slice key 集合
 - manifest 形式的 capability 描述
 
-理论上，CLI 不需要再长期维护第二份“同义 contract 常量”。
+但这条线还没有在 `chat-cli` 内完全收口成单一来源。
 
 ---
 
-## 4. 主要问题清单
+## 4. 检视项状态总览
 
-下面这些问题都已经实际存在于当前代码中，且会直接影响：
+这一轮检视里涉及的主要问题，当前状态如下：
 
-- 模板收口
-- 后续维护成本
-- 对外发布可信度
+| 问题 | 当前状态 | 说明 |
+|:--|:--|:--|
+| 模板角色不清 | `已处理第一阶段` | `basic` 改黑盒，`agent-mcp` 改 `Scaffold` |
+| 模板目录重复过高 | `已处理第一阶段` | 已引入 `templates/base`，共享文件已抽出 |
+| 模板校验强绑 `whitebox-slices` | `已处理第一阶段` | 已改为 mode-aware 校验 |
+| `postScaffoldSteps` 不生效 | `已处理` | 已接入 CLI next steps 输出 |
+| 模板依赖闭包不完整 | `已处理第一阶段` | 已补模板顶层依赖并增加静态闭包校验 |
+| 模板目录被当作 workspace 包 | `已处理` | 已从 `pnpm-workspace.yaml` 中排除 |
+| `chat` / `chat-cli` 双份 contract 常量 | `暂缓` | 仍需收口，但 `chat` 主线仍在变 |
+| 文档多处重复维护 | `暂缓` | 已处理局部 README，但 docs 总体还未完全同步 |
+| clean install 发布门禁 | `暂缓` | 仍缺真实外部安装级验证 |
 
-### 4.1 模板目录重复度过高
+---
 
-当前 `basic` 与 `agent-mcp` 的重复度明显偏高。
+## 5. 已处理的检视项
 
-已核对结果：
+### 5.1 `basic` 已从底层 contract 样例收口为黑盒 starter
 
-- 两个模板共有 16 个同名文件
-- 其中 9 个文件内容完全相同
-- 差异主要集中在：
-  - `src/App.vue`
-  - `src/lib/chat.ts`
-  - `src/chat.config.ts`
-  - `README.md`
-  - 以及 `agent-mcp` 独有的 `src/lib/mcp.ts`
+上一轮最重要的问题之一是：
 
-这说明：
+- `basic` 不是最小 starter
+- 它更像一个 `chatCapabilitySurface.presetSlices` 的白盒示例
 
-- `agent-mcp` 本质上不是一个完全独立的模板体系
-- 它更像是 `basic + MCP overlay`
+这一点现在已经完成第一阶段收口。
 
-当前完全相同的部分包括：
+当前 `basic` 模板已改为：
 
-- `index.html`
-- `package.json`
-- `tsconfig.node.json`
-- `vite.config.ts`
-- `_gitignore`
-- `assets/brand.svg`
-- `server/chat-proxy.example.ts`
-- `src/main.ts`
-- `src/styles/index.css`
-
-这类重复会带来几个问题：
-
-- 模板越多，重复文件越多
-- 相同文件的小修小改必须手工同步两份
-- README 与实现容易出现“一个模板已改，另一个模板还停在旧结构”的漂移
-- 后续如果再增加第三个模板，重复会继续线性扩大
-
-结论：
-
-- 当前模板体系已经具备明显的 `base + overlay` 特征
-- 但代码实现上仍然停留在“两个独立目录复制”
-
-### 4.2 公开模板承担了底层 contract 展示职责
-
-当前 `basic` 模板不是“最小 starter”，而是偏向“底层 contract 样例”。
-
-原因是它公开暴露了这一整条链路：
-
+- `TrChat`
 - `chat.config.ts`
-- `createChatAdapterFromConfig()`
-- `createChatCliCapabilitySurface()`
-- `chatCapabilitySurface.presetSlices`
-- `TrChat.Root / Layout / Header / MessageList / Sender / History`
+- `chatRuntime`
 
-这条链路本身没有错，但它更适合：
+也就是说，默认模板不再强制新用户一开始就面对：
 
-- 内部 demo
-- contract fixture
-- 高阶使用者
+- `Root / Layout / Header / MessageList / Sender`
+- `chatCapabilitySurface`
+- `presetSlices`
 
-而不是普通 starter。
-
-直接结果是：
-
-- `basic` 的起步复杂度偏高
-- 新用户会更早暴露在 `Root / Layout / Header / slices` 这些概念上
-- 模板本身在承担“教用户理解底层实现”的额外职责
-
-这会让 `basic` 偏离它最应该承担的角色：
+这让 `basic` 的职责重新回到：
 
 - 通用 agent 的最小起步模板
 
-### 4.3 `chat` 与 `chat-cli` 各自维护了一套 contract 常量
+### 5.2 `agent-mcp` 已收口到正确的白盒层级
 
-当前 `packages/chat` 已经在这些文件里定义了 CLI 消费 contract：
+上一轮另一个核心问题是：
 
-- `packages/chat/src/adapters/chatCli.ts`
-- `packages/chat/src/capabilities.ts`
+- `agent-mcp` 虽然应该保留白盒能力
+- 但不应该继续停在更底层的 slices wiring 路径
 
-但 `packages/chat-cli` 又在：
+这一点也已经处理到第一阶段：
 
-- `packages/chat-cli/src/templateRegistry.ts`
+- `agent-mcp` 已切到 `TrChat.Scaffold`
+- MCP runtime 注入仍保留在模板层
+- 页面结构仍可控
+- 但不再要求模板自己维护更底层的 adapter-to-slices 路径
 
-里维护了一份自己的 key 集合，包括：
+这让 `agent-mcp` 更符合它应有的角色：
 
-- `CHAT_CLI_REQUIRED_FEATURE_KEYS`
-- `CHAT_CLI_CONSUMABLE_PRESET_PROP_KEYS`
-- `CHAT_CLI_CONSUMABLE_PRESET_SLICE_KEYS`
+- 工具型 agent 的白盒 starter
+- 而不是底层 contract fixture
 
-短期看，这能工作。
+### 5.3 模板共享层已经落地
 
-长期看，它会产生三个问题：
+上一轮检视里很明确的一项问题是：
 
-1. contract 漂移风险
-   - `chat` 新增或删除能力 key 后，CLI 需要手工同步
+- `basic` 与 `agent-mcp` 目录重复度过高
+- `agent-mcp` 本质上更像 `basic + MCP overlay`
 
-2. 验证标准重复
-   - `chat` 的 manifest 与 `chat-cli` 的 registry 各自有一套“合法 key 列表”
+这一点已经完成第一阶段修复：
 
-3. ownership 不清
-   - 表面上说“chat 是能力源头”，但 CLI 又实际上持有第二份能力面定义
+- 当前共享文件已抽到 `packages/chat-cli/templates/base`
+- `basic` 与 `agent-mcp` 只保留各自真正的 overlay 文件
+- `scaffoldProject()` 已支持按 `base -> overlay` 顺序复制模板层
+- registry 也已支持 `baseTemplateDir`
 
-这类重复定义在项目早期常见，但后续必须收口。
+这说明模板系统已经从：
 
-### 4.4 几块抽象目前没有产生实际收益
+- 两个高度重复的独立目录
 
-当前 `packages/chat-cli/src/templateRegistry.ts` 中定义了一些抽象：
+收口为：
 
-- `planned`
-- `blackbox-props`
-- `postScaffoldSteps`
+- `base + overlay`
 
-但在当前代码里，这几块并没有真正形成收益闭环。
+虽然还不是未来更复杂的组合式模板系统，但已经把最明显的重复清掉了。
 
-#### `planned`
+### 5.4 模板校验逻辑已不再只绑定 `whitebox-slices`
 
-当前模板列表里没有使用到更复杂的 planned 生命周期控制逻辑。
+上一轮有一个明显问题：
 
-它目前更像是“预留抽象”，而不是已经有消费方的字段。
+- `template-release-utils.mjs` 只会校验 `chatCapabilitySurface` / `slices.*` / `TrChat.Root`
 
-#### `blackbox-props`
+这只对旧的 `whitebox-slices` 模板成立。
 
-当前稳定模板实际都不是这个模式。
+这一点现在已经处理：
 
-它没有形成：
+- `blackbox-component` 路径会校验 `TrChat`
+- `scaffold-slots` 路径会校验 `TrChat.Scaffold` 以及必要白盒叶子组件
+- `whitebox-slices` 仍然保留兼容校验，但不再是唯一模板模式
 
-- 对应模板
-- 对应校验逻辑
-- 对应 README / CLI 引导
+这意味着模板治理层已经从：
 
-所以它当前更像未兑现抽象，而不是成熟模式。
+- 实现细节绑定
 
-#### `postScaffoldSteps`
+转向：
 
-虽然 registry 里有这个字段，但 CLI 的实际 next steps 仍写死在：
+- mode-aware 的模板模式校验
 
-- `packages/chat-cli/src/index.ts`
+### 5.5 `postScaffoldSteps` 已真正生效
 
-这意味着：
+上一轮检视里提到：
 
-- registry 声明的步骤和 CLI 真正输出的步骤可能不一致
-- 字段存在，但没有真正驱动行为
+- registry 里有 `postScaffoldSteps`
+- 但 CLI 的 next steps 仍然是硬编码输出
 
-这类抽象如果继续累积，会让代码出现“字段很多，但只有一部分真的生效”的现象。
+这一点现在已经收口：
 
-### 4.5 文档重复维护成本偏高
+- `postScaffoldSteps` 已接到 CLI 输出
+- `basic` 与 `agent-mcp` 可以输出不同的后续动作提示
 
-当前与 `chat-cli` 相关的文档至少有三层：
+因此这一项已不再是“只声明不驱动”的空抽象。
 
-- `packages/chat-cli/README.md`
+### 5.6 模板依赖闭包已处理到静态可验证
+
+上一轮检视里指出：
+
+- 模板没有显式补齐 `markstream-vue`
+- 模板没有显式补齐 `dompurify` / `markdown-it`
+- 模板却显式带了大概率不需要的 `@opentiny/tiny-robot-svgs`
+
+这一点现在已经处理到第一阶段：
+
+- 模板顶层依赖已补齐：
+  - `markstream-vue`
+  - `dompurify`
+  - `markdown-it`
+- 模板顶层显式移除了：
+  - `@opentiny/tiny-robot-svgs`
+- release helper 中已新增静态依赖闭包校验：
+  - `validateTemplateDependencyClosure()`
+
+这一步还不等于“真实 clean install 已被完整证明”。
+
+但至少现在已经从：
+
+- “问题只停留在 review 里”
+
+前进到了：
+
+- “问题已进入模板静态门禁”
+
+### 5.7 模板目录已不再被 workspace 误识别
+
+当前仓库里一个非常现实的阻塞是：
+
+- `packages/chat-cli/templates/**` 会被 `pnpm-workspace.yaml` 当成工作区包
+
+这会直接导致：
+
+- `pnpm install` 去解析模板项目的对外依赖
+- 进而在未发布版本上卡死
+
+这一点已处理：
+
+- 模板目录现在已从 workspace 定义中排除
+
+这项修复不属于模板设计问题，但它直接关系到：
+
+- 本地安装
+- 发布前验证
+- 后续 clean install 门禁落地
+
+所以它应视为本轮已处理的实际问题。
+
+---
+
+## 6. 暂缓处理的检视项
+
+下面这些问题并不是“不重要”，而是因为当前 `packages/chat` 仍在持续更新，不适合继续深挖。
+
+当前阶段建议先收口到这里。
+
+### 6.1 `chat` / `chat-cli` 双份 contract 常量仍未完全单源化
+
+这是当前最明确的剩余结构性问题之一：
+
+- `packages/chat` 已有自己的 CLI contract / manifest
+- `packages/chat-cli` 仍维护了一份自己的 key 集合
+
+这个问题后续一定要收口。
+
+但当前不建议继续深推，原因是：
+
+- `chat` 主线还在更新
+- 上游 contract 仍可能继续变化
+- 现在过早强行收口，容易出现“刚收一次，随后又要重新开口”的反复
+
+因此这项建议暂缓，等 `packages/chat` 相关 contract 更稳定后再继续处理。
+
+### 6.2 docs 总体重复维护问题仍未完全解决
+
+当前已处理的是：
+
+- 模板 README 已和新模板角色基本对齐
+- `packages/chat-cli/README.md` 已做过局部收口
+
+但更完整的 docs 分工仍未收完，包括：
+
 - `docs/src/components/chat-cli.md`
-- 每个模板目录内自己的 `README.md`
+- docs 站点里对模板角色、whitebox / blackbox 路径的表达
+- 一些旧术语和新模板模式之间的同步
 
-而且它们当前都在重复解释同一组概念：
+这条线依赖：
 
-- white-box slices
-- server proxy
-- provider 选择
-- 生成后先改哪些文件
+- 模板形态已经稳定
+- `chat` 侧相关文档表述不再频繁变化
 
-这会导致：
+因此当前阶段不建议再把 review 扩展到 docs 全量收口。
 
-- 一次概念调整要改三到四处
-- 文档之间容易出现“用词不同但表达同一件事”
-- 模板 README 很容易滞后于主文档
+### 6.3 clean install 发布门禁仍未完整落地
 
-更关键的是，当前 `basic` 模板本身未来大概率要从白盒 slices 转成黑盒 starter。
+虽然模板依赖闭包已经补了静态校验，但这还不等于：
 
-如果文档层不先分工，后续会出现：
+- 对外真实创建项目
+- 对外真实安装依赖
+- 对外真实执行 build
 
-- `chat-cli` README 说黑盒
-- docs 页面还在强调 slices
-- 模板 README 继续沿用旧术语
+当前还缺的是：
 
-因此文档问题并不是“可有可无的文案问题”，而是后续改造中的同步成本问题。
+- 完整 clean install 级别的发布门禁
 
-### 4.6 依赖声明没有完全收口
+但这条线已经明显更偏发布与环境问题，而不是模板本体 review。
 
-当前模板的 `package.json` 与上游包的 peer contract 之间，仍然存在闭包风险。
+因此它应该继续归到：
 
-上游要求大致如下：
+- 发布手册
+- 发布验证
+- CI / release gate
 
-- `@opentiny/tiny-robot-chat` 的 peer 里要求 `markstream-vue`
-- `@opentiny/tiny-robot` 的 peer 里要求 `dompurify` 和 `markdown-it`
-
-但当前模板：
-
-- `packages/chat-cli/templates/basic/package.json`
-- `packages/chat-cli/templates/agent-mcp/package.json`
-
-没有显式补齐这些依赖。
-
-同时，它们却显式声明了：
-
-- `@opentiny/tiny-robot-svgs`
-
-而模板源码并没有直接 import 它。
-
-这带来两个问题：
-
-1. 真正需要的 peer 没收口
-2. 可能不需要的依赖却在模板里显式声明
-
-短期在 monorepo 内部不一定暴露。
-
-但一旦走真实外部安装，就会直接影响：
-
-- 安装是否顺利
-- 构建是否成功
-- 模板是否真的能脱离 monorepo 独立运行
-
-### 4.7 当前 smoke 路径会掩盖 clean install 问题
-
-当前 smoke 测试在：
-
-- `packages/test/src/chat-cli/smoke.spec.ts`
-
-它会把仓库根目录的 `node_modules` 通过 symlink 链接给生成项目使用。
-
-这对于本地快速验证是有价值的。
-
-但它不能证明：
-
-- 生成项目在 workspace 外也能正确安装
-- 模板依赖闭包真的完整
-- 缺失的 peer 依赖会被及时暴露
-
-这意味着当前 smoke 测试更像：
-
-- “本仓库工具链兼容性验证”
-
-而不是：
-
-- “对外发布后的 clean install 验证”
-
-如果未来把这层区别不写清楚，就容易出现一个错误判断：
-
-- “smoke 过了，所以可以放心发布”
-
-这在 starter CLI 上风险很高。
-
-### 4.8 当前 template validation 过于绑定 `whitebox-slices`
-
-当前 `scripts/template-release-utils.mjs` 中的校验逻辑重点是：
-
-- 是否引用 `chatCapabilitySurface`
-- 是否引用 `TrChat.Root`
-- 是否引用 `slices.<key>`
-
-这种校验只对当前白盒 slices 路径成立。
-
-问题在于：
-
-- 一旦 `basic` 改成黑盒 `TrChat`
-- 或 `agent-mcp` 改成 `TrChat.Scaffold`
-
-当前校验体系就会不再适用。
-
-这说明当前模板治理逻辑实际上绑定的是：
-
-- “当前模板实现方式”
-
-而不是：
-
-- “模板宣称自己采用的消费模式”
-
-因此模板治理层也需要跟着从“实现细节校验”升级到“mode-aware 校验”。
+而不再继续扩展到这份 review 文档里。
 
 ---
 
-## 5. 结构性判断
+## 7. 为什么检视先收口到这里
 
-### 5.1 当前最需要解决的不是“模板不够多”
+当前 `chat-cli` 相关 review 之所以建议先停在这里，不是因为问题都处理完了，而是因为：
 
-当前 `chat-cli` 最大的问题不是模板数量不够。
+- 模板主形态已经收口
+- 目录去重已经完成第一阶段
+- 静态依赖闭包门禁已经补上
+- 再往下的关键问题，已经明显依赖 `packages/chat` 主线的继续稳定
 
-恰恰相反，当前最应该做的是：
+也就是说，当前继续深挖的收益会迅速下降，反而更容易：
 
-- 先把已有两个模板角色收口清楚
-- 再考虑是否扩展更多模板
+- 和 `chat` 正在推进的主线互相干扰
+- 提前固化还没完全稳定的上游 contract
+- 让 review 文档和真实主线再次漂移
 
-如果现在继续增加模板，会把这些问题一起放大：
+因此当前更合理的策略是：
 
-- 重复目录
-- 重复文档
-- contract 双份定义
-- 校验逻辑绑定实现细节
-- 发布验证仍不覆盖 clean install
-
-### 5.2 当前最合理的模板角色划分已经比较明确
-
-结合现有 `chat` 公开入口和讨论结果，后续最合理的角色划分应该是：
-
-- `basic`
-  - 面向通用 agent
-  - 黑盒 `TrChat`
-  - 最小起步模板
-
-- `agent-mcp`
-  - 面向带 MCP 的工具型 agent
-  - 白盒 `TrChat.Scaffold`
-  - 保留结构定制能力
-
-- 更底层 `whitebox-slices`
-  - 保留在 demo / test / internal fixture
-  - 不继续作为默认公开模板
-
-这个划分和当前 `chat` 包的接入层级是一致的：
-
-- `TrChat`
-- `TrChat.Scaffold`
-- 更底层 adapter / preset / slices
-
-### 5.3 模板系统已经具备向 `base + overlay` 演进的条件
-
-当前 `basic` 与 `agent-mcp` 的差异已经说明：
-
-- `agent-mcp` 本质上是 `basic + MCP overlay`
-
-所以后续真正合理的模板体系，不应再继续是两个完全独立目录。
-
-更合理的实现方向应当逐步走向：
-
-- `base`
-- `basic overlay`
-- `agent-mcp overlay`
-
-但这是实现层的收口方式。
-
-在对外心智模型上，依旧可以保持只有两个模板 id。
+- `chat-cli` review 先在这里收口
+- `chat` 主线继续推进
+- 等上游 contract 更稳定后，再回头处理：
+  - contract 单源化
+  - docs 总体收口
+  - clean install 发布门禁的正式化
 
 ---
 
-## 6. 推荐改造方向
+## 8. 当前建议的停止线
 
-### 6.1 第一优先级：先收口模板角色
+在 `packages/chat` 仍持续更新的前提下，当前 `chat-cli` 的相关检视建议先停在这里：
 
-建议优先做这两件事：
+- 不继续扩展新的模板模式
+- 不继续发明新的 CLI 专属 chat 抽象
+- 不急着把 `chat` / `chat-cli` 的 contract 常量彻底合并
+- 不急着把 docs 全量重写
 
-1. 把 `basic` 改为黑盒 `TrChat`
-2. 把 `agent-mcp` 改为 `TrChat.Scaffold`
+后续动作建议限定为：
 
-这是最关键的收口动作，因为它直接决定：
-
-- 模板角色是否清晰
-- 文档是否容易讲
-- registry mode 是否容易表达
-
-### 6.2 第二优先级：去掉或兑现无收益抽象
-
-建议处理：
-
-- `planned`
-- `blackbox-props`
-- `postScaffoldSteps`
-
-原则很简单：
-
-- 已有消费方的，继续保留并打通
-- 暂无消费方的，要么删掉，要么延后
-
-不要继续累积“名义上存在、实际上没驱动任何行为”的字段。
-
-### 6.3 第三优先级：让 contract 重新单源化
-
-后续需要逐步收口成：
-
-- `packages/chat` 是能力 contract 的单一来源
-- `chat-cli` 消费它，而不是复制它
-
-不一定要一步到位，但必须明确这是后续方向。
-
-### 6.4 第四优先级：把发布验证从 monorepo smoke 扩展到 clean install
-
-必须补上一条真正外部可验证的链路：
-
-- 干净目录
-- 真正从 registry 创建
-- 真正安装依赖
-- 真正执行 build
-
-不然 `chat-cli` 永远只能算“本仓库内可验证”，而不是“对外可发布”。
+- 跟随上游 `chat` 稳定 contract 做消费侧修正
+- 维持现有两个公开模板的正确性
+- 在需要发布时继续补发布门禁与外部验证
 
 ---
 
-## 7. 推荐执行顺序
+## 9. 一句话结论
 
-建议按这个顺序执行：
+截至 `2026-03-27`，`chat-cli` 这轮 review 里最重要的模板问题已经处理到一个合理阶段：
 
-1. `basic` 改黑盒
-2. `agent-mcp` 改 `Scaffold`
-3. registry mode 与 template validation 改为新模式
-4. 模板 README 与 docs 分工重新收口
-5. 增加 clean install 发布门禁
-6. 再考虑是否做 `base + overlay`
-7. 最后再考虑更多模板扩展
-
-这个顺序的核心思路是：
-
-- 先让公开产品层说得清
-- 再让实现层去重
-- 最后再做模板体系扩展
-
----
-
-## 8. 一句话结论
-
-当前 `chat-cli` 的问题不是“能力不够”，而是“公开模板、底层 contract、文档解释、发布验证”还没有完全分层。
-
-后续最重要的动作不是再加模板，而是：
-
-> 把 `basic` 收口为真正的黑盒 starter，把 `agent-mcp` 收口为真正的 `Scaffold` 白盒 starter，把更底层的 `whitebox-slices` 还给 demo / test / internal fixture。
+> `basic` 已收口为黑盒 starter，`agent-mcp` 已收口为 `Scaffold` 白盒 starter，共享模板层与静态依赖闭包门禁也已经落地。由于 `packages/chat` 仍在持续更新，更深的 contract 单源化与整体文档收口，建议先停在这里，等上游进一步稳定后再继续处理。
 

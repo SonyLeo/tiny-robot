@@ -9,6 +9,7 @@ import {
   collectWorkspacePackageVersions,
   updateTemplateDependencyVersions,
   validateTemplateContractUsageSource,
+  validateTemplateDependencyClosure,
   validateTemplatePackages,
   validateTemplateRegistry,
 } from '../../../chat-cli/scripts/template-release-utils.mjs'
@@ -137,6 +138,79 @@ test.describe('chat-cli release helpers', () => {
       expect(errors).toEqual(['basic/package.json still contains workspace:* dependencies'])
     } finally {
       rmSync(templatesDir, { recursive: true, force: true })
+    }
+  })
+
+  test('validateTemplateDependencyClosure should report missing top-level peer dependencies required by workspace packages', async () => {
+    const root = createTempDir('tiny-robot-chat-cli-dependency-closure-')
+    const packagesDir = join(root, 'packages')
+    const templatesDir = join(root, 'templates')
+
+    try {
+      mkdirSync(join(packagesDir, 'chat'), { recursive: true })
+      mkdirSync(join(packagesDir, 'components'), { recursive: true })
+      mkdirSync(join(packagesDir, 'kit'), { recursive: true })
+      mkdirSync(join(packagesDir, 'svgs'), { recursive: true })
+      mkdirSync(join(templatesDir, 'basic'), { recursive: true })
+
+      writeJson(join(packagesDir, 'chat', 'package.json'), {
+        name: '@opentiny/tiny-robot-chat',
+        peerDependencies: {
+          '@opentiny/tiny-robot': 'workspace:*',
+          '@opentiny/tiny-robot-kit': 'workspace:*',
+          vue: '^3.4.0',
+          'markstream-vue': '^0.0.9-beta.0',
+        },
+        dependencies: {
+          '@opentiny/tiny-robot-svgs': 'workspace:*',
+        },
+      })
+      writeJson(join(packagesDir, 'components', 'package.json'), {
+        name: '@opentiny/tiny-robot',
+        peerDependencies: {
+          vue: '^3.4.0',
+          dompurify: '^3.3.1',
+          'markdown-it': '^14.1.0',
+        },
+        dependencies: {
+          '@opentiny/tiny-robot-svgs': 'workspace:*',
+        },
+      })
+      writeJson(join(packagesDir, 'kit', 'package.json'), {
+        name: '@opentiny/tiny-robot-kit',
+        peerDependencies: {
+          vue: '^3.4.0',
+        },
+      })
+      writeJson(join(packagesDir, 'svgs', 'package.json'), {
+        name: '@opentiny/tiny-robot-svgs',
+        peerDependencies: {
+          vue: '^3.4.0',
+        },
+      })
+
+      writeJson(join(templatesDir, 'basic', 'package.json'), {
+        name: 'example-app',
+        dependencies: {
+          vue: '^3.4.0',
+          '@opentiny/tiny-robot': '^0.4.1',
+          '@opentiny/tiny-robot-kit': '^0.4.1',
+          '@opentiny/tiny-robot-chat': '^0.1.0',
+        },
+      })
+
+      const errors = validateTemplateDependencyClosure({
+        templatesDir,
+        packagesDir,
+      })
+
+      expect(errors).toEqual([
+        'basic/package.json is missing peer dependency "markstream-vue" required by "@opentiny/tiny-robot-chat"',
+        'basic/package.json is missing peer dependency "dompurify" required by "@opentiny/tiny-robot"',
+        'basic/package.json is missing peer dependency "markdown-it" required by "@opentiny/tiny-robot"',
+      ])
+    } finally {
+      rmSync(root, { recursive: true, force: true })
     }
   })
 

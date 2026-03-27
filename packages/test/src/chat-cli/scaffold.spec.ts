@@ -30,6 +30,7 @@ import {
 
 const templateDir = fileURLToPath(new URL('../../../chat-cli/templates/basic', import.meta.url))
 const agentMcpTemplateDir = fileURLToPath(new URL('../../../chat-cli/templates/agent-mcp', import.meta.url))
+const baseTemplateDir = fileURLToPath(new URL('../../../chat-cli/templates/base', import.meta.url))
 const cliEntry = fileURLToPath(new URL('../../../chat-cli/dist/index.js', import.meta.url))
 const cliPackageJson = fileURLToPath(new URL('../../../chat-cli/package.json', import.meta.url))
 
@@ -71,30 +72,32 @@ test.describe('chat-cli scaffold helpers', () => {
     expect(basicTemplate).toEqual({
       id: 'basic',
       label: 'Basic Chat Agent',
-      description: 'General chat starter with white-box chat slices',
+      description: 'General chat starter with TrChat black-box composition',
       status: 'stable',
       templateDir: 'basic',
+      baseTemplateDir: 'base',
       supportedProviders: ['openai', 'deepseek', 'custom'],
-      requiredChatFeatures: ['welcomePrompts', 'history'],
+      requiredChatFeatures: ['history'],
       contractUsage: {
-        mode: 'whitebox-slices',
+        mode: 'blackbox-component',
         presetPropKeys: [],
-        presetSliceKeys: ['root', 'layout', 'header', 'welcome', 'messageList', 'sender', 'history', 'modelSelector'],
+        presetSliceKeys: [],
       },
       postScaffoldSteps: ['copy-env', 'configure-endpoint', 'run-dev'],
     })
     expect(agentMcpTemplate).toEqual({
       id: 'agent-mcp',
       label: 'Agent MCP',
-      description: 'MCP panel + tool bridge starter',
+      description: 'MCP panel + tool bridge starter with scaffold layout',
       status: 'stable',
       templateDir: 'agent-mcp',
+      baseTemplateDir: 'base',
       supportedProviders: ['openai', 'deepseek', 'custom'],
-      requiredChatFeatures: ['welcomePrompts', 'mcp', 'history'],
+      requiredChatFeatures: ['mcp', 'history'],
       contractUsage: {
-        mode: 'whitebox-slices',
+        mode: 'scaffold-slots',
         presetPropKeys: [],
-        presetSliceKeys: ['root', 'layout', 'header', 'welcome', 'messageList', 'sender', 'history', 'modelSelector'],
+        presetSliceKeys: [],
       },
       postScaffoldSteps: ['copy-env', 'configure-endpoint', 'review-mcp', 'run-dev'],
     })
@@ -235,7 +238,7 @@ test.describe('chat-cli scaffold helpers', () => {
 
     try {
       scaffoldProject({
-        templateDir,
+        templateDirs: [baseTemplateDir, templateDir],
         projectDir,
         provider: 'custom',
         projectName: 'my-chat-app',
@@ -267,9 +270,10 @@ test.describe('chat-cli scaffold helpers', () => {
       expect(envContent).toContain('VITE_CHAT_API_ENDPOINT')
       expect(envContent).not.toContain('VITE_API_KEY')
 
-      expect(appContent).toContain('chatCapabilitySurface')
-      expect(appContent).toContain('TrChat.Root')
-      expect(appContent).toContain('slices.modelSelector')
+      expect(appContent).toContain('TrChat')
+      expect(appContent).toContain('chatRuntime')
+      expect(appContent).not.toContain('chatCapabilitySurface')
+      expect(appContent).not.toContain('TrChat.Root')
       expect(appContent).not.toContain('Authorization: Bearer')
 
       expect(configContent).toContain("'openai-compatible'")
@@ -278,24 +282,27 @@ test.describe('chat-cli scaffold helpers', () => {
       expect(configContent).toContain('history: true')
       expect(configContent).not.toContain('__DEFAULT_PROVIDER__')
       expect(configContent).not.toContain('__DEFAULT_MODEL__')
-      expect(chatLibContent).toContain('createChatCliCapabilitySurface')
-      expect(chatLibContent).toContain('chatCapabilitySurface')
-      expect(chatLibContent).not.toContain('createPresetChatProps')
+      expect(chatLibContent).toContain('localStorageStrategyFactory')
+      expect(chatLibContent).toContain('chatRuntime')
+      expect(chatLibContent).not.toContain('createChatCliCapabilitySurface')
 
       expect(packageContent).toContain('"name": "my-chat-app"')
       expect(packageContent).not.toContain('__PROJECT_NAME__')
       expect(packageContent).not.toContain('workspace:*')
+      expect(packageContent).toContain('"markstream-vue": "^0.0.9-beta.0"')
+      expect(packageContent).toContain('"dompurify": "^3.3.1"')
+      expect(packageContent).toContain('"markdown-it": "^14.1.0"')
+      expect(packageContent).not.toContain('"@opentiny/tiny-robot-svgs"')
 
       expect(readmeContent).toContain('# My Chat App')
       expect(readmeContent).toContain('pnpm install')
       expect(readmeContent).toContain('pnpm run dev')
       expect(readmeContent).toContain('pnpm run build')
       expect(readmeContent).not.toContain('__INSTALL_COMMAND__')
-      expect(readmeContent).toContain('chatCapabilitySurface')
+      expect(readmeContent).toContain('TrChat')
       expect(readmeContent).toContain('前 10 分钟建议')
-      expect(readmeContent).toContain('为什么这个模板默认使用 white-box')
-      expect(readmeContent).toContain('不是最推荐的一开始就修改的文件')
-      expect(chatLibContent).not.toContain('showHistory: true')
+      expect(readmeContent).toContain('黑盒 TrChat')
+      expect(readmeContent).toContain('一般不需要一开始就重写页面结构')
     } finally {
       rmSync(root, { recursive: true, force: true })
     }
@@ -307,7 +314,7 @@ test.describe('chat-cli scaffold helpers', () => {
 
     try {
       scaffoldProject({
-        templateDir: agentMcpTemplateDir,
+        templateDirs: [baseTemplateDir, agentMcpTemplateDir],
         projectDir,
         provider: 'openai',
         projectName: 'agent-mcp-app',
@@ -318,24 +325,33 @@ test.describe('chat-cli scaffold helpers', () => {
       const configContent = readFileSync(join(projectDir, 'src', 'chat.config.ts'), 'utf-8')
       const chatLibContent = readFileSync(join(projectDir, 'src', 'lib', 'chat.ts'), 'utf-8')
       const mcpLibContent = readFileSync(join(projectDir, 'src', 'lib', 'mcp.ts'), 'utf-8')
+      const packageContent = readFileSync(join(projectDir, 'package.json'), 'utf-8')
       const readmeContent = readFileSync(join(projectDir, 'README.md'), 'utf-8')
 
-      expect(appContent).toContain('TrChatMcpPanel')
-      expect(appContent).toContain('mcpPanelVisible')
-      expect(appContent).toContain('chatCapabilitySurface')
+      expect(appContent).toContain('TrChat.Scaffold')
+      expect(appContent).toContain('TrMcpTrigger')
+      expect(appContent).toContain('TrModelSelector')
+      expect(appContent).not.toContain('chatCapabilitySurface')
 
       expect(configContent).toContain('Agent MCP Workspace')
       expect(configContent).toContain('history: true')
 
       expect(chatLibContent).toContain('useMcpManager')
       expect(chatLibContent).toContain('toolPlugin')
-      expect(chatLibContent).toContain('chatCapabilitySurface')
+      expect(chatLibContent).toContain('chatRuntime')
       expect(chatLibContent).toContain('mcpManager')
+      expect(chatLibContent).not.toContain('chatCapabilitySurface')
 
       expect(mcpLibContent).toContain('defaultMcpServers')
       expect(mcpLibContent).toContain('createLocalMcpBridge')
+      expect(packageContent).toContain('"markstream-vue": "^0.0.9-beta.0"')
+      expect(packageContent).toContain('"dompurify": "^3.3.1"')
+      expect(packageContent).toContain('"markdown-it": "^14.1.0"')
+      expect(packageContent).not.toContain('"@opentiny/tiny-robot-svgs"')
 
       expect(readmeContent).toContain('Agent MCP')
+      expect(readmeContent).toContain('TrChat.Scaffold')
+      expect(readmeContent).toContain('TrMcpTrigger')
       expect(readmeContent).toContain('mock bridge')
       expect(readmeContent).toContain('这个模板不是什么')
       expect(readmeContent).toContain('不是完整 agent runtime')
@@ -428,8 +444,8 @@ test.describe('chat-cli scaffold helpers', () => {
     expect(helpOutput).toContain('Templates:')
     expect(helpOutput).toContain('basic')
     expect(helpOutput).toContain('agent-mcp')
-    expect(helpOutput).toContain('General chat starter')
-    expect(helpOutput).toContain('MCP panel + tool bridge starter')
+    expect(helpOutput).toContain('TrChat black-box composition')
+    expect(helpOutput).toContain('scaffold layout')
     expect(helpOutput).toContain('--template agent-mcp --provider custom')
     expect(versionOutput.trim()).toBe(`create-tiny-robot v${packageJson.version}`)
   })
