@@ -137,6 +137,9 @@ const chatConfig = {
 
 控制是否启用历史抽屉，以及历史入口在默认 header 中是否可见。
 
+当前默认装配里，历史入口和历史抽屉默认开启。
+如果你要关闭它，显式设置 `config.features.history = false` 或 `presetOverrides.showHistory = false`。
+
 适合写进：
 
 - `config.features.history`

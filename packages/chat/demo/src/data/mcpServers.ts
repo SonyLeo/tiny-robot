@@ -1,76 +1,36 @@
 import type { PluginInfo } from '@opentiny/tiny-robot'
 
 /**
- * 预配置的 MCP 服务器列表（演示数据）
+ * Preconfigured MCP server list used by the demo.
  */
 export const defaultMcpServers: PluginInfo[] = [
   {
-    id: 'weather-service',
-    name: 'Weather Service',
-    icon: '🌤️',
-    description: 'Get weather information for any location',
+    id: 'microsoft-learn',
+    name: 'Microsoft Learn',
+    icon: 'MS',
+    description: 'Search and fetch official Microsoft Learn documentation through the public remote MCP server.',
     enabled: true,
     expanded: true,
     tools: [
       {
-        id: 'get-weather',
-        name: 'Get Weather',
-        description: 'Get current weather for a location',
+        id: 'microsoft_docs_search',
+        name: 'Docs Search',
+        description: 'Search Microsoft Learn documentation.',
         enabled: true,
       },
       {
-        id: 'get-forecast',
-        name: 'Get Forecast',
-        description: 'Get weather forecast for the next 7 days',
-        enabled: false,
+        id: 'microsoft_docs_fetch',
+        name: 'Docs Fetch',
+        description: 'Fetch a full Microsoft Learn article.',
+        enabled: true,
+      },
+      {
+        id: 'microsoft_code_sample_search',
+        name: 'Code Sample Search',
+        description: 'Search Microsoft Learn code samples.',
+        enabled: true,
       },
     ],
-    category: 'utilities',
-  },
-  {
-    id: 'search-service',
-    name: 'Search Service',
-    icon: '🔍',
-    description: 'Search the web for information',
-    enabled: false,
-    expanded: false,
-    tools: [
-      {
-        id: 'web-search',
-        name: 'Web Search',
-        description: 'Search the web',
-        enabled: false,
-      },
-      {
-        id: 'image-search',
-        name: 'Image Search',
-        description: 'Search for images',
-        enabled: false,
-      },
-    ],
-    category: 'search',
-  },
-  {
-    id: 'database-service',
-    name: 'Database Service',
-    icon: '🗄️',
-    description: 'Query and manage database',
-    enabled: false,
-    expanded: false,
-    tools: [
-      {
-        id: 'query-db',
-        name: 'Query Database',
-        description: 'Execute database queries',
-        enabled: false,
-      },
-      {
-        id: 'insert-data',
-        name: 'Insert Data',
-        description: 'Insert data into database',
-        enabled: false,
-      },
-    ],
-    category: 'database',
+    category: 'documentation',
   },
 ]

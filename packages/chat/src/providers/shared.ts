@@ -48,11 +48,13 @@ function buildOpenAICompatibleRequestBody(
   options: OpenAICompatibleSseProviderOptions,
   requestBody: MessageRequestBody,
 ) {
+  const { messages: requestMessages, ...extraRequestFields } = requestBody
   const messages = options.systemPrompt
-    ? [{ role: 'system', content: options.systemPrompt }, ...requestBody.messages]
-    : requestBody.messages
+    ? [{ role: 'system', content: options.systemPrompt }, ...requestMessages]
+    : requestMessages
 
   const body: Record<string, unknown> = {
+    ...extraRequestFields,
     model: options.model,
     messages,
     stream: true,

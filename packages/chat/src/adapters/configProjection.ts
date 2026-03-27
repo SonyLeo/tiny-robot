@@ -56,6 +56,12 @@ export function createPresetChatProps(
   adapter: ChatAdapter,
   overrides: Partial<TrChatPresetOverrides> = {},
 ): ChatPresetProps & Partial<TrChatPresetOverrides> {
+  const resolvedShowHistory =
+    overrides.showHistory ??
+    (adapter.config.features?.history === undefined
+      ? true
+      : (adapter.resolvedFeatures.presetProps.showHistory ?? false))
+
   const layoutRoleConfigs = adapter.config.layout?.placements
     ? ({
         ...(adapter.config.layout.placements.assistant
@@ -86,6 +92,7 @@ export function createPresetChatProps(
     messageListVariant: adapter.config.layout?.variant,
     roleConfigs: layoutRoleConfigs,
     ...adapter.resolvedFeatures.presetProps,
+    showHistory: resolvedShowHistory,
     ...(adapter.config.runtime?.mcpManager ? { mcpManager: adapter.config.runtime.mcpManager } : {}),
     ...overrides,
   }
@@ -113,7 +120,7 @@ export function createPresetChatSlices(preset: ChatPresetProps & Partial<TrChatP
     },
     header: {
       title: preset.brand?.title,
-      showHistory: preset.showHistory ?? false,
+      showHistory: preset.showHistory ?? true,
       showClose: preset.show !== undefined,
     },
     welcome: preset.welcome
@@ -139,7 +146,7 @@ export function createPresetChatSlices(preset: ChatPresetProps & Partial<TrChatP
       ...senderProps,
     },
     history: {
-      enabled: preset.showHistory ?? false,
+      enabled: preset.showHistory ?? true,
       props: preset.historyProps,
     },
     modelSelector: {

@@ -7,12 +7,10 @@ import {
   useMcpManager,
   createChatAdapterFromConfig,
 } from '@opentiny/tiny-robot-chat'
-import type { ChatMessageActionPayload } from '@opentiny/tiny-robot-chat'
 import { localStorageStrategyFactory, toolPlugin } from '@opentiny/tiny-robot-kit'
 import { defaultMcpServers } from '../data/mcpServers'
-import { WELCOME_CONFIG, PROMPTS, BRAND_CONFIG } from '../constants'
+import { WELCOME_CONFIG, BRAND_CONFIG } from '../constants'
 import { createDemoMcpBridge } from '../utils/mcpBridge'
-import { wrapDemoRetryProviderFactories } from '../utils/demoRetryProvider'
 
 defineEmits<{
   error: [error: Error]
@@ -57,23 +55,9 @@ const chatAdapter = createChatAdapterFromConfig({
   ui: {
     brand: BRAND_CONFIG,
     welcome: WELCOME_CONFIG,
-    prompts: PROMPTS,
   },
   runtime: {
     mcpManager,
-  },
-  features: {
-    attachments: {
-      upload: {
-        accept: '*',
-        multiple: true,
-        tooltip: '上传附件',
-      },
-      list: {
-        variant: 'card',
-        wrap: true,
-      },
-    },
   },
 })
 
@@ -82,12 +66,6 @@ const toolPluginInstance = toolPlugin({
   callTool: mcpManager.callTool,
 })
 
-const demoProviderFactories = wrapDemoRetryProviderFactories(chatAdapter.providerFactories)
-
-function handleMessageAction(payload: ChatMessageActionPayload) {
-  console.debug('Whitebox message action:', payload)
-}
-
 const scaffoldRuntime = {
   plugins: [toolPluginInstance],
   storage: localStorageStrategyFactory({
@@ -95,80 +73,49 @@ const scaffoldRuntime = {
   }),
 }
 
-const scaffoldCallbacks = {
-  onMessageAction: handleMessageAction,
-}
-
 const scaffoldPresetOverrides = {
-  providerFactories: demoProviderFactories,
-  showHistory: true,
   showFeedback: false,
 }
 </script>
 
 <template>
-  <div class="demo-chat-shell">
-    <TrChat.Scaffold
-      :config="chatAdapter.config"
-      :runtime="scaffoldRuntime"
-      :callbacks="scaffoldCallbacks"
-      :preset-overrides="scaffoldPresetOverrides"
-      v-slot="{ chatKit }"
-    >
-      <TrChat.Layout>
-        <TrChat.Header />
+  <TrChat.Scaffold
+    :config="chatAdapter.config"
+    :runtime="scaffoldRuntime"
+    :preset-overrides="scaffoldPresetOverrides"
+    v-slot="{ chatKit }"
+  >
+    <TrChat.Layout>
+      <TrChat.Header />
 
-        <div v-if="chatKit.messages.value.length === 0" class="tr-chat__welcome-area">
-          <TrChat.Welcome @prompt-click="chatKit.sendMessage($event)" />
-        </div>
-        <TrChat.MessageList v-else :on-action-click="handleMessageAction">
-          <template #after="slotProps">
-            <TrChatFeedback v-bind="slotProps" style="margin-top: 6px" />
+      <div v-if="chatKit.messages.value.length === 0" class="tr-chat__welcome-area">
+        <TrChat.Welcome @prompt-click="chatKit.sendMessage($event)" />
+      </div>
+      <TrChat.MessageList v-else>
+        <template #after="slotProps">
+          <TrChatFeedback v-bind="slotProps" style="margin-top: 6px" />
+        </template>
+      </TrChat.MessageList>
+
+      <TrChat.Footer class="tr-chat-footer-wrapper">
+        <TrChat.Attachments />
+        <TrChat.Sender>
+          <template #footer>
+            <TrModelSelector />
+            <TrMcpTrigger />
           </template>
-        </TrChat.MessageList>
+        </TrChat.Sender>
+      </TrChat.Footer>
 
-        <TrChat.Footer class="tr-chat-footer-wrapper">
-          <TrChat.Attachments />
-          <TrChat.Sender>
-            <template #footer>
-              <TrModelSelector />
-              <TrMcpTrigger />
-            </template>
-          </TrChat.Sender>
-        </TrChat.Footer>
-
-        <TrChat.History />
-      </TrChat.Layout>
-    </TrChat.Scaffold>
-  </div>
+      <TrChat.History />
+    </TrChat.Layout>
+  </TrChat.Scaffold>
 </template>
 
 <style scoped>
-.demo-chat-shell {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  min-height: 0;
-  overflow: hidden;
-}
-
-:deep(.tr-chat) {
-  flex: 1;
-  min-height: 0;
-  height: auto;
-}
-
 .tr-chat-footer-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-}
-
-.tr-chat-footer-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   gap: 12px;
 }
 
@@ -177,7 +124,6 @@ const scaffoldPresetOverrides = {
 }
 
 :deep(.tr-bubble__box[data-editing='true']) {
-  --tr-bubble-box-bg: transparent;
   width: 50% !important;
 }
 </style>

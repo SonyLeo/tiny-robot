@@ -2,13 +2,8 @@
 import { TrChat, useMcpManager, createChatAdapterFromConfig } from '@opentiny/tiny-robot-chat'
 import { localStorageStrategyFactory, toolPlugin } from '@opentiny/tiny-robot-kit'
 import { defaultMcpServers } from '../data/mcpServers'
-import { WELCOME_CONFIG, PROMPTS, BRAND_CONFIG } from '../constants'
+import { WELCOME_CONFIG, BRAND_CONFIG } from '../constants'
 import { createDemoMcpBridge } from '../utils/mcpBridge'
-import { wrapDemoRetryProviderFactories } from '../utils/demoRetryProvider'
-
-defineEmits<{
-  error: [error: Error]
-}>()
 
 const deepseekApiKey = import.meta.env.VITE_DEEPSEEK_API_KEY || ''
 const openaiApiKey = import.meta.env.VITE_OPENAI_API_KEY || ''
@@ -49,7 +44,6 @@ const chatAdapter = createChatAdapterFromConfig({
   ui: {
     brand: BRAND_CONFIG,
     welcome: WELCOME_CONFIG,
-    prompts: PROMPTS,
   },
   runtime: {
     mcpManager,
@@ -61,8 +55,6 @@ const toolPluginInstance = toolPlugin({
   callTool: mcpManager.callTool,
 })
 
-const demoProviderFactories = wrapDemoRetryProviderFactories(chatAdapter.providerFactories)
-
 const blackboxRuntime = {
   plugins: [toolPluginInstance],
   storage: localStorageStrategyFactory({
@@ -70,45 +62,11 @@ const blackboxRuntime = {
   }),
 }
 
-const blackboxCallbacks = {
-  onError: handleError,
-}
-
-function handleError(error: Error) {
-  console.error('Chat error:', error)
-}
-
 const blackboxPresetOverrides = {
-  providerFactories: demoProviderFactories,
   showFeedback: true,
-  showHistory: true,
 }
 </script>
 
 <template>
-  <div class="demo-chat-shell">
-    <TrChat
-      :config="chatAdapter.config"
-      :runtime="blackboxRuntime"
-      :callbacks="blackboxCallbacks"
-      :preset-overrides="blackboxPresetOverrides"
-    />
-  </div>
+  <TrChat :config="chatAdapter.config" :runtime="blackboxRuntime" :preset-overrides="blackboxPresetOverrides" />
 </template>
-
-<style scoped>
-.demo-chat-shell {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  min-height: 0;
-  overflow: hidden;
-}
-
-:deep(.tr-chat) {
-  flex: 1;
-  min-height: 0;
-  height: auto;
-}
-</style>

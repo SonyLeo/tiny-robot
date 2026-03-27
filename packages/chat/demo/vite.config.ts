@@ -15,6 +15,13 @@ export default defineConfig({
   server: {
     port: 5185,
     open: true,
+    proxy: {
+      '/api/mcp/learn': {
+        target: 'https://learn.microsoft.com',
+        changeOrigin: true,
+        rewrite: () => '/api/mcp',
+      },
+    },
   },
   build: {
     outDir: 'dist',

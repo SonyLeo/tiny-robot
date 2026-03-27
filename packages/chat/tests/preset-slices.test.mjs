@@ -84,16 +84,18 @@ await runTest('createPresetChatSlices keeps white-box slices empty when optional
     },
   })
 
-  const slices = createPresetChatSlices(createPresetChatProps(adapter))
+  const presetProps = createPresetChatProps(adapter)
+  const slices = createPresetChatSlices(presetProps)
 
-  assert.equal(slices.header.showHistory, false)
+  assert.equal(presetProps.showHistory, true)
+  assert.equal(slices.header.showHistory, true)
   assert.equal(slices.header.showClose, false)
   assert.equal(slices.welcome, undefined)
   assert.equal(slices.messageList.autoScroll, true)
   assert.equal(slices.messageList.showFeedback, false)
   assert.equal(slices.sender.placeholder, CHAT_MESSAGES.sender.placeholder)
   assert.equal(slices.sender.mode, 'multiple')
-  assert.equal(slices.history.enabled, false)
+  assert.equal(slices.history.enabled, true)
   assert.equal(slices.modelSelector.enabled, true)
 })
 

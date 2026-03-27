@@ -20,6 +20,24 @@ await runTest('matchProvider only matches models from the requested provider id'
 await runTest('createServerProxyProvider resolves endpoint, forwards request options, and surfaces structured server errors', async () => {
   const originalFetch = globalThis.fetch
   const requests = []
+  const tools = [
+    {
+      type: 'function',
+      function: {
+        name: 'microsoft-learn__microsoft_docs_search',
+        description: 'Search Microsoft Learn documentation.',
+        parameters: {
+          type: 'object',
+          properties: {
+            question: {
+              type: 'string',
+            },
+          },
+          required: ['question'],
+        },
+      },
+    },
+  ]
 
   globalThis.fetch = async (input, init) => {
     requests.push({
@@ -59,6 +77,8 @@ await runTest('createServerProxyProvider resolves endpoint, forwards request opt
       async () => {
         for await (const _chunk of provider({
           messages: [{ role: 'user', content: 'hello' }],
+          tools,
+          tool_choice: 'auto',
         })) {
           // no-op
         }
@@ -81,6 +101,8 @@ await runTest('createServerProxyProvider resolves endpoint, forwards request opt
     assert.equal(parsedBody.stream, true)
     assert.equal(parsedBody.temperature, 0.4)
     assert.equal(parsedBody.max_tokens, 256)
+    assert.deepEqual(parsedBody.tools, tools)
+    assert.equal(parsedBody.tool_choice, 'auto')
     assert.deepEqual(parsedBody.messages, [
       { role: 'system', content: 'Be helpful' },
       { role: 'user', content: 'hello' },
