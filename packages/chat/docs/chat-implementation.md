@@ -1,389 +1,217 @@
 # Chat 实现说明
 
+> Last updated: `2026-03-27`
+> Related:
+> - [Chat Entry Structure Refactor Plan](./chat-entry-structure-refactor-plan.md)
+
 ## 当前边界
 
-`packages/chat` 目前专注于构建聊天场景的组装层，活跃的路径包括：
+`packages/chat` 当前专注于聊天场景的组装层。
+
+活跃入口包括：
 
 - 黑盒入口：`TrChat`
 - 组合入口：`TrChat.Scaffold`
-- 白盒组合：`TrChat.Root`、`TrChat.Layout`、`TrChat.Header`、`TrChat.Welcome`、`TrChat.MessageList`、`TrChat.Footer`、`TrChat.Sender`、`TrChat.History`
-- 共享运行时与状态：`useChatKit`
-- 配置归一与预设输出：
-  - `createChatAdapterFromConfig`
-  - `createPresetChatProps`
-  - `createPresetChatSlices`
-  - `createPresetConsumptionFromAgentPreset`
-
-旧有的 `ChatPresetRoot` 入口与整个 workspace 分支已经脱离当前代码。
+- 白盒入口：`TrChat.Root`
+- 白盒叶子：`TrChat.Layout`、`TrChat.Header`、`TrChat.Welcome`、`TrChat.MessageList`、`TrChat.Footer`、`TrChat.Sender`、`TrChat.History`
+- 运行时：`useChatKit`
+- 配置归一化：`createChatAdapterFromConfig`
+- 预设投影：`createPresetChatProps`、`createPresetChatSlices`
 
 ## 包的职责
 
 `packages/chat` 负责：
 
 - chat 级组件组合
-- 通过配置驱动的聊天组装
-- scaffold 默认和叶子组件的 fallback 消费
+- 配置驱动的聊天场景组装
+- scaffold 默认值和叶子组件 fallback 消费
 - 模型选择集成
 - MCP 管理器注入与聊天侧面板衔接
-- 附件、发送器动作、历史、反馈等功能的投影
-- 打包的聊天用户体验默认值
+- 附件、发送器动作、历史、反馈等能力投影
 
-不负责：
+`packages/chat` 不负责：
 
-- 除包级封装之外的 provider SDK 实现
+- provider SDK 层实现
 - 后端代理服务
-- 已归 `packages/kit` 的低层消息引擎原语
-- workspace shell / 侧边面板布局系统
+- `packages/kit` 已承载的低层消息引擎原语
+- 通用 workspace shell / 侧边面板布局系统
 
-运行时与配置约束：
+## 当前稳定约束
 
 - `ResponseProvider` 是 chat 包内唯一稳定的运行时 provider contract
 - `ChatConfig -> loadChatConfig() -> createChatAdapterFromConfig()` 是唯一配置主路径
 - `providers[*].type` 缺省时默认按 `openai-compatible` 处理
 - `providerId` 只表示模型归属的配置标识，不再表示一套独立 provider 实现
+- `TrChat.Root :response-provider` 是白盒场景的最终逃生口
 
-## 公开入口
+## 这次已经落地的主链变更
 
-### 黑盒
+### 变更前
 
-`TrChat` 是 `ChatScaffold` 的薄封装，公开接口：
+模型 / provider 主链原来是：
 
-```ts
-interface TrChatProps {
-  config: unknown
-  runtime?: ChatScaffoldRuntimeInput
-  callbacks?: ChatScaffoldCallbacks
-  presetOverrides?: TrChatPresetOverrides
-}
+```text
+ChatConfig
+  -> loadChatConfig()
+  -> providerFactories
+  -> match(model)
+  -> createProvider(model)
+  -> chatKit.updateResponseProvider()
 ```
 
-### Scaffold
+其主要问题是：
 
-`TrChat.Scaffold` 负责准备默认值、运行时和 scaffold 上下文。
+- `provider` 同时承担“供应商标识”和“实现入口”两层语义
+- `providerFactories` 作为中间层渗透到 adapter、scaffold、selector、默认 renderer
+- `ModelSelector` 和 `ChatScaffold` 共同参与 provider 切换，链路重复
+- `TrChatPresetOverrides.models/defaultModel` 允许在 scaffold 层覆盖模型集合，容易造成 UI 与实际请求源静默漂移
 
-接收：
+### 变更后
 
-- `config`
-- `runtime`
-- `callbacks`
-- `presetOverrides`
-
-提供：
-
-- 解析后的 adapter
-- `presetProps`
-- `presetSlices`
-- 模型状态
-- 当前模型对应的 response provider 解析入口（通过 adapter）
-
-### 白盒
-
-当前活跃的白盒构建块：
-
-- `TrChat.Root`
-- `TrChat.Layout`
-- `TrChat.Header`
-- `TrChat.Welcome`
-- `TrChat.MessageList`
-- `TrChat.Footer`
-- `TrChat.Sender`
-- `TrChat.History`
-- `TrChat.HistorySurface`
-- `TrModelSelector`
-- `TrChat.Attachments`
-- `TrChatFeedback`
-- `TrChatMcpPanel`
-
-其中 `TrChat.HistorySurface` 的当前约束是：
-
-- 在 `TrChat.Root` 下使用时，可以直接消费根上下文
-- 在独立白盒组合中使用时，应显式传入 `chatKit`
-- 它自身会提供 history surface 所需的本地 history/UI 上下文，不再假设调用方一定使用 drawer 形态
-
-## 运行时流程
-
-### 1. 黑盒流程
-
-`TrChat`：
-
-1. 接收 `config/runtime/callbacks/presetOverrides`
-2. 直接委托 `ChatScaffold`
-3. 将具名插槽透传给 scaffold
-
-文件：`packages/chat/src/components/chat/Chat.vue`
-
-### 2. Scaffold 流程
-
-`ChatScaffold`：
-
-1. 使用 `createChatAdapterFromConfig` 归一化配置
-2. 解析模型列表、默认模型和 `createResponseProvider()`
-3. 创建或复用 `chatKit`
-4. 合并 `presetOverrides`
-5. 生成：
-   - `presetProps`
-   - `presetSlices`
-6. 提供 scaffold 上下文
-7. 挂载 `ChatRoot`
-8. 渲染：
-   - 若提供 consumer 插槽则渲染之
-   - 否则渲染 `ChatDefaultRenderer`
-
-文件：`packages/chat/src/components/chat/ChatScaffold.vue`
-
-### 3. Root 提供流程
-
-`ChatRoot` 是纯上下文边界，提供：
-
-- `CHAT_KIT_KEY`
-- `CHAT_UI_KEY`
-- `CHAT_MESSAGES_KEY`
-- `MCP_MANAGER_KEY`
-- `CHAT_ATTACHMENTS_KEY`
-- `CHAT_SENDER_ACTIONS_KEY`
-
-文件：`packages/chat/src/components/chat/ChatRoot.vue`
-
-### 4. 默认渲染流程
-
-`ChatDefaultRenderer` 是黑盒与 scaffold 共享的默认 UI 。
-
-它组合：
-
-1. `ChatLayout`
-2. `ChatHeader`
-3. welcome 或 message list
-4. `ChatFooter`
-5. `ChatHistory`
-
-它从 `presetSlices` 读取默认值：
-
-- `presetSlices.welcome`
-- `presetSlices.messageList`
-- `presetSlices.modelSelector`
-
-文件：`packages/chat/src/components/chat/ChatDefaultRenderer.vue`
-
-## 配置与预设链路
-
-内部归一化链依然活跃：
+当前主链已经收敛为：
 
 ```text
 ChatConfig
   -> loadChatConfig()
   -> createChatAdapterFromConfig()
-  -> createPresetChatProps()
-  -> createPresetChatSlices()
-  -> ChatScaffold / chat-cli / tests
+    -> adapter.getModel()
+    -> adapter.createResponseProvider()
+  -> ChatScaffold
+    -> currentModel
+    -> chatKit.updateResponseProvider()
 ```
 
-意味着：
+这次已经完成的关键调整：
 
-- adapter/预设依然是核心归一层
-- 页面代码应优先使用 `TrChat` 或 `TrChat.Scaffold`
+- `provider` 全部改名为 `providerId`
+- 删除了 `packages/chat/src/providers/*` 品牌型 provider helper
+- 新增 `adapters/openaiCompatibleTransport.ts`，统一承载 OpenAI-compatible transport
+- `providerFactories` 已从 chat 包主链移除
+- `ModelSelector` / `useModelSelector` 不再负责运行时 provider 切换
+- `ChatScaffold` 成为唯一模型切换编排点
+- `TrChatPresetOverrides.models/defaultModel` 已移除
+- `ChatScaffold` 当前直接从 `adapter.models / adapter.defaultModel` 读取运行时模型目录
 
-文件：
+## 当前运行时主链
 
-- `packages/chat/src/adapters/index.ts`
-- `packages/chat/src/adapters/configLoader.ts`
-- `packages/chat/src/adapters/configProjection.ts`
-- `packages/chat/src/adapters/types.ts`
-- `packages/chat/src/adapters/chatCli.ts`
-- `packages/chat/src/presets/resolve.ts`
-
-## 功能投影
-
-功能注册仍解析如下内置 feature：
-
-- `attachments`
-- `senderActions`
-- `welcomePrompts`
-- `mcp`
-- `history`
-- `feedback`
-
-Registry 输出驱动 `presetProps`，再流向 `presetSlices` 。
-
-文件：
-
-- `packages/chat/src/features/types.ts`
-- `packages/chat/src/features/registry.ts`
-
-## 叶子组件优先级
-
-叶子组件遵循：
+### 黑盒
 
 ```text
-局部 props
-  > scaffold 默认
-  > 组件缺省
+TrChat
+  -> ChatScaffold
+    -> createChatAdapterFromConfig()
+    -> useChatKit()
+    -> ChatRoot
+    -> ChatDefaultRenderer
 ```
 
-目前例子：
+### 白盒
 
-- `ChatHeader`
-- `ChatWelcome`
-- `ChatMessageList`
-- `ChatSender`
-- `ChatHistory`
-- `ModelSelector`
-
-这也说明白盒组合不再需要被动传递整套 slice。
-
-## 运行时 / 状态职责
-
-### `useChatKit`
-
-负责：
-
-- 会话
-- 活跃消息
-- 请求状态
-- 错误归一
-- 重试流程
-- 乐观转标记
-- 编辑/回滚行为
-
-文件：
-
-- `packages/chat/src/composables/useChatKit.ts`
-- `packages/chat/src/composables/useChatConversation.ts`
-- `packages/chat/src/composables/useChatRequest.ts`
-- `packages/chat/src/composables/useChatMessages.ts`
-
-### `useMcpManager`
-
-负责：
-
-- MCP 插件状态
-- 工具暴露桥
-- 工具调用桥
-- 插件/工具生命周期
-
-文件：`packages/chat/src/composables/useMcpManager.ts`
-
-### `useModelSelector`
-
-负责：
-
-- 模型备选选择
-- provider 工厂匹配
-- 在 `chatKit` 中替换 provider
-
-文件：`packages/chat/src/composables/useModelSelector.ts`
-
-## 渲染组件
-
-### 布局层
-
-- `ChatLayout.vue`
-- `ChatHeader.vue`
-- `ChatFooter.vue`
-- `ChatWelcome.vue`
-- `ChatMessageList.vue`
-- `ChatSender.vue`
-- `ChatAttachments.vue`
-- `ChatFeedback.vue`
-- `ChatMcpPanel.vue`
-
-### 历史层
-
-- `ChatHistory.vue`
-- `ChatHistoryNewSession.vue`
-- `ChatHistoryToolbar.vue`
-- `ChatHistoryManageButton.vue`
-- `ChatHistorySearch.vue`
-- `ChatHistoryList.vue`
-- `ChatHistoryPanel.vue`
-- `ChatHistorySurface.vue`
-
-### 渲染工具
-
-- `MarkStreamRenderer.vue`
-- `ErrorRenderer.vue`
-- `EditInputRenderer.vue`
-- `ToolCallsRenderer.vue`
-- `ToolCallRenderer.vue`
-- `AttachmentsRenderer.vue`
-
-## Demo 对齐
-
-目前 demo 只保留：
-
-- `BlackboxDemo.vue`
-- `WhiteboxDemo.vue`
-
-黑盒页面使用：
-
-- `TrChat`
-- `config/runtime/callbacks/presetOverrides`
-
-白盒页面使用：
-
-- `TrChat.Scaffold`
-- 白盒组合 + 叶子默认
-
-## 已移除分支
-
-当前不在活跃实现的有：
-
-- `ChatPresetRoot.vue`
-- `src/components/workspace/**`
-- `src/types/workspace.ts`
-
-未来若需要 workspace/页面 shell 行为，应显式创建新分支，而不是隐式复刻旧树。
-
-## 校验命令
-
-推荐局部校验：
-
-```powershell
-pnpm -F @opentiny/tiny-robot-chat type-check
-pnpm.cmd -F @opentiny/tiny-robot-chat test:unit
-pnpm.cmd -F @opentiny/tiny-robot-chat-demo type-check
-pnpm.cmd -F @opentiny/tiny-robot-chat-demo build
+```text
+TrChat.Root
+  -> chatKit or responseProvider
+  -> context provide
+  -> Layout / Header / MessageList / Sender / History ...
 ```
 
-## Theme Responsibility Split
+### 模型切换
 
-To keep light/dark switching consistent across runtime and styles, the chat package follows a two-layer token model:
+当前模型切换链路为：
 
-- `components` owns reusable theme tokens (`--tr-*`) and their light/dark values.
-- `chat` owns scene-level tokens (`--chat-*`) for layout-specific surfaces such as header, panel, docs/workspace overlays, and history shell controls.
+```text
+TrModelSelector
+  -> useModelSelector()
+  -> currentModel
+  -> ChatScaffold watchEffect
+  -> chatKit.updateResponseProvider(adapter.createResponseProvider(modelId))
+```
 
-Guidelines:
+这里的关键点是：
 
-- Do not re-introduce a parallel dark palette for reusable `--tr-*` tokens in `packages/chat/src/styles/variables.css`.
-- If a visual requirement is reusable across component surfaces, add or update `--tr-*` in `packages/components`.
-- If a visual requirement is chat-scene-only, keep it in `--chat-*`.
+- selector 只负责 UI 和模型值变更
+- scaffold 负责把模型值变成真正的 `ResponseProvider`
+- `adapter` 是唯一模型到 provider 的解析入口
+- `presetOverrides` 仍可参与 preset 投影，但不再参与 scaffold 运行时模型解析
 
-## Appearance Runtime Flow
+## 当前文件分工
 
-`appearance.mode` remains part of the config and preset contract and supports:
+### `adapters/*`
 
-- `light`
-- `dark`
-- `system`
+- `configLoader.ts`
+  - 负责 `ChatConfig` 输入归一化
+  - 默认补齐 `type: 'openai-compatible'`
+  - 校验 `model.providerId -> providers[providerId]`
 
-Runtime behavior:
+- `configProjection.ts`
+  - 负责把 `ChatConfig` 投影为 `ChatAdapter`
+  - 提供 `getModel()` 和 `createResponseProvider()`
+  - 负责 `presetProps / presetSlices` 投影
 
-- `ChatLayout` bridges `appearance.mode` through `ThemeProvider` instead of writing `data-tr-color-mode` directly.
-- `system` maps to ThemeProvider auto resolution.
-- Runtime consumers that rely on `useTheme().resolvedColorMode` (for example tool/code renderers) read from the same source as CSS token switching.
+- `openaiCompatibleTransport.ts`
+  - 提供 `ChatProviderError`
+  - 提供 `createOpenAICompatibleResponseProvider()`
+  - 这是当前 chat 包内唯一 transport 实现
 
-This keeps DOM theme attributes and runtime theme state aligned, so style rendering and renderer-level dark-mode logic cannot drift.
+### `components/chat/*`
 
-## Layout Content Flow
+- `ChatScaffold.vue`
+  - 负责 adapter 创建
+  - 负责当前模型状态
+  - 直接从 `adapter` 读取模型目录和默认模型
+  - 负责 `chatKit` 初始化与 runtime provider 更新
+  - 负责 scaffold context 和 default renderer 入口
 
-`layout.contentLayout` is now part of the layout presentation contract and supports:
+- `ChatDefaultRenderer.vue`
+  - 负责黑盒默认页面模板
+  - 不再理解 `providerFactories`
+  - `modelSelector.enabled` 现在只依赖模型数和 slice 状态
 
-- `centered`
-- `wide`
+- `scaffold.ts`
+  - 负责 scaffold context 类型
+  - 已不再暴露 `providerFactories`
 
-Contract behavior:
+### `components/model-selector/*` + `composables/useModelSelector.ts`
 
-- `config.layout.contentLayout` defines declarative scene defaults.
-- `presetOverrides.contentLayout` is the runtime override point for page-level reactive control.
-- `createPresetChatSlices()` exposes the resolved value in `presetSlices.layout.contentLayout` for white-box composition.
+- `ModelSelector.vue`
+  - 只负责 dropdown UI
+  - 只消费模型列表和当前模型
 
-This keeps width switching inside the existing `config -> adapter -> preset props -> preset slices` path instead of introducing a parallel UI-only contract.
+- `useModelSelector.ts`
+  - 只负责模型选择状态、disabled / fallback 和变更通知
+  - 不再触碰 runtime provider 更新
+
+## 当前实现状态
+
+已经完成：
+
+- `packages/chat` 的 `type-check`
+- `packages/chat` 的 `test:unit`
+- demo 已切到直接传 `chatConfig`
+- 文档主叙事已切到 `ResponseProvider + ChatConfig -> ChatAdapter`
+
+## 当前未处理的下游影响
+
+这次工作刻意只聚焦 `packages/chat`。
+
+因此，以下内容仍然停留在旧语义，后续再迁移：
+
+- `packages/test/src/chat/mockProvider.ts`
+- `packages/test/src/chat/scenarios/sharedDemoFixtures.ts`
+- `packages/test/src/chat/scenarios/*.vue` 中仍使用 `providerFactories` 的场景
+- `packages/test/src/chat/README.md`
+- `packages/test/src/chat-cli/scaffold.spec.ts`
+
+这些文件的主要遗留问题有两类：
+
+1. 仍在使用 `provider` 而不是 `providerId`
+2. 仍在依赖 `providerFactories / ModelProviderFactory`
+
+## 后续建议
+
+下一阶段如果继续推进，建议按下面顺序：
+
+1. 迁移 `packages/test/src/chat/sharedDemoFixtures.ts` 和 `mockProvider.ts`
+2. 迁移 `packages/test/src/chat/scenarios/*`
+3. 最后处理 `packages/test/src/chat-cli/*` 和 README 文案
+
+这样可以先把 chat 包对应的测试场景语义收敛，再处理模板 / CLI 相关内容。
