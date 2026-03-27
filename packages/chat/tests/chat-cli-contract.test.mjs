@@ -24,6 +24,7 @@ await runTest('createChatCliCapabilitySurface exposes the current stable chat-cl
     'prompts',
     'mcpManager',
     'messageListVariant',
+    'contentLayout',
     'roleConfigs',
     'showHistory',
     'historyProps',
@@ -57,6 +58,7 @@ await runTest('createChatCliCapabilitySurface exposes the current stable chat-cl
     },
     layout: {
       variant: 'workspace',
+      contentLayout: 'centered',
       placements: {
         assistant: 'start',
         user: 'end',
@@ -83,6 +85,7 @@ await runTest('createChatCliCapabilitySurface exposes the current stable chat-cl
   })
 
   const surface = createChatCliCapabilitySurface(adapter, {
+    contentLayout: 'wide',
     senderProps: {
       maxLength: 80,
     },
@@ -94,6 +97,7 @@ await runTest('createChatCliCapabilitySurface exposes the current stable chat-cl
   assert.equal(surface.presetProps.prompts?.[0]?.label, 'feature prompt')
   assert.equal(surface.presetProps.mcpManager, mcpManager)
   assert.equal(surface.presetProps.messageListVariant, 'workspace')
+  assert.equal(surface.presetProps.contentLayout, 'wide')
   assert.equal(surface.presetProps.roleConfigs?.assistant?.placement, 'start')
   assert.equal(surface.presetProps.roleConfigs?.user?.placement, 'end')
   assert.equal(surface.presetProps.showHistory, true)
@@ -113,6 +117,7 @@ await runTest('createChatCliCapabilitySurface exposes the current stable chat-cl
   ])
   assert.equal(surface.presetSlices.root.attachmentsFeature?.enabled, true)
   assert.equal(surface.presetSlices.root.mcpManager, mcpManager)
+  assert.equal(surface.presetSlices.layout.contentLayout, 'wide')
   assert.equal(surface.presetSlices.layout.roleConfigs?.assistant?.placement, 'start')
   assert.equal(surface.presetSlices.layout.roleConfigs?.user?.placement, 'end')
   assert.equal(surface.presetSlices.header.title, undefined)

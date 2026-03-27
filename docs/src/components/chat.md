@@ -74,7 +74,7 @@ config + runtime + callbacks + presetOverrides
 - `config` 负责声明式配置
 - `runtime` 负责注入运行时对象，例如 `chatKit`、`plugins`、`storage`、`mcpManager`
 - `callbacks` 负责行为回调
-- `presetOverrides` 负责对默认 UI 和默认行为做轻量覆盖
+- `presetOverrides` 负责对默认 UI 和默认行为做轻量覆盖，例如 `contentLayout`
 
 最小示例：
 
@@ -228,12 +228,18 @@ ChatConfig
 - `maxLength`
 - `senderMode`
 - `messageListVariant`
+- `contentLayout`
 - `showHistory`
 - `showFeedback`
 - `roleConfigs`
 - `providerFactories`
 
 它不应该被理解成“重新定义整套场景”，而是对默认 preset 做有边界的覆盖。
+
+一个常见用法是：
+
+- 用 `config.layout.contentLayout` 声明场景默认采用 `centered` 还是 `wide`
+- 用 `presetOverrides.contentLayout` 在页面里根据用户切换、断点或容器模式做响应式覆盖
 
 ### `presetProps / presetSlices`
 

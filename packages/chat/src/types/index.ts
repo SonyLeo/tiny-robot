@@ -8,6 +8,7 @@ export type {
 export type {
   BrandConfig,
   ChatAppearanceConfig,
+  ChatContentLayout,
   ChatAppearanceMode,
   ChatErrorInfo,
   ChatErrorType,

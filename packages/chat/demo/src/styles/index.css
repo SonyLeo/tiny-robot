@@ -156,6 +156,12 @@ textarea {
   box-shadow: 0 24px 48px rgba(15, 23, 42, 0.08);
 }
 
+.demo-app__stage > * {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+}
+
 html[data-tr-color-mode='dark'] body {
   background-color: #07111f;
   background:

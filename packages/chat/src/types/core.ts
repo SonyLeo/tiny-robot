@@ -42,6 +42,7 @@ export interface ChatMessageActionPayload {
 }
 
 export type ChatListVariant = 'bubble' | 'docs' | 'workspace'
+export type ChatContentLayout = 'centered' | 'wide'
 
 export type ChatAppearanceMode = 'light' | 'dark' | 'system'
 

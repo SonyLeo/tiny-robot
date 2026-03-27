@@ -159,14 +159,17 @@ function normalizeLayout(rawLayout: unknown): ChatLayoutConfig | undefined {
           : {}),
       } satisfies NonNullable<ChatLayoutConfig['placements']>)
     : undefined
+  const contentLayout =
+    rawLayout.contentLayout === 'centered' || rawLayout.contentLayout === 'wide' ? rawLayout.contentLayout : undefined
 
-  if (!variant && !placements?.assistant && !placements?.user) {
+  if (!variant && !placements?.assistant && !placements?.user && !contentLayout) {
     return undefined
   }
 
   return {
     variant,
     placements,
+    contentLayout,
   }
 }
 

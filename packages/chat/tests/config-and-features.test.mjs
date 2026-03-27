@@ -174,6 +174,7 @@ await runTest('loadChatConfig normalizes layout config and createPresetChatProps
     },
     layout: {
       variant: 'docs',
+      contentLayout: 'centered',
       placements: {
         assistant: 'end',
         user: 'start',
@@ -183,6 +184,7 @@ await runTest('loadChatConfig normalizes layout config and createPresetChatProps
 
   assert.deepEqual(config.layout, {
     variant: 'docs',
+    contentLayout: 'centered',
     placements: {
       assistant: 'end',
       user: 'start',
@@ -193,8 +195,30 @@ await runTest('loadChatConfig normalizes layout config and createPresetChatProps
   const presetProps = createPresetChatProps(adapter)
 
   assert.equal(presetProps.messageListVariant, 'docs')
+  assert.equal(presetProps.contentLayout, 'centered')
   assert.equal(presetProps.roleConfigs?.assistant?.placement, 'end')
   assert.equal(presetProps.roleConfigs?.user?.placement, 'start')
+})
+
+await runTest('createPresetChatProps lets presetOverrides.contentLayout win over config.layout.contentLayout', async () => {
+  const adapter = createChatAdapterFromConfig({
+    models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+    providers: {
+      openai: {
+        type: 'openai-compatible',
+        endpoint: '/api/chat',
+      },
+    },
+    layout: {
+      contentLayout: 'centered',
+    },
+  })
+
+  const presetProps = createPresetChatProps(adapter, {
+    contentLayout: 'wide',
+  })
+
+  assert.equal(presetProps.contentLayout, 'wide')
 })
 
 await runTest('loadChatConfig normalizes appearance config and createPresetChatProps exposes it for runtime consumption', async () => {

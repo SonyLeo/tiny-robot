@@ -56,6 +56,7 @@ As of `2026-03-18`, the stable contract exposed by `packages/chat` for CLI consu
 - `prompts`
 - `mcpManager`
 - `messageListVariant`
+- `contentLayout`
 - `roleConfigs`
 - `showHistory`
 - `historyProps`

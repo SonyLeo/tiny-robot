@@ -14,6 +14,7 @@ import type { ChatScaffoldCallbacks, ChatScaffoldRuntimeInput } from '../compone
 import type {
   BrandConfig,
   ChatAppearanceConfig,
+  ChatContentLayout,
   ChatListVariant,
   ChatMessageActionPayload,
   UseChatKitOptions,
@@ -136,6 +137,7 @@ export interface TrChatPresetOverrides {
   senderMode?: 'single' | 'multiple'
   autoScroll?: boolean
   messageListVariant?: ChatListVariant
+  contentLayout?: ChatContentLayout
   showHistory?: boolean
   showFeedback?: boolean
   show?: boolean

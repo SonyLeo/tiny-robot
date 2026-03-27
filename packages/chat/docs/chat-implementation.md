@@ -365,3 +365,18 @@ Runtime behavior:
 - Runtime consumers that rely on `useTheme().resolvedColorMode` (for example tool/code renderers) read from the same source as CSS token switching.
 
 This keeps DOM theme attributes and runtime theme state aligned, so style rendering and renderer-level dark-mode logic cannot drift.
+
+## Layout Content Flow
+
+`layout.contentLayout` is now part of the layout presentation contract and supports:
+
+- `centered`
+- `wide`
+
+Contract behavior:
+
+- `config.layout.contentLayout` defines declarative scene defaults.
+- `presetOverrides.contentLayout` is the runtime override point for page-level reactive control.
+- `createPresetChatSlices()` exposes the resolved value in `presetSlices.layout.contentLayout` for white-box composition.
+
+This keeps width switching inside the existing `config -> adapter -> preset props -> preset slices` path instead of introducing a parallel UI-only contract.

@@ -32,10 +32,13 @@
   --chat-header-title-font-weight: 600;
   --chat-header-title-color: var(--tr-text-primary, #191919);
 
-  --chat-welcome-prompts-max-width: 800px;
+  --chat-welcome-prompts-max-width: min(100%, var(--chat-content-max-width));
   --chat-welcome-prompts-padding: 16px 24px;
 
-  --chat-content-max-width: 1280px;
+  --chat-content-max-width: 1000px;
+  --chat-welcome-area-max-width: min(100%, var(--chat-content-max-width));
+  --chat-bubble-list-max-width: min(100%, var(--chat-content-max-width));
+  --chat-footer-inner-max-width: min(100%, var(--chat-content-max-width));
 }
 
 .tr-chat {

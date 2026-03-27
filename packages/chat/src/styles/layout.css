@@ -9,6 +9,20 @@
   color: var(--chat-text-primary);
 }
 
+.tr-chat[data-chat-content-layout='centered'] {
+  --chat-welcome-area-max-width: min(100%, var(--chat-content-max-width, 1000px));
+  --chat-bubble-list-max-width: min(100%, var(--chat-content-max-width, 1000px));
+  --chat-footer-inner-max-width: min(100%, var(--chat-content-max-width, 1000px));
+  --chat-welcome-prompts-max-width: min(100%, var(--chat-content-max-width, 1000px));
+}
+
+.tr-chat[data-chat-content-layout='wide'] {
+  --chat-welcome-area-max-width: 100%;
+  --chat-bubble-list-max-width: 100%;
+  --chat-footer-inner-max-width: 100%;
+  --chat-welcome-prompts-max-width: 100%;
+}
+
 .tr-chat__header {
   flex-shrink: 0;
   background: var(--chat-header-bg);

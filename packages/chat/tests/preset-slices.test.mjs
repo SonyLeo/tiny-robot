@@ -110,6 +110,7 @@ await runTest('createPresetChatSlices exposes layout variant and placement defau
     },
     layout: {
       variant: 'docs',
+      contentLayout: 'centered',
       placements: {
         assistant: 'end',
         user: 'start',
@@ -120,6 +121,7 @@ await runTest('createPresetChatSlices exposes layout variant and placement defau
   const slices = createPresetChatSlices(createPresetChatProps(adapter))
 
   assert.equal(slices.messageList.variant, 'docs')
+  assert.equal(slices.layout.contentLayout, 'centered')
   assert.equal(slices.layout.roleConfigs?.assistant?.placement, 'end')
   assert.equal(slices.layout.roleConfigs?.user?.placement, 'start')
 })
@@ -185,6 +187,7 @@ await runTest('loadChatConfig and preset slices preserve workspace layout varian
     },
     layout: {
       variant: 'workspace',
+      contentLayout: 'wide',
       placements: {
         assistant: 'start',
         user: 'end',
@@ -194,6 +197,7 @@ await runTest('loadChatConfig and preset slices preserve workspace layout varian
 
   assert.deepEqual(config.layout, {
     variant: 'workspace',
+    contentLayout: 'wide',
     placements: {
       assistant: 'start',
       user: 'end',
@@ -204,11 +208,35 @@ await runTest('loadChatConfig and preset slices preserve workspace layout varian
   const slices = createPresetChatSlices(presetProps)
 
   assert.equal(presetProps.messageListVariant, 'workspace')
+  assert.equal(presetProps.contentLayout, 'wide')
   assert.equal(presetProps.roleConfigs?.assistant?.placement, 'start')
   assert.equal(presetProps.roleConfigs?.user?.placement, 'end')
   assert.equal(slices.messageList.variant, 'workspace')
+  assert.equal(slices.layout.contentLayout, 'wide')
   assert.equal(slices.layout.roleConfigs?.assistant?.placement, 'start')
   assert.equal(slices.layout.roleConfigs?.user?.placement, 'end')
+})
+
+await runTest('createPresetChatSlices keeps contentLayout override in the layout slice', async () => {
+  const adapter = createChatAdapterFromConfig({
+    models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+    providers: {
+      openai: {
+        type: 'openai-compatible',
+        endpoint: '/api/chat',
+      },
+    },
+    layout: {
+      contentLayout: 'centered',
+    },
+  })
+
+  const presetProps = createPresetChatProps(adapter, {
+    contentLayout: 'wide',
+  })
+  const slices = createPresetChatSlices(presetProps)
+
+  assert.equal(slices.layout.contentLayout, 'wide')
 })
 
 await runTest('createPresetChatSlices preserves senderProps.extensions for passthrough composition', async () => {

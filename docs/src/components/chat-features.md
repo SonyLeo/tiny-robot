@@ -73,6 +73,37 @@ const chatConfig = {
 />
 ```
 
+## `layout.contentLayout`
+
+`contentLayout` is a layout presentation capability, not a standalone feature plugin.
+
+Use `config.layout.contentLayout` when you want a stable scene default:
+
+```ts
+const chatConfig = {
+  // ...
+  layout: {
+    contentLayout: 'centered',
+  },
+}
+```
+
+Use `presetOverrides.contentLayout` when you need runtime/reactive control in a specific page:
+
+```vue
+<TrChat
+  :config="chatConfig"
+  :preset-overrides="{
+    contentLayout: isFullWidth ? 'wide' : 'centered',
+  }"
+/>
+```
+
+Recommended rule:
+
+- `config.layout.contentLayout`: declarative default for the scenario.
+- `presetOverrides.contentLayout`: page-level override for user interaction and responsive behavior.
+
 ## `attachments`
 
 控制聊天场景中的附件上传入口与附件列表。

@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import { computed, ref } from 'vue'
+import type { TrChatPresetOverrides } from '@opentiny/tiny-robot-chat'
 import { TrChat, useMcpManager, createChatAdapterFromConfig } from '@opentiny/tiny-robot-chat'
 import { localStorageStrategyFactory, toolPlugin } from '@opentiny/tiny-robot-kit'
 import { defaultMcpServers } from '../data/mcpServers'
-import { WELCOME_CONFIG, BRAND_CONFIG } from '../constants'
+import { WELCOME_CONFIG, WELCOME_PROMPTS, BRAND_CONFIG } from '../constants'
 import { createDemoMcpBridge } from '../utils/mcpBridge'
 
 const deepseekApiKey = import.meta.env.VITE_DEEPSEEK_API_KEY || ''
@@ -44,6 +46,7 @@ const chatAdapter = createChatAdapterFromConfig({
   ui: {
     brand: BRAND_CONFIG,
     welcome: WELCOME_CONFIG,
+    prompts: WELCOME_PROMPTS,
   },
   runtime: {
     mcpManager,
@@ -62,11 +65,35 @@ const blackboxRuntime = {
   }),
 }
 
-const blackboxPresetOverrides = {
+const isFullWidth = ref(false)
+const blackboxPresetOverrides = computed<TrChatPresetOverrides>(() => ({
   showFeedback: true,
-}
+  contentLayout: isFullWidth.value ? 'wide' : 'centered',
+}))
 </script>
 
 <template>
-  <TrChat :config="chatAdapter.config" :runtime="blackboxRuntime" :preset-overrides="blackboxPresetOverrides" />
+  <TrChat :config="chatAdapter.config" :runtime="blackboxRuntime" :preset-overrides="blackboxPresetOverrides">
+    <template #header-extra>
+      <label class="layout-toggle">
+        <input v-model="isFullWidth" type="checkbox" />
+        <span>contentLayout</span>
+      </label>
+    </template>
+  </TrChat>
 </template>
+
+<style scoped>
+.layout-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--tr-text-secondary);
+  user-select: none;
+}
+
+.layout-toggle input {
+  margin: 0;
+}
+</style>

@@ -27,7 +27,7 @@ config + runtime + callbacks + presetOverrides
 | `config` | 静态配置层 | 模型、provider、UI、layout、features |
 | `runtime` | 运行时注入层 | `chatKit`、`plugins`、`storage`、`initialMessages`、`mcpManager`、`selectedModel` |
 | `callbacks` | 行为回调层 | `onFinish`、`onError`、`onMessageAction`、`onModelChange` |
-| `presetOverrides` | 默认装配覆盖层 | `placeholder`、`messageListVariant`、`showHistory`、`roleConfigs`、`providerFactories` 等 |
+| `presetOverrides` | 默认装配覆盖层 | `placeholder`、`messageListVariant`、`contentLayout`、`showHistory`、`roleConfigs`、`providerFactories` 等 |
 
 ## 最小配置
 
@@ -165,6 +165,7 @@ ui: {
 当前常用字段：
 
 - `variant`
+- `contentLayout`
 - `placements`
 
 可选 `variant`：
@@ -178,17 +179,30 @@ ui: {
 - `assistant`
 - `user`
 
+`contentLayout` 用于声明聊天内容区域是保持居中阅读宽度，还是放宽到容器可用宽度。
+
+可选值：
+
+- `centered`
+- `wide`
+
 示例：
 
 ```ts
 layout: {
   variant: 'docs',
+  contentLayout: 'centered',
   placements: {
     assistant: 'start',
     user: 'end',
   },
 }
 ```
+
+推荐用法：
+
+- `centered`：默认阅读型布局。当前内容区域最大宽度默认为 `1000px`
+- `wide`：默认宽布局。内容区域尽量占满当前聊天容器宽度
 
 ### `features`
 
@@ -338,6 +352,7 @@ const callbacks = {
 | 字段 | 作用 |
 | :-- | :-- |
 | `messageListVariant` | 覆盖消息列表变体 |
+| `contentLayout` | 覆盖内容区域布局模式 |
 | `showHistory` | 开关历史抽屉 |
 | `showFeedback` | 开关反馈入口 |
 | `show` | 当前场景显隐状态 |
@@ -362,6 +377,31 @@ const callbacks = {
 | `historyProps` | 透传历史区相关 props |
 | `attachmentsFeature` | 覆盖附件 feature preset |
 | `senderActionsFeature` | 覆盖 sender actions feature preset |
+
+`presetOverrides.contentLayout` 更适合页面级、响应式的布局切换。
+
+例如：
+
+```vue
+<script setup lang="ts">
+import { computed, ref } from 'vue'
+
+const isWide = ref(false)
+
+const presetOverrides = computed(() => ({
+  contentLayout: isWide.value ? 'wide' : 'centered',
+}))
+</script>
+
+<template>
+  <TrChat :config="chatConfig" :preset-overrides="presetOverrides" />
+</template>
+```
+
+简单规则：
+
+- `config.layout.contentLayout`：声明场景默认布局
+- `presetOverrides.contentLayout`：做页面级或用户交互驱动的覆盖
 
 ## 推荐的覆盖顺序
 

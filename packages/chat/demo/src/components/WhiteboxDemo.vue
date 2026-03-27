@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed, ref } from 'vue'
+import type { TrChatPresetOverrides } from '@opentiny/tiny-robot-chat'
 import {
   TrChat,
   TrChatFeedback,
@@ -9,7 +11,7 @@ import {
 } from '@opentiny/tiny-robot-chat'
 import { localStorageStrategyFactory, toolPlugin } from '@opentiny/tiny-robot-kit'
 import { defaultMcpServers } from '../data/mcpServers'
-import { WELCOME_CONFIG, BRAND_CONFIG } from '../constants'
+import { WELCOME_CONFIG, WELCOME_PROMPTS, BRAND_CONFIG } from '../constants'
 import { createDemoMcpBridge } from '../utils/mcpBridge'
 
 defineEmits<{
@@ -55,6 +57,7 @@ const chatAdapter = createChatAdapterFromConfig({
   ui: {
     brand: BRAND_CONFIG,
     welcome: WELCOME_CONFIG,
+    prompts: WELCOME_PROMPTS,
   },
   runtime: {
     mcpManager,
@@ -73,9 +76,11 @@ const scaffoldRuntime = {
   }),
 }
 
-const scaffoldPresetOverrides = {
+const isFullWidth = ref(false)
+const scaffoldPresetOverrides = computed<TrChatPresetOverrides>(() => ({
   showFeedback: false,
-}
+  contentLayout: isFullWidth.value ? 'wide' : 'centered',
+}))
 </script>
 
 <template>
@@ -86,7 +91,14 @@ const scaffoldPresetOverrides = {
     v-slot="{ chatKit }"
   >
     <TrChat.Layout>
-      <TrChat.Header />
+      <TrChat.Header>
+        <template #extra>
+          <label class="layout-toggle">
+            <input v-model="isFullWidth" type="checkbox" />
+            <span>contentLayout</span>
+          </label>
+        </template>
+      </TrChat.Header>
 
       <div v-if="chatKit.messages.value.length === 0" class="tr-chat__welcome-area">
         <TrChat.Welcome @prompt-click="chatKit.sendMessage($event)" />
@@ -117,6 +129,19 @@ const scaffoldPresetOverrides = {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.layout-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--tr-text-secondary);
+  user-select: none;
+}
+
+.layout-toggle input {
+  margin: 0;
 }
 
 :deep(.tr-bubble__box[data-role='user']) {

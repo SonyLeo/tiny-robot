@@ -90,6 +90,7 @@ export function createPresetChatProps(
     welcome: adapter.config.ui?.welcome,
     prompts: adapter.config.ui?.prompts,
     messageListVariant: adapter.config.layout?.variant,
+    contentLayout: adapter.config.layout?.contentLayout,
     roleConfigs: layoutRoleConfigs,
     ...adapter.resolvedFeatures.presetProps,
     showHistory: resolvedShowHistory,
@@ -114,6 +115,7 @@ export function createPresetChatSlices(preset: ChatPresetProps & Partial<TrChatP
     layout: {
       show: preset.show,
       roleConfigs: preset.roleConfigs,
+      contentLayout: preset.contentLayout,
     },
     appearance: {
       appearance: preset.appearance,

@@ -4,7 +4,7 @@ import type { BubbleListProps } from '@opentiny/tiny-robot'
 import { computed, getCurrentInstance, type PropType, provide } from 'vue'
 import { useDefaultBubbleConfig } from '@/composables'
 import { BUBBLE_CONFIG_KEY, useChatScaffoldContext } from '@/context'
-import type { ChatAppearanceConfig } from '@/types'
+import type { ChatAppearanceConfig, ChatContentLayout } from '@/types'
 import { triStateBooleanProp } from '@/utils'
 
 defineOptions({ name: 'TrChatLayout' })
@@ -13,6 +13,7 @@ const props = defineProps({
   show: triStateBooleanProp,
   roleConfigs: Object as PropType<BubbleListProps['roleConfigs']>,
   appearance: Object as PropType<ChatAppearanceConfig>,
+  contentLayout: String as PropType<ChatContentLayout>,
 })
 const scaffoldContext = useChatScaffoldContext()
 const layoutSlice = computed(() => scaffoldContext?.presetSlices.value.layout)
@@ -21,6 +22,9 @@ const appearanceSlice = computed(() => scaffoldContext?.presetSlices.value.appea
 const { contentMatches, boxMatches, roles: defaultRoles } = useDefaultBubbleConfig()
 const resolvedShow = computed(() => props.show ?? layoutSlice.value?.show ?? true)
 const resolvedAppearance = computed(() => props.appearance ?? appearanceSlice.value)
+const resolvedContentLayout = computed<ChatContentLayout>(
+  () => props.contentLayout ?? layoutSlice.value?.contentLayout ?? 'centered',
+)
 const themeScopeId = `tr-chat-theme-scope-${getCurrentInstance()?.uid ?? 'fallback'}`
 const scopedThemeTargetElement = `#${themeScopeId}`
 
@@ -57,12 +61,24 @@ provide(BUBBLE_CONFIG_KEY, {
       :target-element="scopedThemeTargetElement"
       :color-mode="scopedColorMode"
     >
-      <div :id="themeScopeId" v-show="resolvedShow" class="tr-chat" :data-tr-appearance-mode="resolvedAppearance?.mode">
+      <div
+        :id="themeScopeId"
+        v-show="resolvedShow"
+        class="tr-chat"
+        :data-tr-appearance-mode="resolvedAppearance?.mode"
+        :data-chat-content-layout="resolvedContentLayout"
+      >
         <slot />
       </div>
     </ThemeProvider>
 
-    <div v-else v-show="resolvedShow" class="tr-chat" :data-tr-appearance-mode="resolvedAppearance?.mode">
+    <div
+      v-else
+      v-show="resolvedShow"
+      class="tr-chat"
+      :data-tr-appearance-mode="resolvedAppearance?.mode"
+      :data-chat-content-layout="resolvedContentLayout"
+    >
       <slot />
     </div>
   </BubbleProvider>

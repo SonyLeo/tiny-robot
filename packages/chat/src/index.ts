@@ -119,6 +119,7 @@ export type {
   ChatScaffoldCallbacks,
   ChatScaffoldRuntimeInput,
   ChatAppearanceConfig,
+  ChatContentLayout,
   ChatAppearanceMode,
   ResponseProvider,
   ChatStatus,
