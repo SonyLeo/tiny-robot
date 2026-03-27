@@ -23,11 +23,8 @@ const props = defineProps<TrChatScaffoldProps>()
 const slots = useSlots()
 
 const adapter = computed(() => createChatAdapterFromConfig(props.config))
-const resolvedDefaultModel = computed(() => props.presetOverrides?.defaultModel ?? adapter.value.defaultModel)
-const resolvedModels = computed(() => props.presetOverrides?.models ?? adapter.value.models)
-const resolvedProviderFactories = computed(
-  () => props.presetOverrides?.providerFactories ?? adapter.value.providerFactories,
-)
+const resolvedModels = computed(() => adapter.value.models)
+const resolvedDefaultModel = computed(() => adapter.value.defaultModel)
 
 function resolveInitialModelValue() {
   const models = resolvedModels.value
@@ -58,11 +55,6 @@ function createScaffoldResponseProvider(modelValue?: string) {
     throw new Error('[TrChatScaffold] No models available to create response provider')
   }
 
-  const factory = resolvedProviderFactories.value?.find((item) => item.match(model))
-  if (factory) {
-    return factory.createProvider(model)
-  }
-
   return adapter.value.createResponseProvider(model.value)
 }
 
@@ -80,8 +72,6 @@ const chatKit =
 const { selectModel } = useModelSelector({
   currentModel,
   models: resolvedModels,
-  providerFactories: resolvedProviderFactories,
-  chatKit,
   onChange: (model) => {
     props.callbacks?.onModelChange?.(model)
   },
@@ -105,11 +95,19 @@ watchEffect(() => {
   }
 })
 
+watchEffect(() => {
+  const modelValue = currentModel.value || resolvedDefaultModel.value
+  if (!modelValue) {
+    return
+  }
+
+  chatKit.updateResponseProvider(createScaffoldResponseProvider(modelValue))
+})
+
 const presetProps = computed(() => {
   const overrides = {
     ...props.presetOverrides,
     models: resolvedModels.value,
-    providerFactories: resolvedProviderFactories.value,
     defaultModel: currentModel.value || resolvedDefaultModel.value,
   }
 
@@ -135,7 +133,6 @@ const scaffoldContext: TrChatScaffoldContextValue = {
   presetSlices,
   currentModel,
   models: resolvedModels,
-  providerFactories: resolvedProviderFactories,
   defaultModel: computed(() => currentModel.value || resolvedDefaultModel.value),
   updateModel: selectModel,
 }

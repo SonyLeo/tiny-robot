@@ -41,11 +41,11 @@ function normalizeModel(model: unknown, index: number): ChatConfigModel {
   }
 
   assertString(model.id, `[loadChatConfig] models[${index}].id is required`)
-  assertString(model.provider, `[loadChatConfig] models[${index}].provider is required`)
+  assertString(model.providerId, `[loadChatConfig] models[${index}].providerId is required`)
 
   return {
     id: model.id,
-    provider: model.provider,
+    providerId: model.providerId,
     label: typeof model.label === 'string' ? model.label : undefined,
     disabled: typeof model.disabled === 'boolean' ? model.disabled : undefined,
   }
@@ -56,10 +56,10 @@ function normalizeProvider(providerId: string, provider: unknown): ChatConfigPro
     throw new Error(`[loadChatConfig] providers.${providerId} must be an object`)
   }
 
-  assertString(provider.type, `[loadChatConfig] providers.${providerId}.type is required`)
+  const type = provider.type ?? 'openai-compatible'
 
-  if (provider.type !== 'openai-compatible') {
-    throw new Error(`[loadChatConfig] providers.${providerId}.type "${provider.type}" is not supported`)
+  if (type !== 'openai-compatible') {
+    throw new Error(`[loadChatConfig] providers.${providerId}.type "${type}" is not supported`)
   }
 
   const normalized: ChatConfigProvider = {
@@ -447,8 +447,8 @@ export function loadChatConfig(input: string | ChatConfig | unknown): ChatConfig
   )
 
   for (const model of models) {
-    if (!providers[model.provider]) {
-      throw new Error(`[loadChatConfig] model "${model.id}" references missing provider "${model.provider}"`)
+    if (!providers[model.providerId]) {
+      throw new Error(`[loadChatConfig] model "${model.id}" references missing provider "${model.providerId}"`)
     }
   }
 

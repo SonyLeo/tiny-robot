@@ -44,11 +44,7 @@ const resolvedVariant = computed<ChatListVariant>(() => {
   return 'bubble'
 })
 const showModelSelector = computed(() =>
-  Boolean(
-    modelSelectorSlice.value?.enabled &&
-    modelSelectorSlice.value.models?.length &&
-    modelSelectorSlice.value.providerFactories?.length,
-  ),
+  Boolean(modelSelectorSlice.value?.enabled && (modelSelectorSlice.value.models?.length ?? 0) > 1),
 )
 const showMcpTrigger = computed(() => Boolean(mcpManager))
 const showFooterTools = computed(() => showModelSelector.value || showMcpTrigger.value)

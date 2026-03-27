@@ -5,23 +5,29 @@ import type {
   ChatContentLayout,
   ChatListVariant,
   ModelOption,
-  ModelProviderFactory,
   ResponseProvider,
   TrChatPresetOverrides,
   WelcomeConfig,
 } from '../types'
 import type { ChatFeatureConfigMap, ChatFeaturePresetProps, ResolvedChatFeatures } from '../features'
-import type { ServerProxyFactoryOptions } from '../providers/serverProxy'
 
 export interface ChatConfigModel {
   id: string
-  provider: string
+  providerId: string
   label?: string
   disabled?: boolean
 }
 
-export interface OpenAICompatibleProviderConfig extends Omit<ServerProxyFactoryOptions, 'provider'> {
-  type: 'openai-compatible'
+export interface OpenAICompatibleProviderConfig {
+  type?: 'openai-compatible'
+  baseURL?: string
+  endpoint?: string
+  apiPath?: string
+  headers?: Record<string, string>
+  credentials?: RequestCredentials
+  systemPrompt?: string
+  temperature?: number
+  maxTokens?: number
 }
 
 export type ChatConfigProvider = OpenAICompatibleProviderConfig
@@ -66,25 +72,20 @@ export interface ChatConfig {
 export interface ChatAdapter {
   config: ChatConfig
   models: ModelOption[]
-  providerFactories: ModelProviderFactory[]
   defaultModel?: string
   resolvedFeatures: ResolvedChatFeatures
+  getModel: (modelId?: string) => ModelOption | undefined
   createResponseProvider: (modelId?: string) => ResponseProvider
 }
 
 export type ChatPresetProps = Pick<
   TrChatPresetOverrides,
-  | 'models'
-  | 'providerFactories'
-  | 'defaultModel'
-  | 'appearance'
-  | 'brand'
-  | 'welcome'
-  | 'prompts'
-  | 'messages'
-  | 'contentLayout'
+  'appearance' | 'brand' | 'welcome' | 'prompts' | 'messages' | 'contentLayout'
 > &
-  ChatFeaturePresetProps
+  ChatFeaturePresetProps & {
+    models: ModelOption[]
+    defaultModel?: string
+  }
 
 export interface ChatPresetRootSlice {
   mcpManager?: TrChatPresetOverrides['mcpManager']
@@ -138,9 +139,8 @@ export interface ChatPresetHistorySlice {
 
 export interface ChatPresetModelSelectorSlice {
   enabled: boolean
-  models?: TrChatPresetOverrides['models']
-  providerFactories?: TrChatPresetOverrides['providerFactories']
-  defaultModel?: TrChatPresetOverrides['defaultModel']
+  models?: ModelOption[]
+  defaultModel?: string
 }
 
 export interface ChatPresetSlices {

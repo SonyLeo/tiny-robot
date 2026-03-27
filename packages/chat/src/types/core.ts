@@ -28,7 +28,7 @@ export interface ChatErrorInfo {
   httpStatus?: number
   statusCode?: number
   code?: string
-  provider?: string
+  providerId?: string
   originalError?: unknown
 }
 

@@ -33,7 +33,6 @@ export interface TrChatScaffoldContextValue {
   presetSlices: ComputedRef<ChatPresetSlices>
   currentModel: Ref<string>
   models: ComputedRef<ModelOption[]>
-  providerFactories: ComputedRef<TrChatPresetOverrides['providerFactories'] | undefined>
   defaultModel: ComputedRef<string | undefined>
   updateModel: (model: ModelOption) => void
 }

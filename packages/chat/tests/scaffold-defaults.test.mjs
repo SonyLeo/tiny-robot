@@ -11,7 +11,7 @@ await runTest('createPresetConsumptionFromAgentPreset exposes scaffold-ready def
 
   const consumption = createPresetConsumptionFromAgentPreset({
     baseConfig: {
-      models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+      models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
       providers: {
         openai: {
           type: 'openai-compatible',
@@ -81,14 +81,14 @@ await runTest('createPresetConsumptionFromAgentPreset exposes scaffold-ready def
   assert.equal(consumption.presetSlices.sender.placeholder, CHAT_MESSAGES.sender.placeholder)
   assert.equal(consumption.presetSlices.sender.mode, 'multiple')
   assert.equal(consumption.presetSlices.history.enabled, true)
-  assert.equal(consumption.presetSlices.modelSelector.enabled, true)
+  assert.equal(consumption.presetSlices.modelSelector.enabled, false)
   assert.equal(consumption.presetSlices.modelSelector.defaultModel, 'gpt-4o-mini')
 })
 
 await runTest('presetOverrides remain the highest-priority defaults in scaffold consumption output', async () => {
   const consumption = createPresetConsumptionFromAgentPreset({
     baseConfig: {
-      models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+      models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
       providers: {
         openai: {
           type: 'openai-compatible',
@@ -158,7 +158,7 @@ await runTest('presetOverrides remain the highest-priority defaults in scaffold 
 await runTest('presetOverrides can force system appearance mode and keep it in scaffold slices', async () => {
   const consumption = createPresetConsumptionFromAgentPreset({
     baseConfig: {
-      models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+      models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
       providers: {
         openai: {
           type: 'openai-compatible',
@@ -186,3 +186,4 @@ await runTest('presetOverrides can force system appearance mode and keep it in s
     mode: 'system',
   })
 })
+

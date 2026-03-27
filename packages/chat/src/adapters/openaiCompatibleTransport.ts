@@ -3,7 +3,7 @@ import type { MessageRequestBody } from '@opentiny/tiny-robot-kit'
 import type { ResponseProvider } from '../types'
 
 export interface ChatProviderErrorOptions {
-  provider?: string
+  providerId?: string
   message: string
   httpStatus?: number
   code?: string
@@ -12,7 +12,7 @@ export interface ChatProviderErrorOptions {
 }
 
 export class ChatProviderError extends Error {
-  provider?: string
+  providerId?: string
   httpStatus?: number
   statusCode?: number
   code?: string
@@ -22,7 +22,7 @@ export class ChatProviderError extends Error {
   constructor(options: ChatProviderErrorOptions) {
     super(options.message)
     this.name = 'ChatProviderError'
-    this.provider = options.provider
+    this.providerId = options.providerId
     this.httpStatus = options.httpStatus
     this.statusCode = options.httpStatus
     this.code = options.code
@@ -33,10 +33,12 @@ export class ChatProviderError extends Error {
   }
 }
 
-export interface OpenAICompatibleSseProviderOptions {
-  endpoint: string
-  provider: string
+export interface OpenAICompatibleResponseProviderOptions {
+  providerId: string
   model: string
+  endpoint?: string
+  baseURL?: string
+  apiPath?: string
   systemPrompt?: string
   temperature?: number
   maxTokens?: number
@@ -44,8 +46,24 @@ export interface OpenAICompatibleSseProviderOptions {
   credentials?: RequestCredentials
 }
 
+function resolveEndpoint(options: OpenAICompatibleResponseProviderOptions): string {
+  if (options.endpoint) {
+    return options.endpoint
+  }
+
+  if (!options.baseURL) {
+    throw new Error('[createOpenAICompatibleResponseProvider] Either endpoint or baseURL must be provided')
+  }
+
+  const baseURL = options.baseURL.replace(/\/+$/, '')
+  const apiPath = options.apiPath ?? '/chat/completions'
+  const normalizedApiPath = apiPath.startsWith('/') ? apiPath : `/${apiPath}`
+
+  return `${baseURL}${normalizedApiPath}`
+}
+
 function buildOpenAICompatibleRequestBody(
-  options: OpenAICompatibleSseProviderOptions,
+  options: OpenAICompatibleResponseProviderOptions,
   requestBody: MessageRequestBody,
 ) {
   const { messages: requestMessages, ...extraRequestFields } = requestBody
@@ -122,8 +140,11 @@ function inferRetryable(httpStatus?: number, code?: string) {
   return true
 }
 
-export function createOpenAICompatibleSseProvider(options: OpenAICompatibleSseProviderOptions): ResponseProvider {
-  const { endpoint, headers = {}, credentials } = options
+export function createOpenAICompatibleResponseProvider(
+  options: OpenAICompatibleResponseProviderOptions,
+): ResponseProvider {
+  const endpoint = resolveEndpoint(options)
+  const { headers = {}, credentials } = options
 
   return async function* (requestBody, abortSignal) {
     const response = await fetch(endpoint, {
@@ -142,8 +163,8 @@ export function createOpenAICompatibleSseProvider(options: OpenAICompatibleSsePr
       const parsed = await parseProviderErrorResponse(response)
 
       throw new ChatProviderError({
-        provider: options.provider,
-        message: `${options.provider} API error ${response.status}: ${parsed.message}`,
+        providerId: options.providerId,
+        message: `${options.providerId} API error ${response.status}: ${parsed.message}`,
         httpStatus: response.status,
         code: parsed.code,
         retryable: inferRetryable(response.status, parsed.code),

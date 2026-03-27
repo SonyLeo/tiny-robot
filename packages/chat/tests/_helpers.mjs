@@ -19,14 +19,11 @@ const chatKitModule = await jiti.import('../src/composables/useChatKit.ts')
 const mcpManagerModule = await jiti.import('../src/composables/useMcpManager.ts')
 const modelSelectorModule = await jiti.import('../src/composables/useModelSelector.ts')
 const adapterModule = await jiti.import('../src/adapters/index.ts')
+const transportModule = await jiti.import('../src/adapters/openaiCompatibleTransport.ts')
 const presetsModule = await jiti.import('../src/presets/index.ts')
 const messagesModule = await jiti.import('../src/messages.ts')
 const capabilitiesModule = await jiti.import('../src/capabilities.ts')
 const rootChatKitModule = await jiti.import('../src/components/chat/resolveRootChatKit.ts')
-const providersFactoriesModule = await jiti.import('../src/providers/factories.ts')
-const openAiProviderModule = await jiti.import('../src/providers/openai.ts')
-const serverProxyModule = await jiti.import('../src/providers/serverProxy.ts')
-const sharedProviderModule = await jiti.import('../src/providers/shared.ts')
 
 export { assert, computed, nextTick, ref, shallowRef }
 
@@ -61,12 +58,8 @@ export const createChatCapabilityManifest = capabilitiesModule.createChatCapabil
 export const CHAT_CAPABILITY_MANIFEST = capabilitiesModule.CHAT_CAPABILITY_MANIFEST
 export const getRootChatKitResolution = rootChatKitModule.getRootChatKitResolution
 export const resolveRootChatKit = rootChatKitModule.resolveRootChatKit
-export const matchProvider = providersFactoriesModule.matchProvider
-export const createOpenAIProvider = openAiProviderModule.createOpenAIProvider
-export const createServerProxyProvider = serverProxyModule.createServerProxyProvider
-export const createServerProxyFactory = serverProxyModule.createServerProxyFactory
-export const ChatProviderError = sharedProviderModule.ChatProviderError
-export const createOpenAICompatibleSseProvider = sharedProviderModule.createOpenAICompatibleSseProvider
+export const ChatProviderError = transportModule.ChatProviderError
+export const createOpenAICompatibleResponseProvider = transportModule.createOpenAICompatibleResponseProvider
 export { expectThrowsAsync, runTest }
 
 export function createChunk({ content, role, finishReason = null, model = 'mock-model' }) {

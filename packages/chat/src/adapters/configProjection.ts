@@ -1,9 +1,9 @@
 import type { ModelOption, ResponseProvider, TrChatPresetOverrides } from '../types'
-import { createServerProxyFactory } from '../providers/serverProxy'
 import { resolveChatFeatures } from '../features'
 import type { ChatAdapter, ChatConfig, ChatPresetProps, ChatPresetSlices } from './types'
 import { resolveChatMessages } from '../messages'
 import { loadChatConfig } from './configLoader'
+import { createOpenAICompatibleResponseProvider } from './openaiCompatibleTransport'
 
 export function createChatAdapterFromConfig(input: string | ChatConfig | unknown): ChatAdapter {
   const config = loadChatConfig(input)
@@ -12,42 +12,48 @@ export function createChatAdapterFromConfig(input: string | ChatConfig | unknown
   const models: ModelOption[] = config.models.map((model) => ({
     value: model.id,
     label: model.label,
-    provider: model.provider,
+    providerId: model.providerId,
     disabled: model.disabled,
   }))
 
-  const providerFactories = Object.entries(config.providers).map(([providerId, providerConfig]) =>
-    createServerProxyFactory({
-      provider: providerId,
-      ...providerConfig,
-      systemPrompt: providerConfig.systemPrompt ?? config.defaults?.systemPrompt,
-    }),
-  )
-
   const defaultModel = config.defaults?.model ?? models[0]?.value
 
-  function createResponseProvider(modelId?: string): ResponseProvider {
+  function getModel(modelId?: string): ModelOption | undefined {
     const targetModelId = modelId ?? defaultModel
-    const model = models.find((item) => item.value === targetModelId) ?? models[0]
+    return models.find((item) => item.value === targetModelId) ?? models[0]
+  }
+
+  function createResponseProvider(modelId?: string): ResponseProvider {
+    const model = getModel(modelId)
 
     if (!model) {
       throw new Error('[createChatAdapterFromConfig] No models available to create response provider')
     }
 
-    const factory = providerFactories.find((item) => item.match(model))
-    if (!factory) {
-      throw new Error(`[createChatAdapterFromConfig] No provider factory matched model "${model.value}"`)
+    const providerId = model.providerId
+    if (!providerId) {
+      throw new Error(`[createChatAdapterFromConfig] Model "${model.value}" is missing providerId`)
     }
 
-    return factory.createProvider(model)
+    const providerConfig = config.providers[providerId]
+    if (!providerConfig) {
+      throw new Error(`[createChatAdapterFromConfig] No provider config matched "${providerId}"`)
+    }
+
+    return createOpenAICompatibleResponseProvider({
+      providerId,
+      model: model.value,
+      ...providerConfig,
+      systemPrompt: providerConfig.systemPrompt ?? config.defaults?.systemPrompt,
+    })
   }
 
   return {
     config,
     models,
-    providerFactories,
     defaultModel,
     resolvedFeatures,
+    getModel,
     createResponseProvider,
   }
 }
@@ -83,7 +89,6 @@ export function createPresetChatProps(
 
   return {
     models: adapter.models,
-    providerFactories: adapter.providerFactories,
     defaultModel: adapter.defaultModel,
     appearance: adapter.config.appearance,
     brand: adapter.config.ui?.brand,
@@ -102,7 +107,6 @@ export function createPresetChatProps(
 export function createPresetChatSlices(preset: ChatPresetProps & Partial<TrChatPresetOverrides>): ChatPresetSlices {
   const senderProps = preset.senderProps ?? {}
   const models = preset.models
-  const providerFactories = preset.providerFactories
 
   return {
     root: {
@@ -152,9 +156,8 @@ export function createPresetChatSlices(preset: ChatPresetProps & Partial<TrChatP
       props: preset.historyProps,
     },
     modelSelector: {
-      enabled: Boolean(models?.length && providerFactories?.length),
+      enabled: Boolean(models && models.length > 1),
       models,
-      providerFactories,
       defaultModel: preset.defaultModel,
     },
   }

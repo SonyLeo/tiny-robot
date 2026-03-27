@@ -206,7 +206,7 @@ await runTest('createChatAdapterFromAgentPreset resolves back into the existing 
   const mcpManager = useMcpManager()
   const { resolvedPreset, chatConfig, adapter } = createChatAdapterFromAgentPreset({
     baseConfig: {
-      models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+      models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
       providers: {
         openai: {
           type: 'openai-compatible',
@@ -340,7 +340,7 @@ await runTest('resolveAgentPreset merges brand, welcome, layout placements, and 
 await runTest('createChatAdapterFromAgentPreset keeps base feature config and lets preset composition merge into it', async () => {
   const { chatConfig } = createChatAdapterFromAgentPreset({
     baseConfig: {
-      models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+      models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
       providers: {
         openai: {
           type: 'openai-compatible',
@@ -527,7 +527,7 @@ await runTest('built-in presets can flow through adapter -> preset props -> pres
 
   const { chatConfig, adapter } = createChatAdapterFromAgentPreset({
     baseConfig: {
-      models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+      models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
       providers: {
         openai: {
           type: 'openai-compatible',
@@ -562,7 +562,7 @@ await runTest('createPresetConsumptionFromAgentPreset exposes the first chat-sid
 
   const result = createPresetConsumptionFromAgentPreset({
     baseConfig: {
-      models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+      models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
       providers: {
         openai: {
           type: 'openai-compatible',
@@ -614,7 +614,7 @@ await runTest('createPresetConsumptionFromAgentPreset exposes the first chat-sid
 await runTest('createPresetConsumptionFromAgentPreset lets presetOverrides shape the final preset props and slices', async () => {
   const result = createPresetConsumptionFromAgentPreset({
     baseConfig: {
-      models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+      models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
       providers: {
         openai: {
           type: 'openai-compatible',
@@ -665,3 +665,4 @@ await runTest('createPresetChatSlices falls back to overridden sender messages w
   assert.equal(slices.sender.placeholder, 'Preset messages placeholder')
   assert.equal(slices.root.messages?.sender?.placeholder, 'Preset messages placeholder')
 })
+

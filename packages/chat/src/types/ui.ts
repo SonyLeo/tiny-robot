@@ -20,7 +20,7 @@ import type {
   UseChatKitOptions,
   UseChatKitReturn,
 } from './core'
-import type { ModelOption, ModelProviderFactory } from './model'
+import type { ModelOption } from './model'
 
 export interface WelcomeConfig {
   title: string
@@ -147,9 +147,6 @@ export interface TrChatPresetOverrides {
   senderProps?: SenderProps
   bubbleListProps?: Omit<BubbleListProps, 'roleConfigs' | 'groupStrategy' | 'messages'>
   historyProps?: Record<string, unknown>
-  models?: ModelOption[]
-  defaultModel?: string
-  providerFactories?: ModelProviderFactory[]
   onModelChange?: (model: ModelOption) => void
 }
 

@@ -295,39 +295,17 @@ await runTest('useChatKit rolls edited history back when the resend fails', asyn
 })
 
 
-await runTest('useModelSelector falls back to the first selectable model and syncs the provider', async () => {
+await runTest('useModelSelector falls back to the first enabled model and notifies change', async () => {
   const currentModel = ref('removed-model')
   const selected = []
-  const providerCalls = []
-  const providerA = () => {}
-  const providerB = () => {}
   const models = ref([
-    { value: 'disabled-model', provider: 'openai', disabled: true },
-    { value: 'ready-model', provider: 'deepseek' },
-  ])
-  const providerFactories = ref([
-    {
-      match: (model) => model.value === 'ready-model',
-      createProvider: (model) => {
-        providerCalls.push(model.value)
-        return providerB
-      },
-    },
-    {
-      match: (model) => model.value === 'other-model',
-      createProvider: () => providerA,
-    },
+    { value: 'disabled-model', providerId: 'openai', disabled: true },
+    { value: 'ready-model', providerId: 'deepseek' },
   ])
 
   useModelSelector({
     currentModel,
     models,
-    providerFactories,
-    chatKit: {
-      updateResponseProvider(provider) {
-        assert.equal(provider, providerB)
-      },
-    },
     onChange: (model) => {
       selected.push(model.value)
     },
@@ -336,98 +314,51 @@ await runTest('useModelSelector falls back to the first selectable model and syn
   await nextTick()
 
   assert.equal(currentModel.value, 'ready-model')
-  assert.deepEqual(providerCalls, ['ready-model'])
   assert.deepEqual(selected, ['ready-model'])
 })
 
-await runTest('useModelSelector keeps the current model when the next model has no matching provider factory', async () => {
+await runTest('useModelSelector ignores disabled model selections', async () => {
   const currentModel = ref('ready-model')
-  const providerCalls = []
-  const readyProvider = () => {}
   const models = ref([
-    { value: 'ready-model', provider: 'deepseek' },
-    { value: 'missing-factory-model', provider: 'openai' },
-  ])
-  const providerFactories = ref([
-    {
-      match: (model) => model.value === 'ready-model',
-      createProvider: (model) => {
-        providerCalls.push(model.value)
-        return readyProvider
-      },
-    },
+    { value: 'ready-model', providerId: 'deepseek' },
+    { value: 'disabled-model', providerId: 'openai', disabled: true },
   ])
 
   const selector = useModelSelector({
     currentModel,
     models,
-    providerFactories,
-    chatKit: {
-      updateResponseProvider(provider) {
-        assert.equal(provider, readyProvider)
-      },
-    },
   })
 
   await nextTick()
-  providerCalls.length = 0
 
   selector.selectModel(models.value[1])
 
   assert.equal(currentModel.value, 'ready-model')
-  assert.deepEqual(providerCalls, [])
-  assert.notEqual(selector.currentModelOption.value?.value, 'missing-factory-model')
+  assert.notEqual(selector.currentModelOption.value?.value, 'disabled-model')
 })
 
 await runTest('useModelSelector can sync a model without firing onChange', async () => {
   const currentModel = ref('ready-model')
   const selected = []
-  const providerCalls = []
-  const readyProvider = () => {}
-  const nextProvider = () => {}
   const models = ref([
-    { value: 'ready-model', provider: 'deepseek' },
-    { value: 'next-model', provider: 'openai' },
-  ])
-  const providerFactories = ref([
-    {
-      match: (model) => model.value === 'ready-model',
-      createProvider: (model) => {
-        providerCalls.push(model.value)
-        return readyProvider
-      },
-    },
-    {
-      match: (model) => model.value === 'next-model',
-      createProvider: (model) => {
-        providerCalls.push(model.value)
-        return nextProvider
-      },
-    },
+    { value: 'ready-model', providerId: 'deepseek' },
+    { value: 'next-model', providerId: 'openai' },
   ])
 
   const selector = useModelSelector({
     currentModel,
     models,
-    providerFactories,
-    chatKit: {
-      updateResponseProvider(provider) {
-        assert.equal(provider, nextProvider)
-      },
-    },
     onChange: (model) => {
       selected.push(model.value)
     },
   })
 
   await nextTick()
-  providerCalls.length = 0
   selected.length = 0
 
   selector.selectModel(models.value[1], { notifyChange: false })
 
   assert.equal(currentModel.value, 'next-model')
-  assert.deepEqual(providerCalls, ['next-model'])
   assert.deepEqual(selected, [])
 })
 
@@ -476,3 +407,4 @@ await runTest('useChatAttachments revokes owned object urls when items are remov
     URL.revokeObjectURL = originalRevokeObjectURL
   }
 })
+

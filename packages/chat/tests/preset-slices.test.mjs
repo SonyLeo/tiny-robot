@@ -11,7 +11,7 @@ import {
 
 await runTest('createPresetChatSlices exposes white-box slices that preserve blackbox defaults', async () => {
   const adapter = createChatAdapterFromConfig({
-    models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+    models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
     providers: {
       openai: {
         type: 'openai-compatible',
@@ -69,13 +69,13 @@ await runTest('createPresetChatSlices exposes white-box slices that preserve bla
   assert.equal(slices.sender.mode, 'multiple')
   assert.equal(slices.sender.maxLength, 120)
   assert.equal(slices.history.enabled, true)
-  assert.equal(slices.modelSelector.enabled, true)
+  assert.equal(slices.modelSelector.enabled, false)
   assert.equal(slices.modelSelector.defaultModel, 'gpt-4o-mini')
 })
 
 await runTest('createPresetChatSlices keeps white-box slices empty when optional capabilities are absent', async () => {
   const adapter = createChatAdapterFromConfig({
-    models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+    models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
     providers: {
       openai: {
         type: 'openai-compatible',
@@ -96,12 +96,12 @@ await runTest('createPresetChatSlices keeps white-box slices empty when optional
   assert.equal(slices.sender.placeholder, CHAT_MESSAGES.sender.placeholder)
   assert.equal(slices.sender.mode, 'multiple')
   assert.equal(slices.history.enabled, true)
-  assert.equal(slices.modelSelector.enabled, true)
+  assert.equal(slices.modelSelector.enabled, false)
 })
 
 await runTest('createPresetChatSlices exposes layout variant and placement defaults for white-box composition', async () => {
   const adapter = createChatAdapterFromConfig({
-    models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+    models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
     providers: {
       openai: {
         type: 'openai-compatible',
@@ -128,7 +128,7 @@ await runTest('createPresetChatSlices exposes layout variant and placement defau
 
 await runTest('createPresetChatSlices exposes appearance config as a dedicated white-box slice', async () => {
   const adapter = createChatAdapterFromConfig({
-    models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+    models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
     providers: {
       openai: {
         type: 'openai-compatible',
@@ -153,7 +153,7 @@ await runTest('createPresetChatSlices exposes appearance config as a dedicated w
 
 await runTest('createPresetChatSlices keeps system appearance mode as a dedicated white-box slice value', async () => {
   const adapter = createChatAdapterFromConfig({
-    models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+    models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
     providers: {
       openai: {
         type: 'openai-compatible',
@@ -178,7 +178,7 @@ await runTest('createPresetChatSlices keeps system appearance mode as a dedicate
 
 await runTest('loadChatConfig and preset slices preserve workspace layout variant as a pure layout choice', async () => {
   const config = loadChatConfig({
-    models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+    models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
     providers: {
       openai: {
         type: 'openai-compatible',
@@ -219,7 +219,7 @@ await runTest('loadChatConfig and preset slices preserve workspace layout varian
 
 await runTest('createPresetChatSlices keeps contentLayout override in the layout slice', async () => {
   const adapter = createChatAdapterFromConfig({
-    models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+    models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
     providers: {
       openai: {
         type: 'openai-compatible',
@@ -241,7 +241,7 @@ await runTest('createPresetChatSlices keeps contentLayout override in the layout
 
 await runTest('createPresetChatSlices preserves senderProps.extensions for passthrough composition', async () => {
   const adapter = createChatAdapterFromConfig({
-    models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+    models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
     providers: {
       openai: {
         type: 'openai-compatible',
@@ -264,7 +264,7 @@ await runTest('createPresetChatSlices preserves senderProps.extensions for passt
 
 await runTest('createPresetChatSlices keeps root feature defaults while sender slice honors explicit sender overrides', async () => {
   const adapter = createChatAdapterFromConfig({
-    models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+    models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
     providers: {
       openai: {
         type: 'openai-compatible',
@@ -333,7 +333,7 @@ await runTest('createPresetChatProps and createPresetChatSlices expose mcp manag
   })
 
   const adapter = createChatAdapterFromConfig({
-    models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+    models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
     providers: {
       openai: {
         type: 'openai-compatible',
@@ -362,7 +362,7 @@ await runTest('createPresetChatProps lets explicit mcpManager override win over 
   const featureManager = useMcpManager()
   const overrideManager = useMcpManager()
   const adapter = createChatAdapterFromConfig({
-    models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+    models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
     providers: {
       openai: {
         type: 'openai-compatible',
@@ -386,7 +386,7 @@ await runTest('createPresetChatProps lets explicit mcpManager override win over 
 await runTest('feature registry output flows into preset props and white-box slices through a stable mapping contract', async () => {
   const mcpManager = useMcpManager()
   const adapter = createChatAdapterFromConfig({
-    models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+    models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
     providers: {
       openai: {
         type: 'openai-compatible',
@@ -449,3 +449,4 @@ await runTest('feature registry output flows into preset props and white-box sli
   })
   assert.equal(slices.messageList.showFeedback, true)
 })
+

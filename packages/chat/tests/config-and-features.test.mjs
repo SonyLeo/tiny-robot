@@ -9,7 +9,7 @@ import {
 
 await runTest('loadChatConfig normalizes feature config and createPresetChatProps consumes resolved feature defaults', async () => {
   const config = loadChatConfig({
-    models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+    models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
     providers: {
       openai: {
         type: 'openai-compatible',
@@ -121,7 +121,7 @@ await runTest('loadChatConfig normalizes feature config and createPresetChatProp
 
 await runTest('createPresetChatProps lets explicit overrides win over resolved feature defaults', async () => {
   const adapter = createChatAdapterFromConfig({
-    models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+    models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
     providers: {
       openai: {
         type: 'openai-compatible',
@@ -165,7 +165,7 @@ await runTest('createPresetChatProps lets explicit overrides win over resolved f
 
 await runTest('loadChatConfig normalizes layout config and createPresetChatProps consumes it as layout defaults', async () => {
   const config = loadChatConfig({
-    models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+    models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
     providers: {
       openai: {
         type: 'openai-compatible',
@@ -202,7 +202,7 @@ await runTest('loadChatConfig normalizes layout config and createPresetChatProps
 
 await runTest('createPresetChatProps lets presetOverrides.contentLayout win over config.layout.contentLayout', async () => {
   const adapter = createChatAdapterFromConfig({
-    models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+    models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
     providers: {
       openai: {
         type: 'openai-compatible',
@@ -223,7 +223,7 @@ await runTest('createPresetChatProps lets presetOverrides.contentLayout win over
 
 await runTest('loadChatConfig normalizes appearance config and createPresetChatProps exposes it for runtime consumption', async () => {
   const config = loadChatConfig({
-    models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+    models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
     providers: {
       openai: {
         type: 'openai-compatible',
@@ -247,7 +247,7 @@ await runTest('loadChatConfig normalizes appearance config and createPresetChatP
 
 await runTest('loadChatConfig preserves system appearance mode and createPresetChatProps forwards it for runtime resolution', async () => {
   const config = loadChatConfig({
-    models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+    models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
     providers: {
       openai: {
         type: 'openai-compatible',
@@ -297,7 +297,7 @@ await runTest('resolveChatFeatures keeps attachments and senderActions outputs i
 
 await runTest('createPresetChatProps lets welcomePrompts override legacy ui.prompts and explicit disable clears prompts', async () => {
   const adapter = createChatAdapterFromConfig({
-    models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+    models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
     providers: {
       openai: {
         type: 'openai-compatible',
@@ -323,7 +323,7 @@ await runTest('createPresetChatProps lets welcomePrompts override legacy ui.prom
   assert.equal(adapter.resolvedFeatures.entries.welcomePrompts.enabled, true)
 
   const disabledAdapter = createChatAdapterFromConfig({
-    models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+    models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
     providers: {
       openai: {
         type: 'openai-compatible',
@@ -345,7 +345,7 @@ await runTest('createPresetChatProps lets welcomePrompts override legacy ui.prom
 
 await runTest('loadChatConfig still accepts legacy suggestions as an alias of welcomePrompts', async () => {
   const adapter = createChatAdapterFromConfig({
-    models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+    models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
     providers: {
       openai: {
         type: 'openai-compatible',
@@ -394,7 +394,7 @@ await runTest('loadChatConfig hoists mcp runtime objects out of declarative feat
   const mcpManager = { id: 'manager' }
 
   const config = loadChatConfig({
-    models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+    models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
     providers: {
       openai: {
         type: 'openai-compatible',
@@ -413,7 +413,7 @@ await runTest('loadChatConfig hoists mcp runtime objects out of declarative feat
   assert.equal(config.runtime?.mcpManager, mcpManager)
 
   const explicitRuntimeConfig = loadChatConfig({
-    models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+    models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
     providers: {
       openai: {
         type: 'openai-compatible',
@@ -436,7 +436,7 @@ await runTest('loadChatConfig rejects invalid feature shapes', async () => {
   assert.throws(
     () =>
       loadChatConfig({
-        models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+        models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
         providers: {
           openai: {
             type: 'openai-compatible',
@@ -455,7 +455,7 @@ await runTest('loadChatConfig rejects invalid feature shapes', async () => {
   assert.throws(
     () =>
       loadChatConfig({
-        models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+        models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
         providers: {
           openai: {
             type: 'openai-compatible',
@@ -472,7 +472,7 @@ await runTest('loadChatConfig rejects invalid feature shapes', async () => {
   assert.throws(
     () =>
       loadChatConfig({
-        models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+        models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
         providers: {
           openai: {
             type: 'openai-compatible',
@@ -489,7 +489,7 @@ await runTest('loadChatConfig rejects invalid feature shapes', async () => {
   assert.throws(
     () =>
       loadChatConfig({
-        models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+        models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
         providers: {
           openai: {
             type: 'openai-compatible',
@@ -506,7 +506,7 @@ await runTest('loadChatConfig rejects invalid feature shapes', async () => {
   assert.throws(
     () =>
       loadChatConfig({
-        models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+        models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
         providers: {
           openai: {
             type: 'openai-compatible',
@@ -518,3 +518,4 @@ await runTest('loadChatConfig rejects invalid feature shapes', async () => {
     /appearance must be an object/,
   )
 })
+

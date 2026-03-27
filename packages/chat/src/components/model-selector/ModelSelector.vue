@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed, inject, ref, type Ref } from 'vue'
-import type { ModelOption, ModelProviderFactory } from '@/types'
-import { CHAT_KIT_KEY, useChatScaffoldContext } from '@/context'
+import { computed, ref, type Ref } from 'vue'
+import type { ModelOption } from '@/types'
+import { useChatScaffoldContext } from '@/context'
 import { getProviderIcon } from '@/utils/iconMap'
 import { useModelSelector } from '@/composables'
 import { useFloatingDropdown } from '@/composables/useFloatingDropdown'
@@ -11,7 +11,6 @@ defineOptions({ name: 'TrModelSelector' })
 
 const props = defineProps<{
   models?: ModelOption[]
-  providerFactories?: ModelProviderFactory[]
 }>()
 
 const emit = defineEmits<{
@@ -20,10 +19,8 @@ const emit = defineEmits<{
 
 const modelValue = defineModel<string>()
 const scaffoldContext = useChatScaffoldContext()
-const chatKit = inject(CHAT_KIT_KEY, null)
 
 const resolvedModels = computed(() => props.models ?? scaffoldContext?.models.value ?? [])
-const resolvedProviderFactories = computed(() => props.providerFactories ?? scaffoldContext?.providerFactories.value)
 const currentModel = computed<string>({
   get: () => modelValue.value ?? scaffoldContext?.currentModel.value ?? '',
   set: (value) => {
@@ -41,8 +38,6 @@ const { isOpen } = useFloatingDropdown(referenceEl, floatingEl)
 const { currentProvider, selectModel } = useModelSelector({
   currentModel,
   models: resolvedModels,
-  providerFactories: resolvedProviderFactories,
-  chatKit,
   onChange: (model) => {
     emit('change', model)
   },

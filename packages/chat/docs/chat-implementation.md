@@ -35,6 +35,13 @@
 - 已归 `packages/kit` 的低层消息引擎原语
 - workspace shell / 侧边面板布局系统
 
+运行时与配置约束：
+
+- `ResponseProvider` 是 chat 包内唯一稳定的运行时 provider contract
+- `ChatConfig -> loadChatConfig() -> createChatAdapterFromConfig()` 是唯一配置主路径
+- `providers[*].type` 缺省时默认按 `openai-compatible` 处理
+- `providerId` 只表示模型归属的配置标识，不再表示一套独立 provider 实现
+
 ## 公开入口
 
 ### 黑盒
@@ -67,7 +74,7 @@ interface TrChatProps {
 - `presetProps`
 - `presetSlices`
 - 模型状态
-- provider 工厂状态
+- 当前模型对应的 response provider 解析入口（通过 adapter）
 
 ### 白盒
 
@@ -110,7 +117,7 @@ interface TrChatProps {
 `ChatScaffold`：
 
 1. 使用 `createChatAdapterFromConfig` 归一化配置
-2. 解析模型列表、provider 工厂、默认模型
+2. 解析模型列表、默认模型和 `createResponseProvider()`
 3. 创建或复用 `chatKit`
 4. 合并 `presetOverrides`
 5. 生成：

@@ -2,7 +2,7 @@ import { computed, shallowRef, watchEffect } from 'vue'
 import type { ComputedRef, ShallowRef } from 'vue'
 import type { UseConversationReturn } from '@opentiny/tiny-robot-kit'
 import type { ChatErrorInfo, ChatStatus, ResponseProvider, UseMessageResponseProvider } from '../types'
-import { ChatProviderError } from '@/providers/shared'
+import { ChatProviderError } from '@/adapters/openaiCompatibleTransport'
 
 interface UseChatRequestOptions {
   conversation: Pick<UseConversationReturn, 'activeConversation' | 'abortActiveRequest'>
@@ -32,11 +32,11 @@ function normalizeChatError(error: unknown): ChatErrorInfo {
       : typeof (error as { code?: unknown })?.code === 'string'
         ? (error as { code: string }).code
         : undefined
-  const provider =
+  const providerId =
     error instanceof ChatProviderError
-      ? error.provider
-      : typeof (error as { provider?: unknown })?.provider === 'string'
-        ? (error as { provider: string }).provider
+      ? error.providerId
+      : typeof (error as { providerId?: unknown })?.providerId === 'string'
+        ? (error as { providerId: string }).providerId
         : undefined
   const lowerCasedMessage = message.toLowerCase()
   const retryable =
@@ -50,7 +50,7 @@ function normalizeChatError(error: unknown): ChatErrorInfo {
       httpStatus,
       statusCode,
       code,
-      provider,
+      providerId,
       originalError: error,
     }
   }
@@ -63,7 +63,7 @@ function normalizeChatError(error: unknown): ChatErrorInfo {
       httpStatus,
       statusCode,
       code,
-      provider,
+      providerId,
       originalError: error,
     }
   }
@@ -76,7 +76,7 @@ function normalizeChatError(error: unknown): ChatErrorInfo {
       httpStatus,
       statusCode,
       code,
-      provider,
+      providerId,
       originalError: error,
     }
   }
@@ -89,7 +89,7 @@ function normalizeChatError(error: unknown): ChatErrorInfo {
       httpStatus,
       statusCode,
       code,
-      provider,
+      providerId,
       originalError: error,
     }
   }
@@ -106,7 +106,7 @@ function normalizeChatError(error: unknown): ChatErrorInfo {
       httpStatus,
       statusCode,
       code,
-      provider,
+      providerId,
       originalError: error,
     }
   }
@@ -119,7 +119,7 @@ function normalizeChatError(error: unknown): ChatErrorInfo {
       httpStatus,
       statusCode,
       code,
-      provider,
+      providerId,
       originalError: error,
     }
   }
@@ -131,7 +131,7 @@ function normalizeChatError(error: unknown): ChatErrorInfo {
     httpStatus,
     statusCode,
     code,
-    provider,
+    providerId,
     originalError: error,
   }
 }

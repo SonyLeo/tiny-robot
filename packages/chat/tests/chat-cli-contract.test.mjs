@@ -44,7 +44,7 @@ await runTest('createChatCliCapabilitySurface exposes the current stable chat-cl
   const mcpManager = useMcpManager()
 
   const adapter = createChatAdapterFromConfig({
-    models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
+    models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
     providers: {
       openai: {
         type: 'openai-compatible',
@@ -130,6 +130,7 @@ await runTest('createChatCliCapabilitySurface exposes the current stable chat-cl
   assert.deepEqual(surface.presetSlices.history.props, {
     selected: 'conversation-2',
   })
-  assert.equal(surface.presetSlices.modelSelector.enabled, true)
+  assert.equal(surface.presetSlices.modelSelector.enabled, false)
   assert.equal(surface.presetSlices.modelSelector.defaultModel, 'gpt-4o-mini')
 })
+

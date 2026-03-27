@@ -42,10 +42,4 @@ export type {
   WelcomeConfig,
 } from './ui'
 
-export type {
-  DeepSeekProviderOptions,
-  ModelOption,
-  ModelProviderFactory,
-  OpenAIProviderOptions,
-  ProviderFactoryCreator,
-} from './model'
+export type { ModelOption } from './model'

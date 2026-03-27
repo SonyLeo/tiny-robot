@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import type { TrChatPresetOverrides } from '@opentiny/tiny-robot-chat'
-import { TrChat, useMcpManager, createChatAdapterFromConfig } from '@opentiny/tiny-robot-chat'
+import { TrChat, useMcpManager } from '@opentiny/tiny-robot-chat'
 import { localStorageStrategyFactory, toolPlugin } from '@opentiny/tiny-robot-kit'
 import { defaultMcpServers } from '../data/mcpServers'
 import { WELCOME_CONFIG, WELCOME_PROMPTS, BRAND_CONFIG } from '../constants'
@@ -15,16 +15,15 @@ const mcpManager = useMcpManager({
   bridge: createDemoMcpBridge(),
 })
 
-const chatAdapter = createChatAdapterFromConfig({
+const chatConfig = {
   models: [
-    { id: 'deepseek-chat', label: 'DeepSeek Chat', provider: 'deepseek' },
-    { id: 'deepseek-reasoner', label: 'DeepSeek Reasoner', provider: 'deepseek' },
-    { id: 'gpt-4o', label: 'GPT-4o', provider: 'openai' },
-    { id: 'gpt-4o-mini', label: 'GPT-4o Mini', provider: 'openai' },
+    { id: 'deepseek-chat', label: 'DeepSeek Chat', providerId: 'deepseek' },
+    { id: 'deepseek-reasoner', label: 'DeepSeek Reasoner', providerId: 'deepseek' },
+    { id: 'gpt-4o', label: 'GPT-4o', providerId: 'openai' },
+    { id: 'gpt-4o-mini', label: 'GPT-4o Mini', providerId: 'openai' },
   ],
   providers: {
     deepseek: {
-      type: 'openai-compatible',
       baseURL: 'https://api.deepseek.com/v1',
       headers: {
         Authorization: `Bearer ${deepseekApiKey}`,
@@ -32,7 +31,6 @@ const chatAdapter = createChatAdapterFromConfig({
       systemPrompt: 'You are a helpful assistant.',
     },
     openai: {
-      type: 'openai-compatible',
       baseURL: 'https://api.openai.com/v1',
       headers: {
         Authorization: `Bearer ${openaiApiKey}`,
@@ -51,7 +49,7 @@ const chatAdapter = createChatAdapterFromConfig({
   runtime: {
     mcpManager,
   },
-})
+}
 
 const toolPluginInstance = toolPlugin({
   getTools: mcpManager.getTools,
@@ -73,7 +71,7 @@ const blackboxPresetOverrides = computed<TrChatPresetOverrides>(() => ({
 </script>
 
 <template>
-  <TrChat :config="chatAdapter.config" :runtime="blackboxRuntime" :preset-overrides="blackboxPresetOverrides">
+  <TrChat :config="chatConfig" :runtime="blackboxRuntime" :preset-overrides="blackboxPresetOverrides">
     <template #header-extra>
       <label class="layout-toggle">
         <input v-model="isFullWidth" type="checkbox" />

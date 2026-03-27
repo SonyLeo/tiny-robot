@@ -87,13 +87,6 @@ export {
   TrChatHistorySurface,
 }
 
-// ===== Providers =====
-export { matchProvider, createOpenAIFactory, createDeepSeekFactory } from './providers/factories'
-export { createOpenAIProvider } from './providers/openai'
-export { createDeepSeekProvider } from './providers/deepseek'
-export { createServerProxyProvider, createServerProxyFactory } from './providers/serverProxy'
-export { ChatProviderError, createOpenAICompatibleSseProvider } from './providers/shared'
-
 // ===== Adapters =====
 export { loadChatConfig, createChatAdapterFromConfig, createPresetChatProps, createPresetChatSlices } from './adapters'
 export { CHAT_CAPABILITY_MANIFEST, createChatCapabilityManifest } from './capabilities'
@@ -148,12 +141,8 @@ export type {
   WelcomeConfig,
   ChatMessages,
   ChatMessagesOverrides,
-  OpenAIProviderOptions,
-  DeepSeekProviderOptions,
   UseMessageResponseProvider,
   ModelOption,
-  ModelProviderFactory,
-  ProviderFactoryCreator,
   TrChatScaffoldContextValue,
 } from './types'
 export type { UseDefaultBubbleConfigOptions } from './composables'

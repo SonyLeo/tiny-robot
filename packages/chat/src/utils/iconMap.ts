@@ -40,7 +40,8 @@ export function getProviderIcon(model: ModelOption | string): Component | null {
       return model.icon
     }
 
-    return model.provider ? (PROVIDER_ICON_MAP[model.provider.toLowerCase()] ?? null) : null
+    const providerId = model.providerId
+    return providerId ? (PROVIDER_ICON_MAP[providerId.toLowerCase()] ?? null) : null
   }
 
   return PROVIDER_ICON_MAP[model.toLowerCase()] ?? null
