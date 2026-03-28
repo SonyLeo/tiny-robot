@@ -2,6 +2,7 @@ import type { ChatAdapter, ChatConfig, ChatConfigDefaults, ChatConfigUI, ChatLay
 import type { ChatPresetProps, ChatPresetSlices } from '../adapters/types'
 import type { TrChatPresetOverrides } from '../types'
 import type { ChatFeatureConfigMap, ChatMcpFeatureConfig } from '../features'
+import type { ChatWorkspaceShellConfig } from '../types/workspace'
 
 export interface AgentPresetUiInput extends Partial<ChatConfigUI> {
   promptMode?: 'replace' | 'append'
@@ -17,6 +18,7 @@ export interface AgentPresetInput {
   extends?: string[]
   defaults?: ChatConfigDefaults
   ui?: AgentPresetUiInput
+  shell?: ChatWorkspaceShellConfig
   layout?: ChatLayoutConfig
   features?: ChatFeatureConfigMap
   mcp?: ChatMcpFeatureConfig
@@ -29,6 +31,7 @@ export interface SkillPackInput {
   label?: string
   defaults?: ChatConfigDefaults
   ui?: AgentPresetUiInput
+  shell?: ChatWorkspaceShellConfig
   layout?: ChatLayoutConfig
   features?: ChatFeatureConfigMap
   mcp?: ChatMcpFeatureConfig
@@ -39,7 +42,7 @@ export interface ResolvedAgentPreset {
   presetId: string
   presetChain: AgentPresetInput[]
   skillPacks: SkillPackInput[]
-  chatConfigPatch: Partial<Pick<ChatConfig, 'defaults' | 'ui' | 'layout' | 'features' | 'runtime'>>
+  chatConfigPatch: Partial<Pick<ChatConfig, 'defaults' | 'ui' | 'shell' | 'layout' | 'features' | 'runtime'>>
 }
 
 export interface ResolveAgentPresetOptions {

@@ -11,7 +11,10 @@ const chatMessages = useResolvedChatMessages()
 
 function handleCreateNewSession() {
   chatKit.createConversation()
-  chatUi.history.close()
+
+  if (!chatUi.workspace.enabled.value || chatUi.workspace.isMobile.value) {
+    chatUi.history.close()
+  }
 }
 </script>
 

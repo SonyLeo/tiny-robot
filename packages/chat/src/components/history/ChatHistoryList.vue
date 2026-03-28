@@ -35,7 +35,10 @@ async function handleItemClick(item: HistoryItem) {
 
   try {
     await chatKit.switchConversation(item.id!)
-    chatUi.history.close()
+
+    if (!chatUi.workspace.enabled.value || chatUi.workspace.isMobile.value) {
+      chatUi.history.close()
+    }
   } catch (error) {
     console.error('[TrChatHistoryList] Failed to switch conversation', error)
   }

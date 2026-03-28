@@ -10,6 +10,7 @@ import type {
   WelcomeConfig,
 } from '../types'
 import type { ChatFeatureConfigMap, ChatFeaturePresetProps, ResolvedChatFeatures } from '../features'
+import type { ChatWorkspaceShellConfig } from '../types/workspace'
 
 export interface ChatConfigModel {
   id: string
@@ -63,6 +64,7 @@ export interface ChatConfig {
   providers: Record<string, ChatConfigProvider>
   defaults?: ChatConfigDefaults
   appearance?: ChatAppearanceConfig
+  shell?: ChatWorkspaceShellConfig
   ui?: ChatConfigUI
   layout?: ChatLayoutConfig
   features?: ChatFeatureConfigMap
@@ -80,7 +82,7 @@ export interface ChatAdapter {
 
 export type ChatPresetProps = Pick<
   TrChatPresetOverrides,
-  'appearance' | 'brand' | 'welcome' | 'prompts' | 'messages' | 'contentLayout'
+  'appearance' | 'brand' | 'welcome' | 'prompts' | 'messages' | 'contentLayout' | 'shell'
 > &
   ChatFeaturePresetProps & {
     models: ModelOption[]
@@ -103,6 +105,10 @@ export interface ChatPresetLayoutSlice {
 
 export interface ChatPresetAppearanceSlice {
   appearance?: TrChatPresetOverrides['appearance']
+}
+
+export interface ChatPresetShellSlice {
+  shell?: TrChatPresetOverrides['shell']
 }
 
 export interface ChatPresetHeaderSlice {
@@ -147,6 +153,7 @@ export interface ChatPresetSlices {
   root: ChatPresetRootSlice
   layout: ChatPresetLayoutSlice
   appearance: ChatPresetAppearanceSlice
+  shell: ChatPresetShellSlice
   header: ChatPresetHeaderSlice
   welcome?: ChatPresetWelcomeSlice
   messageList: ChatPresetMessageListSlice

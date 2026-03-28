@@ -43,3 +43,12 @@ export type {
 } from './ui'
 
 export type { ModelOption } from './model'
+export type {
+  ChatShellVariant,
+  ChatWorkspaceRegionCollapseMode,
+  ChatWorkspaceRegionConfig,
+  ChatWorkspaceRegionWidth,
+  ChatWorkspaceShellConfig,
+  ChatWorkspaceViewStateConfig,
+  TrChatWorkspaceShellProps,
+} from './workspace'

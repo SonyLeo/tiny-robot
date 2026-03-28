@@ -26,7 +26,6 @@
 .tr-chat__header {
   flex-shrink: 0;
   background: var(--chat-header-bg);
-  border-bottom: var(--chat-header-border-bottom);
 }
 
 .tr-chat__header-inner {
@@ -218,8 +217,6 @@
 
 .tr-chat__footer {
   flex-shrink: 0;
-  background: var(--chat-footer-bg);
-  border-top: var(--chat-footer-border-top);
 }
 
 .tr-chat .tr-bubble__box[data-optimistic='true'] {

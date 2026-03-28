@@ -1,15 +1,16 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { TrChat, createChatAdapterFromConfig, useChatKit, useMcpManager } from '@opentiny/tiny-robot-chat'
 import type { TrChatPresetOverrides } from '@opentiny/tiny-robot-chat'
-import { TrChat, TrChatFeedback, TrMcpTrigger, TrModelSelector, useMcpManager } from '@opentiny/tiny-robot-chat'
 import { localStorageStrategyFactory, toolPlugin } from '@opentiny/tiny-robot-kit'
 import { defaultMcpServers } from '../data/mcpServers'
 import { WELCOME_CONFIG, WELCOME_PROMPTS, BRAND_CONFIG } from '../constants'
 import { createDemoMcpBridge } from '../utils/mcpBridge'
 
-defineEmits<{
-  error: [error: Error]
-}>()
+const STORAGE_KEY = 'tiny-robot-chat-demo-whitebox-workspace-preview'
+const SEEDED_FLAG_KEY = `${STORAGE_KEY}-seeded-v4`
+const MOBILE_BREAKPOINT = '(max-width: 900px)'
+const previewConversationTitles = ['2', '12312333123', '1', '新会话', '1']
 
 const deepseekApiKey = import.meta.env.VITE_DEEPSEEK_API_KEY || ''
 const openaiApiKey = import.meta.env.VITE_OPENAI_API_KEY || ''
@@ -60,18 +61,122 @@ const toolPluginInstance = toolPlugin({
   callTool: mcpManager.callTool,
 })
 
-const scaffoldRuntime = {
+const chatAdapter = createChatAdapterFromConfig(chatConfig)
+const chatKit = useChatKit({
+  responseProvider: chatAdapter.createResponseProvider(chatAdapter.defaultModel),
   plugins: [toolPluginInstance],
   storage: localStorageStrategyFactory({
-    key: 'tiny-robot-chat-demo-whitebox',
+    key: STORAGE_KEY,
   }),
+})
+
+const scaffoldRuntime = {
+  chatKit,
+  mcpManager,
 }
 
-const isFullWidth = ref(false)
+const shellConfig = {
+  variant: 'workspace' as const,
+  leftRegion: {
+    enabled: true,
+    width: 272,
+    collapsible: true,
+    defaultOpen: true,
+    collapseMode: 'rail' as const,
+    railLabel: 'History',
+  },
+  rightRegion: {
+    enabled: true,
+    width: 360,
+    collapsible: true,
+    defaultOpen: false,
+    collapseMode: 'hidden' as const,
+    railLabel: 'Extension',
+  },
+}
+
 const scaffoldPresetOverrides = computed<TrChatPresetOverrides>(() => ({
   showFeedback: false,
-  contentLayout: isFullWidth.value ? 'wide' : 'centered',
+  showHistory: true,
+  contentLayout: 'wide',
+  shell: shellConfig,
 }))
+
+const isMobileViewport = ref(false)
+let mediaQueryList: MediaQueryList | null = null
+
+function syncViewportState(event?: MediaQueryListEvent) {
+  const isMobile = event ? event.matches : Boolean(mediaQueryList?.matches)
+  isMobileViewport.value = isMobile
+}
+
+function ensureDemoConversations() {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  if (window.localStorage.getItem(SEEDED_FLAG_KEY) === '1') {
+    return
+  }
+
+  if (chatKit.conversations.value.length > 0) {
+    window.localStorage.setItem(SEEDED_FLAG_KEY, '1')
+    return
+  }
+
+  const created = previewConversationTitles.map((title) => chatKit.createConversation({ title }))
+  const firstConversation = created[0]
+
+  if (firstConversation) {
+    void chatKit.switchConversation(firstConversation.id)
+  }
+
+  window.localStorage.setItem(SEEDED_FLAG_KEY, '1')
+}
+
+const activeConversationTitle = computed(() => {
+  const activeConversation = chatKit.conversations.value.find((item) => item.id === chatKit.activeConversationId.value)
+  return activeConversation?.title || 'TinyRobot Chat'
+})
+
+onMounted(() => {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  mediaQueryList = window.matchMedia(MOBILE_BREAKPOINT)
+  syncViewportState()
+
+  if ('addEventListener' in mediaQueryList) {
+    mediaQueryList.addEventListener('change', syncViewportState)
+  } else {
+    ;(
+      mediaQueryList as MediaQueryList & {
+        addListener: (listener: (event: MediaQueryListEvent) => void) => void
+      }
+    ).addListener(syncViewportState)
+  }
+
+  window.requestAnimationFrame(() => {
+    ensureDemoConversations()
+  })
+})
+
+onBeforeUnmount(() => {
+  if (!mediaQueryList) {
+    return
+  }
+
+  if ('removeEventListener' in mediaQueryList) {
+    mediaQueryList.removeEventListener('change', syncViewportState)
+  } else {
+    ;(
+      mediaQueryList as MediaQueryList & {
+        removeListener: (listener: (event: MediaQueryListEvent) => void) => void
+      }
+    ).removeListener(syncViewportState)
+  }
+})
 </script>
 
 <template>
@@ -79,67 +184,39 @@ const scaffoldPresetOverrides = computed<TrChatPresetOverrides>(() => ({
     :config="chatConfig"
     :runtime="scaffoldRuntime"
     :preset-overrides="scaffoldPresetOverrides"
-    v-slot="{ chatKit }"
+    v-slot="{ presetSlices }"
   >
-    <TrChat.Layout>
-      <TrChat.Header>
-        <template #extra>
-          <label class="layout-toggle">
-            <input v-model="isFullWidth" type="checkbox" />
-            <span>contentLayout</span>
-          </label>
-        </template>
-      </TrChat.Header>
+    <div class="whitebox-workspace">
+      <TrChat.WorkspaceLayout :appearance="presetSlices.appearance.appearance" :shell="shellConfig">
+        <TrChat.Layout :appearance="presetSlices.appearance.appearance" content-layout="wide">
+          <TrChat.Header :title="activeConversationTitle" :show-history="true" :show-new-chat="false" />
 
-      <div v-if="chatKit.messages.value.length === 0" class="tr-chat__welcome-area">
-        <TrChat.Welcome @prompt-click="chatKit.sendMessage($event)" />
-      </div>
-      <TrChat.MessageList v-else>
-        <template #after="slotProps">
-          <TrChatFeedback v-bind="slotProps" style="margin-top: 6px" />
-        </template>
-      </TrChat.MessageList>
+          <div v-if="chatKit.messages.value.length === 0" class="tr-chat__welcome-area">
+            <TrChat.Welcome @prompt-click="chatKit.sendMessage($event)" />
+          </div>
 
-      <TrChat.Footer class="tr-chat-footer-wrapper">
-        <TrChat.Attachments />
-        <TrChat.Sender>
-          <template #footer>
-            <TrModelSelector />
-            <TrMcpTrigger />
-          </template>
-        </TrChat.Sender>
-      </TrChat.Footer>
+          <TrChat.MessageList v-else />
 
-      <TrChat.History />
-    </TrChat.Layout>
+          <TrChat.Footer class="whitebox-workspace__footer">
+            <TrChat.Attachments />
+            <TrChat.Sender />
+          </TrChat.Footer>
+        </TrChat.Layout>
+      </TrChat.WorkspaceLayout>
+    </div>
   </TrChat.Scaffold>
 </template>
 
 <style scoped>
-.tr-chat-footer-wrapper {
+.whitebox-workspace {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.whitebox-workspace__footer {
   display: flex;
   flex-direction: column;
   gap: 12px;
-}
-
-.layout-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: var(--tr-text-secondary);
-  user-select: none;
-}
-
-.layout-toggle input {
-  margin: 0;
-}
-
-:deep(.tr-bubble__box[data-role='user']) {
-  --tr-bubble-box-bg: var(--tr-color-primary-light);
-}
-
-:deep(.tr-bubble__box[data-editing='true']) {
-  width: 50% !important;
 }
 </style>

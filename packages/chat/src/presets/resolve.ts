@@ -13,6 +13,7 @@ import type {
   ResolvedAgentPreset,
   SkillPackInput,
 } from './types'
+import type { ChatWorkspaceShellConfig } from '../types/workspace'
 
 type ChatPromptList = NonNullable<NonNullable<ChatConfig['ui']>['prompts']>
 
@@ -40,6 +41,19 @@ function cloneRuntime(runtime: AgentPresetRuntimeInput | undefined): AgentPreset
 
   return {
     ...runtime,
+  }
+}
+
+function cloneShell(shell: ChatWorkspaceShellConfig | undefined): ChatWorkspaceShellConfig | undefined {
+  if (!shell) {
+    return undefined
+  }
+
+  return {
+    ...shell,
+    ...(shell.leftRegion ? { leftRegion: { ...shell.leftRegion } } : {}),
+    ...(shell.rightRegion ? { rightRegion: { ...shell.rightRegion } } : {}),
+    ...(shell.viewState ? { viewState: { ...shell.viewState } } : {}),
   }
 }
 
@@ -126,7 +140,7 @@ function mergeFeatures(
 }
 
 function toChatConfigPatch(
-  input: Pick<AgentPresetInput, 'defaults' | 'ui' | 'layout' | 'features' | 'mcp' | 'runtime'>,
+  input: Pick<AgentPresetInput, 'defaults' | 'ui' | 'shell' | 'layout' | 'features' | 'mcp' | 'runtime'>,
 ) {
   const features = input.features ? { ...input.features } : undefined
   let runtime = cloneRuntime(input.runtime)
@@ -147,6 +161,7 @@ function toChatConfigPatch(
     return {
       defaults: input.defaults ? { ...input.defaults } : undefined,
       ui: cloneUi(input.ui),
+      shell: cloneShell(input.shell),
       layout: input.layout
         ? {
             ...input.layout,
@@ -161,6 +176,7 @@ function toChatConfigPatch(
   return {
     defaults: input.defaults ? { ...input.defaults } : undefined,
     ui: cloneUi(input.ui),
+    shell: cloneShell(input.shell),
     layout: input.layout
       ? {
           ...input.layout,
@@ -170,6 +186,47 @@ function toChatConfigPatch(
     features,
     runtime,
   }
+}
+
+function mergeShell(
+  target: ChatConfig['shell'] | undefined,
+  patch: ChatConfig['shell'] | undefined,
+): ChatConfig['shell'] | undefined {
+  if (!patch) {
+    return target
+  }
+
+  const next: NonNullable<ChatConfig['shell']> = {
+    ...(target ?? {}),
+    ...patch,
+  }
+
+  if (patch.leftRegion) {
+    next.leftRegion = {
+      ...(target?.leftRegion ?? {}),
+      ...patch.leftRegion,
+    }
+  }
+
+  if (patch.rightRegion) {
+    next.rightRegion = {
+      ...(target?.rightRegion ?? {}),
+      ...patch.rightRegion,
+    }
+  }
+
+  if (patch.viewState) {
+    next.viewState = {
+      ...(target?.viewState ?? {}),
+      ...patch.viewState,
+    }
+  }
+
+  if (Object.values(next).every((value) => value === undefined)) {
+    return undefined
+  }
+
+  return next
 }
 
 function mergeUi(
@@ -248,9 +305,9 @@ function mergeRuntime(
 }
 
 function mergeChatConfigPatch(
-  target: Partial<Pick<ChatConfig, 'defaults' | 'ui' | 'layout' | 'features' | 'runtime'>>,
-  patch: Partial<Pick<ChatConfig, 'defaults' | 'ui' | 'layout' | 'features' | 'runtime'>>,
-): Partial<Pick<ChatConfig, 'defaults' | 'ui' | 'layout' | 'features' | 'runtime'>> {
+  target: Partial<Pick<ChatConfig, 'defaults' | 'ui' | 'shell' | 'layout' | 'features' | 'runtime'>>,
+  patch: Partial<Pick<ChatConfig, 'defaults' | 'ui' | 'shell' | 'layout' | 'features' | 'runtime'>>,
+): Partial<Pick<ChatConfig, 'defaults' | 'ui' | 'shell' | 'layout' | 'features' | 'runtime'>> {
   const next = { ...target }
 
   if (patch.defaults) {
@@ -262,6 +319,10 @@ function mergeChatConfigPatch(
 
   if (patch.ui) {
     next.ui = mergeUi(next.ui, patch.ui)
+  }
+
+  if (patch.shell) {
+    next.shell = mergeShell(next.shell, patch.shell)
   }
 
   if (patch.layout) {
@@ -369,6 +430,7 @@ export function applyAgentPresetToConfig(options: ApplyAgentPresetOptions): Chat
       ...(resolvedPreset.chatConfigPatch.defaults ?? {}),
     },
     ui: mergeUi(options.baseConfig.ui, resolvedPreset.chatConfigPatch.ui),
+    shell: mergeShell(options.baseConfig.shell, resolvedPreset.chatConfigPatch.shell),
     layout: mergeLayout(options.baseConfig.layout, resolvedPreset.chatConfigPatch.layout),
     features: mergeFeatures(options.baseConfig.features, resolvedPreset.chatConfigPatch.features),
     runtime: mergeRuntime(options.baseConfig.runtime, resolvedPreset.chatConfigPatch.runtime),

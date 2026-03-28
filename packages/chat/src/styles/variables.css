@@ -10,7 +10,6 @@
   --chat-header-height: 48px;
   --chat-header-padding: 0 12px;
   --chat-header-bg: var(--tr-container-bg-default, #fff);
-  --chat-header-border-bottom: 1px solid var(--tr-border-color-default, #c2c2c2);
 
   --chat-welcome-padding: 24px;
 
@@ -19,7 +18,6 @@
 
   --chat-footer-padding: 8px 12px;
   --chat-footer-bg: var(--tr-container-bg-default, #fff);
-  --chat-footer-border-top: 1px solid var(--tr-border-color-default, #c2c2c2);
 
   --chat-drawer-width: 280px;
   --chat-drawer-bg: var(--tr-container-bg-default, #fff);
@@ -41,7 +39,7 @@
   --chat-footer-inner-max-width: min(100%, var(--chat-content-max-width));
 }
 
-.tr-chat {
+:where(.tr-chat, .tr-workspace-shell, .tr-chat-drawer, .tr-chat-workspace-right-sheet) {
   --chat-surface-bg: var(--tr-container-bg-default);
   --chat-surface-bg-muted: var(--tr-container-bg-default-2);
   --chat-surface-bg-hover: var(--tr-container-bg-hover);
@@ -185,7 +183,7 @@
   --mcp-trigger-count-text: #fff;
 }
 
-.tr-chat {
+:where(.tr-chat, .tr-workspace-shell, .tr-chat-drawer, .tr-chat-workspace-right-sheet) {
   --chat-surface-shadow: none;
   --chat-surface-elevated-bg: var(--chat-surface-bg);
   --chat-surface-elevated-border: var(--chat-surface-border-subtle);
@@ -197,10 +195,8 @@
   --chat-panel-active-border: color-mix(in srgb, var(--chat-accent-border) 36%, transparent);
   --chat-panel-active-text: var(--chat-accent-color);
   --chat-header-bg: var(--chat-surface-bg);
-  --chat-header-border-bottom: 1px solid var(--chat-surface-border-subtle);
   --chat-body-bg: var(--chat-surface-bg);
   --chat-footer-bg: var(--chat-surface-bg);
-  --chat-footer-border-top: 1px solid var(--chat-surface-border-subtle);
   --chat-header-title-color: var(--chat-text-primary);
 }
 
@@ -210,7 +206,13 @@
 }
 
 [data-tr-color-mode='dark'].tr-chat,
-[data-tr-color-mode='dark'] .tr-chat {
+[data-tr-color-mode='dark'].tr-workspace-shell,
+[data-tr-color-mode='dark'].tr-chat-drawer,
+[data-tr-color-mode='dark'].tr-chat-workspace-right-sheet,
+[data-tr-color-mode='dark'] .tr-chat,
+[data-tr-color-mode='dark'] .tr-workspace-shell,
+[data-tr-color-mode='dark'] .tr-chat-drawer,
+[data-tr-color-mode='dark'] .tr-chat-workspace-right-sheet {
   --chat-surface-bg: #262626;
   --chat-surface-bg-muted: rgba(255, 255, 255, 0.05);
   --chat-surface-bg-hover: rgba(255, 255, 255, 0.1);

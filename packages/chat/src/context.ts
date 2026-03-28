@@ -13,7 +13,13 @@ import type { TrChatScaffoldContextValue } from './types/scaffold'
 import type { ChatUiContextValue } from './chatUiContext'
 
 export { createChatUiContext } from './chatUiContext'
-export type { ChatHistoryDisplayMode, ChatUiContextValue, CreateChatUiContextOptions } from './chatUiContext'
+export type {
+  ChatHistoryDisplayMode,
+  ChatUiContextValue,
+  ChatWorkspaceRegionState,
+  ChatWorkspaceState,
+  CreateChatUiContextOptions,
+} from './chatUiContext'
 
 export const CHAT_KIT_KEY: InjectionKey<UseChatKitReturn> = Symbol('chatKit')
 

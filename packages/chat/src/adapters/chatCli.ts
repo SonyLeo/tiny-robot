@@ -16,6 +16,7 @@ export const CHAT_CLI_CONSUMABLE_PRESET_PROP_KEYS = [
   'attachmentsFeature',
   'senderActionsFeature',
   'prompts',
+  'shell',
   'mcpManager',
   'messageListVariant',
   'contentLayout',
@@ -29,6 +30,7 @@ export type ChatCliConsumablePresetPropKey = (typeof CHAT_CLI_CONSUMABLE_PRESET_
 export const CHAT_CLI_CONSUMABLE_PRESET_SLICE_KEYS = [
   'root',
   'layout',
+  'shell',
   'header',
   'welcome',
   'messageList',
@@ -57,6 +59,7 @@ export function createChatCliCapabilitySurface(
       attachmentsFeature: preset.attachmentsFeature,
       senderActionsFeature: preset.senderActionsFeature,
       prompts: preset.prompts,
+      shell: preset.shell,
       mcpManager: preset.mcpManager,
       messageListVariant: preset.messageListVariant,
       contentLayout: preset.contentLayout,
@@ -68,6 +71,7 @@ export function createChatCliCapabilitySurface(
     presetSlices: {
       root: presetSlices.root,
       layout: presetSlices.layout,
+      shell: presetSlices.shell,
       header: presetSlices.header,
       welcome: presetSlices.welcome,
       messageList: presetSlices.messageList,

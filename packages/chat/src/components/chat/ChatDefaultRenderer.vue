@@ -8,6 +8,7 @@ import ChatDefaultBodyRegion from './ChatDefaultBodyRegion.vue'
 import ChatDefaultFooterRegion from './ChatDefaultFooterRegion.vue'
 import ChatDefaultHeaderRegion from './ChatDefaultHeaderRegion.vue'
 import ChatLayout from '@/components/chat/ChatLayout.vue'
+import ChatWorkspaceLayout from './ChatWorkspaceLayout.vue'
 import { ChatHistory } from '@/components/history'
 
 defineOptions({ name: 'TrChatDefaultRenderer', inheritAttrs: false })
@@ -30,6 +31,7 @@ const welcomeSlice = computed<ChatPresetWelcomeSlice | undefined>(() => scaffold
 const messageListSlice = computed<ChatPresetMessageListSlice | undefined>(
   () => scaffoldContext?.presetSlices.value.messageList,
 )
+const appearanceSlice = computed(() => scaffoldContext?.presetSlices.value.appearance.appearance)
 const modelSelectorSlice = computed(() => scaffoldContext?.presetSlices.value.modelSelector)
 const resolvedVariant = computed<ChatListVariant>(() => {
   const attrVariant = attrs['message-list-variant'] ?? attrs.messageListVariant
@@ -44,6 +46,8 @@ const resolvedVariant = computed<ChatListVariant>(() => {
 const showModelSelector = computed(() =>
   Boolean(modelSelectorSlice.value?.enabled && (modelSelectorSlice.value.models?.length ?? 0) > 1),
 )
+const shellSlice = computed(() => scaffoldContext?.presetSlices.value.shell.shell)
+const isWorkspaceShell = computed(() => shellSlice.value?.variant === 'workspace')
 const showMcpTrigger = computed(() => Boolean(mcpManager))
 const showFooterTools = computed(() => showModelSelector.value || showMcpTrigger.value)
 
@@ -53,7 +57,55 @@ function handleModelChange(model: ModelOption) {
 </script>
 
 <template>
-  <ChatLayout>
+  <ChatWorkspaceLayout v-if="isWorkspaceShell" :appearance="appearanceSlice" :shell="shellSlice">
+    <ChatLayout>
+      <ChatDefaultHeaderRegion @close="emit('update:show', false)">
+        <template v-if="$slots.header" #header>
+          <slot name="header" />
+        </template>
+        <template v-if="$slots['header-extra']" #header-extra>
+          <slot name="header-extra" />
+        </template>
+      </ChatDefaultHeaderRegion>
+
+      <ChatDefaultBodyRegion
+        :show-welcome="showWelcome"
+        :welcome-slice="welcomeSlice"
+        :message-list-slice="messageListSlice"
+        :variant="resolvedVariant"
+        :bubble-slot-names="bubbleSlotNames"
+      >
+        <template v-if="$slots['message-list']" #message-list="slotProps">
+          <slot name="message-list" v-bind="slotProps ?? {}" />
+        </template>
+        <template v-if="$slots.welcome" #welcome>
+          <slot name="welcome" />
+        </template>
+        <template v-if="$slots.empty" #empty>
+          <slot name="empty" />
+        </template>
+        <template v-for="name in bubbleSlotNames" #[name]="slotProps" :key="name">
+          <slot :name="name" v-bind="slotProps ?? {}" />
+        </template>
+      </ChatDefaultBodyRegion>
+
+      <ChatDefaultFooterRegion
+        :show-footer-tools="showFooterTools"
+        :show-model-selector="showModelSelector"
+        :show-mcp-trigger="showMcpTrigger"
+        @change-model="handleModelChange"
+      >
+        <template v-if="$slots.sender" #sender="slotProps">
+          <slot name="sender" v-bind="slotProps ?? {}" />
+        </template>
+        <template v-if="$slots['footer-extra']" #footer-extra>
+          <slot name="footer-extra" />
+        </template>
+      </ChatDefaultFooterRegion>
+    </ChatLayout>
+  </ChatWorkspaceLayout>
+
+  <ChatLayout v-else>
     <ChatDefaultHeaderRegion @close="emit('update:show', false)">
       <template v-if="$slots.header" #header>
         <slot name="header" />

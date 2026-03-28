@@ -24,6 +24,7 @@ import type {
   ChatConfigUI,
   ChatLayoutConfig,
 } from './types'
+import type { ChatWorkspaceRegionConfig, ChatWorkspaceShellConfig } from '../types/workspace'
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
@@ -171,6 +172,61 @@ function normalizeLayout(rawLayout: unknown): ChatLayoutConfig | undefined {
     placements,
     contentLayout,
   }
+}
+
+function normalizeShellRegion(rawRegion: unknown): ChatWorkspaceRegionConfig | undefined {
+  if (!isRecord(rawRegion)) {
+    return undefined
+  }
+
+  const region: ChatWorkspaceRegionConfig = {
+    enabled: typeof rawRegion.enabled === 'boolean' ? rawRegion.enabled : undefined,
+    collapsible: typeof rawRegion.collapsible === 'boolean' ? rawRegion.collapsible : undefined,
+    defaultOpen: typeof rawRegion.defaultOpen === 'boolean' ? rawRegion.defaultOpen : undefined,
+    collapseMode:
+      rawRegion.collapseMode === 'rail' || rawRegion.collapseMode === 'hidden' ? rawRegion.collapseMode : undefined,
+    width:
+      rawRegion.width === 'sm' ||
+      rawRegion.width === 'md' ||
+      rawRegion.width === 'lg' ||
+      typeof rawRegion.width === 'number'
+        ? rawRegion.width
+        : undefined,
+    railLabel: typeof rawRegion.railLabel === 'string' ? rawRegion.railLabel : undefined,
+  }
+
+  if (Object.values(region).every((value) => value === undefined)) {
+    return undefined
+  }
+
+  return region
+}
+
+function normalizeShell(rawShell: unknown): ChatWorkspaceShellConfig | undefined {
+  if (!isRecord(rawShell)) {
+    return undefined
+  }
+
+  const shell: ChatWorkspaceShellConfig = {
+    variant: rawShell.variant === 'stacked' || rawShell.variant === 'workspace' ? rawShell.variant : undefined,
+    leftRegion: normalizeShellRegion(rawShell.leftRegion),
+    rightRegion: normalizeShellRegion(rawShell.rightRegion),
+    viewState: isRecord(rawShell.viewState)
+      ? {
+          fullWidth: typeof rawShell.viewState.fullWidth === 'boolean' ? rawShell.viewState.fullWidth : undefined,
+        }
+      : undefined,
+  }
+
+  if (shell.viewState && Object.values(shell.viewState).every((value) => value === undefined)) {
+    shell.viewState = undefined
+  }
+
+  if (!shell.variant && !shell.leftRegion && !shell.rightRegion && !shell.viewState) {
+    return undefined
+  }
+
+  return shell
 }
 
 function normalizeFeedbackFeature(rawFeature: unknown): ChatFeedbackFeatureConfig | undefined {
@@ -463,8 +519,9 @@ export function loadChatConfig(input: string | ChatConfig | unknown): ChatConfig
     throw new Error(`[loadChatConfig] defaults.model "${defaults.model}" is not declared in models`)
   }
 
-  const ui = normalizeUi(raw.ui)
   const appearance = normalizeAppearance(raw.appearance)
+  const shell = normalizeShell(raw.shell)
+  const ui = normalizeUi(raw.ui)
   const layout = normalizeLayout(raw.layout)
   const features = normalizeFeatures(raw.features)
   const runtime = normalizeRuntime(raw.runtime, raw.features)
@@ -474,6 +531,7 @@ export function loadChatConfig(input: string | ChatConfig | unknown): ChatConfig
     providers,
     defaults,
     appearance,
+    shell,
     ui,
     layout,
     features,

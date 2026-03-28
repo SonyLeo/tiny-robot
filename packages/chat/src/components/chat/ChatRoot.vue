@@ -1,14 +1,17 @@
 <script setup lang="ts">
 import { computed, provide } from 'vue'
 import { useChatAttachments } from '@/composables'
+import { useHistoryState } from '@/composables/useHistoryState'
 import {
   CHAT_ATTACHMENTS_KEY,
+  CHAT_HISTORY_KEY,
   CHAT_KIT_KEY,
   CHAT_MESSAGES_KEY,
   CHAT_SENDER_ACTIONS_KEY,
   CHAT_UI_KEY,
   MCP_MANAGER_KEY,
   createChatUiContext,
+  useChatScaffoldContext,
 } from '@/context'
 import { resolveChatMessages } from '@/messages'
 import type { TrChatRootProps } from '@/types'
@@ -17,16 +20,20 @@ import { resolveRootChatKit } from '@/helpers/resolveRootChatKit'
 defineOptions({ name: 'TrChatRoot' })
 
 const props = defineProps<TrChatRootProps>()
+const scaffoldContext = useChatScaffoldContext()
 
 const chatKit = resolveRootChatKit('TrChatRoot', props)
-const chatUi = createChatUiContext({ historyDisplay: 'drawer' })
+const shell = computed(() => props.shell ?? scaffoldContext?.presetSlices.value.shell.shell)
+const chatUi = createChatUiContext({ historyDisplay: 'drawer', shell: shell.value })
 const chatMessages = computed(() => resolveChatMessages(props.messages))
 const attachmentsFeature = props.attachmentsFeature
 const attachmentsManager = props.attachmentsManager ?? (attachmentsFeature ? useChatAttachments() : null)
+const historyState = useHistoryState()
 
 provide(CHAT_KIT_KEY, chatKit)
 provide(CHAT_UI_KEY, chatUi)
 provide(CHAT_MESSAGES_KEY, chatMessages)
+provide(CHAT_HISTORY_KEY, historyState)
 if (props.mcpManager) {
   provide(MCP_MANAGER_KEY, props.mcpManager)
 }

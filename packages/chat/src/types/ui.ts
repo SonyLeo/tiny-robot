@@ -21,6 +21,7 @@ import type {
   UseChatKitReturn,
 } from './core'
 import type { ModelOption } from './model'
+import type { ChatWorkspaceShellConfig } from './workspace'
 
 export interface WelcomeConfig {
   title: string
@@ -126,6 +127,7 @@ export interface TrChatPresetOverrides {
   mcpManager?: UseMcpManagerReturn
   attachmentsManager?: UseChatAttachmentsReturn
   appearance?: ChatAppearanceConfig
+  shell?: ChatWorkspaceShellConfig
   brand?: BrandConfig
   welcome?: WelcomeConfig
   prompts?: PromptProps[]
@@ -163,6 +165,7 @@ type TrChatRootSharedProps = {
   attachmentsFeature?: ChatAttachmentsFeaturePreset
   senderActionsFeature?: ChatSenderActionsFeaturePreset
   messages?: ChatMessagesOverrides
+  shell?: ChatWorkspaceShellConfig
 }
 
 type TrChatRootPropsA = {

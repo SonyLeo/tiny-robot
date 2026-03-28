@@ -4,6 +4,64 @@ import type { ChatAdapter, ChatConfig, ChatPresetProps, ChatPresetSlices } from 
 import { resolveChatMessages } from '../messages'
 import { loadChatConfig } from './configLoader'
 import { createOpenAICompatibleResponseProvider } from './openaiCompatibleTransport'
+import type { ChatWorkspaceShellConfig } from '../types/workspace'
+
+const DEFAULT_WORKSPACE_SHELL: ChatWorkspaceShellConfig = {
+  variant: 'workspace',
+  leftRegion: {
+    enabled: true,
+    width: 272,
+    collapsible: true,
+    defaultOpen: true,
+    collapseMode: 'rail',
+    railLabel: 'History',
+  },
+  rightRegion: {
+    enabled: true,
+    width: 420,
+    collapsible: true,
+    defaultOpen: false,
+    collapseMode: 'hidden',
+    railLabel: 'Preview',
+  },
+}
+
+function mergeShellConfig(
+  base: ChatWorkspaceShellConfig | undefined,
+  patch: ChatWorkspaceShellConfig | undefined,
+): ChatWorkspaceShellConfig | undefined {
+  if (!base && !patch) {
+    return undefined
+  }
+
+  const next: ChatWorkspaceShellConfig = {
+    ...(base ?? {}),
+    ...(patch ?? {}),
+  }
+
+  if (base?.leftRegion || patch?.leftRegion) {
+    next.leftRegion = {
+      ...(base?.leftRegion ?? {}),
+      ...(patch?.leftRegion ?? {}),
+    }
+  }
+
+  if (base?.rightRegion || patch?.rightRegion) {
+    next.rightRegion = {
+      ...(base?.rightRegion ?? {}),
+      ...(patch?.rightRegion ?? {}),
+    }
+  }
+
+  if (base?.viewState || patch?.viewState) {
+    next.viewState = {
+      ...(base?.viewState ?? {}),
+      ...(patch?.viewState ?? {}),
+    }
+  }
+
+  return next
+}
 
 export function createChatAdapterFromConfig(input: string | ChatConfig | unknown): ChatAdapter {
   const config = loadChatConfig(input)
@@ -62,6 +120,7 @@ export function createPresetChatProps(
   adapter: ChatAdapter,
   overrides: Partial<TrChatPresetOverrides> = {},
 ): ChatPresetProps & Partial<TrChatPresetOverrides> {
+  const { shell: overrideShell, ...restOverrides } = overrides
   const resolvedShowHistory =
     overrides.showHistory ??
     (adapter.config.features?.history === undefined
@@ -91,16 +150,19 @@ export function createPresetChatProps(
     models: adapter.models,
     defaultModel: adapter.defaultModel,
     appearance: adapter.config.appearance,
+    shell: mergeShellConfig(mergeShellConfig(DEFAULT_WORKSPACE_SHELL, adapter.config.shell), overrideShell),
     brand: adapter.config.ui?.brand,
     welcome: adapter.config.ui?.welcome,
     prompts: adapter.config.ui?.prompts,
-    messageListVariant: adapter.config.layout?.variant,
+    messageListVariant:
+      adapter.config.layout?.variant ??
+      ((adapter.config.shell?.variant ?? DEFAULT_WORKSPACE_SHELL.variant) === 'workspace' ? 'workspace' : undefined),
     contentLayout: adapter.config.layout?.contentLayout,
     roleConfigs: layoutRoleConfigs,
     ...adapter.resolvedFeatures.presetProps,
     showHistory: resolvedShowHistory,
     ...(adapter.config.runtime?.mcpManager ? { mcpManager: adapter.config.runtime.mcpManager } : {}),
-    ...overrides,
+    ...restOverrides,
   }
 }
 
@@ -123,6 +185,9 @@ export function createPresetChatSlices(preset: ChatPresetProps & Partial<TrChatP
     },
     appearance: {
       appearance: preset.appearance,
+    },
+    shell: {
+      shell: preset.shell,
     },
     header: {
       title: preset.brand?.title,

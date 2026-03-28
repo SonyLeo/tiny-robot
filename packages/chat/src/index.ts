@@ -7,6 +7,7 @@ import {
   ChatScaffold as TrChatScaffold,
   ChatRoot as TrChatRoot,
   ChatLayout as TrChatLayout,
+  ChatWorkspaceLayout as TrChatWorkspaceLayout,
   ChatHeader as TrChatHeader,
   ChatWelcome as TrChatWelcome,
   ChatMessageList as TrChatMessageList,
@@ -19,12 +20,15 @@ import {
 import { ChatHistory as TrChatHistory, ChatHistorySurface as TrChatHistorySurface } from './components/history'
 import { McpTrigger as TrMcpTrigger } from './components/mcp-trigger'
 import { ModelSelector as TrModelSelector } from './components/model-selector'
+import { WorkspaceShell as TrChatWorkspaceShell } from './components/workspace'
+import { ChatWorkspaceRightSheet as TrChatWorkspaceRightSheet } from './components/chat/workspace'
 
 // 定义带子组件的 TrChat 类型
 type TrChatWithSubComponents = typeof TrChat & {
   Scaffold: typeof TrChatScaffold
   Root: typeof TrChatRoot
   Layout: typeof TrChatLayout
+  WorkspaceLayout: typeof TrChatWorkspaceLayout
   Header: typeof TrChatHeader
   Welcome: typeof TrChatWelcome
   MessageList: typeof TrChatMessageList
@@ -33,6 +37,8 @@ type TrChatWithSubComponents = typeof TrChat & {
   Sender: typeof TrChatSender
   History: typeof TrChatHistory
   HistorySurface: typeof TrChatHistorySurface
+  WorkspaceShell: typeof TrChatWorkspaceShell
+  WorkspaceRightSheet: typeof TrChatWorkspaceRightSheet
 }
 
 // 挂载白盒子组件到 TrChat 上，实现复合组件模式
@@ -40,6 +46,7 @@ const TrChatFull = TrChat as TrChatWithSubComponents
 TrChatFull.Scaffold = TrChatScaffold
 TrChatFull.Root = TrChatRoot
 TrChatFull.Layout = TrChatLayout
+TrChatFull.WorkspaceLayout = TrChatWorkspaceLayout
 TrChatFull.Header = TrChatHeader
 TrChatFull.Welcome = TrChatWelcome
 TrChatFull.MessageList = TrChatMessageList
@@ -48,6 +55,8 @@ TrChatFull.Attachments = TrChatAttachments
 TrChatFull.Sender = TrChatSender
 TrChatFull.History = TrChatHistory
 TrChatFull.HistorySurface = TrChatHistorySurface
+TrChatFull.WorkspaceShell = TrChatWorkspaceShell
+TrChatFull.WorkspaceRightSheet = TrChatWorkspaceRightSheet
 
 export { TrChatFull as TrChat }
 
@@ -83,8 +92,11 @@ export {
   TrChatFeedback,
   TrChatMcpPanel,
   TrChatLayout,
+  TrChatWorkspaceLayout,
   TrChatAttachments,
   TrChatHistorySurface,
+  TrChatWorkspaceShell,
+  TrChatWorkspaceRightSheet,
 }
 
 // ===== Adapters =====
@@ -144,6 +156,13 @@ export type {
   UseMessageResponseProvider,
   ModelOption,
   TrChatScaffoldContextValue,
+  ChatShellVariant,
+  ChatWorkspaceRegionCollapseMode,
+  ChatWorkspaceRegionConfig,
+  ChatWorkspaceRegionWidth,
+  ChatWorkspaceShellConfig,
+  ChatWorkspaceViewStateConfig,
+  TrChatWorkspaceShellProps,
 } from './types'
 export type { UseDefaultBubbleConfigOptions } from './composables'
 export type { UseMcpManagerBridge, UseMcpManagerOptions, UseModelSelectorOptions } from './composables'
@@ -170,6 +189,7 @@ export type {
   ChatPresetMessageListSlice,
   ChatPresetModelSelectorSlice,
   ChatPresetRootSlice,
+  ChatPresetShellSlice,
   ChatPresetSenderSlice,
   ChatPresetSlices,
   ChatPresetWelcomeSlice,

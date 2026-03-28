@@ -30,6 +30,7 @@ export type {
   ChatPresetMessageListSlice,
   ChatPresetModelSelectorSlice,
   ChatPresetRootSlice,
+  ChatPresetShellSlice,
   ChatPresetSenderSlice,
   ChatPresetSlices,
   ChatPresetWelcomeSlice,
