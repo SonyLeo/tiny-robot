@@ -9,7 +9,7 @@ import type {
 import type { UseMcpManagerReturn } from './composables/useMcpManager'
 import type { UseChatAttachmentsReturn } from './composables/useChatAttachments'
 import type { BubbleListProps } from '@opentiny/tiny-robot'
-import type { TrChatScaffoldContextValue } from './components/chat/scaffold'
+import type { TrChatScaffoldContextValue } from './types/scaffold'
 import type { ChatUiContextValue } from './chatUiContext'
 
 export { createChatUiContext } from './chatUiContext'

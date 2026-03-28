@@ -3,17 +3,12 @@ import { computed, inject, useAttrs, useSlots, type Slot } from 'vue'
 import { BUBBLE_LIST_SLOTS, CHAT_KIT_KEY, MCP_MANAGER_KEY, useChatScaffoldContext } from '@/context'
 import { useSlotFilter } from '@/composables'
 import type { ChatListVariant, ModelOption } from '@/types'
-import ChatFooter from './ChatFooter.vue'
-import ChatAttachments from './ChatAttachments.vue'
-import ChatFeedback from './ChatFeedback.vue'
-import ChatHeader from './ChatHeader.vue'
-import ChatLayout from './ChatLayout.vue'
-import ChatMessageList from './ChatMessageList.vue'
-import ChatSender from './ChatSender.vue'
-import ChatWelcome from './ChatWelcome.vue'
-import McpTrigger from '../mcp-trigger/McpTrigger.vue'
-import ModelSelector from '../model-selector/ModelSelector.vue'
-import { ChatHistory } from '../history'
+import type { ChatPresetMessageListSlice, ChatPresetWelcomeSlice } from '@/adapters'
+import ChatDefaultBodyRegion from './ChatDefaultBodyRegion.vue'
+import ChatDefaultFooterRegion from './ChatDefaultFooterRegion.vue'
+import ChatDefaultHeaderRegion from './ChatDefaultHeaderRegion.vue'
+import ChatLayout from '@/components/chat/ChatLayout.vue'
+import { ChatHistory } from '@/components/history'
 
 defineOptions({ name: 'TrChatDefaultRenderer', inheritAttrs: false })
 
@@ -28,10 +23,13 @@ const bubbleSlots = useSlotFilter(slots, BUBBLE_LIST_SLOTS)
 const chatKit = inject(CHAT_KIT_KEY)!
 const mcpManager = inject(MCP_MANAGER_KEY, null)
 const scaffoldContext = useChatScaffoldContext()
+const bubbleSlotNames = computed(() => Object.keys(bubbleSlots.value))
 
 const showWelcome = computed(() => chatKit.messages.value.length === 0)
-const welcomeSlice = computed(() => scaffoldContext?.presetSlices.value.welcome)
-const messageListSlice = computed(() => scaffoldContext?.presetSlices.value.messageList)
+const welcomeSlice = computed<ChatPresetWelcomeSlice | undefined>(() => scaffoldContext?.presetSlices.value.welcome)
+const messageListSlice = computed<ChatPresetMessageListSlice | undefined>(
+  () => scaffoldContext?.presetSlices.value.messageList,
+)
 const modelSelectorSlice = computed(() => scaffoldContext?.presetSlices.value.modelSelector)
 const resolvedVariant = computed<ChatListVariant>(() => {
   const attrVariant = attrs['message-list-variant'] ?? attrs.messageListVariant
@@ -56,77 +54,50 @@ function handleModelChange(model: ModelOption) {
 
 <template>
   <ChatLayout>
-    <template v-if="$slots.header">
-      <slot name="header" />
-    </template>
-    <ChatHeader v-else @close="emit('update:show', false)">
-      <template v-if="$slots['header-extra']" #extra>
+    <ChatDefaultHeaderRegion @close="emit('update:show', false)">
+      <template v-if="$slots.header" #header>
+        <slot name="header" />
+      </template>
+      <template v-if="$slots['header-extra']" #header-extra>
         <slot name="header-extra" />
       </template>
-    </ChatHeader>
+    </ChatDefaultHeaderRegion>
 
-    <template v-if="$slots['message-list']">
-      <slot name="message-list" :messages="chatKit.messages" />
-    </template>
-    <template v-else>
-      <div v-if="showWelcome" class="tr-chat__welcome-area">
-        <slot v-if="$slots.welcome" name="welcome" />
-        <ChatWelcome v-else-if="welcomeSlice" @prompt-click="chatKit.sendMessage($event)" />
-        <slot v-else name="empty" />
-      </div>
+    <ChatDefaultBodyRegion
+      :show-welcome="showWelcome"
+      :welcome-slice="welcomeSlice"
+      :message-list-slice="messageListSlice"
+      :variant="resolvedVariant"
+      :bubble-slot-names="bubbleSlotNames"
+    >
+      <template v-if="$slots['message-list']" #message-list="slotProps">
+        <slot name="message-list" v-bind="slotProps ?? {}" />
+      </template>
+      <template v-if="$slots.welcome" #welcome>
+        <slot name="welcome" />
+      </template>
+      <template v-if="$slots.empty" #empty>
+        <slot name="empty" />
+      </template>
+      <template v-for="name in bubbleSlotNames" #[name]="slotProps" :key="name">
+        <slot :name="name" v-bind="slotProps ?? {}" />
+      </template>
+    </ChatDefaultBodyRegion>
 
-      <ChatMessageList v-else :variant="resolvedVariant">
-        <template v-for="(_, name) in bubbleSlots" #[name]="slotProps" :key="name">
-          <slot :name="name" v-bind="slotProps ?? {}" />
-        </template>
-        <template v-if="messageListSlice?.showFeedback" #after="slotProps">
-          <ChatFeedback v-bind="slotProps" />
-        </template>
-      </ChatMessageList>
-    </template>
-
-    <template v-if="$slots.sender">
-      <slot
-        name="sender"
-        :send="chatKit.sendMessage"
-        :abort="chatKit.abort"
-        :status="chatKit.status"
-        :last-error="chatKit.lastError"
-        :retry="chatKit.retry"
-      />
-    </template>
-    <ChatFooter v-else>
-      <template v-if="$slots['footer-extra']" #extra>
+    <ChatDefaultFooterRegion
+      :show-footer-tools="showFooterTools"
+      :show-model-selector="showModelSelector"
+      :show-mcp-trigger="showMcpTrigger"
+      @change-model="handleModelChange"
+    >
+      <template v-if="$slots.sender" #sender="slotProps">
+        <slot name="sender" v-bind="slotProps ?? {}" />
+      </template>
+      <template v-if="$slots['footer-extra']" #footer-extra>
         <slot name="footer-extra" />
       </template>
-      <div class="tr-chat-footer-content">
-        <ChatAttachments />
-        <ChatSender>
-          <template v-if="showFooterTools" #footer>
-            <div class="tr-chat-footer-tools">
-              <ModelSelector v-if="showModelSelector" @change="handleModelChange" />
-              <McpTrigger v-if="showMcpTrigger" />
-            </div>
-          </template>
-        </ChatSender>
-      </div>
-    </ChatFooter>
+    </ChatDefaultFooterRegion>
 
     <ChatHistory />
   </ChatLayout>
 </template>
-
-<style scoped>
-.tr-chat-footer-content {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.tr-chat-footer-tools {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-}
-</style>

@@ -16,14 +16,13 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { TrChat } from '../../../../chat/src'
-import type { ChatListVariant, ChatMessageActionPayload, ModelOption } from '../../../../chat/src/types'
+import { TrChat } from '@opentiny/tiny-robot-chat'
+import type { ChatListVariant, ChatMessageActionPayload, ModelOption } from '@opentiny/tiny-robot-chat'
 import {
   createChatSceneConfig,
   sharedAttachmentsFeature,
   sharedBrand,
   sharedPrompts,
-  sharedProviderFactories,
   sharedSenderActionsFeature,
   sharedWelcome,
 } from './sharedDemoFixtures'
@@ -63,7 +62,6 @@ const blackboxCallbacks = {
 }
 
 const blackboxPresetOverrides = computed(() => ({
-  providerFactories: sharedProviderFactories,
   placeholder: '请输入消息...',
   maxLength: 20,
   messageListVariant: messageListVariant.value,

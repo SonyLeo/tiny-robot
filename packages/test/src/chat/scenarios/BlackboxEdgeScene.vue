@@ -48,11 +48,9 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { TrChat } from '../../../../chat/src'
-import type { ModelProviderFactory } from '../../../../chat/src/types'
+import { TrChat } from '@opentiny/tiny-robot-chat'
 import {
   createChatSceneConfig,
-  createEdgeResponseProvider,
   edgeAttachmentsFeature,
   edgeSenderActionsFeature,
   sharedBrand,
@@ -64,7 +62,7 @@ const errorLog = ref('')
 const isShow = ref(true)
 
 const edgeConfig = createChatSceneConfig({
-  models: [{ id: 'edge-model', label: 'Edge Model', provider: 'edge' }],
+  models: [{ id: 'edge-model', label: 'Edge Model', providerId: 'edge' }],
   ui: {
     brand: sharedBrand,
     welcome: sharedWelcome,
@@ -77,13 +75,6 @@ const edgeConfig = createChatSceneConfig({
   },
 })
 
-const edgeProviderFactories: ModelProviderFactory[] = [
-  {
-    match: (model) => model.provider === 'edge',
-    createProvider: () => createEdgeResponseProvider(),
-  },
-]
-
 const edgeCallbacks = {
   onFinish(message: { content?: string }) {
     errorLog.value = `finish:${message.content?.slice(0, 40) ?? ''}`
@@ -94,7 +85,6 @@ const edgeCallbacks = {
 }
 
 const edgePresetOverrides = computed(() => ({
-  providerFactories: edgeProviderFactories,
   roleConfigs: {
     user: { placement: 'start' },
     assistant: { placement: 'end' },

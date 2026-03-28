@@ -1,74 +1,31 @@
 # Chat 实现说明
 
-> Last updated: `2026-03-27`
+> Last updated: `2026-03-28`
+> Primary doc: 本文件是 `packages/chat` 当前包级实现说明的主文档
 > Related:
-> - [Chat Entry Structure Refactor Plan](./chat-entry-structure-refactor-plan.md)
+> - [useChatKit 实现深潜](./use-chat-kit-implementation-deep-dive.md)
 
-## 当前边界
+## 范围
 
-`packages/chat` 当前专注于聊天场景的组装层。
+`packages/chat` 是这个 monorepo 中的聊天场景组装层。
 
-活跃入口包括：
+它负责：
 
-- 黑盒入口：`TrChat`
-- 组合入口：`TrChat.Scaffold`
-- 白盒入口：`TrChat.Root`
-- 白盒叶子：`TrChat.Layout`、`TrChat.Header`、`TrChat.Welcome`、`TrChat.MessageList`、`TrChat.Footer`、`TrChat.Sender`、`TrChat.History`
-- 运行时：`useChatKit`
-- 配置归一化：`createChatAdapterFromConfig`
-- 预设投影：`createPresetChatProps`、`createPresetChatSlices`
+- `TrChat`、`TrChat.Scaffold`、`TrChat.Root` 等公开聊天入口
+- 基于配置的聊天场景组装
+- preset props 与 preset slices 的投影
+- 构建在 `packages/kit` 之上的 chat 级运行时组合
+- history、attachments、feedback、model selector、MCP trigger 等打包 UI 能力
 
-## 包的职责
+它不负责：
 
-`packages/chat` 负责：
-
-- chat 级组件组合
-- 配置驱动的聊天场景组装
-- scaffold 默认值和叶子组件 fallback 消费
-- 模型选择集成
-- MCP 管理器注入与聊天侧面板衔接
-- 附件、发送器动作、历史、反馈等能力投影
-
-`packages/chat` 不负责：
-
-- provider SDK 层实现
+- 稳定 `ResponseProvider` 合同之外的 provider SDK 实现层
 - 后端代理服务
-- `packages/kit` 已承载的低层消息引擎原语
-- 通用 workspace shell / 侧边面板布局系统
+- `packages/kit` 已经提供的底层消息引擎
 
-## 当前稳定约束
+## 当前稳定主链
 
-- `ResponseProvider` 是 chat 包内唯一稳定的运行时 provider contract
-- `ChatConfig -> loadChatConfig() -> createChatAdapterFromConfig()` 是唯一配置主路径
-- `providers[*].type` 缺省时默认按 `openai-compatible` 处理
-- `providerId` 只表示模型归属的配置标识，不再表示一套独立 provider 实现
-- `TrChat.Root :response-provider` 是白盒场景的最终逃生口
-
-## 这次已经落地的主链变更
-
-### 变更前
-
-模型 / provider 主链原来是：
-
-```text
-ChatConfig
-  -> loadChatConfig()
-  -> providerFactories
-  -> match(model)
-  -> createProvider(model)
-  -> chatKit.updateResponseProvider()
-```
-
-其主要问题是：
-
-- `provider` 同时承担“供应商标识”和“实现入口”两层语义
-- `providerFactories` 作为中间层渗透到 adapter、scaffold、selector、默认 renderer
-- `ModelSelector` 和 `ChatScaffold` 共同参与 provider 切换，链路重复
-- `TrChatPresetOverrides.models/defaultModel` 允许在 scaffold 层覆盖模型集合，容易造成 UI 与实际请求源静默漂移
-
-### 变更后
-
-当前主链已经收敛为：
+当前稳定的主链路是：
 
 ```text
 ChatConfig
@@ -81,137 +38,188 @@ ChatConfig
     -> chatKit.updateResponseProvider()
 ```
 
-这次已经完成的关键调整：
+关键约束：
 
-- `provider` 全部改名为 `providerId`
-- 删除了 `packages/chat/src/providers/*` 品牌型 provider helper
-- 新增 `adapters/openaiCompatibleTransport.ts`，统一承载 OpenAI-compatible transport
-- `providerFactories` 已从 chat 包主链移除
-- `ModelSelector` / `useModelSelector` 不再负责运行时 provider 切换
-- `ChatScaffold` 成为唯一模型切换编排点
-- `TrChatPresetOverrides.models/defaultModel` 已移除
-- `ChatScaffold` 当前直接从 `adapter.models / adapter.defaultModel` 读取运行时模型目录
+- `ResponseProvider` 是本包唯一稳定的运行时 provider 合同
+- `providerId` 用来标识模型归属的 provider 配置
+- `providers[*].type` 默认是 `openai-compatible`
+- `presetOverrides` 可以影响 preset 投影，但不拥有运行时模型身份
 
-## 当前运行时主链
+## 公开入口表面
 
-### 黑盒
+当前对外的主要入口有：
 
-```text
-TrChat
-  -> ChatScaffold
-    -> createChatAdapterFromConfig()
-    -> useChatKit()
-    -> ChatRoot
-    -> ChatDefaultRenderer
-```
+- `TrChat`
+- `TrChat.Scaffold`
+- `TrChat.Root`
+- 白盒叶子组件：
+  - `TrChat.Layout`
+  - `TrChat.Header`
+  - `TrChat.Welcome`
+  - `TrChat.MessageList`
+  - `TrChat.Footer`
+  - `TrChat.Sender`
+  - `TrChat.History`
+  - `TrChat.HistorySurface`
 
-### 白盒
-
-```text
-TrChat.Root
-  -> chatKit or responseProvider
-  -> context provide
-  -> Layout / Header / MessageList / Sender / History ...
-```
-
-### 模型切换
-
-当前模型切换链路为：
-
-```text
-TrModelSelector
-  -> useModelSelector()
-  -> currentModel
-  -> ChatScaffold watchEffect
-  -> chatKit.updateResponseProvider(adapter.createResponseProvider(modelId))
-```
-
-这里的关键点是：
-
-- selector 只负责 UI 和模型值变更
-- scaffold 负责把模型值变成真正的 `ResponseProvider`
-- `adapter` 是唯一模型到 provider 的解析入口
-- `presetOverrides` 仍可参与 preset 投影，但不再参与 scaffold 运行时模型解析
-
-## 当前文件分工
+## 文件职责
 
 ### `adapters/*`
 
+职责：
+
+- 归一化 `ChatConfig`
+- 校验 `model.providerId -> providers[providerId]`
+- 将配置投影为 `ChatAdapter`
+- 生成稳定的 preset props 与 preset slices
+
+关键文件：
+
 - `configLoader.ts`
-  - 负责 `ChatConfig` 输入归一化
-  - 默认补齐 `type: 'openai-compatible'`
-  - 校验 `model.providerId -> providers[providerId]`
-
 - `configProjection.ts`
-  - 负责把 `ChatConfig` 投影为 `ChatAdapter`
-  - 提供 `getModel()` 和 `createResponseProvider()`
-  - 负责 `presetProps / presetSlices` 投影
-
 - `openaiCompatibleTransport.ts`
-  - 提供 `ChatProviderError`
-  - 提供 `createOpenAICompatibleResponseProvider()`
-  - 这是当前 chat 包内唯一 transport 实现
 
 ### `components/chat/*`
 
+这里放组件表面和仅服务组件的实现：
+
 - `ChatScaffold.vue`
-  - 负责 adapter 创建
-  - 负责当前模型状态
-  - 直接从 `adapter` 读取模型目录和默认模型
-  - 负责 `chatKit` 初始化与 runtime provider 更新
-  - 负责 scaffold context 和 default renderer 入口
-
+  - adapter 创建
+  - model state 持有
+  - `chatKit` 创建或复用
+  - runtime provider 更新
+  - scaffold context 注入
+- `ChatRoot.vue`
+  - root context 边界
+  - `chatKit | responseProvider` 入口解析
 - `ChatDefaultRenderer.vue`
-  - 负责黑盒默认页面模板
-  - 不再理解 `providerFactories`
-  - `modelSelector.enabled` 现在只依赖模型数和 slice 状态
+  - 默认黑盒页面组合
+- `ChatDefaultHeaderRegion.vue`
+- `ChatDefaultBodyRegion.vue`
+- `ChatDefaultFooterRegion.vue`
 
-- `scaffold.ts`
-  - 负责 scaffold context 类型
-  - 已不再暴露 `providerFactories`
+### `helpers/*`
+
+这里放非组件的入口辅助函数：
+
+- `scaffoldRuntime.ts`
+  - `ChatScaffold.vue` 使用的一组纯 helper
+  - 包括初始模型解析
+  - provider 创建
+  - preset override 组装
+  - named slot 收集
+- `resolveRootChatKit.ts`
+  - `TrChatRoot` 的 root props 解析 helper
+  - 决定是使用外部注入的 `chatKit`，还是从 `responseProvider` 创建默认 `chatKit`
+
+### `types/scaffold.ts`
+
+这里负责 scaffold 相关的公开类型：
+
+- `TrChatScaffoldProps`
+- `ChatScaffoldRuntimeInput`
+- `ChatScaffoldCallbacks`
+- `TrChatScaffoldContextValue`
 
 ### `components/model-selector/*` + `composables/useModelSelector.ts`
 
+职责：
+
 - `ModelSelector.vue`
   - 只负责 dropdown UI
-  - 只消费模型列表和当前模型
-
 - `useModelSelector.ts`
-  - 只负责模型选择状态、disabled / fallback 和变更通知
-  - 不再触碰 runtime provider 更新
+  - 模型选择状态
+  - disabled / fallback 逻辑
+  - 变更通知
 
-## 当前实现状态
+这两者都不再负责运行时 provider 切换。
 
-已经完成：
+## 当前验证状态
 
-- `packages/chat` 的 `type-check`
-- `packages/chat` 的 `test:unit`
-- demo 已切到直接传 `chatConfig`
-- 文档主叙事已切到 `ResponseProvider + ChatConfig -> ChatAdapter`
+当前 `packages/chat` 的实现通过下面这些验证覆盖：
 
-## 当前未处理的下游影响
+- `pnpm -F @opentiny/tiny-robot-chat type-check`
+- `pnpm.cmd -F @opentiny/tiny-robot-chat test:unit`
+- `pnpm.cmd -F @opentiny/tiny-robot-chat-demo type-check`
+- `pnpm.cmd -F @opentiny/tiny-robot-chat-demo build`
+- `packages/test/src/chat/*` 对保留 chat 表面的 Playwright 覆盖
 
-这次工作刻意只聚焦 `packages/chat`。
+## 剩余任务
 
-因此，以下内容仍然停留在旧语义，后续再迁移：
+当前还有少量可继续推进的工作，但都不是阻塞项。
 
-- `packages/test/src/chat/mockProvider.ts`
-- `packages/test/src/chat/scenarios/sharedDemoFixtures.ts`
-- `packages/test/src/chat/scenarios/*.vue` 中仍使用 `providerFactories` 的场景
-- `packages/test/src/chat/README.md`
-- `packages/test/src/chat-cli/scaffold.spec.ts`
+### 1. Runtime message state contract
 
-这些文件的主要遗留问题有两类：
+现状：
 
-1. 仍在使用 `provider` 而不是 `providerId`
-2. 仍在依赖 `providerFactories / ModelProviderFactory`
+- `chatMessageState.ts` 已经集中管理这些常见状态的读写：
+  - `error`
+  - `isEditing`
+  - `optimistic`
+  - `turnId`
+- retry / optimistic / edit rollback 已经走通主链
 
-## 后续建议
+评估：
 
-下一阶段如果继续推进，建议按下面顺序：
+- 现在不是必须做的任务
+- 只有当后续 message-level UI state 继续增多时，才值得再往前推进
 
-1. 迁移 `packages/test/src/chat/sharedDemoFixtures.ts` 和 `mockProvider.ts`
-2. 迁移 `packages/test/src/chat/scenarios/*`
-3. 最后处理 `packages/test/src/chat-cli/*` 和 README 文案
+建议：`defer`
 
-这样可以先把 chat 包对应的测试场景语义收敛，再处理模板 / CLI 相关内容。
+### 2. Config / feature pipeline cleanup
+
+现状：
+
+- `configLoader.ts` 仍然相对偏长
+- feature defaults 和 preset projection 逻辑仍散在几个地方
+
+评估：
+
+- 这是有价值的工程整理工作
+- 但不是功能阻塞
+- 只有当包准备继续扩展更多 config 或 feature 表面时，收益才会明显变高
+
+建议：`optional`
+
+### 3. Selector accessibility / keyboard polish
+
+现状：
+
+- keyboard scope
+- close logic 清晰度
+- ARIA / focus management
+
+评估：
+
+- 属于独立 UI polish
+- 不属于当前主线重构
+- 只有当可访问性或交互质量成为明确优先级时才值得重新推进
+
+建议：`defer`
+
+## 任务决策
+
+建议保留在 backlog 中的任务：
+
+- runtime message state contract cleanup
+- config / feature pipeline cleanup
+- selector accessibility / keyboard polish
+
+建议暂时不主动推进的方向：
+
+- sidebar shell 默认布局升级
+- 建立在未确认 sidebar / shell 合同上的新模板或新壳层设计
+- 执行跟踪文档和演讲提纲类文档
+
+## 文档策略
+
+对 `packages/chat/docs`，建议只保留两类文档：
+
+- 当前实现状态文档
+- 源码级深读文档
+
+不再保留：
+
+- 已经过时的执行跟踪文档
+- 仍停留在假设阶段的 planning 文档
+- talk / presentation outline 材料

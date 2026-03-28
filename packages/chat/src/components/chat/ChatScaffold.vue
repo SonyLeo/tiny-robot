@@ -1,10 +1,17 @@
 <script setup lang="ts">
-import { computed, provide, ref, useSlots, watchEffect } from 'vue'
+import { computed, provide, ref, useSlots, watch, type Slot } from 'vue'
 import { createChatAdapterFromConfig, createPresetChatProps, createPresetChatSlices } from '@/adapters'
 import { useChatKit, useModelSelector } from '@/composables'
 import { CHAT_SCAFFOLD_KEY } from '@/context'
 import type { ModelOption, UseChatKitReturn } from '@/types'
-import type { TrChatScaffoldContextValue, TrChatScaffoldProps } from './scaffold'
+import type { TrChatScaffoldContextValue, TrChatScaffoldProps } from '@/types/scaffold'
+import {
+  collectScaffoldNamedSlots,
+  createScaffoldPresetOverrides,
+  createScaffoldResponseProvider,
+  findScaffoldModelByValue,
+  resolveScaffoldInitialModelValue,
+} from '@/helpers/scaffoldRuntime'
 import ChatDefaultRenderer from './ChatDefaultRenderer.vue'
 import ChatRoot from './ChatRoot.vue'
 
@@ -20,48 +27,29 @@ interface ScaffoldSlotProps {
 }
 
 const props = defineProps<TrChatScaffoldProps>()
-const slots = useSlots()
+const slots = useSlots() as Record<string, Slot | undefined>
 
 const adapter = computed(() => createChatAdapterFromConfig(props.config))
 const resolvedModels = computed(() => adapter.value.models)
 const resolvedDefaultModel = computed(() => adapter.value.defaultModel)
 
-function resolveInitialModelValue() {
-  const models = resolvedModels.value
-  if (!models.length) {
-    return ''
-  }
-
-  const controlledModel = props.runtime?.selectedModel
-  if (controlledModel && models.some((model) => model.value === controlledModel)) {
-    return controlledModel
-  }
-
-  return resolvedDefaultModel.value ?? models[0]?.value ?? ''
-}
-
-function findModelByValue(modelValue: string) {
-  return resolvedModels.value.find((item) => item.value === modelValue)
-}
-
-const currentModel = ref(resolveInitialModelValue())
-
-function createScaffoldResponseProvider(modelValue?: string) {
-  const models = resolvedModels.value
-  const targetValue = modelValue ?? resolvedDefaultModel.value
-  const model = models.find((item) => item.value === targetValue) ?? models[0]
-
-  if (!model) {
-    throw new Error('[TrChatScaffold] No models available to create response provider')
-  }
-
-  return adapter.value.createResponseProvider(model.value)
-}
+const currentModel = ref(
+  resolveScaffoldInitialModelValue({
+    models: resolvedModels.value,
+    defaultModel: resolvedDefaultModel.value,
+    selectedModel: props.runtime?.selectedModel,
+  }),
+)
 
 const chatKit =
   props.runtime?.chatKit ??
   useChatKit({
-    responseProvider: createScaffoldResponseProvider(currentModel.value || resolvedDefaultModel.value),
+    responseProvider: createScaffoldResponseProvider({
+      adapter: adapter.value,
+      models: resolvedModels.value,
+      defaultModel: resolvedDefaultModel.value,
+      modelValue: currentModel.value || resolvedDefaultModel.value,
+    }),
     plugins: props.runtime?.plugins,
     storage: props.runtime?.storage,
     initialMessages: props.runtime?.initialMessages,
@@ -77,53 +65,58 @@ const { selectModel } = useModelSelector({
   },
 })
 
-watchEffect(() => {
-  const models = resolvedModels.value
-  if (!models.length) {
-    currentModel.value = ''
-    return
-  }
+watch(
+  [resolvedModels, () => props.runtime?.selectedModel],
+  ([models, selectedModelValue]) => {
+    if (!models.length) {
+      currentModel.value = ''
+      return
+    }
 
-  const selectedModelValue = props.runtime?.selectedModel
-  if (!selectedModelValue || selectedModelValue === currentModel.value) {
-    return
-  }
+    if (!selectedModelValue || selectedModelValue === currentModel.value) {
+      return
+    }
 
-  const selectedModel = findModelByValue(selectedModelValue)
-  if (selectedModel) {
-    selectModel(selectedModel, { notifyChange: false })
-  }
-})
+    const selectedModel = findScaffoldModelByValue(models, selectedModelValue)
+    if (selectedModel) {
+      selectModel(selectedModel, { notifyChange: false })
+    }
+  },
+  { immediate: true },
+)
 
-watchEffect(() => {
-  const modelValue = currentModel.value || resolvedDefaultModel.value
-  if (!modelValue) {
-    return
-  }
+watch(
+  [currentModel, resolvedDefaultModel, adapter, resolvedModels],
+  ([modelValue, defaultModel, currentAdapter, models]) => {
+    const resolvedModelValue = modelValue || defaultModel
+    if (!resolvedModelValue) {
+      return
+    }
 
-  chatKit.updateResponseProvider(createScaffoldResponseProvider(modelValue))
-})
+    chatKit.updateResponseProvider(
+      createScaffoldResponseProvider({
+        adapter: currentAdapter,
+        models,
+        defaultModel,
+        modelValue: resolvedModelValue,
+      }),
+    )
+  },
+  { immediate: true },
+)
 
 const presetProps = computed(() => {
-  const overrides = {
-    ...props.presetOverrides,
-    models: resolvedModels.value,
-    defaultModel: currentModel.value || resolvedDefaultModel.value,
-  }
-
-  if (props.runtime?.mcpManager !== undefined) {
-    overrides.mcpManager = props.runtime.mcpManager
-  }
-
-  if (props.callbacks?.onMessageAction !== undefined) {
-    overrides.onMessageAction = props.callbacks.onMessageAction
-  }
-
-  if (props.callbacks?.onModelChange !== undefined) {
-    overrides.onModelChange = props.callbacks.onModelChange
-  }
-
-  return createPresetChatProps(adapter.value, overrides)
+  return createPresetChatProps(
+    adapter.value,
+    createScaffoldPresetOverrides({
+      presetOverrides: props.presetOverrides,
+      models: resolvedModels.value,
+      currentModel: currentModel.value,
+      defaultModel: resolvedDefaultModel.value,
+      runtime: props.runtime,
+      callbacks: props.callbacks,
+    }),
+  )
 })
 const presetSlices = computed(() => createPresetChatSlices(presetProps.value))
 
@@ -146,12 +139,10 @@ const slotProps = computed<ScaffoldSlotProps>(() => ({
   selectModel,
 }))
 
-const namedSlots = computed(() =>
-  Object.fromEntries(Object.entries(slots).filter(([name]) => name !== 'default' && slots[name] !== undefined)),
-)
+const namedSlots = computed<Record<string, Slot>>(() => collectScaffoldNamedSlots(slots))
 
 function handleDefaultRendererModelUpdate(modelValue: string) {
-  const model = findModelByValue(modelValue)
+  const model = findScaffoldModelByValue(resolvedModels.value, modelValue)
   if (model) {
     props.callbacks?.onModelChange?.(model)
   }

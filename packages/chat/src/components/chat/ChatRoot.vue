@@ -12,7 +12,7 @@ import {
 } from '@/context'
 import { resolveChatMessages } from '@/messages'
 import type { TrChatRootProps } from '@/types'
-import { resolveRootChatKit } from './resolveRootChatKit'
+import { resolveRootChatKit } from '@/helpers/resolveRootChatKit'
 
 defineOptions({ name: 'TrChatRoot' })
 

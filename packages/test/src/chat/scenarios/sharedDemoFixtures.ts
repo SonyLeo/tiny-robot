@@ -1,20 +1,15 @@
 import type { ChatCompletion } from '../../../../kit/src/vue/message/types'
-import type { ChatConfig, ModelOption, ModelProviderFactory } from '../../../../chat/src'
-import { createMockFactory, createMockProvider } from '../mockProvider'
+import type { ChatConfig, ModelOption } from '@opentiny/tiny-robot-chat'
+import { createMockProvider } from '../mockProvider'
 
 export const sharedModels: ModelOption[] = [
-  { value: 'openai-test', label: 'OpenAI Test', provider: 'openai' },
-  { value: 'deepseek-test', label: 'DeepSeek Test', provider: 'deepseek' },
+  { value: 'openai-test', label: 'OpenAI Test', providerId: 'openai' },
+  { value: 'deepseek-test', label: 'DeepSeek Test', providerId: 'deepseek' },
 ]
 
 export const sharedChatModels: NonNullable<ChatConfig['models']> = [
-  { id: 'openai-test', label: 'OpenAI Test', provider: 'openai' },
-  { id: 'deepseek-test', label: 'DeepSeek Test', provider: 'deepseek' },
-]
-
-export const sharedProviderFactories: ModelProviderFactory[] = [
-  createMockFactory('openai'),
-  createMockFactory('deepseek'),
+  { id: 'openai-test', label: 'OpenAI Test', providerId: 'openai' },
+  { id: 'deepseek-test', label: 'DeepSeek Test', providerId: 'deepseek' },
 ]
 
 export const sharedBrand = {
@@ -80,7 +75,7 @@ export function createChatSceneConfig(
   } = {},
 ): ChatConfig {
   const models = overrides.models ?? sharedChatModels
-  const providerIds = [...new Set(models.map((model) => model.provider))]
+  const providerIds = [...new Set(models.map((model) => model.providerId))]
 
   return {
     models,

@@ -10,7 +10,7 @@ import type {
 } from '@opentiny/tiny-robot'
 import type { UseMcpManagerReturn } from '../composables/useMcpManager'
 import type { UseChatAttachmentsReturn } from '../composables/useChatAttachments'
-import type { ChatScaffoldCallbacks, ChatScaffoldRuntimeInput } from '../components/chat/scaffold'
+import type { ChatScaffoldCallbacks, ChatScaffoldRuntimeInput } from './scaffold'
 import type {
   BrandConfig,
   ChatAppearanceConfig,

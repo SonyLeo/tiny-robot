@@ -141,9 +141,9 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { TrChat, useChatKit } from '../../../../chat/src'
+import { TrChat, useChatKit } from '@opentiny/tiny-robot-chat'
 import { createMockProvider } from '../mockProvider'
-import { createChatSceneConfig, sharedProviderFactories } from './sharedDemoFixtures'
+import { createChatSceneConfig } from './sharedDemoFixtures'
 
 const SurfaceWelcomeIcon = {
   template: '<span data-testid="surface-welcome-icon">I</span>',
@@ -164,7 +164,6 @@ const slotSurfaceConfig = createChatSceneConfig({
 })
 
 const slotSurfaceOverrides = {
-  providerFactories: sharedProviderFactories,
   placeholder: 'slot surface sender...',
   maxLength: 80,
 }
@@ -177,9 +176,7 @@ const emptySlotConfig = createChatSceneConfig({
   },
 })
 
-const emptySlotOverrides = {
-  providerFactories: sharedProviderFactories,
-}
+const emptySlotOverrides = {}
 
 const customRenderConfig = createChatSceneConfig({
   ui: {
@@ -199,9 +196,7 @@ const customRenderRuntime = {
   ],
 }
 
-const customRenderOverrides = {
-  providerFactories: sharedProviderFactories,
-}
+const customRenderOverrides = {}
 
 const scaffoldModelLog = ref('')
 const scaffoldConfig = createChatSceneConfig({
@@ -223,14 +218,12 @@ const scaffoldCallbacks = {
   },
 }
 
-const scaffoldOverrides = {
-  providerFactories: sharedProviderFactories,
-}
+const scaffoldOverrides = {}
 
 const scaffoldDeepseekModel = {
   value: 'deepseek-test',
   label: 'DeepSeek Test',
-  provider: 'deepseek',
+  providerId: 'deepseek',
 }
 
 const rootProvider = createMockProvider({

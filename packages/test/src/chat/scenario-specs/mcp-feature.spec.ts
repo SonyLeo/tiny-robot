@@ -2,7 +2,6 @@ import { expect, test } from '@playwright/test'
 import { createChatTestHelper } from '../testHelper'
 
 test.describe('Chat MCP Feature', () => {
-   
   let helper: ReturnType<typeof createChatTestHelper>
 
   test.beforeEach(async ({ page }) => {
@@ -25,12 +24,15 @@ test.describe('Chat MCP Feature', () => {
     await expect(scene).toContainText('Get Weather')
   })
 
-  test('blackbox MCP trigger should hide the label on mobile while keeping the count visible', async ({ page }) => {
+  test('blackbox MCP trigger should remain usable on mobile while keeping the count visible', async ({ page }) => {
     const root = '[data-testid="chat-mcp-feature-blackbox"] .tr-chat'
 
     await page.setViewportSize({ width: 390, height: 844 })
+    await page.reload()
+    await page.locator('nav').getByRole('link').nth(2).click()
+    await page.locator('[data-testid="chat-mcp-feature-blackbox"]').waitFor()
 
-    await expect(page.locator(root).locator(helper.selectors.mcpTriggerLabel)).toBeHidden()
+    await expect(page.locator(root).locator(helper.selectors.mcpTrigger)).toBeVisible()
     await expect(page.locator(root).locator(helper.selectors.mcpTriggerCount)).toBeVisible()
   })
 

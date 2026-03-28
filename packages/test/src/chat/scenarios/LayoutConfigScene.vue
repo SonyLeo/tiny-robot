@@ -1,7 +1,7 @@
 <template>
   <div class="scene-grid">
     <div data-testid="chat-layout-config-blackbox" class="chat-wrapper">
-      <TrChat :config="layoutConfigConfig" :preset-overrides="layoutConfigBlackboxOverrides" />
+      <TrChat :config="layoutConfigConfig" />
     </div>
 
     <div data-testid="chat-layout-config-whitebox" class="chat-wrapper">
@@ -22,7 +22,7 @@
     </div>
 
     <div data-testid="chat-layout-workspace-blackbox" class="chat-wrapper">
-      <TrChat :config="workspaceLayoutConfig" :preset-overrides="workspaceLayoutBlackboxOverrides" />
+      <TrChat :config="workspaceLayoutConfig" />
     </div>
 
     <div data-testid="chat-layout-workspace-whitebox" class="chat-wrapper">
@@ -54,9 +54,8 @@ import {
   createPresetChatProps,
   createPresetChatSlices,
   useChatKit,
-} from '../../../../chat/src'
-import { createMockProvider } from '../mockProvider'
-import { createChatSceneConfig, sharedProviderFactories } from './sharedDemoFixtures'
+} from '@opentiny/tiny-robot-chat'
+import { createChatSceneConfig } from './sharedDemoFixtures'
 
 const darkAppearance = { mode: 'dark' } as const
 
@@ -83,18 +82,11 @@ const layoutConfigConfig = createChatSceneConfig({
   },
 })
 
-const layoutConfigBlackboxOverrides = {
-  providerFactories: sharedProviderFactories,
-}
-
 const layoutConfigAdapter = createChatAdapterFromConfig(layoutConfigConfig)
 const layoutConfigWhiteboxPreset = createPresetChatProps(layoutConfigAdapter)
 const layoutConfigWhiteboxSlices = createPresetChatSlices(layoutConfigWhiteboxPreset)
 const layoutConfigWhiteboxChat = useChatKit({
-  responseProvider: createMockProvider({
-    provider: 'openai',
-    model: 'openai-test',
-  }),
+  responseProvider: layoutConfigAdapter.createResponseProvider(),
 })
 const showLayoutConfigWhiteboxWelcome = computed(() => layoutConfigWhiteboxChat.messages.value.length === 0)
 
@@ -118,18 +110,11 @@ const workspaceLayoutConfig = createChatSceneConfig({
   },
 })
 
-const workspaceLayoutBlackboxOverrides = {
-  providerFactories: sharedProviderFactories,
-}
-
 const workspaceLayoutAdapter = createChatAdapterFromConfig(workspaceLayoutConfig)
 const workspaceLayoutWhiteboxPreset = createPresetChatProps(workspaceLayoutAdapter)
 const workspaceLayoutWhiteboxSlices = createPresetChatSlices(workspaceLayoutWhiteboxPreset)
 const workspaceLayoutWhiteboxChat = useChatKit({
-  responseProvider: createMockProvider({
-    provider: 'openai',
-    model: 'openai-test',
-  }),
+  responseProvider: workspaceLayoutAdapter.createResponseProvider(),
 })
 const showWorkspaceLayoutWhiteboxWelcome = computed(() => workspaceLayoutWhiteboxChat.messages.value.length === 0)
 

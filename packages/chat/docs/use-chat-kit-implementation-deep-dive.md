@@ -167,7 +167,7 @@ export interface UseChatKitReturn extends Pick<
 
 - `resolveRootChatKit('TrChatRoot', props)`
 
-`resolveRootChatKit` 的判断规则在 `packages/chat/src/components/chat/resolveRootChatKit.ts`：
+`resolveRootChatKit` 的判断规则在 `packages/chat/src/helpers/resolveRootChatKit.ts`：
 
 - 如果传入了 `chatKit`，直接使用
 - 否则要求至少提供 `responseProvider`

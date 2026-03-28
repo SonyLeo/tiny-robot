@@ -36,12 +36,7 @@
 
           <TrChat.Footer>
             <div class="whitebox-footer">
-              <TrModelSelector
-                v-model="selectedModel"
-                :models="sharedModels"
-                :provider-factories="sharedProviderFactories"
-                @change="handleModelChange"
-              />
+              <TrModelSelector v-model="selectedModel" :models="sharedModels" @change="handleModelChange" />
 
               <TrChat.Sender placeholder="白盒模式请输入消息...">
                 <template #footer-right>
@@ -107,7 +102,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import {
   TrChat,
   TrChatFeedback,
@@ -116,29 +111,43 @@ import {
   createPresetChatProps,
   createPresetChatSlices,
   useChatKit,
-  useModelSelector,
-} from '../../../../chat/src'
-import type { ChatListVariant, ChatMessageActionPayload, ModelOption } from '../../../../chat/src/types'
-import { createMockProvider } from '../mockProvider'
+} from '@opentiny/tiny-robot-chat'
+import type { ChatListVariant, ChatMessageActionPayload, ModelOption } from '@opentiny/tiny-robot-chat'
 import {
+  createChatSceneConfig,
   sharedAttachmentsFeature,
   sharedModels,
   sharedPrompts,
-  sharedProviderFactories,
   sharedSenderActionsFeature,
 } from './sharedDemoFixtures'
 
 const finishLog = ref('')
 const actionLog = ref('')
 const messageListVariant = ref<ChatListVariant>('bubble')
-const selectedModel = ref('openai-test')
+const whiteboxConfig = createChatSceneConfig({
+  ui: {
+    welcome: {
+      title: '鐧界洅妯″紡娴嬭瘯',
+      description: '楠岃瘉 Root銆乮nject 鍜屾墜鍔ㄧ粍鍚堥摼璺?',
+    },
+    prompts: sharedPrompts,
+  },
+  features: {
+    attachments: sharedAttachmentsFeature,
+    senderActions: sharedSenderActionsFeature,
+    history: true,
+    feedback: true,
+  },
+})
+const whiteboxAdapter = createChatAdapterFromConfig(whiteboxConfig)
+const selectedModel = ref(whiteboxAdapter.defaultModel ?? sharedModels[0]?.value ?? '')
 
 const whiteboxFeatureAdapter = createChatAdapterFromConfig({
-  models: [{ id: 'whitebox-slices-model', provider: 'openai' }],
+  models: [{ id: 'whitebox-slices-model', providerId: 'openai' }],
   providers: {
     openai: {
       type: 'openai-compatible',
-      endpoint: '/api/chat',
+      endpoint: '/api/openai',
     },
   },
   ui: {
@@ -167,26 +176,26 @@ const whiteboxFeaturePreset = createPresetChatProps(whiteboxFeatureAdapter, {
   maxLength: 60,
 })
 const whiteboxFeatureSlices = createPresetChatSlices(whiteboxFeaturePreset)
+const whiteboxSlicesSlotAdapter = createChatAdapterFromConfig({
+  models: [{ id: 'whitebox-slices-slot-model', providerId: 'openai' }],
+  providers: {
+    openai: {
+      type: 'openai-compatible',
+      endpoint: '/api/openai',
+    },
+  },
+})
 const whiteboxSlicesChat = useChatKit({
-  responseProvider: createMockProvider({
-    provider: 'openai',
-    model: 'whitebox-slices-model',
-  }),
+  responseProvider: whiteboxFeatureAdapter.createResponseProvider(),
 })
 const whiteboxSlicesSlotChat = useChatKit({
-  responseProvider: createMockProvider({
-    provider: 'openai',
-    model: 'whitebox-slices-slot-model',
-  }),
+  responseProvider: whiteboxSlicesSlotAdapter.createResponseProvider(),
 })
 const showWhiteboxSlicesWelcome = computed(() => whiteboxSlicesChat.messages.value.length === 0)
 const showWhiteboxSlicesSlotWelcome = computed(() => whiteboxSlicesSlotChat.messages.value.length === 0)
 
 const chat = useChatKit({
-  responseProvider: createMockProvider({
-    provider: 'openai',
-    model: selectedModel.value,
-  }),
+  responseProvider: whiteboxAdapter.createResponseProvider(selectedModel.value),
   onFinish: (msg) => {
     finishLog.value = `finish:${msg.content?.slice(0, 40) ?? ''}`
   },
@@ -197,11 +206,12 @@ const chat = useChatKit({
 
 const { messages, status } = chat
 
-const { selectModel } = useModelSelector({
-  currentModel: selectedModel,
-  models: sharedModels,
-  providerFactories: sharedProviderFactories,
-  chatKit: chat,
+watch(selectedModel, (modelValue) => {
+  if (!modelValue) {
+    return
+  }
+
+  chat.updateResponseProvider(whiteboxAdapter.createResponseProvider(modelValue))
 })
 
 function handleMessageAction(payload: ChatMessageActionPayload) {
@@ -225,7 +235,7 @@ function handleWhiteboxSlicesSlotPromptClick(description: string) {
 }
 
 function handleModelChange(model: ModelOption) {
-  selectModel(model)
+  selectedModel.value = model.value
 }
 </script>
 

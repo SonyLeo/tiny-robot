@@ -29,8 +29,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { TrSender } from '@opentiny/tiny-robot'
-import { TrChat, useChatKit } from '../../../../chat/src'
-import { createMockProvider } from '../mockProvider'
+import { TrChat, createChatAdapterFromConfig, useChatKit } from '@opentiny/tiny-robot-chat'
 import { createChatSceneConfig } from './sharedDemoFixtures'
 
 const senderExtensionSuggestions = [
@@ -54,35 +53,15 @@ const senderExtensionsConfig = createChatSceneConfig({
 })
 
 const senderExtensionsBlackboxOverrides = {
-  providerFactories: [
-    {
-      match: (model: { provider?: string }) => model.provider === 'openai',
-      createProvider: () =>
-        createMockProvider({
-          provider: 'openai',
-          model: 'openai-test',
-        }),
-    },
-    {
-      match: (model: { provider?: string }) => model.provider === 'deepseek',
-      createProvider: () =>
-        createMockProvider({
-          provider: 'deepseek',
-          model: 'deepseek-test',
-        }),
-    },
-  ],
   senderProps: {
     extensions: senderSuggestionExtensions,
     placeholder: 'Type ECS to trigger suggestions...',
   },
 }
 
+const senderExtensionsAdapter = createChatAdapterFromConfig(senderExtensionsConfig)
 const senderExtensionsWhiteboxChat = useChatKit({
-  responseProvider: createMockProvider({
-    provider: 'openai',
-    model: 'sender-extensions-model',
-  }),
+  responseProvider: senderExtensionsAdapter.createResponseProvider(),
 })
 const showSenderExtensionsWhiteboxWelcome = computed(() => senderExtensionsWhiteboxChat.messages.value.length === 0)
 </script>

@@ -1,11 +1,7 @@
 <template>
   <div class="scene-grid">
     <div data-testid="chat-mcp-feature-blackbox" class="chat-wrapper">
-      <TrChat
-        :config="mcpFeatureConfig"
-        :runtime="{ mcpManager: mcpBlackboxManager }"
-        :preset-overrides="mcpBlackboxPresetOverrides"
-      />
+      <TrChat :config="mcpFeatureConfig" :runtime="{ mcpManager: mcpBlackboxManager }" />
     </div>
 
     <div data-testid="chat-mcp-feature-whitebox" class="chat-wrapper">
@@ -40,9 +36,8 @@ import {
   createPresetChatSlices,
   useChatKit,
   useMcpManager,
-} from '../../../../chat/src'
-import { createMockProvider } from '../mockProvider'
-import { createChatSceneConfig, sharedProviderFactories } from './sharedDemoFixtures'
+} from '@opentiny/tiny-robot-chat'
+import { createChatSceneConfig } from './sharedDemoFixtures'
 
 const mcpFeaturePlugins = [
   {
@@ -83,10 +78,6 @@ const mcpFeatureConfig = createChatSceneConfig({
   },
 })
 
-const mcpBlackboxPresetOverrides = {
-  providerFactories: sharedProviderFactories,
-}
-
 const mcpWhiteboxAdapter = createChatAdapterFromConfig({
   ...mcpFeatureConfig,
   runtime: {
@@ -96,10 +87,7 @@ const mcpWhiteboxAdapter = createChatAdapterFromConfig({
 const mcpWhiteboxPreset = createPresetChatProps(mcpWhiteboxAdapter)
 const mcpWhiteboxSlices = createPresetChatSlices(mcpWhiteboxPreset)
 const mcpWhiteboxChat = useChatKit({
-  responseProvider: createMockProvider({
-    provider: 'openai',
-    model: 'openai-test',
-  }),
+  responseProvider: mcpWhiteboxAdapter.createResponseProvider(),
 })
 
 const showMcpWhiteboxWelcome = computed(() => mcpWhiteboxChat.messages.value.length === 0)

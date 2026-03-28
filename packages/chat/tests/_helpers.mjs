@@ -23,7 +23,7 @@ const transportModule = await jiti.import('../src/adapters/openaiCompatibleTrans
 const presetsModule = await jiti.import('../src/presets/index.ts')
 const messagesModule = await jiti.import('../src/messages.ts')
 const capabilitiesModule = await jiti.import('../src/capabilities.ts')
-const rootChatKitModule = await jiti.import('../src/components/chat/resolveRootChatKit.ts')
+const rootChatKitModule = await jiti.import('../src/helpers/resolveRootChatKit.ts')
 
 export { assert, computed, nextTick, ref, shallowRef }
 

@@ -1,4 +1,4 @@
-import type { ResponseProvider, ModelOption, ModelProviderFactory } from '../../../chat/src/types'
+import type { ResponseProvider } from '@opentiny/tiny-robot-chat'
 import type { ChatCompletion } from '../../../kit/src/vue/message/types'
 
 export interface MockProviderOptions {
@@ -80,21 +80,5 @@ export function createMockProvider(options: MockProviderOptions = {}): ResponseP
 export function createErrorProvider(): ResponseProvider {
   return async function* () {
     throw new Error('Mock API Error: provider execution failed')
-  }
-}
-
-export function createMockFactory(provider: string): ModelProviderFactory {
-  return {
-    match: (model: ModelOption) => model.provider === provider,
-    createProvider: (model: ModelOption) => {
-      if (model.value === 'error-model') {
-        return createErrorProvider()
-      }
-
-      return createMockProvider({
-        provider,
-        model: model.value,
-      })
-    },
   }
 }

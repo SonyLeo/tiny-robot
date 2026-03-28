@@ -104,9 +104,10 @@ When a test still depends on the top-level demo entry, use `helper.switchToBlack
 Use this checklist when changing `packages/chat` public behavior.
 
 - `TrChat` blackbox scaffold flow
-  - `config` drives brand, welcome, prompts, appearance, layout variant, and role placement.
+  - `config` drives brand, welcome, prompts, appearance, layout variant, role placement, and providerId-based model routing.
   - `callbacks` cover `onFinish`, `onError`, `onMessageAction`, and `onModelChange`.
-  - `presetOverrides` cover provider factories, placeholder, maxLength, sender mode, history, feedback, and role config overrides.
+  - `presetOverrides` cover placeholder, maxLength, sender mode, history, feedback, and role config overrides.
+  - local blackbox scenarios should prefer the adapter-owned runtime path backed by the test app's `/api/*` mock endpoints, not legacy provider-factory injection.
 - `TrChat` default renderer slots
   - `header`
   - `header-extra`

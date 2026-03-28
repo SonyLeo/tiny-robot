@@ -123,11 +123,13 @@ export function createChatTestHelper(page: Page, options: ChatTestHelperOptions 
   /** 选择模型 */
   const selectModel = async (label: string, root: string = selectors.blackboxChat) => {
     await openModelSelector(root)
-    const option = page.locator('.tr-model-selector__dropdown-wrapper').locator(selectors.modelSelectorOption, {
+    const dropdown = page.locator('.tr-model-selector__dropdown-wrapper')
+    const option = dropdown.locator(selectors.modelSelectorOption, {
       hasText: label,
     })
     await option.waitFor({ state: 'visible', timeout: defaultTimeout })
-    await option.click()
+    await option.dispatchEvent('click')
+    await expect(dropdown).toHaveCount(0, { timeout: defaultTimeout })
   }
 
   // =====================
@@ -243,7 +245,7 @@ export function createChatTestHelper(page: Page, options: ChatTestHelperOptions 
   /** 点击遮罩层关闭 Drawer */
   const clickOverlayToClose = async (root: string = selectors.blackboxChat) => {
     const overlay = page.locator(root).locator(selectors.drawerOverlay)
-    await overlay.click({ force: true })
+    await overlay.dispatchEvent('click')
   }
 
   /** 点击新建对话按钮 */

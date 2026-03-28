@@ -49,7 +49,7 @@ test.describe('Chat Request Lifecycle', () => {
       await helper.sendMessage('err', root)
 
       const errLog = page.getByTestId('on-error-log')
-      await expect(errLog).toContainText('error:Mock API Error: provider execution failed')
+      await expect(errLog).toContainText('Mock API Error: provider execution failed')
     })
 
     test('should retry a failed request through the error action', async ({ page }) => {
@@ -110,7 +110,7 @@ test.describe('Chat Request Lifecycle', () => {
       await helper.sendMessage('err', root)
 
       const finishLog = page.getByTestId('on-finish-log')
-      await expect(finishLog).toContainText('error:Mock API Error: provider execution failed')
+      await expect(finishLog).toContainText('Mock API Error: provider execution failed')
     })
   })
 })

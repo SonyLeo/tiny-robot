@@ -3,7 +3,7 @@ export type {
   ChatScaffoldRuntimeInput,
   TrChatScaffoldContextValue,
   TrChatScaffoldProps,
-} from '../components/chat/scaffold'
+} from './scaffold'
 
 export type {
   BrandConfig,
