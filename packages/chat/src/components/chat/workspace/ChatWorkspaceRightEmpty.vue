@@ -14,7 +14,7 @@ defineOptions({ name: 'TrChatWorkspaceRightEmpty' })
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="less">
 .tr-chat-workspace-right-empty {
   height: 100%;
   min-height: 0;
@@ -22,39 +22,39 @@ defineOptions({ name: 'TrChatWorkspaceRightEmpty' })
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  padding: 40px 28px;
+  gap: var(--chat-workspace-empty-gap, 10px);
+  padding: var(--chat-workspace-empty-padding, 40px 28px);
   text-align: center;
-  color: var(--workspace-shell-text-secondary, var(--tr-text-secondary, #6b7280));
-}
+  color: var(--chat-workspace-text-secondary, var(--tr-text-secondary, #6b7280));
 
-.tr-chat-workspace-right-empty__icon {
-  width: 72px;
-  height: 72px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 24px;
-  background: color-mix(in srgb, var(--workspace-shell-hover-bg, rgba(15, 23, 42, 0.06)) 72%, transparent);
-  color: var(--workspace-shell-text-secondary, var(--tr-text-secondary, #6b7280));
-  margin: 0 auto 8px;
-}
+  &__icon {
+    width: var(--chat-workspace-empty-icon-size, 72px);
+    height: var(--chat-workspace-empty-icon-size, 72px);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--chat-workspace-empty-icon-radius, 24px);
+    background: color-mix(in srgb, var(--chat-workspace-hover-bg, rgba(15, 23, 42, 0.06)) 72%, transparent);
+    color: var(--chat-workspace-text-secondary, var(--tr-text-secondary, #6b7280));
+    margin: 0 auto 8px;
 
-.tr-chat-workspace-right-empty__icon :deep(svg) {
-  width: 32px;
-  height: 32px;
-}
+    :deep(svg) {
+      width: 32px;
+      height: 32px;
+    }
+  }
 
-.tr-chat-workspace-right-empty strong {
-  color: var(--workspace-shell-text-primary, var(--tr-text-primary, #111827));
-  font-size: 18px;
-  font-weight: 700;
-}
+  strong {
+    color: var(--chat-workspace-text-primary, var(--tr-text-primary, #111827));
+    font-size: var(--chat-workspace-empty-title-size, 18px);
+    font-weight: 700;
+  }
 
-.tr-chat-workspace-right-empty span {
-  font-size: 14px;
-  line-height: 1.7;
-  max-width: 280px;
-  margin: 0 auto;
+  span {
+    font-size: var(--chat-workspace-empty-text-size, 14px);
+    line-height: 1.7;
+    max-width: 280px;
+    margin: 0 auto;
+  }
 }
 </style>

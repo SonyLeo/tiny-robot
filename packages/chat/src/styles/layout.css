@@ -41,6 +41,12 @@
 .tr-chat__header-left {
   display: flex;
   align-items: center;
+  flex-shrink: 0;
+}
+
+.tr-chat__header-title {
+  display: flex;
+  align-items: center;
   flex: 1;
   min-width: 0;
 }
@@ -62,6 +68,27 @@
   line-height: 1.4;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .tr-chat__header-inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  }
+
+  .tr-chat__header-left {
+    justify-self: start;
+  }
+
+  .tr-chat__header-title {
+    justify-self: center;
+    justify-content: center;
+    max-width: min(60vw, 320px);
+  }
+
+  .tr-chat__header-right {
+    justify-self: end;
+  }
 }
 
 .tr-chat__welcome-area {

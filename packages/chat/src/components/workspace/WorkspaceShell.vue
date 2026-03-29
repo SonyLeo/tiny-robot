@@ -234,19 +234,43 @@ const hideRightRegion = computed(() => right.collapsedState.value && right.colla
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="less">
 .tr-workspace-shell {
-  --workspace-shell-bg: var(--chat-surface-bg, var(--tr-page-bg-default, #fff));
-  --workspace-shell-region-bg: var(--chat-panel-bg, var(--tr-container-bg-default, #fff));
-  --workspace-shell-region-bg-muted: var(--chat-panel-bg-muted, var(--tr-container-bg-default-2, #f7f7f7));
-  --workspace-shell-border-color: var(--chat-panel-border, var(--tr-border-color-disabled, rgba(15, 23, 42, 0.08)));
-  --workspace-shell-text-primary: var(--chat-text-primary, var(--tr-text-primary, #111827));
-  --workspace-shell-text-secondary: var(--chat-text-secondary, var(--tr-text-secondary, #6b7280));
-  --workspace-shell-accent: var(--chat-accent-color, var(--tr-color-primary, #2f6bff));
-  --workspace-shell-accent-soft: var(--chat-accent-bg, var(--tr-color-primary-light, rgba(47, 107, 255, 0.12)));
-  --workspace-shell-hover-bg: var(--chat-surface-bg-hover, var(--tr-container-bg-hover, rgba(15, 23, 42, 0.06)));
-  --workspace-shell-shadow: var(--chat-shadow-sm, var(--tr-shadow-sm, 0 10px 24px rgba(15, 23, 42, 0.08)));
-  --workspace-shell-rail-width: 72px;
+  --workspace-shell-bg: var(--chat-workspace-bg, var(--chat-surface-bg, var(--tr-page-bg-default, #fff)));
+  --workspace-shell-region-bg: var(
+    --chat-workspace-panel-bg,
+    var(--chat-panel-bg, var(--tr-container-bg-default, #fff))
+  );
+  --workspace-shell-region-bg-muted: var(
+    --chat-workspace-panel-bg-muted,
+    var(--chat-panel-bg-muted, var(--tr-container-bg-default-2, #f7f7f7))
+  );
+  --workspace-shell-border-color: var(
+    --chat-workspace-border,
+    var(--chat-panel-border, var(--tr-border-color-disabled, rgba(15, 23, 42, 0.08)))
+  );
+  --workspace-shell-text-primary: var(
+    --chat-workspace-text-primary,
+    var(--chat-text-primary, var(--tr-text-primary, #111827))
+  );
+  --workspace-shell-text-secondary: var(
+    --chat-workspace-text-secondary,
+    var(--chat-text-secondary, var(--tr-text-secondary, #6b7280))
+  );
+  --workspace-shell-accent: var(--chat-workspace-accent, var(--chat-accent-color, var(--tr-color-primary, #2f6bff)));
+  --workspace-shell-accent-soft: var(
+    --chat-workspace-accent-soft,
+    var(--chat-accent-bg, var(--tr-color-primary-light, rgba(47, 107, 255, 0.12)))
+  );
+  --workspace-shell-hover-bg: var(
+    --chat-workspace-hover-bg,
+    var(--chat-surface-bg-hover, var(--tr-container-bg-hover, rgba(15, 23, 42, 0.06)))
+  );
+  --workspace-shell-shadow: var(
+    --chat-workspace-shadow,
+    var(--chat-shadow-sm, var(--tr-shadow-sm, 0 10px 24px rgba(15, 23, 42, 0.08)))
+  );
+  --workspace-shell-rail-width: var(--chat-workspace-rail-width, 48px);
   display: flex;
   width: 100%;
   height: 100%;
@@ -254,109 +278,109 @@ const hideRightRegion = computed(() => right.collapsedState.value && right.colla
   overflow: hidden;
   background: var(--workspace-shell-bg);
   color: var(--workspace-shell-text-primary);
-}
 
-.tr-workspace-shell__region {
-  position: relative;
-  flex-shrink: 0;
-  width: var(--workspace-region-width);
-  min-height: 0;
-  overflow: hidden;
-  border-right: 0;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--workspace-shell-region-bg) 92%, white 8%) 0%,
-    var(--workspace-shell-region-bg-muted) 100%
-  );
-  transition:
-    width 0.32s cubic-bezier(0.22, 1, 0.36, 1),
-    border-color 0.2s ease,
-    transform 0.32s cubic-bezier(0.22, 1, 0.36, 1),
-    background-color 0.2s ease;
-}
+  &__region {
+    position: relative;
+    flex-shrink: 0;
+    width: var(--workspace-region-width);
+    min-height: 0;
+    overflow: hidden;
+    border-right: 0;
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--workspace-shell-region-bg) 92%, white 8%) 0%,
+      var(--workspace-shell-region-bg-muted) 100%
+    );
+    transition:
+      width 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 0.2s ease,
+      transform 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+      background-color 0.2s ease;
 
-.tr-workspace-shell__region--right {
-  border-right: 0;
-  border-left: 0;
-  background: var(--workspace-shell-region-bg);
-}
+    &--right {
+      border-right: 0;
+      border-left: 0;
+      background: var(--workspace-shell-region-bg);
+    }
 
-.tr-workspace-shell__region.is-collapsed {
-  width: var(--workspace-shell-rail-width);
-}
+    &.is-collapsed {
+      width: var(--workspace-shell-rail-width);
+    }
 
-.tr-workspace-shell__region.is-hidden {
-  width: 0;
-  border-width: 0;
-}
+    &.is-hidden {
+      width: 0;
+      border-width: 0;
+    }
+  }
 
-.tr-workspace-shell__rail {
-  position: absolute;
-  inset: 0;
-  border: 0;
-  background: transparent;
-  padding: 0;
-}
+  &__rail {
+    position: absolute;
+    inset: 0;
+    border: 0;
+    background: transparent;
+    padding: 0;
+  }
 
-.tr-workspace-shell__region-content {
-  height: 100%;
-  transition:
-    opacity 0.18s ease,
-    transform 0.24s cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: opacity, transform;
-}
+  &__region-content {
+    height: 100%;
+    transition:
+      opacity 0.18s ease,
+      transform 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: opacity, transform;
 
-.tr-workspace-shell__region--left > .tr-workspace-shell__region-content {
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  width: var(--workspace-region-width);
-  min-width: var(--workspace-region-width);
-  transform-origin: left center;
-}
+    &.is-hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+  }
 
-.tr-workspace-shell__region--right > .tr-workspace-shell__region-content {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: var(--workspace-region-width);
-  min-width: var(--workspace-region-width);
-  transform-origin: right center;
-}
+  &__region--left > &__region-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: var(--workspace-region-width);
+    min-width: var(--workspace-region-width);
+    transform-origin: left center;
+  }
 
-.tr-workspace-shell__region-content.is-hidden {
-  opacity: 0;
-  pointer-events: none;
-}
+  &__region--right > &__region-content {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: var(--workspace-region-width);
+    min-width: var(--workspace-region-width);
+    transform-origin: right center;
+  }
 
-.tr-workspace-shell__region--left.is-hidden > .tr-workspace-shell__region-content,
-.tr-workspace-shell__region--left > .tr-workspace-shell__region-content.is-hidden {
-  opacity: 0;
-  transform: translateX(-18px);
-  pointer-events: none;
-}
+  &__region--left.is-hidden > &__region-content,
+  &__region--left > &__region-content.is-hidden {
+    opacity: 0;
+    transform: translateX(-18px);
+    pointer-events: none;
+  }
 
-.tr-workspace-shell__region--right.is-hidden > .tr-workspace-shell__region-content,
-.tr-workspace-shell__region--right > .tr-workspace-shell__region-content.is-hidden {
-  opacity: 0;
-  transform: translateX(18px);
-  pointer-events: none;
-}
+  &__region--right.is-hidden > &__region-content,
+  &__region--right > &__region-content.is-hidden {
+    opacity: 0;
+    transform: translateX(18px);
+    pointer-events: none;
+  }
 
-.tr-workspace-shell__center {
-  flex: 1;
-  min-width: 0;
-  min-height: 0;
-  display: flex;
-  background: var(--workspace-shell-bg);
-}
+  &__center {
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    background: var(--workspace-shell-bg);
+  }
 
-.tr-workspace-shell__center-content {
-  flex: 1;
-  min-width: 0;
-  min-height: 0;
-  display: flex;
+  &__center-content {
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+  }
 }
 </style>

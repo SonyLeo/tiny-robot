@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import type { TrChatPresetOverrides } from '@opentiny/tiny-robot-chat'
 import { TrChat, useMcpManager } from '@opentiny/tiny-robot-chat'
 import { localStorageStrategyFactory, toolPlugin } from '@opentiny/tiny-robot-kit'
@@ -63,22 +63,13 @@ const blackboxRuntime = {
   }),
 }
 
-const isFullWidth = ref(false)
 const blackboxPresetOverrides = computed<TrChatPresetOverrides>(() => ({
   showFeedback: true,
-  contentLayout: isFullWidth.value ? 'wide' : 'centered',
 }))
 </script>
 
 <template>
-  <TrChat :config="chatConfig" :runtime="blackboxRuntime" :preset-overrides="blackboxPresetOverrides">
-    <template #header-extra>
-      <label class="layout-toggle">
-        <input v-model="isFullWidth" type="checkbox" />
-        <span>contentLayout</span>
-      </label>
-    </template>
-  </TrChat>
+  <TrChat :config="chatConfig" :runtime="blackboxRuntime" :preset-overrides="blackboxPresetOverrides" />
 </template>
 
 <style scoped>

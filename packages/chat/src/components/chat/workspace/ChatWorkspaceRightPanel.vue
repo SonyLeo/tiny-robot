@@ -51,7 +51,7 @@ function handleClose() {
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="less">
 .tr-chat-workspace-right-panel {
   height: 100%;
   min-height: 0;
@@ -59,62 +59,61 @@ function handleClose() {
   flex-direction: column;
   background: linear-gradient(
     180deg,
-    color-mix(in srgb, var(--workspace-shell-region-bg, var(--tr-container-bg-default, #fff)) 97%, white 3%) 0%,
-    color-mix(in srgb, var(--workspace-shell-region-bg, var(--tr-container-bg-default, #fff)) 99%, transparent 1%) 100%
+    color-mix(in srgb, var(--chat-workspace-panel-bg, var(--tr-container-bg-default, #fff)) 97%, white 3%) 0%,
+    color-mix(in srgb, var(--chat-workspace-panel-bg, var(--tr-container-bg-default, #fff)) 99%, transparent 1%) 100%
   );
-  color: var(--workspace-shell-text-primary, var(--tr-text-primary, #111827));
-  box-shadow: inset 1px 0 0
-    color-mix(in srgb, var(--workspace-shell-border-color, rgba(15, 23, 42, 0.08)) 42%, transparent);
-}
+  color: var(--chat-workspace-text-primary, var(--tr-text-primary, #111827));
+  box-shadow: inset 1px 0 0 color-mix(in srgb, var(--chat-workspace-border, rgba(15, 23, 42, 0.08)) 42%, transparent);
 
-.tr-chat-workspace-right-panel__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  height: var(--chat-header-height);
-  padding: 0 12px;
-  flex-shrink: 0;
-}
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    height: var(--chat-header-height);
+    padding: var(--chat-workspace-right-header-padding, 0 12px);
+    flex-shrink: 0;
 
-.tr-chat-workspace-right-panel__header h3 {
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-  color: var(--chat-header-title-color, var(--tr-text-primary, #191919));
-  font-size: var(--chat-header-title-font-size, 14px);
-  font-weight: var(--chat-header-title-font-weight, 600);
-  line-height: 1.4;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+    h3 {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      color: var(--chat-header-title-color, var(--tr-text-primary, #191919));
+      font-size: var(--chat-workspace-right-title-size, var(--chat-header-title-font-size, 14px));
+      font-weight: var(--chat-header-title-font-weight, 600);
+      line-height: 1.4;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
 
-.tr-chat-workspace-right-panel__close {
-  width: 28px;
-  height: 28px;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  color: var(--workspace-shell-text-secondary, var(--tr-text-secondary, #6b7280));
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
+  &__close {
+    width: var(--chat-workspace-right-close-size, 28px);
+    height: var(--chat-workspace-right-close-size, 28px);
+    border: 0;
+    border-radius: var(--chat-workspace-right-close-radius, 8px);
+    background: transparent;
+    color: var(--chat-workspace-text-secondary, var(--tr-text-secondary, #6b7280));
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
 
-.tr-chat-workspace-right-panel__close:hover {
-  background: var(--workspace-shell-hover-bg, var(--tr-container-bg-hover, rgba(15, 23, 42, 0.06)));
-  color: var(--workspace-shell-accent, var(--tr-color-primary, #2f6bff));
-}
+    &:hover {
+      background: var(--chat-workspace-hover-bg, var(--tr-container-bg-hover, rgba(15, 23, 42, 0.06)));
+      color: var(--chat-workspace-accent, var(--tr-color-primary, #2f6bff));
+    }
 
-.tr-chat-workspace-right-panel__close :deep(svg) {
-  width: 16px;
-  height: 16px;
-}
+    :deep(svg) {
+      width: 16px;
+      height: 16px;
+    }
+  }
 
-.tr-chat-workspace-right-panel__body {
-  flex: 1;
-  min-height: 0;
-  padding: 0 2px 2px;
+  &__body {
+    flex: 1;
+    min-height: 0;
+    padding: var(--chat-workspace-right-body-padding, 0 2px 2px);
+  }
 }
 </style>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, inject } from 'vue'
 import { TrIconButton } from '@opentiny/tiny-robot'
-import { IconAccessory, IconClose, IconHistory, IconNewSession } from '@opentiny/tiny-robot-svgs'
+import { IconClose, IconHistory, IconMenuOpen, IconMenu2, IconNewSession } from '@opentiny/tiny-robot-svgs'
 import { CHAT_ATTACHMENTS_KEY, CHAT_KIT_KEY, CHAT_UI_KEY, useChatScaffoldContext, useRequiredInject } from '@/context'
 import { useResolvedChatMessages } from '@/messages'
 import { triStateBooleanProp } from '@/utils'
@@ -26,7 +26,13 @@ const chatKit = useRequiredInject(CHAT_KIT_KEY, 'chat kit')
 const attachmentsContext = inject(CHAT_ATTACHMENTS_KEY, null)
 const chatUi = useRequiredInject(CHAT_UI_KEY, 'chat ui')
 const chatMessages = useResolvedChatMessages()
-const resolvedTitle = computed(() => props.title ?? headerSlice.value?.title ?? '')
+const brandTitle = computed(() => props.title ?? headerSlice.value?.title ?? '')
+const hasActiveConversation = computed(() => Boolean(chatKit.activeConversationId.value))
+const activeConversationTitle = computed(() => {
+  const title = chatKit.activeConversation.value?.title?.trim()
+  return title || chatMessages.value.history.defaultConversationTitle
+})
+const resolvedTitle = computed(() => (hasActiveConversation.value ? activeConversationTitle.value : brandTitle.value))
 const resolvedShowHistory = computed(() => props.showHistory ?? headerSlice.value?.showHistory ?? false)
 const resolvedShowNewChat = computed(() => props.showNewChat ?? true)
 const resolvedShowClose = computed(() => props.showClose ?? headerSlice.value?.showClose ?? false)
@@ -56,13 +62,16 @@ const historyBtnLabel = computed(() =>
       <div class="tr-chat__header-left">
         <TrIconButton
           v-if="showWorkspaceMobileHistory"
-          :icon="IconHistory"
+          :icon="IconMenuOpen"
           size="28"
           svg-size="20"
           :title="historyBtnLabel"
           :aria-label="historyBtnLabel"
           @click="chatUi.history.toggle()"
         />
+      </div>
+
+      <div class="tr-chat__header-title">
         <slot name="title">
           <h3 v-if="resolvedTitle" class="tr-chat__header-brand">{{ resolvedTitle }}</h3>
         </slot>
@@ -90,7 +99,7 @@ const historyBtnLabel = computed(() =>
         />
         <TrIconButton
           v-if="showRightPanelToggle"
-          :icon="IconAccessory"
+          :icon="IconMenu2"
           size="28"
           svg-size="20"
           title="Toggle workspace panel"

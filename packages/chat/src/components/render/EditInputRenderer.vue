@@ -179,28 +179,26 @@ onMounted(() => {
   }
 }
 
-.slide-in-right-enter {
-  &-active {
-    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+.slide-in-right-enter-active {
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
 
-    @media (max-width: 640px) {
-      transition: none;
-    }
+  @media (max-width: 640px) {
+    transition: none;
   }
+}
 
-  &-from {
-    transform: translateX(20px);
-    opacity: 0;
+.slide-in-right-enter-from {
+  transform: translateX(20px);
+  opacity: 0;
 
-    @media (max-width: 640px) {
-      transform: translateX(0);
-      opacity: 1;
-    }
-  }
-
-  &-to {
+  @media (max-width: 640px) {
     transform: translateX(0);
     opacity: 1;
   }
+}
+
+.slide-in-right-enter-to {
+  transform: translateX(0);
+  opacity: 1;
 }
 </style>

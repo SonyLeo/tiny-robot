@@ -201,21 +201,25 @@ export function createChatUiContext(options: CreateChatUiContextOptions = {}): C
       })
     }
 
-    watch(isMobile, (mobile) => {
-      if (enabled.value) {
-        display.value = mobile ? 'drawer' : 'drawer'
+    watch(
+      isMobile,
+      (mobile) => {
+        if (enabled.value) {
+          display.value = mobile ? 'drawer' : 'drawer'
 
-        if (!mobile) {
-          left.visible.value = true
-          if (left.collapseMode.value === 'rail' && historyVisible.value === false) {
-            left.collapsed.value = true
+          if (!mobile) {
+            left.visible.value = true
+            if (left.collapseMode.value === 'rail' && historyVisible.value === false) {
+              left.collapsed.value = true
+            }
+          } else {
+            left.collapsed.value = false
+            left.visible.value = false
           }
-        } else {
-          left.collapsed.value = false
-          left.visible.value = false
         }
-      }
-    })
+      },
+      { immediate: true },
+    )
   }
 
   return {

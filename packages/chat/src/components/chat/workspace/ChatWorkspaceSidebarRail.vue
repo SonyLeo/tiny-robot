@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { IconAi, IconHistory, IconNewSession } from '@opentiny/tiny-robot-svgs'
+import { IconAi, IconNewSession, IconPanelRightClose } from '@opentiny/tiny-robot-svgs'
 import { CHAT_KIT_KEY, CHAT_UI_KEY, useRequiredInject } from '@/context'
 
 defineOptions({ name: 'TrChatWorkspaceSidebarRail' })
@@ -15,10 +15,10 @@ function handleCreateConversation() {
 <template>
   <div class="tr-chat-workspace-sidebar-rail">
     <IconAi
+      class="tr-chat-workspace-sidebar-rail__brand"
       type="button"
       aria-label="Expand sidebar"
       @click="chatUi.workspace.left.expand()"
-      :style="{ fontSize: '28px', cursor: 'pointer' }"
     />
     <button
       type="button"
@@ -26,7 +26,7 @@ function handleCreateConversation() {
       aria-label="History"
       @click="chatUi.workspace.left.expand()"
     >
-      <IconHistory />
+      <IconPanelRightClose />
     </button>
     <button
       type="button"
@@ -39,37 +39,42 @@ function handleCreateConversation() {
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="less">
 .tr-chat-workspace-sidebar-rail {
   height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  gap: 18px;
-  padding: 20px 0;
-}
+  gap: var(--chat-workspace-rail-gap, 18px);
+  padding: var(--chat-workspace-rail-padding, 20px 0);
 
-.tr-chat-workspace-sidebar-rail__button {
-  width: 44px;
-  height: 44px;
-  border: 0;
-  border-radius: 14px;
-  background: transparent;
-  color: var(--workspace-shell-text-secondary, var(--tr-text-secondary, #6b7280));
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
+  &__brand {
+    font-size: var(--chat-workspace-rail-brand-size, 28px);
+    cursor: pointer;
+  }
 
-.tr-chat-workspace-sidebar-rail__button:hover {
-  background: var(--workspace-shell-hover-bg, var(--tr-container-bg-hover, rgba(15, 23, 42, 0.06)));
-  color: var(--workspace-shell-accent, var(--tr-color-primary, #2f6bff));
-}
+  &__button {
+    width: var(--chat-workspace-rail-button-size, 44px);
+    height: var(--chat-workspace-rail-button-size, 44px);
+    border: 0;
+    border-radius: var(--chat-workspace-rail-button-radius, 14px);
+    background: transparent;
+    color: var(--chat-workspace-text-secondary, var(--tr-text-secondary, #6b7280));
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
 
-.tr-chat-workspace-sidebar-rail__button :deep(svg) {
-  width: 18px;
-  height: 18px;
+    &:hover {
+      background: var(--chat-workspace-hover-bg, var(--tr-container-bg-hover, rgba(15, 23, 42, 0.06)));
+      color: var(--chat-workspace-accent, var(--tr-color-primary, #2f6bff));
+    }
+
+    :deep(svg) {
+      width: var(--chat-workspace-rail-icon-size, 18px);
+      height: var(--chat-workspace-rail-icon-size, 18px);
+    }
+  }
 }
 </style>

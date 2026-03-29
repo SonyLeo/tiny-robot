@@ -198,6 +198,41 @@
   --chat-body-bg: var(--chat-surface-bg);
   --chat-footer-bg: var(--chat-surface-bg);
   --chat-header-title-color: var(--chat-text-primary);
+
+  --chat-workspace-bg: var(--chat-surface-bg);
+  --chat-workspace-panel-bg: var(--chat-panel-bg);
+  --chat-workspace-panel-bg-muted: var(--chat-panel-bg-muted);
+  --chat-workspace-border: var(--chat-panel-border);
+  --chat-workspace-text-primary: var(--chat-text-primary);
+  --chat-workspace-text-secondary: var(--chat-text-secondary);
+  --chat-workspace-accent: var(--chat-accent-color);
+  --chat-workspace-accent-soft: var(--chat-accent-bg);
+  --chat-workspace-hover-bg: var(--chat-surface-bg-hover);
+  --chat-workspace-shadow: var(--chat-shadow-sm);
+  --chat-workspace-overlay-bg: var(--chat-drawer-overlay-bg);
+  --chat-workspace-rail-width: 48px;
+  --chat-workspace-sidebar-header-padding: 24px 22px 10px;
+  --chat-workspace-sidebar-title-size: 18px;
+  --chat-workspace-sidebar-icon-size: 28px;
+  --chat-workspace-sidebar-toggle-size: 32px;
+  --chat-workspace-sidebar-toggle-radius: 10px;
+  --chat-workspace-rail-padding: 20px 0;
+  --chat-workspace-rail-gap: 18px;
+  --chat-workspace-rail-button-size: 44px;
+  --chat-workspace-rail-button-radius: 14px;
+  --chat-workspace-rail-icon-size: 18px;
+  --chat-workspace-rail-brand-size: 28px;
+  --chat-workspace-right-header-padding: 0 12px;
+  --chat-workspace-right-title-size: var(--chat-header-title-font-size);
+  --chat-workspace-right-close-size: 28px;
+  --chat-workspace-right-close-radius: 8px;
+  --chat-workspace-right-body-padding: 0 2px 2px;
+  --chat-workspace-empty-padding: 40px 28px;
+  --chat-workspace-empty-gap: 10px;
+  --chat-workspace-empty-icon-size: 72px;
+  --chat-workspace-empty-icon-radius: 24px;
+  --chat-workspace-empty-title-size: 18px;
+  --chat-workspace-empty-text-size: 14px;
 }
 
 [data-tr-color-mode='dark'] {
