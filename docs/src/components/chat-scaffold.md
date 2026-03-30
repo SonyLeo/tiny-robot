@@ -4,29 +4,45 @@ outline: deep
 
 # Chat Scaffold 与 Root
 
-这页聚焦 `TrChat.Scaffold`、`TrChat.Root` 和白盒组合。
+这页聚焦 `TrChat.Scaffold`、`TrChat.Root` 和更高定制级别的组合方式。
 
-如果你已经知道：
+在当前推荐路径里：
 
-- `TrChat` 能跑起来
-- 但你不想完全接受默认页面结构
-- 同时也不想从零手工重建模型、provider、preset 装配链
+- `TrChat` 是默认入口
+- slots 是局部定制的第一优先级
+- `TrChat.Scaffold` 是结构性定制入口
+- `TrChat.Root` 是更底层的根注入入口
 
-那么这里就是下一步。
+也就是说，只有当你已经确认黑盒 + `presetOverrides` + slots 不够用时，才应该进入这页。
 
 ## 什么时候用 `Scaffold`，什么时候用 `Root`
 
 | 入口 | 适合场景 | 你会得到什么 |
 | :-- | :-- | :-- |
-| `TrChat.Scaffold` | 想保留默认解析链，但自己控制页面结构 | `adapter`、`presetProps`、`presetSlices`、默认 chatKit、模型切换能力 |
-| `TrChat.Root` | 已经有自己的 chatKit 或只想手工装配叶子组件 | 上下文注入层，不绑定默认页面结构 |
+| `TrChat.Scaffold` | 想保留默认解析链，但自己控制页面结构 | `adapter`、`presetProps`、`presetSlices`、默认 `chatKit`、模型切换能力 |
+| `TrChat.Root` | 已经有自己的 `chatKit`，或要直接传 `responseProvider` | 根上下文注入层，不绑定默认页面结构 |
 
 可以简单理解为：
 
-- `Scaffold` 是“黑盒的中间装配层”
-- `Root` 是“白盒组合的上下文根节点”
+- `Scaffold` 是“默认主链的结构性展开层”
+- `Root` 是“更底层的上下文根节点”
+
+当前推荐顺序仍然是：
+
+`TrChat -> slots -> TrChat.Scaffold -> TrChat.Root`
 
 ## `TrChat.Scaffold`
+
+### 它的定位
+
+`TrChat.Scaffold` 的目标不是让你放弃默认主链，而是把默认主链显式展开给你消费。
+
+当前推荐在这些场景进入 `Scaffold`：
+
+- 你要重排 header / body / footer 的整体结构
+- 你要自己控制 welcome / message list / footer 的组合方式
+- 你要在模板里同时接入 `presetSlices`、当前模型、`chatKit`
+- 你已经超出 slots 能力范围，但还不想自己重建整条解析链
 
 ### 它做了什么
 
@@ -40,13 +56,10 @@ config
   -> 默认 chatKit / 模型切换 / context provide
 ```
 
-也就是说，它帮你保留了黑盒默认值的解析能力，但把页面结构控制权还给了你。
+也就是说：
 
-### 它适合什么场景
-
-- 你想自己写 `Layout / Header / Welcome / MessageList / Footer`
-- 你想插自己的按钮、工具条或侧栏
-- 你想局部覆盖默认渲染，但不想自己重写 `config -> preset` 的整条链
+- 它保留了黑盒默认值的解析能力
+- 但把页面结构控制权交还给你
 
 ### `Scaffold` props
 
@@ -57,11 +70,14 @@ config
 - `callbacks`
 - `presetOverrides`
 
-不同点在于：`Scaffold` 会把解析结果通过 default slot 暴露出来。
+不同点在于：
+
+- `TrChat` 会直接渲染默认页面
+- `TrChat.Scaffold` 会把解析结果通过 default slot 暴露出来
 
 ### default slot 会拿到什么
 
-`TrChat.Scaffold` 的 default slot 当前会拿到：
+`TrChat.Scaffold` 当前会暴露：
 
 | 字段 | 说明 |
 | :-- | :-- |
@@ -76,126 +92,80 @@ config
 
 - 读当前模型
 - 手工切换模型
-- 根据 `presetSlices` 去装配叶子组件
-- 用 `chatKit.messages.value.length` 决定欢迎区和消息区切换
+- 根据 `presetSlices` 装配叶子组件
+- 根据 `chatKit.messages.value.length` 决定 welcome / message list 切换
 
 ### 一个典型的 `Scaffold` 示例
 
-```vue
-<script setup lang="ts">
-import { TrChat } from '@opentiny/tiny-robot-chat'
+<demo vue="../../demos/chat/scaffold-layout.vue" title="Scaffold 自定义布局" description="保留 config -> adapter -> preset 主链，同时接管 banner、header、welcome 和 footer 的页面结构。" />
 
-const chatConfig = {
-  models: [{ id: 'gpt-4o-mini', provider: 'openai' }],
-  providers: {
-    openai: {
-      type: 'openai-compatible',
-      endpoint: '/api/chat',
-    },
-  },
-  ui: {
-    brand: {
-      title: 'Chat Scaffold',
-    },
-    welcome: {
-      title: '欢迎使用 Scaffold',
-      description: '保留默认解析链，同时自己控制布局。',
-    },
-  },
-}
-</script>
+## `presetProps` 与 `presetSlices`
 
-<template>
-  <TrChat.Scaffold :config="chatConfig" v-slot="{ chatKit, presetSlices }">
-    <TrChat.Layout>
-      <TrChat.Header v-bind="presetSlices.header" />
+这两个概念很容易混淆。
 
-      <TrChat.Welcome
-        v-if="chatKit.messages.value.length === 0 && presetSlices.welcome"
-        v-bind="presetSlices.welcome"
-        @prompt-click="chatKit.sendMessage($event)"
-      />
+### `presetProps`
 
-      <TrChat.MessageList v-else v-bind="presetSlices.messageList" />
+更偏“抽象 preset 层”，适合：
 
-      <TrChat.Footer>
-        <TrChat.Sender v-bind="presetSlices.sender" />
-      </TrChat.Footer>
-    </TrChat.Layout>
-  </TrChat.Scaffold>
-</template>
-```
+- 做进一步归并
+- 做平台层或中间层消费
+- 做配置映射
+
+### `presetSlices`
+
+更偏“叶子组件消费层”，适合：
+
+- 直接 `v-bind` 到 `Header / Welcome / MessageList / Sender`
+- 作为 `Scaffold` 页面里的默认 props 来源
+
+一个简单经验：
+
+- 页面装配优先消费 `presetSlices`
+- 只有做更上层封装时，才优先考虑 `presetProps`
 
 ## `TrChat.Root`
 
 ### 它的定位
 
-`TrChat.Root` 不是完整页面，它是上下文提供层。
+`TrChat.Root` 不是完整页面，它只是上下文提供层。
 
-它负责把这些能力注入给后代组件：
+它负责给后代组件注入：
 
 - `chatKit`
-- 历史抽屉状态
-- 文案覆盖
-- 附件 feature / manager
+- 消息文案
+- history UI 状态
+- attachments feature / manager
 - sender actions feature
 - `mcpManager`
+- shell 相关 UI 状态
+
+它适合：
+
+- 你已经有自己的 `chatKit`
+- 你要直接使用 `responseProvider`
+- 你要完全接管叶子组件拼装
 
 ### 两种接入方式
 
-`TrChat.Root` 有两种互斥模式。
+`TrChat.Root` 当前有两种互斥模式。
 
 #### 方式 1：直接传 `chatKit`
 
 适合：
 
 - 你已经在页面里自己调用了 `useChatKit`
-- 你要和业务逻辑共享 chatKit
+- 你要和业务逻辑共享同一个聊天运行时
 
-```vue
-<script setup lang="ts">
-import { TrChat, useChatKit } from '@opentiny/tiny-robot-chat'
-
-const chat = useChatKit({
-  responseProvider: async function* () {
-    // ...
-  },
-})
-</script>
-
-<template>
-  <TrChat.Root :chat-kit="chat">
-    <TrChat.Layout>
-      <TrChat.Header title="白盒模式" />
-      <TrChat.MessageList auto-scroll />
-      <TrChat.Footer>
-        <TrChat.Sender placeholder="请输入..." />
-      </TrChat.Footer>
-    </TrChat.Layout>
-  </TrChat.Root>
-</template>
-```
+<demo vue="../../demos/chat/root-chat-kit.vue" title="Root + chatKit" description="直接把现成 chatKit 注入 Root，并完全自己决定 Header / MessageList / Sender 的装配方式。" />
 
 #### 方式 2：直接传 `responseProvider`
 
 适合：
 
-- 你想用白盒组合
+- 你想进入白盒组合
 - 但不想自己先创建 `chatKit`
 
-```vue
-<template>
-  <TrChat.Root :response-provider="responseProvider">
-    <TrChat.Layout>
-      <TrChat.Header title="Root Provider 模式" />
-      <TrChat.MessageList auto-scroll />
-      <TrChat.Footer>
-        <TrChat.Sender />
-      </TrChat.Footer>
-    </TrChat.Layout>
-  </TrChat.Root>
-</template>
-```
+<demo vue="../../demos/chat/root-response-provider.vue" title="Root + responseProvider" description="不提前创建 chatKit，直接把 responseProvider 和初始消息交给 Root。" />
 
 这两种方式是互斥的，不建议同时传。
 
@@ -210,68 +180,70 @@ TrChat.Root
   -> TrChat.Welcome / TrChat.MessageList
   -> TrChat.Footer
   -> TrChat.Sender
-  -> TrChat.History
 ```
 
-如果你要使用这些能力，也建议一起考虑：
+如果你要继续补能力，也通常会一起考虑：
 
 - `TrChat.Attachments`
+- `TrChat.History`
+- `TrChat.HistorySurface`
 - `TrMcpTrigger`
 - `TrModelSelector`
+- `TrChatFeedback`
 - `TrChatMcpPanel`
-- `TrChat.HistorySurface`
 
-## `presetProps` 和 `presetSlices` 的区别
+## 什么时候该停在 `Scaffold`
 
-这两个概念容易混淆。
+大多数“高度自定义”需求，其实停在 `Scaffold` 就够了。
 
-### `presetProps`
+建议停在 `Scaffold` 的情况：
 
-更偏“抽象 preset 层”，适合：
+- 你主要是在改页面结构
+- 你仍想复用默认 feature 装配
+- 你仍想让 `config` 成为主要输入
+- 你不想自己维护 `chatKit.updateResponseProvider()` 之类的细节
 
-- 再次计算
-- 做统一能力面消费
-- 给工具链或中间层使用
+只有在这些情况才继续往下走：
 
-### `presetSlices`
+- 你已经有现成业务运行时
+- 你要自己管理 `chatKit`
+- 你要绕开默认 `Scaffold` 初始化链
 
-更偏“叶子组件消费层”，适合：
+## 关于叶子组件 contract 的边界
 
-- 直接 `v-bind` 到 `Header / Welcome / MessageList / Sender`
-- 作为白盒页面的默认 props 来源
+需要特别注意：
 
-一个简单经验：
+- `presetSlices.*` 是默认装配结果的一部分
+- 但不是所有 slice 字段都应该被理解成对应叶子组件的正式稳定 props
 
-- 页面装配时优先消费 `presetSlices`
-- 平台层、模板层、二次封装时再考虑直接消费 `presetProps`
+例如 `TrChat.Header`：
 
-## 关于 `TrChat.Header` 的 contract 边界
+- 当前稳定公开 props 仍应以叶子组件自身类型为准
+- 不应简单把 header slice 里的所有字段都视为 `TrChat.Header` 的正式 contract
 
-当前文档把 `TrChat.Header` 作为白盒叶子组件来使用，但这里需要特别区分：
+换句话说：
 
-- 从稳定公开类型看，`TrChatHeaderProps` 当前主要暴露的是 `showHistory`、`showNewChat` 和 `title`
-- 一些全屏 / 关闭相关行为虽然在当前实现里存在，并且会通过 scaffold header slice 参与默认装配，但它们暂时不应被当作 `TrChat.Header` 的正式 props contract 来文档化
+- 写页面时可以消费 `presetSlices.header`
+- 写叶子组件 API 文档时，仍应优先以稳定公开类型为准
 
-因此：
+## 推荐的升级路径
 
-- 如果你是在消费 `presetSlices.header`，可以把它理解成默认装配结果的一部分
-- 但如果你是在写叶子组件 API 文档，不建议把全屏 / 关闭这类字段直接写成 `TrChat.Header` 的稳定公开 props，除非对应的导出类型先补齐
-
-换句话说，当前应优先把这类能力当成“场景装配层行为”，而不是“Header 单组件 contract”。
-
-## 推荐的白盒演进路径
-
-如果你正在从黑盒往白盒演进，建议按这个顺序来：
+如果你正在从黑盒往更高定制演进，建议按这个顺序来：
 
 1. 先保留 `TrChat`
-2. 需要改结构时改用 `TrChat.Scaffold`
-3. 只有在你明确需要自己掌控 `chatKit` 或 `Root` 注入层时，再直接切到 `TrChat.Root`
+2. 局部定制时先试 `presetOverrides` 和 slots
+3. 需要改结构时进入 `TrChat.Scaffold`
+4. 只有在你明确需要掌控 root 注入层时，再直接切到 `TrChat.Root`
 
-这样可以减少你手工维护默认值解析链的成本。
+这条路径可以最大程度减少：
+
+- 手工维护默认值解析链的成本
+- 黑盒和白盒之间的概念跳跃
+- 后续随着主链演进而产生的维护负担
 
 ## 相关页面
 
+- [Chat](./chat.md)
 - [Chat 黑盒配置](./chat-config.md)
 - [Chat Slots 与渲染定制](./chat-slots.md)
-- [Chat Features](./chat-features.md)
 - [Chat 进阶能力](./chat-advanced.md)

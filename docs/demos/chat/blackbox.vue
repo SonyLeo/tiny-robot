@@ -14,61 +14,27 @@
 
 <script setup lang="ts">
 import { TrChat, useChatKit } from '@opentiny/tiny-robot-chat'
-import type { BrandConfig, ChatConfig, ResponseProvider, WelcomeConfig } from '@opentiny/tiny-robot-chat'
 import type { ChatMessage } from '@opentiny/tiny-robot-kit'
-import type { PromptProps } from '@opentiny/tiny-robot'
+import { createDemoChatConfig, createMockResponseProvider } from './shared'
 
-const brand: BrandConfig = {
-  title: 'TinyRobot Chat',
-}
-
-const welcome: WelcomeConfig = {
-  title: '欢迎使用 Chat 套件',
-  description: '只需几行代码即可拥有完整对话 UI',
-}
-
-const prompts: PromptProps[] = [
-  { label: '快速上手', description: '如何引入并配置 TrChat 组件？' },
-  { label: '流式响应', description: '演示一下打字机效果' },
-]
-
-const chatConfig: ChatConfig = {
-  models: [{ id: 'mock-model', provider: 'mock' }],
-  providers: {
-    mock: {
-      type: 'openai-compatible',
-      endpoint: '/api/mock-chat',
-    },
-  },
-  defaults: {
-    model: 'mock-model',
-  },
+const chatConfig = createDemoChatConfig({
   ui: {
-    brand,
-    welcome,
-    prompts,
+    brand: {
+      title: 'TinyRobot Chat',
+    },
+    welcome: {
+      title: '欢迎使用 Chat 套件',
+      description: '只需几行代码即可拥有完整对话 UI，这个示例的数据完全来自本地 mock。',
+    },
+    prompts: [
+      { label: '快速上手', description: '如何引入并配置 TrChat 组件？' },
+      { label: '流式响应', description: '演示一下打字机效果' },
+    ],
   },
-}
-
-const responseProvider: ResponseProvider = async function* (requestBody, _abortSignal) {
-  const lastMsg = requestBody.messages[requestBody.messages.length - 1]
-  const text = `这是对 "${lastMsg.content ?? ''}" 的模拟流式回复。大模型逐个吐字的效果就是这样产生的。`
-
-  for (let i = 0; i < text.length; i++) {
-    await new Promise<void>((resolve) => setTimeout(resolve, 50))
-    yield {
-      id: 'mock_id',
-      object: 'chat.completion.chunk',
-      created: Date.now(),
-      model: 'mock-model',
-      system_fingerprint: null,
-      choices: [{ index: 0, delta: { content: text[i] }, message: undefined, logprobs: null, finish_reason: null }],
-    }
-  }
-}
+})
 
 const chatKit = useChatKit({
-  responseProvider,
+  responseProvider: createMockResponseProvider('黑盒示例'),
 })
 
 function onFinish(message: ChatMessage) {

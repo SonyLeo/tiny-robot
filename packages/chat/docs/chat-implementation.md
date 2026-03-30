@@ -3,6 +3,7 @@
 > Last updated: `2026-03-28`
 > Primary doc: 本文件是 `packages/chat` 当前包级实现说明的主文档
 > Related:
+> - [Chat 主链收敛追踪](./chat-mainline-alignment-progress.md)
 > - [useChatKit 实现深潜](./use-chat-kit-implementation-deep-dive.md)
 
 ## 范围

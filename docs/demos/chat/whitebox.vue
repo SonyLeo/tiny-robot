@@ -36,31 +36,13 @@
 
 <script setup lang="ts">
 import { useChatKit, TrChat } from '@opentiny/tiny-robot-chat'
-import type { ResponseProvider } from '@opentiny/tiny-robot-chat'
 import type { PromptProps } from '@opentiny/tiny-robot'
+import { createMockResponseProvider } from './shared'
 
 const prompts: PromptProps[] = [{ label: '自定义 UI', description: '我们可以调整哪些组件布局？' }]
 
-// --- 模拟的流式 ResponseProvider ---
-const responseProvider: ResponseProvider = async function* (requestBody, _abortSignal) {
-  const lastMsg = requestBody.messages[requestBody.messages.length - 1]
-  const text = `[白盒] 您发送了："${lastMsg.content ?? ''}"`
-
-  for (let i = 0; i < text.length; i++) {
-    await new Promise<void>((resolve) => setTimeout(resolve, 50))
-    yield {
-      id: `mock_${Date.now()}`,
-      object: 'chat.completion.chunk',
-      created: Date.now(),
-      model: 'mock-model',
-      system_fingerprint: null,
-      choices: [{ index: 0, delta: { content: text[i] }, message: undefined, logprobs: null, finish_reason: null }],
-    }
-  }
-}
-
 // 核心 Composable —— 驱动整个对话生命周期
-const chat = useChatKit({ responseProvider })
+const chat = useChatKit({ responseProvider: createMockResponseProvider('白盒示例') })
 const { messages } = chat
 </script>
 

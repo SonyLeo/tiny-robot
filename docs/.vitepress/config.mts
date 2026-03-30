@@ -5,16 +5,22 @@ import { vitepressDemoPlugin } from 'vitepress-demo-plugin'
 import { MarkdownBadgePlugin, SidebarBadgePlugin } from './plugins/badge'
 import { themeConfig } from './themeConfig'
 
-const devAlias = {
+const workspaceAlias = {
+  '@': fileURLToPath(new URL('../../packages/chat/src', import.meta.url)),
   '@opentiny/tiny-robot': fileURLToPath(new URL('../../packages/components/src', import.meta.url)),
   '@opentiny/tiny-robot-kit': fileURLToPath(new URL('../../packages/kit/src', import.meta.url)),
   '@opentiny/tiny-robot-chat': fileURLToPath(new URL('../../packages/chat/src', import.meta.url)),
+}
+
+const devAlias = {
+  ...workspaceAlias,
   '@opentiny/tiny-robot-style': fileURLToPath(
     new URL('../../packages/components/src/styles/root.css', import.meta.url),
   ),
 }
 
 const prodAlias = {
+  ...workspaceAlias,
   '@opentiny/tiny-robot-style': '@opentiny/tiny-robot/dist/style.css',
 }
 
