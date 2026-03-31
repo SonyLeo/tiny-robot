@@ -39,6 +39,7 @@ outline: deep
 | `TrChat.HistorySurface` | 你要把历史区单独抽出来放进自定义页面 |
 | `TrModelSelector` | 你要在默认 footer 之外单独摆模型切换 |
 | `TrMcpTrigger` / `TrChatMcpPanel` | 你要在更高层页面单独摆 MCP 入口或 MCP 面板 |
+| `TrChat.WorkspaceLayout` / `TrChat.WorkspaceShell` / `TrChat.WorkspaceRightSheet` | 你要显式消费 workspace shell 相关公开 surface |
 | 配置加工与投影能力 | 你在做模板、平台、脚手架或二次封装 |
 
 如果你还没有明确遇到这些问题，这页的大部分内容都可以先不看。
@@ -87,6 +88,10 @@ outline: deep
 
 一个常见注意点：
 
+- `models`
+- `defaultModel`
+- 每个 model 的 `providerId`
+- `onModelChange`
 - 如果没显示图标，先检查 `providerId` 是否命中了内置 provider 图标
 - 如果你要强制指定图标，手动传 `ModelOption.icon`
 - 默认是否出现 selector，也仍然取决于模型数量、默认模型配置，以及页面是否保留了默认 footer 工具位
@@ -99,6 +104,25 @@ outline: deep
 
 - 你已经自己写了 `TrChat.MessageList`
 - 但仍希望复用默认 feedback 行为
+
+### `TrChat.WorkspaceLayout` / `TrChat.WorkspaceShell` / `TrChat.WorkspaceRightSheet`
+
+这三个公开 surface 面向 workspace shell 场景。
+
+适合：
+
+- 你要显式消费 workspace 布局容器
+- 你要自己控制左侧 / 中间 / 右侧区域的组合
+- 你要单独复用移动端右侧 sheet 入口
+
+简单区分：
+
+- `TrChat.WorkspaceLayout`
+  Chat 层的 workspace 装配容器，默认会把 history、right panel / sheet 这些结构一起接起来
+- `TrChat.WorkspaceShell`
+  更低一层的区域容器，适合你自己控制左右区域和折叠行为
+- `TrChat.WorkspaceRightSheet`
+  移动端右侧区域的 sheet 入口，适合单独复用
 
 ## 平台封装能力
 

@@ -121,5 +121,8 @@ function handleWhiteboxWelcomePromptClick(description: string) {
 .chat-wrapper {
   position: relative;
   height: calc(100vh - 100px);
+  min-height: 0;
+  overflow: hidden;
+  isolation: isolate;
 }
 </style>

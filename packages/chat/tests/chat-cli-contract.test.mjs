@@ -22,6 +22,7 @@ await runTest('createChatCliCapabilitySurface exposes the current stable chat-cl
     'attachmentsFeature',
     'senderActionsFeature',
     'prompts',
+    'shell',
     'mcpManager',
     'messageListVariant',
     'contentLayout',
@@ -33,6 +34,7 @@ await runTest('createChatCliCapabilitySurface exposes the current stable chat-cl
   assert.deepEqual(CHAT_CLI_CONSUMABLE_PRESET_SLICE_KEYS, [
     'root',
     'layout',
+    'shell',
     'header',
     'welcome',
     'messageList',
@@ -95,6 +97,7 @@ await runTest('createChatCliCapabilitySurface exposes the current stable chat-cl
   assert.equal(surface.presetProps.attachmentsFeature?.enabled, true)
   assert.equal(surface.presetProps.senderActionsFeature?.wordCount, true)
   assert.equal(surface.presetProps.prompts?.[0]?.label, 'feature prompt')
+  assert.equal(surface.presetProps.shell?.variant, 'workspace')
   assert.equal(surface.presetProps.mcpManager, mcpManager)
   assert.equal(surface.presetProps.messageListVariant, 'workspace')
   assert.equal(surface.presetProps.contentLayout, 'wide')
@@ -108,6 +111,7 @@ await runTest('createChatCliCapabilitySurface exposes the current stable chat-cl
   assert.deepEqual(Object.keys(surface.presetSlices), [
     'root',
     'layout',
+    'shell',
     'header',
     'welcome',
     'messageList',
@@ -118,6 +122,7 @@ await runTest('createChatCliCapabilitySurface exposes the current stable chat-cl
   assert.equal(surface.presetSlices.root.attachmentsFeature?.enabled, true)
   assert.equal(surface.presetSlices.root.mcpManager, mcpManager)
   assert.equal(surface.presetSlices.layout.contentLayout, 'wide')
+  assert.equal(surface.presetSlices.shell.shell?.variant, 'workspace')
   assert.equal(surface.presetSlices.layout.roleConfigs?.assistant?.placement, 'start')
   assert.equal(surface.presetSlices.layout.roleConfigs?.user?.placement, 'end')
   assert.equal(surface.presetSlices.header.title, undefined)

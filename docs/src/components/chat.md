@@ -34,7 +34,7 @@ outline: deep
 | 字段 | 适合放什么 | 什么时候最常用 |
 | :-- | :-- | :-- |
 | `config` | 模型、provider、UI、layout、features 等稳定默认值 | 场景默认值、长期保留的配置 |
-| `runtime` | `chatKit`、`plugins`、`storage`、`initialMessages`、`selectedModel` 等实例级对象 | 页面实例级依赖和运行时对象 |
+| `runtime` | `chatKit`、`plugins`、`storage`、`initialMessages`、`mcpManager`、`selectedModel` 等实例级对象 | 页面实例级依赖和运行时对象 |
 | `callbacks` | `onFinish`、`onError`、`onMessageAction`、`onModelChange` 等行为回调 | 接日志、埋点、错误处理、业务联动 |
 | `presetOverrides` | `contentLayout`、`showHistory`、`showFeedback`、`placeholder` 等页面级覆盖 | 同一份基础配置在不同页面有轻微差异 |
 
@@ -79,6 +79,7 @@ const chatConfig = {
 - `plugins`
 - `storage`
 - `initialMessages`
+- `mcpManager`
 - `selectedModel`
 
 简单记忆：

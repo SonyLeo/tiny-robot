@@ -283,7 +283,9 @@ function seedHistorySurface() {
 .chat-wrapper {
   position: relative;
   height: calc(100vh - 100px);
+  min-height: 0;
   overflow: hidden;
+  isolation: isolate;
 }
 
 .surface-custom-sender {
@@ -319,10 +321,13 @@ function seedHistorySurface() {
 }
 
 .history-surface-wrapper {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 12px;
   min-height: 420px;
+  overflow: hidden;
+  isolation: isolate;
 }
 
 .history-surface-toolbar {
