@@ -240,7 +240,7 @@ my-chat-app/
 
 ## 一个最小入口示例
 
-生成项目后，`App.vue` 不再只是简单绑定一个黑盒 `chatPreset`，而是更明确地消费模板能力切片。典型结构会类似：
+生成项目后，`App.vue` 不再只是简单绑定一套默认接入 preset，而是更明确地消费模板能力切片。典型结构会类似：
 
 ```vue
 <script setup lang="ts">
@@ -296,7 +296,7 @@ const slices = chatCapabilitySurface.presetSlices
 - `TrChat`
 - `useChatKit`
 - `createChatAdapterFromConfig`
-- 白盒组合方式
+- 手动装配方式
 
 ---
 
@@ -336,7 +336,7 @@ const slices = chatCapabilitySurface.presetSlices
 
 ## 相关文档
 
-- [Chat 聊天基座](./chat.md)
+- [Chat 快速接入](./chat.md)
 
 如果你想了解聊天能力本身怎么组织，看 `Chat` 文档；如果你要初始化一个项目并开始开发，优先从这里开始。
 

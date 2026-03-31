@@ -9,12 +9,12 @@ import './styles/index.css'
 const demoCases = [
   {
     id: 'blackbox',
-    label: 'Blackbox',
+    label: '默认接入',
     component: BlackboxDemo,
   },
   {
     id: 'whitebox',
-    label: 'Whitebox',
+    label: '结构装配',
     component: WhiteboxDemo,
   },
 ] as const

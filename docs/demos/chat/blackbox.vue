@@ -34,7 +34,7 @@ const chatConfig = createDemoChatConfig({
 })
 
 const chatKit = useChatKit({
-  responseProvider: createMockResponseProvider('黑盒示例'),
+  responseProvider: createMockResponseProvider('默认接入示例'),
 })
 
 function onFinish(message: ChatMessage) {

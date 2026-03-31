@@ -58,7 +58,7 @@
   flex-shrink: 0;
 }
 
-.tr-chat__header-brand {
+.tr-chat .tr-chat__header-brand {
   margin: 0;
   padding: 0;
   overflow: hidden;

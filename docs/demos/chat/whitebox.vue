@@ -4,13 +4,13 @@
     <TrChat.Root :chat-kit="chat">
       <div class="tr-chat" style="height: 100%">
         <!-- 自定义顶部栏 -->
-        <TrChat.Header show-history title="白盒组合模式" />
+        <TrChat.Header show-history title="手动组合页面" />
 
         <!-- 互斥显示：没有消息时展示 Welcome，有消息时显示消息列表 -->
         <TrChat.Welcome
           v-if="messages.length === 0"
-          title="白盒模式自由组合"
-          description="使用子组件与插槽自由拼装界面"
+          title="手动组合页面结构"
+          description="使用子组件和插槽自行组织页面内容"
           :prompts="prompts"
           @prompt-click="(desc: string) => chat.sendMessage(desc)"
         />
@@ -24,7 +24,7 @@
               💡 这是通过 Footer 的 extra 插槽注入的自定义提示
             </div>
           </template>
-          <TrChat.Sender placeholder="白盒模式输入..." />
+          <TrChat.Sender placeholder="手动组合输入..." />
         </TrChat.Footer>
 
         <!-- 抽屉历史栏 -->
@@ -42,7 +42,7 @@ import { createMockResponseProvider } from './shared'
 const prompts: PromptProps[] = [{ label: '自定义 UI', description: '我们可以调整哪些组件布局？' }]
 
 // 核心 Composable —— 驱动整个对话生命周期
-const chat = useChatKit({ responseProvider: createMockResponseProvider('白盒示例') })
+const chat = useChatKit({ responseProvider: createMockResponseProvider('手动组合页面示例') })
 const { messages } = chat
 </script>
 

@@ -125,3 +125,20 @@ export const seededMessages = [
     content: '没问题，我们会直接把对应的 UI 差异渲染出来。',
   },
 ]
+
+export const layoutShowcaseMessages = [
+  {
+    role: 'assistant',
+    content:
+      '这是一段专门用来观察 contentLayout 的演示消息。centered 会把欢迎区、消息区和底部输入区收束在一个最大宽度内，wide 则会尽量铺满整个可用容器。',
+  },
+  {
+    role: 'user',
+    content: '请直接展示 centered 和 wide 在当前文档预览里的差别。',
+  },
+  {
+    role: 'assistant',
+    content:
+      '在真实组件默认值里，centered 的上限是 1000px。为了让文档里的预览窗口也能一眼看出差异，这个示例会把演示阈值临时压到 560px；切到 wide 后，消息列和输入区会明显向两侧展开。',
+  },
+]

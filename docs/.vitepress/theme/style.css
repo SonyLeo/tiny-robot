@@ -36,6 +36,35 @@ body,
   margin: 0;
 }
 
+/* Keep embedded chat demos isolated from VitePress typography and give them a
+   viewport that matches docs-column usage instead of full-page demos. */
+.vitepress-demo-plugin__container > .vitepress-demo-plugin-preview {
+  overflow: hidden;
+}
+
+.vitepress-demo-plugin-preview .chat-demo-shell,
+.vitepress-demo-plugin-preview .chat-demo-container {
+  min-width: 0;
+}
+
+.vitepress-demo-plugin-preview .chat-demo-container {
+  height: clamp(480px, 68vh, 620px) !important;
+  max-height: 620px;
+  background: var(--vp-c-bg);
+}
+
+.vitepress-demo-plugin-preview .tr-chat .tr-chat__header-brand,
+.vitepress-demo-plugin-preview .tr-welcome .tr-welcome__title,
+.vitepress-demo-plugin-preview .tr-container .tr-container__title {
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .vitepress-demo-plugin-preview .chat-demo-container {
+    height: clamp(420px, 62vh, 540px) !important;
+  }
+}
+
 /* 暗色模式下的 Demo 插件样式 */
 .dark .vitepress-demo-plugin__container {
   background-color: #191919;

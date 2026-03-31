@@ -1,7 +1,7 @@
 // ===== 样式 =====
 import './styles/index.css'
 
-// ===== 黑盒组件（同时挂载白盒子组件）=====
+// ===== 主入口组件（同时挂载子组件）=====
 import {
   Chat as TrChat,
   ChatScaffold as TrChatScaffold,
@@ -41,7 +41,7 @@ type TrChatWithSubComponents = typeof TrChat & {
   WorkspaceRightSheet: typeof TrChatWorkspaceRightSheet
 }
 
-// 挂载白盒子组件到 TrChat 上，实现复合组件模式
+// 挂载子组件到 TrChat 上，实现复合组件模式
 const TrChatFull = TrChat as TrChatWithSubComponents
 TrChatFull.Scaffold = TrChatScaffold
 TrChatFull.Root = TrChatRoot

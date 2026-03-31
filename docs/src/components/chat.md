@@ -2,301 +2,194 @@
 outline: deep
 ---
 
-# Chat
+# Chat 快速接入
 
-`@opentiny/tiny-robot-chat` 是 TinyRobot 的聊天场景装配层。
+`@opentiny/tiny-robot-chat` 的主入口是 `TrChat`。
 
-> 本页中的案例 demo 统一使用本地 mock 数据驱动，方便在文档站直接渲染，不会直接请求真实 API。
+先把 `TrChat` 用起来，再按需要补功能和定制，大多数业务页面走到这一步就够了。
 
-它负责把：
+> 本页示例统一使用本地 mock 数据驱动，方便在文档站直接渲染，不会直接请求真实 API。
 
-- `@opentiny/tiny-robot` 的原子 UI
-- `@opentiny/tiny-robot-kit` 的消息与会话运行时
-- 聊天场景里的模型切换、历史、反馈、附件、MCP、workspace shell 等能力
-
-收敛成一套可以直接落地、也可以继续定制的聊天主链。
-
-和 `Bubble`、`Sender`、`History` 这类单组件不同，`chat` 更像一个场景包：
-
-- 你可以直接用 `TrChat` 跑起完整聊天页
-- 也可以在需要更高定制时进入 `TrChat.Scaffold`
-- 只有在你明确要接管运行时和根注入层时，再进入 `TrChat.Root`
-
-## 这页解决什么问题
-
-如果你第一次接触 `@opentiny/tiny-robot-chat`，建议先看这页。
-
-这页主要回答：
-
-- `tiny-robot`、`tiny-robot-kit`、`tiny-robot-chat` 的边界是什么
-- 当前主推的接入方式是什么
-- 黑盒入口里的 `config / runtime / callbacks / presetOverrides` 各负责什么
-- 什么时候应该用 slots，什么时候才应该进入 `Scaffold` 或 `Root`
-
-## 包关系
-
-| 层级 | 包 | 职责 |
-| :-- | :-- | :-- |
-| 原子 UI 层 | `@opentiny/tiny-robot` | `Bubble`、`Sender`、`Prompts`、`History` 等基础组件 |
-| 运行时层 | `@opentiny/tiny-robot-kit` | 消息流、会话管理、请求状态、工具调用等 |
-| 场景装配层 | `@opentiny/tiny-robot-chat` | `TrChat`、`TrChat.Scaffold`、默认聊天装配、模型切换、聊天级 feature 和 layout |
-
-可以简单理解为：
-
-- `tiny-robot` 解决“长什么样”
-- `tiny-robot-kit` 解决“消息怎么跑”
-- `tiny-robot-chat` 解决“如何把它们拼成一个可用聊天页”
-
-## 当前主链
-
-当前推荐从这条链理解 `TrChat`：
-
-```text
-TrChat
-  -> TrChat.Scaffold
-    -> createChatAdapterFromConfig()
-    -> createPresetChatProps()
-    -> createPresetChatSlices()
-    -> TrChat.Root
-    -> ChatDefaultRenderer
-```
-
-这意味着：
-
-- `TrChat` 仍然是最推荐的默认入口
-- `Scaffold` 是黑盒默认装配链的显式展开层
-- `Root` 是更底层的上下文提供层，不是默认入口
-
-## 推荐接入顺序
-
-当前推荐按这个顺序演进：
-
-1. 先用 `TrChat + config`
-2. 不够时先补 `presetOverrides`
-3. 局部定制优先用 slots
-4. 页面结构明显超出默认装配时再进入 `TrChat.Scaffold`
-5. 只有在你需要直接掌控 `chatKit`、`responseProvider` 或 root 注入层时，才进入 `TrChat.Root`
-
-这是当前最符合产品策略和实现现状的使用路径：
-
-- 主推黑盒写法
-- 高度自定义时再推荐白盒写法
-
-## 先怎么选
-
-| 诉求 | 推荐入口 | 原因 |
-| :-- | :-- | :-- |
-| 先把聊天页跑起来 | `TrChat` | 默认能力最完整，配置驱动成本最低 |
-| 黑盒基础上改默认文案、布局模式、局部行为 | `TrChat + presetOverrides` | 不改变页面结构，维护成本最低 |
-| 只改 header/footer/welcome/message list 的局部区域 | `TrChat + slots` | 保留默认运行时和默认装配链 |
-| 需要自己控制页面结构，但仍想复用默认解析链 | `TrChat.Scaffold` | 保留 `config -> adapter -> preset` 主链 |
-| 需要自己掌控 `chatKit` 或 `responseProvider` | `TrChat.Root` | 直接进入根注入层 |
-
-一个简单经验：
-
-- 不确定时，先用 `TrChat`
-- 只改局部时，先试 `presetOverrides` 和 slots
-- 只有结构性定制时，才进入 `Scaffold`
-- 只有运行时层也要接管时，才进入 `Root`
-
-## 路径 1：直接使用 `TrChat`
-
-这是当前主推的接入方式。
-
-黑盒入口的正式形态是：
-
-```ts
-config + runtime + callbacks + presetOverrides
-```
-
-其中：
-
-- `config` 负责声明式配置
-- `runtime` 负责注入页面运行时对象
-- `callbacks` 负责行为回调
-- `presetOverrides` 负责对默认装配做页面级轻量覆盖
-
-最小示例已经拆到独立 demo 文件中，避免在 Markdown 页面里直接内联 Vue 组件：
-
-<demo vue="../../demos/chat/blackbox.vue" title="黑盒接入" description="使用 TrChat 直接接入完整聊天页。" />
-
-## 路径 2：保留黑盒，但先试 `presetOverrides` 和 slots
-
-很多“想改一点默认 UI”的需求，并不需要直接进入白盒。
-
-通常先试这两类手段：
-
-- `presetOverrides`
-  - 适合改 `contentLayout`、`placeholder`、`showHistory`、`showFeedback`、`messageListVariant`
-- slots
-  - 适合改 `header-extra`、`footer-extra`、`welcome`、`sender`、`message-list`
-
-这条路径的特点是：
-
-- 保留默认运行时
-- 保留默认装配链
-- 只替换局部渲染
-
-继续阅读：
-
-- [Chat 黑盒配置](./chat-config.md)
-- [Chat Slots 与渲染定制](./chat-slots.md)
-
-## 路径 3：使用 `TrChat.Scaffold`
+## 先从这里开始
 
 适合：
 
-- 你要保留默认解析链，但自己控制页面结构
-- 你已经超出 slots 能力范围
-- 你不想在页面里手工重建 `config -> adapter -> preset` 这条链
+- 第一次接入 `@opentiny/tiny-robot-chat`
+- 想先用 `TrChat` 跑通一个可用聊天页
+- 主要关心页面怎么用，而不是内部实现怎么组织
 
-典型链路：
+推荐阅读顺序：
 
-```text
-config
-  -> TrChat.Scaffold
-  -> adapter
-  -> presetProps
-  -> presetSlices
-  -> TrChat.Root
-  -> 你自己的页面结构
-```
+1. 先用 `TrChat + config` 跑起来
+2. 页面有轻微差异时，用 `presetOverrides`
+3. 只改局部 UI 时，用插槽（slots）
+4. 只有默认入口做不到时，再继续了解 `Scaffold` 或 `Root`
 
-`TrChat.Scaffold` 会帮你做：
+<demo vue="../../demos/chat/blackbox.vue" :vueFiles="['../../demos/chat/blackbox.vue', '../../demos/chat/shared.ts']" title="默认接入" description="使用 TrChat 直接接入完整聊天页。" />
 
-- `config -> adapter`
-- `adapter -> presetProps`
-- `presetProps -> presetSlices`
-- 默认 `chatKit` 初始化
-- 当前模型与运行时 provider 切换
+## 先看这 4 个入口
 
-它的 default slot 当前会暴露：
+大多数场景里，你只需要先理解这 4 个输入项：
 
-- `chatKit`
-- `adapter`
-- `presetProps`
-- `presetSlices`
-- `currentModel`
-- `selectModel`
-
-这条路径适合做“高度定制但仍复用主链”的页面。
-
-## 路径 4：使用 `TrChat.Root`
-
-`TrChat.Root` 不是完整页面，它只负责提供上下文。
-
-它适合：
-
-- 你已经有自己的 `chatKit`
-- 或者你要直接传 `responseProvider`
-- 或者你要完全接管叶子组件拼装
-
-这已经属于更底层的白盒组合。
-
-<demo vue="../../demos/chat/whitebox.vue" title="白盒接入" description="使用 Root 和叶子组件手工装配聊天页。" />
-
-## 黑盒入口里的四层概念
+| 字段 | 适合放什么 | 什么时候最常用 |
+| :-- | :-- | :-- |
+| `config` | 模型、provider、UI、layout、features 等稳定默认值 | 场景默认值、长期保留的配置 |
+| `runtime` | `chatKit`、`plugins`、`storage`、`initialMessages`、`selectedModel` 等实例级对象 | 页面实例级依赖和运行时对象 |
+| `callbacks` | `onFinish`、`onError`、`onMessageAction`、`onModelChange` 等行为回调 | 接日志、埋点、错误处理、业务联动 |
+| `presetOverrides` | `contentLayout`、`showHistory`、`showFeedback`、`placeholder` 等页面级覆盖 | 同一份基础配置在不同页面有轻微差异 |
 
 ### `config`
 
-`config` 是黑盒入口的静态配置层。
+`config` 负责声明稳定默认值。
 
-它适合放：
+第一次接入时，通常先看这几块就够了：
 
-- 模型与 provider 声明
-- 默认模型
-- 外观、文案、欢迎区
-- shell / layout 默认值
-- feature 开关
+| 字段 | 作用 |
+| :-- | :-- |
+| `models` | 声明可选模型列表 |
+| `providers` | 声明 provider 接口配置 |
+| `defaults` | 声明默认模型与默认 system prompt |
+| `ui / shell / layout / features` | 声明页面默认外观、布局和能力开关 |
 
-继续阅读：[Chat 黑盒配置](./chat-config.md)
+常见的顶层结构大致是：
+
+```ts
+const chatConfig = {
+  models: [],
+  providers: {},
+  defaults: {},
+  appearance: {},
+  shell: {},
+  ui: {},
+  layout: {},
+  features: {},
+  runtime: {},
+}
+```
+
+如果你只是先跑通页面，通常先把 `models / providers / defaults / ui` 配好就够了。
 
 ### `runtime`
 
-`runtime` 是页面运行时注入层。
+`runtime` 负责页面实例级对象。
 
-它适合放：
+常见内容包括：
 
 - `chatKit`
 - `plugins`
 - `storage`
 - `initialMessages`
-- `mcpManager`
 - `selectedModel`
+
+简单记忆：
+
+- 稳定默认值放 `config`
+- 页面实例级对象放 `runtime`
 
 ### `callbacks`
 
-`callbacks` 是行为回调层。
+`callbacks` 负责行为回调。
 
-当前常用的有：
+常见用途包括：
 
-- `onFinish`
-- `onError`
-- `onMessageAction`
-- `onModelChange`
+- 接 `onFinish`
+- 接 `onError`
+- 接 `onMessageAction`
+- 接 `onModelChange`
+
+如果你需要日志、埋点或业务联动，这一层再接进来就够了。
 
 ### `presetOverrides`
 
-`presetOverrides` 是默认装配结果之上的轻量覆盖层。
+`presetOverrides` 用来做页面级轻量覆盖。
 
-它适合放：
+常见覆盖包括：
 
-- `shell`
 - `contentLayout`
-- `placeholder`
-- `messageListVariant`
 - `showHistory`
 - `showFeedback`
-- `roleConfigs`
-- `senderProps`
-- `bubbleListProps`
+- `placeholder`
+- `senderActionsFeature`
 
-它的定位不是“重新定义整套聊天场景”，而是对默认装配做边界清晰的页面级覆盖。
+<demo vue="../../demos/chat/preset-overrides.vue" :vueFiles="['../../demos/chat/preset-overrides.vue', '../../demos/chat/shared.ts']" title="页面级覆盖" description="在不改基础 config 的前提下，按页面需要覆盖 contentLayout、history、feedback 和发送区扩展动作。" />
 
-## 当前公开 surface
+一个简单经验：
 
-常见公开入口包括：
+- `config` 负责场景默认值
+- `presetOverrides` 负责页面级、交互级、响应式覆盖
 
-- `TrChat`
-- `TrChat.Scaffold`
-- `TrChat.Root`
-- `TrChat.Layout`
-- `TrChat.Header`
-- `TrChat.Welcome`
-- `TrChat.MessageList`
-- `TrChat.Footer`
-- `TrChat.Sender`
-- `TrChat.Attachments`
-- `TrChat.History`
-- `TrChat.HistorySurface`
-- `TrMcpTrigger`
-- `TrModelSelector`
-- `TrChatMcpPanel`
-- `TrChatFeedback`
-- `createChatAdapterFromConfig`
-- `createPresetChatProps`
-- `createPresetChatSlices`
+## 局部定制
 
-但需要注意：
+很多“想改一点默认 UI”的需求，并不需要离开 `TrChat`。
 
-- “公开可导出”不等于“默认推荐入口”
-- 当前默认推荐仍然是 `TrChat`
+先试这两类手段：
 
-## 建议阅读顺序
+- `presetOverrides`
+  - 适合改布局模式、占位文案、默认开关、局部交互
+- 插槽（slots）
+  - 适合替换 header、welcome、sender、message list 里的具体内容
 
-如果你是第一次接入，建议按这个顺序看：
+默认入口当前最常用的插槽包括：
 
-1. 这页：先理解主链、入口分层和推荐路径
-2. [Chat 黑盒配置](./chat-config.md)：先把 `TrChat` 跑起来
-3. [Chat Slots 与渲染定制](./chat-slots.md)：先做局部定制
-4. [Chat Scaffold 与 Root](./chat-scaffold.md)：再做结构性定制
-5. [Chat Features](./chat-features.md)：打开附件、历史、反馈、MCP 等能力
-6. [Chat 进阶能力](./chat-advanced.md)：最后再看更底层 surface 和工具链
+| slot | 适合做什么 |
+| :-- | :-- |
+| `header-extra` | 给默认 header 右侧补按钮或工具位 |
+| `footer-extra` | 给默认 footer 顶部补说明或状态条 |
+| `welcome` | 替换欢迎区 |
+| `sender` | 接管底部输入区 UI，但保留默认运行时 |
+| `message-list` | 接管中间消息区 |
+| `prefix / suffix / after / content-footer` | 给 bubble 分组补前后缀、反馈区、状态区 |
+
+推荐顺序：
+
+1. 先试 `presetOverrides`
+2. 再试 `header-extra` / `footer-extra` / `welcome`
+3. 真要替换输入区或消息区时，再用 `sender` / `message-list`
+4. 只有默认页面结构本身已经不合适时，再继续看进阶入口
+
+<demo vue="../../demos/chat/slots-header-footer.vue" :vueFiles="['../../demos/chat/slots-header-footer.vue', '../../demos/chat/shared.ts']" title="局部定制" description="在不改默认页面结构的前提下，给 header 和 footer 增补工具位与提示信息。" />
+
+## 页面级覆盖
+
+如果基础配置是稳定的，但某个页面只是想切布局、文案或能力开关，优先用 `presetOverrides`，不要先拆页面结构。
+
+最常见的场景就是：
+
+- 基础场景都复用同一份 `config`
+- 某些页面只是在 `history`、`feedback`、`contentLayout` 上有差异
+- 页面不想为这些小差异单独维护一份新配置
+
+## 什么时候再看进阶内容
+
+只有在下面这些场景里，才建议继续往下看：
+
+- 默认页面结构已经不够用
+- 你要自己决定 Header / Welcome / MessageList / Footer 的整体排布
+- 你已经有自己的 `chatKit`，或者要直接控制更底层输入
+
+### `TrChat.Scaffold`
+
+`TrChat.Scaffold` 适合“页面结构要改，但仍然希望继续沿用默认配置能力”的场景。
+
+它更像“结构定制入口”，不是第一次接入时的默认入口。
+
+<demo vue="../../demos/chat/scaffold-layout.vue" :vueFiles="['../../demos/chat/scaffold-layout.vue', '../../demos/chat/shared.ts']" title="重排页面结构" description="当默认页面结构不够用时，可以用 Scaffold 接管整体排布。" />
+
+### `TrChat.Root`
+
+`TrChat.Root` 适合“你已经明确要自己装配页面，并且愿意手动管理更底层输入”的场景。
+
+<demo vue="../../demos/chat/whitebox.vue" :vueFiles="['../../demos/chat/whitebox.vue', '../../demos/chat/shared.ts']" title="手动组合页面" description="使用 Root 和叶子组件手动组合聊天页。" />
 
 ## 生产建议
 
 - 推荐让前端请求你自己的 `/api/chat`，由服务端再代理真实 provider
-- 黑盒优先走 `config` 路径，不建议一开始就把页面拆成白盒
-- 局部定制优先试 `presetOverrides` 和 slots
-- 模型切换优先把 `config.models`、`config.defaults.model`、`runtime.selectedModel`、`callbacks.onModelChange` 作为一组一起考虑
-- 如果你要做 workspace 布局，不代表必须进入白盒；优先先看黑盒里的 `shell`、`layout` 和 slots 能否满足
+- 默认接入优先保留在 `TrChat` 这一层
+- 如果你要做 workspace 布局，优先先看 `shell`、`layout` 和插槽是否已经够用
+- 如果页面里完全没看到模型选择器，先检查模型数量、`defaults.model` 和 footer 是否被替换掉了
+
+## 继续阅读
+
+- [Chat 功能配置](./chat-features.md)
+- [Chat 进阶了解](./chat-advanced.md)
+- [Chat CLI 脚手架](./chat-cli.md)

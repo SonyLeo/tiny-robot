@@ -2,7 +2,7 @@
   <div class="chat-demo-container">
     <TrChat.Scaffold :config="chatConfig" :runtime="{ chatKit }" v-slot="{ chatKit: runtime, presetSlices }">
       <TrChat.Layout>
-        <div class="scaffold-banner">自定义结构仍然沿用 config -> adapter -> preset 主链。</div>
+        <div class="scaffold-banner">当默认页面结构不够用时，仍然可以复用现成配置和默认能力。</div>
         <TrChat.Header v-bind="presetSlices.header" />
 
         <TrChat.Welcome
@@ -31,17 +31,17 @@ import { createDemoChatConfig, createMockResponseProvider } from './shared'
 const chatConfig = createDemoChatConfig({
   ui: {
     brand: {
-      title: 'Scaffold 布局示例',
+      title: '重排页面结构示例',
     },
     welcome: {
-      title: '保留 preset 主链，自定义页面结构',
+      title: '当默认布局不够用时',
       description: '你可以自己控制 banner、header、welcome 和 footer 的排布。',
     },
   },
 })
 
 const chatKit = useChatKit({
-  responseProvider: createMockResponseProvider('Scaffold'),
+  responseProvider: createMockResponseProvider('重排页面结构示例'),
 })
 </script>
 

@@ -11,6 +11,7 @@ import {
   createScaffoldResponseProvider,
   findScaffoldModelByValue,
   resolveScaffoldInitialModelValue,
+  shouldManageScaffoldResponseProvider,
 } from '@/helpers/scaffoldRuntime'
 import ChatDefaultRenderer from './ChatDefaultRenderer.vue'
 import ChatRoot from './ChatRoot.vue'
@@ -88,6 +89,10 @@ watch(
 watch(
   [currentModel, resolvedDefaultModel, adapter, resolvedModels],
   ([modelValue, defaultModel, currentAdapter, models]) => {
+    if (!shouldManageScaffoldResponseProvider(props.runtime)) {
+      return
+    }
+
     const resolvedModelValue = modelValue || defaultModel
     if (!resolvedModelValue) {
       return

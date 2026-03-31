@@ -98,7 +98,7 @@ const slotContainsRightPanel = computed(() =>
 
 <style scoped lang="less">
 .tr-chat-workspace-right-sheet__overlay {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 10;
   opacity: 0;
@@ -114,19 +114,39 @@ const slotContainsRightPanel = computed(() =>
 }
 
 .tr-chat-workspace-right-sheet {
-  position: fixed;
-  inset: 0;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: auto;
   z-index: 100;
+  width: min(100%, var(--chat-workspace-sheet-width, 420px));
   min-height: 0;
-  max-height: none;
+  max-height: 100%;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
   background: var(--chat-workspace-panel-bg, var(--tr-container-bg-default, #fff));
-  box-shadow: none;
+  border-left: 1px solid var(--chat-workspace-border, rgba(15, 23, 42, 0.08));
   transform: translateX(100%);
   transition: transform 0.28s ease;
 
   &.is-open {
     transform: translateX(0);
+  }
+
+  :deep(.tr-chat-workspace-right-panel) {
+    flex: 1;
+    min-height: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .tr-chat-workspace-right-sheet {
+    width: 100%;
+    max-width: 100%;
+    border-left: 0;
+    box-shadow: none;
   }
 }
 </style>

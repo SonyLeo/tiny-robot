@@ -51,6 +51,16 @@ test.describe('Chat Surface API', () => {
     await expect(root.getByTestId('surface-message-list-slot')).toContainText('messages:3', { timeout: 10000 })
   })
 
+  test('TrChat should preserve an injected runtime.chatKit responseProvider', async ({ page }) => {
+    const root = '[data-testid="chat-surface-runtime-chat-kit"] .tr-chat'
+
+    await helper.sendMessage('runtime-chat-kit-path', root)
+    await helper.waitForStreamingComplete(root)
+
+    const contents = page.locator(root).locator(helper.selectors.bubbleContent)
+    await expect(contents.last()).toContainText('[runtime-chat-kit:runtime-chat-kit-model]')
+  })
+
   test('TrChat.Scaffold should expose live slot props for manual composition and model switching', async ({ page }) => {
     const root = '[data-testid="chat-surface-scaffold"] .tr-chat'
     const sceneRoot = page.locator('[data-testid="chat-surface-scaffold"]')

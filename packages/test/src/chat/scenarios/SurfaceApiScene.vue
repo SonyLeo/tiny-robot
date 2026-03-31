@@ -75,6 +75,10 @@
       </TrChat>
     </div>
 
+    <div data-testid="chat-surface-runtime-chat-kit" class="chat-wrapper">
+      <TrChat :config="runtimeChatKitConfig" :runtime="{ chatKit: runtimeProvidedChatKit }" />
+    </div>
+
     <div data-testid="chat-surface-scaffold" class="chat-wrapper">
       <TrChat.Scaffold :config="scaffoldConfig" :callbacks="scaffoldCallbacks" :preset-overrides="scaffoldOverrides">
         <template #default="{ chatKit, currentModel, selectModel, presetSlices }">
@@ -198,6 +202,26 @@ const customRenderRuntime = {
 
 const customRenderOverrides = {}
 
+const runtimeChatKitConfig = createChatSceneConfig({
+  ui: {
+    brand: {
+      title: 'Runtime ChatKit Surface',
+    },
+    welcome: {
+      title: 'Runtime ChatKit Welcome',
+      description: 'An injected chatKit should keep its own responseProvider.',
+    },
+    prompts: [{ label: 'runtime chatKit prompt', description: 'runtime chatKit prompt' }],
+  },
+})
+
+const runtimeProvidedChatKit = useChatKit({
+  responseProvider: createMockProvider({
+    provider: 'runtime-chat-kit',
+    model: 'runtime-chat-kit-model',
+  }),
+})
+
 const scaffoldModelLog = ref('')
 const scaffoldConfig = createChatSceneConfig({
   ui: {
@@ -259,6 +283,7 @@ function seedHistorySurface() {
 .chat-wrapper {
   position: relative;
   height: calc(100vh - 100px);
+  overflow: hidden;
 }
 
 .surface-custom-sender {

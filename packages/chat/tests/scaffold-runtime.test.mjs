@@ -15,6 +15,7 @@ const {
   resolveScaffoldInitialModelValue,
   findScaffoldModelByValue,
   createScaffoldResponseProvider,
+  shouldManageScaffoldResponseProvider,
   createScaffoldPresetOverrides,
   collectScaffoldNamedSlots,
 } = scaffoldRuntimeModule
@@ -107,6 +108,12 @@ await runTest('createScaffoldResponseProvider throws when no models are availabl
       }),
     /\[TrChatScaffold\] No models available to create response provider/,
   )
+})
+
+await runTest('shouldManageScaffoldResponseProvider preserves externally provided chatKit providers', async () => {
+  assert.equal(shouldManageScaffoldResponseProvider(), true)
+  assert.equal(shouldManageScaffoldResponseProvider({}), true)
+  assert.equal(shouldManageScaffoldResponseProvider({ chatKit: { id: 'external-kit' } }), false)
 })
 
 await runTest('createScaffoldPresetOverrides keeps adapter-driven model fields and runtime callback priority', async () => {

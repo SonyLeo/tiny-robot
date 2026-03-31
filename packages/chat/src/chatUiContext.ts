@@ -25,6 +25,7 @@ export interface ChatWorkspaceState {
   enabled: ComputedRef<boolean>
   variant: Ref<ChatShellVariant>
   isMobile: Ref<boolean>
+  setResponsiveHost: (element: HTMLElement | null) => void
   left: ChatWorkspaceRegionState
   right: ChatWorkspaceRegionState
 }
@@ -46,6 +47,15 @@ export interface CreateChatUiContextOptions {
   closableHistory?: boolean
   shell?: ChatWorkspaceShellConfig
   mobileBreakpoint?: string
+}
+
+function resolveMaxWidthBreakpoint(query: string) {
+  const match = query.match(/max-width:\s*(\d+)px/i)
+  if (!match) {
+    return null
+  }
+
+  return Number(match[1])
 }
 
 function createWorkspaceRegionState(options: {
@@ -105,6 +115,8 @@ export function createChatUiContext(options: CreateChatUiContextOptions = {}): C
   const rightCollapseMode = options.shell?.rightRegion?.collapseMode ?? 'hidden'
   const leftDefaultOpen = options.shell?.leftRegion?.defaultOpen !== false
   const rightDefaultOpen = options.shell?.rightRegion?.defaultOpen === true
+  const mobileBreakpoint = options.mobileBreakpoint ?? '(max-width: 900px)'
+  const mobileBreakpointWidth = resolveMaxWidthBreakpoint(mobileBreakpoint)
 
   const left = createWorkspaceRegionState({
     visible: leftDefaultOpen,
@@ -118,6 +130,39 @@ export function createChatUiContext(options: CreateChatUiContextOptions = {}): C
     width: options.shell?.rightRegion?.width,
     collapseMode: rightCollapseMode,
   })
+
+  let responsiveHost: HTMLElement | null = null
+  let responsiveHostObserver: ResizeObserver | null = null
+
+  function syncResponsiveState(viewportMatches = false) {
+    const hostMatches =
+      responsiveHost != null &&
+      mobileBreakpointWidth != null &&
+      responsiveHost.getBoundingClientRect().width <= mobileBreakpointWidth
+
+    isMobile.value = viewportMatches || hostMatches
+  }
+
+  function setResponsiveHost(element: HTMLElement | null) {
+    if (responsiveHost === element) {
+      return
+    }
+
+    responsiveHostObserver?.disconnect()
+    responsiveHostObserver = null
+    responsiveHost = element
+
+    if (typeof ResizeObserver === 'undefined' || !responsiveHost) {
+      syncResponsiveState()
+      return
+    }
+
+    responsiveHostObserver = new ResizeObserver(() => {
+      syncResponsiveState()
+    })
+    responsiveHostObserver.observe(responsiveHost)
+    syncResponsiveState()
+  }
 
   const historyVisible = computed(() => {
     if (!enabled.value) {
@@ -173,9 +218,9 @@ export function createChatUiContext(options: CreateChatUiContextOptions = {}): C
   }
 
   if (typeof window !== 'undefined') {
-    const query = window.matchMedia(options.mobileBreakpoint ?? '(max-width: 900px)')
+    const query = window.matchMedia(mobileBreakpoint)
     const handleChange = (event: MediaQueryList | MediaQueryListEvent) => {
-      isMobile.value = event.matches
+      syncResponsiveState(event.matches)
     }
 
     handleChange(query)
@@ -200,6 +245,12 @@ export function createChatUiContext(options: CreateChatUiContextOptions = {}): C
         ).removeListener(handleChange)
       })
     }
+
+    onScopeDispose(() => {
+      responsiveHostObserver?.disconnect()
+      responsiveHostObserver = null
+      responsiveHost = null
+    })
 
     watch(
       isMobile,
@@ -227,6 +278,7 @@ export function createChatUiContext(options: CreateChatUiContextOptions = {}): C
       enabled,
       variant,
       isMobile,
+      setResponsiveHost,
       left,
       right,
     },

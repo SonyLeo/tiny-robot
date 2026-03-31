@@ -46,6 +46,10 @@ export function createScaffoldResponseProvider(options: CreateScaffoldResponsePr
   return adapter.createResponseProvider(model.value)
 }
 
+export function shouldManageScaffoldResponseProvider(runtime?: Pick<ChatScaffoldRuntimeInput, 'chatKit'>) {
+  return !runtime?.chatKit
+}
+
 export interface CreateScaffoldPresetOverridesOptions {
   presetOverrides?: Partial<TrChatPresetOverrides>
   models: ModelOption[]

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ThemeProvider } from '@opentiny/tiny-robot'
-import { computed, getCurrentInstance, useSlots } from 'vue'
+import { computed, getCurrentInstance, inject, onBeforeUnmount, onMounted, ref, useSlots } from 'vue'
+import { CHAT_UI_KEY } from '@/context'
 import type { TrChatWorkspaceShellProps } from '@/types/workspace'
 import { useWorkspaceRegion } from './useWorkspaceRegion'
 
@@ -25,6 +26,8 @@ const emit = defineEmits<{
 }>()
 
 const slots = useSlots()
+const chatUi = inject(CHAT_UI_KEY, null)
+const shellElement = ref<HTMLElement | null>(null)
 const themeScopeId = `tr-workspace-theme-scope-${getCurrentInstance()?.uid ?? 'fallback'}`
 const scopedThemeTargetElement = `#${themeScopeId}`
 
@@ -75,12 +78,21 @@ const showRightRail = computed(
 )
 const hideLeftRegion = computed(() => left.collapsedState.value && left.collapseMode.value === 'hidden')
 const hideRightRegion = computed(() => right.collapsedState.value && right.collapseMode.value === 'hidden')
+
+onMounted(() => {
+  chatUi?.workspace.setResponsiveHost(shellElement.value)
+})
+
+onBeforeUnmount(() => {
+  chatUi?.workspace.setResponsiveHost(null)
+})
 </script>
 
 <template>
   <ThemeProvider v-if="useScopedThemeProvider" :target-element="scopedThemeTargetElement" :color-mode="scopedColorMode">
     <div
       :id="themeScopeId"
+      ref="shellElement"
       class="tr-workspace-shell"
       :data-tr-appearance-mode="props.appearance?.mode"
       :data-tr-color-mode="scopedColorMode"
@@ -159,7 +171,13 @@ const hideRightRegion = computed(() => right.collapsedState.value && right.colla
     </div>
   </ThemeProvider>
 
-  <div v-else :id="themeScopeId" class="tr-workspace-shell" :data-tr-appearance-mode="props.appearance?.mode">
+  <div
+    v-else
+    :id="themeScopeId"
+    ref="shellElement"
+    class="tr-workspace-shell"
+    :data-tr-appearance-mode="props.appearance?.mode"
+  >
     <aside
       v-if="showLeftRegion"
       class="tr-workspace-shell__region tr-workspace-shell__region--left"
