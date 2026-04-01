@@ -82,7 +82,16 @@ export interface ChatAdapter {
 
 export type ChatPresetProps = Pick<
   TrChatPresetOverrides,
-  'appearance' | 'brand' | 'welcome' | 'prompts' | 'messages' | 'contentLayout' | 'shell'
+  | 'appearance'
+  | 'brand'
+  | 'welcome'
+  | 'prompts'
+  | 'messages'
+  | 'contentLayout'
+  | 'shell'
+  | 'bubbleRenderers'
+  | 'messageActions'
+  | 'messageActionsMode'
 > &
   ChatFeaturePresetProps & {
     models: ModelOption[]
@@ -101,6 +110,7 @@ export interface ChatPresetLayoutSlice {
   show?: TrChatPresetOverrides['show']
   roleConfigs?: TrChatPresetOverrides['roleConfigs']
   contentLayout?: TrChatPresetOverrides['contentLayout']
+  bubbleRenderers?: TrChatPresetOverrides['bubbleRenderers']
 }
 
 export interface ChatPresetAppearanceSlice {
@@ -127,6 +137,8 @@ export interface ChatPresetWelcomeSlice {
 export type ChatPresetMessageListSlice = {
   autoScroll?: boolean
   variant?: TrChatPresetOverrides['messageListVariant']
+  messageActions?: TrChatPresetOverrides['messageActions']
+  messageActionsMode?: TrChatPresetOverrides['messageActionsMode']
   onActionClick?: TrChatPresetOverrides['onMessageAction']
   groupStrategy?: TrChatPresetOverrides['groupStrategy']
   showFeedback?: boolean

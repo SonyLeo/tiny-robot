@@ -1,13 +1,19 @@
 import type { Component, ComputedRef, VNode } from 'vue'
 import type {
+  BasePluginContext,
   ChatCompletion,
   ChatMessage,
+  CompletionChoice,
   ConversationStorageStrategy,
   MessageRequestBody,
+  RequestProcessingState,
+  RequestState,
   UseConversationReturn,
+  UseMessageReturn,
   UseMessageOptions,
   UseMessagePlugin,
 } from '@opentiny/tiny-robot-kit'
+import type { FeedbackProps } from '@opentiny/tiny-robot'
 import type { StructuredData } from '@opentiny/tiny-robot'
 
 export type ResponseProvider = (
@@ -34,11 +40,57 @@ export interface ChatErrorInfo {
 
 export interface ChatMessageActionPayload {
   action: string
+  placement?: ChatMessageActionPlacement
   role?: string
   messages: ChatMessage[]
   messageIndexes: number[]
   message?: ChatMessage
   messageIndex?: number
+  conversationId?: string
+}
+
+export type ChatMessageActionRole = 'assistant' | 'user' | 'tool' | 'system'
+export type ChatMessageActionPlacement = 'actions' | 'operations'
+export type ChatMessageActionsMode = 'append' | 'replace'
+
+export interface ChatMessageActionContext {
+  role?: string
+  messages: ChatMessage[]
+  messageIndexes: number[]
+  message?: ChatMessage
+  messageIndex?: number
+  chatKit?: UseChatKitReturn | null
+  conversationId?: string
+}
+
+export interface ChatMessageActionDefinition {
+  id: string
+  label: string
+  icon?: NonNullable<FeedbackProps['actions']>[number]['icon']
+  placement?: ChatMessageActionPlacement
+  roles?: ChatMessageActionRole[]
+  order?: number
+  when?: (context: ChatMessageActionContext) => boolean
+  onClick?: (context: ChatMessageActionContext) => void | Promise<void>
+}
+
+export type ChatMessageActionsInput =
+  | ChatMessageActionDefinition[]
+  | ((context: ChatMessageActionContext) => ChatMessageActionDefinition[])
+
+export interface ChatMessageTransformChunkContext extends BasePluginContext {
+  currentMessage: ChatMessage
+  choice?: CompletionChoice
+  chunk: ChatCompletion
+}
+
+export interface ChatMessageTransformFinishContext extends BasePluginContext {
+  message: ChatMessage
+}
+
+export interface ChatMessageTransforms {
+  onChunk?: (context: ChatMessageTransformChunkContext) => void
+  onFinish?: (context: ChatMessageTransformFinishContext) => Partial<ChatMessage> | void
 }
 
 export type ChatListVariant = 'bubble' | 'docs' | 'workspace'
@@ -55,8 +107,18 @@ export interface UseChatKitOptions {
   plugins?: UseMessagePlugin[]
   storage?: ConversationStorageStrategy
   initialMessages?: ChatMessage[]
+  messageTransforms?: ChatMessageTransforms
   onFinish?: (message: ChatMessage) => void
   onError?: (error: Error) => void
+}
+
+export interface UseChatKitRuntimeBridge {
+  activeEngine: ComputedRef<UseMessageReturn | null>
+  requestState: ComputedRef<RequestState>
+  processingState: ComputedRef<RequestProcessingState | undefined>
+  isProcessing: ComputedRef<boolean>
+  clear: UseConversationReturn['clear']
+  saveMessages: UseConversationReturn['saveMessages']
 }
 
 export interface UseChatKitReturn extends Pick<
@@ -81,6 +143,7 @@ export interface UseChatKitReturn extends Pick<
   updateResponseProvider: (provider: ResponseProvider) => void
   abort: () => Promise<void>
   retry: () => Promise<boolean>
+  runtime: UseChatKitRuntimeBridge
 }
 
 export interface BrandConfig {

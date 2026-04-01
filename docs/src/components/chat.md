@@ -34,9 +34,9 @@ outline: deep
 | 字段 | 适合放什么 | 什么时候最常用 |
 | :-- | :-- | :-- |
 | `config` | 模型、provider、UI、layout、features 等稳定默认值 | 场景默认值、长期保留的配置 |
-| `runtime` | `chatKit`、`plugins`、`storage`、`initialMessages`、`mcpManager`、`selectedModel` 等实例级对象 | 页面实例级依赖和运行时对象 |
+| `runtime` | `chatKit`、`plugins`、`storage`、`initialMessages`、`mcpManager`、`selectedModel`、`messageTransforms` 等实例级对象 | 页面实例级依赖、运行时对象、消息改写 |
 | `callbacks` | `onFinish`、`onError`、`onMessageAction`、`onModelChange` 等行为回调 | 接日志、埋点、错误处理、业务联动 |
-| `presetOverrides` | `contentLayout`、`showHistory`、`showFeedback`、`placeholder` 等页面级覆盖 | 同一份基础配置在不同页面有轻微差异 |
+| `presetOverrides` | `contentLayout`、`showHistory`、`showFeedback`、`placeholder`、`messageActions`、`bubbleRenderers` 等页面级覆盖 | 同一份基础配置在不同页面有轻微差异，或只想扩展某类消息行为 |
 
 ### `config`
 
@@ -81,11 +81,13 @@ const chatConfig = {
 - `initialMessages`
 - `mcpManager`
 - `selectedModel`
+- `messageTransforms`
 
 简单记忆：
 
 - 稳定默认值放 `config`
 - 页面实例级对象放 `runtime`
+- 如果你要在运行时改写模型结果，也优先从 `runtime` 接入
 
 ### `callbacks`
 
@@ -111,6 +113,8 @@ const chatConfig = {
 - `showFeedback`
 - `placeholder`
 - `senderActionsFeature`
+- `messageActions`
+- `bubbleRenderers`
 
 <demo vue="../../demos/chat/preset-overrides.vue" :vueFiles="['../../demos/chat/preset-overrides.vue', '../../demos/chat/shared.ts']" title="页面级覆盖" description="在不改基础 config 的前提下，按页面需要覆盖 contentLayout、history、feedback 和发送区扩展动作。" />
 
@@ -118,6 +122,7 @@ const chatConfig = {
 
 - `config` 负责场景默认值
 - `presetOverrides` 负责页面级、交互级、响应式覆盖
+- 如果你只是想扩消息下方动作或替换某类消息渲染，也优先先看 `presetOverrides`
 
 ## 局部定制
 
@@ -194,6 +199,9 @@ const chatConfig = {
 只有在下面这些场景里，才建议继续往下看：
 
 - 默认页面结构已经不够用
+- 你已经知道 `TrChat` 能跑起来，但想继续扩展消息下方动作
+- 你想替换某一类消息的默认渲染
+- 你想在运行时改写最终消息结果
 - 你要自己决定 Header / Welcome / MessageList / Footer 的整体排布
 - 你已经有自己的 `chatKit`，或者要直接控制更底层输入
 

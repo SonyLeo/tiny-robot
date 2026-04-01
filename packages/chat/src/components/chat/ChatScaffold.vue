@@ -54,6 +54,7 @@ const chatKit =
     plugins: props.runtime?.plugins,
     storage: props.runtime?.storage,
     initialMessages: props.runtime?.initialMessages,
+    messageTransforms: props.runtime?.messageTransforms,
     onFinish: props.callbacks?.onFinish,
     onError: props.callbacks?.onError,
   })

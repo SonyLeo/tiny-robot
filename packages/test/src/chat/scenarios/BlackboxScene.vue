@@ -3,6 +3,7 @@
     <div class="status-bar">
       <span data-testid="on-finish-log">{{ finishLog }}</span>
       <span data-testid="on-action-log">{{ actionLog }}</span>
+      <span data-testid="business-action-log">{{ businessActionLog }}</span>
       <span data-testid="variant-indicator">{{ messageListVariant }}</span>
       <span data-testid="model-change-log">{{ modelChangeLog }}</span>
       <button data-testid="toggle-message-variant" @click="toggleMessageListVariant">
@@ -17,7 +18,12 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { TrChat } from '@opentiny/tiny-robot-chat'
-import type { ChatListVariant, ChatMessageActionPayload, ModelOption } from '@opentiny/tiny-robot-chat'
+import type {
+  ChatListVariant,
+  ChatMessageActionDefinition,
+  ChatMessageActionPayload,
+  ModelOption,
+} from '@opentiny/tiny-robot-chat'
 import {
   createChatSceneConfig,
   sharedAttachmentsFeature,
@@ -29,6 +35,7 @@ import {
 
 const finishLog = ref('')
 const actionLog = ref('')
+const businessActionLog = ref('')
 const modelChangeLog = ref('')
 const messageListVariant = ref<ChatListVariant>('bubble')
 
@@ -61,10 +68,34 @@ const blackboxCallbacks = {
   },
 }
 
+const blackboxMessageActions: ChatMessageActionDefinition[] = [
+  {
+    id: 'save-case',
+    label: '保存到案例库',
+    placement: 'operations',
+    roles: ['assistant'],
+    order: 10,
+    onClick(context) {
+      businessActionLog.value = `business:${context.role ?? ''}:${context.messageIndex ?? -1}:save-case`
+    },
+  },
+  {
+    id: 'save-template',
+    label: '保存为模板',
+    placement: 'operations',
+    roles: ['user'],
+    order: 10,
+    onClick(context) {
+      businessActionLog.value = `business:${context.role ?? ''}:${context.messageIndex ?? -1}:save-template`
+    },
+  },
+]
+
 const blackboxPresetOverrides = computed(() => ({
   placeholder: '请输入消息...',
   maxLength: 20,
   messageListVariant: messageListVariant.value,
+  messageActions: blackboxMessageActions,
 }))
 
 function toggleMessageListVariant() {

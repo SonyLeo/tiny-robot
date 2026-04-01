@@ -6,6 +6,7 @@
         <span data-testid="message-count">{{ messages.length }}</span>
         <span data-testid="on-finish-log">{{ finishLog }}</span>
         <span data-testid="on-action-log">{{ actionLog }}</span>
+        <span data-testid="business-action-log">{{ businessActionLog }}</span>
         <span data-testid="variant-indicator">{{ messageListVariant }}</span>
         <button data-testid="toggle-message-variant" @click="toggleMessageListVariant">
           {{ messageListVariant === 'bubble' ? 'docs variant' : 'bubble variant' }}
@@ -28,7 +29,13 @@
             @prompt-click="handlePromptClick"
           />
 
-          <TrChat.MessageList v-else auto-scroll :variant="messageListVariant" :on-action-click="handleMessageAction">
+          <TrChat.MessageList
+            v-else
+            auto-scroll
+            :variant="messageListVariant"
+            :message-actions="whiteboxMessageActions"
+            :on-action-click="handleMessageAction"
+          >
             <template #after="slotProps">
               <TrChatFeedback v-if="slotProps.role === 'assistant'" v-bind="slotProps" />
             </template>
@@ -112,7 +119,12 @@ import {
   createPresetChatSlices,
   useChatKit,
 } from '@opentiny/tiny-robot-chat'
-import type { ChatListVariant, ChatMessageActionPayload, ModelOption } from '@opentiny/tiny-robot-chat'
+import type {
+  ChatListVariant,
+  ChatMessageActionDefinition,
+  ChatMessageActionPayload,
+  ModelOption,
+} from '@opentiny/tiny-robot-chat'
 import {
   createChatSceneConfig,
   sharedAttachmentsFeature,
@@ -123,6 +135,7 @@ import {
 
 const finishLog = ref('')
 const actionLog = ref('')
+const businessActionLog = ref('')
 const messageListVariant = ref<ChatListVariant>('bubble')
 const whiteboxConfig = createChatSceneConfig({
   ui: {
@@ -205,6 +218,19 @@ const chat = useChatKit({
 })
 
 const { messages, status } = chat
+
+const whiteboxMessageActions: ChatMessageActionDefinition[] = [
+  {
+    id: 'create-ticket',
+    label: '创建工单',
+    placement: 'operations',
+    roles: ['assistant'],
+    order: 10,
+    onClick(context) {
+      businessActionLog.value = `business:${context.role ?? ''}:${context.messageIndex ?? -1}:create-ticket`
+    },
+  },
+]
 
 watch(selectedModel, (modelValue) => {
   if (!modelValue) {

@@ -4,7 +4,7 @@ import type { BubbleListProps } from '@opentiny/tiny-robot'
 import { computed, getCurrentInstance, type PropType, provide } from 'vue'
 import { useDefaultBubbleConfig } from '@/composables'
 import { BUBBLE_CONFIG_KEY, useChatScaffoldContext } from '@/context'
-import type { ChatAppearanceConfig, ChatContentLayout } from '@/types'
+import type { ChatAppearanceConfig, ChatBubbleRenderers, ChatContentLayout } from '@/types'
 import { triStateBooleanProp } from '@/utils'
 
 defineOptions({ name: 'TrChatLayout' })
@@ -14,12 +14,27 @@ const props = defineProps({
   roleConfigs: Object as PropType<BubbleListProps['roleConfigs']>,
   appearance: Object as PropType<ChatAppearanceConfig>,
   contentLayout: String as PropType<ChatContentLayout>,
+  bubbleRenderers: Object as PropType<ChatBubbleRenderers>,
 })
 const scaffoldContext = useChatScaffoldContext()
 const layoutSlice = computed(() => scaffoldContext?.presetSlices.value.layout)
 const appearanceSlice = computed(() => scaffoldContext?.presetSlices.value.appearance.appearance)
 
-const { contentMatches, boxMatches, roles: defaultRoles } = useDefaultBubbleConfig()
+const mergedBubbleRenderers = computed<ChatBubbleRenderers>(() => ({
+  contentMatches: [
+    ...(props.bubbleRenderers?.contentMatches ?? []),
+    ...(layoutSlice.value?.bubbleRenderers?.contentMatches ?? []),
+  ],
+  boxMatches: [...(props.bubbleRenderers?.boxMatches ?? []), ...(layoutSlice.value?.bubbleRenderers?.boxMatches ?? [])],
+}))
+
+const {
+  contentMatches: defaultContentMatches,
+  boxMatches: defaultBoxMatches,
+  roles: defaultRoles,
+} = useDefaultBubbleConfig()
+const contentMatches = computed(() => [...(mergedBubbleRenderers.value.contentMatches ?? []), ...defaultContentMatches])
+const boxMatches = computed(() => [...(mergedBubbleRenderers.value.boxMatches ?? []), ...defaultBoxMatches])
 const resolvedShow = computed(() => props.show ?? layoutSlice.value?.show ?? true)
 const resolvedAppearance = computed(() => props.appearance ?? appearanceSlice.value)
 const resolvedContentLayout = computed<ChatContentLayout>(

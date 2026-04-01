@@ -158,6 +158,29 @@ const presetOverrides = {
 - 稳定默认值：`config.layout.contentLayout`
 - 页面级覆盖：`presetOverrides.contentLayout`
 
+## 哪些能力不属于 `features`
+
+下面这些能力也经常会和“功能配置”一起被提到，但它们不属于 `config.features`：
+
+- `messageActions`
+  - 用于扩展消息下方的业务动作
+- `bubbleRenderers`
+  - 用于替换某一类消息的默认渲染
+- `messageTransforms`
+  - 用于在运行时改写模型结果
+- `runtime`
+  - 用于读取更细的请求状态，或访问已注入的 `chatKit`
+
+推荐记法：
+
+- 能力开关、稳定默认值：优先看 `config.features`
+- 页面级消息动作和渲染扩展：优先看 `presetOverrides`
+- 运行时消息改写：优先看 `runtime`
+
+这些能力的详细用法，放在：
+
+- [Chat 进阶了解](./chat-advanced.md)
+
 ## 相关页面
 
 - [Chat 快速接入](./chat.md)

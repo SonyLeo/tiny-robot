@@ -2,13 +2,14 @@ import type { ComputedRef, Ref } from 'vue'
 import type { ChatMessage, ConversationStorageStrategy, UseMessagePlugin } from '@opentiny/tiny-robot-kit'
 import type { ChatAdapter, ChatConfig, ChatPresetProps, ChatPresetSlices } from '@/adapters'
 import type { UseMcpManagerReturn } from '@/composables/useMcpManager'
-import type { ModelOption, TrChatPresetOverrides, UseChatKitReturn } from '@/types'
+import type { ModelOption, TrChatPresetOverrides, UseChatKitOptions, UseChatKitReturn } from '@/types'
 
 export interface ChatScaffoldRuntimeInput {
   chatKit?: UseChatKitReturn
   plugins?: UseMessagePlugin[]
   storage?: ConversationStorageStrategy
   initialMessages?: ChatMessage[]
+  messageTransforms?: UseChatKitOptions['messageTransforms']
   mcpManager?: UseMcpManagerReturn
   selectedModel?: string
 }

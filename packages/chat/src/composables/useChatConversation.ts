@@ -7,10 +7,79 @@ import type { UseChatKitOptions, UseMessageResponseProvider } from '../types'
 
 type UseChatConversationOptions = Pick<
   UseChatKitOptions,
-  'plugins' | 'storage' | 'initialMessages' | 'onFinish' | 'onError'
+  'plugins' | 'storage' | 'initialMessages' | 'messageTransforms' | 'onFinish' | 'onError'
 > & {
   responseProviderRef: ShallowRef<UseMessageResponseProvider>
   onTurnError?: (payload: { context: BasePluginContext & { error: unknown }; error: unknown }) => void
+}
+
+function applyMessageTransformPatch(message: ChatMessage, patch: Partial<ChatMessage> | void) {
+  if (!patch) {
+    return
+  }
+
+  const { metadata, state, ...restPatch } = patch as Partial<ChatMessage> & {
+    state?: Record<string, unknown>
+  }
+
+  Object.assign(message, restPatch)
+
+  if (metadata) {
+    message.metadata = {
+      ...(message.metadata ?? {}),
+      ...metadata,
+    }
+  }
+
+  if (state && typeof state === 'object') {
+    const currentState =
+      typeof (message as ChatMessage & { state?: Record<string, unknown> }).state === 'object'
+        ? (message as ChatMessage & { state?: Record<string, unknown> }).state
+        : {}
+    ;(message as ChatMessage & { state?: Record<string, unknown> }).state = {
+      ...currentState,
+      ...state,
+    }
+  }
+}
+
+function createTransformPlugin(options: Pick<UseChatConversationOptions, 'messageTransforms'>): UseMessagePlugin {
+  return {
+    name: 'chatkit-transforms',
+    onCompletionChunk(context) {
+      if (!options.messageTransforms?.onChunk) {
+        return
+      }
+
+      try {
+        options.messageTransforms.onChunk(context)
+      } catch (error) {
+        console.error('[useChatConversation] messageTransforms.onChunk failed:', error)
+      }
+    },
+    onTurnEnd(context) {
+      if (!options.messageTransforms?.onFinish) {
+        return
+      }
+
+      const lastAssistantMessage = [...context.currentTurn]
+        .reverse()
+        .find((message: ChatMessage) => message.role === 'assistant')
+      if (!lastAssistantMessage) {
+        return
+      }
+
+      try {
+        const patch = options.messageTransforms.onFinish({
+          ...context,
+          message: lastAssistantMessage,
+        })
+        applyMessageTransformPatch(lastAssistantMessage, patch)
+      } catch (error) {
+        console.error('[useChatConversation] messageTransforms.onFinish failed:', error)
+      }
+    },
+  }
 }
 
 function createLifecyclePlugin(
@@ -42,6 +111,8 @@ export function useChatConversation(options: UseChatConversationOptions): Pick<
   | 'activeConversation'
   | 'switchConversation'
   | 'deleteConversation'
+  | 'clear'
+  | 'saveMessages'
   | 'updateConversationTitle'
   | 'abortActiveRequest'
 > & {
@@ -50,12 +121,25 @@ export function useChatConversation(options: UseChatConversationOptions): Pick<
   ) => ReturnType<UseConversationReturn['createConversation']>
   sendMessage: (content: string) => void
 } {
-  const { plugins = [], storage, initialMessages = [], onFinish, onError, onTurnError, responseProviderRef } = options
+  const {
+    plugins = [],
+    storage,
+    initialMessages = [],
+    messageTransforms,
+    onFinish,
+    onError,
+    onTurnError,
+    responseProviderRef,
+  } = options
 
   const conversation = useConversation({
     useMessageOptions: {
       responseProvider: responseProviderRef.value as UseMessageOptions['responseProvider'],
-      plugins: [...plugins, createLifecyclePlugin({ onFinish, onError, onTurnError })] as UseMessagePlugin[],
+      plugins: [
+        ...plugins,
+        createTransformPlugin({ messageTransforms }),
+        createLifecyclePlugin({ onFinish, onError, onTurnError }),
+      ] as UseMessagePlugin[],
     },
     autoSaveMessages: !!storage,
     storage,
@@ -97,6 +181,8 @@ export function useChatConversation(options: UseChatConversationOptions): Pick<
     createConversation,
     switchConversation: conversation.switchConversation,
     deleteConversation: conversation.deleteConversation,
+    clear: conversation.clear,
+    saveMessages: conversation.saveMessages,
     updateConversationTitle: conversation.updateConversationTitle,
     abortActiveRequest: conversation.abortActiveRequest,
     sendMessage,

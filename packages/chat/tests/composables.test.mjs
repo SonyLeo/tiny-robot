@@ -140,6 +140,35 @@ await runTest('useChatConversation keeps manual createConversation empty and sur
   })
 })
 
+await runTest('useChatConversation exposes clear/saveMessages bridge from kit conversation', async () => {
+  const storage = createMemoryStorage()
+  let saveMessagesCallCount = 0
+  const originalSaveMessages = storage.saveMessages
+  storage.saveMessages = (conversationId, messages) => {
+    saveMessagesCallCount += 1
+    originalSaveMessages(conversationId, messages)
+  }
+
+  const conversation = useChatConversation({
+    responseProviderRef: shallowRef(createStreamingProvider()),
+    storage,
+  })
+
+  conversation.sendMessage('bridge-conversation')
+
+  await waitFor(() => {
+    assert.equal(conversation.activeConversation.value?.engine.requestState.value, 'completed')
+  })
+
+  const beforeManualSave = saveMessagesCallCount
+  conversation.saveMessages()
+  assert.equal(saveMessagesCallCount > beforeManualSave, true)
+
+  conversation.clear()
+  assert.equal(conversation.activeConversationId.value, null)
+  assert.equal(conversation.conversations.value.length, 0)
+})
+
 await runTest('useChatKit exposes structured errors and annotates failed assistant messages', async () => {
   const chatKit = useChatKit({
     responseProvider: createRetryableProvider({
@@ -292,6 +321,60 @@ await runTest('useChatKit rolls edited history back when the resend fails', asyn
     ['seed', 'reply:seed'],
   )
   assert.equal(chatKit.lastError.value?.type, 'provider')
+})
+
+await runTest('useChatKit runtime bridge exposes active engine state and conversation bridge helpers', async () => {
+  const storage = createMemoryStorage()
+  const savedSnapshots = []
+  const originalSaveMessages = storage.saveMessages
+  storage.saveMessages = (conversationId, messages) => {
+    savedSnapshots.push({
+      conversationId,
+      messageCount: messages.length,
+    })
+    originalSaveMessages(conversationId, messages)
+  }
+
+  const chatKit = useChatKit({
+    responseProvider: createStreamingProvider({ initialDelay: 80 }),
+    storage,
+  })
+
+  assert.equal(chatKit.runtime.activeEngine.value, null)
+  assert.equal(chatKit.runtime.requestState.value, 'idle')
+  assert.equal(chatKit.runtime.processingState.value, undefined)
+  assert.equal(chatKit.runtime.isProcessing.value, false)
+
+  chatKit.sendMessage('runtime-bridge')
+
+  await waitFor(() => {
+    assert.equal(chatKit.runtime.requestState.value, 'processing')
+    assert.equal(chatKit.runtime.isProcessing.value, true)
+  })
+
+  await waitFor(() => {
+    assert.equal(chatKit.status.value, 'ready')
+  })
+
+  assert.equal(chatKit.runtime.requestState.value, 'completed')
+  assert.equal(chatKit.runtime.processingState.value, undefined)
+  assert.equal(chatKit.runtime.isProcessing.value, false)
+  assert.notEqual(chatKit.runtime.activeEngine.value, null)
+
+  const beforeManualSave = savedSnapshots.length
+  chatKit.runtime.saveMessages()
+  assert.equal(savedSnapshots.length > beforeManualSave, true)
+  assert.equal(savedSnapshots[savedSnapshots.length - 1]?.conversationId, chatKit.activeConversationId.value)
+  assert.equal(savedSnapshots[savedSnapshots.length - 1]?.messageCount, chatKit.messages.value.length)
+
+  chatKit.runtime.clear()
+  assert.equal(chatKit.activeConversationId.value, null)
+  assert.equal(chatKit.conversations.value.length, 0)
+  assert.equal(chatKit.messages.value.length, 0)
+  assert.equal(chatKit.runtime.activeEngine.value, null)
+  assert.equal(chatKit.runtime.requestState.value, 'idle')
+  assert.equal(chatKit.runtime.processingState.value, undefined)
+  assert.equal(chatKit.runtime.isProcessing.value, false)
 })
 
 

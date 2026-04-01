@@ -79,6 +79,53 @@
       <TrChat :config="runtimeChatKitConfig" :runtime="{ chatKit: runtimeProvidedChatKit }" />
     </div>
 
+    <div data-testid="chat-surface-runtime-bridge" class="chat-wrapper">
+      <div class="surface-runtime-bridge-toolbar">
+        <span data-testid="surface-runtime-bridge-request-state">
+          request:{{ runtimeBridgeChat.runtime.requestState.value }}
+        </span>
+        <span data-testid="surface-runtime-bridge-processing-state">
+          processing:{{ runtimeBridgeChat.runtime.processingState.value ?? 'none' }}
+        </span>
+        <span data-testid="surface-runtime-bridge-is-processing">
+          active:{{ runtimeBridgeChat.runtime.isProcessing.value ? 'true' : 'false' }}
+        </span>
+        <span data-testid="surface-runtime-bridge-message-count">
+          messages:{{ runtimeBridgeChat.messages.value.length }}
+        </span>
+        <span data-testid="surface-runtime-bridge-save-count">saves:{{ runtimeBridgeSaveCount }}</span>
+        <button data-testid="surface-runtime-bridge-send" @click="sendRuntimeBridgeMessage">
+          Send Runtime Message
+        </button>
+        <button data-testid="surface-runtime-bridge-save" @click="runtimeBridgeChat.runtime.saveMessages()">
+          Save
+        </button>
+        <button data-testid="surface-runtime-bridge-clear" @click="runtimeBridgeChat.runtime.clear()">Clear</button>
+      </div>
+
+      <TrChat.Root :chat-kit="runtimeBridgeChat">
+        <TrChat.Layout>
+          <TrChat.Header :show-new-chat="false">
+            <template #title>
+              <span data-testid="surface-runtime-bridge-title">Runtime Bridge Surface</span>
+            </template>
+          </TrChat.Header>
+
+          <TrChat.Welcome
+            v-if="runtimeBridgeChat.messages.value.length === 0"
+            title="Runtime Bridge Welcome"
+            description="This surface verifies runtime bridge state consumption."
+          />
+
+          <TrChat.MessageList v-else auto-scroll />
+
+          <TrChat.Footer>
+            <TrChat.Sender placeholder="Runtime bridge sender..." />
+          </TrChat.Footer>
+        </TrChat.Layout>
+      </TrChat.Root>
+    </div>
+
     <div data-testid="chat-surface-scaffold" class="chat-wrapper">
       <TrChat.Scaffold :config="scaffoldConfig" :callbacks="scaffoldCallbacks" :preset-overrides="scaffoldOverrides">
         <template #default="{ chatKit, currentModel, selectModel, presetSlices }">
@@ -146,6 +193,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { TrChat, useChatKit } from '@opentiny/tiny-robot-chat'
+import type { ChatMessage, ConversationStorageStrategy } from '@opentiny/tiny-robot-kit'
 import { createMockProvider } from '../mockProvider'
 import { createChatSceneConfig } from './sharedDemoFixtures'
 
@@ -222,6 +270,66 @@ const runtimeProvidedChatKit = useChatKit({
   }),
 })
 
+const runtimeBridgeSaveCount = ref(0)
+const runtimeBridgeConversations: Array<{
+  id: string
+  title?: string
+  createdAt: number
+  updatedAt: number
+  metadata?: Record<string, unknown>
+}> = []
+const runtimeBridgeMessageMap = new Map<string, ChatMessage[]>()
+const runtimeBridgeStorage: ConversationStorageStrategy = {
+  saveConversation(conversation) {
+    const nextConversation = { ...conversation }
+    const index = runtimeBridgeConversations.findIndex((item) => item.id === nextConversation.id)
+    if (index === -1) {
+      runtimeBridgeConversations.unshift(nextConversation)
+    } else {
+      runtimeBridgeConversations.splice(index, 1, nextConversation)
+    }
+  },
+  loadConversations() {
+    return runtimeBridgeConversations.map((conversation) => ({ ...conversation }))
+  },
+  saveMessages(conversationId, messages) {
+    runtimeBridgeSaveCount.value += 1
+    runtimeBridgeMessageMap.set(
+      conversationId,
+      messages.map((message) => ({
+        ...message,
+        metadata: message.metadata ? { ...message.metadata } : message.metadata,
+        state:
+          message.state && typeof message.state === 'object'
+            ? { ...(message.state as Record<string, unknown>) }
+            : message.state,
+      })),
+    )
+  },
+  loadMessages(conversationId) {
+    return runtimeBridgeMessageMap.get(conversationId)?.map((message) => ({ ...message })) ?? []
+  },
+  deleteConversation(conversationId) {
+    const index = runtimeBridgeConversations.findIndex((item) => item.id === conversationId)
+    if (index !== -1) {
+      runtimeBridgeConversations.splice(index, 1)
+    }
+    runtimeBridgeMessageMap.delete(conversationId)
+  },
+}
+
+const runtimeBridgeChat = useChatKit({
+  responseProvider: createMockProvider({
+    provider: 'runtime-bridge',
+    model: 'runtime-bridge-model',
+  }),
+  storage: runtimeBridgeStorage,
+})
+
+function sendRuntimeBridgeMessage() {
+  runtimeBridgeChat.sendMessage('runtime-bridge-path')
+}
+
 const scaffoldModelLog = ref('')
 const scaffoldConfig = createChatSceneConfig({
   ui: {
@@ -297,12 +405,27 @@ function seedHistorySurface() {
 
 .surface-custom-sender button,
 .surface-diagnostics button,
-.history-surface-toolbar button {
+.history-surface-toolbar button,
+.surface-runtime-bridge-toolbar button {
   padding: 6px 12px;
   border: 1px solid #d0d7e2;
   border-radius: 8px;
   background: #fff;
   cursor: pointer;
+}
+
+.surface-runtime-bridge-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 12px 0;
+  font-size: 12px;
+}
+
+.surface-runtime-bridge-toolbar span {
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: #eef2ff;
 }
 
 .surface-diagnostics {

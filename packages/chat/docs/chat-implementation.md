@@ -1,226 +1,263 @@
-# Chat 实现说明
+# Chat Implementation
 
-> Last updated: `2026-03-28`
-> Primary doc: 本文件是 `packages/chat` 当前包级实现说明的主文档
+> Last updated: `2026-04-01`
+> Status: `Current source-of-truth summary`
+> Scope: `packages/chat`
 > Related:
-> - [Chat 主链收敛追踪](./chat-mainline-alignment-progress.md)
-> - [useChatKit 实现深潜](./use-chat-kit-implementation-deep-dive.md)
+> - [README](./README.md)
 
-## 范围
+## 1. 包定位
 
-`packages/chat` 是这个 monorepo 中的聊天场景组装层。
+`packages/chat` 是 TinyRobot 在 `kit` 之上的 chat-first facade。
 
 它负责：
 
-- `TrChat`、`TrChat.Scaffold`、`TrChat.Root` 等公开聊天入口
-- 基于配置的聊天场景组装
-- preset props 与 preset slices 的投影
-- 构建在 `packages/kit` 之上的 chat 级运行时组合
-- history、attachments、feedback、model selector、MCP trigger 等打包 UI 能力
+- `TrChat` 黑盒接入
+- `TrChat.Scaffold` / `TrChat.Root` 白盒与半白盒接入
+- config -> adapter -> preset props / slices 投影
+- chat 级运行时封装 `useChatKit`
+- workspace shell、history、attachments、feedback、MCP、model selector 等打包 UI 能力
+- 消息级扩展面：
+  - `runtime`
+  - `messageActions`
+  - `bubbleRenderers`
+  - `messageTransforms`
 
 它不负责：
 
-- 稳定 `ResponseProvider` 合同之外的 provider SDK 实现层
+- provider SDK 的完整协议适配层
 - 后端代理服务
-- `packages/kit` 已经提供的底层消息引擎
+- 替代 `packages/kit` 成为新的底层消息引擎
 
-## 当前稳定主链
+## 2. 当前主链
 
-当前稳定的主链路是：
+当前推荐从这条链理解 chat 包：
 
 ```text
-ChatConfig
-  -> loadChatConfig()
-  -> createChatAdapterFromConfig()
-    -> adapter.getModel()
-    -> adapter.createResponseProvider()
-  -> ChatScaffold
-    -> currentModel
-    -> chatKit.updateResponseProvider()
+TrChat
+  -> TrChat.Scaffold
+    -> createChatAdapterFromConfig()
+    -> createPresetChatProps()
+    -> createPresetChatSlices()
+    -> TrChat.Root
+    -> ChatDefaultRenderer
 ```
 
-关键约束：
+运行时主链：
 
-- `ResponseProvider` 是本包唯一稳定的运行时 provider 合同
-- `providerId` 用来标识模型归属的 provider 配置
-- `providers[*].type` 默认是 `openai-compatible`
-- `presetOverrides` 可以影响 preset 投影，但不拥有运行时模型身份
+```text
+useChatKit
+  -> useChatConversation
+    -> kit.useConversation
+      -> kit.useMessage
+  -> useChatRequest
+  -> useChatMessages
+```
 
-## 公开入口表面
+## 3. 对外主入口
 
-当前对外的主要入口有：
+入口文件： [index.ts](D:/OpenTinyRepository/tiny-robot/packages/chat/src/index.ts)
+
+当前最重要的公开 surface：
 
 - `TrChat`
 - `TrChat.Scaffold`
 - `TrChat.Root`
-- 白盒叶子组件：
-  - `TrChat.Layout`
-  - `TrChat.Header`
-  - `TrChat.Welcome`
-  - `TrChat.MessageList`
-  - `TrChat.Footer`
-  - `TrChat.Sender`
-  - `TrChat.History`
-  - `TrChat.HistorySurface`
+- `TrChat.Layout`
+- `TrChat.WorkspaceLayout`
+- `TrChat.Header`
+- `TrChat.Welcome`
+- `TrChat.MessageList`
+- `TrChat.Footer`
+- `TrChat.Sender`
+- `TrChat.Attachments`
+- `TrChat.History`
+- `TrChat.HistorySurface`
+- `TrChat.WorkspaceShell`
+- `TrChat.WorkspaceRightSheet`
+- `TrChatFeedback`
+- `TrMcpTrigger`
+- `TrModelSelector`
 
-## 文件职责
+## 4. 运行时 contract
 
-### `adapters/*`
+核心类型定义在： [core.ts](D:/OpenTinyRepository/tiny-robot/packages/chat/src/types/core.ts)
 
-职责：
+当前 `useChatKit` 的定位不是完整兼容 `kit`，而是 chat-first facade。  
+它当前稳定提供：
 
-- 归一化 `ChatConfig`
-- 校验 `model.providerId -> providers[providerId]`
-- 将配置投影为 `ChatAdapter`
-- 生成稳定的 preset props 与 preset slices
+- chat 级状态：
+  - `messages`
+  - `status`
+  - `lastError`
+  - `retry`
+  - edit / optimistic 相关接口
+- runtime bridge：
+  - `runtime.activeEngine`
+  - `runtime.requestState`
+  - `runtime.processingState`
+  - `runtime.isProcessing`
+  - `runtime.clear()`
+  - `runtime.saveMessages()`
+- 扩展面：
+  - `messageActions`
+  - `bubbleRenderers`
+  - `messageTransforms`
+
+## 5. config / adapter / preset 链路
 
 关键文件：
 
-- `configLoader.ts`
-- `configProjection.ts`
-- `openaiCompatibleTransport.ts`
+- [configLoader.ts](D:/OpenTinyRepository/tiny-robot/packages/chat/src/adapters/configLoader.ts)
+- [configProjection.ts](D:/OpenTinyRepository/tiny-robot/packages/chat/src/adapters/configProjection.ts)
+- [types.ts](D:/OpenTinyRepository/tiny-robot/packages/chat/src/adapters/types.ts)
 
-### `components/chat/*`
+当前职责分工：
 
-这里放组件表面和仅服务组件的实现：
+- `loadChatConfig`
+  - 归一化 `ChatConfig`
+  - 校验 `models / providers / features / appearance / shell`
+- `createChatAdapterFromConfig`
+  - 创建 adapter
+  - 解析默认模型
+  - 生成 response provider
+- `createPresetChatProps`
+  - 将 config + overrides 投影为页面级 props
+- `createPresetChatSlices`
+  - 将 preset props 切成白盒叶子组件可消费的 slices
 
-- `ChatScaffold.vue`
-  - adapter 创建
-  - model state 持有
-  - `chatKit` 创建或复用
-  - runtime provider 更新
-  - scaffold context 注入
-- `ChatRoot.vue`
-  - root context 边界
-  - `chatKit | responseProvider` 入口解析
-- `ChatDefaultRenderer.vue`
-  - 默认黑盒页面组合
-- `ChatDefaultHeaderRegion.vue`
-- `ChatDefaultBodyRegion.vue`
-- `ChatDefaultFooterRegion.vue`
+## 6. 当前扩展能力
 
-### `helpers/*`
+### 6.1 Message Actions
 
-这里放非组件的入口辅助函数：
+当前已经支持：
 
-- `scaffoldRuntime.ts`
-  - `ChatScaffold.vue` 使用的一组纯 helper
-  - 包括初始模型解析
-  - provider 创建
-  - preset override 组装
-  - named slot 收集
-- `resolveRootChatKit.ts`
-  - `TrChatRoot` 的 root props 解析 helper
-  - 决定是使用外部注入的 `chatKit`，还是从 `responseProvider` 创建默认 `chatKit`
+- `messageActions`
+- `messageActionsMode`
+- built-in actions definition 化
+- `actions / operations` 两个 placement
 
-### `types/scaffold.ts`
+主要实现：
 
-这里负责 scaffold 相关的公开类型：
+- [useChatFeedback.ts](D:/OpenTinyRepository/tiny-robot/packages/chat/src/composables/useChatFeedback.ts)
+- [ChatFeedback.vue](D:/OpenTinyRepository/tiny-robot/packages/chat/src/components/chat/ChatFeedback.vue)
+- [ChatMessageList.vue](D:/OpenTinyRepository/tiny-robot/packages/chat/src/components/chat/ChatMessageList.vue)
 
-- `TrChatScaffoldProps`
-- `ChatScaffoldRuntimeInput`
-- `ChatScaffoldCallbacks`
-- `TrChatScaffoldContextValue`
+### 6.2 Renderer Registry
 
-### `components/model-selector/*` + `composables/useModelSelector.ts`
+当前已经支持：
 
-职责：
+- `bubbleRenderers.contentMatches`
+- `bubbleRenderers.boxMatches`
 
-- `ModelSelector.vue`
-  - 只负责 dropdown UI
-- `useModelSelector.ts`
-  - 模型选择状态
-  - disabled / fallback 逻辑
-  - 变更通知
+主要实现：
 
-这两者都不再负责运行时 provider 切换。
+- [ChatLayout.vue](D:/OpenTinyRepository/tiny-robot/packages/chat/src/components/chat/ChatLayout.vue)
+- [useDefaultBubbleConfig.ts](D:/OpenTinyRepository/tiny-robot/packages/chat/src/composables/useDefaultBubbleConfig.ts)
 
-## 当前验证状态
+### 6.3 Message Transforms
 
-当前 `packages/chat` 的实现通过下面这些验证覆盖：
+当前已经支持：
 
-- `pnpm -F @opentiny/tiny-robot-chat type-check`
-- `pnpm.cmd -F @opentiny/tiny-robot-chat test:unit`
-- `pnpm.cmd -F @opentiny/tiny-robot-chat-demo type-check`
-- `pnpm.cmd -F @opentiny/tiny-robot-chat-demo build`
-- `packages/test/src/chat/*` 对保留 chat 表面的 Playwright 覆盖
+- `messageTransforms.onChunk`
+- `messageTransforms.onFinish`
 
-## 剩余任务
+主要实现：
 
-当前还有少量可继续推进的工作，但都不是阻塞项。
+- [useChatConversation.ts](D:/OpenTinyRepository/tiny-robot/packages/chat/src/composables/useChatConversation.ts)
+- [useChatKit.ts](D:/OpenTinyRepository/tiny-robot/packages/chat/src/composables/useChatKit.ts)
+- [resolveRootChatKit.ts](D:/OpenTinyRepository/tiny-robot/packages/chat/src/helpers/resolveRootChatKit.ts)
+- [ChatScaffold.vue](D:/OpenTinyRepository/tiny-robot/packages/chat/src/components/chat/ChatScaffold.vue)
 
-### 1. Runtime message state contract
+### 6.4 内部 Render Message Normalization
 
-现状：
+当前内部已经补了一层 render-message normalization，但仍未 public 化为跨包消息类型。
 
-- `chatMessageState.ts` 已经集中管理这些常见状态的读写：
-  - `error`
-  - `isEditing`
-  - `optimistic`
-  - `turnId`
-- retry / optimistic / edit rollback 已经走通主链
+主要实现：
 
-评估：
+- [chatRenderMessages.ts](D:/OpenTinyRepository/tiny-robot/packages/chat/src/composables/chatRenderMessages.ts)
 
-- 现在不是必须做的任务
-- 只有当后续 message-level UI state 继续增多时，才值得再往前推进
+当前作用：
 
-建议：`defer`
+- 为 renderer / actions / transforms 提供统一的内部 render message 入口
+- 保持 source message identity，不破坏 edit / retry / action 链路
 
-### 2. Config / feature pipeline cleanup
+## 7. workspace shell
 
-现状：
+当前默认黑盒 `TrChat` 已经走 workspace shell 主线。
 
-- `configLoader.ts` 仍然相对偏长
-- feature defaults 和 preset projection 逻辑仍散在几个地方
+关键文件：
 
-评估：
+- [workspace.ts](D:/OpenTinyRepository/tiny-robot/packages/chat/src/types/workspace.ts)
+- [chatUiContext.ts](D:/OpenTinyRepository/tiny-robot/packages/chat/src/chatUiContext.ts)
+- [ChatWorkspaceLayout.vue](D:/OpenTinyRepository/tiny-robot/packages/chat/src/components/chat/ChatWorkspaceLayout.vue)
+- [WorkspaceShell.vue](D:/OpenTinyRepository/tiny-robot/packages/chat/src/components/workspace/WorkspaceShell.vue)
 
-- 这是有价值的工程整理工作
-- 但不是功能阻塞
-- 只有当包准备继续扩展更多 config 或 feature 表面时，收益才会明显变高
+当前语义：
 
-建议：`optional`
+- 桌面端默认两栏：左开右关
+- 左侧支持 rail
+- 右侧工作区是正式区域，但默认隐藏
+- 黑盒和白盒已经统一到同一套面板级 slot contract
 
-### 3. Selector accessibility / keyboard polish
+## 8. 推荐阅读顺序
 
-现状：
+如果要快速理解当前实现，建议按这个顺序看源码：
 
-- keyboard scope
-- close logic 清晰度
-- ARIA / focus management
+1. [index.ts](D:/OpenTinyRepository/tiny-robot/packages/chat/src/index.ts)
+2. [types/core.ts](D:/OpenTinyRepository/tiny-robot/packages/chat/src/types/core.ts)
+3. [types/ui.ts](D:/OpenTinyRepository/tiny-robot/packages/chat/src/types/ui.ts)
+4. [adapters/configProjection.ts](D:/OpenTinyRepository/tiny-robot/packages/chat/src/adapters/configProjection.ts)
+5. [components/chat/ChatScaffold.vue](D:/OpenTinyRepository/tiny-robot/packages/chat/src/components/chat/ChatScaffold.vue)
+6. [components/chat/ChatRoot.vue](D:/OpenTinyRepository/tiny-robot/packages/chat/src/components/chat/ChatRoot.vue)
+7. [composables/useChatKit.ts](D:/OpenTinyRepository/tiny-robot/packages/chat/src/composables/useChatKit.ts)
+8. [composables/useChatConversation.ts](D:/OpenTinyRepository/tiny-robot/packages/chat/src/composables/useChatConversation.ts)
+9. [components/chat/ChatLayout.vue](D:/OpenTinyRepository/tiny-robot/packages/chat/src/components/chat/ChatLayout.vue)
+10. [components/chat/ChatMessageList.vue](D:/OpenTinyRepository/tiny-robot/packages/chat/src/components/chat/ChatMessageList.vue)
 
-评估：
+## 9. 当前测试入口
 
-- 属于独立 UI polish
-- 不属于当前主线重构
-- 只有当可访问性或交互质量成为明确优先级时才值得重新推进
+包内 unit：
 
-建议：`defer`
+- [packages/chat/tests](D:/OpenTinyRepository/tiny-robot/packages/chat/tests)
 
-## 任务决策
+E2E：
 
-建议保留在 backlog 中的任务：
+- [packages/test/src/chat](D:/OpenTinyRepository/tiny-robot/packages/test/src/chat)
 
-- runtime message state contract cleanup
-- config / feature pipeline cleanup
-- selector accessibility / keyboard polish
+当前这几条链路最值得作为回归基线：
 
-建议暂时不主动推进的方向：
+- `feedback.spec.ts`
+- `surface-api.spec.ts`
+- `layout-config.spec.ts`
+- `renderer-registry.spec.ts`
+- `message-transforms.spec.ts`
 
-- sidebar shell 默认布局升级
-- 建立在未确认 sidebar / shell 合同上的新模板或新壳层设计
-- 执行跟踪文档和演讲提纲类文档
+## 10. 当前边界结论
 
-## 文档策略
+截至当前代码状态，建议把 `packages/chat` 理解为：
 
-对 `packages/chat/docs`，建议只保留两类文档：
+- 一个稳定的 chat-first facade
+- 一个带 runtime bridge 的产品层运行时
+- 一个已经具备通用扩展能力的 UI 组装层
 
-- 当前实现状态文档
-- 源码级深读文档
+而不是：
 
-不再保留：
+- `tiny-robot-kit` 的完整替代品
+- 某个特定 schema / artifact / GenUI 协议的专用容器
 
-- 已经过时的执行跟踪文档
-- 仍停留在假设阶段的 planning 文档
-- talk / presentation outline 材料
+如果后续需要继续扩展，优先判断是否能通过现有四层能力接入：
+
+- `runtime`
+- `messageActions`
+- `bubbleRenderers`
+- `messageTransforms`
+
+当前不计划继续推进跨包消息模型统一。
+
+也就是说，现阶段不打算进入：
+
+- `packages/kit` 公共消息类型升级
+- `packages/components` / `packages/chat` 的跨包内容模型统一
+
+后续只有在这四层扩展面明显无法承接真实业务场景时，才值得重新评估是否要进入跨包公共消息模型改造。

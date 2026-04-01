@@ -8,9 +8,10 @@ import {
   BUBBLE_LIST_SLOTS,
   CHAT_KIT_KEY,
   MESSAGE_ACTION_KEY,
+  MESSAGE_ACTIONS_KEY,
   useChatScaffoldContext,
 } from '@/context'
-import { useSlotFilter } from '@/composables'
+import { normalizeChatRenderMessages, useSlotFilter } from '@/composables'
 import type { ChatListVariant, TrChatMessageListProps } from '@/types'
 import { triStateBooleanProp } from '@/utils'
 
@@ -19,6 +20,8 @@ defineOptions({ name: 'TrChatMessageList', inheritAttrs: false })
 const props = defineProps({
   autoScroll: triStateBooleanProp,
   variant: String as PropType<ChatListVariant>,
+  messageActions: null as unknown as PropType<TrChatMessageListProps['messageActions']>,
+  messageActionsMode: String as PropType<TrChatMessageListProps['messageActionsMode']>,
   onActionClick: Function as PropType<TrChatMessageListProps['onActionClick']>,
   groupStrategy: null as unknown as PropType<BubbleListProps['groupStrategy']>,
 })
@@ -31,14 +34,22 @@ const slots = useSlots() as Record<string, Slot | undefined>
 const attrs = useAttrs()
 const resolvedVariant = computed<ChatListVariant>(() => props.variant ?? messageListSlice.value?.variant ?? 'bubble')
 const resolvedAutoScroll = computed(() => props.autoScroll ?? messageListSlice.value?.autoScroll)
+const resolvedMessageActions = computed(() => props.messageActions ?? messageListSlice.value?.messageActions)
+const resolvedMessageActionsMode = computed(
+  () => props.messageActionsMode ?? messageListSlice.value?.messageActionsMode,
+)
 const resolvedActionClick = computed(() => props.onActionClick ?? messageListSlice.value?.onActionClick)
 const resolvedGroupStrategy = computed(() => props.groupStrategy ?? messageListSlice.value?.groupStrategy)
 
 provide(MESSAGE_ACTION_KEY, (payload) => {
   resolvedActionClick.value?.(payload)
 })
+provide(MESSAGE_ACTIONS_KEY, {
+  messageActions: resolvedMessageActions,
+  messageActionsMode: resolvedMessageActionsMode,
+})
 
-const messages = computed(() => chatKit.messages.value)
+const messages = computed(() => normalizeChatRenderMessages(chatKit.messages.value))
 const filteredSlots = useSlotFilter(slots, BUBBLE_LIST_SLOTS)
 
 function createVariantRoleConfigs(

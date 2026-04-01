@@ -3,10 +3,11 @@ import { TrFeedback } from '@opentiny/tiny-robot'
 import type { BubbleMessage } from '@opentiny/tiny-robot'
 import type { ChatMessage } from '@opentiny/tiny-robot-kit'
 import { computed, inject } from 'vue'
+import { getChatRenderSourceMessage } from '@/composables/chatRenderMessages'
 import { useChatFeedback } from '@/composables/useChatFeedback'
 import { getChatMessageError } from '@/composables/chatMessageState'
-import { CHAT_KIT_KEY, MESSAGE_ACTION_KEY } from '@/context'
-import type { ChatMessageActionPayload, UseChatKitReturn } from '@/types'
+import { CHAT_KIT_KEY, MESSAGE_ACTION_KEY, MESSAGE_ACTIONS_KEY } from '@/context'
+import type { ChatMessageActionPayload, UseChatKitReturn, TrChatMessageListProps } from '@/types'
 
 defineOptions({ name: 'TrChatFeedback' })
 
@@ -14,6 +15,8 @@ const props = defineProps<{
   messages: BubbleMessage[]
   messageIndexes: number[]
   role?: string
+  messageActions?: TrChatMessageListProps['messageActions']
+  messageActionsMode?: TrChatMessageListProps['messageActionsMode']
   onActionClick?: (payload: ChatMessageActionPayload) => void
 }>()
 
@@ -24,18 +27,21 @@ const emit = defineEmits<{
 
 const chatKit = inject<UseChatKitReturn | null>(CHAT_KIT_KEY, null)
 const injectedActionHandler = inject(MESSAGE_ACTION_KEY, undefined)
+const injectedActionConfig = inject(MESSAGE_ACTIONS_KEY, null)
 
-const { feedbackActions, handleCopyAction, handleRefreshAction, userContent } = useChatFeedback({
+const { feedbackActions, feedbackOperations, getActionDefinition, actionContext, userContent } = useChatFeedback({
   messages: props.messages,
   messageIndexes: props.messageIndexes,
   role: props.role,
   chatKit,
+  messageActions: props.messageActions ?? injectedActionConfig?.messageActions.value,
+  messageActionsMode: props.messageActionsMode ?? injectedActionConfig?.messageActionsMode.value,
 })
 
 const primaryMessageIndex = computed(() => props.messageIndexes?.[0])
 const primaryMessage = computed(() => {
   if (!props.messages?.length) return undefined
-  return props.messages[props.messages.length - 1] as ChatMessage | undefined
+  return getChatRenderSourceMessage(props.messages[props.messages.length - 1] as ChatMessage) as ChatMessage | undefined
 })
 
 const latestAssistantIndex = computed(() => {
@@ -87,14 +93,18 @@ const feedbackClass = computed(() => ({
   'tr-chat-feedback--user': props.role === 'user',
 }))
 
-function emitAction(action: string) {
+function emitAction(action: string, placement: 'actions' | 'operations' = 'actions') {
   const payload: ChatMessageActionPayload = {
     action,
+    placement,
     role: props.role,
-    messages: props.messages as unknown as ChatMessage[],
+    messages: props.messages.map(
+      (message) => getChatRenderSourceMessage(message as ChatMessage) ?? (message as ChatMessage),
+    ),
     messageIndexes: props.messageIndexes,
     message: primaryMessage.value,
     messageIndex: primaryMessageIndex.value,
+    conversationId: chatKit?.activeConversationId.value ?? undefined,
   }
 
   props.onActionClick?.(payload)
@@ -102,33 +112,32 @@ function emitAction(action: string) {
   emit('action-click', payload)
 }
 
-function handleAction(name: string) {
-  if (name === 'copy') {
-    handleCopyAction()
-    emitAction(name)
-    return
+async function triggerAction(name: string, placement: 'actions' | 'operations' = 'actions') {
+  const actionDefinition = getActionDefinition(name, placement) ?? getActionDefinition(name)
+  if (actionDefinition?.onClick) {
+    try {
+      await actionDefinition.onClick(actionContext.value)
+    } catch (error) {
+      console.error(`[TrChatFeedback] message action "${name}" failed`, error)
+    }
   }
 
   if (name === 'edit') {
-    if (chatKit && primaryMessageIndex.value !== undefined) {
-      chatKit.startEditMessage(primaryMessageIndex.value)
-    }
-    emit('edit', userContent.value)
-    emitAction(name)
-    return
-  }
-
-  if (name === 'refresh' && handleRefreshAction()) {
     emit('edit', userContent.value)
   }
 
-  emitAction(name)
+  emitAction(name, placement)
 }
 </script>
 
 <template>
   <div v-if="shouldRenderFeedback" class="tr-chat-feedback" :class="feedbackClass" data-testid="chat-feedback">
-    <TrFeedback :actions="feedbackActions" @action="handleAction" />
+    <TrFeedback
+      :actions="feedbackActions"
+      :operations="feedbackOperations"
+      @action="triggerAction"
+      @operation="(name) => triggerAction(name, 'operations')"
+    />
   </div>
 </template>
 

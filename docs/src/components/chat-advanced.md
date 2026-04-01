@@ -6,17 +6,17 @@ outline: deep
 
 这页是补充资料。现在的目标如果只是把 `TrChat` 用起来，可以先跳过。
 
-这页主要收集两类少数场景才会用到的能力：
+这页主要讲两类内容：
 
-- 更高定制层会单独消费的公开组件
-- 平台层和脚手架层常用的工具链能力
+- 继续使用 `TrChat` 时，还能怎么扩展
+- 只有在更高定制层才需要单独消费的公开组件和工具链能力
 
 ## 什么情况下再来看
 
 适合：
 
 - 你已经熟悉 `TrChat`、`presetOverrides` 和常见插槽
-- 你现在要单独消费某些公开组件
+- 你现在要继续扩消息级动作、消息渲染或运行时消息结果
 - 或者你要做模板层、平台层、脚手架层封装
 
 不适合：
@@ -32,7 +32,179 @@ outline: deep
 - [局部定制](./chat.md#局部定制)
 - [页面级覆盖](./chat.md#页面级覆盖)
 
-## 这页主要看什么
+## 先看这些扩展能力
+
+如果你现在主要还是继续使用 `TrChat`，这页最值得先看的其实是下面这些能力：
+
+| 能力 | 什么时候才需要看 |
+| :-- | :-- |
+| `messageActions` | 你要给消息下方扩业务按钮，但不想接管整页消息列表 |
+| `bubbleRenderers` | 你要替换某一类消息的默认渲染 |
+| `messageTransforms` | 你要在运行时改写模型结果，再交给页面渲染 |
+| `chatKit.runtime` | 你要读更细的请求状态或访问当前 engine |
+
+如果这些都不是你现在的问题，可以直接跳到：
+
+- [高级公开组件](#高级公开组件)
+- [平台封装能力](#平台封装能力)
+
+## 扩展消息下方动作
+
+如果你想继续使用 `TrChat`，但要在消息下方增加业务动作，不需要先接管整页 `message-list`。
+
+当前推荐入口：
+
+- `presetOverrides.messageActions`
+- `presetOverrides.messageActionsMode`
+
+适合：
+
+- assistant 消息下增加“保存到案例库”“创建工单”“加入知识库”这类动作
+- user 消息下增加“保存为模板”“再次编辑”这类动作
+
+一个最小示例：
+
+```ts
+const presetOverrides = {
+  messageActions: [
+    {
+      id: 'save-case',
+      label: '保存到案例库',
+      placement: 'operations',
+      roles: ['assistant'],
+      onClick(context) {
+        console.log(context.message)
+      },
+    },
+  ],
+}
+```
+
+默认行为：
+
+- 不写 `messageActionsMode` 时，内置动作会保留
+- 写 `messageActionsMode: 'replace'` 时，使用你自己的动作列表
+
+当前支持的两个 placement：
+
+- `actions`
+  - 更适合右侧 icon 型动作
+- `operations`
+  - 更适合左侧文本型业务动作
+
+## 替换某类消息的默认渲染
+
+如果你只想替换某一类消息的默认渲染，不需要直接接管 `message-list`。
+
+当前推荐入口：
+
+- `presetOverrides.bubbleRenderers`
+
+一个最小示例：
+
+```ts
+const presetOverrides = {
+  bubbleRenderers: {
+    contentMatches: [
+      {
+        find: (_message, content) =>
+          content?.type === 'text' && content.text?.startsWith('[card]'),
+        renderer: CustomCardRenderer,
+        priority: -2,
+      },
+    ],
+  },
+}
+```
+
+适合：
+
+- 某类消息渲染成卡片
+- 某类消息渲染成 artifact / 审批块 / 结果块
+- 只替换命中的消息，其他消息仍保留默认渲染链
+
+一个常见推荐顺序是：
+
+1. 先用 `messageTransforms` 把结果改写成可识别格式
+2. 再用 `bubbleRenderers` 命中对应 renderer
+
+## 运行时改写消息结果
+
+如果你想在消息真正渲染前改写结果，当前推荐从 `runtime.messageTransforms` 进入。
+
+当前支持：
+
+- `onChunk`
+- `onFinish`
+
+一个最小示例：
+
+```ts
+const runtime = {
+  messageTransforms: {
+    onFinish({ message }) {
+      return {
+        content: `[card] ${message.content ?? ''}`,
+        metadata: {
+          transformed: true,
+        },
+      }
+    },
+  },
+}
+```
+
+如果你要在流式过程中补充运行时信息，也可以用：
+
+```ts
+const runtime = {
+  messageTransforms: {
+    onChunk({ currentMessage }) {
+      currentMessage.metadata ??= {}
+      currentMessage.metadata.chunkCount =
+        (currentMessage.metadata.chunkCount ?? 0) + 1
+    },
+  },
+}
+```
+
+适合：
+
+- 过滤模型原始文本
+- 给最终消息补 metadata
+- 改写最终消息内容，再交给 renderer 命中
+- 观察流式 chunk
+
+不建议：
+
+- 在 transform 里直接塞太多复杂业务编排
+- 把 transform 当成 transport 层替代品
+
+## 什么时候才需要看 `chatKit.runtime`
+
+大多数直接使用 `TrChat` 的页面，不需要手动消费 runtime bridge。
+
+只有在这些场景里，才值得继续往下看：
+
+- 你要读更细的请求状态
+- 你要调试 streaming / request lifecycle
+- 你要手动 `clear`
+- 你要手动 `saveMessages`
+
+当前可用能力包括：
+
+- `chatKit.runtime.activeEngine`
+- `chatKit.runtime.requestState`
+- `chatKit.runtime.processingState`
+- `chatKit.runtime.isProcessing`
+- `chatKit.runtime.clear()`
+- `chatKit.runtime.saveMessages()`
+
+这层能力是“必要的底层 bridge”，不是为了把 `chat` 变成 `kit` 的完整替代品。
+
+## 高级公开组件
+
+如果你已经明确遇到“单靠 `TrChat` 主入口不够”的问题，再继续看这些公开组件。
 
 | 能力 | 什么时候才需要看 |
 | :-- | :-- |
@@ -40,11 +212,6 @@ outline: deep
 | `TrModelSelector` | 你要在默认 footer 之外单独摆模型切换 |
 | `TrMcpTrigger` / `TrChatMcpPanel` | 你要在更高层页面单独摆 MCP 入口或 MCP 面板 |
 | `TrChat.WorkspaceLayout` / `TrChat.WorkspaceShell` / `TrChat.WorkspaceRightSheet` | 你要显式消费 workspace shell 相关公开 surface |
-| 配置加工与投影能力 | 你在做模板、平台、脚手架或二次封装 |
-
-如果你还没有明确遇到这些问题，这页的大部分内容都可以先不看。
-
-## 高级公开组件
 
 ### `TrChat.HistorySurface`
 
@@ -124,21 +291,15 @@ outline: deep
 - `TrChat.WorkspaceRightSheet`
   移动端右侧区域的 sheet 入口，适合单独复用
 
-一个当前很重要的边界是：
+如果你只是想替换 workspace 左右面板内容，优先继续使用 `TrChat` 上的面板级 slots：
 
-- 如果你只是想替换 workspace 左右面板内容，优先继续用黑盒 `TrChat`
-- 黑盒和白盒现在共享同一套面板级 slot 名称：
-  - `left`
-  - `left-rail`
-  - `right`
-  - `mobile-left`
-  - `mobile-right`
-- 如果你要重排 Header / Welcome / MessageList / Footer 整体结构，再进入 `TrChat.WorkspaceLayout`、`TrChat.Scaffold` 或 `TrChat.Root`
+- `left`
+- `left-rail`
+- `right`
+- `mobile-left`
+- `mobile-right`
 
-也就是说：
-
-- 黑盒更适合“面板级替换”
-- 白盒更适合“结构级重组”
+如果你要重排 Header / Welcome / MessageList / Footer 整体结构，再继续进入这些公开组件。
 
 ## 平台封装能力
 

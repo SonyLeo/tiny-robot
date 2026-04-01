@@ -1,6 +1,8 @@
 import { getCurrentInstance, inject, type ComputedRef, type InjectionKey, type Ref } from 'vue'
 import type {
   ChatAttachmentsFeaturePreset,
+  ChatMessageActionsInput,
+  ChatMessageActionsMode,
   ChatMessageActionPayload,
   ChatMessages,
   ChatSenderActionsFeaturePreset,
@@ -56,6 +58,11 @@ export const CHAT_SCAFFOLD_KEY: InjectionKey<TrChatScaffoldContextValue> = Symbo
 
 export const MESSAGE_ACTION_KEY: InjectionKey<((payload: ChatMessageActionPayload) => void) | undefined> =
   Symbol('messageAction')
+
+export const MESSAGE_ACTIONS_KEY: InjectionKey<{
+  messageActions: ComputedRef<ChatMessageActionsInput | undefined>
+  messageActionsMode: ComputedRef<ChatMessageActionsMode | undefined>
+}> = Symbol('messageActions')
 
 export const BUBBLE_CONFIG_KEY: InjectionKey<{
   roleConfigs: ComputedRef<BubbleListProps['roleConfigs'] | undefined>

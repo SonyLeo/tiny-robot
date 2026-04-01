@@ -7,6 +7,12 @@ export { useChatKit } from './useChatKit'
 export { useChatConversation } from './useChatConversation'
 export { useChatRequest } from './useChatRequest'
 export { useChatMessages } from './useChatMessages'
+export {
+  getChatRenderMessageIndex,
+  getChatRenderSourceMessage,
+  normalizeChatRenderMessages,
+  unwrapChatRenderMessages,
+} from './chatRenderMessages'
 export { useDefaultBubbleConfig } from './useDefaultBubbleConfig'
 export { useChatAttachments } from './useChatAttachments'
 export { useMcpManager } from './useMcpManager'

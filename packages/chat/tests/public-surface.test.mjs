@@ -84,3 +84,23 @@ await runTest('named exports still advertise the retained scaffold and helper su
     assert.equal(chatIndexSource.includes(token), true)
   })
 })
+
+await runTest('public source advertises chat message action contracts for extension work', async () => {
+  const retainedTypeExports = [
+    'ChatMessageActionContext',
+    'ChatMessageActionDefinition',
+    'ChatMessageActionPlacement',
+    'ChatMessageActionsInput',
+    'ChatMessageActionsMode',
+    'ChatMessageActionRole',
+    'ChatMessageTransformChunkContext',
+    'ChatMessageTransformFinishContext',
+    'ChatMessageTransforms',
+    'ChatBubbleRenderers',
+  ]
+
+  retainedTypeExports.forEach((token) => {
+    assert.equal(chatIndexSource.includes(token), true)
+    assert.equal(chatTypesIndexSource.includes(token), true)
+  })
+})

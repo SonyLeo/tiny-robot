@@ -26,6 +26,11 @@ await runTest('getRootChatKitResolution derives useChatKit options from root pro
   const responseProvider = createStreamingProvider()
   const onFinish = () => {}
   const onError = () => {}
+  const messageTransforms = {
+    onFinish: () => ({
+      content: 'transformed',
+    }),
+  }
   const storage = createMemoryStorage()
   const initialMessages = [{ role: 'system', content: 'seed' }]
 
@@ -33,6 +38,7 @@ await runTest('getRootChatKitResolution derives useChatKit options from root pro
     responseProvider,
     storage,
     initialMessages,
+    messageTransforms,
     onFinish,
     onError,
   })
@@ -40,6 +46,7 @@ await runTest('getRootChatKitResolution derives useChatKit options from root pro
   assert.equal(resolution.providedChatKit, undefined)
   assert.equal(resolution.chatKitOptions?.responseProvider, responseProvider)
   assert.equal(resolution.chatKitOptions?.storage, storage)
+  assert.equal(resolution.chatKitOptions?.messageTransforms, messageTransforms)
   assert.equal(resolution.chatKitOptions?.onFinish, onFinish)
   assert.equal(resolution.chatKitOptions?.onError, onError)
   assert.deepEqual(resolution.chatKitOptions?.initialMessages, initialMessages)

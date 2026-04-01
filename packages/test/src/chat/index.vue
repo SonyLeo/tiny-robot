@@ -24,6 +24,8 @@ import BlackboxEdgeScene from './scenarios/BlackboxEdgeScene.vue'
 import BlackboxScene from './scenarios/BlackboxScene.vue'
 import LayoutConfigScene from './scenarios/LayoutConfigScene.vue'
 import McpFeatureScene from './scenarios/McpFeatureScene.vue'
+import MessageTransformsScene from './scenarios/MessageTransformsScene.vue'
+import RendererRegistryScene from './scenarios/RendererRegistryScene.vue'
 import SenderExtensionsScene from './scenarios/SenderExtensionsScene.vue'
 import SurfaceApiScene from './scenarios/SurfaceApiScene.vue'
 import WelcomePromptsScene from './scenarios/WelcomePromptsScene.vue'
@@ -38,6 +40,8 @@ type ChatMode =
   | 'sender-extensions'
   | 'mcp-feature'
   | 'layout-config'
+  | 'message-transforms'
+  | 'renderer-registry'
   | 'surface-api'
   | 'workspace-slots'
 
@@ -49,6 +53,8 @@ const modeOptions: ReadonlyArray<{ value: ChatMode; label: string; testId: strin
   { value: 'sender-extensions', label: 'Sender Extensions', testId: 'switch-sender-extensions' },
   { value: 'mcp-feature', label: 'MCP Feature', testId: 'switch-mcp-feature' },
   { value: 'layout-config', label: 'Layout Config', testId: 'switch-layout-config' },
+  { value: 'message-transforms', label: 'Message Transforms', testId: 'switch-message-transforms' },
+  { value: 'renderer-registry', label: 'Renderer Registry', testId: 'switch-renderer-registry' },
   { value: 'surface-api', label: 'Surface API', testId: 'switch-surface-api' },
   { value: 'workspace-slots', label: 'Workspace Slots', testId: 'switch-workspace-slots' },
 ]
@@ -61,6 +67,8 @@ const sceneByMode: Record<ChatMode, Component> = {
   'sender-extensions': SenderExtensionsScene,
   'mcp-feature': McpFeatureScene,
   'layout-config': LayoutConfigScene,
+  'message-transforms': MessageTransformsScene,
+  'renderer-registry': RendererRegistryScene,
   'surface-api': SurfaceApiScene,
   'workspace-slots': WorkspaceSlotsScene,
 }

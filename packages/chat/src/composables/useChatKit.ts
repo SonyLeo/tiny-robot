@@ -89,6 +89,7 @@ export function useChatKit(options: UseChatKitOptions): UseChatKitReturn {
     plugins: options.plugins,
     storage: options.storage,
     initialMessages: options.initialMessages,
+    messageTransforms: options.messageTransforms,
     onFinish: options.onFinish,
     onError: options.onError,
     onTurnError: ({ context, error }) => {
@@ -147,6 +148,10 @@ export function useChatKit(options: UseChatKitOptions): UseChatKitReturn {
     conversation,
     responseProviderRef,
   })
+  const activeEngine = computed(() => conversation.activeConversation.value?.engine ?? null)
+  const runtimeRequestState = computed(() => activeEngine.value?.requestState.value ?? 'idle')
+  const runtimeProcessingState = computed(() => activeEngine.value?.processingState.value)
+  const runtimeIsProcessing = computed(() => activeEngine.value?.isProcessing.value ?? false)
 
   const messages = computed<ChatMessage[]>(() => conversation.activeConversation.value?.engine.messages.value ?? [])
 
@@ -282,6 +287,14 @@ export function useChatKit(options: UseChatKitOptions): UseChatKitReturn {
     updateResponseProvider: request.updateResponseProvider,
     abort: request.abort,
     retry,
+    runtime: {
+      activeEngine,
+      requestState: runtimeRequestState,
+      processingState: runtimeProcessingState,
+      isProcessing: runtimeIsProcessing,
+      clear: conversation.clear,
+      saveMessages: conversation.saveMessages,
+    },
     startEditMessage: messageActions.startEditMessage,
     cancelEditMessage: messageActions.cancelEditMessage,
     isMessageEditing: messageActions.isMessageEditing,

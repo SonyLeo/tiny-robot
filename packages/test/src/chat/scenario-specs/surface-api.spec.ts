@@ -61,6 +61,40 @@ test.describe('Chat Surface API', () => {
     await expect(contents.last()).toContainText('[runtime-chat-kit:runtime-chat-kit-model]')
   })
 
+  test('surface runtime bridge should expose raw request state and bridge helpers without leaving the chat surface', async ({
+    page,
+  }) => {
+    const sceneRoot = page.locator('[data-testid="chat-surface-runtime-bridge"]')
+    const chatRoot = '[data-testid="chat-surface-runtime-bridge"] .tr-chat'
+
+    await expect(sceneRoot.getByTestId('surface-runtime-bridge-request-state')).toContainText('request:idle')
+    await expect(sceneRoot.getByTestId('surface-runtime-bridge-processing-state')).toContainText('processing:none')
+    await expect(sceneRoot.getByTestId('surface-runtime-bridge-is-processing')).toContainText('active:false')
+    await expect(sceneRoot.getByTestId('surface-runtime-bridge-message-count')).toContainText('messages:0')
+
+    await sceneRoot.getByTestId('surface-runtime-bridge-send').click()
+
+    await expect(sceneRoot.getByTestId('surface-runtime-bridge-request-state')).toContainText('request:processing')
+    await expect(sceneRoot.getByTestId('surface-runtime-bridge-is-processing')).toContainText('active:true')
+
+    await helper.waitForStreamingComplete(chatRoot)
+
+    await expect(sceneRoot.getByTestId('surface-runtime-bridge-request-state')).toContainText('request:completed')
+    await expect(sceneRoot.getByTestId('surface-runtime-bridge-processing-state')).toContainText('processing:none')
+    await expect(sceneRoot.getByTestId('surface-runtime-bridge-is-processing')).toContainText('active:false')
+    await expect(sceneRoot.getByTestId('surface-runtime-bridge-message-count')).toContainText('messages:2')
+
+    const contents = page.locator(chatRoot).locator(helper.selectors.bubbleContent)
+    await expect(contents.last()).toContainText('[runtime-bridge:runtime-bridge-model]')
+
+    await sceneRoot.getByTestId('surface-runtime-bridge-save').click()
+    await expect(sceneRoot.getByTestId('surface-runtime-bridge-save-count')).not.toContainText('saves:0')
+
+    await sceneRoot.getByTestId('surface-runtime-bridge-clear').click()
+    await expect(sceneRoot.getByTestId('surface-runtime-bridge-request-state')).toContainText('request:idle')
+    await expect(sceneRoot.getByTestId('surface-runtime-bridge-message-count')).toContainText('messages:0')
+  })
+
   test('TrChat.Scaffold should expose live slot props for manual composition and model switching', async ({ page }) => {
     const root = '[data-testid="chat-surface-scaffold"] .tr-chat'
     const sceneRoot = page.locator('[data-testid="chat-surface-scaffold"]')

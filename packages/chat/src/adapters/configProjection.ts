@@ -184,6 +184,7 @@ export function createPresetChatSlices(preset: ChatPresetProps & Partial<TrChatP
       show: preset.show,
       roleConfigs: preset.roleConfigs,
       contentLayout: preset.contentLayout,
+      bubbleRenderers: preset.bubbleRenderers,
     },
     appearance: {
       appearance: preset.appearance,
@@ -207,6 +208,8 @@ export function createPresetChatSlices(preset: ChatPresetProps & Partial<TrChatP
     messageList: {
       autoScroll: preset.autoScroll ?? true,
       variant: preset.messageListVariant,
+      messageActions: preset.messageActions,
+      messageActionsMode: preset.messageActionsMode,
       onActionClick: preset.onMessageAction,
       groupStrategy: preset.groupStrategy,
       showFeedback: preset.showFeedback ?? false,

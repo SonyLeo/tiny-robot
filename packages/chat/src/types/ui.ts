@@ -2,6 +2,8 @@ import type { Component, VNode } from 'vue'
 import type {
   Attachment,
   AttachmentListProps,
+  BubbleBoxRendererMatch,
+  BubbleContentRendererMatch,
   BubbleListProps,
   PromptProps,
   SenderProps,
@@ -16,6 +18,8 @@ import type {
   ChatAppearanceConfig,
   ChatContentLayout,
   ChatListVariant,
+  ChatMessageActionsInput,
+  ChatMessageActionsMode,
   ChatMessageActionPayload,
   UseChatKitOptions,
   UseChatKitReturn,
@@ -123,6 +127,11 @@ export interface UseChatAttachmentsOptions {
   initialItems?: Attachment[]
 }
 
+export interface ChatBubbleRenderers {
+  contentMatches?: BubbleContentRendererMatch[]
+  boxMatches?: BubbleBoxRendererMatch[]
+}
+
 export interface TrChatPresetOverrides {
   mcpManager?: UseMcpManagerReturn
   attachmentsManager?: UseChatAttachmentsReturn
@@ -140,9 +149,12 @@ export interface TrChatPresetOverrides {
   autoScroll?: boolean
   messageListVariant?: ChatListVariant
   contentLayout?: ChatContentLayout
+  bubbleRenderers?: ChatBubbleRenderers
   showHistory?: boolean
   showFeedback?: boolean
   show?: boolean
+  messageActions?: ChatMessageActionsInput
+  messageActionsMode?: ChatMessageActionsMode
   onMessageAction?: (payload: ChatMessageActionPayload) => void
   roleConfigs?: BubbleListProps['roleConfigs']
   groupStrategy?: BubbleListProps['groupStrategy']
@@ -173,6 +185,7 @@ type TrChatRootPropsA = {
   plugins?: UseChatKitOptions['plugins']
   storage?: UseChatKitOptions['storage']
   initialMessages?: UseChatKitOptions['initialMessages']
+  messageTransforms?: UseChatKitOptions['messageTransforms']
   onFinish?: UseChatKitOptions['onFinish']
   onError?: UseChatKitOptions['onError']
   chatKit?: never
@@ -184,6 +197,7 @@ type TrChatRootPropsB = {
   plugins?: never
   storage?: never
   initialMessages?: never
+  messageTransforms?: never
   onFinish?: never
   onError?: never
 }
@@ -206,6 +220,8 @@ export interface TrChatWelcomeProps {
 export interface TrChatMessageListProps {
   autoScroll?: boolean
   variant?: ChatListVariant
+  messageActions?: ChatMessageActionsInput
+  messageActionsMode?: ChatMessageActionsMode
   onActionClick?: (payload: ChatMessageActionPayload) => void
   groupStrategy?: BubbleListProps['groupStrategy']
 }

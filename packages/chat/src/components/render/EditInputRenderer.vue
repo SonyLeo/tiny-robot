@@ -2,6 +2,7 @@
 import { nextTick, onMounted, ref, watch, inject } from 'vue'
 import { useMessageContent, type BubbleContentRendererProps } from '@opentiny/tiny-robot'
 import { ensureChatMessageState } from '@/composables/chatMessageState'
+import { getChatRenderMessageIndex, getChatRenderSourceMessage } from '@/composables/chatRenderMessages'
 import { CHAT_KIT_KEY } from '@/context'
 import { useResolvedChatMessages } from '@/messages'
 import type { UseChatKitReturn } from '@/types'
@@ -42,7 +43,10 @@ const handleSave = async () => {
 
   isSaving.value = true
   try {
-    const messageIndex = chatKit!.messages.value.findIndex((message) => message === props.message)
+    const sourceMessage = getChatRenderSourceMessage(props.message as never)
+    const messageIndex =
+      getChatRenderMessageIndex(props.message as never) ??
+      chatKit!.messages.value.findIndex((message) => message === sourceMessage)
     if (messageIndex === -1) {
       console.error('Current message could not be found')
       return
@@ -57,7 +61,10 @@ const handleSave = async () => {
 }
 
 const handleCancel = () => {
-  const messageIndex = chatKit!.messages.value.findIndex((message) => message === props.message)
+  const sourceMessage = getChatRenderSourceMessage(props.message as never)
+  const messageIndex =
+    getChatRenderMessageIndex(props.message as never) ??
+    chatKit!.messages.value.findIndex((message) => message === sourceMessage)
   if (messageIndex !== -1) {
     chatKit!.cancelEditMessage(messageIndex)
   }

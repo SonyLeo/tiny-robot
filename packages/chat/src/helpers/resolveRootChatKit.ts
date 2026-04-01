@@ -28,6 +28,7 @@ export function getRootChatKitResolution(componentName: string, props: TrChatRoo
       plugins: conditionalProp(props, 'plugins'),
       storage: conditionalProp(props, 'storage'),
       initialMessages: conditionalProp(props, 'initialMessages'),
+      messageTransforms: conditionalProp(props, 'messageTransforms'),
       onFinish: conditionalProp(props, 'onFinish'),
       onError: conditionalProp(props, 'onError'),
     },
