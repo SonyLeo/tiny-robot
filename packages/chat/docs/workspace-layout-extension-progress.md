@@ -1,280 +1,186 @@
 # Chat Workspace 布局扩展进度
 
-> Last updated: `2026-03-31`
-> Status: `In progress`
+> Last updated: `2026-04-01`
+> Status: `Completed with follow-ups`
 > Primary doc:
 > - [布局扩展实现方案](./workspace-layout-extension-implementation.md)
 
 ## 1. 当前结论
 
-当前默认布局已经切换到：
+`packages/chat` 的 workspace 布局主线已经完成，当前实现状态可以概括为：
 
-- 桌面端默认两栏
-- 左侧栏默认展开，可折叠为 rail
-- 右侧工作区默认隐藏
-- 内部结构按三栏 workspace shell 实现
-- 移动端已支持左侧 drawer 降级
+- 默认黑盒 `TrChat` 已切换到 workspace shell 路径
+- 桌面端默认是“两栏”：左侧展开，右侧隐藏
+- 左侧支持折叠为 rail
+- 右侧工作区是正式区域，但默认关闭
+- 移动端已支持左 drawer 和右 sheet
+- 黑盒与白盒已经统一到同一套面板级 slot contract：
+  - `left`
+  - `left-rail`
+  - `right`
+  - `mobile-left`
+  - `mobile-right`
+
+从“功能是否落地”来看，这一轮已经不再是实现进行中，而是进入了收口和后续优化阶段。
 
 ## 2. 阶段状态
 
-| 阶段 | 状态 | 目标 | 备注 |
-| --- | --- | --- | --- |
-| P0 文档冻结 | 已完成 | 冻结实现方向、状态模型、实施顺序 | 已完成 |
-| P0.5 Demo 原型验证 | 已完成 | 用白盒 demo 验证截图对应布局 | 已确认通过 |
-| P1 Contract 接入 | 已完成 | 新增 `shell` 类型与 config/preset 链路 | 已打通 |
-| P2 Workspace 壳接入 | 已完成 | 接入 `WorkspaceShell`，默认左开右关 | 已接入默认黑盒链路 |
-| P3 左侧 rail / 右侧空态 | 已完成 | 完成截图对应交互 | 已落地 |
-| P4 移动端降级 | 已完成 | 左 drawer、右 modal/sheet | 左 drawer 与右 sheet 已落地 |
-| P5 Demo / 测试 / 文档同步 | 进行中 | demo、测试、说明文档更新 | 包级验证已通过，用户文档与黑盒示例继续补齐 |
+| 阶段 | 状态 | 结论 |
+| --- | --- | --- |
+| P0 文档冻结 | 已完成 | 实现方向与边界已冻结 |
+| P0.5 Demo 原型验证 | 已完成 | 白盒原型已验证两栏 / 三栏目标形态 |
+| P1 Contract 接入 | 已完成 | `shell` 类型、config、preset、slice 链路已打通 |
+| P2 Workspace 壳接入 | 已完成 | 默认黑盒链路已接入 workspace shell |
+| P3 左 rail / 右侧空态 | 已完成 | 默认左开右关、左 rail、右侧空态已落地 |
+| P4 移动端降级 | 已完成 | 左 drawer、右 sheet、workspace state 已落地 |
+| P5 Demo / 测试 / 文档同步 | 已完成 | demo、用户文档、主要测试已同步 |
+| P6 Contract 收敛与原型验证 | 已完成 | slot contract 已收敛到 5 个面板级 slot |
+| P7 下一轮正式实现 | 已完成 | 文档中原“下一轮”条目大部分已在代码中落地 |
+| 后续优化 backlog | 进行中 | 只保留少量收口项和可选优化项 |
 
-## 3. 任务清单
+## 3. 已完成范围
 
-### P1 Contract 接入
+### 3.1 Contract 与配置链
 
-- [x] 新增 `src/types/workspace.ts`
-- [x] 导出 `shell` 相关类型
-- [x] `ChatConfig` 支持 `shell`
-- [x] `presetOverrides` 支持 `shell`
-- [x] `presetSlices` 支持 `shell`
+- 已新增 `src/types/workspace.ts`
+- 已导出 workspace 相关公开类型
+- `ChatConfig.shell` 已落地
+- `presetOverrides.shell` 已落地
+- `presetSlices.shell` 已落地
 
-### P2 Workspace 壳接入
+### 3.2 Runtime 与 UI 状态
 
-- [x] 新增 `components/workspace/WorkspaceShell.vue`
-- [x] 新增 `useWorkspaceRegion.ts`
-- [x] 新增 `runtime.ts`
-- [x] `ChatDefaultRenderer.vue` 切换到 `WorkspaceShell`
+- `chatUiContext` 已从 history-only 状态升级为 workspace state
+- `history` 语义已收敛为兼容层
+- `ChatRoot.vue` 已注入新的 workspace / history 状态
 
-### P3 左侧 rail / 右侧空态
+### 3.3 组件与布局
 
-- [x] 新增 `ChatWorkspaceSidebar.vue`
-- [x] 新增 `ChatWorkspaceSidebarRail.vue`
-- [x] 新增 `ChatWorkspaceRightPanel.vue`
-- [x] 新增 `ChatWorkspaceRightEmpty.vue`
-- [x] `ChatHeader.vue` 收敛 left/right toggle
-- [x] 默认左开右关
+- 已落地 `WorkspaceShell.vue`
+- 已落地 `useWorkspaceRegion.ts`
+- 已落地 workspace runtime helper
+- 默认黑盒渲染器已切换到 workspace shell
+- 默认左侧 sidebar / rail / 右侧 panel / 右侧空态已落地
+- 移动端左侧容器 `ChatWorkspaceLeftSheet.vue` 已落地
+- 移动端右侧容器 `ChatWorkspaceRightSheet.vue` 已落地
 
-### P4 移动端降级
+### 3.4 黑盒 / 白盒 contract
 
-- [x] `chatUiContext` 升级为 workspace state
-- [x] `ChatRoot.vue` 注入新状态
-- [x] 左侧移动端 drawer
-- [x] 右侧移动端 modal/sheet
+- 黑盒 `TrChat` 已支持面板级 slot 透传：
+  - `left`
+  - `left-rail`
+  - `right`
+  - `mobile-left`
+  - `mobile-right`
+- `mobile-left -> left -> default sidebar` fallback 已落地
+- `mobile-right -> right -> default right panel` fallback 已落地
+- 白盒路径当前主用 `TrChat.Scaffold + TrChat.WorkspaceLayout`
 
-### P5 Demo / 测试 / 文档同步
+说明：
 
-- [x] 黑盒 demo 更新
-- [x] 白盒 demo 更新
-- [x] 新增 `workspace-slot-contract.test.mjs`
-- [x] 新增更高层行为测试或 `workspace-shell.spec.ts`
-- [x] 更新 `history.spec.ts` 断言
-- [x] 更新主说明文档
+- 当前白盒 demo 并不是“直接消费 `TrChat.WorkspaceShell`”的示例
+- 当前白盒 demo 更接近“在 scaffold 提供的 preset/runtime 基础上手动重组页面结构”
 
-### P6 Contract 收敛与原型验证
+### 3.5 Demo、文档、测试
 
-- [x] 收敛 workspace slot 设计到 `left / left-rail / right / mobile-left / mobile-right`
-- [x] 新增 `SidebarShell = brand + content` 的内部原型
-- [x] 白盒 demo 原型验证“brand + 功能区”左侧控制台
-- [x] `SidebarShell` 先保持内部组件，不立即公开导出
-- [x] 移动端左侧 override 采用 `mobile-left -> left -> default sidebar` fallback
+- 黑盒 demo 已更新
+- 白盒 demo 已更新
+- 用户文档已补齐 workspace 面板级 slot 用法
+- 已新增 docs demo 展示黑盒 workspace 面板替换
+- 已新增源码级 contract 测试 `workspace-slot-contract.test.mjs`
+- 已新增 Playwright 场景 `workspace-slots.spec.ts`
+- `history.spec.ts` 已同步到当前 workspace / mobile-left 行为
 
-### P7 下一轮正式实现
+## 4. 当前验证状态
 
-- [x] 黑盒 `TrChat` 接入面板级 workspace slot 透传
-- [x] `ChatWorkspaceLayout` 接入 `mobile-left`
-- [x] `ChatHistory.vue` 收敛为 workspace mobile-left 兼容层
-- [x] 明确并冻结 workspace 目标目录拓扑
-- [x] 规划移动端左侧容器拆分（不复制内容组件）
-- [x] 统一 `mobile-left / mobile-right` fallback
-- [x] 补 workspace 专项测试
-- [x] 同步用户文档与示例
-
-## 4. 关键决策
-
-- 默认用户体验先做成两栏，不默认常驻三栏。
-- 左侧栏默认内容是 history，但左侧栏语义不是 history。
-- 右侧工作区从 V1 起就是正式区域，只是默认关闭。
-- V1 不引入复杂左侧 tab/panel host。
-- V1 不引入复杂右侧 portal 栈，只提供正式空态容器。
-- workspace 公开扩展粒度收敛到 `left / left-rail / right / mobile-left / mobile-right`。
-- 左侧公共抽象优先收敛为 `SidebarShell = brand + content`，不再继续拆细公共 slot。
-- 黑盒 `TrChat` 也应支持同一套面板级 slot，尽量与白盒保持一致行为和 fallback。
-- 当前最需要收敛的是职责边界，不急于做大规模目录迁移。
-- 移动端相关部分优先拆分“容器层”，不拆分“内容层”。
-
-## 5. 下一轮实施方案
-
-### 5.1 实施目标
-
-下一轮不再扩展新的细粒度公共 slot，而是把当前方案正式落地为：
-
-- 结构级 contract 固定为 `left / left-rail / right / mobile-left / mobile-right`
-- 黑盒 `TrChat` 支持同一套面板级 slot 的透传能力
-- 左侧默认实现稳定在 `SidebarShell + default content`
-- 移动端左侧具备 `mobile-left` 覆盖能力
-- `ChatHistory.vue` 从“左栏容器”进一步收缩为“drawer / mobile-left 兼容层”
-- workspace 目录拓扑先冻结目标结构，再按阶段迁移
-
-### 5.2 实施顺序
-
-建议按以下顺序推进：
-
-1. 先完成黑盒 `TrChat` 的面板级 slot 透传 contract
-2. 再完成 `mobile-left` contract
-3. 再完成 `ChatHistory.vue` 的 mobile-left 接线与 fallback
-4. 再冻结 workspace 目标目录拓扑与容器拆分方案
-5. 再补测试
-6. 最后补用户文档和 demo 说明
-
-原因：
-
-- 产品主推黑盒接入，因此黑盒下的 workspace 自定义能力需要先闭环
-- `mobile-left` 是当前桌面/移动端体验断层的唯一关键缺口
-- 目录整理应建立在 contract 与容器边界已经稳定的前提上
-- 先确认 contract 和 fallback，再补测试，能避免测试跟着未冻结语义反复调整
-- 文档和 demo 说明应建立在最终 contract 已稳定的前提上
-
-### 5.3 代码落点
-
-下一轮正式实现预计主要修改以下文件：
-
-- `packages/chat/src/components/chat/Chat.vue`
-- `packages/chat/src/components/chat/ChatScaffold.vue`
-- `packages/chat/src/components/chat/ChatDefaultRenderer.vue`
-- `packages/chat/src/components/chat/ChatWorkspaceLayout.vue`
-- `packages/chat/src/components/history/ChatHistory.vue`
-- `packages/chat/src/components/chat/workspace/ChatWorkspaceSidebarShell.vue`
-- `packages/chat/src/components/chat/workspace/ChatWorkspaceSidebar.vue`
-- `packages/chat/src/components/chat/workspace/ChatWorkspaceRightSheet.vue`
-- `packages/chat/src/components/workspace/runtime.ts`（命名与职责评估）
-- `packages/chat/src/types/workspace.ts`
-
-测试与文档预计涉及：
-
-- `packages/chat/tests/*workspace*`
-- `packages/chat/tests/public-surface.test.mjs`
-- `docs/src/components/chat.md`
-- `docs/src/components/chat-advanced.md`
-
-### 5.4 具体改动范围
-
-#### A. `ChatWorkspaceLayout.vue`
-
-- 增加 `mobile-left` slot
-- 保持 `left / left-rail / right / mobile-right` 现有 contract 不变
-- 明确结构级 fallback：
-  - `mobile-left` 未提供时复用 `left`
-  - `mobile-right` 未提供时复用 `right`
-
-#### B. 黑盒 slot 透传链
-
-- `TrChat`、`ChatScaffold`、`ChatDefaultRenderer` 透传 `left / left-rail / right / mobile-left / mobile-right`
-- 黑盒与白盒尽量保持同名 slot、同语义、同 fallback
-- workspace 模式外，这些 slot 不生效
-
-#### C. `ChatHistory.vue`
-
-- 在 workspace + mobile 模式下，优先消费 `mobile-left`
-- 若未提供 `mobile-left`，则回退 `left`
-- 若 `left` 也未提供，则继续渲染默认 `ChatWorkspaceSidebar`
-- 保持非-workspace 模式下原有 history drawer 行为不变
-
-#### D. 左侧默认实现
-
-- `ChatWorkspaceSidebarShell.vue` 继续作为内部原型，不在这一轮立即承诺公开 API
-- `ChatWorkspaceSidebar.vue` 保持“默认 history sidebar”定位
-- 不在这一轮继续拆分 brand / toolbar / footer 等公共 slot
-
-#### E. 目录与容器层规划
-
-- 冻结 workspace 目标目录拓扑
-- 明确 `components/workspace` 只保留基础设施职责
-- 明确 `components/chat/workspace` 逐步承载 chat 语义下的 workspace 结构与默认面板
-- 明确移动端左侧未来应新增独立容器，而不是继续把容器语义留在 `ChatHistory.vue`
-- 本轮先规划，不立即进行大规模路径迁移
-
-#### F. 测试
-
-最少应补以下断言：
-
-- 黑盒 `TrChat` 下 `left / right / mobile-left / mobile-right` 能透传到 workspace 渲染链
-- workspace 模式下 `mobile-left` 能覆盖默认左 drawer
-- 未提供 `mobile-left` 时能回退到 `left`
-- `left` 与 `mobile-left` 都缺失时回退默认 sidebar
-- `mobile-right` 未提供时能回退到 `right`
-- 默认黑盒 `TrChat` 行为不发生公开 surface 回归
-
-### 5.5 暂不做的内容
-
-下一轮明确不做：
-
-- 把 `SidebarShell` 直接公开为正式公共组件
-- 给黑盒 `TrChat` 增加更细粒度的 workspace slot
-- 在 contract 尚未完全落稳前做大规模目录迁移
-- 为移动端复制一套独立的 sidebar / right panel 内容组件
-- 引入更细的左侧 tab/panel host contract
-- 引入 `workspace-right-empty` 这类额外细粒度公共 slot
-
-### 5.6 开工前确认点
-
-正式实现前只需要再确认以下 3 点：
-
-- 黑盒 `TrChat` 是否按与白盒一致的 slot 名称直接透传 `left / left-rail / right / mobile-left / mobile-right`
-- `mobile-left` 是否按“可选覆盖，默认复用 `left`”实现
-- `SidebarShell` 是否先保持内部组件
-- 当前白盒 demo 是否继续只作为原型验证，不作为最终公开 API 示例
-- workspace 目录整理是否仅冻结目标结构，不在本轮立即大规模搬路径
-
-## 6. 验证清单
+以下项目可以视为已通过：
 
 - [x] `pnpm -F @opentiny/tiny-robot-chat type-check`
 - [x] `pnpm -F @opentiny/tiny-robot-chat build`
-- [ ] `pnpm -F @opentiny/tiny-robot-chat-demo type-check`
 - [x] `pnpm -F @opentiny/tiny-robot-chat-demo build`
 - [x] `pnpm -F tiny-robot-test test -- src/chat/index.spec.ts`
-- [ ] `pnpm -F tiny-robot-test test -- src/chat/history.spec.ts`
+- [x] `pnpm -F tiny-robot-test test -- src/chat/history.spec.ts`
+- [x] `pnpm -F tiny-robot-test test -- src/chat/scenario-specs/workspace-slots.spec.ts`
+- [x] `packages/chat/tests/workspace-slot-contract.test.mjs`
 
-当前备注：
+说明：
 
-- `history.spec.ts` 本轮执行时在测试页面 `beforeEach` 阶段超时，表现为无法定位 `text=Chat 组件`，暂未确认是否由本轮布局改造直接引起。
-- 亮色/暗色主题问题已定位并修复：原因是 workspace 壳层与白盒原型存在硬编码颜色，同时左右工作区不在原有 `TrChat.Layout` 的 scoped `ThemeProvider` 作用域内。
-- 白盒 demo 已改为消费正式 `TrChat.WorkspaceShell` 公共 API。
-- 专项 `workspace-shell.spec.ts` 仍未补齐。
-- 黑盒 `TrChat` 已支持 `left / left-rail / right / mobile-left / mobile-right` 面板级 slot 透传。
-- `mobile-left` 已按 `mobile-left -> left -> default sidebar` 落地，并引入 `ChatWorkspaceLeftSheet.vue` 作为移动端左侧容器。
-- 用户文档已补齐黑盒 workspace 面板级 slot 用法，并新增 docs demo 展示黑盒面板替换。
-- 已新增 Playwright 场景 `workspace-slots.spec.ts`，覆盖黑盒面板级 slot 渲染与移动端 fallback 行为。
-- `history.spec.ts` 已同步到新的 workspace / mobile-left 行为，黑盒桌面与移动端路径均已覆盖。
+- `@opentiny/tiny-robot-chat-demo` 的 `build` 脚本本身已包含 `vue-tsc --noEmit`，因此可视为已覆盖 demo type-check
+- 当前没有单独的 `workspace-shell.spec.ts`
+- 但其主要覆盖目标，已经由源码级 contract 测试、workspace slot 场景测试、history 场景测试和入口 smoke 测试共同承担
 
-## 7. 更新记录
+## 5. 与旧进度文档相比需要修正的事实
+
+下列旧表述已经不再准确：
+
+- `P5 Demo / 测试 / 文档同步` 不应继续标记为“进行中”
+- `history.spec.ts` 不应继续标记为未完成或超时存疑
+- `chat-demo type-check` 不应继续单列为未完成
+- “白盒 demo 已改为消费正式 `TrChat.WorkspaceShell` 公共 API”这条表述不准确
+- “下一轮正式实现方案”中列出的绝大多数实现项已经完成，不应继续保留为当前执行计划
+
+## 6. 建议的下一步
+
+当前不建议继续把 workspace 主题当成一个“大型进行中改造”来推进，更合适的下一步是收口。
+
+建议按下面顺序处理：
+
+1. 更新 `workspace-layout-extension-implementation.md`
+   - 去掉仍停留在 planning / draft 口吻的段落
+   - 改成实现对齐的状态说明文档
+
+2. 在用户文档里补一条白盒说明
+   - 明确“白盒路径手动接管 footer 后，默认 footer tools 不会自动渲染”
+   - 避免将来再次把 `TrModelSelector` / `TrMcpTrigger` 的手动接线误判为布局 bug
+
+3. 评估是否还需要单独补 `workspace-shell.spec.ts`
+   - 如果需要，目标应聚焦纯 shell 容器行为
+   - 如果不需要，可以在进度文档中明确说明“已有覆盖已足够”
+
+4. 只保留小规模 backlog，不再重开大实现
+   - 例如：`components/workspace/runtime.ts` 是否改名为更清晰的 `regionRuntime.ts`
+   - 例如：workspace 目录职责说明是否需要在实现文档中再收口一次
+
+## 7. 明确不建议现在做的事
+
+当前不建议再主动推进：
+
+- 新增更细粒度的 workspace 公共 slot
+- 引入复杂的左侧 tab / panel host contract
+- 引入复杂的右侧 portal / artifact stack
+- 在 contract 已稳定的情况下做大规模目录迁移
+- 为了“文档看起来还在推进”而人为继续扩 scope
+
+## 8. 维护建议
+
+从现在开始，这份文档更适合承担“状态回写”和“backlog 收口”职责，而不是继续充当实施计划。
+
+建议后续维护规则改成：
+
+- 只记录当前代码已经发生的事实
+- backlog 只保留小而明确的后续项
+- 不再在本文件中保留大段尚未发生的阶段计划
+
+## 9. 更新记录
 
 ### 2026-03-28
 
-- 新建布局扩展实现文档。
-- 新建进度跟踪文档。
-- 确认默认目标为“左开右关、左可折叠、右可按需展开”。
-- 完成白盒 demo 原型验证，并据此收敛正式实现方向。
-- 完成 `shell` contract 接入、workspace 基础壳、默认黑盒渲染接线。
-- 完成左 rail、右侧空态和移动端左 drawer 的首轮实现。
-- 完成 workspace 亮色/暗色主题修复，并将作用域提升到 `WorkspaceShell`。
-- 完成右侧移动端 sheet。
-- 完成白盒 demo 用法升级，改为消费 `TrChat.WorkspaceShell`。
-- 通过 `@opentiny/tiny-robot-chat` type-check / build。
-- 通过 `@opentiny/tiny-robot-chat-demo` build。
-- 通过 `packages/test/src/chat/index.spec.ts`。
+- 冻结 workspace 布局扩展方向
+- 完成白盒原型验证
+- 打通 `shell` contract 与 workspace 基础壳接线
+- 完成左 rail、右侧空态、移动端左 drawer / 右 sheet
+- 完成亮色 / 暗色主题作用域修正
 
 ### 2026-03-31
 
-- 收敛 workspace slot 方案，不再主推 `workspace-left-brand / toolbar / content / footer` 这类细粒度 slot。
-- 明确后续结构级 contract 以 `left / left-rail / right / mobile-left / mobile-right` 为准。
-- 明确左侧公共抽象收敛为 `SidebarShell = brand + content`，业务逻辑留在面板内部实现。
-- 补充下一轮正式实现方案、代码落点、测试范围和开工前确认点。
-- 根据产品反馈补充黑盒方案：主推 `TrChat` 也应支持与白盒一致的面板级 slot 行为。
-- 补充 workspace 目标目录拓扑与移动端容器拆分建议，明确先收敛职责、后迁移路径。
-- 完成黑盒 `TrChat` 的面板级 workspace slot 透传。
-- 完成 `mobile-left` 与 `mobile-right` 的结构级 fallback 接线。
-- 新增 `ChatWorkspaceLeftSheet.vue`，将移动端左侧容器语义从 `ChatHistory.vue` 中抽离。
-- 新增 `workspace-slot-contract.test.mjs`，补齐当前 contract 的源码级保护。
-- 更新 `chat.md` 与 `chat-advanced.md`，补齐黑盒 workspace 面板替换说明。
-- 新增 `docs/demos/chat/workspace-panel-slots.vue`，展示黑盒 `TrChat` 下的 workspace 面板级定制。
-- 新增 `packages/test/src/chat/scenarios/WorkspaceSlotsScene.vue` 与 `scenario-specs/workspace-slots.spec.ts`，补齐黑盒 workspace slot 的高层行为测试。
-- 更新 `packages/test/src/chat/history.spec.ts`，同步黑盒桌面 history sidebar 与移动端 left drawer 的当前行为。
+- 收敛 workspace slot contract 到 5 个面板级 slot
+- 完成黑盒 `TrChat` 的 workspace slot 透传
+- 完成 `mobile-left / mobile-right` fallback
+- 新增 `ChatWorkspaceLeftSheet.vue`
+- 新增 workspace slot 高层测试与相关用户文档
+
+### 2026-04-01
+
+- 根据最新代码与测试结果重写进度文档
+- 将整体状态从“进行中”收口为“主线完成，保留少量后续项”
+- 修正文档中关于 `history.spec.ts`、demo type-check、whitebox demo 接入口径等过期描述
