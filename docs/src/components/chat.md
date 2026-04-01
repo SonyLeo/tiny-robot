@@ -139,16 +139,45 @@ const chatConfig = {
 | `welcome` | 替换欢迎区 |
 | `sender` | 接管底部输入区 UI，但保留默认运行时 |
 | `message-list` | 接管中间消息区 |
+| `left / left-rail / right` | 在 workspace 模式下替换左侧面板、左侧 rail、右侧面板 |
+| `mobile-left / mobile-right` | 在 workspace 模式下替换移动端左 drawer 和右 sheet |
 | `prefix / suffix / after / content-footer` | 给 bubble 分组补前后缀、反馈区、状态区 |
 
 推荐顺序：
 
 1. 先试 `presetOverrides`
 2. 再试 `header-extra` / `footer-extra` / `welcome`
-3. 真要替换输入区或消息区时，再用 `sender` / `message-list`
-4. 只有默认页面结构本身已经不合适时，再继续看进阶入口
+3. 如果已经切到 workspace shell，再试 `left / right / mobile-left / mobile-right`
+4. 真要替换输入区或消息区时，再用 `sender` / `message-list`
+5. 只有默认页面结构本身已经不合适时，再继续看进阶入口
 
 <demo vue="../../demos/chat/slots-header-footer.vue" :vueFiles="['../../demos/chat/slots-header-footer.vue', '../../demos/chat/shared.ts']" title="局部定制" description="在不改默认页面结构的前提下，给 header 和 footer 增补工具位与提示信息。" />
+
+### Workspace 面板级定制
+
+当 `shell.variant = 'workspace'` 时，`TrChat` 黑盒入口也支持直接替换 workspace 左右面板内容。
+
+可用 slot 包括：
+
+- `left`
+- `left-rail`
+- `right`
+- `mobile-left`
+- `mobile-right`
+
+推荐理解方式：
+
+- 黑盒 `TrChat` 负责默认聊天主区和运行时
+- 你只需要通过这些 slot 替换整块面板内容
+- 如果只是替换面板内容，不需要为了这件事进入 `Scaffold` 或 `Root`
+
+当前 fallback 规则：
+
+- `mobile-left` 未提供时，优先复用 `left`
+- `mobile-right` 未提供时，优先复用 `right`
+- 如果桌面和移动端都没提供，对应区域就回退默认 sidebar / right panel
+
+<demo vue="../../demos/chat/workspace-panel-slots.vue" :vueFiles="['../../demos/chat/workspace-panel-slots.vue', '../../demos/chat/shared.ts']" title="Workspace 面板替换" description="继续使用 TrChat 黑盒写法，只替换 workspace 左右面板内容。" />
 
 ## 页面级覆盖
 
@@ -187,6 +216,7 @@ const chatConfig = {
 - 推荐让前端请求你自己的 `/api/chat`，由服务端再代理真实 provider
 - 默认接入优先保留在 `TrChat` 这一层
 - 如果你要做 workspace 布局，优先先看 `shell`、`layout` 和插槽是否已经够用
+- 如果你只想替换 workspace 左右面板内容，优先继续留在黑盒 `TrChat`
 - 如果页面里完全没看到模型选择器，先检查模型数量、`defaults.model` 和 footer 是否被替换掉了
 
 ## 继续阅读

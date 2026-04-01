@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import { ThemeProvider } from '@opentiny/tiny-robot'
 import type { ColorMode } from '@opentiny/tiny-robot'
 import BlackboxDemo from './components/BlackboxDemo.vue'
+import GranularWorkspaceDemo from './components/GranularWorkspaceDemo.vue'
 import WhiteboxDemo from './components/WhiteboxDemo.vue'
 import './styles/index.css'
 
@@ -16,6 +17,11 @@ const demoCases = [
     id: 'whitebox',
     label: '结构装配',
     component: WhiteboxDemo,
+  },
+  {
+    id: 'granular',
+    label: '面板粒度',
+    component: GranularWorkspaceDemo,
   },
 ] as const
 

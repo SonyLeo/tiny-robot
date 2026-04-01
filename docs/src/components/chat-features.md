@@ -131,11 +131,18 @@ const presetOverrides = {
 
 控制 MCP manager 是否进入聊天场景，以及默认 MCP 相关能力。
 
-最常用写法：
+先记一句话：
 
-- 在 `runtime` 注入 `mcpManager`
-- 通过 `config.features.mcp` 打开 MCP 功能
-- 必要时通过 `presetOverrides.mcpManager` 做页面级覆盖
+- 默认不用专门写 `config.features.mcp`
+- 需要 MCP：传 `mcpManager`
+- 明确不要 MCP：写 `config.features.mcp = false`
+
+再看细一点：
+
+- `runtime.mcpManager` 决定当前页面有没有可用的 MCP 运行时
+- `presetOverrides.mcpManager` 可以做页面级覆盖
+- `config.features.mcp = false` 是更高优先级的显式关闭开关
+- 一旦写了 `false`，即使同时传了 `runtime.mcpManager` 或 `presetOverrides.mcpManager`，默认 MCP 能力也不会接入
 
 继续阅读：
 

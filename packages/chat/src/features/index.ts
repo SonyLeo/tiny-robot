@@ -1,4 +1,4 @@
-export { CHAT_FEATURE_REGISTRY, resolveChatFeatures } from './registry'
+export { CHAT_FEATURE_REGISTRY, isChatFeatureExplicitlyDisabled, resolveChatFeatures } from './registry'
 
 export type {
   ChatAttachmentsFeatureConfig,

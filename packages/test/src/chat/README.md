@@ -116,7 +116,12 @@ Use this checklist when changing `packages/chat` public behavior.
   - `message-list`
   - `sender`
   - `footer-extra`
+  - workspace panel slots: `left`, `left-rail`, `right`, `mobile-left`, `mobile-right`
   - bubble passthrough slots: `prefix`, `suffix`, `after`, `content-footer`
+- workspace panel behavior
+  - blackbox `TrChat` should forward panel-level workspace slots through the default renderer chain
+  - `mobile-left` should fall back to `left`, then default sidebar
+  - `mobile-right` should fall back to `right`, then default right panel
 - `TrChat.Scaffold`
   - slot props expose `chatKit`, `adapter`, `presetProps`, `presetSlices`, `currentModel`, and `selectModel`
   - custom composition still renders and model switching still works

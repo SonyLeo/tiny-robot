@@ -432,6 +432,54 @@ await runTest('loadChatConfig hoists mcp runtime objects out of declarative feat
   assert.equal(explicitRuntimeConfig.runtime?.mcpManager, mcpManager)
 })
 
+await runTest('loadChatConfig lets explicit mcp disable clear runtime manager inputs', async () => {
+  const runtimeManager = { id: 'runtime-manager' }
+  const featureManager = { id: 'feature-manager' }
+
+  const disabledBooleanConfig = loadChatConfig({
+    models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
+    providers: {
+      openai: {
+        type: 'openai-compatible',
+        endpoint: '/api/chat',
+      },
+    },
+    features: {
+      mcp: false,
+    },
+    runtime: {
+      mcpManager: runtimeManager,
+    },
+  })
+
+  assert.equal(disabledBooleanConfig.features?.mcp, false)
+  assert.equal(disabledBooleanConfig.runtime, undefined)
+
+  const disabledObjectConfig = loadChatConfig({
+    models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
+    providers: {
+      openai: {
+        type: 'openai-compatible',
+        endpoint: '/api/chat',
+      },
+    },
+    features: {
+      mcp: {
+        enabled: false,
+        manager: featureManager,
+      },
+    },
+    runtime: {
+      mcpManager: runtimeManager,
+    },
+  })
+
+  assert.deepEqual(disabledObjectConfig.features?.mcp, {
+    enabled: false,
+  })
+  assert.equal(disabledObjectConfig.runtime, undefined)
+})
+
 await runTest('loadChatConfig rejects invalid feature shapes', async () => {
   assert.throws(
     () =>

@@ -383,6 +383,34 @@ await runTest('createPresetChatProps lets explicit mcpManager override win over 
   assert.equal(presetProps.mcpManager, overrideManager)
 })
 
+await runTest('createPresetChatProps blocks all mcpManager sources when the feature gate is explicitly disabled', async () => {
+  const runtimeManager = useMcpManager()
+  const overrideManager = useMcpManager()
+  const adapter = createChatAdapterFromConfig({
+    models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
+    providers: {
+      openai: {
+        type: 'openai-compatible',
+        endpoint: '/api/chat',
+      },
+    },
+    features: {
+      mcp: false,
+    },
+    runtime: {
+      mcpManager: runtimeManager,
+    },
+  })
+
+  const presetProps = createPresetChatProps(adapter, {
+    mcpManager: overrideManager,
+  })
+  const presetSlices = createPresetChatSlices(presetProps)
+
+  assert.equal(presetProps.mcpManager, undefined)
+  assert.equal(presetSlices.root.mcpManager, undefined)
+})
+
 await runTest('feature registry output flows into preset props and white-box slices through a stable mapping contract', async () => {
   const mcpManager = useMcpManager()
   const adapter = createChatAdapterFromConfig({

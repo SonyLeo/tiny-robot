@@ -13,12 +13,13 @@ test.describe('Chat History And Conversation', () => {
       await helper.switchToBlackbox()
     })
 
-    test('should open and close the history drawer', async () => {
-      await helper.clickHistoryBtn()
-      await helper.expectDrawerOpen(true)
+    test('should open and close the workspace mobile-left drawer on small viewports', async ({ page }) => {
+      await page.setViewportSize({ width: 480, height: 900 })
+      await helper.clickHistoryBtn(helper.selectors.blackboxChat)
+      await helper.expectDrawerOpen(true, helper.selectors.blackboxRoot)
 
-      await helper.clickOverlayToClose()
-      await helper.expectDrawerOpen(false)
+      await helper.clickOverlayToClose(helper.selectors.blackboxRoot)
+      await helper.expectDrawerOpen(false, helper.selectors.blackboxRoot)
     })
 
     test('should reset the conversation back to welcome when creating a new chat', async () => {
@@ -30,14 +31,11 @@ test.describe('Chat History And Conversation', () => {
       await helper.expectWelcomeVisible(true)
     })
 
-    test('should add the finished conversation into history', async () => {
+    test('should keep the finished conversation in the default desktop history sidebar', async () => {
       await helper.sendMessage('history conversation')
       await helper.waitForStreamingComplete()
 
-      await helper.clickHistoryBtn()
-      await helper.expectDrawerOpen(true)
-
-      const items = helper.getLocator(helper.selectors.blackboxChat).locator(helper.selectors.historyItem)
+      const items = helper.getLocator(helper.selectors.blackboxRoot).locator(helper.selectors.historyItem)
       await expect(items).toHaveCount(1, { timeout: 5000 })
     })
   })

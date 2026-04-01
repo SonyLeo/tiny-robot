@@ -124,6 +124,22 @@ outline: deep
 - `TrChat.WorkspaceRightSheet`
   移动端右侧区域的 sheet 入口，适合单独复用
 
+一个当前很重要的边界是：
+
+- 如果你只是想替换 workspace 左右面板内容，优先继续用黑盒 `TrChat`
+- 黑盒和白盒现在共享同一套面板级 slot 名称：
+  - `left`
+  - `left-rail`
+  - `right`
+  - `mobile-left`
+  - `mobile-right`
+- 如果你要重排 Header / Welcome / MessageList / Footer 整体结构，再进入 `TrChat.WorkspaceLayout`、`TrChat.Scaffold` 或 `TrChat.Root`
+
+也就是说：
+
+- 黑盒更适合“面板级替换”
+- 白盒更适合“结构级重组”
+
 ## 平台封装能力
 
 除了组件，`chat` 包还公开了配置归一化与工具链能力。

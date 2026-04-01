@@ -1,5 +1,6 @@
 import { createChatAdapterFromConfig, createPresetChatProps, createPresetChatSlices } from '../adapters'
 import type { ChatConfig } from '../adapters'
+import { isChatFeatureExplicitlyDisabled } from '../features'
 import type {
   AgentPresetConsumptionResult,
   AgentPresetInput,
@@ -98,6 +99,23 @@ function mergeObjectValues(
   return next
 }
 
+function clearRuntimeMcpManager(runtime: ChatConfig['runtime'] | undefined): ChatConfig['runtime'] | undefined {
+  if (!runtime) {
+    return runtime
+  }
+
+  const next = {
+    ...runtime,
+    mcpManager: undefined,
+  }
+
+  if (Object.values(next).every((value) => value === undefined)) {
+    return undefined
+  }
+
+  return next
+}
+
 function mergeFeatures(
   target: ChatConfig['features'] | undefined,
   patch: ChatConfig['features'] | undefined,
@@ -154,8 +172,17 @@ function toChatConfigPatch(
             enabled: input.mcp.enabled,
           }
 
-    if (typeof input.mcp === 'object' && input.mcp !== null && input.mcp.manager !== undefined) {
+    if (
+      typeof input.mcp === 'object' &&
+      input.mcp !== null &&
+      input.mcp.manager !== undefined &&
+      !isChatFeatureExplicitlyDisabled(nextFeatures.mcp)
+    ) {
       ;(runtime ??= {}).mcpManager = input.mcp.manager
+    }
+
+    if (isChatFeatureExplicitlyDisabled(nextFeatures.mcp)) {
+      runtime = clearRuntimeMcpManager(runtime)
     }
 
     return {
@@ -171,6 +198,10 @@ function toChatConfigPatch(
       features: nextFeatures,
       runtime,
     }
+  }
+
+  if (isChatFeatureExplicitlyDisabled(features?.mcp)) {
+    runtime = clearRuntimeMcpManager(runtime)
   }
 
   return {
@@ -337,6 +368,10 @@ function mergeChatConfigPatch(
     next.runtime = mergeRuntime(next.runtime, patch.runtime)
   }
 
+  if (isChatFeatureExplicitlyDisabled(next.features?.mcp)) {
+    next.runtime = clearRuntimeMcpManager(next.runtime)
+  }
+
   return next
 }
 
@@ -421,6 +456,10 @@ export function resolveAgentPreset(options: ResolveAgentPresetOptions): Resolved
 
 export function applyAgentPresetToConfig(options: ApplyAgentPresetOptions): ChatConfig {
   const resolvedPreset = resolveAgentPreset(options)
+  const features = mergeFeatures(options.baseConfig.features, resolvedPreset.chatConfigPatch.features)
+  const runtime = isChatFeatureExplicitlyDisabled(features?.mcp)
+    ? clearRuntimeMcpManager(mergeRuntime(options.baseConfig.runtime, resolvedPreset.chatConfigPatch.runtime))
+    : mergeRuntime(options.baseConfig.runtime, resolvedPreset.chatConfigPatch.runtime)
 
   return {
     ...options.baseConfig,
@@ -432,8 +471,8 @@ export function applyAgentPresetToConfig(options: ApplyAgentPresetOptions): Chat
     ui: mergeUi(options.baseConfig.ui, resolvedPreset.chatConfigPatch.ui),
     shell: mergeShell(options.baseConfig.shell, resolvedPreset.chatConfigPatch.shell),
     layout: mergeLayout(options.baseConfig.layout, resolvedPreset.chatConfigPatch.layout),
-    features: mergeFeatures(options.baseConfig.features, resolvedPreset.chatConfigPatch.features),
-    runtime: mergeRuntime(options.baseConfig.runtime, resolvedPreset.chatConfigPatch.runtime),
+    features,
+    runtime,
   }
 }
 

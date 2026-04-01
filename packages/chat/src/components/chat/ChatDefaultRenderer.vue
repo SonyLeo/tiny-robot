@@ -58,6 +58,22 @@ function handleModelChange(model: ModelOption) {
 
 <template>
   <ChatWorkspaceLayout v-if="isWorkspaceShell" :appearance="appearanceSlice" :shell="shellSlice">
+    <template v-if="$slots.left" #left>
+      <slot name="left" />
+    </template>
+    <template v-if="$slots['left-rail']" #left-rail>
+      <slot name="left-rail" />
+    </template>
+    <template v-if="$slots.right" #right>
+      <slot name="right" />
+    </template>
+    <template v-if="$slots['mobile-left']" #mobile-left>
+      <slot name="mobile-left" />
+    </template>
+    <template v-if="$slots['mobile-right']" #mobile-right>
+      <slot name="mobile-right" />
+    </template>
+
     <ChatLayout>
       <ChatDefaultHeaderRegion @close="emit('update:show', false)">
         <template v-if="$slots.header" #header>

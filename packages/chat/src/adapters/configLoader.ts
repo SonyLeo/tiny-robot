@@ -16,6 +16,7 @@ import type {
   ChatSenderActionsFeatureConfig,
   ChatWelcomePromptsFeatureConfig,
 } from '../features'
+import { isChatFeatureExplicitlyDisabled } from '../features'
 import type {
   ChatConfig,
   ChatConfigModel,
@@ -441,10 +442,15 @@ function normalizeRuntime(rawRuntime: unknown, rawFeatures: unknown): ChatConfig
   }
 
   const runtimeRecord = isRecord(rawRuntime) ? rawRuntime : undefined
-  const rawMcpFeature = isRecord(rawFeatures) && isRecord(rawFeatures.mcp) ? rawFeatures.mcp : undefined
+  const rawMcpFeature = isRecord(rawFeatures) ? rawFeatures.mcp : undefined
+
+  if (isChatFeatureExplicitlyDisabled(rawMcpFeature as ChatMcpFeatureConfig | undefined)) {
+    return undefined
+  }
+
   const mcpManager =
     (runtimeRecord?.mcpManager as TrChatPresetOverrides['mcpManager'] | undefined) ??
-    (rawMcpFeature?.manager as TrChatPresetOverrides['mcpManager'] | undefined)
+    (isRecord(rawMcpFeature) ? (rawMcpFeature.manager as TrChatPresetOverrides['mcpManager'] | undefined) : undefined)
 
   if (!mcpManager) {
     return undefined

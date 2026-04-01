@@ -1,6 +1,6 @@
 # Chat Workspace 布局扩展实现方案
 
-> Last updated: `2026-03-28`
+> Last updated: `2026-03-31`
 > Status: `Draft for confirmation`
 > Primary doc: 本文档是 `packages/chat` 默认布局从“中心会话 + history drawer”升级到“workspace shell”的实现级方案。
 > Related:
@@ -297,46 +297,91 @@ V1 不立即删除旧字段，但文档主推 `shell`。
 
 ## 8. 插槽设计
 
-### 8.1 黑盒默认插槽
+### 8.1 收敛原则
 
-建议新增以下 slot：
+本轮不再继续细化黑盒 `TrChat` 的 workspace 子区 slot，但需要补齐黑盒下的面板级 slot 能力。
 
-- `workspace-left`
+原因：
+
+- workspace 左侧的信息架构高度业务化，是否存在 brand / toolbar / footer 并不是稳定 chat 语义
+- 如果让黑盒也支持大量细粒度 workspace slot，会把 `TrChat -> Scaffold -> DefaultRenderer -> WorkspaceLayout` 的透传链显著加重
+- 细粒度 slot 容易让使用方误以为“模型配置 / 工具 / 主题 / 历史”这些逻辑也是 chat 包内建 contract
+
+因此本轮建议：
+
+- 黑盒 `TrChat` 不新增 workspace 细粒度 slots，但应支持与白盒一致的面板级 slots
+- workspace 定制统一收敛到 `TrChat.WorkspaceLayout` 这一套结构级 contract
+- 左侧默认实现收敛为“brand + 功能区”的 sidebar shell，而不是继续拆出更多公共 slot
+- 黑盒与白盒尽量复用同一套 slot 名称、同一套 fallback 规则，降低两种写法之间的心智切换成本
+
+### 8.2 推荐公开 contract
+
+结构级 slot 只保留以下 5 个，黑盒与白盒尽量保持一致命名：
+
+- `left`
+- `left-rail`
+- `right`
+- `mobile-left`
+- `mobile-right`
+
+额外约束：
+
+- 对白盒而言，这 5 个 slot 由 `TrChat.WorkspaceLayout` 直接消费
+- 对黑盒而言，这 5 个 slot 由 `TrChat` 透传到默认 workspace 渲染链
+- 当页面不处于 workspace shell 模式时，这些 slot 不生效
+
+### 8.3 语义与 fallback
+
+- `left`
+  桌面左侧主面板内容
+
+- `left-rail`
+  桌面左侧折叠后的 rail 内容
+
+- `right`
+  桌面右侧主面板内容
+
+- `mobile-left`
+  移动端左侧 drawer 内容
+
+- `mobile-right`
+  移动端右侧 sheet / drawer 内容
+
+建议 fallback 规则如下：
+
+- 未提供 `mobile-left` 时，优先复用 `left`
+- 未提供 `mobile-right` 时，优先复用 `right`
+- 若 `left` 与 `mobile-left` 都未提供，则回退默认 `ChatWorkspaceSidebar`
+- 若 `right` 与 `mobile-right` 都未提供，则回退默认 `ChatWorkspaceRightPanel`
+
+黑盒与白盒都遵循同一套 fallback，不单独设计黑盒专属别名 slot。
+
+### 8.4 明确不推荐的方向
+
+本轮不再主推以下 slot：
+
 - `workspace-left-brand`
 - `workspace-left-toolbar`
 - `workspace-left-content`
 - `workspace-left-footer`
-- `workspace-left-rail`
-- `workspace-right`
 - `workspace-right-empty`
 
-### 8.2 含义
+这些更适合作为业务层在 `left / right / mobile-left / mobile-right` 面板内部自行组织的结构，而不是 chat 包长期冻结的公共 contract。
 
-建议语义如下：
+### 8.5 黑盒使用口径
 
-- `workspace-left`
-  完整替换左侧栏整体
+由于当前产品主推 `TrChat` 黑盒接入方式，因此需要明确黑盒下的使用口径：
 
-- `workspace-left-brand`
-  左侧顶部品牌区
+- 用户仍然优先通过 `config + runtime + presetOverrides` 接入 `TrChat`
+- 当默认 workspace 面板内容不满足需求时，可以直接在 `TrChat` 上使用 `left / left-rail / right / mobile-left / mobile-right`
+- 如果用户只想替换面板内容，而不想接管整页结构，不应被迫进入 `Scaffold` 或 `Root`
+- 只有当用户要重排 Header / Body / Footer 整体结构时，再进入白盒路径
 
-- `workspace-left-toolbar`
-  左侧头部操作区，例如“新建会话”
+换句话说：
 
-- `workspace-left-content`
-  左侧主内容区，默认承载 history 内容
-
-- `workspace-left-footer`
-  左侧底部操作区，例如登录/用户/扩展入口
-
-- `workspace-left-rail`
-  左侧折叠态 rail，自定义图标和入口
-
-- `workspace-right`
-  完整替换右侧工作区
-
-- `workspace-right-empty`
-  右侧打开但没有内容时的空态
+- 黑盒支持“面板级替换”
+- 白盒支持“结构级重组”
+- 两者共享同一套 workspace slot contract
 
 ## 9. 组件与文件级实现方案
 
@@ -367,6 +412,7 @@ V1 计划落这些文件：
 
 建议文件：
 
+- `ChatWorkspaceSidebarShell.vue`
 - `ChatWorkspaceSidebar.vue`
 - `ChatWorkspaceSidebarRail.vue`
 - `ChatWorkspaceRightPanel.vue`
@@ -374,8 +420,11 @@ V1 计划落这些文件：
 
 职责：
 
+- `ChatWorkspaceSidebarShell`
+  左侧公共壳层，只负责品牌头、收起/关闭动作和内容区容器
+
 - `ChatWorkspaceSidebar`
-  左侧完整展开态容器
+  默认左侧实现，基于 `ChatWorkspaceSidebarShell` 承载默认 history 内容
 
 - `ChatWorkspaceSidebarRail`
   左侧折叠 rail
@@ -397,8 +446,109 @@ V1 计划落这些文件：
 本次不重写 history 子组件，而是：
 
 - 保持 `ChatHistoryContent`
-- 让它能稳定工作在 sidebar 容器中
+- 让它能稳定工作在 `ChatWorkspaceSidebarShell` 的内容区中
 - 把旧 `ChatHistory.vue` 逐步收缩为兼容层或移动端专用层
+- 后续若提供 `mobile-left`，则 `ChatHistory.vue` 需要支持 workspace 模式下的移动端左侧 override
+
+### 9.4 目录与职责收敛建议
+
+当前 workspace 相关代码虽然已经基本成形，但仍存在一个明显的职责分散点：
+
+- workspace 桌面壳层和默认叶子主要位于 `components/workspace` 与 `components/chat/workspace`
+- 但移动端左侧容器语义仍停留在 `components/history/ChatHistory.vue`
+
+这会造成：
+
+- workspace 容器层与 history 功能层边界不够清晰
+- 目录阅读时容易误判“左侧 drawer 仍然属于 history 能力本身”
+- 后续 `mobile-left` 接入时，文件职责会进一步变得拧巴
+
+因此建议先冻结一个目标目录拓扑，再按阶段逐步迁移，而不是立刻大规模搬动文件路径。
+
+#### 9.4.1 推荐目标拓扑
+
+建议后续逐步收敛为：
+
+`packages/chat/src/components/workspace`
+
+- `WorkspaceShell.vue`
+- `useWorkspaceRegion.ts`
+- `regionRuntime.ts` 或等价命名
+- `index.ts`
+
+职责：
+
+- 纯 workspace 基础设施
+- 不感知 chat、history、MCP、model selector 等业务语义
+
+`packages/chat/src/components/chat/workspace`
+
+- `ChatWorkspaceLayout.vue`
+- `ChatWorkspaceSidebarShell.vue`
+- `ChatWorkspaceSidebar.vue`
+- `ChatWorkspaceSidebarRail.vue`
+- `ChatWorkspaceRightPanel.vue`
+- `ChatWorkspaceRightEmpty.vue`
+- `ChatWorkspaceRightSheet.vue`
+- `ChatWorkspaceLeftDrawer.vue` 或 `ChatWorkspaceMobileLeft.vue`（后续新增）
+
+职责：
+
+- chat 语义下的 workspace 结构与默认面板
+- 包括桌面与移动端的面板容器
+
+`packages/chat/src/components/history`
+
+- `ChatHistoryContent.vue`
+- `ChatHistorySurface.vue`
+- `ChatHistoryList.vue`
+- `ChatHistoryToolbar.vue`
+- 其他 history 内容子组件
+
+职责：
+
+- 纯 history 功能内容
+- 不再长期承载 workspace 左侧容器语义
+
+#### 9.4.2 当前阶段的目录策略
+
+本轮不建议立刻进行大规模路径迁移。
+
+推荐顺序：
+
+1. 先完成黑盒面板级 slot 透传
+2. 先完成 `mobile-left`
+3. 顺手把移动端左侧容器从 `ChatHistory.vue` 中抽离
+4. 再评估是否需要把 `ChatWorkspaceLayout.vue` 迁入 `components/chat/workspace`
+
+原因：
+
+- 当前最需要解决的是职责边界，而不是文件路径本身
+- 若在 contract 尚未完全落稳前就大规模搬路径，会放大集成风险和 review 成本
+- `mobile-left` 落地后，哪些文件属于“容器层”、哪些属于“内容层”会更清晰
+
+#### 9.4.3 移动端组件拆分建议
+
+移动端相关部分建议只拆“容器层”，不拆“内容层”。
+
+建议拆分：
+
+- 新增 `ChatWorkspaceLeftDrawer.vue`（或等价命名）
+  - 负责移动端左侧 drawer 容器
+  - 接入 `mobile-left -> left -> default sidebar` fallback
+
+- 保留 `ChatWorkspaceRightSheet.vue`
+  - 继续负责移动端右侧 sheet 容器
+
+不建议拆分：
+
+- 不建议为移动端再额外复制一份 `ChatWorkspaceSidebar.vue`
+- 不建议为移动端再额外复制一份 `ChatWorkspaceRightPanel.vue`
+
+也就是说：
+
+- 桌面/移动端分开的是容器
+- 桌面/移动端尽量复用同一套面板内容组件
 
 ## 10. 现有文件改造清单
 
@@ -449,11 +599,13 @@ V1 计划落这些文件：
 - `packages/chat/src/components/chat/ChatDefaultRenderer.vue`
 - `packages/chat/src/components/chat/ChatHeader.vue`
 - `packages/chat/src/components/chat/ChatScaffold.vue`
+- `packages/chat/src/components/chat/Chat.vue`
 
 目标：
 
 - 默认黑盒渲染切换到 `WorkspaceShell`
 - header 的 left toggle/right toggle 语义收敛
+- 默认黑盒渲染链支持把 `left / left-rail / right / mobile-left / mobile-right` 透传到 `ChatWorkspaceLayout`
 
 ### 10.5 历史组件
 
@@ -689,6 +841,7 @@ V1 的右侧工作区只需要三件事：
 
 - 桌面与移动端策略分开
 - 不强求移动端桌面三栏同构
+- 只补 `mobile-left / mobile-right` 两个 override，不再继续细化移动端 slot
 
 ## 18. 验收标准
 
@@ -701,6 +854,8 @@ V1 的右侧工作区只需要三件事：
 - 黑盒和白盒路径消费同一套 shell contract
 - 现有 history 基本能力不丢失
 - 移动端具备明确降级方案
+- workspace 结构级定制 contract 收敛为 `left / left-rail / right / mobile-left / mobile-right`
+- 左侧默认实现基于“brand + 功能区”的 `ChatWorkspaceSidebarShell`
 
 ## 19. 文档维护规则
 

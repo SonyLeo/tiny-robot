@@ -1,5 +1,5 @@
 import type { ModelOption, ResponseProvider, TrChatPresetOverrides } from '../types'
-import { resolveChatFeatures } from '../features'
+import { isChatFeatureExplicitlyDisabled, resolveChatFeatures } from '../features'
 import type { ChatAdapter, ChatConfig, ChatPresetProps, ChatPresetSlices } from './types'
 import { resolveChatMessages } from '../messages'
 import { loadChatConfig } from './configLoader'
@@ -120,7 +120,9 @@ export function createPresetChatProps(
   adapter: ChatAdapter,
   overrides: Partial<TrChatPresetOverrides> = {},
 ): ChatPresetProps & Partial<TrChatPresetOverrides> {
-  const { shell: overrideShell, ...restOverrides } = overrides
+  const { shell: overrideShell, mcpManager: overrideMcpManager, ...restOverrides } = overrides
+  const mcpAllowed = !isChatFeatureExplicitlyDisabled(adapter.config.features?.mcp)
+  const resolvedMcpManager = mcpAllowed ? (overrideMcpManager ?? adapter.config.runtime?.mcpManager) : undefined
   const resolvedShowHistory =
     overrides.showHistory ??
     (adapter.config.features?.history === undefined
@@ -161,7 +163,7 @@ export function createPresetChatProps(
     roleConfigs: layoutRoleConfigs,
     ...adapter.resolvedFeatures.presetProps,
     showHistory: resolvedShowHistory,
-    ...(adapter.config.runtime?.mcpManager ? { mcpManager: adapter.config.runtime.mcpManager } : {}),
+    ...(resolvedMcpManager ? { mcpManager: resolvedMcpManager } : {}),
     ...restOverrides,
   }
 }

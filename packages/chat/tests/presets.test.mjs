@@ -519,6 +519,34 @@ await runTest('resolveAgentPreset applies explicit mcp priority rules: object ov
   })
 
   assert.equal(falseWins.chatConfigPatch.features?.mcp, false)
+  assert.equal(falseWins.chatConfigPatch.runtime, undefined)
+})
+
+await runTest('createChatAdapterFromAgentPreset lets explicit mcp disable clear base runtime managers', async () => {
+  const baseManager = useMcpManager()
+
+  const { chatConfig, adapter } = createChatAdapterFromAgentPreset({
+    baseConfig: {
+      models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
+      providers: {
+        openai: {
+          type: 'openai-compatible',
+          endpoint: '/api/chat',
+        },
+      },
+      runtime: {
+        mcpManager: baseManager,
+      },
+    },
+    preset: {
+      id: 'disable-base-mcp',
+      mcp: false,
+    },
+  })
+
+  assert.equal(chatConfig.features?.mcp, false)
+  assert.equal(chatConfig.runtime, undefined)
+  assert.equal(adapter.resolvedFeatures.entries.mcp.enabled, false)
 })
 
 await runTest('built-in presets can flow through adapter -> preset props -> preset slices without leaving the existing chat chain', async () => {

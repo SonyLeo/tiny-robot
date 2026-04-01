@@ -4,9 +4,9 @@ import type { PropType } from 'vue'
 import { CHAT_UI_KEY, useChatScaffoldContext, useRequiredInject } from '@/context'
 import type { ChatAppearanceConfig } from '@/types'
 import type { ChatWorkspaceShellConfig } from '@/types/workspace'
-import { ChatHistory } from '@/components/history'
 import { WorkspaceShell } from '@/components/workspace'
 import {
+  ChatWorkspaceLeftSheet,
   ChatWorkspaceRightPanel,
   ChatWorkspaceRightSheet,
   ChatWorkspaceSidebar,
@@ -72,10 +72,14 @@ function handleRightCollapsedChange(value: boolean) {
       </template>
     </WorkspaceShell>
 
-    <ChatHistory />
+    <ChatWorkspaceLeftSheet>
+      <slot v-if="$slots['mobile-left']" name="mobile-left" />
+      <slot v-else-if="$slots.left" name="left" />
+    </ChatWorkspaceLeftSheet>
 
     <ChatWorkspaceRightSheet>
-      <slot name="mobile-right" />
+      <slot v-if="$slots['mobile-right']" name="mobile-right" />
+      <slot v-else-if="$slots.right" name="right" />
     </ChatWorkspaceRightSheet>
   </div>
 </template>

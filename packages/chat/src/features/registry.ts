@@ -21,6 +21,18 @@ interface ChatFeatureDefinition<TKey extends BuiltInChatFeatureKey, TConfig, TRe
   resolve: (config: TConfig | undefined) => TResolution
 }
 
+export function isChatFeatureExplicitlyDisabled(config: ChatFeatureInput | undefined): boolean {
+  if (config === false) {
+    return true
+  }
+
+  if (typeof config === 'object' && config !== null) {
+    return config.enabled === false
+  }
+
+  return false
+}
+
 function isFeatureEnabled(config: ChatFeatureInput | undefined): boolean {
   if (config === undefined) {
     return false

@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { TrChat, createChatAdapterFromConfig, useChatKit, useMcpManager } from '@opentiny/tiny-robot-chat'
+import {
+  TrChat,
+  createChatAdapterFromConfig,
+  useChatKit,
+  useMcpManager,
+  TrModelSelector,
+  TrMcpTrigger,
+} from '@opentiny/tiny-robot-chat'
 import type { TrChatPresetOverrides } from '@opentiny/tiny-robot-chat'
 import { localStorageStrategyFactory, toolPlugin } from '@opentiny/tiny-robot-kit'
 import { defaultMcpServers } from '../data/mcpServers'
@@ -97,8 +104,6 @@ const shellConfig = {
 
 const scaffoldPresetOverrides = computed<TrChatPresetOverrides>(() => ({
   showFeedback: false,
-  showHistory: true,
-  contentLayout: 'wide',
   shell: shellConfig,
 }))
 
@@ -188,7 +193,7 @@ onBeforeUnmount(() => {
   >
     <div class="whitebox-workspace">
       <TrChat.WorkspaceLayout :appearance="presetSlices.appearance.appearance" :shell="shellConfig">
-        <TrChat.Layout :appearance="presetSlices.appearance.appearance" content-layout="wide">
+        <TrChat.Layout :appearance="presetSlices.appearance.appearance">
           <TrChat.Header :title="activeConversationTitle" :show-history="true" :show-new-chat="false" />
 
           <div v-if="chatKit.messages.value.length === 0" class="tr-chat__welcome-area">
@@ -199,7 +204,14 @@ onBeforeUnmount(() => {
 
           <TrChat.Footer class="whitebox-workspace__footer">
             <TrChat.Attachments />
-            <TrChat.Sender />
+            <TrChat.Sender>
+              <template #footer>
+                <div class="whitebox-workspace__tools">
+                  <TrModelSelector v-if="presetSlices.modelSelector.enabled" />
+                  <TrMcpTrigger />
+                </div>
+              </template>
+            </TrChat.Sender>
           </TrChat.Footer>
         </TrChat.Layout>
       </TrChat.WorkspaceLayout>
@@ -218,5 +230,11 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.whitebox-workspace__tools {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
 }
 </style>
