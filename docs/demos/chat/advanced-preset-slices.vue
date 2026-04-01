@@ -13,7 +13,18 @@
         <TrChat.MessageList v-else v-bind="slices.messageList" />
 
         <TrChat.Footer>
-          <TrChat.Sender v-bind="slices.sender" />
+          <TrChat.Sender v-bind="slices.sender">
+            <template #footer>
+              <div class="advanced-footer-tools">
+                <TrModelSelector
+                  v-if="slices.modelSelector.enabled"
+                  v-model="selectedModel"
+                  :models="slices.modelSelector.models"
+                />
+                <TrMcpTrigger />
+              </div>
+            </template>
+          </TrChat.Sender>
         </TrChat.Footer>
       </TrChat.Layout>
     </TrChat.Root>
@@ -21,16 +32,23 @@
 </template>
 
 <script setup lang="ts">
+import { ref, watch } from 'vue'
 import {
   TrChat,
+  TrMcpTrigger,
+  TrModelSelector,
   createChatAdapterFromConfig,
   createPresetChatProps,
   createPresetChatSlices,
   useChatKit,
 } from '@opentiny/tiny-robot-chat'
-import { createDemoChatConfig, createMockResponseProvider } from './shared'
+import { createDemoChatConfig, createDemoMcpManager, createMockResponseProvider } from './shared'
 
+const mcpManager = createDemoMcpManager()
 const chatConfig = createDemoChatConfig({
+  runtime: {
+    mcpManager,
+  },
   ui: {
     brand: {
       title: 'adapter / preset 工具链',
@@ -45,9 +63,24 @@ const chatConfig = createDemoChatConfig({
 const adapter = createChatAdapterFromConfig(chatConfig)
 const presetProps = createPresetChatProps(adapter)
 const slices = createPresetChatSlices(presetProps)
+const selectedModel = ref(slices.modelSelector.defaultModel ?? chatConfig.defaults?.model ?? 'deepseek-chat')
 
 const chatKit = useChatKit({
-  responseProvider: createMockResponseProvider('adapter / preset'),
+  responseProvider: createMockResponseProvider('adapter / preset', {
+    getModelId: () => selectedModel.value,
+  }),
+})
+
+watch(selectedModel, (value) => {
+  if (!value) {
+    return
+  }
+
+  chatKit.updateResponseProvider(
+    createMockResponseProvider('adapter / preset', {
+      getModelId: () => value,
+    }),
+  )
 })
 </script>
 
@@ -58,5 +91,12 @@ const chatKit = useChatKit({
   overflow: hidden;
   border: 1px solid var(--tr-border-color-default, #e5e6eb);
   border-radius: 12px;
+}
+
+.advanced-footer-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
 }
 </style>

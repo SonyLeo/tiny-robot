@@ -2,8 +2,8 @@
   <div class="chat-demo-container">
     <TrChat
       :config="chatConfig"
-      :runtime="{ chatKit }"
-      :callbacks="{ onFinish, onError }"
+      :runtime="{ chatKit, mcpManager }"
+      :callbacks="{ onFinish, onError, onModelChange }"
       :preset-overrides="{
         showHistory: true,
         placeholder: '请输入问题...',
@@ -13,9 +13,11 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import { TrChat, useChatKit } from '@opentiny/tiny-robot-chat'
+import type { ModelOption } from '@opentiny/tiny-robot-chat'
 import type { ChatMessage } from '@opentiny/tiny-robot-kit'
-import { createDemoChatConfig, createMockResponseProvider } from './shared'
+import { createDemoChatConfig, createDemoMcpManager, createMockResponseProvider } from './shared'
 
 const chatConfig = createDemoChatConfig({
   ui: {
@@ -33,8 +35,12 @@ const chatConfig = createDemoChatConfig({
   },
 })
 
+const selectedModel = ref(chatConfig.defaults?.model ?? chatConfig.models[0]?.id ?? 'deepseek-chat')
+const mcpManager = createDemoMcpManager()
 const chatKit = useChatKit({
-  responseProvider: createMockResponseProvider('默认接入示例'),
+  responseProvider: createMockResponseProvider('默认接入示例', {
+    getModelId: () => selectedModel.value,
+  }),
 })
 
 function onFinish(message: ChatMessage) {
@@ -43,6 +49,10 @@ function onFinish(message: ChatMessage) {
 
 function onError(error: Error) {
   console.error('发生错误:', error)
+}
+
+function onModelChange(model: ModelOption) {
+  selectedModel.value = model.value
 }
 </script>
 

@@ -1,6 +1,6 @@
 <template>
   <div class="chat-demo-container">
-    <TrChat :config="chatConfig" :runtime="{ chatKit }">
+    <TrChat :config="chatConfig" :runtime="{ chatKit, mcpManager }" :callbacks="{ onModelChange }">
       <template #header-extra>
         <button class="chip-button">打开 MCP</button>
       </template>
@@ -13,8 +13,10 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import { TrChat, useChatKit } from '@opentiny/tiny-robot-chat'
-import { createDemoChatConfig, createMockResponseProvider } from './shared'
+import type { ModelOption } from '@opentiny/tiny-robot-chat'
+import { createDemoChatConfig, createDemoMcpManager, createMockResponseProvider } from './shared'
 
 const chatConfig = createDemoChatConfig({
   ui: {
@@ -24,9 +26,17 @@ const chatConfig = createDemoChatConfig({
   },
 })
 
+const selectedModel = ref(chatConfig.defaults?.model ?? chatConfig.models[0]?.id ?? 'deepseek-chat')
+const mcpManager = createDemoMcpManager()
 const chatKit = useChatKit({
-  responseProvider: createMockResponseProvider('slots 扩展位'),
+  responseProvider: createMockResponseProvider('slots 扩展位', {
+    getModelId: () => selectedModel.value,
+  }),
 })
+
+function onModelChange(model: ModelOption) {
+  selectedModel.value = model.value
+}
 </script>
 
 <style scoped>

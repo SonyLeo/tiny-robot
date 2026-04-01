@@ -1,4 +1,5 @@
-import type { PromptProps } from '@opentiny/tiny-robot'
+import type { PluginInfo, PromptProps } from '@opentiny/tiny-robot'
+import { useMcpManager } from '@opentiny/tiny-robot-chat'
 import type { ChatConfig, ResponseProvider } from '@opentiny/tiny-robot-chat'
 
 export const DEMO_PROVIDER_ENDPOINT_PLACEHOLDER = '/__tiny_robot_docs_mock__'
@@ -6,6 +7,55 @@ export const DEMO_PROVIDER_ENDPOINT_PLACEHOLDER = '/__tiny_robot_docs_mock__'
 const defaultPrompts: PromptProps[] = [
   { label: '快速上手', description: '如何接入 TrChat？' },
   { label: '模型切换', description: '演示一下当前页面的模型切换能力。' },
+]
+
+const defaultModels: NonNullable<ChatConfig['models']> = [
+  { id: 'deepseek-chat', providerId: 'deepseek', label: 'DeepSeek Chat' },
+  { id: 'deepseek-reasoner', providerId: 'deepseek', label: 'DeepSeek Reasoner' },
+  { id: 'gpt-4o-mini', providerId: 'openai', label: 'GPT-4o Mini' },
+]
+
+const defaultMcpPlugins: PluginInfo[] = [
+  {
+    id: 'docs-knowledge',
+    name: 'Docs Knowledge',
+    icon: 'DK',
+    description: 'Provide lightweight documentation lookup tools for the docs chat demos.',
+    enabled: true,
+    expanded: true,
+    tools: [
+      {
+        id: 'search_docs',
+        name: 'Search Docs',
+        description: 'Search demo documentation content by keyword.',
+        enabled: true,
+      },
+      {
+        id: 'fetch_section',
+        name: 'Fetch Section',
+        description: 'Fetch a short section summary from the mock docs source.',
+        enabled: true,
+      },
+    ],
+    category: 'documentation',
+  },
+  {
+    id: 'workspace-preview',
+    name: 'Workspace Preview',
+    icon: 'WP',
+    description: 'Simulate preview-oriented tools used by richer workspace chat layouts.',
+    enabled: false,
+    expanded: false,
+    tools: [
+      {
+        id: 'open_preview',
+        name: 'Open Preview',
+        description: 'Open a preview panel for the selected result.',
+        enabled: false,
+      },
+    ],
+    category: 'workspace',
+  },
 ]
 
 function mergeRecord<T extends Record<string, unknown> | undefined>(base: T, patch: T): T {
@@ -19,19 +69,74 @@ function mergeRecord<T extends Record<string, unknown> | undefined>(base: T, pat
   } as T
 }
 
+function readString(data: unknown, key: string): string | undefined {
+  if (!data || typeof data !== 'object') {
+    return undefined
+  }
+
+  const value = (data as Record<string, unknown>)[key]
+  return typeof value === 'string' && value.trim() ? value.trim() : undefined
+}
+
+function createMockPlugin(type: 'form' | 'code', data: unknown): PluginInfo {
+  const fallbackName = type === 'code' ? 'Custom Code Plugin' : 'Custom Plugin'
+  const name =
+    typeof data === 'string' ? data.slice(0, 24).trim() || fallbackName : (readString(data, 'name') ?? fallbackName)
+  const description =
+    typeof data === 'string'
+      ? 'Created from demo code input.'
+      : (readString(data, 'description') ?? 'Created from the docs chat MCP add form.')
+  const slug = name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+  const suffix = Math.random().toString(36).slice(2, 6)
+
+  return {
+    id: `${slug || 'custom-plugin'}-${suffix}`,
+    name,
+    icon: 'CP',
+    description,
+    enabled: true,
+    expanded: true,
+    tools: [
+      {
+        id: `inspect-${suffix}`,
+        name: 'Inspect',
+        description: 'Inspect mock content created inside the docs chat demo.',
+        enabled: true,
+      },
+    ],
+    category: 'custom',
+  }
+}
+
+export function createDemoMcpManager() {
+  return useMcpManager({
+    initialPlugins: defaultMcpPlugins,
+    bridge: {
+      onPluginCreate(type, data) {
+        return createMockPlugin(type, data)
+      },
+    },
+  })
+}
+
 export function createDemoChatConfig(overrides: Partial<ChatConfig> = {}): ChatConfig {
   const baseConfig: ChatConfig = {
-    models: [{ id: 'mock-model', providerId: 'mock', label: 'Mock Model' }],
+    models: defaultModels,
     providers: {
-      mock: {
+      deepseek: {
         type: 'openai-compatible',
-        // TrChat 的 config 校验要求 provider 至少提供 endpoint/baseURL。
-        // 文档 demo 统一走本地 mock responseProvider，这里只是占位，不会发起真实请求。
+        endpoint: DEMO_PROVIDER_ENDPOINT_PLACEHOLDER,
+      },
+      openai: {
+        type: 'openai-compatible',
         endpoint: DEMO_PROVIDER_ENDPOINT_PLACEHOLDER,
       },
     },
     defaults: {
-      model: 'mock-model',
+      model: 'deepseek-chat',
     },
     ui: {
       brand: {
@@ -82,10 +187,16 @@ function wait(ms: number) {
   return new Promise<void>((resolve) => setTimeout(resolve, ms))
 }
 
-export function createMockResponseProvider(prefix = '文档示例'): ResponseProvider {
+export function createMockResponseProvider(
+  prefix = '文档示例',
+  options: {
+    getModelId?: () => string | undefined
+  } = {},
+): ResponseProvider {
   return async function* (requestBody) {
     const lastMessage = requestBody.messages[requestBody.messages.length - 1]
-    const text = `${prefix}：已收到 "${lastMessage?.content ?? ''}"，下面继续返回一段流式响应。`
+    const currentModel = options.getModelId?.() || 'deepseek-chat'
+    const text = `${prefix}（当前模型：${currentModel}）：已收到 "${lastMessage?.content ?? ''}"，下面继续返回一段流式响应。`
 
     for (let index = 0; index < text.length; index += 1) {
       await wait(24)
@@ -93,7 +204,7 @@ export function createMockResponseProvider(prefix = '文档示例'): ResponsePro
         id: `mock_${Date.now()}_${index}`,
         object: 'chat.completion.chunk',
         created: Date.now(),
-        model: 'mock-model',
+        model: currentModel,
         system_fingerprint: null,
         choices: [
           {

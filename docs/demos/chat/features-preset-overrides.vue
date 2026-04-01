@@ -5,7 +5,12 @@
       <button :class="buttonClass(showFeedback)" @click="showFeedback = !showFeedback">反馈能力</button>
     </div>
     <div class="chat-demo-container">
-      <TrChat :config="chatConfig" :runtime="{ chatKit }" :preset-overrides="presetOverrides" />
+      <TrChat
+        :config="chatConfig"
+        :runtime="{ chatKit, mcpManager }"
+        :callbacks="{ onModelChange }"
+        :preset-overrides="presetOverrides"
+      />
     </div>
   </div>
 </template>
@@ -13,7 +18,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { TrChat, useChatKit } from '@opentiny/tiny-robot-chat'
-import { createDemoChatConfig, createMockResponseProvider } from './shared'
+import type { ModelOption } from '@opentiny/tiny-robot-chat'
+import { createDemoChatConfig, createDemoMcpManager, createMockResponseProvider } from './shared'
 
 const showHistory = ref(true)
 const showFeedback = ref(true)
@@ -30,8 +36,12 @@ const chatConfig = createDemoChatConfig({
   },
 })
 
+const selectedModel = ref(chatConfig.defaults?.model ?? chatConfig.models[0]?.id ?? 'deepseek-chat')
+const mcpManager = createDemoMcpManager()
 const chatKit = useChatKit({
-  responseProvider: createMockResponseProvider('feature override'),
+  responseProvider: createMockResponseProvider('feature override', {
+    getModelId: () => selectedModel.value,
+  }),
 })
 
 const presetOverrides = computed(() => ({
@@ -44,6 +54,10 @@ const presetOverrides = computed(() => ({
 
 function buttonClass(active: boolean) {
   return ['toolbar-button', { active }]
+}
+
+function onModelChange(model: ModelOption) {
+  selectedModel.value = model.value
 }
 </script>
 

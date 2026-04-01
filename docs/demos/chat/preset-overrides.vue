@@ -9,12 +9,17 @@
       <button :class="buttonClass(showFeedback)" @click="showFeedback = !showFeedback">反馈能力</button>
     </div>
     <div class="demo-note">
-      默认 `centered` 会把内容区限制在 `1000px` 内，`wide` 会铺满可用容器。 当前文档预览通常不足
-      `1000px`，所以这个示例把演示阈值临时压到了 `560px`，方便直接看到差异。 在真实页面里，容器宽度达到 `1000px`
+      默认 `centered` 会把内容区限制在 `1000px` 内，`wide` 会铺满可用容器。当前文档预览通常不足
+      `1000px`，所以这个示例把演示阈值临时压到了 `560px`，方便直接看到差异。在真实页面里，容器宽度达到 `1000px`
       以上时变化最明显。
     </div>
     <div class="chat-demo-container" data-demo-layout-preview="true">
-      <TrChat :config="chatConfig" :runtime="{ chatKit }" :preset-overrides="presetOverrides" />
+      <TrChat
+        :config="chatConfig"
+        :runtime="{ chatKit, mcpManager }"
+        :callbacks="{ onModelChange }"
+        :preset-overrides="presetOverrides"
+      />
     </div>
   </div>
 </template>
@@ -22,7 +27,13 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { TrChat, useChatKit } from '@opentiny/tiny-robot-chat'
-import { createDemoChatConfig, createMockResponseProvider, layoutShowcaseMessages } from './shared'
+import type { ModelOption } from '@opentiny/tiny-robot-chat'
+import {
+  createDemoChatConfig,
+  createDemoMcpManager,
+  createMockResponseProvider,
+  layoutShowcaseMessages,
+} from './shared'
 
 const layoutMode = ref<'centered' | 'wide'>('centered')
 const themeMode = ref<'light' | 'dark'>('light')
@@ -41,8 +52,12 @@ const chatConfig = createDemoChatConfig({
   },
 })
 
+const selectedModel = ref(chatConfig.defaults?.model ?? chatConfig.models[0]?.id ?? 'deepseek-chat')
+const mcpManager = createDemoMcpManager()
 const chatKit = useChatKit({
-  responseProvider: createMockResponseProvider('页面级覆盖示例'),
+  responseProvider: createMockResponseProvider('页面级覆盖示例', {
+    getModelId: () => selectedModel.value,
+  }),
   initialMessages: layoutShowcaseMessages,
 })
 
@@ -61,6 +76,10 @@ const presetOverrides = computed(() => ({
 
 function buttonClass(active: boolean) {
   return ['toolbar-button', { active }]
+}
+
+function onModelChange(model: ModelOption) {
+  selectedModel.value = model.value
 }
 </script>
 
