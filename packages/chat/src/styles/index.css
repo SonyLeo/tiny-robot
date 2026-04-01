@@ -1,4 +1,4 @@
-@import './variables.css';
+@import './tokens.css';
 @import './layout.css';
 @import './drawer.css';
 @import './mcp-trigger.css';

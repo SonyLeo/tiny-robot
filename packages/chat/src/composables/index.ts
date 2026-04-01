@@ -3,16 +3,16 @@
  */
 
 // 核心 composables
-export { useChatKit } from './useChatKit'
-export { useChatConversation } from './useChatConversation'
-export { useChatRequest } from './useChatRequest'
-export { useChatMessages } from './useChatMessages'
+export { useChatKit } from '@/runtime/chat-kit/useChatKit'
+export { useChatConversation } from '@/runtime/chat-kit/useChatConversation'
+export { useChatRequest } from '@/runtime/chat-kit/useChatRequest'
+export { useChatMessages } from '@/runtime/chat-kit/useChatMessages'
 export {
   getChatRenderMessageIndex,
   getChatRenderSourceMessage,
   normalizeChatRenderMessages,
   unwrapChatRenderMessages,
-} from './chatRenderMessages'
+} from '@/runtime/chat-kit/chatRenderMessages'
 export { useDefaultBubbleConfig } from './useDefaultBubbleConfig'
 export { useChatAttachments } from './useChatAttachments'
 export { useMcpManager } from './useMcpManager'

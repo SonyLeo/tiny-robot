@@ -2,7 +2,7 @@
 import { computed, inject, provide } from 'vue'
 import type { PropType } from 'vue'
 import { CHAT_HISTORY_KEY, CHAT_KIT_KEY, CHAT_MESSAGES_KEY, CHAT_UI_KEY, createChatUiContext } from '@/context'
-import { useHistoryState } from '@/composables/useHistoryState'
+import { useHistoryState } from './useHistoryState'
 import { CHAT_MESSAGES, resolveChatMessages } from '@/messages'
 import type { ChatMessagesOverrides, UseChatKitReturn } from '@/types'
 import ChatHistoryContent from './ChatHistoryContent.vue'

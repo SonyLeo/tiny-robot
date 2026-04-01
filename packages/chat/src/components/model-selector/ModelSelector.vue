@@ -3,9 +3,9 @@ import { computed, ref, type Ref } from 'vue'
 import type { ModelOption } from '@/types'
 import { useChatScaffoldContext } from '@/context'
 import { getProviderIcon } from '@/utils/iconMap'
-import { useModelSelector } from '@/composables'
-import { useFloatingDropdown } from '@/composables/useFloatingDropdown'
-import { useKeyboardNavigation } from '@/composables/useKeyboardNavigation'
+import { useModelSelector } from './useModelSelector'
+import { useFloatingDropdown } from './useFloatingDropdown'
+import { useKeyboardNavigation } from './useKeyboardNavigation'
 
 defineOptions({ name: 'TrModelSelector' })
 

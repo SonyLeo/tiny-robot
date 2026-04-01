@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { readdir } from 'node:fs/promises'
-import { dirname, join } from 'node:path'
+import { dirname, join, relative } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
 const TEST_FILE_SUFFIX = '.test.mjs'
@@ -43,13 +43,32 @@ export async function expectThrowsAsync(fn, matcher) {
 
 export async function listTestFiles(testDirUrl = new URL('./', import.meta.url)) {
   const testDirPath = fileURLToPath(testDirUrl)
-  const entries = await readdir(testDirPath, { withFileTypes: true })
+  const files = []
 
-  return entries
-    .filter((entry) => entry.isFile())
-    .map((entry) => entry.name)
-    .filter((name) => name.endsWith(TEST_FILE_SUFFIX) && !name.startsWith(TEST_FILE_IGNORE_PREFIX))
-    .sort((left, right) => left.localeCompare(right))
+  async function visit(dirPath) {
+    const entries = await readdir(dirPath, { withFileTypes: true })
+
+    for (const entry of entries) {
+      if (entry.name.startsWith(TEST_FILE_IGNORE_PREFIX)) {
+        continue
+      }
+
+      const nextPath = join(dirPath, entry.name)
+
+      if (entry.isDirectory()) {
+        await visit(nextPath)
+        continue
+      }
+
+      if (entry.isFile() && entry.name.endsWith(TEST_FILE_SUFFIX)) {
+        files.push(relative(testDirPath, nextPath))
+      }
+    }
+  }
+
+  await visit(testDirPath)
+
+  return files.sort((left, right) => left.localeCompare(right))
 }
 
 export async function runAllTests(testDirUrl = new URL('./', import.meta.url)) {
