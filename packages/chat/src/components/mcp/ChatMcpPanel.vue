@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { inject, ref, watch } from 'vue'
+import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 import { MCP_MANAGER_KEY } from '@/shared/context'
 import type { PluginInfo } from '@opentiny/tiny-robot'
 import { TrMcpAddForm, TrMcpServerPicker } from '@opentiny/tiny-robot'
@@ -16,7 +16,6 @@ const emit = defineEmits<{
   'update:visible': [value: boolean]
 }>()
 
-// Inject 获得变更管理器 mcpManager 实例
 const mcpManager = inject<UseMcpManagerReturn>(MCP_MANAGER_KEY)
 if (!mcpManager) {
   throw new Error('mcpManager not provided')
@@ -25,16 +24,32 @@ if (!mcpManager) {
 const { installedPlugins, handlePluginToggle, handleToolToggle, handlePluginCreate, handlePluginDelete, activeCount } =
   mcpManager
 
+const anchorElement = ref<HTMLElement | null>(null)
+const panelHostElement = ref<HTMLElement | null>(null)
 const showAddForm = ref(false)
+const teleportTarget = computed(() => panelHostElement.value ?? 'body')
+
+function resolvePanelHostElement() {
+  panelHostElement.value = (anchorElement.value?.closest('.tr-chat') as HTMLElement | null) ?? null
+}
 
 watch(
   () => props.visible,
-  (visible) => {
+  async (visible) => {
+    if (visible) {
+      await nextTick()
+      resolvePanelHostElement()
+    }
+
     if (!visible) {
       showAddForm.value = false
     }
   },
 )
+
+onMounted(() => {
+  resolvePanelHostElement()
+})
 
 function openAddForm() {
   showAddForm.value = true
@@ -63,58 +78,91 @@ const handlePluginCreateEvent = async (type: 'form' | 'code', data: unknown) => 
 </script>
 
 <template>
-  <div>
-    <!-- Overlay Mask -->
-    <Transition name="fade">
-      <div v-if="visible" class="mcp-panel-overlay" @click="emit('update:visible', false)" />
-    </Transition>
+  <div ref="anchorElement" class="tr-chat-mcp-panel-anchor" aria-hidden="true" />
 
-    <!-- MCP Server Picker -->
-    <TrMcpServerPicker
-      :visible="visible"
-      :installed-plugins="installedPlugins"
-      :active-count="activeCount"
-      show-installed-tab
-      :show-custom-add-button="false"
-      :allow-plugin-toggle="true"
-      :allow-tool-toggle="true"
-      :allow-plugin-delete="true"
-      :popup-config="{
-        type: 'drawer',
-        drawer: { direction: 'right' },
-      }"
-      @update:visible="emit('update:visible', $event)"
-      @plugin-toggle="(plugin, enabled) => handlePluginToggleEvent(plugin, enabled)"
-      @tool-toggle="(plugin, toolId, enabled) => handleToolToggleEvent(plugin, toolId, enabled)"
-      @plugin-create="handlePluginCreateEvent"
-      @plugin-delete="handlePluginDeleteEvent"
-    >
-      <template #header-actions>
-        <button class="mcp-panel-add-trigger" type="button" @click="openAddForm">
-          <IconPlus class="mcp-panel-add-trigger__icon" />
-          <span>添加新插件</span>
-        </button>
-      </template>
-    </TrMcpServerPicker>
+  <Teleport :to="teleportTarget" :disabled="!panelHostElement">
+    <div class="tr-chat-mcp-panel-layer" :class="{ 'is-scoped': Boolean(panelHostElement) }">
+      <Transition name="fade">
+        <div v-if="visible" class="mcp-panel-overlay" @click="emit('update:visible', false)" />
+      </Transition>
 
-    <Transition name="fade">
-      <div v-if="showAddForm" class="mcp-add-form-overlay" @click="closeAddForm" />
-    </Transition>
+      <TrMcpServerPicker
+        :visible="visible"
+        :installed-plugins="installedPlugins"
+        :active-count="activeCount"
+        show-installed-tab
+        :show-custom-add-button="false"
+        :allow-plugin-toggle="true"
+        :allow-tool-toggle="true"
+        :allow-plugin-delete="true"
+        :popup-config="{
+          type: 'drawer',
+          drawer: { direction: 'right' },
+        }"
+        @update:visible="emit('update:visible', $event)"
+        @plugin-toggle="(plugin, enabled) => handlePluginToggleEvent(plugin, enabled)"
+        @tool-toggle="(plugin, toolId, enabled) => handleToolToggleEvent(plugin, toolId, enabled)"
+        @plugin-create="handlePluginCreateEvent"
+        @plugin-delete="handlePluginDeleteEvent"
+      >
+        <template #header-actions>
+          <button class="mcp-panel-add-trigger" type="button" @click="openAddForm">
+            <IconPlus class="mcp-panel-add-trigger__icon" />
+            <span>添加新插件</span>
+          </button>
+        </template>
+      </TrMcpServerPicker>
 
-    <Transition name="mcp-add-form-shell">
-      <div v-if="showAddForm" class="mcp-add-form-shell">
-        <div class="mcp-add-form-shell__header">
-          <h3 class="mcp-add-form-shell__title">安装更多插件</h3>
-          <IconClose class="mcp-add-form-shell__close" @click="closeAddForm" />
+      <Transition name="fade">
+        <div v-if="showAddForm" class="mcp-add-form-overlay" @click="closeAddForm" />
+      </Transition>
+
+      <Transition name="mcp-add-form-shell">
+        <div v-if="showAddForm" class="mcp-add-form-shell">
+          <div class="mcp-add-form-shell__header">
+            <h3 class="mcp-add-form-shell__title">安装更多插件</h3>
+            <IconClose class="mcp-add-form-shell__close" @click="closeAddForm" />
+          </div>
+
+          <TrMcpAddForm @confirm="handlePluginCreateEvent" @cancel="closeAddForm" />
         </div>
-
-        <TrMcpAddForm @confirm="handlePluginCreateEvent" @cancel="closeAddForm" />
-      </div>
-    </Transition>
-  </div>
+      </Transition>
+    </div>
+  </Teleport>
 </template>
 
 <style scoped>
+.tr-chat-mcp-panel-anchor {
+  display: none;
+}
+
+.tr-chat-mcp-panel-layer.is-scoped {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.tr-chat-mcp-panel-layer.is-scoped :deep(.mcp-server-picker) {
+  position: absolute !important;
+  top: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  left: auto !important;
+  pointer-events: auto;
+}
+
+.tr-chat-mcp-panel-layer.is-scoped .mcp-panel-overlay,
+.tr-chat-mcp-panel-layer.is-scoped .mcp-add-form-overlay,
+.tr-chat-mcp-panel-layer.is-scoped .mcp-add-form-shell {
+  position: absolute;
+  pointer-events: auto;
+}
+
+.tr-chat-mcp-panel-layer.is-scoped .mcp-add-form-shell {
+  width: min(570px, calc(100% - 24px));
+  max-height: calc(100% - 24px);
+}
+
 .mcp-panel-overlay {
   position: fixed;
   top: 0;
@@ -242,6 +290,10 @@ const handlePluginCreateEvent = async (type: 'form' | 'code', data: unknown) => 
   .mcp-add-form-shell-leave-to {
     opacity: 1;
     transform: translateX(100%);
+  }
+
+  .tr-chat-mcp-panel-layer.is-scoped .mcp-add-form-shell {
+    width: min(420px, 100%);
   }
 }
 </style>

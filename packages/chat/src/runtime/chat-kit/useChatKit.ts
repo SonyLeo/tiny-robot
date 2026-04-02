@@ -3,7 +3,7 @@ import type { ChatMessage } from '@opentiny/tiny-robot-kit'
 import type { UseChatKitOptions, UseChatKitReturn, UseMessageResponseProvider } from '@/types'
 import type { StructuredData } from '@opentiny/tiny-robot'
 import { useChatConversation } from './useChatConversation'
-import { useChatMessages } from './useChatMessages'
+import { cloneMessages, useChatMessages } from './useChatMessages'
 import { useChatRequest } from './useChatRequest'
 import {
   getChatMessageTurnId,
@@ -58,6 +58,16 @@ function findAssistantMessageForTurn(messages: ChatMessage[], userMessage: ChatM
       .slice(userIndex + 1)
       .find((message) => message.loading || message.role === 'assistant' || message.role === '') ?? null
   )
+}
+
+function findPreviousUserMessageIndex(messages: ChatMessage[], startIndex: number): number {
+  for (let index = startIndex; index >= 0; index -= 1) {
+    if (messages[index]?.role === 'user') {
+      return index
+    }
+  }
+
+  return -1
 }
 
 export function useChatKit(options: UseChatKitOptions): UseChatKitReturn {
@@ -271,6 +281,53 @@ export function useChatKit(options: UseChatKitOptions): UseChatKitReturn {
     return true
   }
 
+  async function regenerate(messageIndex?: number): Promise<boolean> {
+    const currentConversationId = conversation.activeConversationId.value
+    const activeMessages = conversation.activeConversation.value?.engine.messages.value
+
+    if (!currentConversationId || !activeMessages?.length) {
+      return false
+    }
+
+    const targetAssistantIndex =
+      typeof messageIndex === 'number'
+        ? messageIndex
+        : [...activeMessages]
+            .map((message, index) => ({ message, index }))
+            .reverse()
+            .find(({ message }) => message.role === 'assistant')?.index
+
+    if (
+      targetAssistantIndex === undefined ||
+      targetAssistantIndex < 0 ||
+      targetAssistantIndex >= activeMessages.length
+    ) {
+      return false
+    }
+
+    const userMessageIndex = findPreviousUserMessageIndex(activeMessages, targetAssistantIndex)
+    if (userMessageIndex < 0) {
+      return false
+    }
+
+    const userMessage = activeMessages[userMessageIndex]
+    if (!userMessage || typeof userMessage.content !== 'string' || !userMessage.content.trim()) {
+      return false
+    }
+
+    clearFailureState()
+    clearPendingEditRollback()
+    editRollbackContext.value = {
+      conversationId: currentConversationId,
+      messageIndex: userMessageIndex,
+      removedMessages: cloneMessages(activeMessages.slice(userMessageIndex)),
+    }
+
+    activeMessages.splice(userMessageIndex)
+    resendMessage(userMessage.content)
+    return true
+  }
+
   return {
     conversations: conversation.conversations,
     activeConversationId: conversation.activeConversationId,
@@ -287,6 +344,7 @@ export function useChatKit(options: UseChatKitOptions): UseChatKitReturn {
     updateResponseProvider: request.updateResponseProvider,
     abort: request.abort,
     retry,
+    regenerate,
     runtime: {
       activeEngine,
       requestState: runtimeRequestState,

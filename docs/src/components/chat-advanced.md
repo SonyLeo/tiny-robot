@@ -9,7 +9,7 @@ outline: deep
 这页主要讲两类内容：
 
 - 继续使用 `TrChat` 时，还能怎么扩展
-- 只有在更高定制层才需要单独消费的公开组件和工具链能力
+- 只有在更高定制层才需要单独消费的公开组件和配置加工能力
 
 ## 什么情况下再来看
 
@@ -17,7 +17,7 @@ outline: deep
 
 - 你已经熟悉 `TrChat`、`presetOverrides` 和常见插槽
 - 你现在要继续扩消息级动作、消息渲染或运行时消息结果
-- 或者你要做模板层、平台层、脚手架层封装
+- 或者你要做更高一层的页面装配或中间层封装
 
 不适合：
 
@@ -46,7 +46,7 @@ outline: deep
 如果这些都不是你现在的问题，可以直接跳到：
 
 - [高级公开组件](#高级公开组件)
-- [平台封装能力](#平台封装能力)
+- [配置加工能力](#配置加工能力)
 
 ## 扩展消息下方动作
 
@@ -180,6 +180,52 @@ const runtime = {
 - 在 transform 里直接塞太多复杂业务编排
 - 把 transform 当成 transport 层替代品
 
+## MCP 最小接入
+
+如果你现在要解决的不是“进阶原理”，而是“让模型先能调一个 MCP 工具”，可以先看这个最小 recipe。
+
+它放在这一页，而不是放在 quick start，原因是：
+
+- 它依赖 `runtime.plugins`
+- 它依赖 `mcpManager`
+- 它涉及 tool call 这条运行时链
+
+也就是说，这个场景已经属于“带运行时扩展点的接入”，而不是第一步把 `TrChat` 跑起来的必需内容。
+
+最小闭环只需要 3 件事：
+
+1. 用 `useMcpManager()` 托管工具列表和工具执行
+2. 用 `toolPlugin({ getTools, callTool })` 把工具接入消息请求链
+3. 把 `mcpManager` 通过 `runtime.mcpManager` 传给 `TrChat`
+
+```ts
+const mcpManager = useMcpManager({
+  initialPlugins: [demoPlugin],
+})
+
+const runtime = {
+  mcpManager,
+  plugins: [
+    toolPlugin({
+      getTools: mcpManager.getTools,
+      callTool: mcpManager.callTool,
+    }),
+  ],
+}
+```
+
+这个示例刻意不再模拟假的 `tool_calls`、假工具结果或额外的 mock `responseProvider`，避免把“文档站 demo 逻辑”误读成“MCP 接入必须写这么多代码”。
+
+真正落地时，只需要把 `mcpManager.bridge` 对接到你的后端或真实 MCP bridge，让模型正常返回 `tool_calls` 即可。
+
+<demo vue="../../demos/chat/mcp-minimal.vue" :vueFiles="['../../demos/chat/mcp-minimal.vue']" title="MCP 最小集成" description="只展示 mcpManager + toolPlugin + runtime.mcpManager 的最小前端接线，不额外模拟工具调用。" />
+
+生产建议：
+
+- 前端不要直接托管真实 MCP server 的敏感凭证或 session
+- 工具数量先少后多，第一版先保持“一个工具 + 一条完整调用链”
+- 工具 schema 先小而准，不要一开始堆过多参数和复杂描述
+
 ## 什么时候才需要看 `chatKit.runtime`
 
 大多数直接使用 `TrChat` 的页面，不需要手动消费 runtime bridge。
@@ -285,11 +331,11 @@ const runtime = {
 简单区分：
 
 - `TrChat.WorkspaceLayout`
-  Chat 层的 workspace 装配容器，默认会把 history、right panel / sheet 这些结构一起接起来
+  - Chat 层的 workspace 装配容器，默认会把 history、right panel / sheet 这些结构一起接起来
 - `TrChat.WorkspaceShell`
-  更低一层的区域容器，适合你自己控制左右区域和折叠行为
+  - 更低一层的区域容器，适合你自己控制左右区域和折叠行为
 - `TrChat.WorkspaceRightSheet`
-  移动端右侧区域的 sheet 入口，适合单独复用
+  - 移动端右侧区域的 sheet 入口，适合单独复用
 
 如果你只是想替换 workspace 左右面板内容，优先继续使用 `TrChat` 上的面板级 slots：
 
@@ -301,9 +347,9 @@ const runtime = {
 
 如果你要重排 Header / Welcome / MessageList / Footer 整体结构，再继续进入这些公开组件。
 
-## 平台封装能力
+## 配置加工能力
 
-除了组件，`chat` 包还公开了配置归一化与工具链能力。
+除了组件，`chat` 包还公开了配置归一化与配置加工能力。
 
 当前常见入口包括：
 
@@ -313,21 +359,16 @@ const runtime = {
 | `createChatAdapterFromConfig` | 从配置生成 adapter |
 | `createPresetChatProps` | 生成 preset props |
 | `createPresetChatSlices` | 生成叶子组件可消费的 preset slices |
-| `createChatCliCapabilitySurface` | 给脚手架 / 平台层暴露稳定消费面 |
 
-## 什么时候才需要看工具链
+建议只有在这些场景才进入这层能力：
 
-建议只有在这些场景才进入工具链：
-
-- 模板工程
-- 平台层二次封装
-- 内部低代码接入层
-- 脚手架或代码生成
-- 需要显式消费配置加工结果的中间层
+- 页面壳层二次封装
+- 内部白盒接入层
+- 需要显式消费 adapter / preset props / preset slices 的中间层
 
 如果你只是业务页面接入聊天 UI，通常先停在 `TrChat` 就够了。
 
-## 一个典型例子
+一个典型例子：
 
 ```ts
 import {
@@ -343,9 +384,7 @@ const slices = createPresetChatSlices(presetProps)
 
 然后你可以把这些结果继续投影到更高层页面：
 
-<demo vue="../../demos/chat/advanced-preset-slices.vue" :vueFiles="['../../demos/chat/advanced-preset-slices.vue', '../../demos/chat/shared.ts']" title="配置加工能力" description="先生成 adapter、presetProps、presetSlices，再把结果投影到更高层页面。" />
-
-再次强调一次：这不是大多数业务页面的第一站，而是“确实遇到更高阶需求时”的补充资料。
+<demo vue="../../demos/chat/advanced-preset-slices.vue" :vueFiles="['../../demos/chat/advanced-preset-slices.vue']" title="配置加工能力" description="先生成 adapter、presetProps、presetSlices，再把结果投影到更高层页面。" />
 
 ## 相关页面
 

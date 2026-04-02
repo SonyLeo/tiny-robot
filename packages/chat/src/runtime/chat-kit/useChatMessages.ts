@@ -8,7 +8,7 @@ interface UseChatMessagesOptions {
   onOptimisticEdit?: (payload: { messageIndex: number; removedMessages: ChatMessage[]; newContent: string }) => void
 }
 
-function cloneValue<T>(value: T): T {
+export function cloneValue<T>(value: T): T {
   if (typeof structuredClone === 'function') {
     try {
       return structuredClone(value)
@@ -30,7 +30,7 @@ function cloneValue<T>(value: T): T {
   return value
 }
 
-function cloneMessages(messages: ChatMessage[]): ChatMessage[] {
+export function cloneMessages(messages: ChatMessage[]): ChatMessage[] {
   return messages.map((message) => cloneValue(message))
 }
 

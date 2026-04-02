@@ -187,6 +187,7 @@
   --chat-surface-shadow: none;
   --chat-surface-elevated-bg: var(--chat-surface-bg);
   --chat-surface-elevated-border: var(--chat-surface-border-subtle);
+  --chat-drawer-bg: var(--chat-panel-bg, var(--chat-surface-bg));
   --chat-panel-bg: var(--chat-surface-bg);
   --chat-panel-bg-muted: var(--chat-surface-bg-muted);
   --chat-panel-border: var(--chat-surface-border-subtle);

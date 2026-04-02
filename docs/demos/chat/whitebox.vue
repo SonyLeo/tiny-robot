@@ -23,7 +23,7 @@
           <TrChat.Sender placeholder="手动组合输入...">
             <template #footer>
               <div class="whitebox-footer-tools">
-                <TrModelSelector v-model="selectedModel" :models="chatConfig.models" />
+                <TrModelSelector v-model="selectedModel" :models="adapter.models" />
                 <TrMcpTrigger />
               </div>
             </template>
@@ -38,20 +38,61 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { TrChat, TrMcpTrigger, TrModelSelector, useChatKit } from '@opentiny/tiny-robot-chat'
-import type { PromptProps } from '@opentiny/tiny-robot'
-import { createDemoChatConfig, createDemoMcpManager, createMockResponseProvider } from './shared'
+import {
+  TrChat,
+  TrMcpTrigger,
+  TrModelSelector,
+  createChatAdapterFromConfig,
+  useChatKit,
+  useMcpManager,
+} from '@opentiny/tiny-robot-chat'
+import type { PromptProps, PluginInfo } from '@opentiny/tiny-robot'
 
 const prompts: PromptProps[] = [{ label: '自定义 UI', description: '我们可以调整哪些组件布局？' }]
 
-const mcpManager = createDemoMcpManager()
-const chatConfig = createDemoChatConfig()
-const selectedModel = ref(chatConfig.defaults?.model ?? chatConfig.models[0]?.id ?? 'deepseek-chat')
+const initialPlugins: PluginInfo[] = [
+  {
+    id: 'docs-knowledge',
+    name: 'Docs Knowledge',
+    icon: 'DK',
+    description: 'Provide lightweight documentation lookup tools for the docs chat demos.',
+    enabled: true,
+    expanded: true,
+    tools: [
+      {
+        id: 'search_docs',
+        name: 'Search Docs',
+        description: 'Search demo documentation content by keyword.',
+        enabled: true,
+      },
+    ],
+    category: 'documentation',
+  },
+]
+
+const chatConfig = {
+  models: [
+    { id: 'gpt-4o-mini', providerId: 'openai', label: 'GPT-4o Mini' },
+    { id: 'gpt-4.1-mini', providerId: 'openai', label: 'GPT-4.1 Mini' },
+  ],
+  providers: {
+    openai: {
+      type: 'openai-compatible' as const,
+      endpoint: '/api/chat/completions',
+      systemPrompt: 'You are a helpful assistant for the TinyRobot docs.',
+    },
+  },
+  defaults: {
+    model: 'gpt-4o-mini',
+  },
+}
+
+const adapter = createChatAdapterFromConfig(chatConfig)
+const mcpManager = useMcpManager({ initialPlugins })
+const selectedModel = ref(adapter.defaultModel ?? adapter.models[0]?.value ?? 'gpt-4o-mini')
 
 const chat = useChatKit({
-  responseProvider: createMockResponseProvider('手动组合页面示例', {
-    getModelId: () => selectedModel.value,
-  }),
+  responseProvider: adapter.createResponseProvider(selectedModel.value),
 })
 const { messages } = chat
 
@@ -60,11 +101,7 @@ watch(selectedModel, (value) => {
     return
   }
 
-  chat.updateResponseProvider(
-    createMockResponseProvider('手动组合页面示例', {
-      getModelId: () => value,
-    }),
-  )
+  chat.updateResponseProvider(adapter.createResponseProvider(value))
 })
 </script>
 

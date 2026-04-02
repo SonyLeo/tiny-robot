@@ -135,7 +135,7 @@ export function useChatFeedback(options: UseChatFeedbackOptions) {
         roles: ['assistant'],
         order: 200,
         when: () => Boolean(chatKit && !isStreaming.value && lastUserContent.value),
-        onClick: async () => {
+        onClick: async (context) => {
           if (!chatKit || isStreaming.value || !lastUserContent.value) {
             return
           }
@@ -145,7 +145,7 @@ export function useChatFeedback(options: UseChatFeedbackOptions) {
             return
           }
 
-          chatKit.sendMessage(lastUserContent.value)
+          await chatKit.regenerate(context.messageIndex)
         },
       },
     ]

@@ -1,8 +1,8 @@
 <template>
   <div class="chat-demo-container">
-    <TrChat :config="chatConfig" :runtime="{ chatKit, mcpManager }" :callbacks="{ onModelChange }">
+    <TrChat :config="chatConfig">
       <template #header-extra>
-        <button class="chip-button">打开 MCP</button>
+        <button class="chip-button">页面操作</button>
       </template>
 
       <template #footer-extra>
@@ -13,29 +13,32 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { TrChat, useChatKit } from '@opentiny/tiny-robot-chat'
-import type { ModelOption } from '@opentiny/tiny-robot-chat'
-import { createDemoChatConfig, createDemoMcpManager, createMockResponseProvider } from './shared'
+import { TrChat } from '@opentiny/tiny-robot-chat'
 
-const chatConfig = createDemoChatConfig({
+const chatConfig = {
+  models: [
+    { id: 'gpt-4o-mini', providerId: 'openai', label: 'GPT-4o Mini' },
+    { id: 'gpt-4.1-mini', providerId: 'openai', label: 'GPT-4.1 Mini' },
+  ],
+  providers: {
+    openai: {
+      type: 'openai-compatible' as const,
+      endpoint: '/api/chat/completions',
+      systemPrompt: 'You are a helpful assistant for the TinyRobot docs.',
+    },
+  },
+  defaults: {
+    model: 'gpt-4o-mini',
+  },
   ui: {
     brand: {
       title: 'header-extra / footer-extra',
     },
+    welcome: {
+      title: '局部 slots 定制',
+      description: '不改默认页面结构，只在 header 和 footer 补充额外内容。',
+    },
   },
-})
-
-const selectedModel = ref(chatConfig.defaults?.model ?? chatConfig.models[0]?.id ?? 'deepseek-chat')
-const mcpManager = createDemoMcpManager()
-const chatKit = useChatKit({
-  responseProvider: createMockResponseProvider('slots 扩展位', {
-    getModelId: () => selectedModel.value,
-  }),
-})
-
-function onModelChange(model: ModelOption) {
-  selectedModel.value = model.value
 }
 </script>
 

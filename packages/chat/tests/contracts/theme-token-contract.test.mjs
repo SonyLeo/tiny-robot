@@ -67,3 +67,7 @@ await runTest('chat dark token contract does not override component-level tr tok
   })
 })
 
+await runTest('chat drawer token contract aligns drawer background with chat panel surfaces', async () => {
+  assert.equal(chatVariablesSource.includes('--chat-drawer-bg: var(--chat-panel-bg, var(--chat-surface-bg));'), true)
+})
+

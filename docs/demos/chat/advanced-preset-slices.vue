@@ -41,11 +41,46 @@ import {
   createPresetChatProps,
   createPresetChatSlices,
   useChatKit,
+  useMcpManager,
 } from '@opentiny/tiny-robot-chat'
-import { createDemoChatConfig, createDemoMcpManager, createMockResponseProvider } from './shared'
+import type { PluginInfo } from '@opentiny/tiny-robot'
 
-const mcpManager = createDemoMcpManager()
-const chatConfig = createDemoChatConfig({
+const initialPlugins: PluginInfo[] = [
+  {
+    id: 'docs-knowledge',
+    name: 'Docs Knowledge',
+    icon: 'DK',
+    description: 'Provide lightweight documentation lookup tools for the docs chat demos.',
+    enabled: true,
+    expanded: true,
+    tools: [
+      {
+        id: 'search_docs',
+        name: 'Search Docs',
+        description: 'Search demo documentation content by keyword.',
+        enabled: true,
+      },
+    ],
+    category: 'documentation',
+  },
+]
+
+const mcpManager = useMcpManager({ initialPlugins })
+const chatConfig = {
+  models: [
+    { id: 'gpt-4o-mini', providerId: 'openai', label: 'GPT-4o Mini' },
+    { id: 'gpt-4.1-mini', providerId: 'openai', label: 'GPT-4.1 Mini' },
+  ],
+  providers: {
+    openai: {
+      type: 'openai-compatible' as const,
+      endpoint: '/api/chat/completions',
+      systemPrompt: 'You are a helpful assistant for the TinyRobot docs.',
+    },
+  },
+  defaults: {
+    model: 'gpt-4o-mini',
+  },
   runtime: {
     mcpManager,
   },
@@ -58,17 +93,15 @@ const chatConfig = createDemoChatConfig({
       description: '这个示例直接消费 createChatAdapterFromConfig / createPresetChatProps / createPresetChatSlices。',
     },
   },
-})
+}
 
 const adapter = createChatAdapterFromConfig(chatConfig)
 const presetProps = createPresetChatProps(adapter)
 const slices = createPresetChatSlices(presetProps)
-const selectedModel = ref(slices.modelSelector.defaultModel ?? chatConfig.defaults?.model ?? 'deepseek-chat')
+const selectedModel = ref(slices.modelSelector.defaultModel ?? adapter.defaultModel ?? 'gpt-4o-mini')
 
 const chatKit = useChatKit({
-  responseProvider: createMockResponseProvider('adapter / preset', {
-    getModelId: () => selectedModel.value,
-  }),
+  responseProvider: adapter.createResponseProvider(selectedModel.value),
 })
 
 watch(selectedModel, (value) => {
@@ -76,11 +109,7 @@ watch(selectedModel, (value) => {
     return
   }
 
-  chatKit.updateResponseProvider(
-    createMockResponseProvider('adapter / preset', {
-      getModelId: () => value,
-    }),
-  )
+  chatKit.updateResponseProvider(adapter.createResponseProvider(value))
 })
 </script>
 

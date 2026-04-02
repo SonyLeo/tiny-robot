@@ -46,7 +46,6 @@ const sharedSidebarItems = [
       { text: 'Chat 快速接入', link: 'chat' },
       { text: 'Chat 功能配置', link: 'chat-features' },
       { text: 'Chat 进阶了解', link: 'chat-advanced' },
-      { text: 'Chat CLI 脚手架', link: 'chat-cli' },
     ],
   },
 ]

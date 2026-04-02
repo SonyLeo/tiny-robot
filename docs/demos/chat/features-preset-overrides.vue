@@ -5,44 +5,47 @@
       <button :class="buttonClass(showFeedback)" @click="showFeedback = !showFeedback">反馈能力</button>
     </div>
     <div class="chat-demo-container">
-      <TrChat
-        :config="chatConfig"
-        :runtime="{ chatKit, mcpManager }"
-        :callbacks="{ onModelChange }"
-        :preset-overrides="presetOverrides"
-      />
+      <TrChat :config="chatConfig" :preset-overrides="presetOverrides" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { TrChat, useChatKit } from '@opentiny/tiny-robot-chat'
-import type { ModelOption } from '@opentiny/tiny-robot-chat'
-import { createDemoChatConfig, createDemoMcpManager, createMockResponseProvider } from './shared'
+import { TrChat } from '@opentiny/tiny-robot-chat'
 
 const showHistory = ref(true)
 const showFeedback = ref(true)
 
-const chatConfig = createDemoChatConfig({
+const chatConfig = {
+  models: [
+    { id: 'gpt-4o-mini', providerId: 'openai', label: 'GPT-4o Mini' },
+    { id: 'gpt-4.1-mini', providerId: 'openai', label: 'GPT-4.1 Mini' },
+  ],
+  providers: {
+    openai: {
+      type: 'openai-compatible' as const,
+      endpoint: '/api/chat/completions',
+      systemPrompt: 'You are a helpful assistant for the TinyRobot docs.',
+    },
+  },
+  defaults: {
+    model: 'gpt-4o-mini',
+  },
   ui: {
     brand: {
       title: 'feature 页面级覆盖',
+    },
+    welcome: {
+      title: '功能页面级覆盖',
+      description: '基础 features 规定稳定默认值，presetOverrides 只处理当前页面的临时差异。',
     },
   },
   features: {
     history: false,
     feedback: false,
   },
-})
-
-const selectedModel = ref(chatConfig.defaults?.model ?? chatConfig.models[0]?.id ?? 'deepseek-chat')
-const mcpManager = createDemoMcpManager()
-const chatKit = useChatKit({
-  responseProvider: createMockResponseProvider('feature override', {
-    getModelId: () => selectedModel.value,
-  }),
-})
+}
 
 const presetOverrides = computed(() => ({
   showHistory: showHistory.value,
@@ -54,10 +57,6 @@ const presetOverrides = computed(() => ({
 
 function buttonClass(active: boolean) {
   return ['toolbar-button', { active }]
-}
-
-function onModelChange(model: ModelOption) {
-  selectedModel.value = model.value
 }
 </script>
 

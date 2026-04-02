@@ -4,7 +4,7 @@ outline: deep
 
 # Chat 功能配置
 
-当页面已经跑起来后，再回来看这里配功能开关。
+当页面已经跑起来后，再回来配这些功能开关。
 
 如果你正在直接使用 `TrChat`，大多数情况下只需要记住下面这条规则：
 
@@ -53,7 +53,7 @@ const presetOverrides = {
 }
 ```
 
-<demo vue="../../demos/chat/features-preset-overrides.vue" :vueFiles="['../../demos/chat/features-preset-overrides.vue', '../../demos/chat/shared.ts']" title="功能页面级覆盖" description="在基础 features 配置之外，通过 presetOverrides 局部打开或关闭历史、反馈和 senderActions。" />
+<demo vue="../../demos/chat/features-preset-overrides.vue" :vueFiles="['../../demos/chat/features-preset-overrides.vue']" title="功能页面级覆盖" description="在基础 features 配置之外，通过 presetOverrides 局部打开或关闭历史、反馈和 senderActions。" />
 
 ## 常见功能该怎么配
 
@@ -105,6 +105,11 @@ const presetOverrides = {
 
 - 场景默认值：`config.features.attachments`
 - 页面级覆盖：`presetOverrides.attachmentsFeature`
+
+当前边界：
+
+- 默认 `attachments` 解决的是“上传入口 + 列表展示”
+- 它不等于“附件会自动进入模型请求”
 
 继续阅读：
 

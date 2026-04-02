@@ -219,6 +219,43 @@ await runTest('useChatKit retry removes the failed turn and resends the last use
   assert.equal(chatKit.messages.value.length, 2)
 })
 
+await runTest('useChatKit regenerate replaces the target assistant turn instead of appending a duplicate user', async () => {
+  const chatKit = useChatKit({
+    responseProvider: createStreamingProvider(),
+    storage: createMemoryStorage(),
+  })
+
+  chatKit.sendMessage('first')
+
+  await waitFor(() => {
+    assert.equal(chatKit.status.value, 'ready')
+    assert.deepEqual(
+      chatKit.messages.value.map((message) => message.content),
+      ['first', 'reply:first'],
+    )
+  })
+
+  chatKit.sendMessage('second')
+
+  await waitFor(() => {
+    assert.equal(chatKit.status.value, 'ready')
+    assert.deepEqual(
+      chatKit.messages.value.map((message) => message.content),
+      ['first', 'reply:first', 'second', 'reply:second'],
+    )
+  })
+
+  assert.equal(await chatKit.regenerate(3), true)
+
+  await waitFor(() => {
+    assert.equal(chatKit.status.value, 'ready')
+    assert.deepEqual(
+      chatKit.messages.value.map((message) => message.content),
+      ['first', 'reply:first', 'second', 'reply:second'],
+    )
+  })
+})
+
 await runTest('useChatKit marks optimistic messages during a pending turn and clears them after completion', async () => {
   const chatKit = useChatKit({
     responseProvider: createStreamingProvider({ initialDelay: 80 }),

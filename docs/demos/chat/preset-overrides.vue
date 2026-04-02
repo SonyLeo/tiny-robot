@@ -14,33 +14,35 @@
       以上时变化最明显。
     </div>
     <div class="chat-demo-container" data-demo-layout-preview="true">
-      <TrChat
-        :config="chatConfig"
-        :runtime="{ chatKit, mcpManager }"
-        :callbacks="{ onModelChange }"
-        :preset-overrides="presetOverrides"
-      />
+      <TrChat :config="chatConfig" :runtime="{ initialMessages }" :preset-overrides="presetOverrides" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { TrChat, useChatKit } from '@opentiny/tiny-robot-chat'
-import type { ModelOption } from '@opentiny/tiny-robot-chat'
-import {
-  createDemoChatConfig,
-  createDemoMcpManager,
-  createMockResponseProvider,
-  layoutShowcaseMessages,
-} from './shared'
+import { TrChat } from '@opentiny/tiny-robot-chat'
 
 const layoutMode = ref<'centered' | 'wide'>('centered')
 const themeMode = ref<'light' | 'dark'>('light')
 const showHistory = ref(true)
 const showFeedback = ref(true)
 
-const chatConfig = createDemoChatConfig({
+const chatConfig = {
+  models: [
+    { id: 'gpt-4o-mini', providerId: 'openai', label: 'GPT-4o Mini' },
+    { id: 'gpt-4.1-mini', providerId: 'openai', label: 'GPT-4.1 Mini' },
+  ],
+  providers: {
+    openai: {
+      type: 'openai-compatible' as const,
+      endpoint: '/api/chat/completions',
+      systemPrompt: 'You are a helpful assistant for the TinyRobot docs.',
+    },
+  },
+  defaults: {
+    model: 'gpt-4o-mini',
+  },
   ui: {
     brand: {
       title: '页面级覆盖示例',
@@ -50,16 +52,24 @@ const chatConfig = createDemoChatConfig({
       description: '这里会同时覆盖 contentLayout、history、feedback 和发送区扩展动作。',
     },
   },
-})
+}
 
-const selectedModel = ref(chatConfig.defaults?.model ?? chatConfig.models[0]?.id ?? 'deepseek-chat')
-const mcpManager = createDemoMcpManager()
-const chatKit = useChatKit({
-  responseProvider: createMockResponseProvider('页面级覆盖示例', {
-    getModelId: () => selectedModel.value,
-  }),
-  initialMessages: layoutShowcaseMessages,
-})
+const initialMessages = [
+  {
+    role: 'assistant',
+    content:
+      '这是一段专门用来观察 contentLayout 的演示消息。centered 会把欢迎区、消息区和底部输入区收束在一个最大宽度内，wide 则会尽量铺满整个可用容器。',
+  },
+  {
+    role: 'user',
+    content: '请直接展示 centered 和 wide 在当前文档预览里的差别。',
+  },
+  {
+    role: 'assistant',
+    content:
+      '在真实组件默认值里，centered 的上限是 1000px。为了让文档里的预览窗口也能一眼看出差异，这个示例会把演示阈值临时压到 560px；切到 wide 后，消息列和输入区会明显向两侧展开。',
+  },
+]
 
 const presetOverrides = computed(() => ({
   appearance: {
@@ -76,10 +86,6 @@ const presetOverrides = computed(() => ({
 
 function buttonClass(active: boolean) {
   return ['toolbar-button', { active }]
-}
-
-function onModelChange(model: ModelOption) {
-  selectedModel.value = model.value
 }
 </script>
 

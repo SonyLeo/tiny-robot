@@ -1,4 +1,4 @@
-import { Component, VNode } from 'vue'
+import { Component } from 'vue'
 
 export interface FeedbackProps {
   operations?: {
@@ -10,7 +10,7 @@ export interface FeedbackProps {
   actions?: {
     name: string
     label: string
-    icon?: 'copy' | 'refresh' | 'like' | 'dislike' | VNode | Component
+    icon?: 'copy' | 'refresh' | 'like' | 'dislike' | Component
     onClick?: () => void
   }[]
   actionsLimit?: number

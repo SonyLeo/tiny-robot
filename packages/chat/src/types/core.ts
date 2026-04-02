@@ -143,6 +143,7 @@ export interface UseChatKitReturn extends Pick<
   updateResponseProvider: (provider: ResponseProvider) => void
   abort: () => Promise<void>
   retry: () => Promise<boolean>
+  regenerate: (messageIndex?: number) => Promise<boolean>
   runtime: UseChatKitRuntimeBridge
 }
 
