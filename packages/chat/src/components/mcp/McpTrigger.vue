@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, inject, ref } from 'vue'
 import { IconPlugin } from '@opentiny/tiny-robot-svgs'
-import { MCP_MANAGER_KEY } from '@/context'
+import { MCP_MANAGER_KEY } from '@/shared/context'
 import ChatMcpPanel from './ChatMcpPanel.vue'
 
 defineOptions({ name: 'TrMcpTrigger' })

@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed, provide, ref, useSlots, watch, type Slot } from 'vue'
-import { createChatAdapterFromConfig, createPresetChatProps, createPresetChatSlices } from '@/adapters'
-import { useChatKit, useModelSelector } from '@/composables'
-import { CHAT_SCAFFOLD_KEY } from '@/context'
+import { createChatAdapterFromConfig, createPresetChatProps, createPresetChatSlices } from '@/runtime/config'
+import { useChatKit } from '@/runtime/chat-kit/useChatKit'
+import { useModelSelector } from '@/components/model-selector/useModelSelector'
+import { CHAT_SCAFFOLD_KEY } from '@/shared/context'
 import type { ModelOption, UseChatKitReturn } from '@/types'
 import type { TrChatScaffoldContextValue, TrChatScaffoldProps } from '@/types/scaffold'
 import {
@@ -12,7 +13,7 @@ import {
   findScaffoldModelByValue,
   resolveScaffoldInitialModelValue,
   shouldManageScaffoldResponseProvider,
-} from '@/helpers/scaffoldRuntime'
+} from '@/runtime/scaffold/scaffoldRuntime'
 import ChatDefaultRenderer from './default-renderer/ChatDefaultRenderer.vue'
 import ChatRoot from './ChatRoot.vue'
 

@@ -2,9 +2,15 @@
 import { computed, inject } from 'vue'
 import { TrIconButton } from '@opentiny/tiny-robot'
 import { IconClose, IconHistory, IconMenuOpen, IconMenu2, IconNewSession } from '@opentiny/tiny-robot-svgs'
-import { CHAT_ATTACHMENTS_KEY, CHAT_KIT_KEY, CHAT_UI_KEY, useChatScaffoldContext, useRequiredInject } from '@/context'
-import { useResolvedChatMessages } from '@/messages'
-import { triStateBooleanProp } from '@/utils'
+import {
+  CHAT_ATTACHMENTS_KEY,
+  CHAT_KIT_KEY,
+  CHAT_UI_KEY,
+  useChatScaffoldContext,
+  useRequiredInject,
+} from '@/shared/context'
+import { useResolvedChatMessages } from '@/shared/messages'
+import { triStateBooleanProp } from '@/shared/utils'
 
 defineOptions({ name: 'TrChatHeader' })
 

@@ -12,10 +12,10 @@ import {
   MCP_MANAGER_KEY,
   createChatUiContext,
   useChatScaffoldContext,
-} from '@/context'
-import { resolveChatMessages } from '@/messages'
+} from '@/shared/context'
+import { resolveChatMessages } from '@/shared/messages'
 import type { TrChatRootProps } from '@/types'
-import { resolveRootChatKit } from '@/helpers/resolveRootChatKit'
+import { resolveRootChatKit } from '@/runtime/scaffold/resolveRootChatKit'
 
 defineOptions({ name: 'TrChatRoot' })
 

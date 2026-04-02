@@ -3,10 +3,10 @@ import { TrFeedback } from '@opentiny/tiny-robot'
 import type { BubbleMessage } from '@opentiny/tiny-robot'
 import type { ChatMessage } from '@opentiny/tiny-robot-kit'
 import { computed, inject } from 'vue'
-import { getChatRenderSourceMessage } from '@/composables/chatRenderMessages'
+import { getChatRenderSourceMessage } from '@/runtime/chat-kit/chatRenderMessages'
 import { useChatFeedback } from './useChatFeedback'
-import { getChatMessageError } from '@/composables/chatMessageState'
-import { CHAT_KIT_KEY, MESSAGE_ACTION_KEY, MESSAGE_ACTIONS_KEY } from '@/context'
+import { getChatMessageError } from '@/runtime/chat-kit/chatMessageState'
+import { CHAT_KIT_KEY, MESSAGE_ACTION_KEY, MESSAGE_ACTIONS_KEY } from '@/shared/context'
 import type { ChatMessageActionPayload, UseChatKitReturn, TrChatMessageListProps } from '@/types'
 
 defineOptions({ name: 'TrChatFeedback' })

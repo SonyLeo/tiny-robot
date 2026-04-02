@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { IconCheck, IconEditPen } from '@opentiny/tiny-robot-svgs'
-import { CHAT_HISTORY_KEY, useRequiredInject } from '@/context'
-import { useResolvedChatMessages } from '@/messages'
+import { CHAT_HISTORY_KEY, useRequiredInject } from '@/shared/context'
+import { useResolvedChatMessages } from '@/shared/messages'
 
 defineOptions({ name: 'TrChatHistoryManageButton' })
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ThemeProvider } from '@opentiny/tiny-robot'
 import { Comment, Fragment, computed, getCurrentInstance, useSlots, type VNode } from 'vue'
-import { CHAT_UI_KEY, useChatScaffoldContext, useRequiredInject } from '@/context'
+import { CHAT_UI_KEY, useChatScaffoldContext, useRequiredInject } from '@/shared/context'
 import ChatWorkspaceRightPanel from './ChatWorkspaceRightPanel.vue'
 
 defineOptions({ name: 'TrChatWorkspaceRightSheet' })

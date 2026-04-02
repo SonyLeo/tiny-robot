@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, ref, type Ref } from 'vue'
 import type { ModelOption } from '@/types'
-import { useChatScaffoldContext } from '@/context'
-import { getProviderIcon } from '@/utils/iconMap'
+import { useChatScaffoldContext } from '@/shared/context'
+import { getProviderIcon } from '@/shared/utils/iconMap'
 import { useModelSelector } from './useModelSelector'
 import { useFloatingDropdown } from './useFloatingDropdown'
 import { useKeyboardNavigation } from './useKeyboardNavigation'

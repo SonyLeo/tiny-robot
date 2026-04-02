@@ -1,4 +1,4 @@
-import type { ChatAdapter } from '@/adapters'
+import type { ChatAdapter } from '@/runtime/config'
 import type { ModelOption, TrChatPresetOverrides } from '@/types'
 import type { ChatScaffoldCallbacks, ChatScaffoldRuntimeInput } from '@/types/scaffold'
 import type { Slot, Slots } from 'vue'

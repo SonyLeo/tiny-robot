@@ -3,7 +3,7 @@ import { useTheme, useToolCall, type BubbleContentRendererProps } from '@opentin
 import { IconCancelled, IconError, IconLoading, IconPlugin } from '@opentiny/tiny-robot-svgs'
 import { MarkdownCodeBlockNode } from 'markstream-vue'
 import { computed, reactive, useAttrs, watchEffect, type Component } from 'vue'
-import { useResolvedChatMessages } from '@/messages'
+import { useResolvedChatMessages } from '@/shared/messages'
 
 const props = defineProps<BubbleContentRendererProps & { toolCallIndex: number }>()
 

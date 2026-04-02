@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { createChatAdapterFromConfig, createPresetChatProps, createPresetChatSlices, runTest } from '../_helpers.mjs'
 
 const defaultBubbleConfigSource = readFileSync(
-  fileURLToPath(new URL('../../src/composables/useDefaultBubbleConfig.ts', import.meta.url)),
+  fileURLToPath(new URL('../../src/components/core/useDefaultBubbleConfig.ts', import.meta.url)),
   'utf8',
 )
 const chatLayoutSource = readFileSync(fileURLToPath(new URL('../../src/components/core/ChatLayout.vue', import.meta.url)), 'utf8')

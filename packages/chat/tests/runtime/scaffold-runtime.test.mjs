@@ -9,7 +9,7 @@ const jiti = createJiti(import.meta.url, {
   },
 })
 
-const scaffoldRuntimeModule = await jiti.import('../../src/helpers/scaffoldRuntime.ts')
+const scaffoldRuntimeModule = await jiti.import('../../src/runtime/scaffold/scaffoldRuntime.ts')
 
 const {
   resolveScaffoldInitialModelValue,

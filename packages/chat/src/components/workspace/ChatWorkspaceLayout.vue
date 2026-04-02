@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { PropType } from 'vue'
-import { CHAT_UI_KEY, useChatScaffoldContext, useRequiredInject } from '@/context'
+import { CHAT_UI_KEY, useChatScaffoldContext, useRequiredInject } from '@/shared/context'
 import type { ChatAppearanceConfig } from '@/types'
 import type { ChatWorkspaceShellConfig } from '@/types/workspace'
 import WorkspaceShell from './WorkspaceShell.vue'

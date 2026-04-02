@@ -1,5 +1,5 @@
 import { computed, inject } from 'vue'
-import { CHAT_MESSAGES_KEY } from '@/context'
+import { CHAT_MESSAGES_KEY } from '@/shared/context'
 import type { ChatMessages, ChatMessagesOverrides } from '@/types'
 
 /**

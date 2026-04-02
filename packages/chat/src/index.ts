@@ -1,29 +1,27 @@
-// ===== 样式 =====
 import './styles/index.css'
 
-// ===== 主入口组件（同时挂载子组件）=====
 import {
   Chat as TrChat,
   ChatScaffold as TrChatScaffold,
   ChatRoot as TrChatRoot,
   ChatLayout as TrChatLayout,
-  ChatWorkspaceLayout as TrChatWorkspaceLayout,
   ChatHeader as TrChatHeader,
   ChatWelcome as TrChatWelcome,
   ChatMessageList as TrChatMessageList,
   ChatFooter as TrChatFooter,
-  ChatAttachments as TrChatAttachments,
   ChatSender as TrChatSender,
-  ChatFeedback as TrChatFeedback,
-  ChatMcpPanel as TrChatMcpPanel,
-} from './components/chat'
+} from './components/core'
+import {
+  ChatWorkspaceLayout as TrChatWorkspaceLayout,
+  WorkspaceShell as TrChatWorkspaceShell,
+  ChatWorkspaceRightSheet as TrChatWorkspaceRightSheet,
+} from './components/workspace'
+import { ChatAttachments as TrChatAttachments } from './components/attachments'
+import { ChatFeedback as TrChatFeedback } from './components/feedback'
 import { ChatHistory as TrChatHistory, ChatHistorySurface as TrChatHistorySurface } from './components/history'
-import { McpTrigger as TrMcpTrigger } from './components/mcp-trigger'
+import { ChatMcpPanel as TrChatMcpPanel, McpTrigger as TrMcpTrigger } from './components/mcp'
 import { ModelSelector as TrModelSelector } from './components/model-selector'
-import { WorkspaceShell as TrChatWorkspaceShell } from './components/workspace'
-import { ChatWorkspaceRightSheet as TrChatWorkspaceRightSheet } from './components/chat/workspace'
 
-// 定义带子组件的 TrChat 类型
 type TrChatWithSubComponents = typeof TrChat & {
   Scaffold: typeof TrChatScaffold
   Root: typeof TrChatRoot
@@ -41,7 +39,6 @@ type TrChatWithSubComponents = typeof TrChat & {
   WorkspaceRightSheet: typeof TrChatWorkspaceRightSheet
 }
 
-// 挂载子组件到 TrChat 上，实现复合组件模式
 const TrChatFull = TrChat as TrChatWithSubComponents
 TrChatFull.Scaffold = TrChatScaffold
 TrChatFull.Root = TrChatRoot
@@ -60,21 +57,17 @@ TrChatFull.WorkspaceRightSheet = TrChatWorkspaceRightSheet
 
 export { TrChatFull as TrChat }
 
-// ===== Composable =====
-export {
-  useChatKit,
-  useChatAttachments,
-  useDefaultBubbleConfig,
-  useMcpManager,
-  useModelSelector,
-  useChatFeedback,
-  useFloatingDropdown,
-  useKeyboardNavigation,
-  useHistoryState,
-  useSlotFilter,
-} from './composables'
+export { useChatKit } from './runtime/chat-kit/useChatKit'
+export { useChatAttachments } from './components/attachments/useChatAttachments'
+export { useDefaultBubbleConfig } from './components/core/useDefaultBubbleConfig'
+export { useMcpManager } from './components/mcp/useMcpManager'
+export { useModelSelector } from './components/model-selector/useModelSelector'
+export { useChatFeedback } from './components/feedback/useChatFeedback'
+export { useFloatingDropdown } from './components/model-selector/useFloatingDropdown'
+export { useKeyboardNavigation } from './components/model-selector/useKeyboardNavigation'
+export { useHistoryState } from './components/history/useHistoryState'
+export { useSlotFilter } from './components/core/useSlotFilter'
 
-// ===== Render 组件（按需导入）=====
 export {
   MarkStreamRenderer,
   ErrorRenderer,
@@ -82,9 +75,8 @@ export {
   ToolCallsRenderer,
   ToolCallRenderer,
   AttachmentsRenderer,
-} from './components/render'
+} from './components/renderers'
 
-// ===== 新组件 =====
 export {
   TrMcpTrigger,
   TrModelSelector,
@@ -99,26 +91,31 @@ export {
   TrChatWorkspaceRightSheet,
 }
 
-// ===== Adapters =====
-export { loadChatConfig, createChatAdapterFromConfig, createPresetChatProps, createPresetChatSlices } from './adapters'
-export { CHAT_CAPABILITY_MANIFEST, createChatCapabilityManifest } from './capabilities'
 export {
+  loadChatConfig,
+  createChatAdapterFromConfig,
+  createPresetChatProps,
+  createPresetChatSlices,
   CHAT_CLI_CONSUMABLE_FEATURE_KEYS,
   CHAT_CLI_CONSUMABLE_PRESET_PROP_KEYS,
   CHAT_CLI_CONSUMABLE_PRESET_SLICE_KEYS,
   createChatCliCapabilitySurface,
-} from './adapters'
-export { CHAT_FEATURE_REGISTRY, resolveChatFeatures } from './features'
-export { CHAT_MESSAGES, resolveChatMessages } from './messages'
+  CHAT_FEATURE_REGISTRY,
+  resolveChatFeatures,
+} from './runtime/config'
+export { CHAT_CAPABILITY_MANIFEST, createChatCapabilityManifest } from './runtime/config/capabilities'
+export { CHAT_MESSAGES, resolveChatMessages } from './shared/messages'
 export {
   resolveAgentPreset,
   applyAgentPresetToConfig,
   createChatAdapterFromAgentPreset,
   createPresetConsumptionFromAgentPreset,
-} from './presets'
-export { BUILT_IN_AGENT_PRESETS, BUILT_IN_SKILL_PACKS, getBuiltInAgentPreset, getBuiltInSkillPack } from './presets'
+  BUILT_IN_AGENT_PRESETS,
+  BUILT_IN_SKILL_PACKS,
+  getBuiltInAgentPreset,
+  getBuiltInSkillPack,
+} from './runtime/presets'
 
-// ===== 类型 =====
 export type {
   BrandConfig,
   ChatScaffoldCallbacks,
@@ -175,9 +172,10 @@ export type {
   ChatWorkspaceViewStateConfig,
   TrChatWorkspaceShellProps,
 } from './types'
-export type { UseDefaultBubbleConfigOptions } from './composables'
-export type { UseMcpManagerBridge, UseMcpManagerOptions, UseModelSelectorOptions } from './composables'
-export type { UseChatAttachmentsReturn } from './composables'
+export type { UseDefaultBubbleConfigOptions } from './components/core/useDefaultBubbleConfig'
+export type { UseMcpManagerBridge, UseMcpManagerOptions, UseMcpManagerReturn } from './components/mcp/useMcpManager'
+export type { UseModelSelectorOptions } from './components/model-selector/useModelSelector'
+export type { UseChatAttachmentsReturn } from './components/attachments/useChatAttachments'
 export type {
   ChatAdapter,
   ChatPresetAppearanceSlice,
@@ -205,9 +203,6 @@ export type {
   ChatPresetSlices,
   ChatPresetWelcomeSlice,
   OpenAICompatibleProviderConfig,
-} from './adapters'
-export type { ChatCapabilityManifest, ChatCapabilityCatalogEntry, ChatCapabilityPresetEntry } from './capabilities'
-export type {
   ChatAttachmentsFeatureConfig,
   ChatAttachmentsFeatureResolution,
   BuiltInChatFeatureKey,
@@ -227,7 +222,12 @@ export type {
   ChatWelcomePromptsFeatureOptions,
   ChatWelcomePromptsFeatureResolution,
   ResolvedChatFeatures,
-} from './features'
+} from './runtime/config'
+export type {
+  ChatCapabilityManifest,
+  ChatCapabilityCatalogEntry,
+  ChatCapabilityPresetEntry,
+} from './runtime/config/capabilities'
 export type {
   AgentPresetConsumptionResult,
   AgentPresetInput,
@@ -242,10 +242,6 @@ export type {
   ResolveAgentPresetOptions,
   ResolvedAgentPreset,
   SkillPackInput,
-} from './presets'
+} from './runtime/presets'
 
-// 从 iconMap 导出 KnownProvider 类型
-export { KNOWN_PROVIDERS, type KnownProvider } from './utils/iconMap'
-
-// 从 composables 导出类型
-export type { UseMcpManagerReturn } from './composables'
+export { KNOWN_PROVIDERS, type KnownProvider } from './shared/utils/iconMap'

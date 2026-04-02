@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { IconClose, IconDelete } from '@opentiny/tiny-robot-svgs'
-import { CHAT_HISTORY_KEY, CHAT_KIT_KEY, useRequiredInject } from '@/context'
-import { useResolvedChatMessages } from '@/messages'
+import { CHAT_HISTORY_KEY, CHAT_KIT_KEY, useRequiredInject } from '@/shared/context'
+import { useResolvedChatMessages } from '@/shared/messages'
 
 const historyState = useRequiredInject(CHAT_HISTORY_KEY, 'history state')
 const chatKit = useRequiredInject(CHAT_KIT_KEY, 'chat kit')

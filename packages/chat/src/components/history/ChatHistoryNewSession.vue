@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { useRequiredInject, CHAT_KIT_KEY, CHAT_UI_KEY } from '@/context'
+import { useRequiredInject, CHAT_KIT_KEY, CHAT_UI_KEY } from '@/shared/context'
 import { IconNewSession } from '@opentiny/tiny-robot-svgs'
-import { useResolvedChatMessages } from '@/messages'
+import { useResolvedChatMessages } from '@/shared/messages'
 
 defineOptions({ name: 'TrChatHistoryNewSession' })
 

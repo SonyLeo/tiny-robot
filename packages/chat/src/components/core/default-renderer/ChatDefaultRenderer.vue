@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, inject, useAttrs, useSlots, type Slot } from 'vue'
-import { BUBBLE_LIST_SLOTS, CHAT_KIT_KEY, MCP_MANAGER_KEY, useChatScaffoldContext } from '@/context'
-import { useSlotFilter } from '@/composables'
+import { BUBBLE_LIST_SLOTS, CHAT_KIT_KEY, MCP_MANAGER_KEY, useChatScaffoldContext } from '@/shared/context'
+import { useSlotFilter } from '../useSlotFilter'
 import type { ChatListVariant, ModelOption } from '@/types'
-import type { ChatPresetMessageListSlice, ChatPresetWelcomeSlice } from '@/adapters'
+import type { ChatPresetMessageListSlice, ChatPresetWelcomeSlice } from '@/runtime/config'
 import ChatDefaultBodyRegion from './ChatDefaultBodyRegion.vue'
 import ChatDefaultFooterRegion from './ChatDefaultFooterRegion.vue'
 import ChatDefaultHeaderRegion from './ChatDefaultHeaderRegion.vue'

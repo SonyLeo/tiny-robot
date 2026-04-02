@@ -3,8 +3,8 @@ import { syncRef } from '@vueuse/core'
 import { computed, ref } from 'vue'
 import { TrHistory } from '@opentiny/tiny-robot'
 import type { HistoryItem, HistoryMenuItem } from '@opentiny/tiny-robot'
-import { CHAT_HISTORY_KEY, CHAT_KIT_KEY, CHAT_UI_KEY, useRequiredInject } from '@/context'
-import { useResolvedChatMessages } from '@/messages'
+import { CHAT_HISTORY_KEY, CHAT_KIT_KEY, CHAT_UI_KEY, useRequiredInject } from '@/shared/context'
+import { useResolvedChatMessages } from '@/shared/messages'
 
 const historyState = useRequiredInject(CHAT_HISTORY_KEY, 'history state')
 const chatKit = useRequiredInject(CHAT_KIT_KEY, 'chat kit')

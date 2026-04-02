@@ -3,8 +3,8 @@ import { inject, ref, computed, useSlots, useAttrs } from 'vue'
 import type { PropType, Slot } from 'vue'
 import { TrSender, UploadButton, VoiceButton } from '@opentiny/tiny-robot'
 import type { StructuredData } from '@opentiny/tiny-robot'
-import { CHAT_ATTACHMENTS_KEY, CHAT_KIT_KEY, CHAT_SENDER_ACTIONS_KEY, useChatScaffoldContext } from '@/context'
-import { useResolvedChatMessages } from '@/messages'
+import { CHAT_ATTACHMENTS_KEY, CHAT_KIT_KEY, CHAT_SENDER_ACTIONS_KEY, useChatScaffoldContext } from '@/shared/context'
+import { useResolvedChatMessages } from '@/shared/messages'
 
 defineOptions({ name: 'TrChatSender', inheritAttrs: false })
 

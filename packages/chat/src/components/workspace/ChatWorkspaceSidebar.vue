@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useChatScaffoldContext } from '@/context'
+import { useChatScaffoldContext } from '@/shared/context'
 import { ChatHistoryContent } from '@/components/history'
 import ChatWorkspaceSidebarShell from './ChatWorkspaceSidebarShell.vue'
 

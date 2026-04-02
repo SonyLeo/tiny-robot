@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ThemeProvider } from '@opentiny/tiny-robot'
 import { computed, getCurrentInstance } from 'vue'
-import { CHAT_UI_KEY, useChatScaffoldContext, useRequiredInject } from '@/context'
-import { triStateBooleanProp } from '@/utils'
+import { CHAT_UI_KEY, useChatScaffoldContext, useRequiredInject } from '@/shared/context'
+import { triStateBooleanProp } from '@/shared/utils'
 import ChatHistoryContent from './ChatHistoryContent.vue'
 
 defineOptions({ name: 'TrChatHistory' })

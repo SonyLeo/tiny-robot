@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { TrWelcome, TrPrompts } from '@opentiny/tiny-robot'
 import type { Component, VNode } from 'vue'
 import type { PromptProps } from '@opentiny/tiny-robot'
-import { useChatScaffoldContext } from '@/context'
+import { useChatScaffoldContext } from '@/shared/context'
 
 defineOptions({ name: 'TrChatWelcome' })
 

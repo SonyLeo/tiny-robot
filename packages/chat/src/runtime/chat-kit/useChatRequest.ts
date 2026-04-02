@@ -2,7 +2,7 @@ import { computed, shallowRef, watchEffect } from 'vue'
 import type { ComputedRef, ShallowRef } from 'vue'
 import type { UseConversationReturn } from '@opentiny/tiny-robot-kit'
 import type { ChatErrorInfo, ChatStatus, ResponseProvider, UseMessageResponseProvider } from '@/types'
-import { ChatProviderError } from '@/adapters/openaiCompatibleTransport'
+import { ChatProviderError } from '@/runtime/config/openaiCompatibleTransport'
 
 interface UseChatRequestOptions {
   conversation: Pick<UseConversationReturn, 'activeConversation' | 'abortActiveRequest'>

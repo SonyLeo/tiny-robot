@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ThemeProvider } from '@opentiny/tiny-robot'
 import { computed, getCurrentInstance, inject, onBeforeUnmount, onMounted, ref, useSlots } from 'vue'
-import { CHAT_UI_KEY } from '@/context'
+import { CHAT_UI_KEY } from '@/shared/context'
 import type { TrChatWorkspaceShellProps } from '@/types/workspace'
 import { useWorkspaceRegion } from './useWorkspaceRegion'
 

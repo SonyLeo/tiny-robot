@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { inject } from 'vue'
-import { CHAT_KIT_KEY } from '@/context'
+import { CHAT_KIT_KEY } from '@/shared/context'
 import type { ModelOption } from '@/types'
 import ChatAttachments from '@/components/attachments/ChatAttachments.vue'
 import ChatFooter from '../ChatFooter.vue'

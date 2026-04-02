@@ -1,6 +1,6 @@
 import { useChatKit } from '@/runtime/chat-kit/useChatKit'
 import type { TrChatRootProps, UseChatKitOptions, UseChatKitReturn } from '@/types'
-import { conditionalProp } from '@/utils'
+import { conditionalProp } from '@/shared/utils'
 
 interface RootChatKitResolution {
   providedChatKit?: UseChatKitReturn

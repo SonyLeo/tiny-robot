@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { IconAi, IconPanelLeftClose } from '@opentiny/tiny-robot-svgs'
-import { CHAT_UI_KEY, useRequiredInject } from '@/context'
+import { CHAT_UI_KEY, useRequiredInject } from '@/shared/context'
 
 defineOptions({ name: 'TrChatWorkspaceSidebarShell' })
 

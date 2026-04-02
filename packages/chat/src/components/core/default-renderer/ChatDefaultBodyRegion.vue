@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { inject } from 'vue'
 import type { PropType } from 'vue'
-import { CHAT_KIT_KEY } from '@/context'
-import type { ChatPresetMessageListSlice, ChatPresetWelcomeSlice } from '@/adapters'
+import { CHAT_KIT_KEY } from '@/shared/context'
+import type { ChatPresetMessageListSlice, ChatPresetWelcomeSlice } from '@/runtime/config'
 import type { ChatListVariant } from '@/types'
 import ChatFeedback from '@/components/feedback/ChatFeedback.vue'
 import ChatMessageList from '../ChatMessageList.vue'

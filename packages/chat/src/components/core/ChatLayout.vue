@@ -2,10 +2,10 @@
 import { BubbleProvider, ThemeProvider } from '@opentiny/tiny-robot'
 import type { BubbleListProps } from '@opentiny/tiny-robot'
 import { computed, getCurrentInstance, type PropType, provide } from 'vue'
-import { useDefaultBubbleConfig } from '@/composables'
-import { BUBBLE_CONFIG_KEY, useChatScaffoldContext } from '@/context'
+import { useDefaultBubbleConfig } from './useDefaultBubbleConfig'
+import { BUBBLE_CONFIG_KEY, useChatScaffoldContext } from '@/shared/context'
 import type { ChatAppearanceConfig, ChatBubbleRenderers, ChatContentLayout } from '@/types'
-import { triStateBooleanProp } from '@/utils'
+import { triStateBooleanProp } from '@/shared/utils'
 
 defineOptions({ name: 'TrChatLayout' })
 

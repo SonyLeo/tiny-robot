@@ -10,8 +10,8 @@ import type {
   UploadButtonProps,
   VoiceButtonProps,
 } from '@opentiny/tiny-robot'
-import type { UseMcpManagerReturn } from '../composables/useMcpManager'
-import type { UseChatAttachmentsReturn } from '../composables/useChatAttachments'
+import type { UseMcpManagerReturn } from '../components/mcp/useMcpManager'
+import type { UseChatAttachmentsReturn } from '../components/attachments/useChatAttachments'
 import type { ChatScaffoldCallbacks, ChatScaffoldRuntimeInput } from './scaffold'
 import type {
   BrandConfig,

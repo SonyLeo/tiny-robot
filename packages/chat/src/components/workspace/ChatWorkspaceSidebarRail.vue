@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { IconAi, IconNewSession, IconPanelRightClose } from '@opentiny/tiny-robot-svgs'
-import { CHAT_KIT_KEY, CHAT_UI_KEY, useRequiredInject } from '@/context'
+import { CHAT_KIT_KEY, CHAT_UI_KEY, useRequiredInject } from '@/shared/context'
 
 defineOptions({ name: 'TrChatWorkspaceSidebarRail' })
 

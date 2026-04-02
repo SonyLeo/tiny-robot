@@ -4,8 +4,8 @@ import { TrChat, TrMcpTrigger } from '@opentiny/tiny-robot-chat'
 import type { UseMcpManagerReturn } from '@opentiny/tiny-robot-chat'
 import { useTheme, type ColorMode } from '@opentiny/tiny-robot'
 import { IconAi, IconPlus } from '@opentiny/tiny-robot-svgs'
-import { ChatWorkspaceSidebarShell } from '@/components/chat/workspace'
-import { CHAT_KIT_KEY, useRequiredInject } from '../../../src/context'
+import { ChatWorkspaceSidebarShell } from '@/components/workspace'
+import { CHAT_KIT_KEY, useRequiredInject } from '@/shared/context'
 
 type SidebarTab = 'model' | 'tools' | 'theme' | 'history'
 

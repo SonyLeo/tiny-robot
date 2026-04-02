@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { CHAT_CLI_CONSUMABLE_FEATURE_KEYS } from '../../../chat/src/adapters/index'
+import { CHAT_CLI_CONSUMABLE_FEATURE_KEYS } from '../../../chat/src/runtime/config/index'
 import { getCommand } from '../../../chat-cli/src/packageManager'
 import {
   CHAT_CLI_CONSUMABLE_PRESET_PROP_KEYS,

@@ -10,10 +10,11 @@ import {
   MESSAGE_ACTION_KEY,
   MESSAGE_ACTIONS_KEY,
   useChatScaffoldContext,
-} from '@/context'
-import { normalizeChatRenderMessages, useSlotFilter } from '@/composables'
+} from '@/shared/context'
+import { normalizeChatRenderMessages } from '@/runtime/chat-kit/chatRenderMessages'
+import { useSlotFilter } from './useSlotFilter'
 import type { ChatListVariant, TrChatMessageListProps } from '@/types'
-import { triStateBooleanProp } from '@/utils'
+import { triStateBooleanProp } from '@/shared/utils'
 
 defineOptions({ name: 'TrChatMessageList', inheritAttrs: false })
 

@@ -1,6 +1,6 @@
 import { computed, toValue, watchEffect, type MaybeRefOrGetter, type Ref } from 'vue'
 import type { ModelOption } from '@/types'
-import { getProviderIcon } from '@/utils/iconMap'
+import { getProviderIcon } from '@/shared/utils/iconMap'
 
 export interface UseModelSelectorOptions {
   currentModel: Ref<string>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { inject, ref, watch } from 'vue'
-import { MCP_MANAGER_KEY } from '@/context'
+import { MCP_MANAGER_KEY } from '@/shared/context'
 import type { PluginInfo } from '@opentiny/tiny-robot'
 import { TrMcpAddForm, TrMcpServerPicker } from '@opentiny/tiny-robot'
 import { IconClose, IconPlus } from '@opentiny/tiny-robot-svgs'

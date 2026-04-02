@@ -7,4 +7,4 @@ export {
   BUBBLE_CONFIG_KEY,
   BUBBLE_LIST_SLOTS,
   useChatScaffoldContext,
-} from './context'
+} from './shared/context'

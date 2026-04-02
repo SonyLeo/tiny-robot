@@ -1,7 +1,7 @@
 import type { ModelOption, ResponseProvider, TrChatPresetOverrides } from '@/types'
 import { isChatFeatureExplicitlyDisabled, resolveChatFeatures } from './registry'
 import type { ChatAdapter, ChatConfig, ChatPresetProps, ChatPresetSlices } from './types'
-import { resolveChatMessages } from '@/messages'
+import { resolveChatMessages } from '@/shared/messages'
 import { loadChatConfig } from './configLoader'
 import { createOpenAICompatibleResponseProvider } from './openaiCompatibleTransport'
 import type { ChatWorkspaceShellConfig } from '@/types/workspace'

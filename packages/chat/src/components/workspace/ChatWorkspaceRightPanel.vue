@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { IconClose } from '@opentiny/tiny-robot-svgs'
-import { CHAT_UI_KEY, useRequiredInject } from '@/context'
+import { CHAT_UI_KEY, useRequiredInject } from '@/shared/context'
 import ChatWorkspaceRightEmpty from './ChatWorkspaceRightEmpty.vue'
 
 defineOptions({ name: 'TrChatWorkspaceRightPanel' })

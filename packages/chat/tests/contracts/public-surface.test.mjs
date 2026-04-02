@@ -4,10 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { runTest } from '../_harness.mjs'
 
 const chatIndexSource = readFileSync(fileURLToPath(new URL('../../src/index.ts', import.meta.url)), 'utf8')
-const chatComponentsIndexSource = readFileSync(
-  fileURLToPath(new URL('../../src/components/chat/index.ts', import.meta.url)),
-  'utf8',
-)
+const chatComponentsIndexSource = readFileSync(fileURLToPath(new URL('../../src/components/core/index.ts', import.meta.url)), 'utf8')
 const chatTypesIndexSource = readFileSync(fileURLToPath(new URL('../../src/types/index.ts', import.meta.url)), 'utf8')
 
 await runTest('TrChat compound source keeps the retained subcomponents', async () => {

@@ -8,14 +8,9 @@ import {
   ToolCallsRenderer,
   AttachmentsRenderer,
   MarkStreamRenderer,
-} from '../components/render'
-import { hasChatMessageError, isChatMessageEditing, isChatMessageOptimistic } from './chatMessageState'
+} from '@/components/renderers'
+import { hasChatMessageError, isChatMessageEditing, isChatMessageOptimistic } from '@/runtime/chat-kit/chatMessageState'
 
-/**
- * 默认 Bubble 配置
- * 提供开箱即用的 renderer matches 和 roles
- * 支持通过 options 参数扩展或覆盖
- */
 export interface UseDefaultBubbleConfigOptions {
   extraContentMatches?: BubbleContentRendererMatch[]
   extraBoxMatches?: BubbleBoxRendererMatch[]
@@ -23,10 +18,6 @@ export interface UseDefaultBubbleConfigOptions {
 }
 
 export function useDefaultBubbleConfig(options?: UseDefaultBubbleConfigOptions) {
-  /**
-   * Content 渲染器匹配规则
-   * 优先级从高到低：Error > Editing > ToolCalls > Attachment > Fallback
-   */
   const contentMatches: BubbleContentRendererMatch[] = [
     {
       find: (message) => hasChatMessageError(message),
@@ -48,14 +39,9 @@ export function useDefaultBubbleConfig(options?: UseDefaultBubbleConfigOptions) 
       renderer: markRaw(AttachmentsRenderer),
       priority: BubbleRendererMatchPriority.CONTENT,
     },
-    // 用户注入的额外规则
     ...(options?.extraContentMatches ?? []),
   ]
 
-  /**
-   * Box 渲染器匹配规则
-   * 控制消息容器的渲染和属性
-   */
   const boxMatches: BubbleBoxRendererMatch[] = [
     {
       find: (messages) => messages.length === 1 && isChatMessageEditing(messages[0]),
@@ -77,15 +63,9 @@ export function useDefaultBubbleConfig(options?: UseDefaultBubbleConfigOptions) 
         'data-shape': 'none',
       },
     },
-    // 用户注入的额外规则
     ...(options?.extraBoxMatches ?? []),
   ]
 
-  /**
-   * 角色配置
-   * 定义不同角色的默认渲染器和样式
-   * 包含头像、placement、fallbackContentRenderer 等
-   */
   const roles: Record<string, BubbleRoleConfig> = {
     assistant: {
       placement: 'start',
@@ -99,7 +79,6 @@ export function useDefaultBubbleConfig(options?: UseDefaultBubbleConfigOptions) 
     system: {
       hidden: true,
     },
-    // 用户覆盖的角色配置
     ...options?.overrideRoles,
   }
 

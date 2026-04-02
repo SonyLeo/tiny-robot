@@ -3,8 +3,8 @@ import { useClipboard } from '@vueuse/core'
 import { IconEditPen } from '@opentiny/tiny-robot-svgs'
 import type { BubbleMessage, FeedbackProps } from '@opentiny/tiny-robot'
 import type { ChatMessage } from '@opentiny/tiny-robot-kit'
-import { useResolvedChatMessages } from '@/messages'
-import { getChatRenderSourceMessage, unwrapChatRenderMessages } from '@/composables/chatRenderMessages'
+import { useResolvedChatMessages } from '@/shared/messages'
+import { getChatRenderSourceMessage, unwrapChatRenderMessages } from '@/runtime/chat-kit/chatRenderMessages'
 import type {
   ChatMessageActionContext,
   ChatMessageActionDefinition,
