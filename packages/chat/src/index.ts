@@ -96,25 +96,10 @@ export {
   createChatAdapterFromConfig,
   createPresetChatProps,
   createPresetChatSlices,
-  CHAT_CLI_CONSUMABLE_FEATURE_KEYS,
-  CHAT_CLI_CONSUMABLE_PRESET_PROP_KEYS,
-  CHAT_CLI_CONSUMABLE_PRESET_SLICE_KEYS,
-  createChatCliCapabilitySurface,
   CHAT_FEATURE_REGISTRY,
   resolveChatFeatures,
 } from './runtime/config'
-export { CHAT_CAPABILITY_MANIFEST, createChatCapabilityManifest } from './runtime/config/capabilities'
 export { CHAT_MESSAGES, resolveChatMessages } from './shared/messages'
-export {
-  resolveAgentPreset,
-  applyAgentPresetToConfig,
-  createChatAdapterFromAgentPreset,
-  createPresetConsumptionFromAgentPreset,
-  BUILT_IN_AGENT_PRESETS,
-  BUILT_IN_SKILL_PACKS,
-  getBuiltInAgentPreset,
-  getBuiltInSkillPack,
-} from './runtime/presets'
 
 export type {
   BrandConfig,
@@ -179,10 +164,6 @@ export type { UseChatAttachmentsReturn } from './components/attachments/useChatA
 export type {
   ChatAdapter,
   ChatPresetAppearanceSlice,
-  ChatCliCapabilitySurface,
-  ChatCliConsumableFeatureKey,
-  ChatCliConsumablePresetPropKey,
-  ChatCliConsumablePresetSliceKey,
   ChatConfig,
   ChatConfigDefaults,
   ChatConfigRuntime,
@@ -223,25 +204,5 @@ export type {
   ChatWelcomePromptsFeatureResolution,
   ResolvedChatFeatures,
 } from './runtime/config'
-export type {
-  ChatCapabilityManifest,
-  ChatCapabilityCatalogEntry,
-  ChatCapabilityPresetEntry,
-} from './runtime/config/capabilities'
-export type {
-  AgentPresetConsumptionResult,
-  AgentPresetInput,
-  AgentPresetResolutionResult,
-  AgentPresetRuntimeInput,
-  AgentPresetUiInput,
-  BuiltInAgentPresetId,
-  BuiltInSkillPackId,
-  CreatePresetConsumptionFromAgentPresetOptions,
-  ApplyAgentPresetOptions,
-  CreateChatAdapterFromAgentPresetOptions,
-  ResolveAgentPresetOptions,
-  ResolvedAgentPreset,
-  SkillPackInput,
-} from './runtime/presets'
 
 export { KNOWN_PROVIDERS, type KnownProvider } from './shared/utils/iconMap'

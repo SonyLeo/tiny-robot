@@ -22,9 +22,7 @@ const mcpManagerModule = await jiti.import('../src/components/mcp/useMcpManager.
 const modelSelectorModule = await jiti.import('../src/components/model-selector/useModelSelector.ts')
 const adapterModule = await jiti.import('../src/runtime/config/index.ts')
 const transportModule = await jiti.import('../src/runtime/config/openaiCompatibleTransport.ts')
-const presetsModule = await jiti.import('../src/runtime/presets/index.ts')
 const messagesModule = await jiti.import('../src/shared/messages/index.ts')
-const capabilitiesModule = await jiti.import('../src/runtime/config/capabilities.ts')
 const rootChatKitModule = await jiti.import('../src/runtime/scaffold/resolveRootChatKit.ts')
 
 export { assert, computed, nextTick, ref, shallowRef }
@@ -44,25 +42,12 @@ export const useModelSelector = modelSelectorModule.useModelSelector
 
 export const loadChatConfig = adapterModule.loadChatConfig
 export const createChatAdapterFromConfig = adapterModule.createChatAdapterFromConfig
-export const createChatCliCapabilitySurface = adapterModule.createChatCliCapabilitySurface
 export const createPresetChatProps = adapterModule.createPresetChatProps
 export const createPresetChatSlices = adapterModule.createPresetChatSlices
-export const CHAT_CLI_CONSUMABLE_FEATURE_KEYS = adapterModule.CHAT_CLI_CONSUMABLE_FEATURE_KEYS
-export const CHAT_CLI_CONSUMABLE_PRESET_PROP_KEYS = adapterModule.CHAT_CLI_CONSUMABLE_PRESET_PROP_KEYS
-export const CHAT_CLI_CONSUMABLE_PRESET_SLICE_KEYS = adapterModule.CHAT_CLI_CONSUMABLE_PRESET_SLICE_KEYS
 export const resolveChatFeatures = adapterModule.resolveChatFeatures
-export const resolveAgentPreset = presetsModule.resolveAgentPreset
-export const createChatAdapterFromAgentPreset = presetsModule.createChatAdapterFromAgentPreset
-export const createPresetConsumptionFromAgentPreset = presetsModule.createPresetConsumptionFromAgentPreset
-export const BUILT_IN_AGENT_PRESETS = presetsModule.BUILT_IN_AGENT_PRESETS
-export const BUILT_IN_SKILL_PACKS = presetsModule.BUILT_IN_SKILL_PACKS
-export const getBuiltInAgentPreset = presetsModule.getBuiltInAgentPreset
-export const getBuiltInSkillPack = presetsModule.getBuiltInSkillPack
 
 export const CHAT_MESSAGES = messagesModule.CHAT_MESSAGES
 export const resolveChatMessages = messagesModule.resolveChatMessages
-export const createChatCapabilityManifest = capabilitiesModule.createChatCapabilityManifest
-export const CHAT_CAPABILITY_MANIFEST = capabilitiesModule.CHAT_CAPABILITY_MANIFEST
 export const getRootChatKitResolution = rootChatKitModule.getRootChatKitResolution
 export const resolveRootChatKit = rootChatKitModule.resolveRootChatKit
 export const ChatProviderError = transportModule.ChatProviderError

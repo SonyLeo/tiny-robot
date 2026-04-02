@@ -74,7 +74,6 @@ await runTest('named exports still advertise the retained scaffold and helper su
     'TrChatHistorySurface',
     'TrChatWorkspaceShell',
     'TrChatWorkspaceRightSheet',
-    'createPresetConsumptionFromAgentPreset',
   ]
 
   retainedExports.forEach((token) => {

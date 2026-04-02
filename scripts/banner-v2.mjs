@@ -2,7 +2,6 @@
 /**
  * banner-v2.mjs — 独立 Banner 演示脚本
  *
- * 核心逻辑已迁移至 packages/chat-cli/utils/banner.js（可复用模块）。
  * 本文件保留作为独立演示/预览脚本使用。
  *
  * 运行：node scripts/banner-v2.mjs

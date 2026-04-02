@@ -231,4 +231,3 @@ const chatConfig = {
 
 - [Chat 功能配置](./chat-features.md)
 - [Chat 进阶了解](./chat-advanced.md)
-- [Chat CLI 脚手架](./chat-cli.md)

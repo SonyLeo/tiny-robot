@@ -39,7 +39,6 @@ src/
     utils/
   runtime/
     config/
-    presets/
     chat-kit/
     scaffold/
   components/
@@ -60,7 +59,6 @@ src/
 - [internal.ts](../src/internal.ts)
 - [types/index.ts](../src/types/index.ts)
 - [runtime/config/index.ts](../src/runtime/config/index.ts)
-- [runtime/presets/index.ts](../src/runtime/presets/index.ts)
 - [runtime/chat-kit/index.ts](../src/runtime/chat-kit/index.ts)
 - [runtime/scaffold/index.ts](../src/runtime/scaffold/index.ts)
 
@@ -106,11 +104,6 @@ src/
   - `createChatAdapterFromConfig`
   - `createPresetChatProps`
   - `createPresetChatSlices`
-  - `createChatCliCapabilitySurface`
-  - `CHAT_CAPABILITY_MANIFEST`
-  - `resolveAgentPreset`
-  - `createChatAdapterFromAgentPreset`
-  - `createPresetConsumptionFromAgentPreset`
 
 ## 4. 黑盒与白盒主链
 
@@ -149,7 +142,7 @@ TrChat
   - 将黑盒默认页面拼成 header / body / footer 三个区域
   - 在 workspace shell 和普通 layout 之间切换
 
-## 5. config / adapter / preset 链路
+## 5. config / adapter / projection 链路
 
 关键文件：
 
@@ -158,8 +151,6 @@ TrChat
 - [types.ts](../src/runtime/config/types.ts)
 - [featureTypes.ts](../src/runtime/config/featureTypes.ts)
 - [registry.ts](../src/runtime/config/registry.ts)
-- [chatCli.ts](../src/runtime/config/chatCli.ts)
-- [capabilities.ts](../src/runtime/config/capabilities.ts)
 
 当前链路是：
 
@@ -186,8 +177,7 @@ loadChatConfig
   - 把 config 和 overrides 合成为黑盒消费的页面级 props
 - `createPresetChatSlices`
   - 将 props 投影成白盒叶子组件可直接消费的 slices
-- `createChatCliCapabilitySurface` / `CHAT_CAPABILITY_MANIFEST`
-  - 暴露给 chat-cli 和外部工具使用的稳定能力元数据
+- 当前这一层只保留 chat 本体运行时所需的配置与投影逻辑
 
 ## 6. runtime / chat-kit
 
@@ -406,3 +396,5 @@ useChatKit
 - `messageActions`
 - `bubbleRenderers`
 - `messageTransforms`
+
+当前已收敛为 chat 本体能力实现，不再保留额外的工具化层。

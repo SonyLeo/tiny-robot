@@ -37,7 +37,6 @@ Top-level areas:
 - `packages/components`: core UI component library
 - `packages/kit`: runtime/chat orchestration primitives
 - `packages/chat`: higher-level chat package built on `components + kit`, including package source, demos, docs, and tests
-- `packages/chat-cli`: CLI and template/scaffold tooling for chat-oriented apps
 - `packages/playground`: interactive playground
 - `packages/test`: automated tests
 - `packages/svgs`: icon/build assets
