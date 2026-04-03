@@ -1,5 +1,6 @@
 import type { ComputedRef, Ref } from 'vue'
 import type { ChatMessage, ConversationStorageStrategy, UseMessagePlugin } from '@opentiny/tiny-robot-kit'
+import type { StructuredData } from '@opentiny/tiny-robot'
 import type { ChatAdapter, ChatConfig, ChatPresetProps, ChatPresetSlices } from '@/runtime/config'
 import type { UseMcpManagerReturn } from '@/components/mcp/useMcpManager'
 import type { ModelOption, TrChatPresetOverrides, UseChatKitOptions, UseChatKitReturn } from '@/types'
@@ -14,7 +15,21 @@ export interface ChatScaffoldRuntimeInput {
   selectedModel?: string
 }
 
+export interface ChatBeforeSendPayload {
+  text: string
+  structuredData?: StructuredData
+}
+
+export type ChatBeforeSendResult =
+  | false
+  | void
+  | {
+      text?: string
+      structuredData?: StructuredData
+    }
+
 export interface ChatScaffoldCallbacks {
+  onBeforeSend?: (payload: ChatBeforeSendPayload) => ChatBeforeSendResult | Promise<ChatBeforeSendResult>
   onFinish?: (message: ChatMessage) => void
   onError?: (error: Error) => void
   onMessageAction?: NonNullable<TrChatPresetOverrides['onMessageAction']>

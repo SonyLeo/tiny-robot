@@ -1,6 +1,8 @@
 import { getCurrentInstance, inject, type ComputedRef, type InjectionKey, type Ref } from 'vue'
 import type {
   ChatAttachmentsFeaturePreset,
+  ChatBeforeSendPayload,
+  ChatBeforeSendResult,
   ChatMessageActionsInput,
   ChatMessageActionsMode,
   ChatMessageActionPayload,
@@ -55,6 +57,9 @@ export const CHAT_SENDER_ACTIONS_KEY: InjectionKey<{
 
 export const CHAT_MESSAGES_KEY: InjectionKey<ComputedRef<ChatMessages>> = Symbol('chatMessages')
 export const CHAT_SCAFFOLD_KEY: InjectionKey<TrChatScaffoldContextValue> = Symbol('chatScaffold')
+export const CHAT_BEFORE_SEND_KEY: InjectionKey<
+  ((payload: ChatBeforeSendPayload) => ChatBeforeSendResult | Promise<ChatBeforeSendResult>) | undefined
+> = Symbol('chatBeforeSend')
 
 export const MESSAGE_ACTION_KEY: InjectionKey<((payload: ChatMessageActionPayload) => void) | undefined> =
   Symbol('messageAction')

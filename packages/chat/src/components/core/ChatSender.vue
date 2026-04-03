@@ -3,7 +3,13 @@ import { inject, ref, computed, useSlots, useAttrs } from 'vue'
 import type { PropType, Slot } from 'vue'
 import { TrSender, UploadButton, VoiceButton } from '@opentiny/tiny-robot'
 import type { StructuredData } from '@opentiny/tiny-robot'
-import { CHAT_ATTACHMENTS_KEY, CHAT_KIT_KEY, CHAT_SENDER_ACTIONS_KEY, useChatScaffoldContext } from '@/shared/context'
+import {
+  CHAT_ATTACHMENTS_KEY,
+  CHAT_BEFORE_SEND_KEY,
+  CHAT_KIT_KEY,
+  CHAT_SENDER_ACTIONS_KEY,
+  useChatScaffoldContext,
+} from '@/shared/context'
 import { useResolvedChatMessages } from '@/shared/messages'
 
 defineOptions({ name: 'TrChatSender', inheritAttrs: false })
@@ -23,6 +29,7 @@ const props = defineProps({
 const chatKit = inject(CHAT_KIT_KEY)!
 const attachmentsContext = inject(CHAT_ATTACHMENTS_KEY, null)
 const senderActionsContext = inject(CHAT_SENDER_ACTIONS_KEY, null)
+const beforeSendHandler = inject(CHAT_BEFORE_SEND_KEY, undefined)
 const chatMessages = useResolvedChatMessages()
 const attrs = useAttrs()
 const slots = useSlots() as Record<string, Slot | undefined>
@@ -73,7 +80,33 @@ const mergedSenderAttrs = computed(() => ({
 }))
 
 async function handleSend(content: string, data?: StructuredData) {
-  await chatKit.sendMessage(content, data)
+  let payload = {
+    text: content,
+    structuredData: data,
+  }
+
+  if (beforeSendHandler) {
+    try {
+      const result = await beforeSendHandler(payload)
+      if (result === false) {
+        return
+      }
+
+      payload = {
+        ...payload,
+        ...(result ?? {}),
+      }
+    } catch (error) {
+      console.error('[TrChatSender] onBeforeSend failed:', error)
+      return
+    }
+  }
+
+  if (!payload.text.trim()) {
+    return
+  }
+
+  await chatKit.sendMessage(payload.text, payload.structuredData)
   attachmentsContext?.manager.clear()
   inputValue.value = ''
 }

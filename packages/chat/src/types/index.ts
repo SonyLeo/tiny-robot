@@ -1,5 +1,7 @@
 export type {
   ChatScaffoldCallbacks,
+  ChatBeforeSendPayload,
+  ChatBeforeSendResult,
   ChatScaffoldRuntimeInput,
   TrChatScaffoldContextValue,
   TrChatScaffoldProps,

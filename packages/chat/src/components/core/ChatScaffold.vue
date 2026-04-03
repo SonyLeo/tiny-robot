@@ -3,7 +3,7 @@ import { computed, provide, ref, useSlots, watch, type Slot } from 'vue'
 import { createChatAdapterFromConfig, createPresetChatProps, createPresetChatSlices } from '@/runtime/config'
 import { useChatKit } from '@/runtime/chat-kit/useChatKit'
 import { useModelSelector } from '@/components/model-selector/useModelSelector'
-import { CHAT_SCAFFOLD_KEY } from '@/shared/context'
+import { CHAT_BEFORE_SEND_KEY, CHAT_SCAFFOLD_KEY } from '@/shared/context'
 import type { ModelOption, UseChatKitReturn } from '@/types'
 import type { TrChatScaffoldContextValue, TrChatScaffoldProps } from '@/types/scaffold'
 import {
@@ -156,6 +156,9 @@ function handleDefaultRendererModelUpdate(modelValue: string) {
 }
 
 provide(CHAT_SCAFFOLD_KEY, scaffoldContext)
+if (props.callbacks?.onBeforeSend) {
+  provide(CHAT_BEFORE_SEND_KEY, props.callbacks.onBeforeSend)
+}
 </script>
 
 <template>

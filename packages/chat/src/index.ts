@@ -104,6 +104,8 @@ export { CHAT_MESSAGES, resolveChatMessages } from './shared/messages'
 export type {
   BrandConfig,
   ChatScaffoldCallbacks,
+  ChatBeforeSendPayload,
+  ChatBeforeSendResult,
   ChatScaffoldRuntimeInput,
   ChatAppearanceConfig,
   ChatContentLayout,
