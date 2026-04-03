@@ -1,54 +1,145 @@
 ---
-outline: deep
+outline: [2, 3]
 ---
 
-# Chat 进阶了解
+# Chat 定制与进阶
 
-这页是补充资料。现在的目标如果只是把 `TrChat` 用起来，可以先跳过。
+这页只解决一个问题：
 
-这页主要讲两类内容：
+- 当 `TrChat` 默认入口已经不够用时，应该如何升级到结构定制、运行时扩展和更高层装配
 
-- 继续使用 `TrChat` 时，还能怎么扩展
-- 只有在更高定制层才需要单独消费的公开组件和配置加工能力
+如果你现在只是想先把 chat 跑起来，或者只是想查配置字段，建议先回到：
 
-## 什么情况下再来看
+- [Chat 接入与入口](./chat.md)
+- [Chat 配置与能力](./chat-features.md)
+
+## 什么时候该看这页
 
 适合：
 
-- 你已经熟悉 `TrChat`、`presetOverrides` 和常见插槽
-- 你现在要继续扩消息级动作、消息渲染或运行时消息结果
-- 或者你要做更高一层的页面装配或中间层封装
+- 你已经熟悉 `TrChat`、`presetOverrides` 和常见 slots
+- 你现在要继续扩消息动作、消息渲染或运行时结果
+- 你要做 workspace 左右面板、页面结构重排，或接入 MCP
 
 不适合：
 
 - 第一次接入 `@opentiny/tiny-robot-chat`
-- 还在确认 `TrChat` 本身是否已经够用
-- 还没明确遇到“默认入口做不到”的问题
+- 还没确认 `TrChat` 是否已经够用
+- 还在查配置字段和能力开关写在哪里
 
-如果你还在前面的阶段，建议先看：
+## 定制升级路径
 
-- [Chat 快速接入](./chat.md)
-- [先看这 4 个入口](./chat.md#先看这-4-个入口)
-- [局部定制](./chat.md#局部定制)
-- [页面级覆盖](./chat.md#页面级覆盖)
+建议按下面这条路径逐级升级：
 
-## 先看这些扩展能力
+| 你要做什么 | 推荐入口 | 什么时候再往上走 |
+| :-- | :-- | :-- |
+| 改布局、文案、默认开关 | `presetOverrides` | 覆盖不够再用 slots |
+| 换局部 UI | `slots` | 默认结构本身不合适再进 `Scaffold` |
+| 重排页面结构，但仍想复用默认配置能力 | `TrChat.Scaffold` | 需要自己管 runtime 再进 `Root` |
+| 自己决定页面装配和底层输入 | `TrChat.Root` | - |
+| 扩展消息动作、消息渲染、运行时消息结果 | `presetOverrides` + 顶层 `runtime` | - |
 
-如果你现在主要还是继续使用 `TrChat`，这页最值得先看的其实是下面这些能力：
+一条实用规则：
 
-| 能力 | 什么时候才需要看 |
+- 先继续留在 `TrChat`
+- 确认默认入口真做不到时，再进入 `Scaffold` 或 `Root`
+
+## 结构定制
+
+### 继续使用 `TrChat` 时，先试这 3 类手段
+
+1. `presetOverrides`
+   - 改布局模式、占位文案、默认能力开关
+2. `slots`
+   - 替换 header、welcome、sender、message-list 局部内容
+3. workspace panel slots
+   - 只替换 workspace 左右面板内容
+
+常用 slots：
+
+| slot | 适合做什么 |
 | :-- | :-- |
-| `messageActions` | 你要给消息下方扩业务按钮，但不想接管整页消息列表 |
-| `bubbleRenderers` | 你要替换某一类消息的默认渲染 |
-| `messageTransforms` | 你要在运行时改写模型结果，再交给页面渲染 |
-| `chatKit.runtime` | 你要读更细的请求状态或访问当前 engine |
+| `header-extra` | 给默认 header 右侧补按钮或工具位 |
+| `footer-extra` | 给默认 footer 顶部补说明或状态条 |
+| `welcome` | 替换欢迎区 |
+| `sender` | 接管底部输入区 UI，但保留默认运行时 |
+| `message-list` | 接管中间消息区 |
+| `left` / `left-rail` / `right` | 在 workspace 模式下替换左右面板内容 |
+| `mobile-left` / `mobile-right` | 在 workspace 模式下替换移动端 drawer / sheet |
 
-如果这些都不是你现在的问题，可以直接跳到：
+### Workspace 面板级定制
 
-- [高级公开组件](#高级公开组件)
-- [配置加工能力](#配置加工能力)
+如果你只是想替换 workspace 左右面板内容，不需要为了这件事直接进入 `Scaffold` 或 `Root`。
 
-## 扩展消息下方动作
+推荐顺序：
+
+- 继续使用 `TrChat`
+- 通过 `left / left-rail / right / mobile-left / mobile-right` 替换面板内容
+- 保留默认聊天主区、模型选择和默认运行时
+
+<demo vue="../../demos/chat/workspace-panel-slots.vue" :vueFiles="['../../demos/chat/workspace-panel-slots.vue']" title="Workspace 面板级定制" description="继续使用 TrChat，只替换 workspace 左右面板内容。" />
+
+### 当 slots 不够时：`TrChat.Scaffold`
+
+`TrChat.Scaffold` 适合：
+
+- 页面结构要改
+- 但仍希望继续沿用默认配置能力和 `presetSlices`
+
+可以把它理解成：
+
+- “开始自己排页面”
+- “但还不想自己重写整条 config -> preset -> UI 装配链”
+
+一个最小示意：
+
+```vue
+<TrChat.Scaffold :config="chatConfig" v-slot="{ chatKit, presetSlices }">
+  <TrChat.Layout>
+    <TrChat.Header v-bind="presetSlices.header" />
+
+    <TrChat.Welcome
+      v-if="chatKit.messages.value.length === 0 && presetSlices.welcome"
+      v-bind="presetSlices.welcome"
+      @prompt-click="chatKit.sendMessage($event)"
+    />
+
+    <TrChat.MessageList v-else v-bind="presetSlices.messageList" />
+
+    <TrChat.Footer>
+      <TrChat.Sender v-bind="presetSlices.sender" />
+    </TrChat.Footer>
+  </TrChat.Layout>
+</TrChat.Scaffold>
+```
+
+### 需要自己接管 runtime 时：`TrChat.Root`
+
+`TrChat.Root` 适合：
+
+- 你已经明确要自己装配页面
+- 你愿意手动管理更底层输入
+- 你已经有自己的 `chatKit` 或 `responseProvider`
+
+一个最小示意：
+
+```vue
+<TrChat.Root :chat-kit="chatKit">
+  <div class="tr-chat" style="height: 100%">
+    <TrChat.Header title="手动组合页面" />
+    <TrChat.MessageList />
+    <TrChat.Footer>
+      <TrChat.Sender />
+    </TrChat.Footer>
+  </div>
+</TrChat.Root>
+```
+
+如果你只是想替换 workspace 面板，不要直接从这里开始。
+
+## 运行时扩展
+
+### 扩展消息下方动作
 
 如果你想继续使用 `TrChat`，但要在消息下方增加业务动作，不需要先接管整页 `message-list`。
 
@@ -57,12 +148,7 @@ outline: deep
 - `presetOverrides.messageActions`
 - `presetOverrides.messageActionsMode`
 
-适合：
-
-- assistant 消息下增加“保存到案例库”“创建工单”“加入知识库”这类动作
-- user 消息下增加“保存为模板”“再次编辑”这类动作
-
-一个最小示例：
+最小示例：
 
 ```ts
 const presetOverrides = {
@@ -80,19 +166,7 @@ const presetOverrides = {
 }
 ```
 
-默认行为：
-
-- 不写 `messageActionsMode` 时，内置动作会保留
-- 写 `messageActionsMode: 'replace'` 时，使用你自己的动作列表
-
-当前支持的两个 placement：
-
-- `actions`
-  - 更适合右侧 icon 型动作
-- `operations`
-  - 更适合左侧文本型业务动作
-
-## 替换某类消息的默认渲染
+### 替换某类消息的默认渲染
 
 如果你只想替换某一类消息的默认渲染，不需要直接接管 `message-list`。
 
@@ -100,7 +174,7 @@ const presetOverrides = {
 
 - `presetOverrides.bubbleRenderers`
 
-一个最小示例：
+最小示例：
 
 ```ts
 const presetOverrides = {
@@ -117,18 +191,12 @@ const presetOverrides = {
 }
 ```
 
-适合：
+一个常见顺序是：
 
-- 某类消息渲染成卡片
-- 某类消息渲染成 artifact / 审批块 / 结果块
-- 只替换命中的消息，其他消息仍保留默认渲染链
+1. 先用 `messageTransforms` 改写结果
+2. 再用 `bubbleRenderers` 命中 renderer
 
-一个常见推荐顺序是：
-
-1. 先用 `messageTransforms` 把结果改写成可识别格式
-2. 再用 `bubbleRenderers` 命中对应 renderer
-
-## 运行时改写消息结果
+### 运行时改写消息结果
 
 如果你想在消息真正渲染前改写结果，当前推荐从 `runtime.messageTransforms` 进入。
 
@@ -137,7 +205,7 @@ const presetOverrides = {
 - `onChunk`
 - `onFinish`
 
-一个最小示例：
+最小示例：
 
 ```ts
 const runtime = {
@@ -154,81 +222,15 @@ const runtime = {
 }
 ```
 
-如果你要在流式过程中补充运行时信息，也可以用：
-
-```ts
-const runtime = {
-  messageTransforms: {
-    onChunk({ currentMessage }) {
-      currentMessage.metadata ??= {}
-      currentMessage.metadata.chunkCount =
-        (currentMessage.metadata.chunkCount ?? 0) + 1
-    },
-  },
-}
-```
-
 适合：
 
 - 过滤模型原始文本
 - 给最终消息补 metadata
 - 改写最终消息内容，再交给 renderer 命中
-- 观察流式 chunk
 
-不建议：
+### 什么时候才需要看 `chatKit.runtime`
 
-- 在 transform 里直接塞太多复杂业务编排
-- 把 transform 当成 transport 层替代品
-
-## MCP 最小接入
-
-如果你现在要解决的不是“进阶原理”，而是“让模型先能调一个 MCP 工具”，可以先看这个最小 recipe。
-
-它放在这一页，而不是放在 quick start，原因是：
-
-- 它依赖 `runtime.plugins`
-- 它依赖 `mcpManager`
-- 它涉及 tool call 这条运行时链
-
-也就是说，这个场景已经属于“带运行时扩展点的接入”，而不是第一步把 `TrChat` 跑起来的必需内容。
-
-最小闭环只需要 3 件事：
-
-1. 用 `useMcpManager()` 托管工具列表和工具执行
-2. 用 `toolPlugin({ getTools, callTool })` 把工具接入消息请求链
-3. 把 `mcpManager` 通过 `runtime.mcpManager` 传给 `TrChat`
-
-```ts
-const mcpManager = useMcpManager({
-  initialPlugins: [demoPlugin],
-})
-
-const runtime = {
-  mcpManager,
-  plugins: [
-    toolPlugin({
-      getTools: mcpManager.getTools,
-      callTool: mcpManager.callTool,
-    }),
-  ],
-}
-```
-
-这个示例刻意不再模拟假的 `tool_calls`、假工具结果或额外的 mock `responseProvider`，避免把“文档站 demo 逻辑”误读成“MCP 接入必须写这么多代码”。
-
-真正落地时，只需要把 `mcpManager.bridge` 对接到你的后端或真实 MCP bridge，让模型正常返回 `tool_calls` 即可。
-
-<demo vue="../../demos/chat/mcp-minimal.vue" :vueFiles="['../../demos/chat/mcp-minimal.vue']" title="MCP 最小集成" description="只展示 mcpManager + toolPlugin + runtime.mcpManager 的最小前端接线，不额外模拟工具调用。" />
-
-生产建议：
-
-- 前端不要直接托管真实 MCP server 的敏感凭证或 session
-- 工具数量先少后多，第一版先保持“一个工具 + 一条完整调用链”
-- 工具 schema 先小而准，不要一开始堆过多参数和复杂描述
-
-## 什么时候才需要看 `chatKit.runtime`
-
-大多数直接使用 `TrChat` 的页面，不需要手动消费 runtime bridge。
+大多数直接使用 `TrChat` 的页面，并不需要手动消费 runtime bridge。
 
 只有在这些场景里，才值得继续往下看：
 
@@ -237,7 +239,7 @@ const runtime = {
 - 你要手动 `clear`
 - 你要手动 `saveMessages`
 
-当前可用能力包括：
+当前可用能力：
 
 - `chatKit.runtime.activeEngine`
 - `chatKit.runtime.requestState`
@@ -246,119 +248,88 @@ const runtime = {
 - `chatKit.runtime.clear()`
 - `chatKit.runtime.saveMessages()`
 
-这层能力是“必要的底层 bridge”，不是为了把 `chat` 变成 `kit` 的完整替代品。
+## MCP 最小接入
 
-## 高级公开组件
+如果你现在要解决的不是“原理”，而是“先让模型能挂上 MCP 工具”，可以直接看这个最小 recipe。
 
-如果你已经明确遇到“单靠 `TrChat` 主入口不够”的问题，再继续看这些公开组件。
+最小闭环只需要 3 件事：
 
-| 能力 | 什么时候才需要看 |
-| :-- | :-- |
-| `TrChat.HistorySurface` | 你要把历史区单独抽出来放进自定义页面 |
-| `TrModelSelector` | 你要在默认 footer 之外单独摆模型切换 |
-| `TrMcpTrigger` / `TrChatMcpPanel` | 你要在更高层页面单独摆 MCP 入口或 MCP 面板 |
-| `TrChat.WorkspaceLayout` / `TrChat.WorkspaceShell` / `TrChat.WorkspaceRightSheet` | 你要显式消费 workspace shell 相关公开 surface |
+1. 用 `useMcpManager()` 托管工具列表和工具执行
+2. 用 `toolPlugin({ getTools, callTool })` 把工具接入消息请求链
+3. 把 `mcpManager` 通过 `runtime.mcpManager` 传给 `TrChat`
 
-### `TrChat.HistorySurface`
+<demo vue="../../demos/chat/mcp-minimal.vue" :vueFiles="['../../demos/chat/mcp-minimal.vue']" title="MCP 最小集成" description="只展示 mcpManager + toolPlugin + runtime.mcpManager 的最小前端接线，不额外模拟工具调用。" />
 
-`TrChat.HistorySurface` 适合在更高定制页面里，单独渲染一块独立历史区域。
+真正落地时，只需要把 `mcpManager.bridge` 对接到你的后端或真实 MCP bridge，让模型正常返回 `tool_calls` 即可。
 
-适合：
+## 公开组件与工具函数
 
-- 左侧会话列表
-- 独立面板布局
-- 需要把历史区从默认页面里单独拿出来
+以下表格都对应 [packages/chat/src/index.ts](e:/LS_WorkSpace/web/tiny-robot/packages/chat/src/index.ts) 当前真实导出的 public surface。
 
-### `TrMcpTrigger`
+### `TrChat` compound components
 
-`TrMcpTrigger` 是 chat 层提供的 MCP 入口触发器。
+这些成员最适合做 whitebox 或半白盒组装：
 
-适合：
+| API | 作用 | 适合什么时候用 |
+| :-- | :-- | :-- |
+| `TrChat.Scaffold` | 保留 config -> preset -> root 链路，但自己排页面 | 想改结构但还想复用默认能力 |
+| `TrChat.Root` | 建立 chat runtime / ui context 根 | 已有 `chatKit`，或要自己接 `responseProvider` |
+| `TrChat.Layout` | 默认 stacked 主体布局容器 | 自己重组 header / body / footer |
+| `TrChat.WorkspaceLayout` | workspace 壳层布局 | 自己接 left / right / mobile sheet |
+| `TrChat.Header` | 默认 header 组件 | 单独摆标题、历史入口、新会话入口 |
+| `TrChat.Welcome` | 默认欢迎区 | 白盒组装欢迎态 |
+| `TrChat.MessageList` | 默认消息列表 | 保留默认 bubble 链与 actions |
+| `TrChat.Footer` | 默认 footer 容器 | 继续复用默认底部分区 |
+| `TrChat.Attachments` | 默认附件列表区域 | 白盒页里单独摆附件区 |
+| `TrChat.Sender` | 默认发送区 | 继续复用发送、取消、附件动作 |
+| `TrChat.History` | 默认历史面板 | 整块复用会话历史 |
+| `TrChat.HistorySurface` | 历史表面组件 | 把历史区抽离到别处展示 |
+| `TrChat.WorkspaceShell` | workspace 桌面壳层 | 自己接管左右区域宽度、折叠和主题 |
+| `TrChat.WorkspaceRightSheet` | 移动端右侧 sheet | 单独复用移动端右栏入口 |
 
-- 放在 sender footer 工具条
-- 在更高定制页面里单独暴露 MCP 入口
-- 复用 chat 层默认的桌面端 / 移动端交互样式
+### 白盒入口核心 props
 
-### `TrChatMcpPanel`
+最常需要查的是 `Scaffold` 和 `Root` 这两个入口：
 
-`TrChatMcpPanel` 用于承接聊天场景中的 MCP 面板本体能力。
+| API | 核心 props | 说明 |
+| :-- | :-- | :-- |
+| `TrChat.Scaffold` | `config`、`runtime`、`callbacks`、`presetOverrides` | 和顶层 `TrChat` 基本一致，但默认通过 `slot` 暴露 `chatKit / adapter / presetProps / presetSlices / currentModel / selectModel` |
+| `TrChat.Root` | 二选一：`chatKit` 或 `responseProvider` | 如果不传 `chatKit`，可以继续传 `plugins / storage / initialMessages / messageTransforms / onFinish / onError` 让它内部创建 runtime |
+| `TrChat.Root` 共享 props | `mcpManager`、`attachmentsManager`、`attachmentsFeature`、`senderActionsFeature`、`messages`、`shell` | 这些会进入 root context，被叶子组件直接消费 |
 
-适合：
+### 独立公开组件
 
-- 已经有自己的 MCP 入口按钮，只想复用面板本体
-- 在 header / toolbar 中提供 MCP 面板入口
-- 与 `mcpManager` 配合，展示插件与工具列表
+这些组件也以 named export 的方式单独暴露，适合不想通过 `TrChat.*` 访问时使用：
 
-### `TrModelSelector`
+| API | 对应成员 | 作用 |
+| :-- | :-- | :-- |
+| `TrChatScaffold` | `TrChat.Scaffold` | 单独导入 scaffold |
+| `TrChatLayout` | `TrChat.Layout` | 单独导入 stacked layout |
+| `TrChatWorkspaceLayout` | `TrChat.WorkspaceLayout` | 单独导入 workspace layout |
+| `TrChatAttachments` | `TrChat.Attachments` | 单独导入附件区 |
+| `TrChatHistorySurface` | `TrChat.HistorySurface` | 单独导入历史 surface |
+| `TrChatWorkspaceShell` | `TrChat.WorkspaceShell` | 单独导入 workspace shell |
+| `TrChatWorkspaceRightSheet` | `TrChat.WorkspaceRightSheet` | 单独导入移动端右侧 sheet |
+| `TrChatFeedback` | 无 compound 同名成员 | 复用消息反馈区 |
+| `TrModelSelector` | 无 compound 同名成员 | 在任意位置单独摆模型切换 |
+| `TrMcpTrigger` | 无 compound 同名成员 | 在任意位置单独摆 MCP 入口 |
+| `TrChatMcpPanel` | 无 compound 同名成员 | 复用 MCP 面板本体 |
 
-`TrModelSelector` 用于消费当前模型列表和当前模型状态。
+### 这一页只保留少数值得手动消费的 API
 
-适合：
+`@opentiny/tiny-robot-chat` 的确还公开了更多 hooks、renderers 和底层常量，但对大多数业务接入并不构成稳定入口。  
 
-- 放在 footer 工具条
-- 放在 header 右侧扩展区
-- 在更高定制页面里单独暴露模型切换能力
-
-一个常见注意点：
-
-- `models`
-- `defaultModel`
-- 每个 model 的 `providerId`
-- `onModelChange`
-- 如果没显示图标，先检查 `providerId` 是否命中了内置 provider 图标
-- 如果你要强制指定图标，手动传 `ModelOption.icon`
-- 默认是否出现 selector，也仍然取决于模型数量、默认模型配置，以及页面是否保留了默认 footer 工具位
-
-### `TrChatFeedback`
-
-`TrChatFeedback` 用于在更高定制页面里单独消费消息反馈能力。
-
-适合：
-
-- 你已经自己写了 `TrChat.MessageList`
-- 但仍希望复用默认 feedback 行为
-
-### `TrChat.WorkspaceLayout` / `TrChat.WorkspaceShell` / `TrChat.WorkspaceRightSheet`
-
-这三个公开 surface 面向 workspace shell 场景。
-
-适合：
-
-- 你要显式消费 workspace 布局容器
-- 你要自己控制左侧 / 中间 / 右侧区域的组合
-- 你要单独复用移动端右侧 sheet 入口
-
-简单区分：
-
-- `TrChat.WorkspaceLayout`
-  - Chat 层的 workspace 装配容器，默认会把 history、right panel / sheet 这些结构一起接起来
-- `TrChat.WorkspaceShell`
-  - 更低一层的区域容器，适合你自己控制左右区域和折叠行为
-- `TrChat.WorkspaceRightSheet`
-  - 移动端右侧区域的 sheet 入口，适合单独复用
-
-如果你只是想替换 workspace 左右面板内容，优先继续使用 `TrChat` 上的面板级 slots：
-
-- `left`
-- `left-rail`
-- `right`
-- `mobile-left`
-- `mobile-right`
-
-如果你要重排 Header / Welcome / MessageList / Footer 整体结构，再继续进入这些公开组件。
-
-## 配置加工能力
-
-除了组件，`chat` 包还公开了配置归一化与配置加工能力。
-
-当前常见入口包括：
+这份组件文档只保留“用户在白盒接入时真的可能手动消费”的少数工具：
 
 | API | 作用 |
 | :-- | :-- |
-| `loadChatConfig` | 读取并规范化原始配置 |
 | `createChatAdapterFromConfig` | 从配置生成 adapter |
 | `createPresetChatProps` | 生成 preset props |
 | `createPresetChatSlices` | 生成叶子组件可消费的 preset slices |
+| `useChatKit` | 创建 chat facade runtime |
+| `useChatAttachments` | 创建附件 manager |
+| `useMcpManager` | 创建 MCP manager |
+| `useModelSelector` | 模型选择状态桥接 |
 
 建议只有在这些场景才进入这层能力：
 
@@ -368,29 +339,46 @@ const runtime = {
 
 如果你只是业务页面接入聊天 UI，通常先停在 `TrChat` 就够了。
 
-一个典型例子：
+其余更底层的公开导出：
 
-```ts
-import {
-  createChatAdapterFromConfig,
-  createPresetChatProps,
-  createPresetChatSlices,
-} from '@opentiny/tiny-robot-chat'
+- 更适合作为源码层能力保留
+- 不适合作为用户文档里的主参考入口
+- 真要追的话，直接看 [packages/chat/src/index.ts](e:/LS_WorkSpace/web/tiny-robot/packages/chat/src/index.ts)
 
-const adapter = createChatAdapterFromConfig(chatConfig)
-const presetProps = createPresetChatProps(adapter)
-const slices = createPresetChatSlices(presetProps)
-```
+## FAQ / 常见坑
 
-然后你可以把这些结果继续投影到更高层页面：
+### 什么时候该用 `Scaffold`，什么时候该用 `Root`
 
-<demo vue="../../demos/chat/advanced-preset-slices.vue" :vueFiles="['../../demos/chat/advanced-preset-slices.vue']" title="配置加工能力" description="先生成 adapter、presetProps、presetSlices，再把结果投影到更高层页面。" />
+推荐判断方式：
 
-## 相关页面
+- 还想复用默认配置能力和 `presetSlices`
+  - 先用 `Scaffold`
+- 已经明确要自己装配页面，并且愿意自己管 runtime
+  - 再用 `Root`
 
-- [Chat 快速接入](./chat.md)
-- [先看这 4 个入口](./chat.md#先看这-4-个入口)
-- [局部定制](./chat.md#局部定制)
-- [什么时候再看进阶内容](./chat.md#什么时候再看进阶内容)
-- [History 历史](./history.md)
-- [Feedback 气泡反馈](./feedback.md)
+### 只是替换 workspace 左右面板，是否需要进入 whitebox
+
+通常不需要。
+
+优先继续使用：
+
+- `TrChat`
+- `left / left-rail / right / mobile-left / mobile-right`
+
+### `messageActions`、`bubbleRenderers`、`messageTransforms` 为什么不在 `features`
+
+因为它们不是稳定默认能力开关，而是：
+
+- 页面级渲染扩展
+- 消息级行为扩展
+- 运行时结果改写
+
+所以它们应继续放在：
+
+- `presetOverrides`
+- 顶层 `runtime`
+
+## 继续阅读
+
+- [Chat 接入与入口](./chat.md)
+- [Chat 配置与能力](./chat-features.md)

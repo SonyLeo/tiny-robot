@@ -1,20 +1,24 @@
 <template>
   <div class="chat-demo-shell">
     <div class="demo-toolbar">
-      <button :class="buttonClass(layoutMode === 'centered')" @click="layoutMode = 'centered'">居中布局</button>
-      <button :class="buttonClass(layoutMode === 'wide')" @click="layoutMode = 'wide'">宽布局</button>
-      <button :class="buttonClass(themeMode === 'light')" @click="themeMode = 'light'">浅色主题</button>
-      <button :class="buttonClass(themeMode === 'dark')" @click="themeMode = 'dark'">深色主题</button>
-      <button :class="buttonClass(showHistory)" @click="showHistory = !showHistory">历史入口</button>
-      <button :class="buttonClass(showFeedback)" @click="showFeedback = !showFeedback">反馈能力</button>
+      <button :class="buttonClass(pageMode === 'base')" @click="pageMode = 'base'">基础页</button>
+      <button :class="buttonClass(pageMode === 'override')" @click="pageMode = 'override'">覆盖页</button>
     </div>
+
     <div class="demo-note">
-      默认 `centered` 会把内容区限制在 `1000px` 内，`wide` 会铺满可用容器。当前文档预览通常不足
-      `1000px`，所以这个示例把演示阈值临时压到了 `560px`，方便直接看到差异。在真实页面里，容器宽度达到 `1000px`
-      以上时变化最明显。
+      <strong>{{ activeScenario.title }}</strong>
+      <div class="demo-note-text">{{ activeScenario.description }}</div>
+      <div class="demo-note-text">
+        这个示例会把 `centered` 的演示阈值临时压到 `560px`，方便在文档预览里直接看出 `contentLayout` 的差异。
+      </div>
     </div>
+
+    <div class="override-chips">
+      <span v-for="item in activeScenario.chips" :key="item" class="override-chip">{{ item }}</span>
+    </div>
+
     <div class="chat-demo-container" data-demo-layout-preview="true">
-      <TrChat :config="chatConfig" :runtime="{ initialMessages }" :preset-overrides="presetOverrides" />
+      <TrChat :config="chatConfig" :runtime="{ initialMessages }" :preset-overrides="activePresetOverrides" />
     </div>
   </div>
 </template>
@@ -23,10 +27,9 @@
 import { computed, ref } from 'vue'
 import { TrChat } from '@opentiny/tiny-robot-chat'
 
-const layoutMode = ref<'centered' | 'wide'>('centered')
-const themeMode = ref<'light' | 'dark'>('light')
-const showHistory = ref(true)
-const showFeedback = ref(true)
+type PageMode = 'base' | 'override'
+
+const pageMode = ref<PageMode>('override')
 
 const chatConfig = {
   models: [
@@ -48,41 +51,67 @@ const chatConfig = {
       title: '页面级覆盖示例',
     },
     welcome: {
-      title: '页面级覆盖',
-      description: '这里会同时覆盖 contentLayout、history、feedback 和发送区扩展动作。',
+      title: '同一份基础配置',
+      description: '这里演示的不是 feature 开关，而是同一份 config 在不同页面里的轻量差异。',
     },
+  },
+  layout: {
+    contentLayout: 'centered' as const,
+  },
+  features: {
+    history: false,
+    feedback: false,
+    senderActions: false,
   },
 }
 
 const initialMessages = [
   {
     role: 'assistant',
-    content:
-      '这是一段专门用来观察 contentLayout 的演示消息。centered 会把欢迎区、消息区和底部输入区收束在一个最大宽度内，wide 则会尽量铺满整个可用容器。',
+    content: '这是一段专门用来观察页面级覆盖的演示消息。你现在看到的是同一份基础 config 下的某个页面实例。',
   },
   {
     role: 'user',
-    content: '请直接展示 centered 和 wide 在当前文档预览里的差别。',
+    content: '请说明为什么这里更适合用 presetOverrides，而不是再维护一份新的 config。',
   },
   {
     role: 'assistant',
     content:
-      '在真实组件默认值里，centered 的上限是 1000px。为了让文档里的预览窗口也能一眼看出差异，这个示例会把演示阈值临时压到 560px；切到 wide 后，消息列和输入区会明显向两侧展开。',
+      '因为模型、provider 和大多数 UI 默认值都没变，变化的只是当前页面对主题、宽度、history、feedback 和发送区细节的轻量调整。',
   },
 ]
 
-const presetOverrides = computed(() => ({
-  appearance: {
-    mode: themeMode.value,
+const scenarios = {
+  base: {
+    title: '基础页',
+    description: '直接使用基础 config，不额外增加页面差异。适合默认聊天页或最普通的业务接入页。',
+    chips: ['无页面级覆盖', 'centered', 'history 关闭', 'feedback 关闭'],
+    overrides: {},
   },
-  contentLayout: layoutMode.value,
-  showHistory: showHistory.value,
-  showFeedback: showFeedback.value,
-  placeholder: layoutMode.value === 'wide' ? '当前是 wide 布局...' : '当前是 centered 布局...',
-  senderActionsFeature: {
-    wordCount: true,
+  override: {
+    title: '覆盖页',
+    description:
+      '保持基础 config 不变，只在当前页面通过 `presetOverrides` 调整主题、内容宽度、history、feedback 和发送区行为。',
+    chips: ['appearance.dark', 'contentLayout: wide', 'showHistory', 'showFeedback', 'maxLength: 300', 'wordCount'],
+    overrides: {
+      appearance: {
+        mode: 'dark' as const,
+      },
+      contentLayout: 'wide' as const,
+      showHistory: true,
+      showFeedback: true,
+      placeholder: '当前是覆盖页...',
+      maxLength: 300,
+      senderActionsFeature: {
+        enabled: true,
+        wordCount: true,
+      },
+    },
   },
-}))
+} as const
+
+const activeScenario = computed(() => scenarios[pageMode.value])
+const activePresetOverrides = computed(() => activeScenario.value.overrides)
 
 function buttonClass(active: boolean) {
   return ['toolbar-button', { active }]
@@ -93,16 +122,6 @@ function buttonClass(active: boolean) {
 .chat-demo-shell {
   display: grid;
   gap: 12px;
-}
-
-.demo-note {
-  padding: 10px 12px;
-  color: #475467;
-  background: #f8fafc;
-  border: 1px solid #dbe4f0;
-  border-radius: 10px;
-  font-size: 13px;
-  line-height: 1.6;
 }
 
 .demo-toolbar {
@@ -124,6 +143,40 @@ function buttonClass(active: boolean) {
   color: #175cd3;
   background: #eff6ff;
   border-color: #b2ddff;
+}
+
+.demo-note {
+  display: grid;
+  gap: 6px;
+  padding: 10px 12px;
+  color: #475467;
+  background: #f8fafc;
+  border: 1px solid #dbe4f0;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.demo-note-text {
+  margin: 0;
+}
+
+.override-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.override-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  color: #175cd3;
+  background: #eff6ff;
+  border: 1px solid #b2ddff;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1.4;
 }
 
 .chat-demo-container {

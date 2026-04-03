@@ -43,9 +43,9 @@ const sharedSidebarItems = [
     text: 'Chat Suite',
     base: '/components/',
     items: [
-      { text: 'Chat 快速接入', link: 'chat' },
-      { text: 'Chat 功能配置', link: 'chat-features' },
-      { text: 'Chat 进阶了解', link: 'chat-advanced' },
+      { text: 'Chat 接入与入口', link: 'chat' },
+      { text: 'Chat 配置与能力', link: 'chat-features' },
+      { text: 'Chat 定制与进阶', link: 'chat-advanced' },
     ],
   },
 ]
