@@ -24,7 +24,7 @@ const scaffoldContext = useChatScaffoldContext()
 
 const chatKit = resolveRootChatKit('TrChatRoot', props)
 const shell = computed(() => props.shell ?? scaffoldContext?.presetSlices.value.shell.shell)
-const chatUi = createChatUiContext({ historyDisplay: 'drawer', shell: shell.value })
+const chatUi = createChatUiContext({ historyDisplay: 'drawer', shell })
 const chatMessages = computed(() => resolveChatMessages(props.messages))
 const attachmentsFeature = props.attachmentsFeature
 const attachmentsManager = props.attachmentsManager ?? (attachmentsFeature ? useChatAttachments() : null)

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { IconClose } from '@opentiny/tiny-robot-svgs'
 import { CHAT_UI_KEY, useRequiredInject } from '@/shared/context'
+import { useResolvedChatMessages } from '@/shared/messages'
 import ChatWorkspaceRightEmpty from './ChatWorkspaceRightEmpty.vue'
 
 defineOptions({ name: 'TrChatWorkspaceRightPanel' })
@@ -19,6 +20,7 @@ defineSlots<{
 }>()
 
 const chatUi = useRequiredInject(CHAT_UI_KEY, 'chat ui')
+const chatMessages = useResolvedChatMessages()
 
 function handleClose() {
   if (props.mobile) {
@@ -33,11 +35,11 @@ function handleClose() {
 <template>
   <div class="tr-chat-workspace-right-panel" :class="{ 'is-mobile': props.mobile }">
     <div class="tr-chat-workspace-right-panel__header">
-      <h3 class="tr-chat-workspace-right-panel__header-title">扩展工作区</h3>
+      <h3 class="tr-chat-workspace-right-panel__header-title">{{ chatMessages.workspace.rightPanelTitle }}</h3>
       <button
         type="button"
         class="tr-chat-workspace-right-panel__close"
-        aria-label="Close right panel"
+        :aria-label="chatMessages.workspace.closeRightPanel"
         @click="handleClose"
       >
         <IconClose />

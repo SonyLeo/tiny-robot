@@ -1,7 +1,6 @@
-import { computed, shallowRef, watchEffect } from 'vue'
+import { computed, shallowRef, watch, watchEffect } from 'vue'
 import type { ChatMessage } from '@opentiny/tiny-robot-kit'
 import type { UseChatKitOptions, UseChatKitReturn, UseMessageResponseProvider } from '@/types'
-import type { StructuredData } from '@opentiny/tiny-robot'
 import { useChatConversation } from './useChatConversation'
 import { cloneMessages, useChatMessages } from './useChatMessages'
 import { useChatRequest } from './useChatRequest'
@@ -93,6 +92,12 @@ export function useChatKit(options: UseChatKitOptions): UseChatKitReturn {
 
   function clearPendingEditRollback() {
     editRollbackContext.value = null
+  }
+
+  function resetTransientState() {
+    clearFailureState()
+    clearOptimisticTurn()
+    clearPendingEditRollback()
   }
 
   const conversation = useChatConversation({
@@ -242,7 +247,16 @@ export function useChatKit(options: UseChatKitOptions): UseChatKitReturn {
     }
   })
 
-  function sendMessage(content: string, _data?: StructuredData): void {
+  watch(
+    () => conversation.activeConversationId.value,
+    (conversationId, previousConversationId) => {
+      if (previousConversationId != null && conversationId !== previousConversationId) {
+        resetTransientState()
+      }
+    },
+  )
+
+  function sendMessage(content: string): void {
     if (!content.trim()) return
     clearFailureState()
     resendMessage(content)
@@ -257,10 +271,7 @@ export function useChatKit(options: UseChatKitOptions): UseChatKitReturn {
     }
 
     if (conversation.activeConversationId.value !== currentRetryContext.conversationId) {
-      const switchedConversation = await conversation.switchConversation(currentRetryContext.conversationId)
-      if (!switchedConversation) {
-        return false
-      }
+      return false
     }
 
     const activeMessages = conversation.activeConversation.value?.engine.messages.value

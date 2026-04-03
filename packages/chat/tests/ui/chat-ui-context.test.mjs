@@ -1,5 +1,5 @@
 ﻿import { fileURLToPath } from 'node:url'
-import { effectScope } from 'vue'
+import { effectScope, nextTick, ref } from 'vue'
 import createJiti from 'jiti'
 import { assert, runTest } from '../_helpers.mjs'
 
@@ -83,6 +83,86 @@ await runTest('createChatUiContext treats a narrow workspace host as mobile even
     scope.stop()
     globalThis.window = previousWindow
     globalThis.ResizeObserver = previousResizeObserver
+  }
+})
+
+await runTest('createChatUiContext reactively syncs shell config changes without overwriting manual state on unrelated updates', async () => {
+  const shell = ref({
+    variant: 'stacked',
+    leftRegion: {
+      defaultOpen: true,
+      collapseMode: 'rail',
+      width: 272,
+    },
+    rightRegion: {
+      defaultOpen: false,
+      collapseMode: 'hidden',
+      width: 420,
+    },
+  })
+
+  const scope = effectScope()
+
+  try {
+    const chatUi = scope.run(() =>
+      createChatUiContext({
+        shell,
+      }),
+    )
+
+    assert.ok(chatUi)
+    assert.equal(chatUi.workspace.enabled.value, false)
+
+    shell.value = {
+      variant: 'workspace',
+      leftRegion: {
+        defaultOpen: false,
+        collapseMode: 'rail',
+        width: 320,
+      },
+      rightRegion: {
+        defaultOpen: true,
+        collapseMode: 'hidden',
+        width: 480,
+      },
+    }
+    await nextTick()
+
+    assert.equal(chatUi.workspace.enabled.value, true)
+    assert.equal(chatUi.workspace.left.collapsed.value, true)
+    assert.equal(chatUi.workspace.left.visible.value, true)
+    assert.equal(chatUi.workspace.left.width.value, 320)
+    assert.equal(chatUi.workspace.right.collapsed.value, false)
+    assert.equal(chatUi.workspace.right.visible.value, true)
+    assert.equal(chatUi.workspace.right.width.value, 480)
+
+    chatUi.workspace.left.expand()
+    shell.value = {
+      ...shell.value,
+      leftRegion: {
+        ...shell.value.leftRegion,
+        width: 360,
+      },
+    }
+    await nextTick()
+
+    assert.equal(chatUi.workspace.left.collapsed.value, false)
+    assert.equal(chatUi.workspace.left.visible.value, true)
+    assert.equal(chatUi.workspace.left.width.value, 360)
+
+    shell.value = {
+      ...shell.value,
+      leftRegion: {
+        ...shell.value.leftRegion,
+        defaultOpen: true,
+      },
+    }
+    await nextTick()
+
+    assert.equal(chatUi.workspace.left.collapsed.value, false)
+    assert.equal(chatUi.workspace.left.visible.value, true)
+  } finally {
+    scope.stop()
   }
 })
 

@@ -14,7 +14,6 @@ const DEFAULT_WORKSPACE_SHELL: ChatWorkspaceShellConfig = {
     collapsible: true,
     defaultOpen: true,
     collapseMode: 'rail',
-    railLabel: 'History',
   },
   rightRegion: {
     enabled: true,
@@ -22,7 +21,6 @@ const DEFAULT_WORKSPACE_SHELL: ChatWorkspaceShellConfig = {
     collapsible: true,
     defaultOpen: false,
     collapseMode: 'hidden',
-    railLabel: 'Preview',
   },
 }
 

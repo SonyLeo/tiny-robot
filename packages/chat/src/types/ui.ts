@@ -52,6 +52,25 @@ export interface ChatMessages {
   sender: {
     placeholder: string
   }
+  workspace: {
+    expandLeftSidebar: string
+    expandRightSidebar: string
+    historyRailLabel: string
+    previewRailLabel: string
+    toggleRightPanel: string
+    rightPanelTitle: string
+    closeRightPanel: string
+  }
+  modelSelector: {
+    triggerLabel: string
+  }
+  attachments: {
+    uploadTooltip: string
+  }
+  senderActions: {
+    uploadTooltip: string
+    voiceTooltip: string
+  }
   feedback: {
     copy: string
     edit: string

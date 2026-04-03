@@ -25,6 +25,25 @@ export const CHAT_MESSAGES: ChatMessages = {
   sender: {
     placeholder: '请输入您的问题',
   },
+  workspace: {
+    expandLeftSidebar: '展开左侧边栏',
+    expandRightSidebar: '展开右侧面板',
+    historyRailLabel: '历史',
+    previewRailLabel: '预览',
+    toggleRightPanel: '切换工作区面板',
+    rightPanelTitle: '扩展工作区',
+    closeRightPanel: '关闭右侧面板',
+  },
+  modelSelector: {
+    triggerLabel: '选择模型',
+  },
+  attachments: {
+    uploadTooltip: '上传附件',
+  },
+  senderActions: {
+    uploadTooltip: '上传附件',
+    voiceTooltip: '语音输入',
+  },
   feedback: {
     copy: '复制',
     edit: '编辑',
@@ -58,6 +77,10 @@ export function resolveChatMessages(overrides?: ChatMessagesOverrides): ChatMess
     header: { ...CHAT_MESSAGES.header, ...overrides.header },
     history: { ...CHAT_MESSAGES.history, ...overrides.history },
     sender: { ...CHAT_MESSAGES.sender, ...overrides.sender },
+    workspace: { ...CHAT_MESSAGES.workspace, ...overrides.workspace },
+    modelSelector: { ...CHAT_MESSAGES.modelSelector, ...overrides.modelSelector },
+    attachments: { ...CHAT_MESSAGES.attachments, ...overrides.attachments },
+    senderActions: { ...CHAT_MESSAGES.senderActions, ...overrides.senderActions },
     feedback: { ...CHAT_MESSAGES.feedback, ...overrides.feedback },
     editMessage: { ...CHAT_MESSAGES.editMessage, ...overrides.editMessage },
     toolCall: { ...CHAT_MESSAGES.toolCall, ...overrides.toolCall },

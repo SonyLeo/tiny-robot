@@ -2,6 +2,7 @@
 import { computed, ref, type Ref } from 'vue'
 import type { ModelOption } from '@/types'
 import { useChatScaffoldContext } from '@/shared/context'
+import { useResolvedChatMessages } from '@/shared/messages'
 import { getProviderIcon } from '@/shared/utils/iconMap'
 import { useModelSelector } from './useModelSelector'
 import { useFloatingDropdown } from './useFloatingDropdown'
@@ -19,6 +20,7 @@ const emit = defineEmits<{
 
 const modelValue = defineModel<string>()
 const scaffoldContext = useChatScaffoldContext()
+const chatMessages = useResolvedChatMessages()
 
 const resolvedModels = computed(() => props.models ?? scaffoldContext?.models.value ?? [])
 const currentModel = computed<string>({
@@ -94,7 +96,7 @@ function handleMouseEnter(index: number) {
       @click="toggleDropdown"
       :aria-expanded="isOpen"
       :title="currentModel"
-      aria-label="选择模型"
+      :aria-label="chatMessages.modelSelector.triggerLabel"
     >
       <component v-if="currentProvider" :is="currentProvider" class="tr-model-selector__icon-provider" :size="20" />
       <svg

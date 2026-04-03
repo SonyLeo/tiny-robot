@@ -1,4 +1,4 @@
-import { computed, onScopeDispose, ref, watch, type ComputedRef, type Ref } from 'vue'
+import { computed, onScopeDispose, ref, toValue, watch, type ComputedRef, type MaybeRefOrGetter, type Ref } from 'vue'
 import type {
   ChatShellVariant,
   ChatWorkspaceRegionCollapseMode,
@@ -45,7 +45,7 @@ export interface CreateChatUiContextOptions {
   historyDisplay?: ChatHistoryDisplayMode
   historyVisible?: boolean
   closableHistory?: boolean
-  shell?: ChatWorkspaceShellConfig
+  shell?: MaybeRefOrGetter<ChatWorkspaceShellConfig | undefined>
   mobileBreakpoint?: string
 }
 
@@ -104,32 +104,124 @@ function createWorkspaceRegionState(options: {
 }
 
 export function createChatUiContext(options: CreateChatUiContextOptions = {}): ChatUiContextValue {
-  const variant = ref<ChatShellVariant>(options.shell?.variant ?? 'stacked')
+  const resolvedShell = computed(() => toValue(options.shell))
+  const variant = ref<ChatShellVariant>(resolvedShell.value?.variant ?? 'stacked')
   const enabled = computed(() => variant.value === 'workspace')
   const isMobile = ref(false)
   const display = ref<ChatHistoryDisplayMode>(options.historyDisplay ?? 'drawer')
   const legacyHistoryVisible = ref(options.historyVisible ?? display.value === 'surface')
   const closableHistory = options.closableHistory ?? display.value !== 'surface'
 
-  const leftCollapseMode = options.shell?.leftRegion?.collapseMode ?? 'rail'
-  const rightCollapseMode = options.shell?.rightRegion?.collapseMode ?? 'hidden'
-  const leftDefaultOpen = options.shell?.leftRegion?.defaultOpen !== false
-  const rightDefaultOpen = options.shell?.rightRegion?.defaultOpen === true
+  const leftCollapseMode = resolvedShell.value?.leftRegion?.collapseMode ?? 'rail'
+  const rightCollapseMode = resolvedShell.value?.rightRegion?.collapseMode ?? 'hidden'
+  const leftDefaultOpen = resolvedShell.value?.leftRegion?.defaultOpen !== false
+  const rightDefaultOpen = resolvedShell.value?.rightRegion?.defaultOpen === true
   const mobileBreakpoint = options.mobileBreakpoint ?? '(max-width: 900px)'
   const mobileBreakpointWidth = resolveMaxWidthBreakpoint(mobileBreakpoint)
 
   const left = createWorkspaceRegionState({
     visible: leftDefaultOpen,
     collapsed: !leftDefaultOpen && leftCollapseMode === 'rail',
-    width: options.shell?.leftRegion?.width,
+    width: resolvedShell.value?.leftRegion?.width,
     collapseMode: leftCollapseMode,
   })
   const right = createWorkspaceRegionState({
     visible: rightDefaultOpen,
     collapsed: !rightDefaultOpen,
-    width: options.shell?.rightRegion?.width,
+    width: resolvedShell.value?.rightRegion?.width,
     collapseMode: rightCollapseMode,
   })
+
+  function syncLeftRegionOpenState(defaultOpen = resolvedShell.value?.leftRegion?.defaultOpen !== false) {
+    if (defaultOpen) {
+      left.visible.value = true
+      left.collapsed.value = false
+      return
+    }
+
+    left.collapsed.value = left.collapseMode.value === 'rail'
+    left.visible.value = left.collapseMode.value === 'rail'
+  }
+
+  function syncRightRegionOpenState(defaultOpen = resolvedShell.value?.rightRegion?.defaultOpen === true) {
+    if (defaultOpen) {
+      right.visible.value = true
+      right.collapsed.value = false
+      return
+    }
+
+    right.collapsed.value = true
+    right.visible.value = right.collapseMode.value === 'rail'
+  }
+
+  watch(
+    () => resolvedShell.value?.variant,
+    (nextVariant, previousVariant) => {
+      variant.value = nextVariant ?? 'stacked'
+
+      if (variant.value === 'workspace' && previousVariant !== nextVariant) {
+        syncLeftRegionOpenState()
+        syncRightRegionOpenState()
+      }
+    },
+    { immediate: true },
+  )
+
+  watch(
+    () => resolvedShell.value?.leftRegion?.width,
+    (width) => {
+      left.width.value = width
+    },
+    { immediate: true },
+  )
+
+  watch(
+    () => resolvedShell.value?.rightRegion?.width,
+    (width) => {
+      right.width.value = width
+    },
+    { immediate: true },
+  )
+
+  watch(
+    () => resolvedShell.value?.leftRegion?.collapseMode,
+    (nextCollapseMode) => {
+      left.collapseMode.value = nextCollapseMode ?? 'rail'
+
+      if (left.collapsed.value) {
+        left.visible.value = left.collapseMode.value === 'rail'
+      }
+    },
+    { immediate: true },
+  )
+
+  watch(
+    () => resolvedShell.value?.rightRegion?.collapseMode,
+    (nextCollapseMode) => {
+      right.collapseMode.value = nextCollapseMode ?? 'hidden'
+
+      if (right.collapsed.value) {
+        right.visible.value = right.collapseMode.value === 'rail'
+      }
+    },
+    { immediate: true },
+  )
+
+  watch(
+    () => resolvedShell.value?.leftRegion?.defaultOpen,
+    () => {
+      syncLeftRegionOpenState()
+    },
+    { immediate: true },
+  )
+
+  watch(
+    () => resolvedShell.value?.rightRegion?.defaultOpen,
+    () => {
+      syncRightRegionOpenState()
+    },
+    { immediate: true },
+  )
 
   let responsiveHost: HTMLElement | null = null
   let responsiveHostObserver: ResizeObserver | null = null

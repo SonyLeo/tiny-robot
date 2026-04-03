@@ -14,7 +14,6 @@ import type {
   UseMessagePlugin,
 } from '@opentiny/tiny-robot-kit'
 import type { FeedbackProps } from '@opentiny/tiny-robot'
-import type { StructuredData } from '@opentiny/tiny-robot'
 
 export type ResponseProvider = (
   requestBody: MessageRequestBody,
@@ -135,7 +134,7 @@ export interface UseChatKitReturn extends Pick<
   messages: ComputedRef<ChatMessage[]>
   status: ComputedRef<ChatStatus>
   lastError: ComputedRef<ChatErrorInfo | null>
-  sendMessage: (content: string, data?: StructuredData) => void
+  sendMessage: (content: string) => void
   startEditMessage: (messageIndex: number) => void
   cancelEditMessage: (messageIndex: number) => void
   isMessageEditing: (messageIndex: number) => boolean

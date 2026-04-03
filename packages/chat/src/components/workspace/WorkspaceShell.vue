@@ -2,6 +2,7 @@
 import { ThemeProvider } from '@opentiny/tiny-robot'
 import { computed, getCurrentInstance, inject, onBeforeUnmount, onMounted, ref, useSlots } from 'vue'
 import { CHAT_UI_KEY } from '@/shared/context'
+import { useResolvedChatMessages } from '@/shared/messages'
 import type { TrChatWorkspaceShellProps } from '@/types/workspace'
 import { useWorkspaceRegion } from './useWorkspaceRegion'
 
@@ -27,6 +28,7 @@ const emit = defineEmits<{
 
 const slots = useSlots()
 const chatUi = inject(CHAT_UI_KEY, null)
+const chatMessages = useResolvedChatMessages()
 const shellElement = ref<HTMLElement | null>(null)
 const themeScopeId = `tr-workspace-theme-scope-${getCurrentInstance()?.uid ?? 'fallback'}`
 const scopedThemeTargetElement = `#${themeScopeId}`
@@ -78,6 +80,12 @@ const showRightRail = computed(
 )
 const hideLeftRegion = computed(() => left.collapsedState.value && left.collapseMode.value === 'hidden')
 const hideRightRegion = computed(() => right.collapsedState.value && right.collapseMode.value === 'hidden')
+const leftRailLabel = computed(
+  () => props.leftRailLabel || props.leftRegion?.railLabel || chatMessages.value.workspace.historyRailLabel,
+)
+const rightRailLabel = computed(
+  () => props.rightRailLabel || props.rightRegion?.railLabel || chatMessages.value.workspace.previewRailLabel,
+)
 
 onMounted(() => {
   chatUi?.workspace.setResponsiveHost(shellElement.value)
@@ -110,7 +118,7 @@ onBeforeUnmount(() => {
           v-if="showLeftRail"
           type="button"
           class="tr-workspace-shell__rail"
-          :aria-label="props.leftRailLabel || props.leftRegion?.railLabel || 'Expand left sidebar'"
+          :aria-label="leftRailLabel"
           @click="left.updateCollapsed(false)"
         >
           <slot name="left-rail" :expand="() => left.updateCollapsed(false)" />
@@ -149,7 +157,7 @@ onBeforeUnmount(() => {
           v-if="showRightRail"
           type="button"
           class="tr-workspace-shell__rail"
-          :aria-label="props.rightRailLabel || props.rightRegion?.railLabel || 'Expand right sidebar'"
+          :aria-label="rightRailLabel"
           @click="right.updateCollapsed(false)"
         >
           <slot name="right-rail" :expand="() => right.updateCollapsed(false)" />
@@ -191,7 +199,7 @@ onBeforeUnmount(() => {
         v-if="showLeftRail"
         type="button"
         class="tr-workspace-shell__rail"
-        :aria-label="props.leftRailLabel || props.leftRegion?.railLabel || 'Expand left sidebar'"
+        :aria-label="leftRailLabel"
         @click="left.updateCollapsed(false)"
       >
         <slot name="left-rail" :expand="() => left.updateCollapsed(false)" />
@@ -230,7 +238,7 @@ onBeforeUnmount(() => {
         v-if="showRightRail"
         type="button"
         class="tr-workspace-shell__rail"
-        :aria-label="props.rightRailLabel || props.rightRegion?.railLabel || 'Expand right sidebar'"
+        :aria-label="rightRailLabel"
         @click="right.updateCollapsed(false)"
       >
         <slot name="right-rail" :expand="() => right.updateCollapsed(false)" />

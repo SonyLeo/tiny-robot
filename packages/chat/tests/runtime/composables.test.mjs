@@ -219,6 +219,43 @@ await runTest('useChatKit retry removes the failed turn and resends the last use
   assert.equal(chatKit.messages.value.length, 2)
 })
 
+await runTest('useChatKit clears error and retry state after switching away from a failed conversation', async () => {
+  const chatKit = useChatKit({
+    responseProvider: createRetryableProvider({
+      failMessage: 'err',
+      failOnce: true,
+    }),
+    storage: createMemoryStorage(),
+  })
+
+  chatKit.sendMessage('err')
+
+  await waitFor(() => {
+    assert.equal(chatKit.status.value, 'error')
+  })
+
+  const failedConversationId = chatKit.activeConversationId.value
+  assert.equal(chatKit.lastError.value?.retryable, true)
+
+  const nextConversation = chatKit.createConversation({
+    title: 'next-conversation',
+  })
+
+  await nextTick()
+
+  assert.notEqual(nextConversation.id, failedConversationId)
+  assert.equal(chatKit.activeConversationId.value, nextConversation.id)
+  assert.equal(chatKit.lastError.value, null)
+  assert.equal(await chatKit.retry(), false)
+
+  await chatKit.switchConversation(failedConversationId)
+  await nextTick()
+
+  assert.equal(chatKit.activeConversationId.value, failedConversationId)
+  assert.equal(chatKit.lastError.value, null)
+  assert.equal(await chatKit.retry(), false)
+})
+
 await runTest('useChatKit regenerate replaces the target assistant turn instead of appending a duplicate user', async () => {
   const chatKit = useChatKit({
     responseProvider: createStreamingProvider(),

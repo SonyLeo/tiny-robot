@@ -108,8 +108,8 @@ const historyBtnLabel = computed(() =>
           :icon="IconMenu2"
           size="28"
           svg-size="20"
-          title="Toggle workspace panel"
-          aria-label="Toggle workspace panel"
+          :title="chatMessages.workspace.toggleRightPanel"
+          :aria-label="chatMessages.workspace.toggleRightPanel"
           @click="chatUi.workspace.right.toggle()"
         />
         <TrIconButton

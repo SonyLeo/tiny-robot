@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { IconAi, IconNewSession, IconPanelRightClose } from '@opentiny/tiny-robot-svgs'
 import { CHAT_KIT_KEY, CHAT_UI_KEY, useRequiredInject } from '@/shared/context'
+import { useResolvedChatMessages } from '@/shared/messages'
 
 defineOptions({ name: 'TrChatWorkspaceSidebarRail' })
 
 const chatUi = useRequiredInject(CHAT_UI_KEY, 'chat ui')
 const chatKit = useRequiredInject(CHAT_KIT_KEY, 'chat kit')
+const chatMessages = useResolvedChatMessages()
 
 function handleCreateConversation() {
   chatKit.createConversation()
@@ -17,13 +19,13 @@ function handleCreateConversation() {
     <IconAi
       class="tr-chat-workspace-sidebar-rail__brand"
       type="button"
-      aria-label="Expand sidebar"
+      :aria-label="chatMessages.workspace.expandLeftSidebar"
       @click="chatUi.workspace.left.expand()"
     />
     <button
       type="button"
       class="tr-chat-workspace-sidebar-rail__button"
-      aria-label="History"
+      :aria-label="chatMessages.workspace.historyRailLabel"
       @click="chatUi.workspace.left.expand()"
     >
       <IconPanelRightClose />
@@ -31,7 +33,7 @@ function handleCreateConversation() {
     <button
       type="button"
       class="tr-chat-workspace-sidebar-rail__button"
-      aria-label="Create conversation"
+      :aria-label="chatMessages.header.newChat"
       @click="handleCreateConversation"
     >
       <IconNewSession />

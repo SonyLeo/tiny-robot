@@ -40,8 +40,32 @@ const inputValue = ref('')
 const isLoading = computed(() => chatKit.status.value === 'submitted' || chatKit.status.value === 'streaming')
 const senderActionsFeature = computed(() => senderActionsContext?.feature)
 const senderSlice = computed(() => scaffoldContext?.presetSlices.value.sender)
-const uploadActionConfig = computed(() => senderActionsFeature.value?.upload ?? attachmentsContext?.feature.upload)
-const voiceActionConfig = computed(() => senderActionsFeature.value?.voice)
+const uploadActionConfig = computed(() => {
+  const uploadConfig = senderActionsFeature.value?.upload ?? attachmentsContext?.feature.upload
+  if (!uploadConfig) {
+    return uploadConfig
+  }
+
+  return {
+    ...uploadConfig,
+    tooltip:
+      uploadConfig.tooltip ??
+      (senderActionsFeature.value?.upload
+        ? chatMessages.value.senderActions.uploadTooltip
+        : chatMessages.value.attachments.uploadTooltip),
+  }
+})
+const voiceActionConfig = computed(() => {
+  const voiceConfig = senderActionsFeature.value?.voice
+  if (!voiceConfig) {
+    return voiceConfig
+  }
+
+  return {
+    ...voiceConfig,
+    tooltip: voiceConfig.tooltip ?? chatMessages.value.senderActions.voiceTooltip,
+  }
+})
 const showDefaultUploadButton = computed(() => Boolean(uploadActionConfig.value?.enabled !== false))
 const showDefaultVoiceButton = computed(() => Boolean(voiceActionConfig.value?.enabled))
 const senderMode = computed<'single' | 'multiple'>(() => {
@@ -106,7 +130,7 @@ async function handleSend(content: string, data?: StructuredData) {
     return
   }
 
-  await chatKit.sendMessage(payload.text, payload.structuredData)
+  await chatKit.sendMessage(payload.text)
   attachmentsContext?.manager.clear()
   inputValue.value = ''
 }

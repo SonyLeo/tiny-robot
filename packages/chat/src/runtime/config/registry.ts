@@ -73,7 +73,7 @@ const attachmentsFeature: ChatFeatureDefinition<
                 multiple: resolvedConfig?.upload?.multiple ?? true,
                 maxCount: resolvedConfig?.upload?.maxCount,
                 maxSize: resolvedConfig?.upload?.maxSize,
-                tooltip: resolvedConfig?.upload?.tooltip ?? '上传附件',
+                tooltip: resolvedConfig?.upload?.tooltip,
                 tooltipPlacement: resolvedConfig?.upload?.tooltipPlacement ?? 'top',
               },
               list: {
@@ -118,7 +118,7 @@ const senderActionsFeature: ChatFeatureDefinition<
                       multiple: resolvedConfig.upload.multiple ?? true,
                       maxCount: resolvedConfig.upload.maxCount,
                       maxSize: resolvedConfig.upload.maxSize,
-                      tooltip: resolvedConfig.upload.tooltip ?? '上传附件',
+                      tooltip: resolvedConfig.upload.tooltip,
                       tooltipPlacement: resolvedConfig.upload.tooltipPlacement ?? 'top',
                     },
               voice:
@@ -126,7 +126,7 @@ const senderActionsFeature: ChatFeatureDefinition<
                   ? undefined
                   : {
                       enabled: resolvedConfig.voice.enabled ?? true,
-                      tooltip: resolvedConfig.voice.tooltip ?? '语音输入',
+                      tooltip: resolvedConfig.voice.tooltip,
                       tooltipPlacement: resolvedConfig.voice.tooltipPlacement ?? 'top',
                       size: resolvedConfig.voice.size,
                       speechConfig: resolvedConfig.voice.speechConfig,

@@ -8,6 +8,18 @@ await runTest('resolveChatMessages merges partial overrides without losing chat-
     sender: {
       placeholder: 'Ask anything',
     },
+    workspace: {
+      rightPanelTitle: 'Workspace panel',
+    },
+    modelSelector: {
+      triggerLabel: 'Choose model',
+    },
+    attachments: {
+      uploadTooltip: 'Upload file',
+    },
+    senderActions: {
+      voiceTooltip: 'Voice input',
+    },
     error: {
       retry: 'Try again',
     },
@@ -15,8 +27,13 @@ await runTest('resolveChatMessages merges partial overrides without losing chat-
 
   assert.equal(resolved.header.newChat, 'Create session')
   assert.equal(resolved.sender.placeholder, 'Ask anything')
+   assert.equal(resolved.workspace.rightPanelTitle, 'Workspace panel')
+   assert.equal(resolved.modelSelector.triggerLabel, 'Choose model')
+   assert.equal(resolved.attachments.uploadTooltip, 'Upload file')
+   assert.equal(resolved.senderActions.voiceTooltip, 'Voice input')
   assert.equal(resolved.error.retry, 'Try again')
   assert.equal(resolved.header.close, CHAT_MESSAGES.header.close)
+   assert.equal(resolved.workspace.historyRailLabel, CHAT_MESSAGES.workspace.historyRailLabel)
   assert.equal(resolved.feedback.copy, CHAT_MESSAGES.feedback.copy)
 })
 
