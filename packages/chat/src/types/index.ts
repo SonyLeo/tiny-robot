@@ -2,7 +2,7 @@ export type {
   ChatScaffoldCallbacks,
   ChatBeforeSendPayload,
   ChatBeforeSendResult,
-  ChatScaffoldRuntimeInput,
+  TrChatRuntimeInput,
   TrChatScaffoldContextValue,
   TrChatScaffoldProps,
 } from './scaffold'
@@ -48,7 +48,8 @@ export type {
   TrChatHistorySurfaceProps,
   TrChatPresetOverrides,
   TrChatProps,
-  TrChatRootProps,
+  TrChatProviderSharedProps,
+  TrChatProviderProps,
   TrChatSenderProps,
   TrChatWelcomeProps,
   UseChatAttachmentsOptions,

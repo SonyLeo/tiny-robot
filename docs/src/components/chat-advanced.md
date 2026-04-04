@@ -35,14 +35,14 @@ outline: [2, 3]
 | :-- | :-- | :-- |
 | 改布局、文案、默认开关 | `presetOverrides` | 覆盖不够再用 slots |
 | 换局部 UI | `slots` | 默认结构本身不合适再进 `Scaffold` |
-| 重排页面结构，但仍想复用默认配置能力 | `TrChat.Scaffold` | 需要自己管 runtime 再进 `Root` |
-| 自己决定页面装配和底层输入 | `TrChat.Root` | - |
+| 重排页面结构，但仍想复用默认配置能力 | `TrChat.Scaffold` | 需要自己管 runtime 再进 `Provider` |
+| 自己决定页面装配和底层输入 | `TrChat.Provider` | - |
 | 扩展消息动作、消息渲染、运行时消息结果 | `presetOverrides` + 顶层 `runtime` | - |
 
 一条实用规则：
 
 - 先继续留在 `TrChat`
-- 确认默认入口真做不到时，再进入 `Scaffold` 或 `Root`
+- 确认默认入口真做不到时，再进入 `Scaffold` 或 `Provider`
 
 ## 结构定制
 
@@ -69,7 +69,7 @@ outline: [2, 3]
 
 ### Workspace 面板级定制
 
-如果你只是想替换 workspace 左右面板内容，不需要为了这件事直接进入 `Scaffold` 或 `Root`。
+如果你只是想替换 workspace 左右面板内容，不需要为了这件事直接进入 `Scaffold` 或 `Provider`。
 
 推荐顺序：
 
@@ -113,9 +113,9 @@ outline: [2, 3]
 </TrChat.Scaffold>
 ```
 
-### 需要自己接管 runtime 时：`TrChat.Root`
+### 需要自己接管 runtime 时：`TrChat.Provider`
 
-`TrChat.Root` 适合：
+`TrChat.Provider` 适合：
 
 - 你已经明确要自己装配页面
 - 你愿意手动管理更底层输入
@@ -124,7 +124,7 @@ outline: [2, 3]
 一个最小示意：
 
 ```vue
-<TrChat.Root :chat-kit="chatKit">
+<TrChat.Provider :chat-kit="chatKit">
   <div class="tr-chat" style="height: 100%">
     <TrChat.Header title="手动组合页面" />
     <TrChat.MessageList />
@@ -132,7 +132,7 @@ outline: [2, 3]
       <TrChat.Sender />
     </TrChat.Footer>
   </div>
-</TrChat.Root>
+</TrChat.Provider>
 ```
 
 如果你只是想替换 workspace 面板，不要直接从这里开始。
@@ -272,8 +272,8 @@ const runtime = {
 
 | API | 作用 | 适合什么时候用 |
 | :-- | :-- | :-- |
-| `TrChat.Scaffold` | 保留 config -> preset -> root 链路，但自己排页面 | 想改结构但还想复用默认能力 |
-| `TrChat.Root` | 建立 chat runtime / ui context 根 | 已有 `chatKit`，或要自己接 `responseProvider` |
+| `TrChat.Scaffold` | 保留 config -> preset -> provider 链路，但自己排页面 | 想改结构但还想复用默认能力 |
+| `TrChat.Provider` | 建立 chat runtime / ui context 根 | 已有 `chatKit`，或要自己接 `responseProvider` |
 | `TrChat.Layout` | 默认 stacked 主体布局容器 | 自己重组 header / body / footer |
 | `TrChat.WorkspaceLayout` | workspace 壳层布局 | 自己接 left / right / mobile sheet |
 | `TrChat.Header` | 默认 header 组件 | 单独摆标题、历史入口、新会话入口 |
@@ -289,13 +289,13 @@ const runtime = {
 
 ### 白盒入口核心 props
 
-最常需要查的是 `Scaffold` 和 `Root` 这两个入口：
+最常需要查的是 `Scaffold` 和 `Provider` 这两个入口：
 
 | API | 核心 props | 说明 |
 | :-- | :-- | :-- |
 | `TrChat.Scaffold` | `config`、`runtime`、`callbacks`、`presetOverrides` | 和顶层 `TrChat` 基本一致，但默认通过 `slot` 暴露 `chatKit / adapter / presetProps / presetSlices / currentModel / selectModel` |
-| `TrChat.Root` | 二选一：`chatKit` 或 `responseProvider` | 如果不传 `chatKit`，可以继续传 `plugins / storage / initialMessages / messageTransforms / onFinish / onError` 让它内部创建 runtime |
-| `TrChat.Root` 共享 props | `mcpManager`、`attachmentsManager`、`attachmentsFeature`、`senderActionsFeature`、`messages`、`shell` | 这些会进入 root context，被叶子组件直接消费 |
+| `TrChat.Provider` | 二选一：`chatKit` 或 `responseProvider` | 如果不传 `chatKit`，可以继续传 `plugins / storage / initialMessages / messageTransforms / onFinish / onError` 让它内部创建 runtime |
+| `TrChat.Provider` 共享 props | `mcpManager`、`attachmentsManager`、`attachmentsFeature`、`senderActionsFeature`、`messages`、`shell` | 这些会进入 provider context，被叶子组件直接消费 |
 
 ### 独立公开组件
 
@@ -347,14 +347,14 @@ const runtime = {
 
 ## FAQ / 常见坑
 
-### 什么时候该用 `Scaffold`，什么时候该用 `Root`
+### 什么时候该用 `Scaffold`，什么时候该用 `Provider`
 
 推荐判断方式：
 
 - 还想复用默认配置能力和 `presetSlices`
   - 先用 `Scaffold`
 - 已经明确要自己装配页面，并且愿意自己管 runtime
-  - 再用 `Root`
+  - 再用 `Provider`
 
 ### 只是替换 workspace 左右面板，是否需要进入 whitebox
 

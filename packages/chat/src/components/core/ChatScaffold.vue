@@ -15,7 +15,7 @@ import {
   shouldManageScaffoldResponseProvider,
 } from '@/runtime/scaffold/scaffoldRuntime'
 import ChatDefaultRenderer from './default-renderer/ChatDefaultRenderer.vue'
-import ChatRoot from './ChatRoot.vue'
+import ChatProvider from './ChatProvider.vue'
 
 defineOptions({ name: 'TrChatScaffold' })
 
@@ -162,12 +162,12 @@ if (props.callbacks?.onBeforeSend) {
 </script>
 
 <template>
-  <ChatRoot :chat-kit="chatKit" v-bind="presetSlices.root">
+  <ChatProvider :chat-kit="chatKit" v-bind="presetSlices.provider">
     <slot v-if="$slots.default" v-bind="slotProps" />
     <ChatDefaultRenderer v-else @update:model="handleDefaultRendererModelUpdate">
       <template v-for="(_, name) in namedSlots" #[name]="defaultSlotProps" :key="name">
         <slot :name="name" v-bind="defaultSlotProps ?? {}" />
       </template>
     </ChatDefaultRenderer>
-  </ChatRoot>
+  </ChatProvider>
 </template>

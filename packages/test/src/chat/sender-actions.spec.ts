@@ -7,10 +7,10 @@ function registerFakeSpeechRecognition(page: Page) {
       continuous = false
       interimResults = false
       lang = 'zh-CN'
-      onstart = null
-      onresult = null
-      onerror = null
-      onend = null
+      onstart: ((event: Event) => void) | null = null
+      onresult: ((event: Event) => void) | null = null
+      onerror: ((event: Event) => void) | null = null
+      onend: ((event: Event) => void) | null = null
 
       start() {
         this.onstart?.(new Event('start'))

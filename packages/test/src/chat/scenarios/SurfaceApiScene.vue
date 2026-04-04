@@ -103,7 +103,7 @@
         <button data-testid="surface-runtime-bridge-clear" @click="runtimeBridgeChat.runtime.clear()">Clear</button>
       </div>
 
-      <TrChat.Root :chat-kit="runtimeBridgeChat">
+      <TrChat.Provider :chat-kit="runtimeBridgeChat">
         <TrChat.Layout>
           <TrChat.Header :show-new-chat="false">
             <template #title>
@@ -123,7 +123,7 @@
             <TrChat.Sender placeholder="Runtime bridge sender..." />
           </TrChat.Footer>
         </TrChat.Layout>
-      </TrChat.Root>
+      </TrChat.Provider>
     </div>
 
     <div data-testid="chat-surface-scaffold" class="chat-wrapper">
@@ -157,25 +157,25 @@
       </TrChat.Scaffold>
     </div>
 
-    <div data-testid="chat-surface-root-provider" class="chat-wrapper">
-      <TrChat.Root :response-provider="rootProvider">
+    <div data-testid="chat-surface-provider-branch" class="chat-wrapper">
+      <TrChat.Provider :response-provider="providerBranchResponseProvider">
         <TrChat.Layout :appearance="{ mode: 'dark' }">
           <TrChat.Header :show-new-chat="false">
             <template #title>
-              <span data-testid="surface-root-title-slot">Root Provider Title Slot</span>
+              <span data-testid="surface-provider-title-slot">Provider Branch Title Slot</span>
             </template>
             <template #extra>
-              <span data-testid="surface-root-extra-slot">Root Extra Slot</span>
+              <span data-testid="surface-provider-extra-slot">Provider Extra Slot</span>
             </template>
           </TrChat.Header>
 
           <TrChat.MessageList auto-scroll />
 
           <TrChat.Footer>
-            <TrChat.Sender placeholder="Root provider sender..." />
+            <TrChat.Sender placeholder="Provider branch sender..." />
           </TrChat.Footer>
         </TrChat.Layout>
-      </TrChat.Root>
+      </TrChat.Provider>
     </div>
 
     <div data-testid="chat-surface-history-surface" class="history-surface-wrapper">
@@ -183,9 +183,9 @@
         <button data-testid="history-surface-seed" @click="seedHistorySurface">Seed Conversations</button>
       </div>
 
-      <TrChat.Root :chat-kit="historySurfaceChat">
+      <TrChat.Provider :chat-kit="historySurfaceChat">
         <TrChat.HistorySurface />
-      </TrChat.Root>
+      </TrChat.Provider>
     </div>
   </div>
 </template>
@@ -358,9 +358,9 @@ const scaffoldDeepseekModel = {
   providerId: 'deepseek',
 }
 
-const rootProvider = createMockProvider({
-  provider: 'root-provider',
-  model: 'root-provider-model',
+const providerBranchResponseProvider = createMockProvider({
+  provider: 'provider-branch',
+  model: 'provider-branch-model',
 })
 
 const historySurfaceChat = useChatKit({

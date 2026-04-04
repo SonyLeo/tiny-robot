@@ -26,14 +26,14 @@ await runTest('loadChatConfig normalizes feature config and createPresetChatProp
       senderActions: {
         voice: {
           enabled: true,
-          tooltip: '璇煶杈撳叆',
+          tooltip: '语音输入',
           size: 'small',
           autoInsert: false,
         },
         wordCount: true,
         defaultActions: {
           clear: {
-            tooltip: '娓呯┖',
+            tooltip: '清空',
           },
         },
       },
@@ -65,7 +65,7 @@ await runTest('loadChatConfig normalizes feature config and createPresetChatProp
       upload: undefined,
       voice: {
         enabled: true,
-        tooltip: '璇煶杈撳叆',
+        tooltip: '语音输入',
         tooltipPlacement: undefined,
         size: 'small',
         speechConfig: undefined,
@@ -77,7 +77,7 @@ await runTest('loadChatConfig normalizes feature config and createPresetChatProp
       wordCount: true,
       defaultActions: {
         clear: {
-          tooltip: '娓呯┖',
+          tooltip: '清空',
         },
       },
     },
@@ -107,11 +107,11 @@ await runTest('loadChatConfig normalizes feature config and createPresetChatProp
   assert.equal(presetProps.attachmentsFeature?.upload?.multiple, false)
   assert.equal(presetProps.attachmentsFeature?.list?.variant, 'card')
   assert.equal(presetProps.senderActionsFeature?.voice?.enabled, true)
-  assert.equal(presetProps.senderActionsFeature?.voice?.tooltip, '璇煶杈撳叆')
+  assert.equal(presetProps.senderActionsFeature?.voice?.tooltip, '语音输入')
   assert.equal(presetProps.senderActionsFeature?.voice?.size, 'small')
   assert.equal(presetProps.senderActionsFeature?.voice?.autoInsert, false)
   assert.equal(presetProps.senderActionsFeature?.wordCount, true)
-  assert.equal(presetProps.senderActionsFeature?.defaultActions?.clear?.tooltip, '娓呯┖')
+  assert.equal(presetProps.senderActionsFeature?.defaultActions?.clear?.tooltip, '清空')
   assert.equal(presetProps.showHistory, true)
   assert.equal(presetProps.showFeedback, true)
   assert.deepEqual(presetProps.historyProps, {
@@ -283,7 +283,7 @@ await runTest('resolveChatFeatures keeps attachments and senderActions outputs i
       },
       voice: {
         enabled: true,
-        tooltip: '璇煶杈撳叆',
+        tooltip: '语音输入',
       },
     },
   })
@@ -292,7 +292,7 @@ await runTest('resolveChatFeatures keeps attachments and senderActions outputs i
   assert.equal(resolved.entries.attachments.presetProps.attachmentsFeature?.upload?.accept, '.txt')
   assert.equal(resolved.entries.senderActions.presetProps.senderActionsFeature?.upload?.enabled, false)
   assert.equal(resolved.entries.senderActions.presetProps.senderActionsFeature?.voice?.enabled, true)
-  assert.equal(resolved.entries.senderActions.presetProps.senderActionsFeature?.voice?.tooltip, '璇煶杈撳叆')
+  assert.equal(resolved.entries.senderActions.presetProps.senderActionsFeature?.voice?.tooltip, '语音输入')
 })
 
 await runTest('createPresetChatProps lets welcomePrompts override legacy ui.prompts and explicit disable clears prompts', async () => {
@@ -390,7 +390,7 @@ await runTest('resolveChatFeatures keeps disabled features out of preset props',
   assert.equal(resolved.entries.feedback.enabled, false)
 })
 
-await runTest('loadChatConfig hoists mcp runtime objects out of declarative features into runtime', async () => {
+await runTest('loadChatConfig hoists mcp integration objects out of declarative features into integrations', async () => {
   const mcpManager = { id: 'manager' }
 
   const config = loadChatConfig({
@@ -410,9 +410,9 @@ await runTest('loadChatConfig hoists mcp runtime objects out of declarative feat
 
   assert.equal(config.features?.mcp?.enabled, undefined)
   assert.equal(config.features?.mcp?.manager, undefined)
-  assert.equal(config.runtime?.mcpManager, mcpManager)
+  assert.equal(config.integrations?.mcpManager, mcpManager)
 
-  const explicitRuntimeConfig = loadChatConfig({
+  const explicitIntegrationConfig = loadChatConfig({
     models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
     providers: {
       openai: {
@@ -423,16 +423,16 @@ await runTest('loadChatConfig hoists mcp runtime objects out of declarative feat
     features: {
       mcp: true,
     },
-    runtime: {
+    integrations: {
       mcpManager,
     },
   })
 
-  assert.equal(explicitRuntimeConfig.features?.mcp, true)
-  assert.equal(explicitRuntimeConfig.runtime?.mcpManager, mcpManager)
+  assert.equal(explicitIntegrationConfig.features?.mcp, true)
+  assert.equal(explicitIntegrationConfig.integrations?.mcpManager, mcpManager)
 })
 
-await runTest('loadChatConfig lets explicit mcp disable clear runtime manager inputs', async () => {
+await runTest('loadChatConfig lets explicit mcp disable clear integration manager inputs', async () => {
   const runtimeManager = { id: 'runtime-manager' }
   const featureManager = { id: 'feature-manager' }
 
@@ -447,13 +447,13 @@ await runTest('loadChatConfig lets explicit mcp disable clear runtime manager in
     features: {
       mcp: false,
     },
-    runtime: {
+    integrations: {
       mcpManager: runtimeManager,
     },
   })
 
   assert.equal(disabledBooleanConfig.features?.mcp, false)
-  assert.equal(disabledBooleanConfig.runtime, undefined)
+  assert.equal(disabledBooleanConfig.integrations, undefined)
 
   const disabledObjectConfig = loadChatConfig({
     models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
@@ -469,7 +469,7 @@ await runTest('loadChatConfig lets explicit mcp disable clear runtime manager in
         manager: featureManager,
       },
     },
-    runtime: {
+    integrations: {
       mcpManager: runtimeManager,
     },
   })
@@ -477,7 +477,7 @@ await runTest('loadChatConfig lets explicit mcp disable clear runtime manager in
   assert.deepEqual(disabledObjectConfig.features?.mcp, {
     enabled: false,
   })
-  assert.equal(disabledObjectConfig.runtime, undefined)
+  assert.equal(disabledObjectConfig.integrations, undefined)
 })
 
 await runTest('loadChatConfig rejects invalid feature shapes', async () => {

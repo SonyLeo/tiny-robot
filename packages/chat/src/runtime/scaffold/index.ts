@@ -6,4 +6,4 @@ export {
   resolveScaffoldInitialModelValue,
   shouldManageScaffoldResponseProvider,
 } from './scaffoldRuntime'
-export { getRootChatKitResolution, resolveRootChatKit } from './resolveRootChatKit'
+export { getProviderChatKitResolution, resolveProviderChatKit } from './resolveProviderChatKit'

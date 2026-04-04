@@ -14,15 +14,15 @@ import {
   useChatScaffoldContext,
 } from '@/shared/context'
 import { resolveChatMessages } from '@/shared/messages'
-import type { TrChatRootProps } from '@/types'
-import { resolveRootChatKit } from '@/runtime/scaffold/resolveRootChatKit'
+import type { TrChatProviderProps } from '@/types'
+import { resolveProviderChatKit } from '@/runtime/scaffold/resolveProviderChatKit'
 
-defineOptions({ name: 'TrChatRoot' })
+defineOptions({ name: 'TrChatProvider' })
 
-const props = defineProps<TrChatRootProps>()
+const props = defineProps<TrChatProviderProps>()
 const scaffoldContext = useChatScaffoldContext()
 
-const chatKit = resolveRootChatKit('TrChatRoot', props)
+const chatKit = resolveProviderChatKit('TrChatProvider', props)
 const shell = computed(() => props.shell ?? scaffoldContext?.presetSlices.value.shell.shell)
 const chatUi = createChatUiContext({ historyDisplay: 'drawer', shell })
 const chatMessages = computed(() => resolveChatMessages(props.messages))

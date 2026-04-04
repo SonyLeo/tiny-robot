@@ -53,8 +53,8 @@ await runTest('createPresetChatSlices exposes white-box slices that preserve bla
 
   const slices = createPresetChatSlices(presetProps)
 
-  assert.deepEqual(slices.root.attachmentsFeature, presetProps.attachmentsFeature)
-  assert.deepEqual(slices.root.senderActionsFeature, presetProps.senderActionsFeature)
+  assert.deepEqual(slices.provider.attachmentsFeature, presetProps.attachmentsFeature)
+  assert.deepEqual(slices.provider.senderActionsFeature, presetProps.senderActionsFeature)
   assert.equal(slices.header.title, 'Preset Slice Brand')
   assert.equal(slices.header.showHistory, true)
   assert.equal(slices.header.showClose, true)
@@ -262,7 +262,7 @@ await runTest('createPresetChatSlices preserves senderProps.extensions for passt
   assert.equal(slices.sender.extensions, extensions)
 })
 
-await runTest('createPresetChatSlices keeps root feature defaults while sender slice honors explicit sender overrides', async () => {
+await runTest('createPresetChatSlices keeps provider feature defaults while sender slice honors explicit sender overrides', async () => {
   const adapter = createChatAdapterFromConfig({
     models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
     providers: {
@@ -300,9 +300,9 @@ await runTest('createPresetChatSlices keeps root feature defaults while sender s
     }),
   )
 
-  assert.equal(slices.root.attachmentsFeature?.enabled, true)
-  assert.equal(slices.root.senderActionsFeature?.voice?.enabled, true)
-  assert.equal(slices.root.senderActionsFeature?.wordCount, true)
+  assert.equal(slices.provider.attachmentsFeature?.enabled, true)
+  assert.equal(slices.provider.senderActionsFeature?.voice?.enabled, true)
+  assert.equal(slices.provider.senderActionsFeature?.wordCount, true)
   assert.equal(slices.sender.placeholder, 'sender override placeholder')
   assert.equal(slices.sender.mode, 'single')
   assert.equal(slices.sender.maxLength, 80)
@@ -349,16 +349,16 @@ await runTest('createPresetChatProps and createPresetChatSlices expose mcp manag
 
   assert.equal(adapter.resolvedFeatures.entries.mcp.enabled, true)
   assert.equal(adapter.resolvedFeatures.entries.mcp.config?.manager, undefined)
-  assert.equal(adapter.config.runtime?.mcpManager, mcpManager)
+  assert.equal(adapter.config.integrations?.mcpManager, mcpManager)
 
   const presetProps = createPresetChatProps(adapter)
   const presetSlices = createPresetChatSlices(presetProps)
 
   assert.equal(presetProps.mcpManager, mcpManager)
-  assert.equal(presetSlices.root.mcpManager, mcpManager)
+  assert.equal(presetSlices.provider.mcpManager, mcpManager)
 })
 
-await runTest('createPresetChatProps lets explicit mcpManager override win over resolved runtime defaults', async () => {
+await runTest('createPresetChatProps lets explicit mcpManager override win over resolved integration defaults', async () => {
   const featureManager = useMcpManager()
   const overrideManager = useMcpManager()
   const adapter = createChatAdapterFromConfig({
@@ -397,7 +397,7 @@ await runTest('createPresetChatProps blocks all mcpManager sources when the feat
     features: {
       mcp: false,
     },
-    runtime: {
+    integrations: {
       mcpManager: runtimeManager,
     },
   })
@@ -408,7 +408,7 @@ await runTest('createPresetChatProps blocks all mcpManager sources when the feat
   const presetSlices = createPresetChatSlices(presetProps)
 
   assert.equal(presetProps.mcpManager, undefined)
-  assert.equal(presetSlices.root.mcpManager, undefined)
+  assert.equal(presetSlices.provider.mcpManager, undefined)
 })
 
 await runTest('feature registry output flows into preset props and white-box slices through a stable mapping contract', async () => {
@@ -466,9 +466,9 @@ await runTest('feature registry output flows into preset props and white-box sli
     selected: 'conversation-3',
   })
 
-  assert.equal(slices.root.attachmentsFeature?.upload?.accept, '.md')
-  assert.equal(slices.root.senderActionsFeature?.voice?.tooltip, 'voice from feature')
-  assert.equal(slices.root.mcpManager, mcpManager)
+  assert.equal(slices.provider.attachmentsFeature?.upload?.accept, '.md')
+  assert.equal(slices.provider.senderActionsFeature?.voice?.tooltip, 'voice from feature')
+  assert.equal(slices.provider.mcpManager, mcpManager)
   assert.equal(slices.welcome?.prompts?.[0]?.label, 'feature prompt')
   assert.equal(slices.header.showHistory, true)
   assert.equal(slices.history.enabled, true)

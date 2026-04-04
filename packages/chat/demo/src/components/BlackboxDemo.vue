@@ -46,7 +46,7 @@ const chatConfig = {
     welcome: WELCOME_CONFIG,
     prompts: WELCOME_PROMPTS,
   },
-  runtime: {
+  integrations: {
     mcpManager,
   },
 }

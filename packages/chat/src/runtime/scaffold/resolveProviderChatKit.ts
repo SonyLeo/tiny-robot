@@ -1,13 +1,16 @@
 import { useChatKit } from '@/runtime/chat-kit/useChatKit'
-import type { TrChatRootProps, UseChatKitOptions, UseChatKitReturn } from '@/types'
+import type { TrChatProviderProps, UseChatKitOptions, UseChatKitReturn } from '@/types'
 import { conditionalProp } from '@/shared/utils'
 
-interface RootChatKitResolution {
+interface ProviderChatKitResolution {
   providedChatKit?: UseChatKitReturn
   chatKitOptions?: UseChatKitOptions
 }
 
-export function getRootChatKitResolution(componentName: string, props: TrChatRootProps): RootChatKitResolution {
+export function getProviderChatKitResolution(
+  componentName: string,
+  props: TrChatProviderProps,
+): ProviderChatKitResolution {
   const providedChatKit = conditionalProp(props, 'chatKit')
 
   if (providedChatKit) {
@@ -35,12 +38,12 @@ export function getRootChatKitResolution(componentName: string, props: TrChatRoo
   }
 }
 
-export function resolveRootChatKit(
+export function resolveProviderChatKit(
   componentName: string,
-  props: TrChatRootProps,
+  props: TrChatProviderProps,
   createChatKit: (options: UseChatKitOptions) => UseChatKitReturn = useChatKit,
 ): UseChatKitReturn {
-  const resolution = getRootChatKitResolution(componentName, props)
+  const resolution = getProviderChatKitResolution(componentName, props)
 
   if (resolution.providedChatKit) {
     return resolution.providedChatKit

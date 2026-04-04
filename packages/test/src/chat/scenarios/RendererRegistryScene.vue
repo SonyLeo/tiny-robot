@@ -11,7 +11,7 @@
     </div>
 
     <div data-testid="chat-renderer-registry-whitebox" class="chat-wrapper">
-      <TrChat.Root :chat-kit="rendererRegistryWhiteboxChat" v-bind="rendererRegistryWhiteboxSlices.root">
+      <TrChat.Provider :chat-kit="rendererRegistryWhiteboxChat" v-bind="rendererRegistryWhiteboxSlices.provider">
         <TrChat.Layout
           v-bind="{ ...rendererRegistryWhiteboxSlices.layout, ...rendererRegistryWhiteboxSlices.appearance }"
         >
@@ -21,7 +21,7 @@
             <TrChat.Sender v-bind="rendererRegistryWhiteboxSlices.sender" />
           </TrChat.Footer>
         </TrChat.Layout>
-      </TrChat.Root>
+      </TrChat.Provider>
     </div>
   </div>
 </template>
@@ -32,6 +32,7 @@ import type { BubbleContentRendererProps } from '@opentiny/tiny-robot'
 import { defineComponent, h } from 'vue'
 import {
   TrChat,
+  type TrChatPresetOverrides,
   createChatAdapterFromConfig,
   createPresetChatProps,
   createPresetChatSlices,
@@ -78,21 +79,17 @@ const rendererRegistryMessages = [
   },
 ]
 
-const rendererRegistryBubbleRenderers = {
+const rendererRegistryBubbleRenderers: NonNullable<TrChatPresetOverrides['bubbleRenderers']> = {
   contentMatches: [
     {
-      find: (_message: unknown, content: { type?: string; text?: string }) =>
-        content?.type === 'text' && content.text?.startsWith('[card]'),
+      find: (_message, content) => content.type === 'text' && Boolean(content.text?.startsWith('[card]')),
       renderer: CustomCardRenderer,
       priority: -2,
     },
   ],
   boxMatches: [
     {
-      find: (
-        messages: Array<{ role?: string; content?: string }>,
-        content: { type?: string; text?: string } | undefined,
-      ) =>
+      find: (messages, content) =>
         messages.length === 1 &&
         messages[0]?.role === 'assistant' &&
         content?.type === 'text' &&

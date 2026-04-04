@@ -21,7 +21,7 @@
     </div>
 
     <div data-testid="chat-welcome-prompts-whitebox" class="chat-wrapper">
-      <TrChat.Root :chat-kit="whiteboxWelcomePromptsChat" v-bind="whiteboxWelcomePromptsSlices.root">
+      <TrChat.Provider :chat-kit="whiteboxWelcomePromptsChat" v-bind="whiteboxWelcomePromptsSlices.provider">
         <TrChat.Layout v-bind="{ ...whiteboxWelcomePromptsSlices.layout, ...whiteboxWelcomePromptsSlices.appearance }">
           <TrChat.Header v-bind="whiteboxWelcomePromptsSlices.header" />
 
@@ -40,7 +40,7 @@
             />
           </TrChat.Footer>
         </TrChat.Layout>
-      </TrChat.Root>
+      </TrChat.Provider>
     </div>
   </div>
 </template>

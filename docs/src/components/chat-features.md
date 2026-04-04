@@ -36,14 +36,14 @@ outline: [2, 3]
 | :-- | :-- | :-- |
 | `config` | 稳定默认值 | `models`、`providers`、`defaults`、`ui`、`shell`、`layout`、`features` |
 | 顶层 `runtime` | 页面实例对象 | `chatKit`、`plugins`、`storage`、`initialMessages`、`mcpManager`、`messageTransforms` |
-| `config.runtime` | 配置驱动的少量运行时默认输入 | 当前最常见是 `mcpManager` |
+| `config.integrations` | 配置驱动的少量集成默认输入 | 当前最常见是 `mcpManager` |
 | `presetOverrides` | 页面级覆盖 | `contentLayout`、`showHistory`、`showFeedback`、`prompts`、`messageActions` |
 
 一个简单记法：
 
 - 稳定默认值放 `config`
 - 页面实例对象放顶层 `runtime`
-- 配置链路里的少量 runtime 默认输入放 `config.runtime`
+- 配置链路里的少量集成默认输入放 `config.integrations`
 - 页面差异放 `presetOverrides`
 
 ## 配置总表
@@ -60,7 +60,7 @@ outline: [2, 3]
 | `shell` | 否 | 普通 stacked 布局还是 workspace 壳层 | `variant`、`leftRegion`、`rightRegion`、`viewState` |
 | `layout` | 否 | 消息区布局模式与角色 placement | `variant`、`placements`、`contentLayout` |
 | `features` | 否 | 默认开启哪些 chat 能力 | `history`、`feedback`、`attachments`、`senderActions`、`welcomePrompts`、`mcp` |
-| `config.runtime` | 否 | 给配置驱动链路补稳定运行时默认输入 | `mcpManager` |
+| `config.integrations` | 否 | 给配置驱动链路补稳定集成默认输入 | `mcpManager` |
 
 ### `models`
 
@@ -260,9 +260,9 @@ features: {
 - `welcomePrompts`
 - `mcp`
 
-### `config.runtime`
+### `config.integrations`
 
-`config.runtime` 是 **写在 config 里的运行时默认输入**，而组件顶层的 `runtime` 是 **页面实例级运行时对象**。
+`config.integrations` 是 **写在 config 里的集成默认输入**，而组件顶层的 `runtime` 是 **页面实例级运行时对象**。
 
 当前常见用途比较少，主要是：
 
@@ -390,7 +390,7 @@ features: {
 | :-- | :-- | :-- |
 | `config` | 稳定默认值 | 多个页面长期共用同一份 chat 基础配置 |
 | 顶层 `runtime` | 页面实例对象 | 当前页面的 `chatKit`、`plugins`、`storage`、`mcpManager` |
-| `config.runtime` | 配置链路里的少量运行时默认输入 | 在配置驱动链路里补充 `mcpManager` |
+| `config.integrations` | 配置链路里的少量集成默认输入 | 在配置驱动链路里补充 `mcpManager` |
 | `presetOverrides` | 页面级覆盖 | 同一份基础配置在不同页面有轻微差异 |
 | `slots` | 结构和渲染替换 | 默认页面结构已经不够用 |
 
@@ -401,12 +401,12 @@ features: {
 
 ## 容易混淆的边界
 
-### `config.runtime` vs 顶层 `runtime`
+### `config.integrations` vs 顶层 `runtime`
 
 区别很明确：
 
-- `config.runtime`
-  - 配置链路里的稳定默认输入
+- `config.integrations`
+  - 配置链路里的稳定集成默认输入
 - 顶层 `runtime`
   - 当前页面实例级对象
 

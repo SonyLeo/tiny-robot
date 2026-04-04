@@ -55,7 +55,7 @@ export interface ChatLayoutConfig {
   contentLayout?: ChatContentLayout
 }
 
-export interface ChatConfigRuntime {
+export interface ChatConfigIntegrations {
   mcpManager?: TrChatPresetOverrides['mcpManager']
 }
 
@@ -68,7 +68,7 @@ export interface ChatConfig {
   ui?: ChatConfigUI
   layout?: ChatLayoutConfig
   features?: ChatFeatureConfigMap
-  runtime?: ChatConfigRuntime
+  integrations?: ChatConfigIntegrations
 }
 
 export interface ChatAdapter {
@@ -98,7 +98,7 @@ export type ChatPresetProps = Pick<
     defaultModel?: string
   }
 
-export interface ChatPresetRootSlice {
+export interface ChatPresetProviderSlice {
   mcpManager?: TrChatPresetOverrides['mcpManager']
   attachmentsManager?: TrChatPresetOverrides['attachmentsManager']
   attachmentsFeature?: TrChatPresetOverrides['attachmentsFeature']
@@ -162,7 +162,7 @@ export interface ChatPresetModelSelectorSlice {
 }
 
 export interface ChatPresetSlices {
-  root: ChatPresetRootSlice
+  provider: ChatPresetProviderSlice
   layout: ChatPresetLayoutSlice
   appearance: ChatPresetAppearanceSlice
   shell: ChatPresetShellSlice

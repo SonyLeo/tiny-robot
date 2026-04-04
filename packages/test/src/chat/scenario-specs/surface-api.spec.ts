@@ -114,19 +114,21 @@ test.describe('Chat Surface API', () => {
     await expect(contents.last()).toContainText('[deepseek:deepseek-test]')
   })
 
-  test('TrChat.Root responseProvider branch and leaf-component header slots should work together', async ({ page }) => {
-    const root = '[data-testid="chat-surface-root-provider"] .tr-chat'
-    const sceneRoot = page.locator('[data-testid="chat-surface-root-provider"]')
+  test('TrChat.Provider responseProvider branch and leaf-component header slots should work together', async ({
+    page,
+  }) => {
+    const root = '[data-testid="chat-surface-provider-branch"] .tr-chat'
+    const sceneRoot = page.locator('[data-testid="chat-surface-provider-branch"]')
 
-    await expect(sceneRoot.getByTestId('surface-root-title-slot')).toBeVisible()
-    await expect(sceneRoot.getByTestId('surface-root-extra-slot')).toBeVisible()
+    await expect(sceneRoot.getByTestId('surface-provider-title-slot')).toBeVisible()
+    await expect(sceneRoot.getByTestId('surface-provider-extra-slot')).toBeVisible()
     await expect(sceneRoot.locator(helper.selectors.newChatBtn)).toHaveCount(0)
 
-    await helper.sendMessage('root-provider-path', root)
+    await helper.sendMessage('provider-branch-path', root)
     await helper.waitForStreamingComplete(root)
 
     const contents = page.locator(root).locator(helper.selectors.bubbleContent)
-    await expect(contents.last()).toContainText('[root-provider:root-provider-model]')
+    await expect(contents.last()).toContainText('[provider-branch:provider-branch-model]')
   })
 
   test('HistorySurface should render independent history UI and support filtering', async ({ page }) => {

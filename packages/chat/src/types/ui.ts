@@ -12,7 +12,7 @@ import type {
 } from '@opentiny/tiny-robot'
 import type { UseMcpManagerReturn } from '../components/mcp/useMcpManager'
 import type { UseChatAttachmentsReturn } from '../components/attachments/useChatAttachments'
-import type { ChatScaffoldCallbacks, ChatScaffoldRuntimeInput } from './scaffold'
+import type { ChatScaffoldCallbacks, TrChatRuntimeInput } from './scaffold'
 import type {
   BrandConfig,
   ChatAppearanceConfig,
@@ -185,12 +185,12 @@ export interface TrChatPresetOverrides {
 
 export interface TrChatProps {
   config: unknown
-  runtime?: ChatScaffoldRuntimeInput
+  runtime?: TrChatRuntimeInput
   callbacks?: ChatScaffoldCallbacks
   presetOverrides?: TrChatPresetOverrides
 }
 
-type TrChatRootSharedProps = {
+export type TrChatProviderSharedProps = {
   mcpManager?: UseMcpManagerReturn
   attachmentsManager?: UseChatAttachmentsReturn
   attachmentsFeature?: ChatAttachmentsFeaturePreset
@@ -199,7 +199,7 @@ type TrChatRootSharedProps = {
   shell?: ChatWorkspaceShellConfig
 }
 
-type TrChatRootPropsA = {
+type TrChatProviderPropsA = {
   responseProvider: UseChatKitOptions['responseProvider']
   plugins?: UseChatKitOptions['plugins']
   storage?: UseChatKitOptions['storage']
@@ -210,7 +210,7 @@ type TrChatRootPropsA = {
   chatKit?: never
 }
 
-type TrChatRootPropsB = {
+type TrChatProviderPropsB = {
   chatKit: UseChatKitReturn
   responseProvider?: never
   plugins?: never
@@ -221,7 +221,7 @@ type TrChatRootPropsB = {
   onError?: never
 }
 
-export type TrChatRootProps = (TrChatRootPropsA | TrChatRootPropsB) & TrChatRootSharedProps
+export type TrChatProviderProps = (TrChatProviderPropsA | TrChatProviderPropsB) & TrChatProviderSharedProps
 
 export interface TrChatHeaderProps {
   showHistory?: boolean

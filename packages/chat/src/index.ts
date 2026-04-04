@@ -3,7 +3,7 @@ import './styles/index.css'
 import {
   Chat as TrChat,
   ChatScaffold as TrChatScaffold,
-  ChatRoot as TrChatRoot,
+  ChatProvider as TrChatProvider,
   ChatLayout as TrChatLayout,
   ChatHeader as TrChatHeader,
   ChatWelcome as TrChatWelcome,
@@ -24,7 +24,7 @@ import { ModelSelector as TrModelSelector } from './components/model-selector'
 
 type TrChatWithSubComponents = typeof TrChat & {
   Scaffold: typeof TrChatScaffold
-  Root: typeof TrChatRoot
+  Provider: typeof TrChatProvider
   Layout: typeof TrChatLayout
   WorkspaceLayout: typeof TrChatWorkspaceLayout
   Header: typeof TrChatHeader
@@ -41,7 +41,7 @@ type TrChatWithSubComponents = typeof TrChat & {
 
 const TrChatFull = TrChat as TrChatWithSubComponents
 TrChatFull.Scaffold = TrChatScaffold
-TrChatFull.Root = TrChatRoot
+TrChatFull.Provider = TrChatProvider
 TrChatFull.Layout = TrChatLayout
 TrChatFull.WorkspaceLayout = TrChatWorkspaceLayout
 TrChatFull.Header = TrChatHeader
@@ -80,6 +80,7 @@ export {
 export {
   TrMcpTrigger,
   TrModelSelector,
+  TrChatProvider,
   TrChatScaffold,
   TrChatFeedback,
   TrChatMcpPanel,
@@ -106,7 +107,7 @@ export type {
   ChatScaffoldCallbacks,
   ChatBeforeSendPayload,
   ChatBeforeSendResult,
-  ChatScaffoldRuntimeInput,
+  TrChatRuntimeInput,
   ChatAppearanceConfig,
   ChatContentLayout,
   ChatAppearanceMode,
@@ -129,7 +130,7 @@ export type {
   UseChatKitRuntimeBridge,
   UseChatKitReturn,
   TrChatProps,
-  TrChatRootProps,
+  TrChatProviderProps,
   TrChatScaffoldProps,
   TrChatHeaderProps,
   TrChatWelcomeProps,
@@ -137,6 +138,7 @@ export type {
   TrChatHistorySurfaceProps,
   TrChatPresetOverrides,
   TrChatSenderProps,
+  TrChatProviderSharedProps,
   ChatBubbleRenderers,
   ChatAttachmentsFeaturePreset,
   ChatAttachmentsListConfig,
@@ -168,7 +170,7 @@ export type {
   ChatPresetAppearanceSlice,
   ChatConfig,
   ChatConfigDefaults,
-  ChatConfigRuntime,
+  ChatConfigIntegrations,
   ChatLayoutConfig,
   ChatLayoutPlacementsConfig,
   ChatConfigModel,
@@ -180,7 +182,7 @@ export type {
   ChatPresetLayoutSlice,
   ChatPresetMessageListSlice,
   ChatPresetModelSelectorSlice,
-  ChatPresetRootSlice,
+  ChatPresetProviderSlice,
   ChatPresetShellSlice,
   ChatPresetSenderSlice,
   ChatPresetSlices,

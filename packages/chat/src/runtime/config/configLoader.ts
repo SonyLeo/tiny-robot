@@ -19,9 +19,9 @@ import type {
 import { isChatFeatureExplicitlyDisabled } from './registry'
 import type {
   ChatConfig,
+  ChatConfigIntegrations,
   ChatConfigModel,
   ChatConfigProvider,
-  ChatConfigRuntime,
   ChatConfigUI,
   ChatLayoutConfig,
 } from './types'
@@ -436,12 +436,12 @@ function normalizeMcpFeature(rawFeature: unknown): ChatMcpFeatureConfig | undefi
   }
 }
 
-function normalizeRuntime(rawRuntime: unknown, rawFeatures: unknown): ChatConfigRuntime | undefined {
-  if (rawRuntime !== undefined && !isRecord(rawRuntime)) {
-    throw new Error('[loadChatConfig] runtime must be an object when provided')
+function normalizeIntegrations(rawIntegrations: unknown, rawFeatures: unknown): ChatConfigIntegrations | undefined {
+  if (rawIntegrations !== undefined && !isRecord(rawIntegrations)) {
+    throw new Error('[loadChatConfig] integrations must be an object when provided')
   }
 
-  const runtimeRecord = isRecord(rawRuntime) ? rawRuntime : undefined
+  const integrationsRecord = isRecord(rawIntegrations) ? rawIntegrations : undefined
   const rawMcpFeature = isRecord(rawFeatures) ? rawFeatures.mcp : undefined
 
   if (isChatFeatureExplicitlyDisabled(rawMcpFeature as ChatMcpFeatureConfig | undefined)) {
@@ -449,7 +449,7 @@ function normalizeRuntime(rawRuntime: unknown, rawFeatures: unknown): ChatConfig
   }
 
   const mcpManager =
-    (runtimeRecord?.mcpManager as TrChatPresetOverrides['mcpManager'] | undefined) ??
+    (integrationsRecord?.mcpManager as TrChatPresetOverrides['mcpManager'] | undefined) ??
     (isRecord(rawMcpFeature) ? (rawMcpFeature.manager as TrChatPresetOverrides['mcpManager'] | undefined) : undefined)
 
   if (!mcpManager) {
@@ -530,7 +530,7 @@ export function loadChatConfig(input: string | ChatConfig | unknown): ChatConfig
   const ui = normalizeUi(raw.ui)
   const layout = normalizeLayout(raw.layout)
   const features = normalizeFeatures(raw.features)
-  const runtime = normalizeRuntime(raw.runtime, raw.features)
+  const integrations = normalizeIntegrations(raw.integrations, raw.features)
 
   return {
     models,
@@ -541,6 +541,6 @@ export function loadChatConfig(input: string | ChatConfig | unknown): ChatConfig
     ui,
     layout,
     features,
-    runtime,
+    integrations,
   }
 }

@@ -1,6 +1,6 @@
 import type { ChatAdapter } from '@/runtime/config'
 import type { ModelOption, TrChatPresetOverrides } from '@/types'
-import type { ChatScaffoldCallbacks, ChatScaffoldRuntimeInput } from '@/types/scaffold'
+import type { ChatScaffoldCallbacks, TrChatRuntimeInput } from '@/types/scaffold'
 import type { Slot, Slots } from 'vue'
 
 export interface ResolveScaffoldInitialModelValueOptions {
@@ -46,7 +46,7 @@ export function createScaffoldResponseProvider(options: CreateScaffoldResponsePr
   return adapter.createResponseProvider(model.value)
 }
 
-export function shouldManageScaffoldResponseProvider(runtime?: Pick<ChatScaffoldRuntimeInput, 'chatKit'>) {
+export function shouldManageScaffoldResponseProvider(runtime?: Pick<TrChatRuntimeInput, 'chatKit'>) {
   return !runtime?.chatKit
 }
 
@@ -55,7 +55,7 @@ export interface CreateScaffoldPresetOverridesOptions {
   models: ModelOption[]
   currentModel?: string
   defaultModel?: string
-  runtime?: Pick<ChatScaffoldRuntimeInput, 'mcpManager'>
+  runtime?: Pick<TrChatRuntimeInput, 'mcpManager'>
   callbacks?: Pick<ChatScaffoldCallbacks, 'onMessageAction' | 'onModelChange'>
 }
 

@@ -88,7 +88,7 @@ export function createChatSceneConfig(
     ui: overrides.ui,
     layout: overrides.layout,
     features: overrides.features,
-    runtime: overrides.runtime,
+    integrations: overrides.integrations,
   }
 }
 

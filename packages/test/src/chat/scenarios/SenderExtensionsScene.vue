@@ -5,7 +5,7 @@
     </div>
 
     <div data-testid="chat-sender-extensions-whitebox" class="chat-wrapper">
-      <TrChat.Root :chat-kit="senderExtensionsWhiteboxChat">
+      <TrChat.Provider :chat-kit="senderExtensionsWhiteboxChat">
         <TrChat.Layout>
           <TrChat.Header title="Sender Extensions Whitebox" />
 
@@ -21,7 +21,7 @@
             <TrChat.Sender :extensions="senderSuggestionExtensions" placeholder="Type ECS to trigger suggestions..." />
           </TrChat.Footer>
         </TrChat.Layout>
-      </TrChat.Root>
+      </TrChat.Provider>
     </div>
   </div>
 </template>

@@ -23,7 +23,7 @@ const modelSelectorModule = await jiti.import('../src/components/model-selector/
 const adapterModule = await jiti.import('../src/runtime/config/index.ts')
 const transportModule = await jiti.import('../src/runtime/config/openaiCompatibleTransport.ts')
 const messagesModule = await jiti.import('../src/shared/messages/index.ts')
-const rootChatKitModule = await jiti.import('../src/runtime/scaffold/resolveRootChatKit.ts')
+const providerChatKitModule = await jiti.import('../src/runtime/scaffold/resolveProviderChatKit.ts')
 
 export { assert, computed, nextTick, ref, shallowRef }
 
@@ -48,8 +48,8 @@ export const resolveChatFeatures = adapterModule.resolveChatFeatures
 
 export const CHAT_MESSAGES = messagesModule.CHAT_MESSAGES
 export const resolveChatMessages = messagesModule.resolveChatMessages
-export const getRootChatKitResolution = rootChatKitModule.getRootChatKitResolution
-export const resolveRootChatKit = rootChatKitModule.resolveRootChatKit
+export const getProviderChatKitResolution = providerChatKitModule.getProviderChatKitResolution
+export const resolveProviderChatKit = providerChatKitModule.resolveProviderChatKit
 export const ChatProviderError = transportModule.ChatProviderError
 export const createOpenAICompatibleResponseProvider = transportModule.createOpenAICompatibleResponseProvider
 export { expectThrowsAsync, runTest }

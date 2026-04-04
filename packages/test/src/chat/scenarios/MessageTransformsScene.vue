@@ -19,7 +19,7 @@
         <span data-testid="transform-whitebox-chunk-count">chunks:{{ whiteboxChunkCount }}</span>
       </div>
 
-      <TrChat.Root :chat-kit="messageTransformsWhiteboxChat" v-bind="messageTransformsWhiteboxSlices.root">
+      <TrChat.Provider :chat-kit="messageTransformsWhiteboxChat" v-bind="messageTransformsWhiteboxSlices.provider">
         <TrChat.Layout
           v-bind="{ ...messageTransformsWhiteboxSlices.layout, ...messageTransformsWhiteboxSlices.appearance }"
         >
@@ -34,7 +34,7 @@
             <TrChat.Sender v-bind="messageTransformsWhiteboxSlices.sender" />
           </TrChat.Footer>
         </TrChat.Layout>
-      </TrChat.Root>
+      </TrChat.Provider>
     </div>
   </div>
 </template>
@@ -93,7 +93,7 @@ const messageTransformsOverrides = {
     contentMatches: [
       {
         find: (_message: unknown, content: { type?: string; text?: string }) =>
-          content?.type === 'text' && content.text?.startsWith('[card]'),
+          content.type === 'text' && Boolean(content.text?.startsWith('[card]')),
         renderer: TransformCardRenderer,
         priority: -2,
       },

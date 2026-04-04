@@ -5,7 +5,7 @@
     </div>
 
     <div data-testid="chat-mcp-feature-whitebox" class="chat-wrapper">
-      <TrChat.Root :chat-kit="mcpWhiteboxChat" v-bind="mcpWhiteboxSlices.root">
+      <TrChat.Provider :chat-kit="mcpWhiteboxChat" v-bind="mcpWhiteboxSlices.provider">
         <TrChat.Layout v-bind="{ ...mcpWhiteboxSlices.layout, ...mcpWhiteboxSlices.appearance }">
           <TrChat.Header v-bind="mcpWhiteboxSlices.header" />
           <TrChat.Welcome
@@ -21,7 +21,7 @@
             </TrChat.Sender>
           </TrChat.Footer>
         </TrChat.Layout>
-      </TrChat.Root>
+      </TrChat.Provider>
     </div>
   </div>
 </template>
@@ -73,14 +73,14 @@ const mcpFeatureConfig = createChatSceneConfig({
     },
     welcome: {
       title: 'MCP Feature Welcome',
-      description: 'MCP manager should travel through runtime / preset / root.',
+      description: 'MCP manager should travel through integrations / preset / provider.',
     },
   },
 })
 
 const mcpWhiteboxAdapter = createChatAdapterFromConfig({
   ...mcpFeatureConfig,
-  runtime: {
+  integrations: {
     mcpManager: mcpWhiteboxManager,
   },
 })

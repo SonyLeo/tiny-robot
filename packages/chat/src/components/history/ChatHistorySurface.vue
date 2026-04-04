@@ -17,7 +17,7 @@ const injectedChatKit = inject(CHAT_KIT_KEY, null)
 const resolvedChatKit = props.chatKit ?? injectedChatKit
 
 if (!resolvedChatKit) {
-  throw new Error('[TrChatHistorySurface] chatKit prop is required when used outside TrChat.Root')
+  throw new Error('[TrChatHistorySurface] chatKit prop is required when used outside TrChat.Provider')
 }
 
 const injectedMessages = inject(CHAT_MESSAGES_KEY, null)

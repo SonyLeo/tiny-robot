@@ -35,14 +35,69 @@ outline: [2, 3]
 | :-- | :-- | :-- |
 | 跑通一个完整聊天页 | `TrChat` | 默认结构不够用再看进阶页 |
 | 只做页面轻量差异 | `presetOverrides` | 覆盖不够再用 `slots` |
-| 默认结构不够用 | `TrChat.Scaffold` / `TrChat.Root` | 需要自己接管运行时或页面装配时再进入 |
+| 默认结构不够用 | `TrChat.Scaffold` / `TrChat.Provider` | 需要自己接管运行时或页面装配时再进入 |
 
 一个简单判断顺序：
 
 1. 先用 `TrChat`
 2. 再用 `presetOverrides`
 3. 再用 `slots`
-4. 最后再考虑 `Scaffold` 或 `Root`
+4. 最后再考虑 `Scaffold` 或 `Provider`
+
+## 开始前先确认 3 个前提
+
+如果你是第一次在业务项目里接入 `@opentiny/tiny-robot-chat`，建议先把下面 3 件事补齐，再去复制最小示例。
+
+### 1. 先安装运行这个最小示例需要的依赖
+
+`@opentiny/tiny-robot-chat` 不是一个完全独立的单包入口。按当前包定义和 demo 工程的真实依赖，最少需要先安装：
+
+- `vue`
+- `@opentiny/tiny-robot`
+- `@opentiny/tiny-robot-chat`
+- `@opentiny/tiny-robot-kit`
+- `markstream-vue`
+
+::: code-group
+
+```bash [pnpm]
+pnpm add vue @opentiny/tiny-robot @opentiny/tiny-robot-chat @opentiny/tiny-robot-kit markstream-vue
+```
+
+```bash [yarn]
+yarn add vue @opentiny/tiny-robot @opentiny/tiny-robot-chat @opentiny/tiny-robot-kit markstream-vue
+```
+
+```bash [npm]
+npm install vue @opentiny/tiny-robot @opentiny/tiny-robot-chat @opentiny/tiny-robot-kit markstream-vue
+```
+
+:::
+
+如果你只安装 `@opentiny/tiny-robot-chat`，照着下面的最小示例直接复制，通常并不能完整跑起来。
+
+### 2. 在入口文件引入基础样式
+
+至少先在 `main.ts` / `main.js` 里引入 TinyRobot 的基础样式：
+
+```ts
+import { createApp } from 'vue'
+import App from './App.vue'
+import '@opentiny/tiny-robot/dist/style.css'
+
+createApp(App).mount('#app')
+```
+
+`chat` 包自己的样式会跟随包入口进入构建链，但 `@opentiny/tiny-robot` 的基础样式仍然需要你显式引入。
+
+### 3. 准备一个真实可请求的接口
+
+本页所有最小示例都把 provider endpoint 写成 `/api/chat/completions`。
+
+- 在文档站里，这个请求会被 service worker mock 掉，所以示例可以直接演示
+- 在你自己的项目里，这个地址需要由你自己的服务端 API 来实现
+
+如果你还没有服务端接口，最小示例可以先看 UI 是否正确渲染，但不能指望它在业务项目里直接返回真实对话结果。
 
 ## 最小可运行示例
 
@@ -64,7 +119,7 @@ outline: [2, 3]
 | 字段 | 参考类型 | 适合放什么 | 什么时候最常用 |
 | :-- | :-- | :-- | :-- |
 | `config` | `ChatConfig`，也可以传 JSON 字符串配置 | 模型、provider、UI、layout、features 等稳定默认值 | 场景默认值、长期保留的配置 |
-| `runtime` | `ChatScaffoldRuntimeInput` | `chatKit`、`plugins`、`storage`、`initialMessages`、`mcpManager`、`selectedModel`、`messageTransforms` 等实例级对象 | 页面实例级依赖、运行时对象、消息改写 |
+| `runtime` | `TrChatRuntimeInput` | `chatKit`、`plugins`、`storage`、`initialMessages`、`mcpManager`、`selectedModel`、`messageTransforms` 等实例级对象 | 页面实例级依赖、运行时对象、消息改写 |
 | `callbacks` | `ChatScaffoldCallbacks` | `onBeforeSend`、`onFinish`、`onError`、`onMessageAction`、`onModelChange` 等行为回调 | 日志、埋点、错误处理、业务联动 |
 | `presetOverrides` | `TrChatPresetOverrides` | `contentLayout`、`showHistory`、`showFeedback`、`placeholder`、`messageActions`、`bubbleRenderers` 等页面级覆盖 | 同一份基础配置在不同页面有轻微差异 |
 
@@ -219,7 +274,7 @@ outline: [2, 3]
 
 - 配置字段
 - `features`
-- `config.runtime`
+- `config.integrations`
 - `shell` 和 `layout`
 - 能力开关和优先级
 
@@ -230,7 +285,7 @@ outline: [2, 3]
 如果你现在要做：
 
 - workspace 左右面板替换
-- `Scaffold` / `Root`
+- `Scaffold` / `Provider`
 - `messageActions`
 - `bubbleRenderers`
 - `messageTransforms`

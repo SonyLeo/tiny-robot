@@ -5,7 +5,7 @@
     </div>
 
     <div data-testid="chat-layout-config-whitebox" class="chat-wrapper">
-      <TrChat.Root :chat-kit="layoutConfigWhiteboxChat" v-bind="layoutConfigWhiteboxSlices.root">
+      <TrChat.Provider :chat-kit="layoutConfigWhiteboxChat" v-bind="layoutConfigWhiteboxSlices.provider">
         <TrChat.Layout v-bind="{ ...layoutConfigWhiteboxSlices.layout, ...layoutConfigWhiteboxSlices.appearance }">
           <TrChat.Header v-bind="layoutConfigWhiteboxSlices.header" />
           <TrChat.Welcome
@@ -18,7 +18,7 @@
             <TrChat.Sender v-bind="layoutConfigWhiteboxSlices.sender" />
           </TrChat.Footer>
         </TrChat.Layout>
-      </TrChat.Root>
+      </TrChat.Provider>
     </div>
 
     <div data-testid="chat-layout-workspace-blackbox" class="chat-wrapper">
@@ -26,7 +26,7 @@
     </div>
 
     <div data-testid="chat-layout-workspace-whitebox" class="chat-wrapper">
-      <TrChat.Root :chat-kit="workspaceLayoutWhiteboxChat" v-bind="workspaceLayoutWhiteboxSlices.root">
+      <TrChat.Provider :chat-kit="workspaceLayoutWhiteboxChat" v-bind="workspaceLayoutWhiteboxSlices.provider">
         <TrChat.Layout
           v-bind="{ ...workspaceLayoutWhiteboxSlices.layout, ...workspaceLayoutWhiteboxSlices.appearance }"
         >
@@ -41,7 +41,7 @@
             <TrChat.Sender v-bind="workspaceLayoutWhiteboxSlices.sender" />
           </TrChat.Footer>
         </TrChat.Layout>
-      </TrChat.Root>
+      </TrChat.Provider>
     </div>
   </div>
 </template>

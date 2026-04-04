@@ -86,8 +86,8 @@ const edgeCallbacks = {
 
 const edgePresetOverrides = computed(() => ({
   roleConfigs: {
-    user: { placement: 'start' },
-    assistant: { placement: 'end' },
+    user: { placement: 'start' as const },
+    assistant: { placement: 'end' as const },
   },
   senderProps: {
     maxLength: 5,

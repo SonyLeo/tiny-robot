@@ -13,7 +13,7 @@
         </button>
       </div>
 
-      <TrChat.Root
+      <TrChat.Provider
         :chat-kit="chat"
         :attachments-feature="sharedAttachmentsFeature"
         :sender-actions-feature="sharedSenderActionsFeature"
@@ -24,7 +24,7 @@
           <TrChat.Welcome
             v-if="messages.length === 0"
             title="白盒模式测试"
-            description="验证 Root、inject 和手动组合链路"
+            description="验证 Provider、inject 和手动组合链路"
             :prompts="sharedPrompts"
             @prompt-click="handlePromptClick"
           />
@@ -55,12 +55,12 @@
 
           <TrChat.History />
         </TrChat.Layout>
-      </TrChat.Root>
+      </TrChat.Provider>
     </div>
 
     <div class="scene-grid">
       <div data-testid="chat-whitebox-slices-default" class="chat-wrapper">
-        <TrChat.Root :chat-kit="whiteboxSlicesChat" v-bind="whiteboxFeatureSlices.root">
+        <TrChat.Provider :chat-kit="whiteboxSlicesChat" v-bind="whiteboxFeatureSlices.provider">
           <TrChat.Layout v-bind="{ ...whiteboxFeatureSlices.layout, ...whiteboxFeatureSlices.appearance }">
             <TrChat.Header v-bind="whiteboxFeatureSlices.header" />
 
@@ -77,11 +77,11 @@
               <TrChat.Sender v-bind="whiteboxFeatureSlices.sender" />
             </TrChat.Footer>
           </TrChat.Layout>
-        </TrChat.Root>
+        </TrChat.Provider>
       </div>
 
       <div data-testid="chat-whitebox-slices-slot" class="chat-wrapper">
-        <TrChat.Root :chat-kit="whiteboxSlicesSlotChat" v-bind="whiteboxFeatureSlices.root">
+        <TrChat.Provider :chat-kit="whiteboxSlicesSlotChat" v-bind="whiteboxFeatureSlices.provider">
           <TrChat.Layout v-bind="{ ...whiteboxFeatureSlices.layout, ...whiteboxFeatureSlices.appearance }">
             <TrChat.Header v-bind="whiteboxFeatureSlices.header" />
 
@@ -102,7 +102,7 @@
               </TrChat.Sender>
             </TrChat.Footer>
           </TrChat.Layout>
-        </TrChat.Root>
+        </TrChat.Provider>
       </div>
     </div>
   </div>
@@ -140,8 +140,8 @@ const messageListVariant = ref<ChatListVariant>('bubble')
 const whiteboxConfig = createChatSceneConfig({
   ui: {
     welcome: {
-      title: '鐧界洅妯″紡娴嬭瘯',
-      description: '楠岃瘉 Root銆乮nject 鍜屾墜鍔ㄧ粍鍚堥摼璺?',
+      title: '白盒模式测试',
+      description: '验证 Provider、inject 和手动组合链路',
     },
     prompts: sharedPrompts,
   },

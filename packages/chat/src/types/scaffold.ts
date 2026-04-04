@@ -5,7 +5,7 @@ import type { ChatAdapter, ChatConfig, ChatPresetProps, ChatPresetSlices } from 
 import type { UseMcpManagerReturn } from '@/components/mcp/useMcpManager'
 import type { ModelOption, TrChatPresetOverrides, UseChatKitOptions, UseChatKitReturn } from '@/types'
 
-export interface ChatScaffoldRuntimeInput {
+export interface TrChatRuntimeInput {
   chatKit?: UseChatKitReturn
   plugins?: UseMessagePlugin[]
   storage?: ConversationStorageStrategy
@@ -38,7 +38,7 @@ export interface ChatScaffoldCallbacks {
 
 export interface TrChatScaffoldProps {
   config: string | ChatConfig | unknown
-  runtime?: ChatScaffoldRuntimeInput
+  runtime?: TrChatRuntimeInput
   callbacks?: ChatScaffoldCallbacks
   presetOverrides?: Partial<TrChatPresetOverrides>
 }

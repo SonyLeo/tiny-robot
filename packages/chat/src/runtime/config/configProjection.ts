@@ -120,7 +120,7 @@ export function createPresetChatProps(
 ): ChatPresetProps & Partial<TrChatPresetOverrides> {
   const { shell: overrideShell, mcpManager: overrideMcpManager, ...restOverrides } = overrides
   const mcpAllowed = !isChatFeatureExplicitlyDisabled(adapter.config.features?.mcp)
-  const resolvedMcpManager = mcpAllowed ? (overrideMcpManager ?? adapter.config.runtime?.mcpManager) : undefined
+  const resolvedMcpManager = mcpAllowed ? (overrideMcpManager ?? adapter.config.integrations?.mcpManager) : undefined
   const resolvedShowHistory =
     overrides.showHistory ??
     (adapter.config.features?.history === undefined
@@ -171,7 +171,7 @@ export function createPresetChatSlices(preset: ChatPresetProps & Partial<TrChatP
   const models = preset.models
 
   return {
-    root: {
+    provider: {
       mcpManager: preset.mcpManager,
       attachmentsManager: preset.attachmentsManager,
       attachmentsFeature: preset.attachmentsFeature,

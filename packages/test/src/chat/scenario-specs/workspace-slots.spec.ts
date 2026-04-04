@@ -16,11 +16,12 @@ test.describe('Chat Workspace Panel Slots', () => {
   test('blackbox workspace slots render custom desktop left and right panels', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 1000 })
     const root = page.locator('[data-testid="chat-workspace-slots-default"]')
+    const rightPanelToggle = root.locator('.tr-chat__header-right button').last()
 
     await expect(root.getByTestId('workspace-left-default')).toBeVisible()
     await expect(root.getByTestId('workspace-left-default')).toContainText('Desktop Left Slot')
 
-    await root.locator('[title="Toggle workspace panel"]').click({ force: true })
+    await rightPanelToggle.click({ force: true })
     await expect(root.getByTestId('workspace-right-default')).toBeVisible()
     await expect(root.getByTestId('workspace-right-default')).toContainText('Desktop Right Slot')
   })
@@ -38,13 +39,14 @@ test.describe('Chat Workspace Panel Slots', () => {
     await page.setViewportSize({ width: 480, height: 900 })
     const root = page.locator('[data-testid="chat-workspace-slots-mobile-override"]')
     const chatRoot = '[data-testid="chat-workspace-slots-mobile-override"] .tr-chat'
+    const rightPanelToggle = root.locator('.tr-chat__header-right button').last()
 
     await helper.clickHistoryBtn(chatRoot)
     await expect(root.getByTestId('workspace-mobile-left-override')).toBeVisible()
     await expect(root.getByTestId('workspace-left-override')).toHaveCount(0)
 
     await root.locator('.tr-chat-drawer-overlay').click({ force: true })
-    await root.locator('[title="Toggle workspace panel"]').click()
+    await rightPanelToggle.click()
     await expect(root.getByTestId('workspace-mobile-right-override')).toBeVisible()
     await expect(root.getByTestId('workspace-right-override')).toHaveCount(0)
   })

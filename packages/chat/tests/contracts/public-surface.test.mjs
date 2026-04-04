@@ -35,7 +35,7 @@ const configProjectionSource = readFileSync(
 await runTest('TrChat compound source keeps the retained subcomponents', async () => {
   const retainedAssignments = [
     'TrChatFull.Scaffold = TrChatScaffold',
-    'TrChatFull.Root = TrChatRoot',
+    'TrChatFull.Provider = TrChatProvider',
     'TrChatFull.Layout = TrChatLayout',
     'TrChatFull.Header = TrChatHeader',
     'TrChatFull.Welcome = TrChatWelcome',
@@ -56,7 +56,7 @@ await runTest('public source keeps removed legacy branches absent while retainin
   const removedSurfaceTokens = [
     'TrChatFull.AssistantOutline',
     'TrChatFull.AssistantOutlineTrigger',
-    'TrChatFull.PresetRoot',
+    'TrChatFull.PresetProvider',
     'TrChatFull.WorkspacePanelHost',
     'TrChatFull.ContentNavigationHost',
     'TrChatFull.ConversationTurnNavigation',
@@ -65,7 +65,7 @@ await runTest('public source keeps removed legacy branches absent while retainin
     'ChatAssistantOutlineItem',
     'TrChatAssistantOutlineProps',
     'TrChatAssistantOutlineTriggerProps',
-    'TrChatPresetRoot',
+    'TrChatPresetProvider',
     'TrChatWorkspacePanelHost',
     'TrChatContentNavigationHost',
     'TrChatConversationTurnNavigation',
@@ -76,12 +76,13 @@ await runTest('public source keeps removed legacy branches absent while retainin
   })
   assert.equal(chatComponentsIndexSource.includes('AssistantOutline'), false)
   assert.equal(chatComponentsIndexSource.includes('AssistantOutlineTrigger'), false)
-  assert.equal(chatComponentsIndexSource.includes('ChatPresetRoot'), false)
+  assert.equal(chatComponentsIndexSource.includes('ChatProvider'), true)
   assert.equal(chatTypesIndexSource.includes("from './navigation'"), false)
   assert.equal(chatIndexSource.includes('TrChatFull.WorkspaceShell'), true)
   assert.equal(chatIndexSource.includes('TrChatFull.WorkspaceRightSheet'), true)
   assert.equal(chatIndexSource.includes('TrChatWorkspaceShell'), true)
   assert.equal(chatIndexSource.includes('TrChatWorkspaceRightSheet'), true)
+  assert.equal(chatIndexSource.includes('TrChatFull.Provider'), true)
   assert.equal(chatIndexSource.includes("from './components/workspace'"), true)
   assert.equal(chatTypesIndexSource.includes("from './workspace'"), true)
 })
@@ -99,6 +100,7 @@ await runTest('named exports still advertise the retained scaffold and helper su
     'TrChatHistorySurface',
     'TrChatWorkspaceShell',
     'TrChatWorkspaceRightSheet',
+    'TrChatProvider',
   ]
 
   retainedExports.forEach((token) => {
@@ -122,6 +124,25 @@ await runTest('public source advertises chat message action contracts for extens
 
   retainedTypeExports.forEach((token) => {
     assert.equal(chatIndexSource.includes(token), true)
+    assert.equal(chatTypesIndexSource.includes(token), true)
+  })
+})
+
+await runTest('renamed provider-facing type exports stay visible through the public entrypoints', async () => {
+  const topLevelTypeExports = [
+    'ChatConfigIntegrations',
+    'ChatPresetProviderSlice',
+    'TrChatRuntimeInput',
+    'TrChatProviderProps',
+  ]
+
+  topLevelTypeExports.forEach((token) => {
+    assert.equal(chatIndexSource.includes(token), true)
+  })
+
+  const chatTypesExports = ['TrChatRuntimeInput', 'TrChatProviderProps', 'TrChatProviderSharedProps']
+
+  chatTypesExports.forEach((token) => {
     assert.equal(chatTypesIndexSource.includes(token), true)
   })
 })
