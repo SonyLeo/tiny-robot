@@ -7,13 +7,16 @@ export function useContentNavState(options: ContentNavStateOptions) {
   const localQuery = ref('')
   const highlightedIndex = ref(0)
 
-  const searchable = computed(() => options.searchable?.value !== false)
+  const search = computed(() => {
+    const value = options.search?.value
+    return value || undefined
+  })
   const collapsible = computed(() => options.collapsible?.value !== false)
   const keyboardMode = computed(() => options.keyboardMode?.value ?? 'basic')
 
   const expanded = computed(() => options.expanded?.value ?? (collapsible.value ? localExpanded.value : true))
   const query = computed(() => options.query?.value ?? localQuery.value)
-  const matcher = computed(() => options.matcher?.value ?? defaultContentNavSearchMatcher)
+  const matcher = computed(() => search.value?.matcher ?? defaultContentNavSearchMatcher)
 
   const filteredItems = computed<ContentNavFilteredItem[]>(() => {
     const keyword = query.value.trim()
@@ -46,16 +49,12 @@ export function useContentNavState(options: ContentNavStateOptions) {
 
     options.onUpdateExpanded?.(value)
 
-    if (!value && options.clearQueryOnCollapse?.value && query.value) {
+    if (!value && search.value?.clearOnCollapse && query.value) {
       setQuery('')
     }
   }
 
   function setQuery(value: string) {
-    if (!searchable.value) {
-      return
-    }
-
     if (options.query?.value === undefined) {
       localQuery.value = value
     }
@@ -166,7 +165,7 @@ export function useContentNavState(options: ContentNavStateOptions) {
   )
 
   return {
-    searchable,
+    search,
     collapsible,
     expanded,
     query,

@@ -27,28 +27,33 @@ export function useContentNavScrollSpy(options: ContentNavScrollSpyOptions) {
   function updateFloatingPosition() {
     const hostEl = options.host.value
     const container = options.container.value
-    const overlayEl = hostEl?.parentElement
+    const frameEl = hostEl?.parentElement
+    const floatingEl = hostEl?.firstElementChild as HTMLElement | null
+    const measuredEl =
+      floatingEl?.querySelector<HTMLElement>('.tr-content-nav__surface') ??
+      floatingEl?.querySelector<HTMLElement>('.tr-content-nav__panel') ??
+      floatingEl
 
-    if (!hostEl || !container || !overlayEl) {
+    if (!hostEl || !container || !frameEl || !floatingEl || !measuredEl) {
       floatingOffset.value = 0
       return
     }
 
-    const overlayRect = overlayEl.getBoundingClientRect()
+    const frameRect = frameEl.getBoundingClientRect()
     const containerRect = container.getBoundingClientRect()
-    const hostHeight = hostEl.getBoundingClientRect().height || 0
+    const floatingHeight = measuredEl.getBoundingClientRect().height || 0
 
-    if (!containerRect.height || !hostHeight) {
+    if (!containerRect.height || !floatingHeight) {
       floatingOffset.value = 0
       return
     }
 
-    const containerTop = containerRect.top - overlayRect.top
-    const containerBottom = containerRect.bottom - overlayRect.top
+    const containerTop = containerRect.top - frameRect.top
+    const containerBottom = containerRect.bottom - frameRect.top
     const viewportCenter = containerTop + containerRect.height / 2
-    const idealTop = viewportCenter - hostHeight / 2
+    const idealTop = viewportCenter - floatingHeight / 2
     const minTop = containerTop + 24
-    const maxTop = Math.max(minTop, containerBottom - hostHeight - 24)
+    const maxTop = Math.max(minTop, containerBottom - floatingHeight - 24)
 
     floatingOffset.value = Math.max(minTop, Math.min(idealTop, maxTop))
   }
@@ -172,6 +177,17 @@ export function useContentNavScrollSpy(options: ContentNavScrollSpyOptions) {
         scheduleSync()
       })
       hostResizeObserver.observe(options.host.value)
+
+      const floatingEl = options.host.value.firstElementChild
+      if (floatingEl instanceof HTMLElement) {
+        hostResizeObserver.observe(floatingEl)
+        const surfaceEl =
+          floatingEl.querySelector<HTMLElement>('.tr-content-nav__surface') ??
+          floatingEl.querySelector<HTMLElement>('.tr-content-nav__panel')
+        if (surfaceEl instanceof HTMLElement) {
+          hostResizeObserver.observe(surfaceEl)
+        }
+      }
     }
 
     if (options.container.value) {

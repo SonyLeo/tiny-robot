@@ -87,4 +87,70 @@ test.describe('ContentNav component e2e', () => {
 
     await expect.poll(async () => page.locator(helper.selectors.activeIdDisplay).textContent()).toBe('turn-6')
   })
+
+  test('marker anchor stays stable before and after expand for both placements', async ({ page }) => {
+    const helper = helperFactory(page)
+    const tolerance = 2
+
+    await helper.resetState()
+    await helper.setPlacement('right')
+    await helper.expectPlacement('right')
+    const collapsedRightX = await helper.getFirstMarkerCenterX()
+    await helper.hoverNav()
+    await helper.expectExpanded(true)
+    await expect.poll(async () => (await helper.getOverlayBounds()).width).toBeGreaterThan(200)
+    const expandedRightX = await helper.getFirstMarkerCenterX()
+    expect(Math.abs(expandedRightX - collapsedRightX)).toBeLessThanOrEqual(tolerance)
+
+    await helper.resetState()
+    await helper.setPlacement('left')
+    await helper.expectPlacement('left')
+    const collapsedLeftX = await helper.getFirstMarkerCenterX()
+    await helper.hoverNav()
+    await helper.expectExpanded(true)
+    await expect.poll(async () => (await helper.getOverlayBounds()).width).toBeGreaterThan(200)
+    const expandedLeftX = await helper.getFirstMarkerCenterX()
+    expect(Math.abs(expandedLeftX - collapsedLeftX)).toBeLessThanOrEqual(tolerance)
+  })
+
+  test('floating nav is vertically centered within the scroll container', async ({ page }) => {
+    const helper = helperFactory(page)
+    const tolerance = 2
+
+    await helper.resetState()
+    const hostBounds = await helper.getHostBounds()
+    const containerBounds = await helper.getScrollContainerBounds()
+
+    const hostCenterY = hostBounds.top + hostBounds.height / 2
+    const containerCenterY = containerBounds.top + containerBounds.height / 2
+
+    expect(Math.abs(hostCenterY - containerCenterY)).toBeLessThanOrEqual(tolerance)
+  })
+
+  test('floating panel expands away from the fixed marker anchor on both sides', async ({ page }) => {
+    const helper = helperFactory(page)
+    const tolerance = 1
+
+    await helper.resetState()
+    await helper.setPlacement('right')
+    const collapsedRight = await helper.getOverlayBounds()
+    await helper.hoverNav()
+    await helper.expectExpanded(true)
+    await expect.poll(async () => (await helper.getOverlayBounds()).width).toBeGreaterThan(collapsedRight.width + 20)
+    const expandedRight = await helper.getOverlayBounds()
+    expect(Math.abs(expandedRight.right - collapsedRight.right)).toBeLessThanOrEqual(tolerance)
+    expect(expandedRight.left).toBeLessThan(collapsedRight.left)
+    expect(expandedRight.width).toBeGreaterThan(collapsedRight.width)
+
+    await helper.resetState()
+    await helper.setPlacement('left')
+    const collapsedLeft = await helper.getOverlayBounds()
+    await helper.hoverNav()
+    await helper.expectExpanded(true)
+    await expect.poll(async () => (await helper.getOverlayBounds()).width).toBeGreaterThan(collapsedLeft.width + 20)
+    const expandedLeft = await helper.getOverlayBounds()
+    expect(Math.abs(expandedLeft.left - collapsedLeft.left)).toBeLessThanOrEqual(tolerance)
+    expect(expandedLeft.right).toBeGreaterThan(collapsedLeft.right)
+    expect(expandedLeft.width).toBeGreaterThan(collapsedLeft.width)
+  })
 })

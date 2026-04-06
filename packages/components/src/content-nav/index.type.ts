@@ -51,6 +51,12 @@ export interface ContentNavFilteredItem {
   segments: ContentNavHighlightSegment[]
 }
 
+export interface ContentNavSearchOptions {
+  placeholder?: string
+  matcher?: ContentNavSearchMatcher
+  clearOnCollapse?: boolean
+}
+
 export interface ContentNavScrollSpyOptions {
   items: Ref<ContentNavItem[]>
   registry: ContentNavRegistry
@@ -69,10 +75,8 @@ export interface ContentNavStateOptions {
   activeId: Ref<string | undefined>
   expanded?: Ref<boolean | undefined>
   query?: Ref<string | undefined>
-  matcher?: Ref<ContentNavSearchMatcher | undefined>
-  searchable?: Ref<boolean | undefined>
+  search?: Ref<ContentNavSearchOptions | false | undefined>
   collapsible?: Ref<boolean | undefined>
-  clearQueryOnCollapse?: Ref<boolean | undefined>
   keyboardMode?: Ref<ContentNavKeyboardMode | undefined>
   onUpdateExpanded?: (value: boolean) => void
   onUpdateQuery?: (value: string) => void
@@ -82,20 +86,17 @@ export interface ContentNavProps {
   items: ContentNavItem[]
   registry?: ContentNavRegistry
   scrollContainer?: HTMLElement | null
-  matcher?: ContentNavSearchMatcher
   activeId?: string
   expanded?: boolean
   query?: string
   placement?: ContentNavPlacement
   collapsible?: boolean
-  searchable?: boolean
+  search?: false | ContentNavSearchOptions
   minItems?: number
   mobileBehavior?: ContentNavMobileBehavior
-  clearQueryOnCollapse?: boolean
   showTooltipOnTruncate?: boolean
   keyboardMode?: ContentNavKeyboardMode
   ariaLabel?: string
-  searchPlaceholder?: string
   emptyText?: string
   floating?: boolean
   resolveActive?: ContentNavActiveResolver
@@ -121,6 +122,10 @@ export interface ContentNavSlots {
     highlighted: boolean
   }) => VNode | VNode[]
   marker?: (slotProps: { item: ContentNavItem; active: boolean }) => VNode | VNode[]
-  search?: (slotProps: { query: string; setQuery: (value: string) => void }) => VNode | VNode[]
+  search?: (slotProps: {
+    query: string
+    setQuery: (value: string) => void
+    options: ContentNavSearchOptions
+  }) => VNode | VNode[]
   empty?: () => VNode | VNode[]
 }

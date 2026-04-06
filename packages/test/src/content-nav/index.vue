@@ -12,6 +12,18 @@
         Use single turn (to verify `minItems` behavior)
       </label>
 
+      <fieldset class="placement-switch">
+        <legend>Placement</legend>
+        <label class="control-item">
+          <input data-testid="placement-left" type="radio" value="left" v-model="placement" />
+          Left
+        </label>
+        <label class="control-item">
+          <input data-testid="placement-right" type="radio" value="right" v-model="placement" />
+          Right
+        </label>
+      </fieldset>
+
       <label class="control-item">
         External query:
         <input
@@ -39,6 +51,9 @@
         Query: <code data-testid="query-display">{{ query }}</code>
       </div>
       <div>
+        Placement: <code data-testid="placement-display">{{ placement }}</code>
+      </div>
+      <div>
         Last event: <code data-testid="last-event-display">{{ lastEvent }}</code>
       </div>
     </div>
@@ -53,12 +68,11 @@
           v-model:active-id="activeId"
           v-model:expanded="expanded"
           v-model:query="query"
-          placement="right"
+          :placement="placement"
           :collapsible="true"
-          :searchable="true"
+          :search="searchConfig"
           :minItems="minItems"
           mobileBehavior="inline"
-          :clearQueryOnCollapse="false"
           keyboardMode="roving"
           aria-label="Conversation turns navigation"
           @select="handleSelect"
@@ -157,7 +171,12 @@ const minItems = ref(2)
 const activeId = ref('')
 const expanded = ref(false)
 const query = ref('')
+const placement = ref<'left' | 'right'>('right')
 const lastEvent = ref('none')
+const searchConfig = {
+  clearOnCollapse: false,
+  placeholder: 'Search',
+} as const
 const scrollContainerRef = ref<HTMLElement | null>(null)
 const registry = useContentNavRegistry()
 
@@ -221,6 +240,7 @@ function resetState() {
   singleTurnMode.value = false
   query.value = ''
   expanded.value = false
+  placement.value = 'right'
   lastEvent.value = 'none'
   nextTick(() => {
     activeId.value = items.value[0]?.id ?? ''
@@ -270,13 +290,30 @@ watch(
   gap: 8px;
 }
 
+.placement-switch {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.placement-switch legend {
+  padding: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #445164;
+}
+
 .reset-btn {
   padding: 6px 10px;
 }
 
 .state-board {
   display: grid;
-  grid-template-columns: repeat(5, minmax(120px, 1fr));
+  grid-template-columns: repeat(6, minmax(120px, 1fr));
   gap: 8px 12px;
   font-size: 12px;
 }

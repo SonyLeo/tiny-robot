@@ -1,8 +1,36 @@
 import { expect, type Page } from '@playwright/test'
 import { CONTENT_NAV_SELECTORS } from './selectors'
 
+type ContentNavPlacement = 'left' | 'right'
+
+type HorizontalBounds = {
+  left: number
+  right: number
+  width: number
+}
+
+type VerticalBounds = {
+  top: number
+  bottom: number
+  height: number
+}
+
+async function getBoundingBoxOrThrow(target: ReturnType<Page['locator']>, errorMessage: string) {
+  const box = await target.boundingBox()
+  if (!box) {
+    throw new Error(errorMessage)
+  }
+
+  return box
+}
+
 export function createContentNavTestHelper(page: Page) {
   const selectors = CONTENT_NAV_SELECTORS
+
+  async function readPlacement(): Promise<ContentNavPlacement> {
+    const rawValue = (await page.locator(selectors.placementDisplay).textContent())?.trim()
+    return rawValue === 'left' ? 'left' : 'right'
+  }
 
   async function gotoDemo() {
     await page.goto('/')
@@ -27,6 +55,12 @@ export function createContentNavTestHelper(page: Page) {
     await page.locator(selectors.externalQueryInput).fill(keyword)
   }
 
+  async function setPlacement(placement: ContentNavPlacement) {
+    const selector = placement === 'left' ? selectors.placementLeft : selectors.placementRight
+    await page.locator(selector).check()
+    await expect(page.locator(selectors.placementDisplay)).toHaveText(placement)
+  }
+
   async function resetState() {
     await page.locator(selectors.resetStateButton).click()
   }
@@ -42,9 +76,8 @@ export function createContentNavTestHelper(page: Page) {
   }
 
   async function hoverNav() {
-    await page.locator(selectors.contentNavHost).hover({
-      position: { x: 264, y: 24 },
-    })
+    const overlay = page.locator(selectors.contentNavOverlay)
+    await overlay.hover()
   }
 
   async function focusFirstInteractiveInNav() {
@@ -57,6 +90,7 @@ export function createContentNavTestHelper(page: Page) {
     const root = page.locator(selectors.contentNavRoot)
     const regex = new RegExp(label, 'i')
 
+    await readPlacement()
     await hoverNav()
 
     const button = root.getByRole('button', { name: regex }).first()
@@ -105,6 +139,10 @@ export function createContentNavTestHelper(page: Page) {
     await expect(page.locator(selectors.queryDisplay)).toHaveText(expected)
   }
 
+  async function expectPlacement(expected: ContentNavPlacement) {
+    await expect(page.locator(selectors.placementDisplay)).toHaveText(expected)
+  }
+
   async function expectItemCount(expectedCount: number) {
     await expect(page.locator(selectors.itemCountDisplay)).toHaveText(String(expectedCount))
   }
@@ -113,11 +151,74 @@ export function createContentNavTestHelper(page: Page) {
     await expect(page.locator(selectors.lastEventDisplay)).toContainText(fragment)
   }
 
+  async function getFirstMarkerCenterX() {
+    const marker = page.locator(`${selectors.contentNavRoot} .tr-content-nav__marker-slot`).first()
+    const box = await getBoundingBoxOrThrow(
+      marker,
+      'Expected first content-nav marker slot to be measurable, but no bounding box was returned.',
+    )
+
+    return box.x + box.width / 2
+  }
+
+  async function getFirstMarkerCenterY() {
+    const marker = page.locator(`${selectors.contentNavRoot} .tr-content-nav__marker-slot`).first()
+    const box = await getBoundingBoxOrThrow(
+      marker,
+      'Expected first content-nav marker slot to be measurable, but no bounding box was returned.',
+    )
+
+    return box.y + box.height / 2
+  }
+
+  async function getOverlayBounds(): Promise<HorizontalBounds> {
+    const overlay = page.locator(selectors.contentNavOverlay)
+    const box = await getBoundingBoxOrThrow(
+      overlay,
+      'Expected content-nav overlay to be measurable, but no bounding box was returned.',
+    )
+
+    return {
+      left: box.x,
+      right: box.x + box.width,
+      width: box.width,
+    }
+  }
+
+  async function getHostBounds(): Promise<VerticalBounds> {
+    const host = page.locator(selectors.contentNavHost)
+    const box = await getBoundingBoxOrThrow(
+      host,
+      'Expected content-nav host to be measurable, but no bounding box was returned.',
+    )
+
+    return {
+      top: box.y,
+      bottom: box.y + box.height,
+      height: box.height,
+    }
+  }
+
+  async function getScrollContainerBounds(): Promise<VerticalBounds> {
+    const container = page.locator(selectors.scrollContainer)
+    const box = await getBoundingBoxOrThrow(
+      container,
+      'Expected content-nav scroll container to be measurable, but no bounding box was returned.',
+    )
+
+    return {
+      top: box.y,
+      bottom: box.y + box.height,
+      height: box.height,
+    }
+  }
+
   return {
     selectors,
     gotoDemo,
     isContentNavReady,
     setSingleTurnMode,
+    setPlacement,
     setExternalQuery,
     resetState,
     getScrollTop,
@@ -129,7 +230,13 @@ export function createContentNavTestHelper(page: Page) {
     expectExpanded,
     expectActiveId,
     expectQueryValue,
+    expectPlacement,
     expectItemCount,
     expectLastEventContains,
+    getFirstMarkerCenterX,
+    getFirstMarkerCenterY,
+    getOverlayBounds,
+    getHostBounds,
+    getScrollContainerBounds,
   }
 }
