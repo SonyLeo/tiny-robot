@@ -3,9 +3,10 @@
     <h1>Tiny Robot E2E Test App</h1>
     <nav>
       <ul>
-        <li><a href="/" @click.prevent="currentComponent = 'Home'">首页</a></li>
-        <li><a href="/container" @click.prevent="currentComponent = 'Container'">Container 组件</a></li>
-        <li><a href="/sender" @click.prevent="currentComponent = 'Sender'">Sender 组件</a></li>
+        <li><a href="/" @click.prevent="currentComponent = 'Home'">棣栭〉</a></li>
+        <li><a href="/container" @click.prevent="currentComponent = 'Container'">Container 缁勪欢</a></li>
+        <li><a href="/sender" @click.prevent="currentComponent = 'Sender'">Sender 缁勪欢</a></li>
+        <li><a href="/content-nav" @click.prevent="currentComponent = 'ContentNav'">ContentNav Demo</a></li>
       </ul>
     </nav>
 
@@ -21,8 +22,9 @@ import type { Component } from 'vue'
 import Home from './home/index.vue'
 import ContainerDemo from './container/index.vue'
 import SenderDemo from './sender/index.vue'
+import ContentNavDemo from './content-nav/index.vue'
 
-type ComponentName = 'Home' | 'Container' | 'Sender'
+type ComponentName = 'Home' | 'Container' | 'Sender' | 'ContentNav'
 
 const currentComponent = ref<ComponentName>('Home')
 
@@ -30,6 +32,7 @@ const components: Record<ComponentName, Component> = {
   Home,
   Container: ContainerDemo,
   Sender: SenderDemo,
+  ContentNav: ContentNavDemo,
 }
 
 const currentComponentInstance = computed(() => components[currentComponent.value])
