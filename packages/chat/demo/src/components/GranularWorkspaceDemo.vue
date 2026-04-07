@@ -1,12 +1,24 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { TrChat, createChatAdapterFromConfig, useChatKit, useMcpManager } from '@opentiny/tiny-robot-chat'
-import type { ModelOption, TrChatPresetOverrides } from '@opentiny/tiny-robot-chat'
+import type { ChatContentLayout, ModelOption, TrChatPresetOverrides } from '@opentiny/tiny-robot-chat'
+import type { ColorMode } from '@opentiny/tiny-robot'
 import { localStorageStrategyFactory, toolPlugin } from '@opentiny/tiny-robot-kit'
 import { defaultMcpServers } from '../data/mcpServers'
 import { WELCOME_CONFIG, WELCOME_PROMPTS, BRAND_CONFIG } from '../constants'
 import { createDemoMcpBridge } from '../utils/mcpBridge'
+import DemoHeaderActions from './DemoHeaderActions.vue'
 import GranularWorkspaceSidebar from './GranularWorkspaceSidebar.vue'
+
+const props = defineProps<{
+  colorMode: ColorMode
+  contentLayout: ChatContentLayout
+}>()
+
+const emit = defineEmits<{
+  (e: 'update:colorMode', value: ColorMode): void
+  (e: 'update:contentLayout', value: ChatContentLayout): void
+}>()
 
 const STORAGE_KEY = 'tiny-robot-chat-demo-granular-workspace'
 const SEEDED_FLAG_KEY = `${STORAGE_KEY}-seeded-v2`
@@ -94,9 +106,10 @@ const chatKit = useChatKit({
   }),
 })
 
-const panelPresetOverrides: TrChatPresetOverrides = {
+const panelPresetOverrides = computed<TrChatPresetOverrides>(() => ({
   showFeedback: false,
-}
+  contentLayout: props.contentLayout,
+}))
 
 function ensureDemoConversations() {
   if (typeof window === 'undefined') {
@@ -175,6 +188,15 @@ onMounted(() => {
         <span class="granular-workspace__left-rail-mark">G</span>
         <span class="granular-workspace__left-rail-text">Panels</span>
       </div>
+    </template>
+
+    <template #header-extra>
+      <DemoHeaderActions
+        :color-mode="props.colorMode"
+        :content-layout="props.contentLayout"
+        @update:color-mode="emit('update:colorMode', $event)"
+        @update:content-layout="emit('update:contentLayout', $event)"
+      />
     </template>
   </TrChat>
 </template>

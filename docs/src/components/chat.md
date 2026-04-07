@@ -50,26 +50,27 @@ outline: [2, 3]
 
 ### 1. 先安装运行这个最小示例需要的依赖
 
-`@opentiny/tiny-robot-chat` 不是一个完全独立的单包入口。按当前包定义和 demo 工程的真实依赖，最少需要先安装：
+`@opentiny/tiny-robot-chat` 不是一个完全独立的单包入口。如果你已经有一个 Vue 3 项目，最少需要先安装：
 
-- `vue`
 - `@opentiny/tiny-robot`
 - `@opentiny/tiny-robot-chat`
 - `@opentiny/tiny-robot-kit`
 - `markstream-vue`
+- `markdown-it`
+- `dompurify`
 
 ::: code-group
 
 ```bash [pnpm]
-pnpm add vue @opentiny/tiny-robot @opentiny/tiny-robot-chat @opentiny/tiny-robot-kit markstream-vue
+pnpm add @opentiny/tiny-robot @opentiny/tiny-robot-chat @opentiny/tiny-robot-kit markstream-vue markdown-it dompurify
 ```
 
 ```bash [yarn]
-yarn add vue @opentiny/tiny-robot @opentiny/tiny-robot-chat @opentiny/tiny-robot-kit markstream-vue
+yarn add @opentiny/tiny-robot @opentiny/tiny-robot-chat @opentiny/tiny-robot-kit markstream-vue markdown-it dompurify
 ```
 
 ```bash [npm]
-npm install vue @opentiny/tiny-robot @opentiny/tiny-robot-chat @opentiny/tiny-robot-kit markstream-vue
+npm install @opentiny/tiny-robot @opentiny/tiny-robot-chat @opentiny/tiny-robot-kit markstream-vue markdown-it dompurify
 ```
 
 :::

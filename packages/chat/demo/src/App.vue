@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { ThemeProvider } from '@opentiny/tiny-robot'
 import type { ColorMode } from '@opentiny/tiny-robot'
+import type { ChatContentLayout } from '@opentiny/tiny-robot-chat'
 import BlackboxDemo from './components/BlackboxDemo.vue'
 import GranularWorkspaceDemo from './components/GranularWorkspaceDemo.vue'
 import WhiteboxDemo from './components/WhiteboxDemo.vue'
@@ -25,55 +26,52 @@ const demoCases = [
   },
 ] as const
 
-const activeCaseId = ref<(typeof demoCases)[number]['id']>('blackbox')
-const colorMode = ref<ColorMode>('auto')
-const colorModeOptions: Array<{ value: ColorMode; label: string }> = [
-  { value: 'auto', label: 'Auto' },
-  { value: 'light', label: 'Light' },
-  { value: 'dark', label: 'Dark' },
-]
+type DemoCaseId = (typeof demoCases)[number]['id']
+
+const DEFAULT_DEMO_CASE_ID: DemoCaseId = 'blackbox'
+const demoCaseIds = new Set<DemoCaseId>(demoCases.map((item) => item.id))
+
+function resolveRouteCaseId(): DemoCaseId {
+  if (typeof window === 'undefined') {
+    return DEFAULT_DEMO_CASE_ID
+  }
+
+  const routeId = window.location.hash.replace(/^#\/?/, '').split(/[/?&]/)[0]
+
+  return demoCaseIds.has(routeId as DemoCaseId) ? (routeId as DemoCaseId) : DEFAULT_DEMO_CASE_ID
+}
+
+const activeCaseId = ref<DemoCaseId>(resolveRouteCaseId())
+const colorMode = ref<ColorMode>('light')
+const contentLayout = ref<ChatContentLayout>('centered')
 const activeCase = computed(() => demoCases.find((item) => item.id === activeCaseId.value) ?? demoCases[0])
+
+function syncActiveCaseFromRoute() {
+  activeCaseId.value = resolveRouteCaseId()
+}
+
+onMounted(() => {
+  window.addEventListener('hashchange', syncActiveCaseFromRoute)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('hashchange', syncActiveCaseFromRoute)
+})
 </script>
 
 <template>
   <ThemeProvider v-model:color-mode="colorMode">
     <div class="demo-app">
-      <header class="demo-app__toolbar">
-        <div class="demo-app__switch" role="tablist" aria-label="Chat demo cases">
-          <button
-            v-for="item in demoCases"
-            :key="item.id"
-            type="button"
-            class="demo-app__switch-button"
-            :class="{ 'is-active': item.id === activeCaseId }"
-            :aria-selected="item.id === activeCaseId"
-            @click="activeCaseId = item.id"
-          >
-            {{ item.label }}
-          </button>
-        </div>
-
-        <div class="demo-app__theme" role="group" aria-label="Theme mode">
-          <span class="demo-app__theme-label">Theme</span>
-          <div class="demo-app__theme-buttons">
-            <button
-              v-for="option in colorModeOptions"
-              :key="option.value"
-              type="button"
-              class="demo-app__theme-button"
-              :class="{ 'is-active': option.value === colorMode }"
-              :aria-pressed="option.value === colorMode"
-              @click="colorMode = option.value"
-            >
-              {{ option.label }}
-            </button>
-          </div>
-        </div>
-      </header>
-
       <main class="demo-app__stage">
         <KeepAlive>
-          <component :is="activeCase.component" :key="activeCase.id" />
+          <component
+            :is="activeCase.component"
+            :key="activeCase.id"
+            :color-mode="colorMode"
+            :content-layout="contentLayout"
+            @update:color-mode="colorMode = $event"
+            @update:content-layout="contentLayout = $event"
+          />
         </KeepAlive>
       </main>
     </div>

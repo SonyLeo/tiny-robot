@@ -39,110 +39,6 @@ textarea {
   height: 100%;
   min-height: 0;
   overflow: hidden;
-  padding: 12px;
-  gap: 10px;
-}
-
-.demo-app__toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-height: 54px;
-  padding: 0 2px;
-  gap: 12px;
-  flex-shrink: 0;
-}
-
-.demo-app__switch {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px;
-  border-radius: 999px;
-  border: 1px solid rgba(195, 207, 226, 0.9);
-  background: rgba(255, 255, 255, 0.78);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
-  flex-shrink: 0;
-}
-
-.demo-app__theme {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 6px 8px 6px 12px;
-  border-radius: 999px;
-  border: 1px solid rgba(195, 207, 226, 0.9);
-  background: rgba(255, 255, 255, 0.78);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
-}
-
-.demo-app__theme-label {
-  color: #52627d;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.demo-app__theme-buttons {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.demo-app__theme-button {
-  min-width: 68px;
-  padding: 8px 12px;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  color: #6f7d93;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  transition:
-    background-color 0.2s ease,
-    color 0.2s ease,
-    box-shadow 0.2s ease;
-}
-
-.demo-app__theme-button:hover {
-  color: #24438d;
-  background: rgba(232, 239, 253, 0.88);
-}
-
-.demo-app__theme-button.is-active {
-  color: #16326c;
-  background: linear-gradient(180deg, rgba(226, 236, 255, 0.96) 0%, rgba(214, 228, 255, 0.98) 100%);
-  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.16);
-}
-
-.demo-app__switch-button {
-  min-width: 112px;
-  padding: 9px 14px;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  color: #6f7d93;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  transition:
-    background-color 0.2s ease,
-    color 0.2s ease,
-    box-shadow 0.2s ease,
-    transform 0.2s ease;
-}
-
-.demo-app__switch-button:hover {
-  color: #24438d;
-  background: rgba(232, 239, 253, 0.88);
-}
-
-.demo-app__switch-button.is-active {
-  color: #16326c;
-  background: linear-gradient(180deg, rgba(226, 236, 255, 0.96) 0%, rgba(214, 228, 255, 0.98) 100%);
-  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.16);
 }
 
 .demo-app__stage {
@@ -150,10 +46,6 @@ textarea {
   min-height: 0;
   display: flex;
   overflow: hidden;
-  border-radius: 8px;
-  border: 1px solid rgba(204, 214, 231, 0.82);
-  background: rgba(255, 255, 255, 0.72);
-  box-shadow: 0 24px 48px rgba(15, 23, 42, 0.08);
 }
 
 .demo-app__stage > * {
@@ -171,77 +63,8 @@ html[data-tr-color-mode='dark'] body {
   color: #e6edf8;
 }
 
-html[data-tr-color-mode='dark'] .demo-app__switch,
-html[data-tr-color-mode='dark'] .demo-app__theme {
-  border-color: rgba(94, 112, 143, 0.7);
-  background: rgba(11, 20, 35, 0.74);
-  box-shadow: 0 16px 32px rgba(2, 6, 23, 0.28);
-}
-
-html[data-tr-color-mode='dark'] .demo-app__switch-button,
-html[data-tr-color-mode='dark'] .demo-app__theme-button {
-  color: #93a4bf;
-}
-
-html[data-tr-color-mode='dark'] .demo-app__theme-label {
-  color: #b4c2d8;
-}
-
-html[data-tr-color-mode='dark'] .demo-app__switch-button:hover,
-html[data-tr-color-mode='dark'] .demo-app__theme-button:hover {
-  color: #e7f0ff;
-  background: rgba(45, 60, 88, 0.78);
-}
-
-html[data-tr-color-mode='dark'] .demo-app__switch-button.is-active,
-html[data-tr-color-mode='dark'] .demo-app__theme-button.is-active {
-  color: #eff5ff;
-  background: linear-gradient(180deg, rgba(47, 73, 118, 0.92) 0%, rgba(34, 54, 89, 0.98) 100%);
-  box-shadow: 0 10px 22px rgba(14, 165, 233, 0.12);
-}
-
-html[data-tr-color-mode='dark'] .demo-app__stage {
-  border-color: rgba(69, 86, 113, 0.82);
-  background: rgba(10, 18, 31, 0.82);
-  box-shadow: 0 28px 56px rgba(2, 6, 23, 0.34);
-}
-
 @media (max-width: 768px) {
-  .demo-app {
-    padding: 10px;
-    gap: 8px;
-  }
-
-  .demo-app__toolbar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .demo-app__switch {
-    width: 100%;
-  }
-
-  .demo-app__theme {
-    width: 100%;
-    justify-content: space-between;
-    border-radius: 24px;
-  }
-
-  .demo-app__theme-buttons {
-    flex: 1;
-    justify-content: flex-end;
-  }
-
-  .demo-app__theme-button {
-    min-width: 0;
-  }
-
-  .demo-app__switch-button {
-    flex: 1;
-    min-width: 0;
-  }
-
   .demo-app__stage {
-    border-radius: 26px;
+    border-radius: 0;
   }
 }

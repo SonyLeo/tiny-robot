@@ -8,11 +8,23 @@ import {
   TrModelSelector,
   TrMcpTrigger,
 } from '@opentiny/tiny-robot-chat'
-import type { TrChatPresetOverrides } from '@opentiny/tiny-robot-chat'
+import type { ChatContentLayout, TrChatPresetOverrides } from '@opentiny/tiny-robot-chat'
+import type { ColorMode } from '@opentiny/tiny-robot'
 import { localStorageStrategyFactory, toolPlugin } from '@opentiny/tiny-robot-kit'
 import { defaultMcpServers } from '../data/mcpServers'
 import { WELCOME_CONFIG, WELCOME_PROMPTS, BRAND_CONFIG } from '../constants'
 import { createDemoMcpBridge } from '../utils/mcpBridge'
+import DemoHeaderActions from './DemoHeaderActions.vue'
+
+const props = defineProps<{
+  colorMode: ColorMode
+  contentLayout: ChatContentLayout
+}>()
+
+const emit = defineEmits<{
+  (e: 'update:colorMode', value: ColorMode): void
+  (e: 'update:contentLayout', value: ChatContentLayout): void
+}>()
 
 const STORAGE_KEY = 'tiny-robot-chat-demo-whitebox-workspace-preview'
 const SEEDED_FLAG_KEY = `${STORAGE_KEY}-seeded-v4`
@@ -105,6 +117,7 @@ const shellConfig = {
 const scaffoldPresetOverrides = computed<TrChatPresetOverrides>(() => ({
   showFeedback: false,
   shell: shellConfig,
+  contentLayout: props.contentLayout,
 }))
 
 const isMobileViewport = ref(false)
@@ -194,7 +207,16 @@ onBeforeUnmount(() => {
     <div class="whitebox-workspace">
       <TrChat.WorkspaceLayout :appearance="presetSlices.appearance.appearance" :shell="shellConfig">
         <TrChat.Layout :appearance="presetSlices.appearance.appearance">
-          <TrChat.Header :title="activeConversationTitle" :show-history="true" :show-new-chat="false" />
+          <TrChat.Header :title="activeConversationTitle" :show-history="true" :show-new-chat="false">
+            <template #extra>
+              <DemoHeaderActions
+                :color-mode="props.colorMode"
+                :content-layout="props.contentLayout"
+                @update:color-mode="emit('update:colorMode', $event)"
+                @update:content-layout="emit('update:contentLayout', $event)"
+              />
+            </template>
+          </TrChat.Header>
 
           <div v-if="chatKit.messages.value.length === 0" class="tr-chat__welcome-area">
             <TrChat.Welcome @prompt-click="chatKit.sendMessage($event)" />
