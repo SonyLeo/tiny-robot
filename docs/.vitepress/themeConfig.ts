@@ -20,7 +20,7 @@ const sharedSidebarItems = [
       { text: 'Welcome 欢迎', link: 'welcome' },
       { text: 'Feedback 气泡反馈', link: 'feedback' },
       { text: 'History 历史', link: 'history' },
-      { text: 'TrContentNav 内容导航', link: 'content-nav' },
+      { text: 'ContentNav 内容导航', link: 'content-nav' },
       { text: 'DropdownMenu 下拉菜单', link: 'dropdown-menu' },
       { text: 'SuggestionPopover 建议弹层', link: 'suggestion-popover' },
       { text: 'SuggestionPills 建议按钮组', link: 'suggestion-pills' },

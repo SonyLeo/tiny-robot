@@ -120,7 +120,7 @@ defineExpose({
 
   &__surface {
     width: 100%;
-    overflow: hidden;
+    overflow: visible;
     border: 1px solid transparent;
     border-radius: var(--tr-content-nav-surface-radius);
     box-sizing: border-box;

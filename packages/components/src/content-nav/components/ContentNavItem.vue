@@ -155,12 +155,14 @@ function clearTooltipState() {
       transition: opacity 0.15s ease;
       font-size: var(--tr-font-size-sm);
       line-height: 1.5;
+      text-align: left;
       white-space: normal;
       overflow: hidden;
       display: -webkit-box;
-      -webkit-line-clamp: 4;
-      line-clamp: 4;
+      -webkit-line-clamp: 5;
+      line-clamp: 5;
       -webkit-box-orient: vertical;
+      text-overflow: ellipsis;
       word-break: break-word;
     }
 
@@ -259,10 +261,9 @@ function clearTooltipState() {
   }
 
   &__marker {
-    width: var(--tr-content-nav-marker-size);
-    min-width: var(--tr-content-nav-marker-size);
-    height: var(--tr-content-nav-marker-size);
-    border-radius: var(--tr-radius-full);
+    width: var(--tr-content-nav-marker-width);
+    height: var(--tr-content-nav-marker-height);
+    border-radius: var(--tr-content-nav-marker-radius);
     background: var(--tr-content-nav-marker-color);
     transition:
       background-color 0.18s ease,
