@@ -40,13 +40,10 @@
         :scroll-container="scrollContainerRef"
         :placement="placement"
         :search="search"
-        :resolve-active="resolveActive"
-        :jump-offset="20"
-        :jump-feedback="jumpFeedback"
-        mobile-behavior="inline"
         v-model:expanded="expanded"
         v-model:query="query"
-        v-model:active-id="activeId"
+        :active-id="activeId"
+        @select="handleSelect"
         aria-label="用户提问目录导航"
       />
     </div>
@@ -54,15 +51,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed, h, ref, watch } from 'vue'
+import { computed, h, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import {
-  createTopThresholdActiveResolver,
   TrBubbleList,
   TrContentNav,
   useContentNavRegistry,
   type BubbleListProps,
   type BubbleRoleConfig,
-  type ContentNavJumpFeedbackController,
 } from '@opentiny/tiny-robot'
 import { IconAi, IconUser } from '@opentiny/tiny-robot-svgs'
 
@@ -133,25 +128,10 @@ const items = demoTurns.map((turn) => ({
 }))
 
 const userMessageIds = new Set(demoTurns.map((turn) => turn.userId))
+const activeThreshold = 92
 const jumpFlashClassName = 'demo-user-bubble-flash'
-const jumpFeedbackDuration = 520
 const jumpTransitionDuration = '220ms'
-const jumpFeedback = createBubbleFlashFeedback()
-const resolveActive = createTopThresholdActiveResolver(92)
-
-function createBubbleFlashFeedback(): ContentNavJumpFeedbackController {
-  return {
-    duration: jumpFeedbackDuration,
-    apply(el) {
-      el.classList.remove(jumpFlashClassName)
-      void el.offsetWidth
-      el.classList.add(jumpFlashClassName)
-    },
-    clear(el) {
-      el.classList.remove(jumpFlashClassName)
-    },
-  }
-}
+const jumpFeedbackDuration = 520
 
 const registry = useContentNavRegistry()
 const scrollContainerRef = ref<HTMLElement | null>(null)
@@ -160,6 +140,8 @@ const activeId = ref(demoTurns[0].userId)
 const expanded = ref(false)
 const query = ref('')
 const searchEnabled = ref(false)
+let scheduledFrame: number | null = null
+let jumpFeedbackTimer: ReturnType<typeof setTimeout> | null = null
 
 const search = computed(() => (searchEnabled.value ? { placeholder: '搜索用户问题或回复关键词' } : false))
 
@@ -168,6 +150,84 @@ watch(searchEnabled, (enabled) => {
     query.value = ''
   }
 })
+
+function scheduleActiveSync() {
+  if (scheduledFrame !== null) {
+    cancelAnimationFrame(scheduledFrame)
+  }
+
+  scheduledFrame = requestAnimationFrame(() => {
+    scheduledFrame = null
+    syncActiveId()
+  })
+}
+
+function syncActiveId() {
+  const container = scrollContainerRef.value
+  if (!container || items.length === 0) {
+    return
+  }
+
+  const anchors = registry
+    .getAll()
+    .filter((entry) => userMessageIds.has(entry.id))
+    .sort((a, b) => a.el.offsetTop - b.el.offsetTop)
+
+  if (anchors.length === 0) {
+    activeId.value = items[0]?.id ?? ''
+    return
+  }
+
+  const isAtBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 2
+  if (isAtBottom) {
+    activeId.value = items[items.length - 1]?.id ?? activeId.value
+    return
+  }
+
+  const containerRect = container.getBoundingClientRect()
+  const threshold = containerRect.top + activeThreshold
+  let nextId = items[0]?.id ?? activeId.value
+
+  for (const anchor of anchors) {
+    const rect = anchor.el.getBoundingClientRect()
+    if (rect.top <= threshold) {
+      nextId = anchor.id
+    } else {
+      break
+    }
+  }
+
+  activeId.value = nextId
+}
+
+function clearJumpFeedback() {
+  if (jumpFeedbackTimer) {
+    clearTimeout(jumpFeedbackTimer)
+    jumpFeedbackTimer = null
+  }
+}
+
+function applyJumpFeedback(id: string) {
+  const target = registry.get(id)
+  if (!target) {
+    return
+  }
+
+  clearJumpFeedback()
+  target.classList.remove(jumpFlashClassName)
+  void target.offsetWidth
+  target.classList.add(jumpFlashClassName)
+
+  jumpFeedbackTimer = setTimeout(() => {
+    target.classList.remove(jumpFlashClassName)
+    jumpFeedbackTimer = null
+  }, jumpFeedbackDuration)
+}
+
+function handleSelect(item: { id: string }) {
+  activeId.value = item.id
+  applyJumpFeedback(item.id)
+}
 
 function registerUserAnchor(id: string | undefined, el: HTMLElement | null) {
   if (!id || !userMessageIds.has(id)) {
@@ -183,6 +243,34 @@ function registerUserAnchor(id: string | undefined, el: HTMLElement | null) {
   const target = bubbleEl ?? el
   registry.register(id, target)
 }
+
+watch(
+  () => registry.version.value,
+  () => {
+    scheduleActiveSync()
+  },
+)
+
+watch(scrollContainerRef, (container, previous) => {
+  previous?.removeEventListener('scroll', scheduleActiveSync)
+  container?.addEventListener('scroll', scheduleActiveSync, { passive: true })
+  scheduleActiveSync()
+})
+
+onMounted(() => {
+  window.addEventListener('resize', scheduleActiveSync, { passive: true })
+  scheduleActiveSync()
+})
+
+onBeforeUnmount(() => {
+  scrollContainerRef.value?.removeEventListener('scroll', scheduleActiveSync)
+  window.removeEventListener('resize', scheduleActiveSync)
+  clearJumpFeedback()
+
+  if (scheduledFrame !== null) {
+    cancelAnimationFrame(scheduledFrame)
+  }
+})
 </script>
 
 <style lang="less" scoped>
@@ -246,6 +334,7 @@ function registerUserAnchor(id: string | undefined, el: HTMLElement | null) {
 
 :deep([data-role='user']) {
   --tr-bubble-box-bg: var(--tr-color-primary-light);
+  scroll-margin-top: 20px;
 }
 
 :deep([data-role='user'] .tr-bubble__box) {

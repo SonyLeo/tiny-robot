@@ -1,6 +1,6 @@
 import { computed, ref, watch } from 'vue'
 import { defaultContentNavSearchMatcher, ensureContentNavSegments } from './defaults'
-import type { ContentNavFilteredItem, ContentNavStateOptions } from './index.type'
+import type { ContentNavFilteredItem, ContentNavStateOptions } from './internal.type'
 
 export function useContentNavState(options: ContentNavStateOptions) {
   const localExpanded = ref(false)
@@ -11,10 +11,7 @@ export function useContentNavState(options: ContentNavStateOptions) {
     const value = options.search?.value
     return value || undefined
   })
-  const collapsible = computed(() => options.collapsible?.value !== false)
-  const keyboardMode = computed(() => options.keyboardMode?.value ?? 'basic')
-
-  const expanded = computed(() => options.expanded?.value ?? (collapsible.value ? localExpanded.value : true))
+  const expanded = computed(() => options.expanded?.value ?? localExpanded.value)
   const query = computed(() => options.query?.value ?? localQuery.value)
   const matcher = computed(() => search.value?.matcher ?? defaultContentNavSearchMatcher)
 
@@ -39,10 +36,6 @@ export function useContentNavState(options: ContentNavStateOptions) {
   const highlightedId = computed(() => filteredItems.value[highlightedIndex.value]?.item.id)
 
   function setExpanded(value: boolean) {
-    if (!collapsible.value && !value) {
-      return
-    }
-
     if (options.expanded?.value === undefined) {
       localExpanded.value = value
     }
@@ -98,18 +91,6 @@ export function useContentNavState(options: ContentNavStateOptions) {
   }
 
   function handleKeydown(event: KeyboardEvent) {
-    if (keyboardMode.value === 'none') {
-      return false
-    }
-
-    if (keyboardMode.value === 'basic') {
-      if (event.key === 'Escape') {
-        setExpanded(false)
-        return true
-      }
-      return false
-    }
-
     if (event.key === 'ArrowDown') {
       event.preventDefault()
       moveNext()
@@ -166,7 +147,6 @@ export function useContentNavState(options: ContentNavStateOptions) {
 
   return {
     search,
-    collapsible,
     expanded,
     query,
     filteredItems,

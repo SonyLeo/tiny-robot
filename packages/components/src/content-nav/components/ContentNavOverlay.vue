@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, useSlots } from 'vue'
-import type { ContentNavMobileBehavior, ContentNavPlacement } from '../index.type'
+import type { ContentNavPlacement } from '../index.type'
 
 defineOptions({ name: 'ContentNavOverlay' })
 
@@ -8,14 +8,10 @@ const props = withDefaults(
   defineProps<{
     expanded: boolean
     placement: ContentNavPlacement
-    floating?: boolean
-    mobileBehavior?: ContentNavMobileBehavior
     ariaLabel?: string
     floatingOffset?: number
   }>(),
   {
-    floating: true,
-    mobileBehavior: 'hidden',
     ariaLabel: 'Content navigation',
     floatingOffset: 0,
   },
@@ -31,16 +27,12 @@ const rootClass = computed(() => [
   `is-${props.placement}`,
   {
     'is-expanded': props.expanded,
-    'is-floating': props.floating,
-    'is-inline': !props.floating,
-    'is-mobile-hidden': props.mobileBehavior === 'hidden',
-    'is-mobile-inline': props.mobileBehavior !== 'hidden',
     'has-search-cap': Boolean(slots.search),
   },
 ])
 
 const floatingStyle = computed(() => ({
-  transform: props.floating ? `translate3d(0, ${props.floatingOffset}px, 0)` : undefined,
+  transform: `translate3d(0, ${props.floatingOffset}px, 0)`,
 }))
 
 defineExpose({
@@ -73,22 +65,16 @@ defineExpose({
   inline-size: var(--tr-content-nav-width-collapsed);
   min-inline-size: var(--tr-content-nav-width-collapsed);
 
-  &.is-floating {
-    position: absolute;
-    top: 0;
-    bottom: 0;
+  position: absolute;
+  top: 0;
+  bottom: 0;
 
-    &.is-right {
-      right: 0;
-    }
-
-    &.is-left {
-      left: 0;
-    }
+  &.is-right {
+    right: 0;
   }
 
-  &.is-inline {
-    position: relative;
+  &.is-left {
+    left: 0;
   }
 
   &__overlay {

@@ -14,7 +14,7 @@ test.describe('ContentNav component e2e', () => {
     test.skip(!ready, 'TrContentNav is not exported yet in @opentiny/tiny-robot.')
   })
 
-  test('renders only when item threshold is met', async ({ page }) => {
+  test('keeps rendering when only one item remains', async ({ page }) => {
     const helper = helperFactory(page)
 
     await helper.expectItemCount(6)
@@ -22,10 +22,6 @@ test.describe('ContentNav component e2e', () => {
 
     await helper.setSingleTurnMode(true)
     await helper.expectItemCount(1)
-    await helper.expectNavVisible(false)
-
-    await helper.setSingleTurnMode(false)
-    await helper.expectItemCount(6)
     await helper.expectNavVisible(true)
   })
 
@@ -76,6 +72,34 @@ test.describe('ContentNav component e2e', () => {
       .poll(async () => page.locator(helper.selectors.lastEventDisplay).textContent())
       .toMatch(/(select|activate):turn-/)
     await expect.poll(async () => helper.getScrollTop()).toBeGreaterThan(beforeScrollTop)
+  })
+
+  test('search input keeps native keyboard behavior', async ({ page }) => {
+    const helper = helperFactory(page)
+
+    await helper.resetState()
+    const beforeScrollTop = await helper.getScrollTop()
+
+    await helper.hoverNav()
+    await helper.focusSearchInput()
+    await helper.fillSearchInput('timeline')
+    await page.keyboard.press('ArrowDown')
+    await page.keyboard.press('Enter')
+
+    await helper.expectQueryValue('timeline')
+    await expect(page.locator(helper.selectors.lastEventDisplay)).toHaveText('none')
+    await expect.poll(async () => helper.getScrollTop()).toBe(beforeScrollTop)
+  })
+
+  test('mouseleave does not collapse while focus stays inside nav', async ({ page }) => {
+    const helper = helperFactory(page)
+
+    await helper.resetState()
+    await helper.hoverNav()
+    await helper.focusSearchInput()
+    await helper.moveMouseOutsideNav()
+
+    await helper.expectExpanded(true)
   })
 
   test('active item updates while scrolling', async ({ page }) => {

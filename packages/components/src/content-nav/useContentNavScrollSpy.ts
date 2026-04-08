@@ -1,6 +1,6 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { defaultContentNavActiveResolver } from './defaults'
-import type { ContentNavScrollSpyOptions } from './index.type'
+import type { ContentNavScrollSpyOptions } from './internal.type'
 
 export function useContentNavScrollSpy(options: ContentNavScrollSpyOptions) {
   const localActiveId = ref<string | undefined>(options.activeId?.value)
@@ -9,12 +9,17 @@ export function useContentNavScrollSpy(options: ContentNavScrollSpyOptions) {
   let scheduledFrame: number | null = null
   let hostResizeObserver: ResizeObserver | null = null
   let containerResizeObserver: ResizeObserver | null = null
-  let jumpFeedbackTimeout: ReturnType<typeof setTimeout> | null = null
   let suppressScrollSpyUntil = 0
 
   const activeId = computed(() => options.activeId?.value ?? localActiveId.value)
-  const smoothScroll = computed(() => options.smoothScroll?.value !== false)
-  const resolveActive = computed(() => options.resolveActive?.value ?? defaultContentNavActiveResolver)
+
+  function prefersReducedMotion() {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+      return false
+    }
+
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  }
 
   function setActiveId(value: string | undefined) {
     if (options.activeId?.value === undefined) {
@@ -22,6 +27,25 @@ export function useContentNavScrollSpy(options: ContentNavScrollSpyOptions) {
     }
 
     options.onUpdateActiveId?.(value)
+  }
+
+  function sortAnchorsByDocumentOrder(anchors: ReturnType<ContentNavScrollSpyOptions['registry']['value']['getAll']>) {
+    return [...anchors].sort((left, right) => {
+      if (left.el === right.el) {
+        return 0
+      }
+
+      const position = left.el.compareDocumentPosition(right.el)
+      if (position & Node.DOCUMENT_POSITION_FOLLOWING) {
+        return -1
+      }
+
+      if (position & Node.DOCUMENT_POSITION_PRECEDING) {
+        return 1
+      }
+
+      return left.el.getBoundingClientRect().top - right.el.getBoundingClientRect().top
+    })
   }
 
   function updateFloatingPosition() {
@@ -64,10 +88,10 @@ export function useContentNavScrollSpy(options: ContentNavScrollSpyOptions) {
       return
     }
 
-    const anchors = options.registry
-      .getAll()
-      .filter((entry) => options.items.value.some((item) => item.id === entry.id))
-    const nextId = resolveActive.value({
+    const anchors = sortAnchorsByDocumentOrder(
+      options.registry.value.getAll().filter((entry) => options.items.value.some((item) => item.id === entry.id)),
+    )
+    const nextId = defaultContentNavActiveResolver({
       container,
       anchors,
       items: options.items.value,
@@ -78,41 +102,14 @@ export function useContentNavScrollSpy(options: ContentNavScrollSpyOptions) {
     }
   }
 
-  function clearJumpFeedback() {
-    if (jumpFeedbackTimeout) {
-      clearTimeout(jumpFeedbackTimeout)
-      jumpFeedbackTimeout = null
-    }
-  }
-
-  function applyJumpFeedback(target: HTMLElement) {
-    const feedback = options.jumpFeedback?.value
-    if (!feedback) {
-      return
-    }
-
-    clearJumpFeedback()
-    feedback.clear(target)
-    feedback.apply(target)
-
-    jumpFeedbackTimeout = setTimeout(() => {
-      feedback.clear(target)
-      jumpFeedbackTimeout = null
-    }, feedback.duration ?? 700)
-  }
-
-  function resolveJumpOffset() {
-    const offset = options.jumpOffset?.value
-    if (typeof offset === 'function') {
-      return offset()
-    }
-
-    return offset ?? 0
+  function resolveTargetScrollOffset(target: HTMLElement) {
+    const scrollMarginTop = Number.parseFloat(window.getComputedStyle(target).scrollMarginTop || '0')
+    return Number.isFinite(scrollMarginTop) ? scrollMarginTop : 0
   }
 
   function scrollTo(id: string) {
     const container = options.container.value
-    const target = options.registry.get(id)
+    const target = options.registry.value.get(id)
 
     if (!container || !target) {
       return
@@ -120,17 +117,16 @@ export function useContentNavScrollSpy(options: ContentNavScrollSpyOptions) {
 
     const targetRect = target.getBoundingClientRect()
     const containerRect = container.getBoundingClientRect()
-    const targetTop = container.scrollTop + (targetRect.top - containerRect.top) - resolveJumpOffset()
+    const targetTop = container.scrollTop + (targetRect.top - containerRect.top) - resolveTargetScrollOffset(target)
 
     suppressScrollSpyUntil = Date.now() + 500
     setActiveId(id)
 
     container.scrollTo({
       top: Math.max(0, targetTop),
-      behavior: smoothScroll.value ? 'smooth' : 'auto',
+      behavior: !prefersReducedMotion() ? 'smooth' : 'auto',
     })
 
-    applyJumpFeedback(target)
     scheduleSync()
   }
 
@@ -217,7 +213,7 @@ export function useContentNavScrollSpy(options: ContentNavScrollSpyOptions) {
   )
 
   watch(
-    () => options.registry.version.value,
+    () => options.registry.value.version.value,
     () => {
       scheduleSync()
     },
@@ -259,7 +255,6 @@ export function useContentNavScrollSpy(options: ContentNavScrollSpyOptions) {
       cancelAnimationFrame(scheduledFrame)
     }
 
-    clearJumpFeedback()
     hostResizeObserver?.disconnect()
     containerResizeObserver?.disconnect()
   })

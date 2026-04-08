@@ -63,20 +63,8 @@ export {
   useOmitMessageFields,
   useToolCall,
 } from './bubble'
-export {
-  createContentNavFlashFeedback,
-  createContentNavOutlinePulseFeedback,
-  createNearestCenterResolver,
-  createTopThresholdActiveResolver,
-  defaultContentNavActiveResolver,
-  defaultContentNavSearchMatcher,
-  useContentNavRegistry,
-  useContentNavScrollSpy,
-  useContentNavState,
-  provideContentNavScrollContainer,
-  useContentNavScrollContainer,
-  useScrollContainerContext,
-} from './content-nav'
+export { provideContentNavScrollContainer, useContentNavScrollContainer } from './content-nav/useScrollContainerContext'
+export { useContentNavRegistry } from './content-nav/useContentNavRegistry'
 export { useTheme } from './theme-provider/useTheme'
 export { useSenderContext } from './sender'
 export { vDropzone } from './drag-overlay/directives/vDropzone'

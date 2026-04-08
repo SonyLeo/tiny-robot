@@ -9,7 +9,7 @@
     <div class="controls">
       <label class="control-item">
         <input data-testid="toggle-single-turn-mode" type="checkbox" v-model="singleTurnMode" />
-        Use single turn (to verify `minItems` behavior)
+        Use single turn
       </label>
 
       <fieldset class="placement-switch">
@@ -65,16 +65,13 @@
           data-testid="content-nav-root"
           :items="items"
           :registry="registry"
-          v-model:active-id="activeId"
+          :active-id="activeId"
           v-model:expanded="expanded"
           v-model:query="query"
           :placement="placement"
-          :collapsible="true"
           :search="searchConfig"
-          :minItems="minItems"
-          mobileBehavior="inline"
-          keyboardMode="roving"
           aria-label="Conversation turns navigation"
+          @update:active-id="handleActiveIdUpdate"
           @select="handleSelect"
           @activate="handleActivate"
         />
@@ -167,7 +164,6 @@ const fillerText =
   'This section intentionally contains additional long text so the scroll area stays realistic for content-nav interactions and active-item updates.'
 
 const singleTurnMode = ref(false)
-const minItems = ref(2)
 const activeId = ref('')
 const expanded = ref(false)
 const query = ref('')
@@ -224,6 +220,10 @@ function handleSelect(payload: unknown) {
   }
 
   lastEvent.value = `select:${turnId}`
+}
+
+function handleActiveIdUpdate(value: string | undefined) {
+  activeId.value = value ?? ''
 }
 
 function handleActivate(payload: unknown) {
@@ -360,6 +360,7 @@ watch(
   gap: 10px;
   padding: 16px 0;
   border-bottom: 1px solid #e9eef4;
+  scroll-margin-top: 20px;
 }
 
 .turn-section:last-child {

@@ -6,11 +6,12 @@ outline: [1, 3]
 
 `TrContentNav` 用于长内容区域的目录导航，适合和 `TrBubble`、`TrBubbleList` 或文章章节内容一起使用。
 
-组件依赖以下输入：
+这次 API 收敛后的原则很明确：
 
-- `items`：目录项数据
-- `registry`：`id -> HTMLElement` 的锚点注册表
-- `scrollContainer` 或 `provideContentNavScrollContainer()`：滚动容器上下文
+- 组件只保留目录导航的核心语义能力
+- 样式型差异交给业务 CSS
+- 页面判断型差异交给业务逻辑
+- 高级滚动策略交给受控状态或业务层组合
 
 ## 代码示例
 
@@ -18,22 +19,17 @@ outline: [1, 3]
 
 示例演示了以下能力：
 
-- `v-model:active-id` 控制当前项
+- 业务侧同步 `activeId`
 - `v-model:expanded` 控制展开态
 - `v-model:query` 控制搜索词
 - `search` 按需启用内置搜索区
+- `select` 事件用于业务侧跳转反馈
 - `placement` 切换左侧或右侧停靠
-
-外层容器样式仅用于演示滚动内容场景，不是使用组件的前置条件。
 
 <demo
   vue="../../demos/content-nav/controlled-search.vue"
   :vueFiles="['../../demos/content-nav/controlled-search.vue']"
 />
-
-## 详细说明
-
-需要查看每个 prop、slot 的使用场景、设计理念和组合建议时，可参考 [TrContentNav 详细说明](./content-nav-detail)。
 
 ## Props
 
@@ -41,28 +37,16 @@ outline: [1, 3]
 | --- | --- | --- | --- |
 | `items` | `ContentNavItem[]` | - | 目录项列表 |
 | `registry` | `ContentNavRegistry` | 内部 registry | 锚点注册表 |
-| `scrollContainer` | `HTMLElement \| null` | - | 滚动容器 |
-| `search` | `false \| ContentNavSearchOptions` | `false` | 搜索区配置；传 `false` 时不渲染内置搜索区 |
+| `scrollContainer` | `HTMLElement \| null` | 注入值或 `null` | 滚动容器 |
+| `search` | `false \| ContentNavSearchOptions` | `false` | 搜索区配置 |
 | `activeId` | `string` | 非受控 | 当前项 |
 | `expanded` | `boolean` | 非受控 | 展开态 |
 | `query` | `string` | 非受控 | 搜索词 |
 | `placement` | `'left' \| 'right'` | `'right'` | 停靠位置 |
-| `collapsible` | `boolean` | `true` | 是否允许收起/展开 |
-| `minItems` | `number` | `2` | 小于该数量时不渲染 |
-| `mobileBehavior` | `'hidden' \| 'inline' \| 'drawer' \| 'sheet'` | `'hidden'` | 移动端展示策略 |
-| `showTooltipOnTruncate` | `boolean` | `true` | 文本截断时是否显示 tooltip |
-| `keyboardMode` | `'none' \| 'basic' \| 'roving'` | `'basic'` | 键盘模式 |
 | `ariaLabel` | `string` | `'Content navigation'` | 可访问名称 |
-| `emptyText` | `string` | `'No matching items'` | 空结果文案 |
-| `floating` | `boolean` | `true` | 是否使用悬浮面板模式 |
-| `resolveActive` | `ContentNavActiveResolver` | 默认 resolver | 当前项计算逻辑 |
-| `jumpOffset` | `number \| (() => number)` | `0` | 跳转顶部偏移 |
-| `smoothScroll` | `boolean` | `true` | 是否平滑滚动 |
-| `jumpFeedback` | `ContentNavJumpFeedbackController \| false` | `createContentNavFlashFeedback()` | 跳转反馈控制器 |
+| `emptyText` | `string` | `'No matching items'` | 搜索空结果文案 |
 
 ### ContentNavSearchOptions
-
-当 `search` 为对象时，可配置以下属性：
 
 - `placeholder`：搜索框占位文案
 - `matcher`：自定义匹配器

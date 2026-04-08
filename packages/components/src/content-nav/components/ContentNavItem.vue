@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import type { ContentNavFilteredItem, ContentNavItem, ContentNavKeyboardMode, ContentNavPlacement } from '../index.type'
+import type { ContentNavItem, ContentNavPlacement } from '../index.type'
+import type { ContentNavFilteredItem } from '../internal.type'
 
 defineOptions({ name: 'ContentNavItem' })
 
@@ -10,9 +11,7 @@ const props = withDefaults(
     activeId?: string
     expanded: boolean
     highlighted: boolean
-    keyboardMode: ContentNavKeyboardMode
     placement: ContentNavPlacement
-    showTooltipOnTruncate: boolean
   }>(),
   {
     activeId: undefined,
@@ -45,7 +44,7 @@ const itemClass = computed(() => [
   {
     'is-active': active.value,
     'is-expanded': props.expanded,
-    'is-highlighted': props.keyboardMode === 'roving' && props.highlighted,
+    'is-highlighted': props.highlighted,
     'is-tooltip-visible': tooltipVisible.value,
   },
 ])
@@ -55,11 +54,6 @@ function isTextTruncated(element: HTMLElement | null | undefined) {
 }
 
 function updateTooltipState(event: MouseEvent | FocusEvent) {
-  if (!props.showTooltipOnTruncate) {
-    tooltipVisible.value = false
-    return
-  }
-
   const currentTarget = event.currentTarget as HTMLElement | null
   const labelEl = currentTarget?.querySelector<HTMLElement>('.tr-content-nav__item-label')
   tooltipVisible.value = isTextTruncated(labelEl)
@@ -79,7 +73,7 @@ function clearTooltipState() {
       :data-item-id="entry.item.id"
       :aria-current="active ? 'location' : undefined"
       :disabled="entry.item.disabled"
-      :tabindex="keyboardMode === 'roving' ? (highlighted ? 0 : -1) : 0"
+      :tabindex="highlighted ? 0 : -1"
       @mouseenter="
         (event) => {
           isHovered = true
@@ -119,7 +113,7 @@ function clearTooltipState() {
           :segments="entry.segments"
           :active="active"
           :expanded="expanded"
-          :highlighted="isHovered || isFocused"
+          :highlighted="props.highlighted || isHovered || isFocused"
         >
           <span class="tr-content-nav__item-label">
             <template v-for="(segment, segmentIndex) in entry.segments" :key="`${entry.item.id}-${segmentIndex}`">
@@ -159,8 +153,6 @@ function clearTooltipState() {
       white-space: normal;
       overflow: hidden;
       display: -webkit-box;
-      -webkit-line-clamp: 5;
-      line-clamp: 5;
       -webkit-box-orient: vertical;
       text-overflow: ellipsis;
       word-break: break-word;
@@ -185,10 +177,6 @@ function clearTooltipState() {
 
     &.is-active .tr-content-nav__item-label {
       color: var(--tr-content-nav-item-color-active);
-    }
-
-    &.is-highlighted .tr-content-nav__item {
-      background: var(--tr-content-nav-item-bg-hover);
     }
   }
 

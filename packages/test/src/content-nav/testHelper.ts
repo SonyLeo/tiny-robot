@@ -86,6 +86,22 @@ export function createContentNavTestHelper(page: Page) {
     await focusable.focus()
   }
 
+  async function focusSearchInput() {
+    const search = page.locator(selectors.contentNavSearch)
+    await expect(search).toBeVisible()
+    await search.focus()
+  }
+
+  async function fillSearchInput(value: string) {
+    const search = page.locator(selectors.contentNavSearch)
+    await expect(search).toBeVisible()
+    await search.fill(value)
+  }
+
+  async function moveMouseOutsideNav() {
+    await page.mouse.move(1, 1)
+  }
+
   async function clickNavItemByLabel(label: string) {
     const root = page.locator(selectors.contentNavRoot)
     const regex = new RegExp(label, 'i')
@@ -225,6 +241,9 @@ export function createContentNavTestHelper(page: Page) {
     scrollToBottom,
     hoverNav,
     focusFirstInteractiveInNav,
+    focusSearchInput,
+    fillSearchInput,
+    moveMouseOutsideNav,
     clickNavItemByLabel,
     expectNavVisible,
     expectExpanded,

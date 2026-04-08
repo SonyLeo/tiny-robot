@@ -24,6 +24,7 @@ const emit = defineEmits<{
     type="search"
     :value="props.query"
     :placeholder="props.options?.placeholder ?? 'Search'"
+    :aria-label="props.options?.placeholder ?? 'Search content navigation'"
     data-testid="content-nav-search"
     @input="emit('update:query', ($event.target as HTMLInputElement).value)"
   />

@@ -1,11 +1,7 @@
 <script setup lang="ts">
 import ContentNavItem from './ContentNavItem.vue'
-import type {
-  ContentNavFilteredItem,
-  ContentNavItem as ContentNavItemType,
-  ContentNavKeyboardMode,
-  ContentNavPlacement,
-} from '../index.type'
+import type { ContentNavItem as ContentNavItemType, ContentNavPlacement } from '../index.type'
+import type { ContentNavFilteredItem } from '../internal.type'
 
 defineOptions({ name: 'ContentNavList' })
 
@@ -14,10 +10,8 @@ defineProps<{
   activeId?: string
   expanded: boolean
   highlightedIndex: number
-  keyboardMode: ContentNavKeyboardMode
   placement: ContentNavPlacement
   emptyText: string
-  showTooltipOnTruncate: boolean
 }>()
 
 const emit = defineEmits<{
@@ -50,9 +44,7 @@ defineSlots<{
       :active-id="activeId"
       :expanded="expanded"
       :highlighted="index === highlightedIndex"
-      :keyboard-mode="keyboardMode"
       :placement="placement"
-      :show-tooltip-on-truncate="showTooltipOnTruncate"
       @select="emit('select', $event)"
     >
       <template v-if="$slots.item" #item="slotProps">

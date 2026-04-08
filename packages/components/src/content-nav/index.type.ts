@@ -30,56 +30,12 @@ export interface ContentNavRegistry {
 
 export type ContentNavSearchMatcher = (item: ContentNavItem, query: string) => false | ContentNavHighlightSegment[]
 
-export type ContentNavActiveResolver = (options: {
-  container: HTMLElement
-  anchors: ContentNavRegistryEntry[]
-  items: ContentNavItem[]
-}) => string | undefined
-
-export interface ContentNavJumpFeedbackController {
-  apply: (el: HTMLElement) => void
-  clear: (el: HTMLElement) => void
-  duration?: number
-}
-
 export type ContentNavPlacement = 'left' | 'right'
-export type ContentNavMobileBehavior = 'hidden' | 'inline' | 'drawer' | 'sheet'
-export type ContentNavKeyboardMode = 'none' | 'basic' | 'roving'
-
-export interface ContentNavFilteredItem {
-  item: ContentNavItem
-  segments: ContentNavHighlightSegment[]
-}
 
 export interface ContentNavSearchOptions {
   placeholder?: string
   matcher?: ContentNavSearchMatcher
   clearOnCollapse?: boolean
-}
-
-export interface ContentNavScrollSpyOptions {
-  items: Ref<ContentNavItem[]>
-  registry: ContentNavRegistry
-  container: Ref<HTMLElement | null | undefined>
-  host: Ref<HTMLElement | null | undefined>
-  activeId?: Ref<string | undefined>
-  onUpdateActiveId?: (value: string | undefined) => void
-  resolveActive?: Ref<ContentNavActiveResolver | undefined>
-  jumpOffset?: Ref<number | (() => number) | undefined>
-  smoothScroll?: Ref<boolean | undefined>
-  jumpFeedback?: Ref<ContentNavJumpFeedbackController | false | undefined>
-}
-
-export interface ContentNavStateOptions {
-  items: Ref<ContentNavItem[]>
-  activeId: Ref<string | undefined>
-  expanded?: Ref<boolean | undefined>
-  query?: Ref<string | undefined>
-  search?: Ref<ContentNavSearchOptions | false | undefined>
-  collapsible?: Ref<boolean | undefined>
-  keyboardMode?: Ref<ContentNavKeyboardMode | undefined>
-  onUpdateExpanded?: (value: boolean) => void
-  onUpdateQuery?: (value: string) => void
 }
 
 export interface ContentNavProps {
@@ -90,19 +46,9 @@ export interface ContentNavProps {
   expanded?: boolean
   query?: string
   placement?: ContentNavPlacement
-  collapsible?: boolean
   search?: false | ContentNavSearchOptions
-  minItems?: number
-  mobileBehavior?: ContentNavMobileBehavior
-  showTooltipOnTruncate?: boolean
-  keyboardMode?: ContentNavKeyboardMode
   ariaLabel?: string
   emptyText?: string
-  floating?: boolean
-  resolveActive?: ContentNavActiveResolver
-  jumpOffset?: number | (() => number)
-  smoothScroll?: boolean
-  jumpFeedback?: ContentNavJumpFeedbackController | false
 }
 
 export interface ContentNavEmits {
