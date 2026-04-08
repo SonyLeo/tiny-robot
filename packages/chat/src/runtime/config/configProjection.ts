@@ -69,6 +69,7 @@ export function createChatAdapterFromConfig(input: string | ChatConfig | unknown
     value: model.id,
     label: model.label,
     providerId: model.providerId,
+    icon: model.icon,
     disabled: model.disabled,
   }))
 

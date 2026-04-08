@@ -16,6 +16,7 @@ export interface ChatConfigModel {
   id: string
   providerId: string
   label?: string
+  icon?: ModelOption['icon']
   disabled?: boolean
 }
 

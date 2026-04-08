@@ -99,6 +99,43 @@ await runTest('createPresetChatSlices keeps white-box slices empty when optional
   assert.equal(slices.modelSelector.enabled, false)
 })
 
+await runTest('createPresetChatSlices preserves model icons configured through blackbox models', async () => {
+  const customIcon = { name: 'CustomModelIcon' }
+
+  const adapter = createChatAdapterFromConfig({
+    models: [
+      {
+        id: 'gpt-4o-mini',
+        providerId: 'openai',
+        icon: customIcon,
+      },
+      {
+        id: 'deepseek-chat',
+        providerId: 'deepseek',
+      },
+    ],
+    providers: {
+      openai: {
+        type: 'openai-compatible',
+        endpoint: '/api/chat',
+      },
+      deepseek: {
+        type: 'openai-compatible',
+        endpoint: '/api/deepseek',
+      },
+    },
+  })
+
+  const presetProps = createPresetChatProps(adapter)
+  const slices = createPresetChatSlices(presetProps)
+
+  assert.equal(adapter.models[0]?.icon, customIcon)
+  assert.equal(presetProps.models[0]?.icon, customIcon)
+  assert.equal(slices.modelSelector.models?.[0]?.icon, customIcon)
+  assert.equal(slices.modelSelector.models?.[1]?.icon, undefined)
+  assert.equal(slices.modelSelector.enabled, true)
+})
+
 await runTest('createPresetChatSlices exposes layout variant and placement defaults for white-box composition', async () => {
   const adapter = createChatAdapterFromConfig({
     models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],

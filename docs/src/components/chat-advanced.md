@@ -315,6 +315,13 @@ const runtime = {
 | `TrMcpTrigger` | 无 compound 同名成员 | 在任意位置单独摆 MCP 入口 |
 | `TrChatMcpPanel` | 无 compound 同名成员 | 复用 MCP 面板本体 |
 
+补充说明：
+
+- `TrModelSelector` 默认按 `providerId` 渲染内置 provider 图标，不会根据 `gpt-4o-mini` 这类模型名自动猜图标。
+- 当前内置支持的 provider icon 有：`openai`、`claude`、`deepseek`、`gemini`、`bailian`、`modelscope`、`openrouter`、`ollama`。
+- 如果业务里想覆盖默认图标，可以直接在传给 `TrModelSelector` 的 `ModelOption` 上补 `icon`；如果使用对象形式的 `config`，也可以给 `config.models[].icon` 直接传组件。
+- `config` 如果是 JSON / string 形式，不能直接承载组件引用，所以不支持自定义 model icon。
+
 ### 这一页只保留少数值得手动消费的 API
 
 `@opentiny/tiny-robot-chat` 的确还公开了更多 hooks、renderers 和底层常量，但对大多数业务接入并不构成稳定入口。  

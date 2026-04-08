@@ -49,6 +49,7 @@ function normalizeModel(model: unknown, index: number): ChatConfigModel {
     id: model.id,
     providerId: model.providerId,
     label: typeof model.label === 'string' ? model.label : undefined,
+    icon: model.icon as ChatConfigModel['icon'],
     disabled: typeof model.disabled === 'boolean' ? model.disabled : undefined,
   }
 }

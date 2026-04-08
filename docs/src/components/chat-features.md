@@ -52,7 +52,7 @@ outline: [2, 3]
 
 | 字段 | 是否必填 | 主要解决什么问题 | 最常改的子项 |
 | :-- | :-- | :-- | :-- |
-| `models` | 是 | 当前有哪些模型可选 | `id`、`providerId`、`label`、`disabled` |
+| `models` | 是 | 当前有哪些模型可选 | `id`、`providerId`、`label`、`icon`、`disabled` |
 | `providers` | 是 | 每个 provider 请求该发到哪里 | `endpoint`、`baseURL`、`headers`、`systemPrompt` |
 | `defaults` | 否，但强烈推荐 | 默认模型和默认 system prompt | `model`、`systemPrompt` |
 | `ui` | 否，但常用 | 品牌、欢迎区、prompts | `brand`、`welcome`、`prompts` |

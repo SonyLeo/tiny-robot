@@ -4,6 +4,7 @@ import type { ChatContentLayout, TrChatPresetOverrides } from '@opentiny/tiny-ro
 import { TrChat, useMcpManager } from '@opentiny/tiny-robot-chat'
 import type { ColorMode } from '@opentiny/tiny-robot'
 import { localStorageStrategyFactory, toolPlugin } from '@opentiny/tiny-robot-kit'
+import { IconAi } from '@opentiny/tiny-robot-svgs'
 import { defaultMcpServers } from '../data/mcpServers'
 import { WELCOME_CONFIG, WELCOME_PROMPTS, BRAND_CONFIG } from '../constants'
 import { createDemoMcpBridge } from '../utils/mcpBridge'
@@ -32,7 +33,7 @@ const chatConfig = {
     { id: 'deepseek-chat', label: 'DeepSeek Chat', providerId: 'deepseek' },
     { id: 'deepseek-reasoner', label: 'DeepSeek Reasoner', providerId: 'deepseek' },
     { id: 'gpt-4o', label: 'GPT-4o', providerId: 'openai' },
-    { id: 'gpt-4o-mini', label: 'GPT-4o Mini', providerId: 'openai' },
+    { id: 'gpt-4o-mini', label: 'GPT-4o Mini', providerId: 'openai', icon: IconAi },
   ],
   providers: {
     deepseek: {
