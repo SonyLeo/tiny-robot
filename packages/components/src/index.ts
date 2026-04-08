@@ -63,6 +63,11 @@ export {
   useOmitMessageFields,
   useToolCall,
 } from './bubble'
+export {
+  vContentNavAnchor,
+  type ContentNavAnchorOptions,
+  type ContentNavAnchorValue,
+} from './content-nav/directives/vContentNavAnchor'
 export { provideContentNavScrollContainer, useContentNavScrollContainer } from './content-nav/useScrollContainerContext'
 export { useContentNavRegistry } from './content-nav/useContentNavRegistry'
 export { useTheme } from './theme-provider/useTheme'

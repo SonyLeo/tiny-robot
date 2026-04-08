@@ -38,13 +38,13 @@ test.describe('ContentNav component e2e', () => {
     await expect.poll(async () => page.locator(helper.selectors.expandedDisplay).textContent()).toBe('true')
   })
 
-  test('query model changes and list can be filtered', async ({ page }) => {
+  test('query model changes and list can be filtered by assistant reply text', async ({ page }) => {
     const helper = helperFactory(page)
 
-    await helper.setExternalQuery('timeline')
-    await helper.expectQueryValue('timeline')
+    await helper.setExternalQuery('retry storms')
+    await helper.expectQueryValue('retry storms')
     await expect(page.locator(helper.selectors.contentNavRoot)).toContainText('Incident timeline planning')
-    await expect(page.locator(helper.selectors.contentNavRoot)).not.toContainText('Security review items')
+    await expect(page.locator(helper.selectors.contentNavRoot)).not.toContainText('Project kickoff summary')
   })
 
   test('clicking item scrolls to target content', async ({ page }) => {
@@ -56,6 +56,17 @@ test.describe('ContentNav component e2e', () => {
 
     await expect.poll(async () => helper.getScrollTop()).toBeGreaterThan(beforeScrollTop + 50)
     await helper.expectActiveId('turn-5')
+  })
+
+  test('bubble anchors attach to the real user bubble and receive jump feedback', async ({ page }) => {
+    const helper = helperFactory(page)
+
+    await helper.clickNavItemByLabel('Release train dependencies')
+
+    const anchoredBubble = helper.getAnchoredBubble('turn-5')
+    await expect(anchoredBubble).toHaveCount(1)
+    await expect(anchoredBubble).toHaveAttribute('data-role', 'user')
+    await expect(anchoredBubble).toHaveClass(/demo-user-bubble-flash/)
   })
 
   test('keyboard activation works', async ({ page }) => {
@@ -91,6 +102,17 @@ test.describe('ContentNav component e2e', () => {
     await expect.poll(async () => helper.getScrollTop()).toBe(beforeScrollTop)
   })
 
+  test('shows empty state when the controlled query has no matches', async ({ page }) => {
+    const helper = helperFactory(page)
+
+    await helper.resetState()
+    await helper.setExternalQuery('no-match-keyword')
+    await helper.hoverNav()
+
+    await expect(page.locator(helper.selectors.contentNavRoot)).toContainText('No matching items')
+    await helper.expectQueryValue('no-match-keyword')
+  })
+
   test('mouseleave does not collapse while focus stays inside nav', async ({ page }) => {
     const helper = helperFactory(page)
 
@@ -102,6 +124,18 @@ test.describe('ContentNav component e2e', () => {
     await helper.expectExpanded(true)
   })
 
+  test('escape collapses the rail from keyboard focus', async ({ page }) => {
+    const helper = helperFactory(page)
+
+    await helper.resetState()
+    await helper.hoverNav()
+    await helper.expectExpanded(true)
+    await helper.focusFirstNavItem()
+    await page.keyboard.press('Escape')
+
+    await expect.poll(async () => page.locator(helper.selectors.expandedDisplay).textContent()).toBe('false')
+  })
+
   test('active item updates while scrolling', async ({ page }) => {
     const helper = helperFactory(page)
 
@@ -110,6 +144,22 @@ test.describe('ContentNav component e2e', () => {
     await helper.scrollToBottom()
 
     await expect.poll(async () => page.locator(helper.selectors.activeIdDisplay).textContent()).toBe('turn-6')
+  })
+
+  test('controlled activeId falls back to the first visible item when the selected item is removed', async ({
+    page,
+  }) => {
+    const helper = helperFactory(page)
+
+    await helper.resetState()
+    await helper.clickNavItemByLabel('Release train dependencies')
+    await helper.expectActiveId('turn-5')
+
+    await helper.setSingleTurnMode(true)
+
+    await helper.expectItemCount(1)
+    await helper.expectActiveId('turn-1')
+    await helper.expectNavVisible(true)
   })
 
   test('marker anchor stays stable before and after expand for both placements', async ({ page }) => {

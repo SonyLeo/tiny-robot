@@ -86,6 +86,12 @@ export function createContentNavTestHelper(page: Page) {
     await focusable.focus()
   }
 
+  async function focusFirstNavItem() {
+    const firstItem = page.locator(`${selectors.contentNavRoot} .tr-content-nav__item`).first()
+    await expect(firstItem).toBeVisible()
+    await firstItem.focus()
+  }
+
   async function focusSearchInput() {
     const search = page.locator(selectors.contentNavSearch)
     await expect(search).toBeVisible()
@@ -229,6 +235,10 @@ export function createContentNavTestHelper(page: Page) {
     }
   }
 
+  function getAnchoredBubble(id: string) {
+    return page.locator(`[data-content-nav-id="${id}"]`)
+  }
+
   return {
     selectors,
     gotoDemo,
@@ -241,6 +251,7 @@ export function createContentNavTestHelper(page: Page) {
     scrollToBottom,
     hoverNav,
     focusFirstInteractiveInNav,
+    focusFirstNavItem,
     focusSearchInput,
     fillSearchInput,
     moveMouseOutsideNav,
@@ -257,5 +268,6 @@ export function createContentNavTestHelper(page: Page) {
     getOverlayBounds,
     getHostBounds,
     getScrollContainerBounds,
+    getAnchoredBubble,
   }
 }

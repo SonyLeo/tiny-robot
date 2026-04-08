@@ -24,8 +24,8 @@
         <tr-bubble-list class="conversation-list" :messages="messages" :role-configs="roles">
           <template #after="{ messages: groupMessages }">
             <span
-              v-if="userMessageIds.has(groupMessages[0]?.id ?? '')"
-              :ref="(el) => registerUserAnchor(groupMessages[0]?.id, el as HTMLElement | null)"
+              v-if="groupMessages[0]?.role === 'user'"
+              v-content-nav-anchor="groupMessages[0]?.id"
               class="nav-anchor"
               aria-hidden="true"
             />
@@ -36,13 +36,11 @@
       <tr-content-nav
         :class="['nav', `is-${placement}`]"
         :items="items"
-        :registry="registry"
-        :scroll-container="scrollContainerRef"
         :placement="placement"
         :search="search"
+        v-model:active-id="activeId"
         v-model:expanded="expanded"
         v-model:query="query"
-        :active-id="activeId"
         @select="handleSelect"
         aria-label="用户提问目录导航"
       />
@@ -51,11 +49,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, h, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, h, onBeforeUnmount, ref, watch } from 'vue'
 import {
   TrBubbleList,
   TrContentNav,
-  useContentNavRegistry,
+  provideContentNavScrollContainer,
+  vContentNavAnchor,
   type BubbleListProps,
   type BubbleRoleConfig,
 } from '@opentiny/tiny-robot'
@@ -127,21 +126,19 @@ const items = demoTurns.map((turn) => ({
   searchText: `${turn.user} ${turn.assistant}`,
 }))
 
-const userMessageIds = new Set(demoTurns.map((turn) => turn.userId))
-const activeThreshold = 92
 const jumpFlashClassName = 'demo-user-bubble-flash'
 const jumpTransitionDuration = '220ms'
 const jumpFeedbackDuration = 520
 
-const registry = useContentNavRegistry()
 const scrollContainerRef = ref<HTMLElement | null>(null)
 const placement = ref<'left' | 'right'>('right')
 const activeId = ref(demoTurns[0].userId)
 const expanded = ref(false)
 const query = ref('')
 const searchEnabled = ref(false)
-let scheduledFrame: number | null = null
 let jumpFeedbackTimer: ReturnType<typeof setTimeout> | null = null
+
+provideContentNavScrollContainer(scrollContainerRef)
 
 const search = computed(() => (searchEnabled.value ? { placeholder: '搜索用户问题或回复关键词' } : false))
 
@@ -151,55 +148,6 @@ watch(searchEnabled, (enabled) => {
   }
 })
 
-function scheduleActiveSync() {
-  if (scheduledFrame !== null) {
-    cancelAnimationFrame(scheduledFrame)
-  }
-
-  scheduledFrame = requestAnimationFrame(() => {
-    scheduledFrame = null
-    syncActiveId()
-  })
-}
-
-function syncActiveId() {
-  const container = scrollContainerRef.value
-  if (!container || items.length === 0) {
-    return
-  }
-
-  const anchors = registry
-    .getAll()
-    .filter((entry) => userMessageIds.has(entry.id))
-    .sort((a, b) => a.el.offsetTop - b.el.offsetTop)
-
-  if (anchors.length === 0) {
-    activeId.value = items[0]?.id ?? ''
-    return
-  }
-
-  const isAtBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 2
-  if (isAtBottom) {
-    activeId.value = items[items.length - 1]?.id ?? activeId.value
-    return
-  }
-
-  const containerRect = container.getBoundingClientRect()
-  const threshold = containerRect.top + activeThreshold
-  let nextId = items[0]?.id ?? activeId.value
-
-  for (const anchor of anchors) {
-    const rect = anchor.el.getBoundingClientRect()
-    if (rect.top <= threshold) {
-      nextId = anchor.id
-    } else {
-      break
-    }
-  }
-
-  activeId.value = nextId
-}
-
 function clearJumpFeedback() {
   if (jumpFeedbackTimer) {
     clearTimeout(jumpFeedbackTimer)
@@ -208,7 +156,16 @@ function clearJumpFeedback() {
 }
 
 function applyJumpFeedback(id: string) {
-  const target = registry.get(id)
+  const container = scrollContainerRef.value
+  const target = container
+    ? (Array.from(container.querySelectorAll<HTMLElement>('[data-content-nav-id]')).find(
+        (entry) => entry.dataset.contentNavId === id,
+      ) ??
+      (typeof CSS !== 'undefined' && typeof CSS.escape === 'function'
+        ? container.querySelector<HTMLElement>(`#${CSS.escape(id)}`)
+        : Array.from(container.querySelectorAll<HTMLElement>('[id]')).find((entry) => entry.id === id)) ??
+      null)
+    : null
   if (!target) {
     return
   }
@@ -229,47 +186,8 @@ function handleSelect(item: { id: string }) {
   applyJumpFeedback(item.id)
 }
 
-function registerUserAnchor(id: string | undefined, el: HTMLElement | null) {
-  if (!id || !userMessageIds.has(id)) {
-    return
-  }
-
-  if (!el) {
-    registry.unregister(id)
-    return
-  }
-
-  const bubbleEl = el.closest<HTMLElement>('.tr-bubble')
-  const target = bubbleEl ?? el
-  registry.register(id, target)
-}
-
-watch(
-  () => registry.version.value,
-  () => {
-    scheduleActiveSync()
-  },
-)
-
-watch(scrollContainerRef, (container, previous) => {
-  previous?.removeEventListener('scroll', scheduleActiveSync)
-  container?.addEventListener('scroll', scheduleActiveSync, { passive: true })
-  scheduleActiveSync()
-})
-
-onMounted(() => {
-  window.addEventListener('resize', scheduleActiveSync, { passive: true })
-  scheduleActiveSync()
-})
-
 onBeforeUnmount(() => {
-  scrollContainerRef.value?.removeEventListener('scroll', scheduleActiveSync)
-  window.removeEventListener('resize', scheduleActiveSync)
   clearJumpFeedback()
-
-  if (scheduledFrame !== null) {
-    cancelAnimationFrame(scheduledFrame)
-  }
 })
 </script>
 

@@ -64,7 +64,6 @@
           :is="resolvedContentNav"
           data-testid="content-nav-root"
           :items="items"
-          :registry="registry"
           :active-id="activeId"
           v-model:expanded="expanded"
           v-model:query="query"
@@ -78,20 +77,20 @@
       </div>
 
       <div class="bubble-scroll-container" data-testid="bubble-scroll-container" ref="scrollContainerRef">
-        <section
-          v-for="turn in turns"
-          :key="turn.id"
-          :ref="(el) => setTurnAnchor(turn.id, el as HTMLElement | null)"
-          :data-anchor-id="turn.id"
-          :data-testid="`turn-anchor-${turn.id}`"
-          class="turn-section"
-        >
-          <h3>{{ turn.label }}</h3>
-          <TrBubble role="user" :content="turn.user" />
-          <TrBubble role="assistant" :content="turn.assistant" />
-          <p>{{ fillerText }}</p>
-          <p>{{ fillerText }}</p>
-        </section>
+        <TrBubbleList class="conversation-list" :messages="messages" :role-configs="roleConfigs">
+          <template #content-footer>
+            <p class="turn-filler">{{ fillerText }}</p>
+          </template>
+
+          <template #after="{ messages: groupMessages }">
+            <span
+              v-if="groupMessages[0]?.role === 'user'"
+              v-content-nav-anchor="groupMessages[0]?.id"
+              class="turn-anchor"
+              aria-hidden="true"
+            />
+          </template>
+        </TrBubbleList>
       </div>
     </div>
   </div>
@@ -99,14 +98,9 @@
 
 <script setup lang="ts">
 import { computed, defineComponent, nextTick, ref, watch, type Component } from 'vue'
-import { TrBubble, provideContentNavScrollContainer, useContentNavRegistry } from '@opentiny/tiny-robot'
+import { TrBubbleList, provideContentNavScrollContainer, vContentNavAnchor } from '@opentiny/tiny-robot'
+import type { BubbleListProps } from '@opentiny/tiny-robot'
 import * as TinyRobot from '@opentiny/tiny-robot'
-
-type ContentNavItem = {
-  id: string
-  label: string
-  searchText: string
-}
 
 type DemoTurn = {
   id: string
@@ -126,42 +120,48 @@ const allTurns: DemoTurn[] = [
     id: 'turn-1',
     label: 'Project kickoff summary',
     user: 'Give me a short summary of the project kickoff decisions from this week.',
-    assistant: 'The kickoff summary includes milestones, owner mapping, and release constraints.',
+    assistant:
+      'The kickoff summary includes milestones, owner mapping, release constraints, and the first cross-team dependency review.',
   },
   {
     id: 'turn-2',
     label: 'Incident timeline planning',
     user: 'Build an incident timeline from the logs and mark all critical transitions.',
-    assistant: 'The timeline highlights ingestion delay, retry storms, and final mitigation windows.',
+    assistant:
+      'The timeline highlights ingestion delay, retry storms, alert escalation, and the final mitigation window for the incident.',
   },
   {
     id: 'turn-3',
     label: 'Data export checklist',
     user: 'Prepare a data export checklist for legal review and governance sign-off.',
-    assistant: 'The checklist covers retention windows, privacy fields, and export audit metadata.',
+    assistant:
+      'The checklist covers retention windows, privacy fields, export audit metadata, and the legal handoff package.',
   },
   {
     id: 'turn-4',
     label: 'Security review items',
     user: 'List every security review action we must close before internal launch.',
-    assistant: 'The list includes permission boundaries, signing policy, and threat model gaps.',
+    assistant:
+      'The list includes permission boundaries, signing policy gaps, dependency verification, and threat model follow-up items.',
   },
   {
     id: 'turn-5',
     label: 'Release train dependencies',
     user: 'Show release train dependencies across frontend, platform, and integration teams.',
-    assistant: 'Dependencies include SDK freeze, deployment slots, and feature-flag readiness.',
+    assistant:
+      'Dependencies include SDK freeze, deployment slots, feature-flag readiness, release approvals, and downstream integration checks.',
   },
   {
     id: 'turn-6',
     label: 'Postmortem draft notes',
     user: 'Draft postmortem notes with timeline, root cause, impact, and follow-up actions.',
-    assistant: 'The draft captures incident scope, root cause, remediation, and owner assignments.',
+    assistant:
+      'The draft captures incident scope, root cause, remediation status, open risks, and owner assignments for every follow-up.',
   },
 ]
 
 const fillerText =
-  'This section intentionally contains additional long text so the scroll area stays realistic for content-nav interactions and active-item updates.'
+  'This extra line keeps each turn tall enough for realistic scroll spy behavior and makes the BubbleList route closer to the real usage pattern.'
 
 const singleTurnMode = ref(false)
 const activeId = ref('')
@@ -169,17 +169,44 @@ const expanded = ref(false)
 const query = ref('')
 const placement = ref<'left' | 'right'>('right')
 const lastEvent = ref('none')
+const scrollContainerRef = ref<HTMLElement | null>(null)
+const jumpFlashClassName = 'demo-user-bubble-flash'
+const jumpFeedbackDuration = 700
+let jumpFeedbackTimer: ReturnType<typeof setTimeout> | null = null
+
 const searchConfig = {
   clearOnCollapse: false,
   placeholder: 'Search',
 } as const
-const scrollContainerRef = ref<HTMLElement | null>(null)
-const registry = useContentNavRegistry()
+
+const roleConfigs = {
+  assistant: {
+    placement: 'start',
+  },
+  user: {
+    placement: 'end',
+  },
+} satisfies NonNullable<BubbleListProps['roleConfigs']>
 
 provideContentNavScrollContainer(scrollContainerRef)
 
 const turns = computed(() => (singleTurnMode.value ? allTurns.slice(0, 1) : allTurns))
-const items = computed<ContentNavItem[]>(() =>
+const messages = computed<BubbleListProps['messages']>(() =>
+  turns.value.flatMap((turn) => [
+    {
+      id: turn.id,
+      role: 'user',
+      content: turn.user,
+    },
+    {
+      id: `assistant-${turn.id}`,
+      role: 'assistant',
+      content: turn.assistant,
+    },
+  ]),
+)
+
+const items = computed(() =>
   turns.value.map((turn) => ({
     id: turn.id,
     label: turn.label,
@@ -208,8 +235,45 @@ function resolvePayloadId(payload: unknown) {
   return undefined
 }
 
-function setTurnAnchor(turnId: string, el: HTMLElement | null) {
-  registry.register(turnId, el)
+function findNavTarget(id: string) {
+  const container = scrollContainerRef.value
+  if (!container) {
+    return null
+  }
+
+  return (
+    Array.from(container.querySelectorAll<HTMLElement>('[data-content-nav-id]')).find(
+      (entry) => entry.dataset.contentNavId === id,
+    ) ??
+    (typeof CSS !== 'undefined' && typeof CSS.escape === 'function'
+      ? container.querySelector<HTMLElement>(`#${CSS.escape(id)}`)
+      : Array.from(container.querySelectorAll<HTMLElement>('[id]')).find((entry) => entry.id === id)) ??
+    null
+  )
+}
+
+function clearJumpFeedback() {
+  if (jumpFeedbackTimer) {
+    clearTimeout(jumpFeedbackTimer)
+    jumpFeedbackTimer = null
+  }
+}
+
+function applyJumpFeedback(id: string) {
+  const target = findNavTarget(id)
+  if (!target) {
+    return
+  }
+
+  clearJumpFeedback()
+  target.classList.remove(jumpFlashClassName)
+  void target.offsetWidth
+  target.classList.add(jumpFlashClassName)
+
+  jumpFeedbackTimer = setTimeout(() => {
+    target.classList.remove(jumpFlashClassName)
+    jumpFeedbackTimer = null
+  }, jumpFeedbackDuration)
 }
 
 function handleSelect(payload: unknown) {
@@ -220,6 +284,7 @@ function handleSelect(payload: unknown) {
   }
 
   lastEvent.value = `select:${turnId}`
+  applyJumpFeedback(turnId)
 }
 
 function handleActiveIdUpdate(value: string | undefined) {
@@ -242,6 +307,8 @@ function resetState() {
   expanded.value = false
   placement.value = 'right'
   lastEvent.value = 'none'
+  clearJumpFeedback()
+
   nextTick(() => {
     activeId.value = items.value[0]?.id ?? ''
     const container = scrollContainerRef.value
@@ -330,11 +397,12 @@ watch(
 }
 
 .content-nav-host {
+  box-sizing: border-box;
   position: relative;
+  height: 560px;
   border: 1px dashed #ccd6e0;
   border-radius: 8px;
   padding: 8px;
-  min-height: 560px;
 }
 
 .content-nav-fallback {
@@ -347,38 +415,52 @@ watch(
 }
 
 .bubble-scroll-container {
+  box-sizing: border-box;
   height: 560px;
   overflow: auto;
   border: 1px solid #dce3ea;
   border-radius: 10px;
-  padding: 10px 14px;
   background: #fafcff;
 }
 
-.turn-section {
-  display: grid;
-  gap: 10px;
-  padding: 16px 0;
-  border-bottom: 1px solid #e9eef4;
+.conversation-list {
+  --tr-bubble-list-gap: 16px;
+  --tr-bubble-list-padding: 18px 18px 28px;
+  --tr-bubble-max-width: 560px;
+}
+
+.turn-anchor {
+  display: block;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.turn-filler {
+  margin: 8px 0 0;
+  max-width: 48ch;
+  font-size: 12px;
+  line-height: 1.55;
+  color: #5d6b80;
+}
+
+:deep([data-role='user']) {
+  --tr-bubble-box-bg: var(--tr-color-primary-light);
   scroll-margin-top: 20px;
 }
 
-.turn-section:last-child {
-  border-bottom: 0;
+:deep([data-role='user'] .tr-bubble__box) {
+  transition:
+    background-color 220ms ease,
+    box-shadow 220ms ease;
 }
 
-.turn-section h3 {
-  margin: 0;
-  font-size: 14px;
-  line-height: 1.4;
-  color: #26303d;
-}
-
-.turn-section p {
-  margin: 0;
-  color: #516074;
-  font-size: 13px;
-  line-height: 1.55;
+:deep([data-role='user'].demo-user-bubble-flash .tr-bubble__box) {
+  --tr-bubble-box-bg: #b9d7ff;
+  box-shadow:
+    0 0 0 1px rgba(55, 132, 255, 0.2),
+    0 12px 28px -18px rgba(55, 132, 255, 0.45),
+    var(--tr-bubble-box-shadow);
 }
 
 @media (max-width: 1000px) {

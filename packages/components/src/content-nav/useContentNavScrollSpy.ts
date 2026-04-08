@@ -48,6 +48,36 @@ export function useContentNavScrollSpy(options: ContentNavScrollSpyOptions) {
     })
   }
 
+  function findElementByDataAttribute(container: HTMLElement, id: string) {
+    return (
+      Array.from(container.querySelectorAll<HTMLElement>('[data-content-nav-id]')).find(
+        (entry) => entry.dataset.contentNavId === id,
+      ) ?? null
+    )
+  }
+
+  function findElementById(container: HTMLElement, id: string) {
+    if (typeof CSS !== 'undefined' && typeof CSS.escape === 'function') {
+      return container.querySelector<HTMLElement>(`#${CSS.escape(id)}`)
+    }
+
+    return Array.from(container.querySelectorAll<HTMLElement>('[id]')).find((entry) => entry.id === id) ?? null
+  }
+
+  function resolveAnchorTarget(id: string) {
+    const registeredTarget = options.registry.value.get(id)
+    if (registeredTarget) {
+      return registeredTarget
+    }
+
+    const container = options.container.value
+    if (!container) {
+      return null
+    }
+
+    return findElementByDataAttribute(container, id) ?? findElementById(container, id)
+  }
+
   function updateFloatingPosition() {
     const hostEl = options.host.value
     const container = options.container.value
@@ -89,7 +119,10 @@ export function useContentNavScrollSpy(options: ContentNavScrollSpyOptions) {
     }
 
     const anchors = sortAnchorsByDocumentOrder(
-      options.registry.value.getAll().filter((entry) => options.items.value.some((item) => item.id === entry.id)),
+      options.items.value.flatMap((item) => {
+        const target = resolveAnchorTarget(item.id)
+        return target ? [{ id: item.id, el: target }] : []
+      }),
     )
     const nextId = defaultContentNavActiveResolver({
       container,
@@ -109,7 +142,7 @@ export function useContentNavScrollSpy(options: ContentNavScrollSpyOptions) {
 
   function scrollTo(id: string) {
     const container = options.container.value
-    const target = options.registry.value.get(id)
+    const target = resolveAnchorTarget(id)
 
     if (!container || !target) {
       return
