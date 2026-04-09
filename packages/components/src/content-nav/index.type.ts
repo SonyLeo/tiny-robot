@@ -5,8 +5,6 @@ export interface ContentNavItem {
   label: string
   searchText?: string
   tooltipText?: string
-  level?: number
-  disabled?: boolean
   meta?: Record<string, unknown>
 }
 
@@ -47,7 +45,6 @@ export interface ContentNavProps {
   query?: string
   placement?: ContentNavPlacement
   search?: false | ContentNavSearchOptions
-  ariaLabel?: string
   emptyText?: string
 }
 

@@ -64,12 +64,12 @@
           :is="resolvedContentNav"
           data-testid="content-nav-root"
           :items="items"
+          :scroll-container="scrollContainerRef"
           :active-id="activeId"
           v-model:expanded="expanded"
           v-model:query="query"
           :placement="placement"
           :search="searchConfig"
-          aria-label="Conversation turns navigation"
           @update:active-id="handleActiveIdUpdate"
           @select="handleSelect"
           @activate="handleActivate"
@@ -85,7 +85,7 @@
           <template #after="{ messages: groupMessages }">
             <span
               v-if="groupMessages[0]?.role === 'user'"
-              v-content-nav-anchor="groupMessages[0]?.id"
+              v-content-nav-anchor="groupMessages[0]?.id || ''"
               class="turn-anchor"
               aria-hidden="true"
             />
@@ -98,7 +98,7 @@
 
 <script setup lang="ts">
 import { computed, defineComponent, nextTick, ref, watch, type Component } from 'vue'
-import { TrBubbleList, provideContentNavScrollContainer, vContentNavAnchor } from '@opentiny/tiny-robot'
+import { TrBubbleList, vContentNavAnchor } from '@opentiny/tiny-robot'
 import type { BubbleListProps } from '@opentiny/tiny-robot'
 import * as TinyRobot from '@opentiny/tiny-robot'
 
@@ -187,8 +187,6 @@ const roleConfigs = {
     placement: 'end',
   },
 } satisfies NonNullable<BubbleListProps['roleConfigs']>
-
-provideContentNavScrollContainer(scrollContainerRef)
 
 const turns = computed(() => (singleTurnMode.value ? allTurns.slice(0, 1) : allTurns))
 const messages = computed<BubbleListProps['messages']>(() =>

@@ -69,10 +69,8 @@ function clearTooltipState() {
     <button
       type="button"
       class="tr-content-nav__item"
-      :class="{ 'is-disabled': entry.item.disabled }"
       :data-item-id="entry.item.id"
       :aria-current="active ? 'location' : undefined"
-      :disabled="entry.item.disabled"
       :tabindex="highlighted ? 0 : -1"
       @mouseenter="
         (event) => {
@@ -202,11 +200,6 @@ function clearTooltipState() {
       background: var(--tr-content-nav-item-bg-hover);
       outline: 2px solid var(--tr-content-nav-focus-ring);
       outline-offset: 0;
-    }
-
-    &.is-disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
     }
   }
 

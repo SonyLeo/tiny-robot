@@ -68,7 +68,6 @@ export {
   type ContentNavAnchorOptions,
   type ContentNavAnchorValue,
 } from './content-nav/directives/vContentNavAnchor'
-export { provideContentNavScrollContainer, useContentNavScrollContainer } from './content-nav/useScrollContainerContext'
 export { useContentNavRegistry } from './content-nav/useContentNavRegistry'
 export { useTheme } from './theme-provider/useTheme'
 export { useSenderContext } from './sender'

@@ -12,8 +12,6 @@ outline: [1, 3]
 2. 在 `BubbleList` 的 `after` slot 里放一个声明式锚点
 3. 使用 `vContentNavAnchor` 绑定到真实 `Bubble`
 
-这样可以避免手写 `registry.register(...)`，同时保留完整的滚动定位和激活联动能力。
-
 ## 代码示例
 
 ### 受控搜索与展开态
@@ -23,7 +21,7 @@ outline: [1, 3]
 - `v-model:active-id` 同步当前激活项
 - `v-model:expanded` 控制展开态
 - `v-model:query` 控制搜索词
-- `provideContentNavScrollContainer` 注入滚动容器
+- `scrollContainer` 显式传入滚动容器
 - `vContentNavAnchor` 在 `BubbleList` 中声明式绑定锚点
 - `search` 按需启用内置搜索区
 - `select` 事件用于业务侧跳转反馈
@@ -40,13 +38,12 @@ outline: [1, 3]
 | --- | --- | --- | --- |
 | `items` | `ContentNavItem[]` | - | 目录项列表 |
 | `registry` | `ContentNavRegistry` | 内部 registry | 高级用法的锚点注册表，默认不需要手动传 |
-| `scrollContainer` | `HTMLElement \| null` | 注入值或 `null` | 滚动容器 |
+| `scrollContainer` | `HTMLElement \| null` | `null` | 滚动容器 |
 | `search` | `false \| ContentNavSearchOptions` | `false` | 搜索区配置 |
 | `activeId` | `string` | 非受控 | 当前项 |
 | `expanded` | `boolean` | 非受控 | 展开态 |
 | `query` | `string` | 非受控 | 搜索词 |
 | `placement` | `'left' \| 'right'` | `'right'` | 停靠位置 |
-| `ariaLabel` | `string` | `'Content navigation'` | 可访问名称 |
 | `emptyText` | `string` | `'No matching items'` | 搜索空结果文案 |
 
 ### ContentNavItem
@@ -57,8 +54,6 @@ outline: [1, 3]
 | `label` | `string` | 目录展示文本 |
 | `searchText` | `string` | 搜索时额外匹配的文本 |
 | `tooltipText` | `string` | 自定义 tooltip 文案 |
-| `level` | `number` | 预留层级字段 |
-| `disabled` | `boolean` | 是否禁用该项 |
 | `meta` | `Record<string, unknown>` | 自定义透传数据 |
 
 ### ContentNavSearchOptions
@@ -93,7 +88,7 @@ outline: [1, 3]
 ```vue
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { provideContentNavScrollContainer, vContentNavAnchor } from '@opentiny/tiny-robot'
+import { vContentNavAnchor } from '@opentiny/tiny-robot'
 
 const scrollContainerRef = ref<HTMLElement | null>(null)
 
@@ -105,7 +100,6 @@ const items = computed(() =>
   })),
 )
 
-provideContentNavScrollContainer(scrollContainerRef)
 </script>
 
 <template>
@@ -114,14 +108,14 @@ provideContentNavScrollContainer(scrollContainerRef)
       <template #after="{ messages: groupMessages }">
         <span
           v-if="groupMessages[0]?.role === 'user'"
-          v-content-nav-anchor="groupMessages[0]?.id"
+          v-content-nav-anchor="groupMessages[0]?.id || ''"
           aria-hidden="true"
         />
       </template>
     </tr-bubble-list>
   </div>
 
-  <tr-content-nav :items="items" />
+  <tr-content-nav :items="items" :scroll-container="scrollContainerRef" />
 </template>
 ```
 
@@ -143,14 +137,6 @@ import { vContentNavAnchor } from '@opentiny/tiny-robot'
 
 ```vue
 <span v-content-nav-anchor="{ id: 'section-1', closest: false }" />
-```
-
-### provideContentNavScrollContainer
-
-```ts
-import { provideContentNavScrollContainer } from '@opentiny/tiny-robot'
-
-provideContentNavScrollContainer(scrollContainerRef)
 ```
 
 ### useContentNavRegistry

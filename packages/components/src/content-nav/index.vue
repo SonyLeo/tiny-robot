@@ -6,7 +6,6 @@ import ContentNavSearch from './components/ContentNavSearch.vue'
 import { useContentNavRegistry } from './useContentNavRegistry'
 import { useContentNavScrollSpy } from './useContentNavScrollSpy'
 import { useContentNavState } from './useContentNavState'
-import { useContentNavScrollContainer } from './useScrollContainerContext'
 import type { ContentNavEmits, ContentNavProps, ContentNavSearchOptions, ContentNavSlots } from './index.type'
 
 defineOptions({
@@ -16,7 +15,6 @@ defineOptions({
 
 const props = withDefaults(defineProps<ContentNavProps>(), {
   placement: 'right',
-  ariaLabel: 'Content navigation',
   emptyText: 'No matching items',
 })
 
@@ -25,7 +23,6 @@ defineSlots<ContentNavSlots>()
 const attrs = useAttrs()
 
 const fallbackRegistry = useContentNavRegistry()
-const injectedScrollContainer = useContentNavScrollContainer()
 const overlayShellRef = ref<{
   hostEl: HTMLElement | null
   overlayEl: HTMLElement | null
@@ -37,7 +34,7 @@ const activeIdRef = computed(() => props.activeId)
 const expandedRef = computed(() => props.expanded)
 const queryRef = computed(() => props.query)
 const registry = computed(() => props.registry ?? fallbackRegistry)
-const scrollContainerRef = computed(() => props.scrollContainer ?? injectedScrollContainer.value ?? null)
+const scrollContainerRef = computed(() => props.scrollContainer ?? null)
 const hostRef = computed(() => overlayShellRef.value?.hostEl ?? null)
 const searchOptions = computed<ContentNavSearchOptions | false>(() => props.search ?? false)
 const resolvedSearchOptions = computed(() => (searchOptions.value ? searchOptions.value : undefined))
@@ -75,7 +72,7 @@ function setQuery(value: string) {
 
 function handleSelect(itemId: string) {
   const target = props.items.find((item) => item.id === itemId)
-  if (!target || target.disabled) {
+  if (!target) {
     return
   }
 
@@ -153,7 +150,6 @@ function handleFocusOut(event: FocusEvent) {
     v-bind="attrs"
     :expanded="state.expanded.value"
     :placement="props.placement"
-    :aria-label="props.ariaLabel"
     :floating-offset="scrollSpy.floatingOffset.value"
     @mouseenter="setExpanded(true)"
     @mouseleave="handleMouseLeave"

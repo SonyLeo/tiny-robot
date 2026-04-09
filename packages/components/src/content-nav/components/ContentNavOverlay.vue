@@ -8,11 +8,9 @@ const props = withDefaults(
   defineProps<{
     expanded: boolean
     placement: ContentNavPlacement
-    ariaLabel?: string
     floatingOffset?: number
   }>(),
   {
-    ariaLabel: 'Content navigation',
     floatingOffset: 0,
   },
 )
@@ -50,7 +48,7 @@ defineExpose({
       </div>
 
       <div class="tr-content-nav__surface">
-        <nav ref="navEl" class="tr-content-nav__panel" :aria-label="ariaLabel">
+        <nav ref="navEl" class="tr-content-nav__panel" aria-label="Content navigation">
           <slot />
         </nav>
       </div>

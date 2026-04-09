@@ -21,11 +21,11 @@
 
     <div class="stage">
       <div ref="scrollContainerRef" class="conversation">
-        <tr-bubble-list class="conversation-list" :messages="messages" :role-configs="roles">
+        <tr-bubble-list id="bubbleRef" class="conversation-list" :messages="messages" :role-configs="roles">
           <template #after="{ messages: groupMessages }">
             <span
               v-if="groupMessages[0]?.role === 'user'"
-              v-content-nav-anchor="groupMessages[0]?.id"
+              v-content-nav-anchor="groupMessages[0]?.id || ''"
               class="nav-anchor"
               aria-hidden="true"
             />
@@ -36,13 +36,13 @@
       <tr-content-nav
         :class="['nav', `is-${placement}`]"
         :items="items"
+        :scroll-container="scrollContainerRef"
         :placement="placement"
         :search="search"
         v-model:active-id="activeId"
         v-model:expanded="expanded"
         v-model:query="query"
         @select="handleSelect"
-        aria-label="用户提问目录导航"
       />
     </div>
   </section>
@@ -53,7 +53,6 @@ import { computed, h, onBeforeUnmount, ref, watch } from 'vue'
 import {
   TrBubbleList,
   TrContentNav,
-  provideContentNavScrollContainer,
   vContentNavAnchor,
   type BubbleListProps,
   type BubbleRoleConfig,
@@ -137,8 +136,6 @@ const expanded = ref(false)
 const query = ref('')
 const searchEnabled = ref(false)
 let jumpFeedbackTimer: ReturnType<typeof setTimeout> | null = null
-
-provideContentNavScrollContainer(scrollContainerRef)
 
 const search = computed(() => (searchEnabled.value ? { placeholder: '搜索用户问题或回复关键词' } : false))
 
