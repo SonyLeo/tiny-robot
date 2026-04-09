@@ -4,63 +4,61 @@ outline: [1, 3]
 
 # TrContentNav 内容导航组件
 
-`TrContentNav` 用于长内容区域的目录导航，适合和 `TrBubbleList`、`TrBubble` 或文章内容一起使用。
+`TrContentNav` 用于长内容区域或长对话场景的目录导航。
 
-对于 `BubbleList` 场景，当前推荐的最小接入方式是：
+它只消费一个 `source`，所以接入时只需要先准备好：
 
-1. 自己准备 `items`
-2. 在 `BubbleList` 的 `after` slot 里放一个声明式锚点
-3. 使用 `vContentNavAnchor` 绑定到真实 `Bubble`
+- 目录项列表
+- 每个目录项对应的目标节点
+
+推荐接入方式：
+
+- `TrBubbleList` 场景：优先使用 `contentNav + bubbleListRef.getContentNavSource()`
+- 普通滚动容器：使用 `useContentNavSource`
 
 ## 代码示例
 
-### 受控搜索与展开态
+### BubbleList
 
-示例演示了以下能力：
-
-- `v-model:active-id` 同步当前激活项
-- `v-model:expanded` 控制展开态
-- `v-model:query` 控制搜索词
-- `scrollContainer` 显式传入滚动容器
-- `vContentNavAnchor` 在 `BubbleList` 中声明式绑定锚点
-- `search` 按需启用内置搜索区
-- `select` 事件用于业务侧跳转反馈
-- `placement` 切换左侧或右侧停靠
+聊天场景推荐直接使用 `BubbleList` 内建的 `contentNav` 能力。你只需要决定哪些分组进入目录，以及目录显示什么文本。
 
 <demo
   vue="../../demos/content-nav/controlled-search.vue"
   :vueFiles="['../../demos/content-nav/controlled-search.vue']"
 />
 
+使用建议：
+
+- 参与导航的消息尽量提供稳定的 `id`
+- 通过 `contentNav.itemResolver` 定制 `label / searchText / tooltipText`
+- `bubbleListRef.getContentNavSource()` 可以直接提供给 `TrContentNav`
+
+### 通用内容
+
+普通内容区域推荐使用 `useContentNavSource`。它会同时返回：
+
+- `source`：传给 `TrContentNav`
+- `bindTarget(id)`：绑定到实际滚动目标
+
+<demo
+  vue="../../demos/content-nav/basic-source.vue"
+  :vueFiles="['../../demos/content-nav/basic-source.vue']"
+/>
+
+如果你想在 `BubbleList` 外部完全接管目录项和目标绑定，也可以使用同样的方式，在 slot 中通过 `bindTarget(id)` 绑定到自定义目标节点。
+
 ## Props
 
 | 属性 | 类型 | 默认值 | 说明 |
 | --- | --- | --- | --- |
-| `items` | `ContentNavItem[]` | - | 目录项列表 |
-| `registry` | `ContentNavRegistry` | 内部 registry | 高级用法的锚点注册表，默认不需要手动传 |
+| `source` | `ContentNavSource` | - | 目录数据源。通常由 `useContentNavSource` 或 `BubbleList.getContentNavSource()` 提供 |
 | `scrollContainer` | `HTMLElement \| null` | `null` | 滚动容器 |
-| `search` | `false \| ContentNavSearchOptions` | `false` | 搜索区配置 |
-| `activeId` | `string` | 非受控 | 当前项 |
-| `expanded` | `boolean` | 非受控 | 展开态 |
-| `query` | `string` | 非受控 | 搜索词 |
+| `search` | `false \| ContentNavSearchOptions` | `false` | 是否显示搜索区，以及搜索配置 |
+| `activeId` | `string` | 非受控 | 当前激活项。传入后进入受控模式 |
+| `expanded` | `boolean` | 非受控 | 展开状态。传入后进入受控模式 |
+| `query` | `string` | 非受控 | 搜索词。传入后进入受控模式 |
 | `placement` | `'left' \| 'right'` | `'right'` | 停靠位置 |
-| `emptyText` | `string` | `'No matching items'` | 搜索空结果文案 |
-
-### ContentNavItem
-
-| 字段 | 类型 | 说明 |
-| --- | --- | --- |
-| `id` | `string` | 唯一标识，同时用于匹配目标节点 |
-| `label` | `string` | 目录展示文本 |
-| `searchText` | `string` | 搜索时额外匹配的文本 |
-| `tooltipText` | `string` | 自定义 tooltip 文案 |
-| `meta` | `Record<string, unknown>` | 自定义透传数据 |
-
-### ContentNavSearchOptions
-
-- `placeholder`：搜索框占位文案
-- `matcher`：自定义匹配器
-- `clearOnCollapse`：收起时是否清空搜索词
+| `emptyText` | `string` | `'No matching items'` | 搜索无结果文案 |
 
 ## Slots
 
@@ -75,80 +73,41 @@ outline: [1, 3]
 
 | 事件 | 参数 | 说明 |
 | --- | --- | --- |
-| `update:activeId` | `value: string \| undefined` | 当前项变化 |
-| `update:expanded` | `value: boolean` | 展开态变化 |
+| `update:activeId` | `value: string \| undefined` | 当前激活项变化 |
+| `update:expanded` | `value: boolean` | 展开状态变化 |
 | `update:query` | `value: string` | 搜索词变化 |
 | `select` | `item: ContentNavItem` | 点击或确认选中目录项 |
 | `activate` | `item: ContentNavItem` | 目录项触发激活 |
 
-## 推荐接入
+## Types
 
-### BubbleList 最小接入
+### ContentNavItem
 
-```vue
-<script setup lang="ts">
-import { computed, ref } from 'vue'
-import { vContentNavAnchor } from '@opentiny/tiny-robot'
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `id` | `string` | 唯一标识，同时用于匹配目标节点 |
+| `label` | `string` | 目录显示文本 |
+| `searchText` | `string` | 搜索时额外匹配的文本 |
+| `tooltipText` | `string` | 自定义 tooltip 文案 |
+| `meta` | `Record<string, unknown>` | 自定义透传数据 |
 
-const scrollContainerRef = ref<HTMLElement | null>(null)
+### ContentNavSource
 
-const items = computed(() =>
-  turns.map((turn) => ({
-    id: turn.id,
-    label: turn.user,
-    searchText: `${turn.user} ${turn.assistant}`,
-  })),
-)
+通常不需要手写这个对象，优先通过 `useContentNavSource` 或 `BubbleList.getContentNavSource()` 获取。
 
-</script>
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `items` | `Readonly<Ref<ContentNavItem[]>>` | 目录项列表 |
+| `resolveTarget` | `(id: string) => HTMLElement \| null` | 根据 id 返回目标节点 |
+| `revision` | `Readonly<Ref<number>>` | 目标映射变更标记，通常由 helper 自动维护 |
 
-<template>
-  <div ref="scrollContainerRef">
-    <tr-bubble-list :messages="messages">
-      <template #after="{ messages: groupMessages }">
-        <span
-          v-if="groupMessages[0]?.role === 'user'"
-          v-content-nav-anchor="groupMessages[0]?.id || ''"
-          aria-hidden="true"
-        />
-      </template>
-    </tr-bubble-list>
-  </div>
+### ContentNavSearchOptions
 
-  <tr-content-nav :items="items" :scroll-container="scrollContainerRef" />
-</template>
-```
-
-`vContentNavAnchor` 默认会把 `data-content-nav-id` 绑定到最近的 `.tr-bubble`。因此用户只需要在 slot 里放一个很轻的锚点占位元素，不需要再自己管理 registry。
-
-### vContentNavAnchor
-
-```vue
-<script setup lang="ts">
-import { vContentNavAnchor } from '@opentiny/tiny-robot'
-</script>
-
-<template>
-  <span v-content-nav-anchor="'section-1'" />
-</template>
-```
-
-如果你想绑定到当前元素本身，而不是最近的 `.tr-bubble`，可以传对象：
-
-```vue
-<span v-content-nav-anchor="{ id: 'section-1', closest: false }" />
-```
-
-### useContentNavRegistry
-
-`useContentNavRegistry` 仍然可以用于更高级的自定义定位场景，但对 `BubbleList` 目录导航，通常更推荐上面的最小接入方式。
-
-```ts
-import { useContentNavRegistry } from '@opentiny/tiny-robot'
-
-const registry = useContentNavRegistry()
-registry.register('section-1', element)
-```
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `placeholder` | `string` | 搜索框占位文案 |
+| `matcher` | `ContentNavSearchMatcher` | 自定义搜索匹配逻辑 |
+| `clearOnCollapse` | `boolean` | 收起时是否清空搜索词 |
 
 ## CSS 变量
 

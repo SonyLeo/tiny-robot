@@ -63,7 +63,7 @@
         <component
           :is="resolvedContentNav"
           data-testid="content-nav-root"
-          :items="items"
+          :source="resolvedContentNavSource"
           :scroll-container="scrollContainerRef"
           :active-id="activeId"
           v-model:expanded="expanded"
@@ -77,18 +77,15 @@
       </div>
 
       <div class="bubble-scroll-container" data-testid="bubble-scroll-container" ref="scrollContainerRef">
-        <TrBubbleList class="conversation-list" :messages="messages" :role-configs="roleConfigs">
+        <TrBubbleList
+          ref="bubbleListRef"
+          class="conversation-list"
+          :messages="messages"
+          :role-configs="roleConfigs"
+          :content-nav="contentNavOptions"
+        >
           <template #content-footer>
             <p class="turn-filler">{{ fillerText }}</p>
-          </template>
-
-          <template #after="{ messages: groupMessages }">
-            <span
-              v-if="groupMessages[0]?.role === 'user'"
-              v-content-nav-anchor="groupMessages[0]?.id || ''"
-              class="turn-anchor"
-              aria-hidden="true"
-            />
           </template>
         </TrBubbleList>
       </div>
@@ -97,9 +94,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineComponent, nextTick, ref, watch, type Component } from 'vue'
-import { TrBubbleList, vContentNavAnchor } from '@opentiny/tiny-robot'
-import type { BubbleListProps } from '@opentiny/tiny-robot'
+import { computed, defineComponent, nextTick, ref, unref, watch, type Component } from 'vue'
+import { TrBubbleList } from '@opentiny/tiny-robot'
+import type {
+  BubbleListContentNavOptions,
+  BubbleListProps,
+  ContentNavItem,
+  ContentNavSource,
+} from '@opentiny/tiny-robot'
 import * as TinyRobot from '@opentiny/tiny-robot'
 
 type DemoTurn = {
@@ -170,6 +172,7 @@ const query = ref('')
 const placement = ref<'left' | 'right'>('right')
 const lastEvent = ref('none')
 const scrollContainerRef = ref<HTMLElement | null>(null)
+const bubbleListRef = ref<InstanceType<typeof TrBubbleList> | null>(null)
 const jumpFlashClassName = 'demo-user-bubble-flash'
 const jumpFeedbackDuration = 700
 let jumpFeedbackTimer: ReturnType<typeof setTimeout> | null = null
@@ -204,13 +207,38 @@ const messages = computed<BubbleListProps['messages']>(() =>
   ]),
 )
 
-const items = computed(() =>
-  turns.value.map((turn) => ({
-    id: turn.id,
-    label: turn.label,
-    searchText: `${turn.label} ${turn.user} ${turn.assistant}`,
-  })),
-)
+const emptyContentNavSource: ContentNavSource = {
+  items: computed(() => []),
+  resolveTarget: () => null,
+  revision: computed(() => 0),
+}
+
+const contentNavSource = computed(() => bubbleListRef.value?.getContentNavSource())
+const resolvedContentNavSource = computed(() => contentNavSource.value ?? emptyContentNavSource)
+const items = computed<ContentNavItem[]>(() => unref(resolvedContentNavSource.value.items))
+
+const turnById = new Map(allTurns.map((turn) => [turn.id, turn]))
+
+const contentNavOptions = {
+  itemResolver: ({ group }) => {
+    const firstMessage = group.messages[0]
+    if (firstMessage?.role !== 'user' || !firstMessage.id) {
+      return false
+    }
+
+    const turn = turnById.get(firstMessage.id)
+    if (!turn) {
+      return false
+    }
+
+    return {
+      id: turn.id,
+      label: turn.label,
+      searchText: `${turn.label} ${turn.user} ${turn.assistant}`,
+      tooltipText: turn.label,
+    }
+  },
+} satisfies BubbleListContentNavOptions
 
 const hasContentNav = computed(() => Boolean((TinyRobot as Record<string, unknown>).TrContentNav))
 const resolvedContentNav = computed<Component>(() => {
@@ -240,9 +268,7 @@ function findNavTarget(id: string) {
   }
 
   return (
-    Array.from(container.querySelectorAll<HTMLElement>('[data-content-nav-id]')).find(
-      (entry) => entry.dataset.contentNavId === id,
-    ) ??
+    container.querySelector<HTMLElement>(`.tr-bubble[data-content-nav-id="${id}"]`) ??
     (typeof CSS !== 'undefined' && typeof CSS.escape === 'function'
       ? container.querySelector<HTMLElement>(`#${CSS.escape(id)}`)
       : Array.from(container.querySelectorAll<HTMLElement>('[id]')).find((entry) => entry.id === id)) ??
@@ -425,13 +451,6 @@ watch(
   --tr-bubble-list-gap: 16px;
   --tr-bubble-list-padding: 18px 18px 28px;
   --tr-bubble-max-width: 560px;
-}
-
-.turn-anchor {
-  display: block;
-  width: 0;
-  height: 0;
-  overflow: hidden;
 }
 
 .turn-filler {

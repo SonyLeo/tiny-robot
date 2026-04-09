@@ -1,9 +1,5 @@
-import type {
-  ContentNavHighlightSegment,
-  ContentNavItem,
-  ContentNavRegistryEntry,
-  ContentNavSearchMatcher,
-} from './index.type'
+import type { ContentNavHighlightSegment, ContentNavItem, ContentNavSearchMatcher } from './index.type'
+import type { TargetRegistryEntry } from '../shared/composables'
 
 export const defaultContentNavSearchMatcher: ContentNavSearchMatcher = (item, rawQuery) => {
   const query = rawQuery.trim().toLowerCase()
@@ -33,7 +29,7 @@ export const defaultContentNavSearchMatcher: ContentNavSearchMatcher = (item, ra
 
 export function defaultContentNavActiveResolver(options: {
   container: HTMLElement
-  anchors: ContentNavRegistryEntry[]
+  anchors: TargetRegistryEntry[]
   items: ContentNavItem[]
 }) {
   const { container, anchors, items } = options

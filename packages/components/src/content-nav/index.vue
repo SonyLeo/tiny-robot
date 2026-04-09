@@ -3,7 +3,6 @@ import { computed, nextTick, ref, useAttrs } from 'vue'
 import ContentNavList from './components/ContentNavList.vue'
 import ContentNavOverlay from './components/ContentNavOverlay.vue'
 import ContentNavSearch from './components/ContentNavSearch.vue'
-import { useContentNavRegistry } from './useContentNavRegistry'
 import { useContentNavScrollSpy } from './useContentNavScrollSpy'
 import { useContentNavState } from './useContentNavState'
 import type { ContentNavEmits, ContentNavProps, ContentNavSearchOptions, ContentNavSlots } from './index.type'
@@ -22,27 +21,25 @@ const emit = defineEmits<ContentNavEmits>()
 defineSlots<ContentNavSlots>()
 const attrs = useAttrs()
 
-const fallbackRegistry = useContentNavRegistry()
 const overlayShellRef = ref<{
   hostEl: HTMLElement | null
   overlayEl: HTMLElement | null
   navEl: HTMLElement | null
 } | null>(null)
 
-const itemsRef = computed(() => props.items)
 const activeIdRef = computed(() => props.activeId)
 const expandedRef = computed(() => props.expanded)
 const queryRef = computed(() => props.query)
-const registry = computed(() => props.registry ?? fallbackRegistry)
 const scrollContainerRef = computed(() => props.scrollContainer ?? null)
 const hostRef = computed(() => overlayShellRef.value?.hostEl ?? null)
 const searchOptions = computed<ContentNavSearchOptions | false>(() => props.search ?? false)
 const resolvedSearchOptions = computed(() => (searchOptions.value ? searchOptions.value : undefined))
 const searchSlotOptions = computed<ContentNavSearchOptions>(() => resolvedSearchOptions.value ?? {})
+const sourceRef = computed(() => props.source)
+const itemsRef = computed(() => props.source.items.value)
 
 const scrollSpy = useContentNavScrollSpy({
-  items: itemsRef,
-  registry,
+  source: sourceRef,
   container: scrollContainerRef,
   host: hostRef,
   activeId: activeIdRef,
@@ -59,7 +56,7 @@ const state = useContentNavState({
   onUpdateQuery: (value) => emit('update:query', value),
 })
 
-const shouldRender = computed(() => props.items.length > 0)
+const shouldRender = computed(() => itemsRef.value.length > 0)
 const hasSearchSection = computed(() => Boolean(resolvedSearchOptions.value) && state.expanded.value)
 
 function setExpanded(value: boolean) {
@@ -71,7 +68,7 @@ function setQuery(value: string) {
 }
 
 function handleSelect(itemId: string) {
-  const target = props.items.find((item) => item.id === itemId)
+  const target = itemsRef.value.find((item) => item.id === itemId)
   if (!target) {
     return
   }

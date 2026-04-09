@@ -29,7 +29,7 @@ export function useContentNavScrollSpy(options: ContentNavScrollSpyOptions) {
     options.onUpdateActiveId?.(value)
   }
 
-  function sortAnchorsByDocumentOrder(anchors: ReturnType<ContentNavScrollSpyOptions['registry']['value']['getAll']>) {
+  function sortAnchorsByDocumentOrder(anchors: Array<{ id: string; el: HTMLElement }>) {
     return [...anchors].sort((left, right) => {
       if (left.el === right.el) {
         return 0
@@ -48,34 +48,8 @@ export function useContentNavScrollSpy(options: ContentNavScrollSpyOptions) {
     })
   }
 
-  function findElementByDataAttribute(container: HTMLElement, id: string) {
-    return (
-      Array.from(container.querySelectorAll<HTMLElement>('[data-content-nav-id]')).find(
-        (entry) => entry.dataset.contentNavId === id,
-      ) ?? null
-    )
-  }
-
-  function findElementById(container: HTMLElement, id: string) {
-    if (typeof CSS !== 'undefined' && typeof CSS.escape === 'function') {
-      return container.querySelector<HTMLElement>(`#${CSS.escape(id)}`)
-    }
-
-    return Array.from(container.querySelectorAll<HTMLElement>('[id]')).find((entry) => entry.id === id) ?? null
-  }
-
   function resolveAnchorTarget(id: string) {
-    const registeredTarget = options.registry.value.get(id)
-    if (registeredTarget) {
-      return registeredTarget
-    }
-
-    const container = options.container.value
-    if (!container) {
-      return null
-    }
-
-    return findElementByDataAttribute(container, id) ?? findElementById(container, id)
+    return options.source.value.resolveTarget(id)
   }
 
   function updateFloatingPosition() {
@@ -119,7 +93,7 @@ export function useContentNavScrollSpy(options: ContentNavScrollSpyOptions) {
     }
 
     const anchors = sortAnchorsByDocumentOrder(
-      options.items.value.flatMap((item) => {
+      options.source.value.items.value.flatMap((item) => {
         const target = resolveAnchorTarget(item.id)
         return target ? [{ id: item.id, el: target }] : []
       }),
@@ -127,7 +101,7 @@ export function useContentNavScrollSpy(options: ContentNavScrollSpyOptions) {
     const nextId = defaultContentNavActiveResolver({
       container,
       anchors,
-      items: options.items.value,
+      items: options.source.value.items.value,
     })
 
     if (nextId !== undefined) {
@@ -246,14 +220,21 @@ export function useContentNavScrollSpy(options: ContentNavScrollSpyOptions) {
   )
 
   watch(
-    () => options.registry.value.version.value,
+    () => options.source.value,
     () => {
       scheduleSync()
     },
   )
 
   watch(
-    () => options.items.value.map((item) => item.id).join(','),
+    () => options.source.value.revision.value,
+    () => {
+      scheduleSync()
+    },
+  )
+
+  watch(
+    () => options.source.value.items.value.map((item) => item.id).join(','),
     () => {
       scheduleSync()
     },

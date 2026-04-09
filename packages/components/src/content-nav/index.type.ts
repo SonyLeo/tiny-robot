@@ -1,29 +1,11 @@
-import type { Ref, VNode } from 'vue'
+import type { VNode } from 'vue'
+import type { ContentNavItem, ContentNavSource } from '../shared/content-nav.type'
 
-export interface ContentNavItem {
-  id: string
-  label: string
-  searchText?: string
-  tooltipText?: string
-  meta?: Record<string, unknown>
-}
+export type { ContentNavItem, ContentNavSource } from '../shared/content-nav.type'
 
 export interface ContentNavHighlightSegment {
   text: string
   highlighted: boolean
-}
-
-export interface ContentNavRegistryEntry {
-  id: string
-  el: HTMLElement
-}
-
-export interface ContentNavRegistry {
-  version: Readonly<Ref<number>>
-  register: (id: string, el: HTMLElement | null) => void
-  unregister: (id: string) => void
-  get: (id: string) => HTMLElement | null
-  getAll: () => ContentNavRegistryEntry[]
 }
 
 export type ContentNavSearchMatcher = (item: ContentNavItem, query: string) => false | ContentNavHighlightSegment[]
@@ -37,8 +19,7 @@ export interface ContentNavSearchOptions {
 }
 
 export interface ContentNavProps {
-  items: ContentNavItem[]
-  registry?: ContentNavRegistry
+  source: ContentNavSource
   scrollContainer?: HTMLElement | null
   activeId?: string
   expanded?: boolean

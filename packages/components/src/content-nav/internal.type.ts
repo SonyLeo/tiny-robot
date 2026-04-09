@@ -2,7 +2,7 @@ import type { Ref } from 'vue'
 import type {
   ContentNavHighlightSegment,
   ContentNavItem,
-  ContentNavRegistry,
+  ContentNavSource,
   ContentNavSearchOptions,
 } from './index.type'
 
@@ -12,8 +12,7 @@ export interface ContentNavFilteredItem {
 }
 
 export interface ContentNavScrollSpyOptions {
-  items: Ref<ContentNavItem[]>
-  registry: Ref<ContentNavRegistry>
+  source: Ref<ContentNavSource>
   container: Ref<HTMLElement | null | undefined>
   host: Ref<HTMLElement | null | undefined>
   activeId?: Ref<string | undefined>

@@ -236,7 +236,7 @@ export function createContentNavTestHelper(page: Page) {
   }
 
   function getAnchoredBubble(id: string) {
-    return page.locator(`[data-content-nav-id="${id}"]`)
+    return page.locator(`.tr-bubble[data-content-nav-id="${id}"][data-role="user"]`)
   }
 
   return {

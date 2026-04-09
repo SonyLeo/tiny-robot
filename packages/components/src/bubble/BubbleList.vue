@@ -3,6 +3,7 @@ import { computed, nextTick, provide, ref, watch } from 'vue'
 import { useAutoScroll } from '../shared/composables'
 import BubbleItem from './BubbleItem.vue'
 import { setupBubbleStore, useCopyCleanup } from './composables'
+import { useBubbleContentNav } from './composables/useBubbleContentNav'
 import { BUBBLE_LIST_CONTEXT_KEY } from './constants'
 import type { BubbleListProps, BubbleListSlots, BubbleMessage, BubbleMessageGroup } from './index.type'
 
@@ -169,8 +170,18 @@ const messageGroups = computed<BubbleMessageGroup[]>(() => {
   }
 })
 
+const { contentNavEntries, contentNavSource, bindGroupTarget } = useBubbleContentNav({
+  contentNav: computed(() => props.contentNav),
+  messageGroups,
+  dividerRole: computed(() => props.dividerRole),
+  fallbackRole: computed(() => props.fallbackRole),
+})
+
+const getContentNavSourceFn = () => contentNavSource.value
+
 defineExpose({
   scrollToBottom: scrollToBottomFn,
+  getContentNavSource: getContentNavSourceFn,
 })
 </script>
 
@@ -179,6 +190,8 @@ defineExpose({
     <BubbleItem
       v-for="(group, index) in messageGroups"
       :key="index"
+      :ref="bindGroupTarget(contentNavEntries[index]?.id)"
+      :data-content-nav-id="contentNavEntries[index]?.id || undefined"
       :role="group.role || props.fallbackRole"
       :role-config="props.roleConfigs?.[group.role || props.fallbackRole]"
       :message-group="group"
@@ -214,5 +227,9 @@ defineExpose({
   gap: var(--gap);
   overflow-y: auto;
   padding: var(--padding);
+}
+
+.tr-bubble-list :deep(.tr-bubble) {
+  min-width: 0;
 }
 </style>
