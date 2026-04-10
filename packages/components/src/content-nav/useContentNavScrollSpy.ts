@@ -1,25 +1,16 @@
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useEventListener, usePreferredReducedMotion, useResizeObserver } from '@vueuse/core'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { defaultContentNavActiveResolver } from './defaults'
 import type { ContentNavScrollSpyOptions } from './internal.type'
 
 export function useContentNavScrollSpy(options: ContentNavScrollSpyOptions) {
   const localActiveId = ref<string | undefined>(options.activeId?.value)
   const floatingOffset = ref(0)
-  let boundContainer: HTMLElement | null = null
   let scheduledFrame: number | null = null
-  let hostResizeObserver: ResizeObserver | null = null
-  let containerResizeObserver: ResizeObserver | null = null
   let suppressScrollSpyUntil = 0
 
   const activeId = computed(() => options.activeId?.value ?? localActiveId.value)
-
-  function prefersReducedMotion() {
-    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
-      return false
-    }
-
-    return window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  }
+  const preferredReducedMotion = usePreferredReducedMotion()
 
   function setActiveId(value: string | undefined) {
     if (options.activeId?.value === undefined) {
@@ -52,15 +43,53 @@ export function useContentNavScrollSpy(options: ContentNavScrollSpyOptions) {
     return options.source.value.resolveTarget(id)
   }
 
-  function updateFloatingPosition() {
+  function resolveFloatingElements() {
     const hostEl = options.host.value
+    const floatingEl = hostEl?.firstElementChild
+
+    if (!(floatingEl instanceof HTMLElement)) {
+      return {
+        hostEl: hostEl ?? null,
+        floatingEl: null,
+        measuredEl: null,
+      }
+    }
+
+    const measuredEl =
+      floatingEl.querySelector<HTMLElement>('.tr-content-nav__surface') ??
+      floatingEl.querySelector<HTMLElement>('.tr-content-nav__panel') ??
+      floatingEl
+
+    return {
+      hostEl: hostEl ?? null,
+      floatingEl,
+      measuredEl,
+    }
+  }
+
+  const floatingResizeTargets = computed(() => {
+    const { hostEl, floatingEl, measuredEl } = resolveFloatingElements()
+    const targets: HTMLElement[] = []
+
+    if (hostEl) {
+      targets.push(hostEl)
+    }
+
+    if (floatingEl) {
+      targets.push(floatingEl)
+    }
+
+    if (measuredEl && measuredEl !== floatingEl) {
+      targets.push(measuredEl)
+    }
+
+    return targets
+  })
+
+  function updateFloatingPosition() {
+    const { hostEl, floatingEl, measuredEl } = resolveFloatingElements()
     const container = options.container.value
     const frameEl = hostEl?.parentElement
-    const floatingEl = hostEl?.firstElementChild as HTMLElement | null
-    const measuredEl =
-      floatingEl?.querySelector<HTMLElement>('.tr-content-nav__surface') ??
-      floatingEl?.querySelector<HTMLElement>('.tr-content-nav__panel') ??
-      floatingEl
 
     if (!hostEl || !container || !frameEl || !floatingEl || !measuredEl) {
       floatingOffset.value = 0
@@ -131,7 +160,7 @@ export function useContentNavScrollSpy(options: ContentNavScrollSpyOptions) {
 
     container.scrollTo({
       top: Math.max(0, targetTop),
-      behavior: !prefersReducedMotion() ? 'smooth' : 'auto',
+      behavior: preferredReducedMotion.value === 'reduce' ? 'auto' : 'smooth',
     })
 
     scheduleSync()
@@ -149,63 +178,18 @@ export function useContentNavScrollSpy(options: ContentNavScrollSpyOptions) {
     })
   }
 
-  function bindContainer(container: HTMLElement | null | undefined) {
-    if (boundContainer === (container ?? null)) {
-      return
-    }
-
-    if (boundContainer) {
-      boundContainer.removeEventListener('scroll', scheduleSync)
-    }
-
-    boundContainer = container ?? null
-
-    if (boundContainer) {
-      boundContainer.addEventListener('scroll', scheduleSync, { passive: true })
-    }
-  }
-
-  function bindResizeObservers() {
-    hostResizeObserver?.disconnect()
-    containerResizeObserver?.disconnect()
-    hostResizeObserver = null
-    containerResizeObserver = null
-
-    if (typeof ResizeObserver === 'undefined') {
-      return
-    }
-
-    if (options.host.value) {
-      hostResizeObserver = new ResizeObserver(() => {
-        scheduleSync()
-      })
-      hostResizeObserver.observe(options.host.value)
-
-      const floatingEl = options.host.value.firstElementChild
-      if (floatingEl instanceof HTMLElement) {
-        hostResizeObserver.observe(floatingEl)
-        const surfaceEl =
-          floatingEl.querySelector<HTMLElement>('.tr-content-nav__surface') ??
-          floatingEl.querySelector<HTMLElement>('.tr-content-nav__panel')
-        if (surfaceEl instanceof HTMLElement) {
-          hostResizeObserver.observe(surfaceEl)
-        }
-      }
-    }
-
-    if (options.container.value) {
-      containerResizeObserver = new ResizeObserver(() => {
-        scheduleSync()
-      })
-      containerResizeObserver.observe(options.container.value)
-    }
-  }
+  useEventListener(options.container, 'scroll', scheduleSync, { passive: true })
+  useEventListener('resize', scheduleSync, { passive: true })
+  useResizeObserver(options.container, () => {
+    scheduleSync()
+  })
+  useResizeObserver(floatingResizeTargets, () => {
+    scheduleSync()
+  })
 
   watch(
     () => options.container.value,
-    (container) => {
-      bindContainer(container)
-      bindResizeObservers()
+    () => {
       scheduleSync()
     },
     { immediate: true },
@@ -214,7 +198,6 @@ export function useContentNavScrollSpy(options: ContentNavScrollSpyOptions) {
   watch(
     () => options.host.value,
     () => {
-      bindResizeObservers()
       scheduleSync()
     },
   )
@@ -250,27 +233,10 @@ export function useContentNavScrollSpy(options: ContentNavScrollSpyOptions) {
     },
   )
 
-  onMounted(() => {
-    if (typeof window !== 'undefined') {
-      window.addEventListener('resize', scheduleSync, { passive: true })
-    }
-  })
-
   onBeforeUnmount(() => {
-    if (boundContainer) {
-      boundContainer.removeEventListener('scroll', scheduleSync)
-    }
-
-    if (typeof window !== 'undefined') {
-      window.removeEventListener('resize', scheduleSync)
-    }
-
     if (scheduledFrame !== null) {
       cancelAnimationFrame(scheduledFrame)
     }
-
-    hostResizeObserver?.disconnect()
-    containerResizeObserver?.disconnect()
   })
 
   return {

@@ -11,7 +11,10 @@ export function useContentNavState(options: ContentNavStateOptions) {
     const value = options.search?.value
     return value || undefined
   })
-  const expanded = computed(() => options.expanded?.value ?? localExpanded.value)
+  const isManualExpandTrigger = computed(() => options.expandTrigger.value === 'manual')
+  const expanded = computed(() =>
+    isManualExpandTrigger.value ? (options.expanded.value ?? false) : localExpanded.value,
+  )
   const query = computed(() => options.query?.value ?? localQuery.value)
   const matcher = computed(() => search.value?.matcher ?? defaultContentNavSearchMatcher)
 
@@ -36,7 +39,7 @@ export function useContentNavState(options: ContentNavStateOptions) {
   const highlightedId = computed(() => filteredItems.value[highlightedIndex.value]?.item.id)
 
   function setExpanded(value: boolean) {
-    if (options.expanded?.value === undefined) {
+    if (!isManualExpandTrigger.value) {
       localExpanded.value = value
     }
 
@@ -116,6 +119,10 @@ export function useContentNavState(options: ContentNavStateOptions) {
     }
 
     if (event.key === 'Escape') {
+      if (isManualExpandTrigger.value) {
+        return false
+      }
+
       event.preventDefault()
       setExpanded(false)
       return true

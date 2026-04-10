@@ -1,37 +1,12 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import type { ContentNavItem, ContentNavPlacement } from '../index.type'
-import type { ContentNavFilteredItem } from '../internal.type'
+import type { ContentNavItemEmits, ContentNavItemProps, ContentNavItemSlots } from '../internal.type'
 
 defineOptions({ name: 'ContentNavItem' })
 
-const props = withDefaults(
-  defineProps<{
-    entry: ContentNavFilteredItem
-    activeId?: string
-    expanded: boolean
-    highlighted: boolean
-    placement: ContentNavPlacement
-  }>(),
-  {
-    activeId: undefined,
-  },
-)
-
-const emit = defineEmits<{
-  select: [item: ContentNavItem]
-}>()
-
-defineSlots<{
-  item?: (slotProps: {
-    item: ContentNavItem
-    segments: ContentNavFilteredItem['segments']
-    active: boolean
-    expanded: boolean
-    highlighted: boolean
-  }) => unknown
-  marker?: (slotProps: { item: ContentNavItem; active: boolean }) => unknown
-}>()
+const props = defineProps<ContentNavItemProps>()
+const emit = defineEmits<ContentNavItemEmits>()
+defineSlots<ContentNavItemSlots>()
 
 const isHovered = ref(false)
 const isFocused = ref(false)

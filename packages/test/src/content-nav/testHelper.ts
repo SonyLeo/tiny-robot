@@ -2,6 +2,7 @@ import { expect, type Page } from '@playwright/test'
 import { CONTENT_NAV_SELECTORS } from './selectors'
 
 type ContentNavPlacement = 'left' | 'right'
+type ContentNavExpandTrigger = 'hover' | 'manual'
 
 type HorizontalBounds = {
   left: number
@@ -49,6 +50,11 @@ export function createContentNavTestHelper(page: Page) {
     if (current !== enabled) {
       await checkbox.click()
     }
+  }
+
+  async function setExpandTrigger(trigger: ContentNavExpandTrigger) {
+    const selector = trigger === 'hover' ? selectors.expandTriggerHover : selectors.expandTriggerManual
+    await page.locator(selector).check()
   }
 
   async function setExternalQuery(keyword: string) {
@@ -207,6 +213,20 @@ export function createContentNavTestHelper(page: Page) {
     }
   }
 
+  async function moveMouseIntoExpandedPanel() {
+    const placement = await readPlacement()
+    const overlay = page.locator(selectors.contentNavOverlay)
+    const box = await getBoundingBoxOrThrow(
+      overlay,
+      'Expected content-nav overlay to be measurable, but no bounding box was returned.',
+    )
+
+    const x = placement === 'right' ? box.x + 12 : box.x + box.width - 12
+    const y = box.y + Math.min(box.height / 2, 48)
+
+    await page.mouse.move(x, y)
+  }
+
   async function getHostBounds(): Promise<VerticalBounds> {
     const host = page.locator(selectors.contentNavHost)
     const box = await getBoundingBoxOrThrow(
@@ -244,6 +264,7 @@ export function createContentNavTestHelper(page: Page) {
     gotoDemo,
     isContentNavReady,
     setSingleTurnMode,
+    setExpandTrigger,
     setPlacement,
     setExternalQuery,
     resetState,
@@ -266,6 +287,7 @@ export function createContentNavTestHelper(page: Page) {
     getFirstMarkerCenterX,
     getFirstMarkerCenterY,
     getOverlayBounds,
+    moveMouseIntoExpandedPanel,
     getHostBounds,
     getScrollContainerBounds,
     getAnchoredBubble,

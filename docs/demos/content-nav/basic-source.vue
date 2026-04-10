@@ -1,5 +1,38 @@
 <template>
   <section class="demo">
+    <div class="controls">
+      <span class="controls-title">展开模式</span>
+
+      <label>
+        <input v-model="expandTrigger" type="radio" value="hover" />
+        hover
+      </label>
+
+      <label>
+        <input v-model="expandTrigger" type="radio" value="manual" />
+        manual
+      </label>
+
+      <template v-if="isManualMode">
+        <span class="controls-divider" aria-hidden="true"></span>
+
+        <label>
+          <input v-model="expanded" type="checkbox" />
+          展开目录面板
+        </label>
+
+        <button type="button" @click="expanded = false">收起</button>
+        <button type="button" @click="expanded = true">展开</button>
+      </template>
+    </div>
+
+    <p class="tip">
+      <template v-if="isManualMode">
+        当前为 <code>manual</code> 模式，目录面板不再跟随 hover 自动展开，改由外部 <code>v-model:expanded</code> 控制。
+      </template>
+      <template v-else> 当前为 <code>hover</code> 模式，鼠标悬浮或聚焦到目录面板时会自动展开。 </template>
+    </p>
+
     <div class="stage">
       <div ref="scrollContainerRef" class="article">
         <section v-for="section in sections" :key="section.id" :ref="bindTarget(section.id)" class="article-section">
@@ -12,6 +45,8 @@
         class="nav"
         :source="source"
         :scroll-container="scrollContainerRef"
+        :expand-trigger="expandTrigger"
+        v-model:expanded="expanded"
         :search="{ placeholder: '搜索章节' }"
       />
     </div>
@@ -58,6 +93,9 @@ const sections: DemoSection[] = [
 ]
 
 const scrollContainerRef = ref<HTMLElement | null>(null)
+const expandTrigger = ref<'hover' | 'manual'>('hover')
+const expanded = ref(false)
+const isManualMode = computed(() => expandTrigger.value === 'manual')
 const items = computed(() =>
   sections.map((section) => ({
     id: section.id,
@@ -71,6 +109,45 @@ const { source, bindTarget } = useContentNavSource({ items })
 <style lang="less" scoped>
 .demo {
   display: grid;
+  gap: 14px;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 12px;
+}
+
+.controls-title {
+  color: #34495e;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.controls label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #4f647a;
+  font-size: 13px;
+}
+
+.controls-divider {
+  width: 1px;
+  height: 16px;
+  background: #d7e1ec;
+}
+
+.controls button {
+  padding: 4px 10px;
+}
+
+.tip {
+  margin: 0;
+  color: #4f647a;
+  font-size: 13px;
+  line-height: 1.6;
 }
 
 .stage {

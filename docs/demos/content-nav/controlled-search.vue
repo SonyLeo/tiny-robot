@@ -38,7 +38,6 @@
         :placement="placement"
         :search="search"
         v-model:active-id="activeId"
-        v-model:expanded="expanded"
         v-model:query="query"
         @select="handleSelect"
       />
@@ -125,7 +124,6 @@ const scrollContainerRef = ref<HTMLElement | null>(null)
 const bubbleListRef = ref<InstanceType<typeof TrBubbleList> | null>(null)
 const placement = ref<'left' | 'right'>('right')
 const activeId = ref(demoTurns[0].userId)
-const expanded = ref(false)
 const query = ref('')
 const searchEnabled = ref(false)
 let jumpFeedbackTimer: ReturnType<typeof setTimeout> | null = null

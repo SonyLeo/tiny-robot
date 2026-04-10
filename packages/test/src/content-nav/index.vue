@@ -13,6 +13,18 @@
       </label>
 
       <fieldset class="placement-switch">
+        <legend>Expand Trigger</legend>
+        <label class="control-item">
+          <input data-testid="expand-trigger-hover" type="radio" value="hover" v-model="expandTrigger" />
+          Hover
+        </label>
+        <label class="control-item">
+          <input data-testid="expand-trigger-manual" type="radio" value="manual" v-model="expandTrigger" />
+          Manual
+        </label>
+      </fieldset>
+
+      <fieldset class="placement-switch">
         <legend>Placement</legend>
         <label class="control-item">
           <input data-testid="placement-left" type="radio" value="left" v-model="placement" />
@@ -68,6 +80,7 @@
           :active-id="activeId"
           v-model:expanded="expanded"
           v-model:query="query"
+          :expand-trigger="expandTrigger"
           :placement="placement"
           :search="searchConfig"
           @update:active-id="handleActiveIdUpdate"
@@ -166,6 +179,7 @@ const fillerText =
   'This extra line keeps each turn tall enough for realistic scroll spy behavior and makes the BubbleList route closer to the real usage pattern.'
 
 const singleTurnMode = ref(false)
+const expandTrigger = ref<'hover' | 'manual'>('hover')
 const activeId = ref('')
 const expanded = ref(false)
 const query = ref('')
@@ -329,6 +343,7 @@ function resetState() {
   singleTurnMode.value = false
   query.value = ''
   expanded.value = false
+  expandTrigger.value = 'hover'
   placement.value = 'right'
   lastEvent.value = 'none'
   clearJumpFeedback()

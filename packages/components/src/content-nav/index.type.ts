@@ -11,6 +11,7 @@ export interface ContentNavHighlightSegment {
 export type ContentNavSearchMatcher = (item: ContentNavItem, query: string) => false | ContentNavHighlightSegment[]
 
 export type ContentNavPlacement = 'left' | 'right'
+export type ContentNavExpandTrigger = 'hover' | 'manual'
 
 export interface ContentNavSearchOptions {
   placeholder?: string
@@ -25,6 +26,7 @@ export interface ContentNavProps {
   expanded?: boolean
   query?: string
   placement?: ContentNavPlacement
+  expandTrigger?: ContentNavExpandTrigger
   search?: false | ContentNavSearchOptions
   emptyText?: string
 }

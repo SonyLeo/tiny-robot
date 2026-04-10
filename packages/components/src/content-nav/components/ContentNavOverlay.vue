@@ -1,19 +1,12 @@
 <script setup lang="ts">
 import { computed, ref, useSlots } from 'vue'
-import type { ContentNavPlacement } from '../index.type'
+import type { ContentNavOverlayProps } from '../internal.type'
 
 defineOptions({ name: 'ContentNavOverlay' })
 
-const props = withDefaults(
-  defineProps<{
-    expanded: boolean
-    placement: ContentNavPlacement
-    floatingOffset?: number
-  }>(),
-  {
-    floatingOffset: 0,
-  },
-)
+const props = withDefaults(defineProps<ContentNavOverlayProps>(), {
+  floatingOffset: 0,
+})
 
 const hostEl = ref<HTMLElement | null>(null)
 const overlayEl = ref<HTMLElement | null>(null)

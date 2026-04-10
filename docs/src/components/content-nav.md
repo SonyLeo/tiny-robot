@@ -6,6 +6,9 @@ outline: [1, 3]
 
 `TrContentNav` 用于长内容区域或长对话场景的目录导航。
 
+默认情况下，组件使用 `expandTrigger="hover"`，在鼠标悬浮或键盘聚焦时自动展开。
+如果你需要完全由外部控制展开状态，请切换到 `expandTrigger="manual"`，并配合 `v-model:expanded` 使用。
+
 它只消费一个 `source`，所以接入时只需要先准备好：
 
 - 目录项列表
@@ -32,6 +35,7 @@ outline: [1, 3]
 - 参与导航的消息尽量提供稳定的 `id`
 - 通过 `contentNav.itemResolver` 定制 `label / searchText / tooltipText`
 - `bubbleListRef.getContentNavSource()` 可以直接提供给 `TrContentNav`
+- 默认使用 `expandTrigger="hover"`，适合聊天侧边目录这类轻量导航体验
 
 ### 通用内容
 
@@ -47,6 +51,13 @@ outline: [1, 3]
 
 如果你想在 `BubbleList` 外部完全接管目录项和目标绑定，也可以使用同样的方式，在 slot 中通过 `bindTarget(id)` 绑定到自定义目标节点。
 
+## 展开模式
+
+- `hover`
+  默认模式。鼠标悬浮或焦点进入时自动展开，离开时自动收起。
+- `manual`
+  手动模式。组件不再自动展开或收起，由外部通过 `expanded` / `update:expanded` 控制。
+
 ## Props
 
 | 属性 | 类型 | 默认值 | 说明 |
@@ -55,9 +66,10 @@ outline: [1, 3]
 | `scrollContainer` | `HTMLElement \| null` | `null` | 滚动容器 |
 | `search` | `false \| ContentNavSearchOptions` | `false` | 是否显示搜索区，以及搜索配置 |
 | `activeId` | `string` | 非受控 | 当前激活项。传入后进入受控模式 |
-| `expanded` | `boolean` | 非受控 | 展开状态。传入后进入受控模式 |
+| `expanded` | `boolean` | - | 展开状态。在 `expandTrigger="manual"` 时作为外部控制值使用 |
 | `query` | `string` | 非受控 | 搜索词。传入后进入受控模式 |
 | `placement` | `'left' \| 'right'` | `'right'` | 停靠位置 |
+| `expandTrigger` | `'hover' \| 'manual'` | `'hover'` | 展开触发方式。`hover` 为自动展开，`manual` 为外部控制 |
 | `emptyText` | `string` | `'No matching items'` | 搜索无结果文案 |
 
 ## Slots
@@ -74,7 +86,7 @@ outline: [1, 3]
 | 事件 | 参数 | 说明 |
 | --- | --- | --- |
 | `update:activeId` | `value: string \| undefined` | 当前激活项变化 |
-| `update:expanded` | `value: boolean` | 展开状态变化 |
+| `update:expanded` | `value: boolean` | 展开状态变化。`manual` 模式下可用于 `v-model:expanded`，`hover` 模式下可用于监听自动展开状态 |
 | `update:query` | `value: string` | 搜索词变化 |
 | `select` | `item: ContentNavItem` | 点击或确认选中目录项 |
 | `activate` | `item: ContentNavItem` | 目录项触发激活 |

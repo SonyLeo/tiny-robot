@@ -38,6 +38,34 @@ test.describe('ContentNav component e2e', () => {
     await expect.poll(async () => page.locator(helper.selectors.expandedDisplay).textContent()).toBe('true')
   })
 
+  test('manual expand trigger does not auto-expand on hover', async ({ page }) => {
+    const helper = helperFactory(page)
+
+    await helper.resetState()
+    await helper.setExpandTrigger('manual')
+    const collapsed = await helper.getOverlayBounds()
+
+    await helper.hoverNav()
+
+    await expect.poll(async () => (await helper.getOverlayBounds()).width).toBeLessThanOrEqual(collapsed.width)
+    await helper.expectExpanded(false)
+  })
+
+  test('hovered rail stays expanded while the pointer moves into the expanded panel', async ({ page }) => {
+    const helper = helperFactory(page)
+
+    await helper.resetState()
+    await helper.expectExpanded(false)
+    await helper.hoverNav()
+    await helper.expectExpanded(true)
+    await expect.poll(async () => (await helper.getOverlayBounds()).width).toBeGreaterThan(200)
+
+    await helper.moveMouseIntoExpandedPanel()
+
+    await helper.expectExpanded(true)
+    await expect.poll(async () => (await helper.getOverlayBounds()).width).toBeGreaterThan(200)
+  })
+
   test('query model changes and list can be filtered by assistant reply text', async ({ page }) => {
     const helper = helperFactory(page)
 

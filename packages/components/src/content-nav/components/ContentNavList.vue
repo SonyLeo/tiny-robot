@@ -1,34 +1,12 @@
 <script setup lang="ts">
 import ContentNavItem from './ContentNavItem.vue'
-import type { ContentNavItem as ContentNavItemType, ContentNavPlacement } from '../index.type'
-import type { ContentNavFilteredItem } from '../internal.type'
+import type { ContentNavListEmits, ContentNavListProps, ContentNavListSlots } from '../internal.type'
 
 defineOptions({ name: 'ContentNavList' })
 
-defineProps<{
-  items: ContentNavFilteredItem[]
-  activeId?: string
-  expanded: boolean
-  highlightedIndex: number
-  placement: ContentNavPlacement
-  emptyText: string
-}>()
-
-const emit = defineEmits<{
-  select: [item: ContentNavItemType]
-}>()
-
-defineSlots<{
-  item?: (slotProps: {
-    item: ContentNavItemType
-    segments: ContentNavFilteredItem['segments']
-    active: boolean
-    expanded: boolean
-    highlighted: boolean
-  }) => unknown
-  marker?: (slotProps: { item: ContentNavItemType; active: boolean }) => unknown
-  empty?: () => unknown
-}>()
+defineProps<ContentNavListProps>()
+const emit = defineEmits<ContentNavListEmits>()
+defineSlots<ContentNavListSlots>()
 </script>
 
 <template>

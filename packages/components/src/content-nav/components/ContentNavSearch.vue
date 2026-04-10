@@ -1,21 +1,10 @@
 <script setup lang="ts">
-import type { ContentNavSearchOptions } from '../index.type'
+import type { ContentNavSearchEmits, ContentNavSearchProps } from '../internal.type'
 
 defineOptions({ name: 'ContentNavSearch' })
 
-const props = withDefaults(
-  defineProps<{
-    query: string
-    options?: ContentNavSearchOptions
-  }>(),
-  {
-    options: undefined,
-  },
-)
-
-const emit = defineEmits<{
-  'update:query': [value: string]
-}>()
+const props = defineProps<ContentNavSearchProps>()
+const emit = defineEmits<ContentNavSearchEmits>()
 </script>
 
 <template>

@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, useAttrs } from 'vue'
+import { computed, nextTick, ref, toRefs, useAttrs } from 'vue'
 import ContentNavList from './components/ContentNavList.vue'
 import ContentNavOverlay from './components/ContentNavOverlay.vue'
 import ContentNavSearch from './components/ContentNavSearch.vue'
+import type { ContentNavOverlayExpose } from './internal.type'
 import { useContentNavScrollSpy } from './useContentNavScrollSpy'
 import { useContentNavState } from './useContentNavState'
 import type { ContentNavEmits, ContentNavProps, ContentNavSearchOptions, ContentNavSlots } from './index.type'
@@ -14,50 +15,47 @@ defineOptions({
 
 const props = withDefaults(defineProps<ContentNavProps>(), {
   placement: 'right',
+  expandTrigger: 'hover',
+  search: false,
   emptyText: 'No matching items',
 })
 
 const emit = defineEmits<ContentNavEmits>()
 defineSlots<ContentNavSlots>()
 const attrs = useAttrs()
+const { activeId, emptyText, expandTrigger, expanded, placement, query, scrollContainer, search, source } =
+  toRefs(props)
 
-const overlayShellRef = ref<{
-  hostEl: HTMLElement | null
-  overlayEl: HTMLElement | null
-  navEl: HTMLElement | null
-} | null>(null)
+const overlayShellRef = ref<ContentNavOverlayExpose | null>(null)
 
-const activeIdRef = computed(() => props.activeId)
-const expandedRef = computed(() => props.expanded)
-const queryRef = computed(() => props.query)
-const scrollContainerRef = computed(() => props.scrollContainer ?? null)
+const emptySearchOptions: ContentNavSearchOptions = {}
 const hostRef = computed(() => overlayShellRef.value?.hostEl ?? null)
-const searchOptions = computed<ContentNavSearchOptions | false>(() => props.search ?? false)
-const resolvedSearchOptions = computed(() => (searchOptions.value ? searchOptions.value : undefined))
-const searchSlotOptions = computed<ContentNavSearchOptions>(() => resolvedSearchOptions.value ?? {})
-const sourceRef = computed(() => props.source)
-const itemsRef = computed(() => props.source.items.value)
+const resolvedSearchOptions = computed(() => (search.value ? search.value : undefined))
+const searchSlotOptions = computed<ContentNavSearchOptions>(() => resolvedSearchOptions.value ?? emptySearchOptions)
+const itemsRef = computed(() => source.value.items.value)
 
 const scrollSpy = useContentNavScrollSpy({
-  source: sourceRef,
-  container: scrollContainerRef,
+  source,
+  container: scrollContainer,
   host: hostRef,
-  activeId: activeIdRef,
+  activeId,
   onUpdateActiveId: (value) => emit('update:activeId', value),
 })
 
 const state = useContentNavState({
   items: itemsRef,
   activeId: scrollSpy.activeId,
-  expanded: expandedRef,
-  query: queryRef,
-  search: computed(() => searchOptions.value),
+  expanded,
+  expandTrigger,
+  query,
+  search,
   onUpdateExpanded: (value) => emit('update:expanded', value),
   onUpdateQuery: (value) => emit('update:query', value),
 })
 
 const shouldRender = computed(() => itemsRef.value.length > 0)
 const hasSearchSection = computed(() => Boolean(resolvedSearchOptions.value) && state.expanded.value)
+const shouldAutoToggleExpanded = computed(() => expandTrigger.value === 'hover')
 
 function setExpanded(value: boolean) {
   state.setExpanded(value)
@@ -121,6 +119,10 @@ function handleKeydown(event: KeyboardEvent) {
 }
 
 function handleMouseLeave() {
+  if (!shouldAutoToggleExpanded.value) {
+    return
+  }
+
   const overlayEl = overlayShellRef.value?.overlayEl ?? null
   const activeElement = document.activeElement
 
@@ -132,6 +134,10 @@ function handleMouseLeave() {
 }
 
 function handleFocusOut(event: FocusEvent) {
+  if (!shouldAutoToggleExpanded.value) {
+    return
+  }
+
   const next = event.relatedTarget as Node | null
   const overlayEl = overlayShellRef.value?.overlayEl ?? null
   if (!next || !overlayEl?.contains(next)) {
@@ -146,11 +152,11 @@ function handleFocusOut(event: FocusEvent) {
     ref="overlayShellRef"
     v-bind="attrs"
     :expanded="state.expanded.value"
-    :placement="props.placement"
+    :placement="placement"
     :floating-offset="scrollSpy.floatingOffset.value"
-    @mouseenter="setExpanded(true)"
+    @mouseenter="shouldAutoToggleExpanded && setExpanded(true)"
     @mouseleave="handleMouseLeave"
-    @focusin="setExpanded(true)"
+    @focusin="shouldAutoToggleExpanded && setExpanded(true)"
     @focusout="handleFocusOut"
     @keydown="handleKeydown"
   >
@@ -165,8 +171,8 @@ function handleFocusOut(event: FocusEvent) {
       :active-id="scrollSpy.activeId.value"
       :expanded="state.expanded.value"
       :highlighted-index="state.highlightedIndex.value"
-      :placement="props.placement"
-      :empty-text="props.emptyText"
+      :placement="placement"
+      :empty-text="emptyText"
       @select="handleSelect($event.id)"
     >
       <template v-if="$slots.marker" #marker="slotProps">
