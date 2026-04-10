@@ -75,6 +75,22 @@ test.describe('ContentNav component e2e', () => {
     await expect(page.locator(helper.selectors.contentNavRoot)).not.toContainText('Project kickoff summary')
   })
 
+  test('default bubble content-nav items follow BubbleList contentResolver output', async ({ page }) => {
+    const helper = helperFactory(page)
+
+    await helper.resetState()
+    await helper.setDefaultBubbleNavItems(true)
+    await helper.hoverNav()
+
+    await helper.expectItemCount(12)
+    await expect(page.locator(helper.selectors.contentNavRoot)).toContainText(
+      'Resolved prompt: Give me a short summary of the project kickoff decisions from this week.',
+    )
+    await expect(page.locator(helper.selectors.contentNavRoot)).toContainText(
+      'Resolved reply: The kickoff summary includes milestones, owner mapping, release constraints, and the first cross-team dependency review.',
+    )
+  })
+
   test('clicking item scrolls to target content', async ({ page }) => {
     const helper = helperFactory(page)
 

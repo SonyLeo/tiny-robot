@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, provide, ref, watch } from 'vue'
+import { computed, nextTick, provide, ref, toRefs, watch } from 'vue'
 import { useAutoScroll } from '../shared/composables'
 import BubbleItem from './BubbleItem.vue'
 import { setupBubbleStore, useCopyCleanup } from './composables'
@@ -170,11 +170,14 @@ const messageGroups = computed<BubbleMessageGroup[]>(() => {
   }
 })
 
+const { contentNav, contentResolver, dividerRole, fallbackRole } = toRefs(props)
+
 const { contentNavEntries, contentNavSource, bindGroupTarget } = useBubbleContentNav({
-  contentNav: computed(() => props.contentNav),
+  contentNav,
   messageGroups,
-  dividerRole: computed(() => props.dividerRole),
-  fallbackRole: computed(() => props.fallbackRole),
+  dividerRole,
+  fallbackRole,
+  contentResolver,
 })
 
 const getContentNavSourceFn = () => contentNavSource.value
@@ -227,9 +230,5 @@ defineExpose({
   gap: var(--gap);
   overflow-y: auto;
   padding: var(--padding);
-}
-
-.tr-bubble-list :deep(.tr-bubble) {
-  min-width: 0;
 }
 </style>

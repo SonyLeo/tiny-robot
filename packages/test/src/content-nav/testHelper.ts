@@ -52,6 +52,14 @@ export function createContentNavTestHelper(page: Page) {
     }
   }
 
+  async function setDefaultBubbleNavItems(enabled: boolean) {
+    const checkbox = page.locator(selectors.toggleDefaultBubbleNavItems)
+    const current = await checkbox.isChecked()
+    if (current !== enabled) {
+      await checkbox.click()
+    }
+  }
+
   async function setExpandTrigger(trigger: ContentNavExpandTrigger) {
     const selector = trigger === 'hover' ? selectors.expandTriggerHover : selectors.expandTriggerManual
     await page.locator(selector).check()
@@ -264,6 +272,7 @@ export function createContentNavTestHelper(page: Page) {
     gotoDemo,
     isContentNavReady,
     setSingleTurnMode,
+    setDefaultBubbleNavItems,
     setExpandTrigger,
     setPlacement,
     setExternalQuery,

@@ -12,6 +12,11 @@
         Use single turn
       </label>
 
+      <label class="control-item">
+        <input data-testid="toggle-default-bubble-nav-items" type="checkbox" v-model="useDefaultBubbleNavItems" />
+        Use default bubble nav items
+      </label>
+
       <fieldset class="placement-switch">
         <legend>Expand Trigger</legend>
         <label class="control-item">
@@ -95,6 +100,7 @@
           class="conversation-list"
           :messages="messages"
           :role-configs="roleConfigs"
+          :content-resolver="bubbleContentResolver"
           :content-nav="contentNavOptions"
         >
           <template #content-footer>
@@ -112,6 +118,7 @@ import { TrBubbleList } from '@opentiny/tiny-robot'
 import type {
   BubbleListContentNavOptions,
   BubbleListProps,
+  BubbleMessage,
   ContentNavItem,
   ContentNavSource,
 } from '@opentiny/tiny-robot'
@@ -179,6 +186,7 @@ const fillerText =
   'This extra line keeps each turn tall enough for realistic scroll spy behavior and makes the BubbleList route closer to the real usage pattern.'
 
 const singleTurnMode = ref(false)
+const useDefaultBubbleNavItems = ref(false)
 const expandTrigger = ref<'hover' | 'manual'>('hover')
 const activeId = ref('')
 const expanded = ref(false)
@@ -233,7 +241,23 @@ const items = computed<ContentNavItem[]>(() => unref(resolvedContentNavSource.va
 
 const turnById = new Map(allTurns.map((turn) => [turn.id, turn]))
 
-const contentNavOptions = {
+const bubbleContentResolver = (message: BubbleMessage) => {
+  if (typeof message.content !== 'string') {
+    return message.content
+  }
+
+  if (message.role === 'user') {
+    return `Resolved prompt: ${message.content}`
+  }
+
+  if (message.role === 'assistant') {
+    return `Resolved reply: ${message.content}`
+  }
+
+  return message.content
+}
+
+const customContentNavOptions = {
   itemResolver: ({ group }) => {
     const firstMessage = group.messages[0]
     if (firstMessage?.role !== 'user' || !firstMessage.id) {
@@ -253,6 +277,8 @@ const contentNavOptions = {
     }
   },
 } satisfies BubbleListContentNavOptions
+
+const contentNavOptions = computed(() => (useDefaultBubbleNavItems.value ? true : customContentNavOptions))
 
 const hasContentNav = computed(() => Boolean((TinyRobot as Record<string, unknown>).TrContentNav))
 const resolvedContentNav = computed<Component>(() => {
@@ -341,6 +367,7 @@ function handleActivate(payload: unknown) {
 
 function resetState() {
   singleTurnMode.value = false
+  useDefaultBubbleNavItems.value = false
   query.value = ''
   expanded.value = false
   expandTrigger.value = 'hover'

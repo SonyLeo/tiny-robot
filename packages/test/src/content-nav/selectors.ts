@@ -3,6 +3,7 @@ export const CONTENT_NAV_SELECTORS = {
   pageTitle: '[data-testid="content-nav-page-title"]',
   availability: '[data-testid="content-nav-availability"]',
   toggleSingleTurnMode: '[data-testid="toggle-single-turn-mode"]',
+  toggleDefaultBubbleNavItems: '[data-testid="toggle-default-bubble-nav-items"]',
   expandTriggerHover: '[data-testid="expand-trigger-hover"]',
   expandTriggerManual: '[data-testid="expand-trigger-manual"]',
   placementLeft: '[data-testid="placement-left"]',

@@ -1,3 +1,4 @@
+import { type MaybeElement, unrefElement } from '@vueuse/core'
 import { ref, type ComponentPublicInstance, type Ref } from 'vue'
 
 export interface TargetRegistryEntry {
@@ -15,18 +16,6 @@ export interface TargetRegistry {
   getAll: () => TargetRegistryEntry[]
   bindTarget: (id: string) => TargetBinder
   prune: (activeIds: Iterable<string>) => void
-}
-
-function resolveHTMLElement(target: Element | ComponentPublicInstance | null): HTMLElement | null {
-  if (target instanceof HTMLElement) {
-    return target
-  }
-
-  if (target && '$el' in target && target.$el instanceof HTMLElement) {
-    return target.$el
-  }
-
-  return null
 }
 
 export function useTargetRegistry(): TargetRegistry {
@@ -83,8 +72,8 @@ export function useTargetRegistry(): TargetRegistry {
     }
 
     const binder: TargetBinder = (target) => {
-      const el = resolveHTMLElement(target)
-      if (!el) {
+      const el = unrefElement(target as MaybeElement)
+      if (!(el instanceof HTMLElement)) {
         unregister(id)
         return
       }

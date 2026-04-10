@@ -1,7 +1,8 @@
 import { computed, toValue, watch, type MaybeRefOrGetter } from 'vue'
 import { useTargetRegistry, type TargetBinder } from '../../shared/composables'
 import type { ContentNavItem, ContentNavSource } from '../../shared/content-nav.type'
-import type { BubbleListContentNavOptions, BubbleMessage, BubbleMessageGroup } from '../index.type'
+import { createContentResolver } from './useContentResolver'
+import type { BubbleListContentNavOptions, BubbleMessage, BubbleMessageGroup, BubbleProps } from '../index.type'
 
 type BubbleContentNavEntry = {
   id: string
@@ -12,13 +13,14 @@ function normalizeText(value: string) {
   return value.replace(/\s+/g, ' ').trim()
 }
 
-function extractMessageText(message: BubbleMessage) {
+function extractResolvedContentText(message: BubbleMessage, resolveContent: ReturnType<typeof createContentResolver>) {
   const parts: string[] = []
+  const content = resolveContent(message)
 
-  if (typeof message.content === 'string') {
-    parts.push(message.content)
-  } else if (Array.isArray(message.content)) {
-    message.content.forEach((item) => {
+  if (typeof content === 'string') {
+    parts.push(content)
+  } else if (Array.isArray(content)) {
+    content.forEach((item) => {
       if (typeof item?.text === 'string') {
         parts.push(item.text)
       } else if (typeof item?.title === 'string') {
@@ -27,6 +29,17 @@ function extractMessageText(message: BubbleMessage) {
         parts.push(item.alt)
       }
     })
+  }
+
+  return normalizeText(parts.join(' '))
+}
+
+function extractMessageText(message: BubbleMessage, resolveContent: ReturnType<typeof createContentResolver>) {
+  const parts: string[] = []
+  const resolvedContentText = extractResolvedContentText(message, resolveContent)
+
+  if (resolvedContentText) {
+    parts.push(resolvedContentText)
   }
 
   if (typeof message.reasoning_content === 'string') {
@@ -44,12 +57,12 @@ function extractMessageText(message: BubbleMessage) {
   return normalizeText(parts.join(' '))
 }
 
-function resolveGroupTexts(group: BubbleMessageGroup) {
+function resolveGroupTexts(group: BubbleMessageGroup, resolveContent: ReturnType<typeof createContentResolver>) {
   const messageTexts: string[] = []
   let firstMessageText = ''
 
   group.messages.forEach((message) => {
-    const text = extractMessageText(message)
+    const text = extractMessageText(message, resolveContent)
     if (!text) {
       return
     }
@@ -71,9 +84,10 @@ function resolveDefaultContentNavItem(
   group: BubbleMessageGroup,
   groupIndex: number,
   fallbackRole: string,
+  resolveContent: ReturnType<typeof createContentResolver>,
 ): ContentNavItem {
   const groupRole = group.role || fallbackRole
-  const { firstMessageText, groupMessagesText } = resolveGroupTexts(group)
+  const { firstMessageText, groupMessagesText } = resolveGroupTexts(group, resolveContent)
   const label = firstMessageText || groupMessagesText || `${groupRole} ${groupIndex + 1}`
   const id = group.messages.find((message) => message.id)?.id || `bubble-group-${group.startIndex}`
 
@@ -96,6 +110,7 @@ export function useBubbleContentNav(options: {
   messageGroups: MaybeRefOrGetter<BubbleMessageGroup[]>
   dividerRole: MaybeRefOrGetter<string>
   fallbackRole: MaybeRefOrGetter<string>
+  contentResolver?: MaybeRefOrGetter<BubbleProps['contentResolver'] | undefined>
 }) {
   const resolvedContentNavOptions = computed<BubbleListContentNavOptions | undefined>(() => {
     const contentNav = toValue(options.contentNav)
@@ -107,6 +122,7 @@ export function useBubbleContentNav(options: {
   })
 
   const isContentNavEnabled = computed(() => Boolean(resolvedContentNavOptions.value))
+  const resolveContent = createContentResolver(options.contentResolver)
   const registry = useTargetRegistry()
   const noopGroupTargetBinder: TargetBinder = () => {}
 
@@ -126,7 +142,7 @@ export function useBubbleContentNav(options: {
           group,
           groupIndex,
           dividerRole,
-        }) ?? resolveDefaultContentNavItem(group, groupIndex, fallbackRole)
+        }) ?? resolveDefaultContentNavItem(group, groupIndex, fallbackRole, resolveContent)
 
       if (!resolvedItem || !resolvedItem.id) {
         return undefined
