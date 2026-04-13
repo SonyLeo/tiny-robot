@@ -52,8 +52,8 @@ export function createContentNavTestHelper(page: Page) {
     }
   }
 
-  async function setDefaultBubbleNavItems(enabled: boolean) {
-    const checkbox = page.locator(selectors.toggleDefaultBubbleNavItems)
+  async function setBubbleMode(enabled: boolean) {
+    const checkbox = page.locator(selectors.toggleBubbleMode)
     const current = await checkbox.isChecked()
     if (current !== enabled) {
       await checkbox.click()
@@ -263,16 +263,12 @@ export function createContentNavTestHelper(page: Page) {
     }
   }
 
-  function getAnchoredBubble(id: string) {
-    return page.locator(`.tr-bubble[data-content-nav-id="${id}"][data-role="user"]`)
-  }
-
   return {
     selectors,
     gotoDemo,
     isContentNavReady,
+    setBubbleMode,
     setSingleTurnMode,
-    setDefaultBubbleNavItems,
     setExpandTrigger,
     setPlacement,
     setExternalQuery,
@@ -299,6 +295,5 @@ export function createContentNavTestHelper(page: Page) {
     moveMouseIntoExpandedPanel,
     getHostBounds,
     getScrollContainerBounds,
-    getAnchoredBubble,
   }
 }

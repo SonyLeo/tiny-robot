@@ -4,7 +4,6 @@ import type {
   ContentNavHighlightSegment,
   ContentNavItem,
   ContentNavPlacement,
-  ContentNavSource,
   ContentNavSearchOptions,
 } from './index.type'
 
@@ -84,7 +83,8 @@ export interface ContentNavItemSlots {
 }
 
 export interface ContentNavScrollSpyOptions {
-  source: Ref<ContentNavSource>
+  items: Ref<ContentNavItem[]>
+  resolveTarget: (id: string) => HTMLElement | null
   container: Ref<HTMLElement | null | undefined>
   host: Ref<HTMLElement | null | undefined>
   activeId?: Ref<string | undefined>

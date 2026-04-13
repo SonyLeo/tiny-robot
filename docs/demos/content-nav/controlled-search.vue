@@ -21,19 +21,14 @@
 
     <div class="stage">
       <div ref="scrollContainerRef" class="conversation">
-        <tr-bubble-list
-          ref="bubbleListRef"
-          class="conversation-list"
-          :messages="messages"
-          :role-configs="roles"
-          :content-nav="contentNavOptions"
-        />
+        <tr-bubble-provider :box-renderer-matches="boxRendererMatches">
+          <tr-bubble-list class="conversation-list" :messages="messages" :role-configs="roles" />
+        </tr-bubble-provider>
       </div>
 
       <tr-content-nav
-        v-if="contentNavSource"
         :class="['nav', `is-${placement}`]"
-        :source="contentNavSource"
+        :items="contentNavItems"
         :scroll-container="scrollContainerRef"
         :placement="placement"
         :search="search"
@@ -49,8 +44,10 @@
 import { computed, h, onBeforeUnmount, ref } from 'vue'
 import {
   TrBubbleList,
+  TrBubbleProvider,
   TrContentNav,
-  type BubbleListContentNavOptions,
+  BubbleRenderers,
+  type BubbleBoxRendererMatch,
   type BubbleMessage,
   type BubbleRoleConfig,
 } from '@opentiny/tiny-robot'
@@ -116,12 +113,11 @@ const messages = demoTurns.flatMap((turn) => [
   },
 ]) satisfies BubbleMessage[]
 
-const jumpFlashClassName = 'demo-user-bubble-flash'
+const jumpFlashClassName = 'demo-user-box-flash'
 const jumpTransitionDuration = '220ms'
 const jumpFeedbackDuration = 520
 
 const scrollContainerRef = ref<HTMLElement | null>(null)
-const bubbleListRef = ref<InstanceType<typeof TrBubbleList> | null>(null)
 const placement = ref<'left' | 'right'>('right')
 const activeId = ref(demoTurns[0].userId)
 const query = ref('')
@@ -129,36 +125,54 @@ const searchEnabled = ref(false)
 let jumpFeedbackTimer: ReturnType<typeof setTimeout> | null = null
 
 const search = computed(() => (searchEnabled.value ? { placeholder: '搜索用户问题或回复关键词' } : false))
-const contentNavSource = computed(() => bubbleListRef.value?.getContentNavSource())
-const demoTurnById = new Map(demoTurns.map((turn) => [turn.userId, turn]))
-const contentNavOptions = {
-  itemResolver: ({ group }) => {
-    const firstMessage = group.messages[0]
-    if (firstMessage?.role !== 'user' || !firstMessage.id) {
-      return false
-    }
+const contentNavItems = computed(() =>
+  demoTurns.map((turn) => ({
+    id: turn.userId,
+    label: turn.user,
+    searchText: `${turn.user} ${turn.assistant}`,
+    tooltipText: turn.user,
+  })),
+)
 
-    const turn = demoTurnById.get(firstMessage.id)
-    if (!turn) {
-      return false
-    }
+const boxRendererMatches = [
+  {
+    find: (messages) => messages[0]?.role === 'user',
+    renderer: BubbleRenderers.Box,
+    priority: 999,
+    attributes: (messages, _content, contentIndex) => {
+      if (contentIndex !== undefined && contentIndex > 0) {
+        return undefined
+      }
 
-    return {
-      id: turn.userId,
-      label: turn.user,
-      searchText: `${turn.user} ${turn.assistant}`,
-      tooltipText: turn.user,
-    }
+      const firstMessage = messages[0]
+      if (!firstMessage?.id) {
+        return undefined
+      }
+
+      return {
+        'data-content-nav-id': firstMessage.id,
+      }
+    },
   },
-} satisfies BubbleListContentNavOptions
+] satisfies BubbleBoxRendererMatch[]
 
-function findBubbleTarget(id: string) {
+function queryTargetById(root: ParentNode, id: string) {
+  if (typeof CSS !== 'undefined' && typeof CSS.escape === 'function') {
+    return root.querySelector<HTMLElement>(`[data-content-nav-id="${CSS.escape(id)}"]`)
+  }
+
+  return Array.from(root.querySelectorAll<HTMLElement>('[data-content-nav-id]')).find(
+    (entry) => entry.dataset.contentNavId === id,
+  )
+}
+
+function findBubbleBoxTarget(id: string) {
   const container = scrollContainerRef.value
   if (!container) {
     return null
   }
 
-  return container.querySelector<HTMLElement>(`.tr-bubble[data-content-nav-id="${id}"]`) ?? null
+  return queryTargetById(container, id)
 }
 
 function clearJumpFeedback() {
@@ -169,7 +183,7 @@ function clearJumpFeedback() {
 }
 
 function applyJumpFeedback(id: string) {
-  const target = findBubbleTarget(id)
+  const target = findBubbleBoxTarget(id)
 
   if (!target) {
     return
@@ -248,18 +262,15 @@ onBeforeUnmount(() => {
   }
 }
 
-:deep([data-role='user']) {
+:deep(.tr-bubble__box[data-role='user']) {
   --tr-bubble-box-bg: var(--tr-color-primary-light);
   scroll-margin-top: 20px;
-}
-
-:deep([data-role='user'] .tr-bubble__box) {
   transition:
     background-color v-bind(jumpTransitionDuration) ease,
     box-shadow v-bind(jumpTransitionDuration) ease;
 }
 
-:deep([data-role='user'].demo-user-bubble-flash .tr-bubble__box) {
+:deep(.tr-bubble__box[data-role='user'].demo-user-box-flash) {
   --tr-bubble-box-bg: #b9d7ff;
   box-shadow:
     0 0 0 1px rgba(55, 132, 255, 0.2),

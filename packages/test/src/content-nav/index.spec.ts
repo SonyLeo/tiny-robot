@@ -75,22 +75,6 @@ test.describe('ContentNav component e2e', () => {
     await expect(page.locator(helper.selectors.contentNavRoot)).not.toContainText('Project kickoff summary')
   })
 
-  test('default bubble content-nav items follow BubbleList contentResolver output', async ({ page }) => {
-    const helper = helperFactory(page)
-
-    await helper.resetState()
-    await helper.setDefaultBubbleNavItems(true)
-    await helper.hoverNav()
-
-    await helper.expectItemCount(12)
-    await expect(page.locator(helper.selectors.contentNavRoot)).toContainText(
-      'Resolved prompt: Give me a short summary of the project kickoff decisions from this week.',
-    )
-    await expect(page.locator(helper.selectors.contentNavRoot)).toContainText(
-      'Resolved reply: The kickoff summary includes milestones, owner mapping, release constraints, and the first cross-team dependency review.',
-    )
-  })
-
   test('clicking item scrolls to target content', async ({ page }) => {
     const helper = helperFactory(page)
 
@@ -102,15 +86,24 @@ test.describe('ContentNav component e2e', () => {
     await helper.expectActiveId('turn-5')
   })
 
-  test('bubble anchors attach to the real user bubble and receive jump feedback', async ({ page }) => {
+  test('bubble scene resolves marked box nodes as scroll targets', async ({ page }) => {
     const helper = helperFactory(page)
 
+    await helper.resetState()
+    await helper.setBubbleMode(true)
+
+    const bubbleTarget = page.locator('[data-content-nav-id="turn-5"]').first()
+    await expect(bubbleTarget).toHaveClass(/tr-bubble__box/)
+
+    const closestBubbleIsSameNode = await bubbleTarget.evaluate((node) => node.closest('.tr-bubble') === node)
+    expect(closestBubbleIsSameNode).toBe(false)
+
+    const beforeScrollTop = await helper.getScrollTop()
     await helper.clickNavItemByLabel('Release train dependencies')
 
-    const anchoredBubble = helper.getAnchoredBubble('turn-5')
-    await expect(anchoredBubble).toHaveCount(1)
-    await expect(anchoredBubble).toHaveAttribute('data-role', 'user')
-    await expect(anchoredBubble).toHaveClass(/demo-user-bubble-flash/)
+    await helper.expectLastEventContains('turn-5')
+    await expect.poll(async () => helper.getScrollTop()).toBeGreaterThan(beforeScrollTop + 50)
+    await helper.expectActiveId('turn-5')
   })
 
   test('keyboard activation works', async ({ page }) => {

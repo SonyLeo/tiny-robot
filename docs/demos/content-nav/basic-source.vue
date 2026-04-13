@@ -35,7 +35,12 @@
 
     <div class="stage">
       <div ref="scrollContainerRef" class="article">
-        <section v-for="section in sections" :key="section.id" :ref="bindTarget(section.id)" class="article-section">
+        <section
+          v-for="section in sections"
+          :key="section.id"
+          :data-content-nav-id="section.id"
+          class="article-section"
+        >
           <h4>{{ section.label }}</h4>
           <p v-for="paragraph in section.paragraphs" :key="paragraph">{{ paragraph }}</p>
         </section>
@@ -43,7 +48,7 @@
 
       <tr-content-nav
         class="nav"
-        :source="source"
+        :items="items"
         :scroll-container="scrollContainerRef"
         :expand-trigger="expandTrigger"
         v-model:expanded="expanded"
@@ -55,7 +60,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { TrContentNav, useContentNavSource } from '@opentiny/tiny-robot'
+import { TrContentNav } from '@opentiny/tiny-robot'
 
 type DemoSection = {
   id: string
@@ -86,8 +91,8 @@ const sections: DemoSection[] = [
     id: 'tips',
     label: 'Tips',
     paragraphs: [
-      '如果内容节点会动态增删，优先通过 useContentNavSource 统一维护 source 和 target 绑定。',
-      '这样目录项、滚动定位和激活态能始终保持一致。',
+      '推荐直接让章节节点带上 data-content-nav-id，并与目录项 id 保持一致。',
+      '这样目录项、滚动定位和激活态可以由 TrContentNav 在内部统一处理。',
     ],
   },
 ]
@@ -103,7 +108,6 @@ const items = computed(() =>
     searchText: `${section.label} ${section.paragraphs.join(' ')}`,
   })),
 )
-const { source, bindTarget } = useContentNavSource({ items })
 </script>
 
 <style lang="less" scoped>

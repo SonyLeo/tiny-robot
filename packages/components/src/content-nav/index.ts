@@ -1,6 +1,5 @@
 import { App } from 'vue'
 import ContentNav from './index.vue'
-export { useContentNavSource } from './useContentNavSource'
 
 ContentNav.name = 'TrContentNav'
 

@@ -9,21 +9,24 @@ outline: [1, 3]
 默认情况下，组件使用 `expandTrigger="hover"`，在鼠标悬浮或键盘聚焦时自动展开。
 如果你需要完全由外部控制展开状态，请切换到 `expandTrigger="manual"`，并配合 `v-model:expanded` 使用。
 
-它只消费一个 `source`，所以接入时只需要先准备好：
+它的主接入方式已经收敛为直接消费 `items`。外部只需要准备：
 
 - 目录项列表
-- 每个目录项对应的目标节点
+- 与 `id` 对应的目标元素标记（默认使用 `data-content-nav-id`）
 
 推荐接入方式：
 
-- `TrBubbleList` 场景：优先使用 `contentNav + bubbleListRef.getContentNavSource()`
-- 普通滚动容器：使用 `useContentNavSource`
+- `TrBubbleList` 场景：在业务侧通过 `BubbleProvider + boxRendererMatches.attributes` 给目标 box 打 `data-content-nav-id`
+- 普通滚动容器：直接在章节节点上写 `data-content-nav-id`
+
+传入 `scrollContainer` 时，组件只会在该滚动容器内部查找目标元素；未传入时才会回退到全局文档查找。
+在 Bubble 场景下，`data-content-nav-id` 默认落在 Box renderer 根节点上，通常就是 `.tr-bubble__box`，而不是整个 `.tr-bubble` 消息容器。
 
 ## 代码示例
 
 ### BubbleList
 
-聊天场景推荐直接使用 `BubbleList` 内建的 `contentNav` 能力。你只需要决定哪些分组进入目录，以及目录显示什么文本。
+聊天场景推荐在业务侧自己准备 `items`，再通过 `BubbleProvider` 给用户气泡打 `data-content-nav-id` 标记。
 
 <demo
   vue="../../demos/content-nav/controlled-search.vue"
@@ -33,23 +36,19 @@ outline: [1, 3]
 使用建议：
 
 - 参与导航的消息尽量提供稳定的 `id`
-- 通过 `contentNav.itemResolver` 定制 `label / searchText / tooltipText`
-- `bubbleListRef.getContentNavSource()` 可以直接提供给 `TrContentNav`
+- `ContentNavItem.id` 与目标 box 根节点上的 `data-content-nav-id` 保持一致
+- `label / searchText / tooltipText` 由业务侧直接生成
+- 如果需要 `scroll-margin-top`、点击反馈或高亮样式，也建议落在同一个 box 目标节点上
 - 默认使用 `expandTrigger="hover"`，适合聊天侧边目录这类轻量导航体验
 
 ### 通用内容
 
-普通内容区域推荐使用 `useContentNavSource`。它会同时返回：
-
-- `source`：传给 `TrContentNav`
-- `bindTarget(id)`：绑定到实际滚动目标
+普通内容区域推荐直接给章节节点打 `data-content-nav-id`，并把 `items` 传给 `TrContentNav`。
 
 <demo
   vue="../../demos/content-nav/basic-source.vue"
   :vueFiles="['../../demos/content-nav/basic-source.vue']"
 />
-
-如果你想在 `BubbleList` 外部完全接管目录项和目标绑定，也可以使用同样的方式，在 slot 中通过 `bindTarget(id)` 绑定到自定义目标节点。
 
 ## 展开模式
 
@@ -62,8 +61,8 @@ outline: [1, 3]
 
 | 属性 | 类型 | 默认值 | 说明 |
 | --- | --- | --- | --- |
-| `source` | `ContentNavSource` | - | 目录数据源。通常由 `useContentNavSource` 或 `BubbleList.getContentNavSource()` 提供 |
-| `scrollContainer` | `HTMLElement \| null` | `null` | 滚动容器 |
+| `items` | `ContentNavItem[]` | - | 主接入方式。目录项列表，组件内部默认使用 `item.id` 匹配 `[data-content-nav-id="<id>"]`，并滚动到该标记所在节点 |
+| `scrollContainer` | `HTMLElement \| null` | `null` | 滚动容器。传入后目标元素只在该容器内部解析 |
 | `search` | `false \| ContentNavSearchOptions` | `false` | 是否显示搜索区，以及搜索配置 |
 | `activeId` | `string` | 非受控 | 当前激活项。传入后进入受控模式 |
 | `expanded` | `boolean` | - | 展开状态。在 `expandTrigger="manual"` 时作为外部控制值使用 |
@@ -102,16 +101,6 @@ outline: [1, 3]
 | `searchText` | `string` | 搜索时额外匹配的文本 |
 | `tooltipText` | `string` | 自定义 tooltip 文案 |
 | `meta` | `Record<string, unknown>` | 自定义透传数据 |
-
-### ContentNavSource
-
-通常不需要手写这个对象，优先通过 `useContentNavSource` 或 `BubbleList.getContentNavSource()` 获取。
-
-| 字段 | 类型 | 说明 |
-| --- | --- | --- |
-| `items` | `Readonly<Ref<ContentNavItem[]>>` | 目录项列表 |
-| `resolveTarget` | `(id: string) => HTMLElement \| null` | 根据 id 返回目标节点 |
-| `revision` | `Readonly<Ref<number>>` | 目标映射变更标记，通常由 helper 自动维护 |
 
 ### ContentNavSearchOptions
 

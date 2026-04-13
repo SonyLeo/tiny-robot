@@ -23,8 +23,7 @@ const props = withDefaults(defineProps<ContentNavProps>(), {
 const emit = defineEmits<ContentNavEmits>()
 defineSlots<ContentNavSlots>()
 const attrs = useAttrs()
-const { activeId, emptyText, expandTrigger, expanded, placement, query, scrollContainer, search, source } =
-  toRefs(props)
+const { activeId, emptyText, expandTrigger, expanded, items, placement, query, scrollContainer, search } = toRefs(props)
 
 const overlayShellRef = ref<ContentNavOverlayExpose | null>(null)
 
@@ -32,10 +31,31 @@ const emptySearchOptions: ContentNavSearchOptions = {}
 const hostRef = computed(() => overlayShellRef.value?.hostEl ?? null)
 const resolvedSearchOptions = computed(() => (search.value ? search.value : undefined))
 const searchSlotOptions = computed<ContentNavSearchOptions>(() => resolvedSearchOptions.value ?? emptySearchOptions)
-const itemsRef = computed(() => source.value.items.value)
+
+function queryTargetById(root: ParentNode, id: string) {
+  if (typeof CSS !== 'undefined' && typeof CSS.escape === 'function') {
+    return root.querySelector<HTMLElement>(`[data-content-nav-id="${CSS.escape(id)}"]`)
+  }
+
+  return Array.from(root.querySelectorAll<HTMLElement>('[data-content-nav-id]')).find(
+    (entry) => entry.dataset.contentNavId === id,
+  )
+}
+
+function resolveTargetFromItems(id: string) {
+  const container = scrollContainer.value
+  if (container) {
+    return queryTargetById(container, id) ?? null
+  }
+
+  return queryTargetById(document, id) ?? null
+}
+
+const itemsRef = computed(() => items.value)
 
 const scrollSpy = useContentNavScrollSpy({
-  source,
+  items: itemsRef,
+  resolveTarget: resolveTargetFromItems,
   container: scrollContainer,
   host: hostRef,
   activeId,

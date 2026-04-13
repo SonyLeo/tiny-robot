@@ -40,7 +40,7 @@ export function useContentNavScrollSpy(options: ContentNavScrollSpyOptions) {
   }
 
   function resolveAnchorTarget(id: string) {
-    return options.source.value.resolveTarget(id)
+    return options.resolveTarget(id)
   }
 
   function resolveFloatingElements() {
@@ -122,7 +122,7 @@ export function useContentNavScrollSpy(options: ContentNavScrollSpyOptions) {
     }
 
     const anchors = sortAnchorsByDocumentOrder(
-      options.source.value.items.value.flatMap((item) => {
+      options.items.value.flatMap((item) => {
         const target = resolveAnchorTarget(item.id)
         return target ? [{ id: item.id, el: target }] : []
       }),
@@ -130,7 +130,7 @@ export function useContentNavScrollSpy(options: ContentNavScrollSpyOptions) {
     const nextId = defaultContentNavActiveResolver({
       container,
       anchors,
-      items: options.source.value.items.value,
+      items: options.items.value,
     })
 
     if (nextId !== undefined) {
@@ -203,21 +203,7 @@ export function useContentNavScrollSpy(options: ContentNavScrollSpyOptions) {
   )
 
   watch(
-    () => options.source.value,
-    () => {
-      scheduleSync()
-    },
-  )
-
-  watch(
-    () => options.source.value.revision.value,
-    () => {
-      scheduleSync()
-    },
-  )
-
-  watch(
-    () => options.source.value.items.value.map((item) => item.id).join(','),
+    () => options.items.value.map((item) => item.id).join(','),
     () => {
       scheduleSync()
     },

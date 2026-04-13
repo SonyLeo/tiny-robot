@@ -325,9 +325,10 @@ defineProps<BubbleBoxRendererProps>()
 
 - 使用 `markRaw` 包装渲染器组件，避免 Vue 的响应式处理
 - 为了不修改源数据内部内容和结构，UI 相关的数据应放在消息的 `state` 属性中
-- Box 渲染器的 `find` 函数签名：`(messages, content, contentIndex) => boolean`，其中 `content` 仅在 split 模式有值
+- Box 渲染器的 `find` 函数签名：`(messages, content, contentIndex) => boolean`。当当前 bubble 只包含 1 条消息时，`content` 会是经 `contentResolver` 统一化后的当前内容项；`split` 模式下 `contentIndex` 为实际索引，非 `split` 模式下固定为 `0`
 - Content 渲染器的 `find` 函数签名：`(message, content, contentIndex) => boolean`，`content` 为统一化后的 `ChatMessageContentItem`
 - 在 Content 渲染器中可使用 `useMessageContent(props)` 获取当前 `content` 和 `contentText`，以正确处理 `contentIndex` 与数组内容
+- Box 渲染器上的 `attributes` 会直接附加到 Box renderer 根节点上；默认内置 `Box` 的根节点是 `.tr-bubble__box`
 
 ```vue
 <template>
@@ -388,14 +389,12 @@ Bubble 组件支持通过 `state` 属性存储 UI 相关的数据，并通过 `s
 | `contentRenderMode` | `'single' \| 'split'`                                         | -                              | 内容渲染模式                                                                                                                                                                                                                            |
 | `contentResolver`   | `(message: BubbleMessage) => ChatMessageContent \| undefined` | `(message) => message.content` | 内容解析函数，用于解析消息内容                                                                                                                                                                                                          |
 | `autoScroll`        | `boolean`                                                     | `false`                        | 是否自动滚动到底部。需要满足以下条件：<br/>- BubbleList 是可滚动容器（需要 scrollHeight > clientHeight）<br/>- 滚动容器接近底部                                                                                                         |
-| `contentNav`        | `boolean \| BubbleListContentNavOptions`                      | `false`                        | 是否启用最小版内容导航集成。开启后，`BubbleList` 会基于分组结果生成可供 `getContentNavSource()` 读取的导航源                                                                                                                          |
 
 **BubbleList Expose**
 
 | 方法             | 签名                                           | 说明                                                                                  |
 | ---------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------- |
 | `scrollToBottom` | `(behavior?: ScrollBehavior) => Promise<void>` | 滚动到底部。传入 `'smooth'` 可平滑滚动。若未启用 `autoScroll`，调用后无实际滚动效果。 |
-| `getContentNavSource` | `() => ContentNavSource \| undefined`        | 返回当前导航源。目录项基于 `messageGroups` 生成，目标 DOM 直接绑定在真实的 `.tr-bubble` 根节点上。 |
 
 **BubbleProviderProps** - 气泡提供者组件的属性配置
 
@@ -510,12 +509,23 @@ type BubbleBoxRendererMatch = {
   ) => boolean
   renderer: Component<BubbleBoxRendererProps>
   priority?: number
-  attributes?: Record<string, string>
+  attributes?:
+    | Record<string, string | undefined>
+    | ((
+        messages: BubbleMessage[],
+        content: ChatMessageContentItem | undefined,
+        contentIndex: number | undefined,
+      ) => Record<string, string | undefined> | undefined)
 }
 ```
 
-- `content`: 仅在 `split` 模式（`contentIndex` 为数字）时传入，为当前消息经 `contentResolver` 解析后对应索引的内容项；`contentIndex` 为 `undefined` 时 `content` 也为 `undefined`
-- `contentIndex`: 仅在 split 模式下传入，此时 `messages` 长度为 1
+- `content`: 当当前 bubble 只包含 1 条消息时传入，为当前消息经 `contentResolver` 解析并统一化后的内容项；若解析结果为数组，则取 `contentIndex` 对应项；若为字符串，则转为 `{ type: 'text', text: string }`。当 bubble 包含多条消息时为 `undefined`
+- `contentIndex`: 当当前 bubble 只包含 1 条消息时：
+  - `split` 模式下为实际内容索引
+  - 非 `split` 模式下为 `0`
+  当 bubble 包含多条消息时为 `undefined`
+- `attributes`: 可传静态对象，也可传函数型 resolver；函数参数与 `find` 一致，适合根据当前 bubble 动态生成 `data-*` 标记
+- `attributes` 最终会落在 Box renderer 根节点上；使用默认 `Box` 时，对应节点是 `.tr-bubble__box`
 
 **BubbleContentRendererMatch** - 内容渲染器匹配规则
 

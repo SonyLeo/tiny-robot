@@ -1,7 +1,12 @@
 import type { VNode } from 'vue'
-import type { ContentNavItem, ContentNavSource } from '../shared/content-nav.type'
 
-export type { ContentNavItem, ContentNavSource } from '../shared/content-nav.type'
+export interface ContentNavItem {
+  id: string
+  label: string
+  searchText?: string
+  tooltipText?: string
+  meta?: Record<string, unknown>
+}
 
 export interface ContentNavHighlightSegment {
   text: string
@@ -20,7 +25,7 @@ export interface ContentNavSearchOptions {
 }
 
 export interface ContentNavProps {
-  source: ContentNavSource
+  items: ContentNavItem[]
   scrollContainer?: HTMLElement | null
   activeId?: string
   expanded?: boolean

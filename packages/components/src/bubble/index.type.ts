@@ -1,5 +1,4 @@
 import { Component, VNode } from 'vue'
-import type { ContentNavItem } from '../shared/content-nav.type'
 
 /**
  * 工具调用接口（支持 OpenAI 格式）
@@ -63,12 +62,26 @@ export type BubbleMessageGroup = {
   startIndex: number
 }
 
+export type BubbleBoxRendererAttributeMap = Record<string, string | undefined>
+
+export type BubbleBoxRendererAttributesResolver = (
+  messages: BubbleMessage[],
+  content: ChatMessageContentItem | undefined,
+  contentIndex: number | undefined,
+) => BubbleBoxRendererAttributeMap | undefined
+
 export type BubbleBoxRendererMatch = {
   /**
    * 匹配函数，用于判断是否应该使用此渲染器
    * @param messages - 消息数组
-   * @param content - 要渲染的内容项。仅在 `split` 模式下（contentIndex 为数字）才会传入；为当前消息（messages[0]）经过 `contentResolver` 解析后的内容；`messages[0].content` 一定是一个数组，`content` 则为对应索引的内容项，即 `messages[0].content[contentIndex]`；当 contentIndex 为 undefined 时，content 也为 undefined
-   * @param contentIndex - 内容索引，用于指定要渲染的内容项。仅在 split 模式下才会传入（为数字），此时 messages 数组长度为 1
+   * @param content - 要渲染的内容项。当前 bubble 只包含 1 条消息时，会传入该消息经过 `contentResolver` 解析并统一化后的内容：
+   * - 若解析结果为数组，则取 `contentIndex` 对应的内容项
+   * - 若解析结果为字符串，则转为 `{ type: 'text', text: string }`
+   * 当 bubble 包含多条消息时，content 为 undefined
+   * @param contentIndex - 内容索引。当前 bubble 只包含 1 条消息时：
+   * - `split` 模式下为实际内容索引
+   * - 非 `split` 模式下固定为 0
+   * 当 bubble 包含多条消息时，contentIndex 为 undefined
    * @returns 如果匹配则返回 true，否则返回 false
    */
   find: (
@@ -78,7 +91,7 @@ export type BubbleBoxRendererMatch = {
   ) => boolean
   renderer: Component<BubbleBoxRendererProps>
   priority?: number
-  attributes?: Record<string, string>
+  attributes?: BubbleBoxRendererAttributeMap | BubbleBoxRendererAttributesResolver
 }
 
 export type BubbleContentRendererMatch = {
@@ -128,14 +141,6 @@ export type BubbleRoleConfig = Pick<
  */
 type BubbleGroupFunction = (messages: BubbleMessage[], dividerRole?: string) => BubbleMessageGroup[]
 
-export interface BubbleListContentNavOptions {
-  itemResolver?: (context: {
-    group: BubbleMessageGroup
-    groupIndex: number
-    dividerRole: string
-  }) => ContentNavItem | false
-}
-
 export interface BubbleListProps {
   messages: BubbleMessage[]
   /**
@@ -173,7 +178,6 @@ export interface BubbleListProps {
    * @default false
    */
   autoScroll?: boolean
-  contentNav?: boolean | BubbleListContentNavOptions
 }
 
 export interface BubbleProviderProps {

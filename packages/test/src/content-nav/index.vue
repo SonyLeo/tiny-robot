@@ -8,13 +8,13 @@
 
     <div class="controls">
       <label class="control-item">
-        <input data-testid="toggle-single-turn-mode" type="checkbox" v-model="singleTurnMode" />
-        Use single turn
+        <input data-testid="toggle-bubble-mode" type="checkbox" v-model="bubbleMode" />
+        Use Bubble scene
       </label>
 
       <label class="control-item">
-        <input data-testid="toggle-default-bubble-nav-items" type="checkbox" v-model="useDefaultBubbleNavItems" />
-        Use default bubble nav items
+        <input data-testid="toggle-single-turn-mode" type="checkbox" v-model="singleTurnMode" />
+        Use single turn
       </label>
 
       <fieldset class="placement-switch">
@@ -80,7 +80,7 @@
         <component
           :is="resolvedContentNav"
           data-testid="content-nav-root"
-          :source="resolvedContentNavSource"
+          :items="items"
           :scroll-container="scrollContainerRef"
           :active-id="activeId"
           v-model:expanded="expanded"
@@ -94,34 +94,37 @@
         />
       </div>
 
-      <div class="bubble-scroll-container" data-testid="bubble-scroll-container" ref="scrollContainerRef">
-        <TrBubbleList
-          ref="bubbleListRef"
-          class="conversation-list"
-          :messages="messages"
-          :role-configs="roleConfigs"
-          :content-resolver="bubbleContentResolver"
-          :content-nav="contentNavOptions"
-        >
-          <template #content-footer>
-            <p class="turn-filler">{{ fillerText }}</p>
-          </template>
-        </TrBubbleList>
+      <div class="content-scroll-container" data-testid="content-scroll-container" ref="scrollContainerRef">
+        <template v-if="bubbleMode && hasBubbleSupport">
+          <component :is="resolvedBubbleProvider" :box-renderer-matches="bubbleBoxRendererMatches">
+            <component
+              :is="resolvedBubbleList"
+              class="bubble-content-list"
+              :messages="bubbleMessages"
+              :role-configs="bubbleRoleConfigs"
+            />
+          </component>
+        </template>
+
+        <template v-else>
+          <article v-for="(turn, index) in turns" :key="turn.id" class="content-section" :data-content-nav-id="turn.id">
+            <p class="section-kicker">Section {{ index + 1 }}</p>
+            <h3 class="section-title">{{ turn.label }}</h3>
+            <p class="section-question">{{ turn.user }}</p>
+            <p class="section-answer">{{ turn.assistant }}</p>
+            <p class="section-body">{{ fillerText }}</p>
+            <p class="section-body">{{ fillerText }}</p>
+            <p class="section-body">{{ fillerText }}</p>
+          </article>
+        </template>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, defineComponent, nextTick, ref, unref, watch, type Component } from 'vue'
-import { TrBubbleList } from '@opentiny/tiny-robot'
-import type {
-  BubbleListContentNavOptions,
-  BubbleListProps,
-  BubbleMessage,
-  ContentNavItem,
-  ContentNavSource,
-} from '@opentiny/tiny-robot'
+import { computed, defineComponent, nextTick, ref, watch, type Component } from 'vue'
+import type { BubbleBoxRendererMatch, BubbleMessage, BubbleRoleConfig, ContentNavItem } from '@opentiny/tiny-robot'
 import * as TinyRobot from '@opentiny/tiny-robot'
 
 type DemoTurn = {
@@ -183,10 +186,10 @@ const allTurns: DemoTurn[] = [
 ]
 
 const fillerText =
-  'This extra line keeps each turn tall enough for realistic scroll spy behavior and makes the BubbleList route closer to the real usage pattern.'
+  'This supporting paragraph keeps each section tall enough for realistic scroll spy behavior and makes the demo closer to a long-form reading surface.'
 
+const bubbleMode = ref(false)
 const singleTurnMode = ref(false)
-const useDefaultBubbleNavItems = ref(false)
 const expandTrigger = ref<'hover' | 'manual'>('hover')
 const activeId = ref('')
 const expanded = ref(false)
@@ -194,27 +197,27 @@ const query = ref('')
 const placement = ref<'left' | 'right'>('right')
 const lastEvent = ref('none')
 const scrollContainerRef = ref<HTMLElement | null>(null)
-const bubbleListRef = ref<InstanceType<typeof TrBubbleList> | null>(null)
-const jumpFlashClassName = 'demo-user-bubble-flash'
-const jumpFeedbackDuration = 700
-let jumpFeedbackTimer: ReturnType<typeof setTimeout> | null = null
 
 const searchConfig = {
   clearOnCollapse: false,
   placeholder: 'Search',
 } as const
 
-const roleConfigs = {
-  assistant: {
-    placement: 'start',
-  },
-  user: {
-    placement: 'end',
-  },
-} satisfies NonNullable<BubbleListProps['roleConfigs']>
+const bubbleRoleConfigs = {
+  assistant: { placement: 'start' },
+  user: { placement: 'end' },
+} satisfies Record<string, BubbleRoleConfig>
 
 const turns = computed(() => (singleTurnMode.value ? allTurns.slice(0, 1) : allTurns))
-const messages = computed<BubbleListProps['messages']>(() =>
+const items = computed<ContentNavItem[]>(() =>
+  turns.value.map((turn) => ({
+    id: turn.id,
+    label: turn.label,
+    searchText: `${turn.label} ${turn.user} ${turn.assistant}`,
+    tooltipText: turn.label,
+  })),
+)
+const bubbleMessages = computed<BubbleMessage[]>(() =>
   turns.value.flatMap((turn) => [
     {
       id: turn.id,
@@ -222,68 +225,60 @@ const messages = computed<BubbleListProps['messages']>(() =>
       content: turn.user,
     },
     {
-      id: `assistant-${turn.id}`,
+      id: `${turn.id}-assistant`,
       role: 'assistant',
       content: turn.assistant,
     },
   ]),
 )
 
-const emptyContentNavSource: ContentNavSource = {
-  items: computed(() => []),
-  resolveTarget: () => null,
-  revision: computed(() => 0),
-}
-
-const contentNavSource = computed(() => bubbleListRef.value?.getContentNavSource())
-const resolvedContentNavSource = computed(() => contentNavSource.value ?? emptyContentNavSource)
-const items = computed<ContentNavItem[]>(() => unref(resolvedContentNavSource.value.items))
-
-const turnById = new Map(allTurns.map((turn) => [turn.id, turn]))
-
-const bubbleContentResolver = (message: BubbleMessage) => {
-  if (typeof message.content !== 'string') {
-    return message.content
-  }
-
-  if (message.role === 'user') {
-    return `Resolved prompt: ${message.content}`
-  }
-
-  if (message.role === 'assistant') {
-    return `Resolved reply: ${message.content}`
-  }
-
-  return message.content
-}
-
-const customContentNavOptions = {
-  itemResolver: ({ group }) => {
-    const firstMessage = group.messages[0]
-    if (firstMessage?.role !== 'user' || !firstMessage.id) {
-      return false
-    }
-
-    const turn = turnById.get(firstMessage.id)
-    if (!turn) {
-      return false
-    }
-
-    return {
-      id: turn.id,
-      label: turn.label,
-      searchText: `${turn.label} ${turn.user} ${turn.assistant}`,
-      tooltipText: turn.label,
-    }
-  },
-} satisfies BubbleListContentNavOptions
-
-const contentNavOptions = computed(() => (useDefaultBubbleNavItems.value ? true : customContentNavOptions))
-
 const hasContentNav = computed(() => Boolean((TinyRobot as Record<string, unknown>).TrContentNav))
+const hasBubbleSupport = computed(() => {
+  const runtime = TinyRobot as Record<string, unknown>
+  const bubbleRenderers = runtime.BubbleRenderers as { Box?: Component } | undefined
+
+  return Boolean(runtime.TrBubbleList && runtime.TrBubbleProvider && bubbleRenderers?.Box)
+})
 const resolvedContentNav = computed<Component>(() => {
   const maybeComponent = (TinyRobot as Record<string, unknown>).TrContentNav as Component | undefined
   return maybeComponent ?? FallbackContentNav
+})
+const resolvedBubbleList = computed<Component | string>(() => {
+  const maybeComponent = (TinyRobot as Record<string, unknown>).TrBubbleList as Component | undefined
+  return maybeComponent ?? 'div'
+})
+const resolvedBubbleProvider = computed<Component | string>(() => {
+  const maybeComponent = (TinyRobot as Record<string, unknown>).TrBubbleProvider as Component | undefined
+  return maybeComponent ?? 'div'
+})
+const bubbleBoxRendererMatches = computed<BubbleBoxRendererMatch[]>(() => {
+  const bubbleRenderers = (TinyRobot as Record<string, unknown>).BubbleRenderers as { Box?: Component } | undefined
+  const BoxRenderer = bubbleRenderers?.Box
+  if (!BoxRenderer) {
+    return []
+  }
+
+  return [
+    {
+      find: (messages) => messages[0]?.role === 'user',
+      renderer: BoxRenderer,
+      priority: 999,
+      attributes: (messages, _content, contentIndex) => {
+        if (contentIndex !== undefined && contentIndex > 0) {
+          return undefined
+        }
+
+        const firstMessage = messages[0]
+        if (!firstMessage?.id) {
+          return undefined
+        }
+
+        return {
+          'data-content-nav-id': firstMessage.id,
+        }
+      },
+    },
+  ]
 })
 
 function resolvePayloadId(payload: unknown) {
@@ -301,54 +296,9 @@ function resolvePayloadId(payload: unknown) {
   return undefined
 }
 
-function findNavTarget(id: string) {
-  const container = scrollContainerRef.value
-  if (!container) {
-    return null
-  }
-
-  return (
-    container.querySelector<HTMLElement>(`.tr-bubble[data-content-nav-id="${id}"]`) ??
-    (typeof CSS !== 'undefined' && typeof CSS.escape === 'function'
-      ? container.querySelector<HTMLElement>(`#${CSS.escape(id)}`)
-      : Array.from(container.querySelectorAll<HTMLElement>('[id]')).find((entry) => entry.id === id)) ??
-    null
-  )
-}
-
-function clearJumpFeedback() {
-  if (jumpFeedbackTimer) {
-    clearTimeout(jumpFeedbackTimer)
-    jumpFeedbackTimer = null
-  }
-}
-
-function applyJumpFeedback(id: string) {
-  const target = findNavTarget(id)
-  if (!target) {
-    return
-  }
-
-  clearJumpFeedback()
-  target.classList.remove(jumpFlashClassName)
-  void target.offsetWidth
-  target.classList.add(jumpFlashClassName)
-
-  jumpFeedbackTimer = setTimeout(() => {
-    target.classList.remove(jumpFlashClassName)
-    jumpFeedbackTimer = null
-  }, jumpFeedbackDuration)
-}
-
 function handleSelect(payload: unknown) {
   const turnId = resolvePayloadId(payload)
-  if (!turnId) {
-    lastEvent.value = 'select:unknown'
-    return
-  }
-
-  lastEvent.value = `select:${turnId}`
-  applyJumpFeedback(turnId)
+  lastEvent.value = turnId ? `select:${turnId}` : 'select:unknown'
 }
 
 function handleActiveIdUpdate(value: string | undefined) {
@@ -357,23 +307,16 @@ function handleActiveIdUpdate(value: string | undefined) {
 
 function handleActivate(payload: unknown) {
   const turnId = resolvePayloadId(payload)
-  if (!turnId) {
-    lastEvent.value = 'activate:unknown'
-    return
-  }
-
-  lastEvent.value = `activate:${turnId}`
+  lastEvent.value = turnId ? `activate:${turnId}` : 'activate:unknown'
 }
 
 function resetState() {
   singleTurnMode.value = false
-  useDefaultBubbleNavItems.value = false
   query.value = ''
   expanded.value = false
   expandTrigger.value = 'hover'
   placement.value = 'right'
   lastEvent.value = 'none'
-  clearJumpFeedback()
 
   nextTick(() => {
     activeId.value = items.value[0]?.id ?? ''
@@ -480,46 +423,70 @@ watch(
   font-size: 13px;
 }
 
-.bubble-scroll-container {
+.content-scroll-container {
   box-sizing: border-box;
   height: 560px;
   overflow: auto;
   border: 1px solid #dce3ea;
   border-radius: 10px;
-  background: #fafcff;
+  background: linear-gradient(180deg, #fafcff 0%, #f4f8fc 100%);
+  padding: 20px 22px 28px;
 }
 
-.conversation-list {
+.content-section {
+  scroll-margin-top: 20px;
+  padding: 22px 22px 24px;
+  border: 1px solid #dfe7f2;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.content-section + .content-section {
+  margin-top: 18px;
+}
+
+.bubble-content-list {
   --tr-bubble-list-gap: 16px;
-  --tr-bubble-list-padding: 18px 18px 28px;
-  --tr-bubble-max-width: 560px;
+  --tr-bubble-list-padding: 20px 24px 28px;
+  --tr-bubble-max-width: 420px;
 }
 
-.turn-filler {
-  margin: 8px 0 0;
-  max-width: 48ch;
-  font-size: 12px;
-  line-height: 1.55;
-  color: #5d6b80;
-}
-
-:deep([data-role='user']) {
-  --tr-bubble-box-bg: var(--tr-color-primary-light);
+:deep(.bubble-content-list .tr-bubble__box[data-role='user']) {
   scroll-margin-top: 20px;
 }
 
-:deep([data-role='user'] .tr-bubble__box) {
-  transition:
-    background-color 220ms ease,
-    box-shadow 220ms ease;
+.section-kicker {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6a7b90;
 }
 
-:deep([data-role='user'].demo-user-bubble-flash .tr-bubble__box) {
-  --tr-bubble-box-bg: #b9d7ff;
-  box-shadow:
-    0 0 0 1px rgba(55, 132, 255, 0.2),
-    0 12px 28px -18px rgba(55, 132, 255, 0.45),
-    var(--tr-bubble-box-shadow);
+.section-title {
+  margin: 0 0 12px;
+  font-size: 20px;
+  line-height: 1.3;
+  color: #1f2a38;
+}
+
+.section-question,
+.section-answer,
+.section-body {
+  margin: 0;
+  line-height: 1.65;
+  color: #465365;
+}
+
+.section-question {
+  font-weight: 600;
+  color: #263445;
+}
+
+.section-answer,
+.section-body {
+  margin-top: 12px;
 }
 
 @media (max-width: 1000px) {
