@@ -1,11 +1,12 @@
 import { computed, ref, watch } from 'vue'
-import { defaultContentNavSearchMatcher, ensureContentNavSegments } from './defaults'
-import type { ContentNavFilteredItem, ContentNavStateOptions } from './internal.type'
+import { defaultContentNavSearchMatcher, ensureContentNavSegments } from '../defaults'
+import type { ContentNavFilteredItem, ContentNavStateOptions } from '../internal.type'
 
-export function useContentNavState(options: ContentNavStateOptions) {
+export function useNavState(options: ContentNavStateOptions) {
   const localExpanded = ref(false)
   const localQuery = ref('')
-  const highlightedIndex = ref(0)
+  const keyboardHighlightedItemId = ref<string | undefined>(undefined)
+  const isKeyboardNavigating = ref(false)
 
   const search = computed(() => {
     const value = options.search?.value
@@ -35,8 +36,35 @@ export function useContentNavState(options: ContentNavStateOptions) {
       })
       .filter((entry): entry is ContentNavFilteredItem => entry !== null)
   })
+  const activeHighlightedId = computed(
+    () => filteredItems.value.find((entry) => entry.item.id === options.activeId.value)?.item.id,
+  )
+  const resolvedHighlightedId = computed(() => {
+    if (
+      isKeyboardNavigating.value &&
+      keyboardHighlightedItemId.value &&
+      filteredItems.value.some((entry) => entry.item.id === keyboardHighlightedItemId.value)
+    ) {
+      return keyboardHighlightedItemId.value
+    }
 
-  const highlightedId = computed(() => filteredItems.value[highlightedIndex.value]?.item.id)
+    return activeHighlightedId.value ?? filteredItems.value[0]?.item.id
+  })
+
+  const highlightedIndex = computed(() => {
+    if (!filteredItems.value.length) {
+      return 0
+    }
+
+    const index = filteredItems.value.findIndex((entry) => entry.item.id === resolvedHighlightedId.value)
+    return index === -1 ? 0 : index
+  })
+  const highlightedId = computed(() => resolvedHighlightedId.value)
+
+  function resetKeyboardNavigation() {
+    isKeyboardNavigating.value = false
+    keyboardHighlightedItemId.value = undefined
+  }
 
   function setExpanded(value: boolean) {
     if (!isManualExpandTrigger.value) {
@@ -60,61 +88,41 @@ export function useContentNavState(options: ContentNavStateOptions) {
 
   function clampHighlightedIndex(nextIndex: number) {
     if (!filteredItems.value.length) {
-      highlightedIndex.value = 0
+      resetKeyboardNavigation()
       return
     }
 
-    highlightedIndex.value = Math.max(0, Math.min(nextIndex, filteredItems.value.length - 1))
+    const clampedIndex = Math.max(0, Math.min(nextIndex, filteredItems.value.length - 1))
+    keyboardHighlightedItemId.value = filteredItems.value[clampedIndex]?.item.id
+    isKeyboardNavigating.value = true
   }
 
-  function moveNext() {
-    clampHighlightedIndex(highlightedIndex.value + 1)
-  }
-
-  function movePrev() {
-    clampHighlightedIndex(highlightedIndex.value - 1)
-  }
-
-  function moveFirst() {
-    clampHighlightedIndex(0)
-  }
-
-  function moveLast() {
-    clampHighlightedIndex(filteredItems.value.length - 1)
-  }
-
-  function syncHighlightedToActive() {
-    const targetId = options.activeId.value
-    const index = filteredItems.value.findIndex((entry) => entry.item.id === targetId)
-    highlightedIndex.value = index === -1 ? 0 : index
-  }
-
-  function activateHighlighted() {
+  function getHighlightedItem() {
     return filteredItems.value[highlightedIndex.value]?.item
   }
 
-  function handleKeydown(event: KeyboardEvent) {
+  function handleNavigationKeydown(event: KeyboardEvent) {
     if (event.key === 'ArrowDown') {
       event.preventDefault()
-      moveNext()
+      clampHighlightedIndex(highlightedIndex.value + 1)
       return true
     }
 
     if (event.key === 'ArrowUp') {
       event.preventDefault()
-      movePrev()
+      clampHighlightedIndex(highlightedIndex.value - 1)
       return true
     }
 
     if (event.key === 'Home') {
       event.preventDefault()
-      moveFirst()
+      clampHighlightedIndex(0)
       return true
     }
 
     if (event.key === 'End') {
       event.preventDefault()
-      moveLast()
+      clampHighlightedIndex(filteredItems.value.length - 1)
       return true
     }
 
@@ -135,25 +143,41 @@ export function useContentNavState(options: ContentNavStateOptions) {
     filteredItems,
     (items) => {
       if (!items.length) {
-        highlightedIndex.value = 0
+        resetKeyboardNavigation()
         return
       }
 
-      clampHighlightedIndex(highlightedIndex.value)
+      if (activeHighlightedId.value) {
+        resetKeyboardNavigation()
+        return
+      }
+
+      if (
+        isKeyboardNavigating.value &&
+        keyboardHighlightedItemId.value &&
+        items.some((entry) => entry.item.id === keyboardHighlightedItemId.value)
+      ) {
+        return
+      }
+
+      resetKeyboardNavigation()
     },
-    { immediate: true },
+    { immediate: true, flush: 'sync' },
   )
 
   watch(
     () => options.activeId.value,
-    () => {
-      syncHighlightedToActive()
+    (value) => {
+      if (!value) {
+        return
+      }
+
+      resetKeyboardNavigation()
     },
-    { immediate: true },
+    { immediate: true, flush: 'sync' },
   )
 
   return {
-    search,
     expanded,
     query,
     filteredItems,
@@ -161,11 +185,7 @@ export function useContentNavState(options: ContentNavStateOptions) {
     highlightedId,
     setExpanded,
     setQuery,
-    moveNext,
-    movePrev,
-    moveFirst,
-    moveLast,
-    activateHighlighted,
-    handleKeydown,
+    getHighlightedItem,
+    handleNavigationKeydown,
   }
 }

@@ -4,29 +4,33 @@ outline: [1, 3]
 
 # TrContentNav 内容导航组件
 
-`TrContentNav` 用于长内容区域或长对话场景的目录导航。
+`TrContentNav` 用于长内容区域和长对话场景的目录导航。
 
-默认情况下，组件使用 `expandTrigger="hover"`，在鼠标悬浮或键盘聚焦时自动展开。
-如果你需要完全由外部控制展开状态，请切换到 `expandTrigger="manual"`，并配合 `v-model:expanded` 使用。
+组件通过 `items` 渲染目录项，并根据 `item.id` 定位目标节点。目标节点默认使用 `data-content-nav-id` 标记。
 
-它的主接入方式已经收敛为直接消费 `items`。外部只需要准备：
+默认情况下，组件使用 `expandTrigger="hover"`，在鼠标悬浮或焦点进入时自动展开。若需要由外部控制展开状态，可将 `expandTrigger` 设为 `manual`，并配合 `v-model:expanded` 使用。
+
+## 接入说明
+
+使用组件时，通常只需要准备以下内容：
 
 - 目录项列表
-- 与 `id` 对应的目标元素标记（默认使用 `data-content-nav-id`）
+- 与 `id` 对应的目标节点标记（默认使用 `data-content-nav-id`）
 
-推荐接入方式：
+推荐接入方式如下：
 
-- `TrBubbleList` 场景：在业务侧通过 `BubbleProvider + boxRendererMatches.attributes` 给目标 box 打 `data-content-nav-id`
-- 普通滚动容器：直接在章节节点上写 `data-content-nav-id`
+- `TrBubbleList` 场景：通过 `BubbleProvider` 的 `boxRendererMatches.attributes` 为目标节点设置 `data-content-nav-id`
+- 普通滚动容器：直接在章节节点上设置 `data-content-nav-id`
 
-传入 `scrollContainer` 时，组件只会在该滚动容器内部查找目标元素；未传入时才会回退到全局文档查找。
-在 Bubble 场景下，`data-content-nav-id` 默认落在 Box renderer 根节点上，通常就是 `.tr-bubble__box`，而不是整个 `.tr-bubble` 消息容器。
+传入 `scrollContainer` 时，组件仅在该容器内查找目标节点；未传入时，在全局文档范围内查找。
+
+在 Bubble 场景下，`data-content-nav-id` 应标记在实际滚动目标节点上。使用默认 Box renderer 时，该节点通常为 `.tr-bubble__box`，而非整个 `.tr-bubble` 容器。
 
 ## 代码示例
 
-### BubbleList
+### BubbleList 场景
 
-聊天场景推荐在业务侧自己准备 `items`，再通过 `BubbleProvider` 给用户气泡打 `data-content-nav-id` 标记。
+在聊天场景中，建议由调用方维护 `items`，并通过 `BubbleProvider` 为目标气泡节点设置 `data-content-nav-id`。
 
 <demo
   vue="../../demos/content-nav/controlled-search.vue"
@@ -35,40 +39,33 @@ outline: [1, 3]
 
 使用建议：
 
-- 参与导航的消息尽量提供稳定的 `id`
+- 参与导航的消息应提供稳定的 `id`
 - `ContentNavItem.id` 与目标 box 根节点上的 `data-content-nav-id` 保持一致
-- `label / searchText / tooltipText` 由业务侧直接生成
-- 如果需要 `scroll-margin-top`、点击反馈或高亮样式，也建议落在同一个 box 目标节点上
-- 默认使用 `expandTrigger="hover"`，适合聊天侧边目录这类轻量导航体验
+- `label / searchText / tooltipText` 由调用方直接生成
+- 如需设置 `scroll-margin-top`、点击反馈或高亮样式，建议统一作用于同一目标节点
+- `expandTrigger="hover"` 适用于轻量侧边目录场景
 
-### 通用内容
+### 普通内容场景
 
-普通内容区域推荐直接给章节节点打 `data-content-nav-id`，并把 `items` 传给 `TrContentNav`。
+在普通内容场景中，可直接在章节节点上设置 `data-content-nav-id`，并将对应的 `items` 传入 `TrContentNav`。示例中同时展示了点击目录项后的滚动定位与章节高亮反馈。
 
 <demo
   vue="../../demos/content-nav/basic-source.vue"
   :vueFiles="['../../demos/content-nav/basic-source.vue']"
 />
 
-## 展开模式
-
-- `hover`
-  默认模式。鼠标悬浮或焦点进入时自动展开，离开时自动收起。
-- `manual`
-  手动模式。组件不再自动展开或收起，由外部通过 `expanded` / `update:expanded` 控制。
-
 ## Props
 
 | 属性 | 类型 | 默认值 | 说明 |
 | --- | --- | --- | --- |
-| `items` | `ContentNavItem[]` | - | 主接入方式。目录项列表，组件内部默认使用 `item.id` 匹配 `[data-content-nav-id="<id>"]`，并滚动到该标记所在节点 |
-| `scrollContainer` | `HTMLElement \| null` | `null` | 滚动容器。传入后目标元素只在该容器内部解析 |
-| `search` | `false \| ContentNavSearchOptions` | `false` | 是否显示搜索区，以及搜索配置 |
+| `items` | `ContentNavItem[]` | - | 目录项列表。组件默认使用 `item.id` 匹配 `[data-content-nav-id="<id>"]`，并滚动到对应节点 |
+| `scrollContainer` | `HTMLElement \| null` | `null` | 滚动容器。传入后仅在该容器内解析目标节点 |
+| `search` | `false \| ContentNavSearchOptions` | `false` | 搜索区配置。传入 `false` 时不显示搜索区 |
 | `activeId` | `string` | 非受控 | 当前激活项。传入后进入受控模式 |
-| `expanded` | `boolean` | - | 展开状态。在 `expandTrigger="manual"` 时作为外部控制值使用 |
+| `expanded` | `boolean` | - | 展开状态。在 `expandTrigger="manual"` 时用于外部控制 |
 | `query` | `string` | 非受控 | 搜索词。传入后进入受控模式 |
 | `placement` | `'left' \| 'right'` | `'right'` | 停靠位置 |
-| `expandTrigger` | `'hover' \| 'manual'` | `'hover'` | 展开触发方式。`hover` 为自动展开，`manual` 为外部控制 |
+| `expandTrigger` | `'hover' \| 'manual'` | `'hover'` | 展开方式。`hover` 为自动展开，`manual` 为外部控制 |
 | `emptyText` | `string` | `'No matching items'` | 搜索无结果文案 |
 
 ## Slots
@@ -87,8 +84,8 @@ outline: [1, 3]
 | `update:activeId` | `value: string \| undefined` | 当前激活项变化 |
 | `update:expanded` | `value: boolean` | 展开状态变化。`manual` 模式下可用于 `v-model:expanded`，`hover` 模式下可用于监听自动展开状态 |
 | `update:query` | `value: string` | 搜索词变化 |
-| `select` | `item: ContentNavItem` | 点击或确认选中目录项 |
-| `activate` | `item: ContentNavItem` | 目录项触发激活 |
+| `select` | `item: ContentNavItem` | 目录项被选中时触发 |
+| `activate` | `item: ContentNavItem` | 目录项被激活时触发 |
 
 ## Types
 

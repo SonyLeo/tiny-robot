@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, toRefs, useAttrs } from 'vue'
+import { useEventListener, useResizeObserver } from '@vueuse/core'
+import { computed, onBeforeUnmount, ref, toRefs, useAttrs, watch } from 'vue'
 import ContentNavList from './components/ContentNavList.vue'
 import ContentNavOverlay from './components/ContentNavOverlay.vue'
 import ContentNavSearch from './components/ContentNavSearch.vue'
+import { queryContentNavTargetById } from './target'
 import type { ContentNavOverlayExpose } from './internal.type'
-import { useContentNavScrollSpy } from './useContentNavScrollSpy'
-import { useContentNavState } from './useContentNavState'
+import { useActiveSync, useFloatingOffset, useNavState, useOverlayInteractions } from './composables/index'
 import type { ContentNavEmits, ContentNavProps, ContentNavSearchOptions, ContentNavSlots } from './index.type'
 
 defineOptions({
@@ -27,44 +28,32 @@ const { activeId, emptyText, expandTrigger, expanded, items, placement, query, s
 
 const overlayShellRef = ref<ContentNavOverlayExpose | null>(null)
 
-const emptySearchOptions: ContentNavSearchOptions = {}
 const hostRef = computed(() => overlayShellRef.value?.hostEl ?? null)
 const resolvedSearchOptions = computed(() => (search.value ? search.value : undefined))
-const searchSlotOptions = computed<ContentNavSearchOptions>(() => resolvedSearchOptions.value ?? emptySearchOptions)
-
-function queryTargetById(root: ParentNode, id: string) {
-  if (typeof CSS !== 'undefined' && typeof CSS.escape === 'function') {
-    return root.querySelector<HTMLElement>(`[data-content-nav-id="${CSS.escape(id)}"]`)
-  }
-
-  return Array.from(root.querySelectorAll<HTMLElement>('[data-content-nav-id]')).find(
-    (entry) => entry.dataset.contentNavId === id,
-  )
-}
+const searchSlotOptions = computed<ContentNavSearchOptions>(() => resolvedSearchOptions.value ?? {})
 
 function resolveTargetFromItems(id: string) {
   const container = scrollContainer.value
   if (container) {
-    return queryTargetById(container, id) ?? null
+    return queryContentNavTargetById(container, id) ?? null
   }
 
-  return queryTargetById(document, id) ?? null
+  return queryContentNavTargetById(document, id) ?? null
 }
 
 const itemsRef = computed(() => items.value)
 
-const scrollSpy = useContentNavScrollSpy({
+const active = useActiveSync({
   items: itemsRef,
   resolveTarget: resolveTargetFromItems,
   container: scrollContainer,
-  host: hostRef,
   activeId,
   onUpdateActiveId: (value) => emit('update:activeId', value),
 })
 
-const state = useContentNavState({
+const state = useNavState({
   items: itemsRef,
-  activeId: scrollSpy.activeId,
+  activeId: active.activeId,
   expanded,
   expandTrigger,
   query,
@@ -76,6 +65,10 @@ const state = useContentNavState({
 const shouldRender = computed(() => itemsRef.value.length > 0)
 const hasSearchSection = computed(() => Boolean(resolvedSearchOptions.value) && state.expanded.value)
 const shouldAutoToggleExpanded = computed(() => expandTrigger.value === 'hover')
+const floating = useFloatingOffset({
+  container: scrollContainer,
+  host: hostRef,
+})
 
 function setExpanded(value: boolean) {
   state.setExpanded(value)
@@ -91,79 +84,77 @@ function handleSelect(itemId: string) {
     return
   }
 
-  scrollSpy.scrollTo(itemId)
+  active.scrollTo(itemId)
+  scheduleMeasure()
   emit('select', target)
   emit('activate', target)
 }
 
-function isEditableEventTarget(target: EventTarget | null) {
-  if (!(target instanceof HTMLElement)) {
-    return false
+const interactions = useOverlayInteractions({
+  overlay: overlayShellRef,
+  highlightedId: state.highlightedId,
+  shouldAutoCollapse: shouldAutoToggleExpanded,
+  handleNavigationKeydown: state.handleNavigationKeydown,
+  getHighlightedItem: state.getHighlightedItem,
+  onSelectItem: handleSelect,
+  setExpanded,
+})
+
+let scheduledFrame: number | null = null
+
+function scheduleMeasure() {
+  if (scheduledFrame !== null) {
+    cancelAnimationFrame(scheduledFrame)
   }
 
-  return (
-    target instanceof HTMLInputElement ||
-    target instanceof HTMLTextAreaElement ||
-    target instanceof HTMLSelectElement ||
-    target.isContentEditable
-  )
+  scheduledFrame = requestAnimationFrame(() => {
+    scheduledFrame = null
+    active.sync()
+    floating.sync()
+  })
 }
 
-function handleKeydown(event: KeyboardEvent) {
-  if (isEditableEventTarget(event.target)) {
-    return
+useEventListener(scrollContainer, 'scroll', scheduleMeasure, { passive: true })
+useEventListener('resize', scheduleMeasure, { passive: true })
+useResizeObserver(scrollContainer, () => {
+  scheduleMeasure()
+})
+useResizeObserver(floating.resizeTargets, () => {
+  scheduleMeasure()
+})
+
+watch(
+  () => scrollContainer.value,
+  () => {
+    active.clearPendingScroll()
+    scheduleMeasure()
+  },
+  { immediate: true },
+)
+
+watch(
+  () => hostRef.value,
+  () => {
+    scheduleMeasure()
+  },
+)
+
+watch(
+  () => itemsRef.value.map((item) => item.id).join(','),
+  () => {
+    active.clearPendingScroll()
+    scheduleMeasure()
+  },
+  { immediate: true },
+)
+
+onBeforeUnmount(() => {
+  if (scheduledFrame !== null) {
+    cancelAnimationFrame(scheduledFrame)
   }
 
-  const handled = state.handleKeydown(event)
-
-  if (event.key === 'Enter' || event.key === ' ') {
-    const target = state.activateHighlighted()
-    if (target) {
-      event.preventDefault()
-      handleSelect(target.id)
-      return
-    }
-  }
-
-  if (handled) {
-    nextTick(() => {
-      const id = state.highlightedId.value
-      if (!id) {
-        return
-      }
-
-      const escapedId = typeof CSS !== 'undefined' && typeof CSS.escape === 'function' ? CSS.escape(id) : id
-      overlayShellRef.value?.navEl?.querySelector<HTMLElement>(`[data-item-id="${escapedId}"]`)?.focus()
-    })
-  }
-}
-
-function handleMouseLeave() {
-  if (!shouldAutoToggleExpanded.value) {
-    return
-  }
-
-  const overlayEl = overlayShellRef.value?.overlayEl ?? null
-  const activeElement = document.activeElement
-
-  if (overlayEl && activeElement instanceof Node && overlayEl.contains(activeElement)) {
-    return
-  }
-
-  setExpanded(false)
-}
-
-function handleFocusOut(event: FocusEvent) {
-  if (!shouldAutoToggleExpanded.value) {
-    return
-  }
-
-  const next = event.relatedTarget as Node | null
-  const overlayEl = overlayShellRef.value?.overlayEl ?? null
-  if (!next || !overlayEl?.contains(next)) {
-    setExpanded(false)
-  }
-}
+  active.clearPendingScroll()
+})
 </script>
 
 <template>
@@ -173,12 +164,12 @@ function handleFocusOut(event: FocusEvent) {
     v-bind="attrs"
     :expanded="state.expanded.value"
     :placement="placement"
-    :floating-offset="scrollSpy.floatingOffset.value"
+    :floating-offset="floating.offset.value"
     @mouseenter="shouldAutoToggleExpanded && setExpanded(true)"
-    @mouseleave="handleMouseLeave"
+    @mouseleave="interactions.handleMouseLeave"
     @focusin="shouldAutoToggleExpanded && setExpanded(true)"
-    @focusout="handleFocusOut"
-    @keydown="handleKeydown"
+    @focusout="interactions.handleFocusOut"
+    @keydown="interactions.handleKeydown"
   >
     <template v-if="hasSearchSection" #search>
       <slot name="search" :query="state.query.value" :setQuery="setQuery" :options="searchSlotOptions">
@@ -188,7 +179,7 @@ function handleFocusOut(event: FocusEvent) {
 
     <ContentNavList
       :items="state.filteredItems.value"
-      :active-id="scrollSpy.activeId.value"
+      :active-id="active.activeId.value"
       :expanded="state.expanded.value"
       :highlighted-index="state.highlightedIndex.value"
       :placement="placement"

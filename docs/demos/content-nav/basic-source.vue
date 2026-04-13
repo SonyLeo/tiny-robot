@@ -53,13 +53,14 @@
         :expand-trigger="expandTrigger"
         v-model:expanded="expanded"
         :search="{ placeholder: '搜索章节' }"
+        @select="handleSelect"
       />
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, ref } from 'vue'
 import { TrContentNav } from '@opentiny/tiny-robot'
 
 type DemoSection = {
@@ -101,6 +102,11 @@ const scrollContainerRef = ref<HTMLElement | null>(null)
 const expandTrigger = ref<'hover' | 'manual'>('hover')
 const expanded = ref(false)
 const isManualMode = computed(() => expandTrigger.value === 'manual')
+const jumpFlashClassName = 'article-section-flash'
+const jumpTransitionDuration = '220ms'
+const jumpFeedbackDuration = 520
+let jumpFeedbackTimer: ReturnType<typeof setTimeout> | null = null
+
 const items = computed(() =>
   sections.map((section) => ({
     id: section.id,
@@ -108,6 +114,57 @@ const items = computed(() =>
     searchText: `${section.label} ${section.paragraphs.join(' ')}`,
   })),
 )
+
+function queryTargetById(root: ParentNode, id: string) {
+  if (typeof CSS !== 'undefined' && typeof CSS.escape === 'function') {
+    return root.querySelector<HTMLElement>(`[data-content-nav-id="${CSS.escape(id)}"]`)
+  }
+
+  return Array.from(root.querySelectorAll<HTMLElement>('[data-content-nav-id]')).find(
+    (entry) => entry.dataset.contentNavId === id,
+  )
+}
+
+function findSectionTarget(id: string) {
+  const container = scrollContainerRef.value
+  if (!container) {
+    return null
+  }
+
+  return queryTargetById(container, id)
+}
+
+function clearJumpFeedback() {
+  if (jumpFeedbackTimer) {
+    clearTimeout(jumpFeedbackTimer)
+    jumpFeedbackTimer = null
+  }
+}
+
+function applyJumpFeedback(id: string) {
+  const target = findSectionTarget(id)
+  if (!target) {
+    return
+  }
+
+  clearJumpFeedback()
+  target.classList.remove(jumpFlashClassName)
+  void target.offsetWidth
+  target.classList.add(jumpFlashClassName)
+
+  jumpFeedbackTimer = setTimeout(() => {
+    target.classList.remove(jumpFlashClassName)
+    jumpFeedbackTimer = null
+  }, jumpFeedbackDuration)
+}
+
+function handleSelect(item: { id: string }) {
+  applyJumpFeedback(item.id)
+}
+
+onBeforeUnmount(() => {
+  clearJumpFeedback()
+})
 </script>
 
 <style lang="less" scoped>
@@ -166,17 +223,26 @@ const items = computed(() =>
 .article {
   height: 100%;
   overflow: auto;
-  padding: 28px 88px 28px 28px;
+  padding: 28px;
 }
 
 .article-section {
-  padding: 0 0 28px;
+  padding: 28px;
   scroll-margin-top: 16px;
+  transition:
+    background-color v-bind(jumpTransitionDuration) ease,
+    box-shadow v-bind(jumpTransitionDuration) ease,
+    border-color v-bind(jumpTransitionDuration) ease;
 }
 
 .article-section + .article-section {
   border-top: 1px solid #eef3f8;
   padding-top: 28px;
+}
+
+.article-section.article-section-flash {
+  background: linear-gradient(180deg, rgba(185, 215, 255, 0.42) 0%, rgba(185, 215, 255, 0.14) 100%);
+  box-shadow: 0 12px 28px -22px rgba(55, 132, 255, 0.55);
 }
 
 .article-section h4 {

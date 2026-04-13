@@ -82,13 +82,27 @@ export interface ContentNavItemSlots {
   marker?: (slotProps: ContentNavMarkerSlotProps) => unknown
 }
 
-export interface ContentNavScrollSpyOptions {
+export interface ContentNavActiveSyncOptions {
   items: Ref<ContentNavItem[]>
   resolveTarget: (id: string) => HTMLElement | null
   container: Ref<HTMLElement | null | undefined>
-  host: Ref<HTMLElement | null | undefined>
   activeId?: Ref<string | undefined>
   onUpdateActiveId?: (value: string | undefined) => void
+}
+
+export interface ContentNavFloatingOffsetOptions {
+  container: Ref<HTMLElement | null | undefined>
+  host: Ref<HTMLElement | null | undefined>
+}
+
+export interface ContentNavOverlayInteractionsOptions {
+  overlay: Ref<ContentNavOverlayExpose | null>
+  highlightedId: Ref<string | undefined>
+  shouldAutoCollapse: Ref<boolean>
+  handleNavigationKeydown: (event: KeyboardEvent) => boolean
+  getHighlightedItem: () => ContentNavItem | undefined
+  onSelectItem: (itemId: string) => void
+  setExpanded: (value: boolean) => void
 }
 
 export interface ContentNavStateOptions {

@@ -75,6 +75,30 @@ test.describe('ContentNav component e2e', () => {
     await expect(page.locator(helper.selectors.contentNavRoot)).not.toContainText('Project kickoff summary')
   })
 
+  test('highlighted item resyncs to the active item after clearing a filtered query', async ({ page }) => {
+    const helper = helperFactory(page)
+
+    await helper.resetState()
+    await helper.clickNavItemByLabel('Release train dependencies')
+    await helper.expectActiveId('turn-5')
+    await helper.expectLastEventContains('turn-5')
+
+    await helper.setExternalQuery('retry storms')
+    await helper.hoverNav()
+    await expect(page.locator(`${helper.selectors.contentNavRoot} [data-item-id="turn-2"]`)).toHaveAttribute(
+      'tabindex',
+      '0',
+    )
+
+    await helper.setExternalQuery('')
+    const currentActiveId = ((await page.locator(helper.selectors.activeIdDisplay).textContent()) ?? '').trim()
+    await page.locator(helper.selectors.contentNavOverlay).evaluate((el) => {
+      el.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }))
+    })
+
+    await helper.expectLastEventContains(currentActiveId)
+  })
+
   test('clicking item scrolls to target content', async ({ page }) => {
     const helper = helperFactory(page)
 
@@ -103,7 +127,18 @@ test.describe('ContentNav component e2e', () => {
 
     await helper.expectLastEventContains('turn-5')
     await expect.poll(async () => helper.getScrollTop()).toBeGreaterThan(beforeScrollTop + 50)
-    await helper.expectActiveId('turn-5')
+    await expect
+      .poll(async () => {
+        const containerBox = await page.locator(helper.selectors.scrollContainer).boundingBox()
+        const targetBox = await bubbleTarget.boundingBox()
+
+        if (!containerBox || !targetBox) {
+          return null
+        }
+
+        return targetBox.y - containerBox.y
+      })
+      .toBeGreaterThanOrEqual(0)
   })
 
   test('keyboard activation works', async ({ page }) => {
