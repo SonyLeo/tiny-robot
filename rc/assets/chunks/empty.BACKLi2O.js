@@ -1,0 +1,1 @@
+import{p as e}from"./theme.D9F6VUla.js";import{N as t,aL as o,t as r,bk as n,aS as s}from"./framework.DevOmPuU.js";const u=t({__name:"empty",setup(c){const a=s([]);return(p,m)=>(o(),r(n(e),{data:a},null,8,["data"]))}});export{u as default};
