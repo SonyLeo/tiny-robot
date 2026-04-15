@@ -240,6 +240,10 @@ function clearTooltipState() {
 
   &__item-label {
     flex: 1;
+    font-size: var(--tr-content-nav-item-label-font-size);
+    font-weight: var(--tr-content-nav-item-label-font-weight);
+    line-height: var(--tr-content-nav-item-label-line-height);
+    letter-spacing: var(--tr-content-nav-item-label-letter-spacing);
     overflow: hidden;
     max-width: 0;
     opacity: 0;
