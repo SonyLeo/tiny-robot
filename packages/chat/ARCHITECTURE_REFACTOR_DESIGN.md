@@ -100,13 +100,16 @@
 ```text
 TrChat(config)
   -> resolveAppConfig(config)
+  -> merge integrations + events + overrides
   -> createTransportRuntime(runtimeConfig)
   -> presetUi = resolvePresetConfig(uiConfig, runtime.capabilities)
-  -> TrChat.Controlled(runtime, presetUi)
+  -> TrChat.Controlled(runtime, presetUi, events, overrides)
   -> PresetLayout
   -> Header / MessageList / Sender / History / WorkspaceShell
 
-TrChat.Controlled(runtimeInput, ui?)
+TrChat.Controlled(runtimeInput, ui?, events?, overrides?)
+  -> register events
+  -> apply overrides
   -> resolveRuntimeCapabilities(runtimeInput)
   -> resolvedPreset = resolvePresetConfig(ui, capabilities)
   -> resolvedUi = resolveRootUiConfig(resolvedPreset)
@@ -257,12 +260,18 @@ export {
 ```ts
 type TrChatProps = {
   config: TrChatAppConfig
+  integrations?: TrChatIntegrations
+  events?: TrChatEvents
+  overrides?: ChatUiOverrides
 }
 ```
 
 职责：
 
 - 解析 `config`
+- 合并 `integrations`
+- 注册 `events`
+- 应用 `overrides`
 - 构造 transport runtime
 - 解析 preset config
 - 渲染 `TrChat.Controlled`
@@ -272,6 +281,7 @@ type TrChatProps = {
 - 直接 provide runtime
 - 直接承载复杂 UI 状态
 - 直接实现消息列表/输入区/header
+- 让 `config / integrations / events / overrides` 互相越级覆盖到不可追踪
 
 #### `TrChat.Controlled`
 
@@ -281,12 +291,16 @@ type TrChatProps = {
 type TrChatControlledProps = {
   runtime: ChatRuntimeInput
   ui?: ChatPresetConfig
+  events?: TrChatEvents
+  overrides?: ChatUiOverrides
 }
 ```
 
 职责：
 
 - 接收外部传入的 runtime input
+- 注册 `events`
+- 应用 `overrides`
 - 基于 `ui` 和 `resolveRuntimeCapabilities(runtime)` 解析 preset config
 - 创建默认布局和默认 renderers
 - 渲染 `TrChat.Root`
@@ -377,6 +391,7 @@ type ChatRootUiConfig = {
   welcome?: ChatPresetConfig['welcome']
   sender?: ChatPresetConfig['sender']
   messageList?: ChatPresetConfig['messageList']
+  layout?: ChatPresetConfig['layout']
   features?: ChatPresetConfig['features']
   renderers?: ChatPresetConfig['renderers']
   messages?: ChatPresetConfig['messages']
@@ -387,6 +402,7 @@ type ResolvedChatRootUiConfig = {
   welcome: NonNullable<ChatRootUiConfig['welcome']>
   sender: NonNullable<ChatRootUiConfig['sender']>
   messageList: NonNullable<ChatRootUiConfig['messageList']>
+  layout: NonNullable<ChatRootUiConfig['layout']>
   features: NonNullable<ChatRootUiConfig['features']>
   renderers: NonNullable<ChatRootUiConfig['renderers']>
   messages: NonNullable<ChatRootUiConfig['messages']>
@@ -530,9 +546,130 @@ const runtime = createExternalStoreRuntime({
 ```ts
 type TrChatAppConfig = {
   runtime: ChatTransportRuntimeConfig
+  defaults?: {
+    model?: string | null
+    systemPrompt?: string
+  }
   ui?: ChatPresetConfig
 }
 ```
+
+其中：
+
+- `runtime`
+  负责 transport 相关能力与可持久化输入
+- `defaults`
+  负责黑盒模式下的默认模型和系统提示词
+- `ui`
+  负责默认页面结构、视觉和 feature 可见性
+
+### 6.2.1 `TrChat` 顶层输入分层
+
+黑盒入口最终不应该只剩一个 `config`，否则旧 `runtime / callbacks / presetOverrides` 的承接会重新变得模糊。  
+建议在新方案里明确保留 4 个顶层输入层次：
+
+```ts
+type TrChatProps = {
+  config: TrChatAppConfig
+  integrations?: TrChatIntegrations
+  events?: TrChatEvents
+  overrides?: ChatUiOverrides
+}
+
+type TrChatIntegrations = {
+  initialModel?: MaybeRef<string | null>
+  historyRuntime?: ChatHistoryRuntime
+  modelRuntime?: ChatModelRuntime
+  attachmentsRuntime?: ChatAttachmentsRuntime
+  workspaceRuntime?: ChatWorkspaceRuntime
+  mcpManager?: unknown
+}
+
+type TrChatEvents = {
+  beforeSend?: (
+    payload: ChatSendPayload,
+    context: { runtime: ChatRuntimeInput }
+  ) => Promise<ChatSendPayload | false | void> | ChatSendPayload | false | void
+  afterReceive?: (
+    message: ChatUIMessage,
+    context: { runtime: ChatRuntime }
+  ) => Promise<void> | void
+  onError?: (
+    error: ChatRuntimeError,
+    context: { runtime: ChatRuntimeInput | ChatRuntime }
+  ) => Promise<void> | void
+  onMessageAction?: (
+    actionId: string,
+    context: { message: ChatUIMessage; runtime: ChatRuntime }
+  ) => Promise<void> | void
+  onModelChange?: (
+    modelId: string | null,
+    context: { runtime: ChatRuntime }
+  ) => Promise<void> | void
+  onConversationChange?: (
+    conversationId: string | null,
+    context: { runtime: ChatRuntime }
+  ) => Promise<void> | void
+}
+
+type ChatUiOverrides = {
+  appearance?: Partial<ChatPresetConfig['appearance']>
+  brand?: Partial<ChatPresetConfig['brand']>
+  welcome?: Partial<ChatPresetConfig['welcome']>
+  sender?: Partial<ChatPresetConfig['sender']>
+  messageList?: Partial<ChatPresetConfig['messageList']>
+  layout?: Partial<NonNullable<ChatPresetConfig['layout']>>
+  features?: Partial<ChatPresetConfig['features']>
+  renderers?: ChatPresetConfig['renderers']
+  messages?: ChatPresetConfig['messages']
+  primitiveProps?: {
+    header?: Record<string, unknown>
+    messageList?: Record<string, unknown>
+    sender?: Record<string, unknown>
+    history?: Record<string, unknown>
+  }
+}
+```
+
+边界原则：
+
+- `config`
+  放稳定默认值
+- `integrations`
+  放页面实例对象或外部 runtime bridge
+- `events`
+  放副作用回调
+- `overrides`
+  放页面级轻量差异
+
+补充约束：
+
+- `initialModel`
+  只负责黑盒模式的初始化推荐值，不作为持续受控 source of truth
+- 如果页面已经直接提供 `modelRuntime`
+  则模型切换、当前模型和最终状态以 `modelRuntime` 为准
+
+### 6.2.2 输入优先级规则
+
+为了避免未来再出现“同一件事可以写在 4 个地方”的混乱，建议固定优先级：
+
+1. `config`
+2. `integrations`
+3. `events`
+4. `overrides`
+5. `slots`
+6. `Controlled / Root`
+
+具体解释：
+
+- `integrations`
+  可以提供实例对象，但不应反向改写 `config`
+- `events`
+  只能参与生命周期与副作用，不改静态展示配置
+- `overrides`
+  只能覆盖默认 UI 表达，不应替换 runtime source of truth
+- `slots`
+  替换结构，不应隐式改变 runtime 能力判断
 
 ### 6.3 `ChatTransportRuntimeConfig`
 
@@ -605,6 +742,15 @@ type ChatPresetConfig = {
     description?: string
     prompts?: PromptProps[]
   }
+  layout?: {
+    variant?: 'bubble' | 'plain'
+    contentLayout?: 'default' | 'centered' | 'wide'
+    placements?: {
+      assistant?: 'start' | 'stretch'
+      user?: 'end' | 'stretch'
+      system?: 'center'
+    }
+  }
   sender?: {
     placeholder?: string
     mode?: 'single' | 'multiple'
@@ -639,6 +785,8 @@ type ChatPresetConfig = {
   定义视觉和品牌
 - `welcome`
   定义默认欢迎区内容
+- `layout`
+  定义消息区版式、内容宽度和各角色 placement
 - `sender`
   定义输入区文案和交互模式
 - `messageList`
@@ -1280,6 +1428,7 @@ function useChatUiConfig(): ResolvedChatRootUiConfig
 负责：
 
 - 渲染消息列表
+- 应用 `layout.contentLayout` 和 `layout.placements`
 - auto-scroll
 - 空态/欢迎态切换
 - 为每条消息注入 item runtime
@@ -1346,6 +1495,33 @@ function useChatUiConfig(): ResolvedChatRootUiConfig
 - 使用 workspace 壳
 - 串起 `WorkspaceShell -> Header / MessageList / Sender / History`
 
+### 9.7 默认 preset 的 slot contracts
+
+为了替代旧方案里大量依赖 `presetOverrides + slots` 的轻量定制路径，默认 preset 必须提供一组稳定的 slot contracts。
+
+推荐最小集合：
+
+| slot | 作用 | 建议 scoped props |
+| --- | --- | --- |
+| `header` | 完整替换 header | `{ runtime, ui }` |
+| `header-extra` | 给默认 header 增补右侧区域 | `{ runtime, ui }` |
+| `welcome` | 替换欢迎区 | `{ ui, sendPrompt }` |
+| `message-list` | 替换消息区主体 | `{ messages, status, runtime, ui }` |
+| `sender` | 替换输入区主体 | `{ draft, submit, abort, error, runtime, ui }` |
+| `footer-extra` | 给 sender 上方或下方补充内容 | `{ runtime, ui }` |
+| `left` | workspace 左侧主体 | `{ runtime, ui, workspace }` |
+| `left-rail` | workspace 左侧 rail | `{ runtime, ui, workspace }` |
+| `right` | workspace 右侧主体 | `{ runtime, ui, workspace }` |
+| `mobile-left` | 移动端左侧 drawer / sheet | `{ runtime, ui, workspace }` |
+| `mobile-right` | 移动端右侧 drawer / sheet | `{ runtime, ui, workspace }` |
+
+约束：
+
+- slot props 只暴露稳定 runtime 和 ui 数据
+- 不暴露 transport 内部 request 对象
+- 不暴露 provider-specific 中间结果
+- 如果 slot 只是补充区域，默认节点仍负责布局与可访问性
+
 ## 10. 详细数据流设计
 
 这部分是后续实现时最重要的参考。  
@@ -1355,10 +1531,11 @@ function useChatUiConfig(): ResolvedChatRootUiConfig
 
 ```text
 TrChat(config)
+  -> merge config + integrations + events + overrides
   -> normalize transport config
   -> createTransportRuntime(config.runtime)
   -> resolvePresetConfig(config.ui, runtime.capabilities)
-  -> render TrChat.Controlled(runtime, ui)
+  -> render TrChat.Controlled(runtime, ui, events, overrides)
   -> resolveRootUiConfig(ui)
   -> TrChat.Root(runtime, resolvedUi)
   -> resolveRuntimeDefaults(runtime, { ui: resolvedUi })
@@ -1369,22 +1546,24 @@ TrChat(config)
 详细步骤：
 
 1. `TrChat` 接收 `config`
-2. 调用 `normalizeTransportRuntimeConfig`
-3. 调用 `createTransportRuntime`
-4. runtime 创建完成后，读出 `runtime.capabilities`
-5. 调用 `resolvePresetConfig(ui, capabilities)`
-6. 渲染 `TrChat.Controlled`
-7. `TrChat.Controlled` 调用 `resolveRootUiConfig`
-8. `TrChat.Controlled` 渲染 `TrChat.Root`
-9. `TrChat.Root` 补齐缺省模块并 provide
-10. preset 和 primitives 开始渲染
+2. 合并 `integrations / events / overrides`
+3. 调用 `normalizeTransportRuntimeConfig`
+4. 调用 `createTransportRuntime`
+5. runtime 创建完成后，读出 `runtime.capabilities`
+6. 调用 `resolvePresetConfig(ui, capabilities)`
+7. 渲染 `TrChat.Controlled`
+8. `TrChat.Controlled` 先应用 `overrides`
+9. `TrChat.Controlled` 调用 `resolveRootUiConfig`
+10. `TrChat.Controlled` 渲染 `TrChat.Root`
+11. `TrChat.Root` 补齐缺省模块并 provide
+12. preset 和 primitives 开始渲染
 
 ### 10.2 Controlled 模式初始化流
 
 ```text
 user runtime
   -> createExternalStoreRuntime(optional)
-  -> TrChat.Controlled(runtime, ui?)
+  -> TrChat.Controlled(runtime, ui?, events?, overrides?)
   -> resolveRuntimeCapabilities(runtimeInput)
   -> resolvePresetConfig(ui, capabilities)
   -> resolveRootUiConfig(resolvedPreset)
@@ -1398,12 +1577,13 @@ user runtime
 
 1. 用户传入最少包含 `conversation` 的 runtime
 2. 如使用 `createExternalStoreRuntime`，先做标准化
-3. `TrChat.Controlled` 先通过 `resolveRuntimeCapabilities()` 取得有效 capability
-4. `TrChat.Controlled` 解析 preset config
-5. `TrChat.Controlled` 解析 root ui config
-6. `TrChat.Root` 补齐 sender/message
-7. 若 `resolvedUi.shell.variant = 'workspace'` 且缺少 `workspace runtime`，由 `Root` 补齐
-8. primitives 开始消费 feature runtimes 和 ui config
+3. `TrChat.Controlled` 注册 `events` 并应用 `overrides`
+4. `TrChat.Controlled` 先通过 `resolveRuntimeCapabilities()` 取得有效 capability
+5. `TrChat.Controlled` 解析 preset config
+6. `TrChat.Controlled` 解析 root ui config
+7. `TrChat.Root` 补齐 sender/message
+8. 若 `resolvedUi.shell.variant = 'workspace'` 且缺少 `workspace runtime`，由 `Root` 补齐
+9. primitives 开始消费 feature runtimes 和 ui config
 
 ### 10.3 Whitebox 模式初始化流
 
@@ -1909,7 +2089,7 @@ function canShowMessageAction(
 | --- | --- | --- | --- |
 | 黑盒默认接入 | `TrChat + config` | `TrChat + TrChatAppConfig + preset UI` | Phase 2 |
 | 配置驱动的模型 / provider / 默认模型 / UI / layout / shell / features | `config.models/providers/defaults/ui/layout/shell/features` | `TrChatAppConfig.runtime + TrChatAppConfig.ui` | Phase 2-4 |
-| 页面实例级输入 | 顶层 `runtime` 中的 `storage`、`initialMessages`、`selectedModel`、`mcpManager`、`messageTransforms` | 拆分到 `ChatTransportRuntimeConfig.persistence/transforms`、专用 feature runtime、`Controlled` 输入、黑盒 `integrations` | Phase 2-5 |
+| 页面实例级输入 | 顶层 `runtime` 中的 `storage`、`initialMessages`、`selectedModel`、`mcpManager`、`messageTransforms` | 拆分到 `ChatTransportRuntimeConfig.persistence/transforms`、专用 feature runtime、黑盒 `integrations.initialModel / mcpManager` | Phase 2-5 |
 | 黑盒行为回调 | `callbacks.onBeforeSend/onFinish/onError/onMessageAction/onModelChange` | 新的 `events` 能力族 + transport `hooks` | Phase 2 |
 | 页面级轻量覆盖 | `presetOverrides` | 新的 `overrides` 能力族，拆成 `ui overrides + renderer overrides + primitive prop overrides` | Phase 2-3 |
 | 默认结构上的局部替换 | `header-extra`、`footer-extra`、`sender`、`message-list`、workspace panel slots | 新的 preset slot contracts + `Root` whitebox | Phase 2-3 |
@@ -2201,7 +2381,7 @@ function canShowMessageAction(
 - `messageTransforms`
 - `storage`
 - `initialMessages`
-- `selectedModel`
+- 旧 `selectedModel`
 - `chatKit.runtime.*`
 - `useMcpManager`
 - `useChatAttachments`
@@ -2346,6 +2526,195 @@ function canShowMessageAction(
 
 - 当前阶段应该先把 `packages/chat` 内部边界稳定下来
 - 等 runtime contract 稳定后，再评估是否下沉
+
+### P7. `integrations / events / overrides` 的精确边界怎么切
+
+推荐拍板方案：
+
+- `integrations`
+  只承接页面实例对象和 bridge
+- `events`
+  只承接副作用与生命周期
+- `overrides`
+  只承接 UI 表达覆盖
+
+推荐口径：
+
+`对象进 integrations，副作用进 events，展示差异进 overrides`
+
+例子：
+
+- 页面传一个 `mcpManager`
+  这是实例对象，进 `integrations`
+- 页面想在发送完成后打日志
+  这是副作用，进 `events`
+- 页面只想把输入框 placeholder 改掉
+  这是展示差异，进 `overrides`
+
+剩余待定点：
+
+- `mcpManager` 这种 bridge 对象，后续是否统一改成 `mcpRuntime` 或 `mcpBridge`
+- `primitiveProps` 是否继续留在 `overrides`，还是单独作为更低层 escape hatch
+
+### P8. 模型默认值与当前选中值的优先级怎么定
+
+推荐拍板方案：
+
+- `config.defaults.model`
+  只负责黑盒模式的初始化默认值
+- `integrations.initialModel`
+  作为页面实例级初始化覆盖
+- `modelRuntime.state.activeId`
+  作为真正运行时 source of truth
+
+推荐口径：
+
+`默认值只管初始化，运行态只认 runtime 当前值`
+
+推荐规则：
+
+1. 如果有 `modelRuntime`
+   最终以 `modelRuntime.state.activeId` 为准
+2. 如果没有 `modelRuntime`，但有 `integrations.initialModel`
+   用它初始化当前模型
+3. 如果两者都没有，再回退到 `config.defaults.model`
+4. 初始化完成后，不再通过 `initialModel` 持续控制当前模型
+
+例子：
+
+- `config.defaults.model = 'gpt-4o-mini'`
+- `integrations.initialModel = 'gpt-4.1'`
+- 用户进入页面后又切成 `deepseek-chat`
+
+最终规则应该是：
+
+- 初始化时优先 `gpt-4.1`
+- 运行中当前模型是 `deepseek-chat`
+- 后续 UI 和请求都只认 runtime 当前值
+
+剩余待定点：
+
+- 黑盒模式下，如果 `initialModel` 指向不存在的模型，是否直接告警
+- controlled 模式是否完全不接受顶层 `initialModel`，而要求直接提供 `modelRuntime`
+
+### P9. `overrides` 和 `slots` 的优先级是否要严格冻结
+
+推荐拍板方案：
+
+- `overrides`
+  先于默认 preset 生效
+- 替换型 `slots`
+  最终接管结构
+- 补充型 `slots`
+  只做增量扩展
+
+推荐口径：
+
+`整块替换看 slot，轻量调整看 overrides`
+
+明确规则：
+
+- `sender`、`message-list`、`header`
+  这类整块替换 slot 一旦出现，就默认完全接管对应区域
+- `header-extra`、`footer-extra`
+  这类补充 slot 只在默认结构上增补内容
+- `renderers`
+  暂时归在 `overrides`，但语义上单独视作“渲染扩展轨道”
+
+例子：
+
+- 页面写了 `overrides.sender.placeholder = '问点什么'`
+- 同时又写了 `#sender` slot
+
+推荐结果应是：
+
+- `#sender` 整块接管输入区
+- `overrides.sender.placeholder` 不再继续影响这个自定义 slot
+
+剩余待定点：
+
+- 是否允许某些 `overrides` 继续透传到 slot props 中，作为默认建议值
+
+### P10. 默认 preset 的 scoped slots 要暴露多宽的上下文
+
+推荐拍板方案：
+
+- 只暴露稳定 runtime 和 ui config
+- 按任务导向暴露最小上下文
+- 不暴露 transport 内部 request 对象和 provider-specific 中间结果
+
+推荐口径：
+
+`暴露能完成任务的能力，不暴露整套内部实现`
+
+例子：
+
+- `sender` slot
+  推荐暴露 `draft / setDraft / submit / abort / error / disabled`
+- `message-list` slot
+  推荐暴露 `messages / status / runtime / ui`
+- `header-extra` slot
+  推荐只暴露 `runtime / ui`，不额外透出底层 request 细节
+
+剩余待定点：
+
+- `message-list` slot 是否需要直接暴露 `messageRuntime`
+- `sender` slot 是否需要直接暴露附件相关 action
+- `header-extra` / `footer-extra` 是否需要比 `runtime + ui` 更窄的上下文
+
+### P11. `senderActions` 和 `welcomePrompts` 应该继续作为 feature，还是下沉回 UI 配置
+
+推荐拍板方案：
+
+- `welcomePrompts`
+  回到 `welcome` UI 配置
+- `senderActions`
+  拆成两层：
+  - capability 决定能不能用
+  - sender UI config 决定怎么显示
+
+推荐口径：
+
+`一个更像内容，一个更像能力加展示，不建议继续用同一种建模方式`
+
+例子：
+
+- `welcomePrompts`
+  本质上更像欢迎区默认内容，适合进入 `ui.welcome.prompts`
+- `senderActions`
+  里的语音、附件入口更像 capability
+- `senderActions`
+  里的字数统计、按钮顺序更像 UI config
+
+剩余待定点：
+
+- `senderActions` 是否最终要演进成 sender 子插件体系
+- `welcomePrompts` 是否还需要保留单独的 feature 开关来做显式关闭
+
+### P12. 高级 helper 和 runtime inspector 要公开到什么程度
+
+推荐拍板方案：
+
+- 正式公开只保留稳定 runtime contract 对应的 composable
+- debug / inspector 能力单独分组
+- 不再把 `chatKit.runtime.*` 一类内部实现细节当主公共接口
+
+推荐口径：
+
+`公开稳定能力，调试能力单独收口`
+
+例子：
+
+- `useConversationRuntime()`、`useSenderRuntime()`
+  这类与稳定 contract 一一对应的 composable，适合正式公开
+- `requestState`、`processingState`、底层 active engine
+  这类调试与观测能力，更适合进入 inspector 或 experimental 分组
+
+剩余待定点：
+
+- `useMcpManager`、`useChatAttachments`、`useChatFeedback`
+  是保留独立 helper，还是收回 feature runtime/composable
+- runtime inspector 是正式 API，还是仅供调试/测试使用
 
 ## 18. 推荐结论
 
