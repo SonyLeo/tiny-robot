@@ -60,6 +60,30 @@ export function createContentNavTestHelper(page: Page) {
     }
   }
 
+  async function setDocumentScrollMode(enabled: boolean) {
+    const checkbox = page.locator(selectors.toggleDocumentScrollMode)
+    const current = await checkbox.isChecked()
+    if (current !== enabled) {
+      await checkbox.click()
+    }
+  }
+
+  async function setSpecialIdMode(enabled: boolean) {
+    const checkbox = page.locator(selectors.toggleSpecialIdMode)
+    const current = await checkbox.isChecked()
+    if (current !== enabled) {
+      await checkbox.click()
+    }
+  }
+
+  async function setEmptyArrayMatcher(enabled: boolean) {
+    const checkbox = page.locator(selectors.toggleEmptyArrayMatcher)
+    const current = await checkbox.isChecked()
+    if (current !== enabled) {
+      await checkbox.click()
+    }
+  }
+
   async function setExpandTrigger(trigger: ContentNavExpandTrigger) {
     const selector = trigger === 'hover' ? selectors.expandTriggerHover : selectors.expandTriggerManual
     await page.locator(selector).check()
@@ -89,6 +113,16 @@ export function createContentNavTestHelper(page: Page) {
       .evaluate((el) => ((el as HTMLElement).scrollTop = (el as HTMLElement).scrollHeight))
   }
 
+  async function getPageScrollTop() {
+    return page.evaluate(() => window.scrollY)
+  }
+
+  async function scrollPageToBottom() {
+    await page.evaluate(() => {
+      window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'auto' })
+    })
+  }
+
   async function hoverNav() {
     const overlay = page.locator(selectors.contentNavOverlay)
     await overlay.hover()
@@ -104,6 +138,13 @@ export function createContentNavTestHelper(page: Page) {
     const firstItem = page.locator(`${selectors.contentNavRoot} .tr-content-nav__item`).first()
     await expect(firstItem).toBeVisible()
     await firstItem.focus()
+  }
+
+  async function getFocusedItemId() {
+    return page.evaluate(() => {
+      const activeElement = document.activeElement as HTMLElement | null
+      return activeElement?.dataset.itemId ?? ''
+    })
   }
 
   async function focusSearchInput() {
@@ -269,15 +310,21 @@ export function createContentNavTestHelper(page: Page) {
     isContentNavReady,
     setBubbleMode,
     setSingleTurnMode,
+    setDocumentScrollMode,
+    setSpecialIdMode,
+    setEmptyArrayMatcher,
     setExpandTrigger,
     setPlacement,
     setExternalQuery,
     resetState,
     getScrollTop,
     scrollToBottom,
+    getPageScrollTop,
+    scrollPageToBottom,
     hoverNav,
     focusFirstInteractiveInNav,
     focusFirstNavItem,
+    getFocusedItemId,
     focusSearchInput,
     fillSearchInput,
     moveMouseOutsideNav,

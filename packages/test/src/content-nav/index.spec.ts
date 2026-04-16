@@ -110,6 +110,23 @@ test.describe('ContentNav component e2e', () => {
     await helper.expectActiveId('turn-5')
   })
 
+  test('falls back to document scrolling when scrollContainer is omitted', async ({ page }) => {
+    const helper = helperFactory(page)
+
+    await helper.resetState()
+    await helper.setDocumentScrollMode(true)
+
+    const beforeScrollTop = await helper.getPageScrollTop()
+    await helper.clickNavItemByLabel('Release train dependencies')
+
+    await helper.expectLastEventContains('turn-5')
+    await expect.poll(async () => helper.getPageScrollTop()).toBeGreaterThan(beforeScrollTop + 50)
+    await helper.expectActiveId('turn-5')
+
+    await helper.scrollPageToBottom()
+    await expect.poll(async () => page.locator(helper.selectors.activeIdDisplay).textContent()).toBe('turn-6')
+  })
+
   test('bubble scene resolves marked box nodes as scroll targets', async ({ page }) => {
     const helper = helperFactory(page)
 
@@ -185,6 +202,18 @@ test.describe('ContentNav component e2e', () => {
     await helper.expectQueryValue('no-match-keyword')
   })
 
+  test('treats empty matcher arrays as non-matches instead of blank rows', async ({ page }) => {
+    const helper = helperFactory(page)
+
+    await helper.resetState()
+    await helper.setEmptyArrayMatcher(true)
+    await helper.setExternalQuery('no-match-keyword')
+    await helper.hoverNav()
+
+    await expect(page.locator(helper.selectors.contentNavRoot)).toContainText('No matching items')
+    await expect(page.locator(`${helper.selectors.contentNavRoot} .tr-content-nav__item`)).toHaveCount(0)
+  })
+
   test('mouseleave does not collapse while focus stays inside nav', async ({ page }) => {
     const helper = helperFactory(page)
 
@@ -206,6 +235,25 @@ test.describe('ContentNav component e2e', () => {
     await page.keyboard.press('Escape')
 
     await expect.poll(async () => page.locator(helper.selectors.expandedDisplay).textContent()).toBe('false')
+  })
+
+  test('keyboard highlight remains focusable when CSS.escape is unavailable', async ({ page }) => {
+    const helper = helperFactory(page)
+
+    await page.addInitScript(() => {
+      Object.defineProperty(globalThis, 'CSS', {
+        value: {},
+        configurable: true,
+      })
+    })
+    await helper.gotoDemo()
+
+    await helper.setSpecialIdMode(true)
+    await helper.hoverNav()
+    await helper.focusFirstNavItem()
+    await page.keyboard.press('ArrowDown')
+
+    await expect.poll(async () => helper.getFocusedItemId()).toBe('turn-2["2"]')
   })
 
   test('active item updates while scrolling', async ({ page }) => {

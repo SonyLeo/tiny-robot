@@ -8,7 +8,7 @@ outline: [1, 3]
 
 组件通过 `items` 渲染目录项，并根据 `item.id` 定位目标节点。目标节点默认使用 `data-content-nav-id` 标记。
 
-默认情况下，组件使用 `expandTrigger="hover"`，在鼠标悬浮或焦点进入时自动展开。若需要由外部控制展开状态，可将 `expandTrigger` 设为 `manual`，并配合 `v-model:expanded` 使用。
+默认情况下，组件使用 `expandTrigger="hover"`，在鼠标悬浮或焦点进入时自动展开。若需要由外部控制展开状态，可将 `expandTrigger` 设为 `manual`，并配合 `v-model:expanded` 使用；`expanded` 仅在 `manual` 模式下作为外部输入生效，`hover` 模式下仍由组件内部维护展开态。
 
 ## 接入说明
 
@@ -22,7 +22,7 @@ outline: [1, 3]
 - `TrBubbleList` 场景：通过 `BubbleProvider` 的 `boxRendererMatches.attributes` 为目标节点设置 `data-content-nav-id`
 - 普通滚动容器：直接在章节节点上设置 `data-content-nav-id`
 
-传入 `scrollContainer` 时，组件仅在该容器内查找目标节点；未传入时，在全局文档范围内查找。
+传入 `scrollContainer` 时，组件会在该容器内查找目标节点、监听滚动并同步激活项；未传入时，会自动回退到全局文档滚动，使用页面滚动完成定位与激活同步。
 
 在 Bubble 场景下，`data-content-nav-id` 应标记在实际滚动目标节点上。使用默认 Box renderer 时，该节点通常为 `.tr-bubble__box`，而非整个 `.tr-bubble` 容器。
 
@@ -59,10 +59,10 @@ outline: [1, 3]
 | 属性 | 类型 | 默认值 | 说明 |
 | --- | --- | --- | --- |
 | `items` | `ContentNavItem[]` | - | 目录项列表。组件默认使用 `item.id` 匹配 `[data-content-nav-id="<id>"]`，并滚动到对应节点 |
-| `scrollContainer` | `HTMLElement \| null` | `null` | 滚动容器。传入后仅在该容器内解析目标节点 |
+| `scrollContainer` | `HTMLElement \| null` | `null` | 滚动容器。传入后在该容器内解析目标节点并监听其滚动；未传入时回退到页面文档滚动 |
 | `search` | `false \| ContentNavSearchOptions` | `false` | 搜索区配置。传入 `false` 时不显示搜索区 |
 | `activeId` | `string` | 非受控 | 当前激活项。传入后进入受控模式 |
-| `expanded` | `boolean` | - | 展开状态。在 `expandTrigger="manual"` 时用于外部控制 |
+| `expanded` | `boolean` | - | 展开状态。仅在 `expandTrigger="manual"` 时作为外部控制值使用 |
 | `query` | `string` | 非受控 | 搜索词。传入后进入受控模式 |
 | `placement` | `'left' \| 'right'` | `'right'` | 停靠位置 |
 | `expandTrigger` | `'hover' \| 'manual'` | `'hover'` | 展开方式。`hover` 为自动展开，`manual` 为外部控制 |
@@ -82,7 +82,7 @@ outline: [1, 3]
 | 事件 | 参数 | 说明 |
 | --- | --- | --- |
 | `update:activeId` | `value: string \| undefined` | 当前激活项变化 |
-| `update:expanded` | `value: boolean` | 展开状态变化。`manual` 模式下可用于 `v-model:expanded`，`hover` 模式下可用于监听自动展开状态 |
+| `update:expanded` | `value: boolean` | 展开状态变化。`manual` 模式下可用于 `v-model:expanded`，`hover` 模式下仅用于监听组件内部展开状态 |
 | `update:query` | `value: string` | 搜索词变化 |
 | `select` | `item: ContentNavItem` | 目录项被选中时触发 |
 | `activate` | `item: ContentNavItem` | 目录项被激活时触发 |

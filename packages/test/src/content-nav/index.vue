@@ -17,6 +17,21 @@
         Use single turn
       </label>
 
+      <label class="control-item">
+        <input data-testid="toggle-document-scroll-mode" type="checkbox" v-model="documentScrollMode" />
+        Use document scroll
+      </label>
+
+      <label class="control-item">
+        <input data-testid="toggle-special-id-mode" type="checkbox" v-model="specialIdMode" />
+        Use special IDs
+      </label>
+
+      <label class="control-item">
+        <input data-testid="toggle-empty-array-matcher" type="checkbox" v-model="emptyArrayMatcherMode" />
+        Use empty-array matcher
+      </label>
+
       <fieldset class="placement-switch">
         <legend>Expand Trigger</legend>
         <label class="control-item">
@@ -75,13 +90,13 @@
       </div>
     </div>
 
-    <div class="workspace">
+    <div class="workspace" :class="{ 'is-document-scroll': documentScrollMode }">
       <div class="content-nav-host" data-testid="content-nav-host">
         <component
           :is="resolvedContentNav"
           data-testid="content-nav-root"
           :items="items"
-          :scroll-container="scrollContainerRef"
+          :scroll-container="resolvedScrollContainer"
           :active-id="activeId"
           v-model:expanded="expanded"
           v-model:query="query"
@@ -94,7 +109,13 @@
         />
       </div>
 
-      <div class="content-scroll-container" data-testid="content-scroll-container" ref="scrollContainerRef">
+      <div
+        class="content-scroll-container"
+        :class="{ 'is-document-scroll': documentScrollMode }"
+        :data-scroll-mode="documentScrollMode ? 'document' : 'container'"
+        data-testid="content-scroll-container"
+        ref="scrollContainerRef"
+      >
         <template v-if="bubbleMode && hasBubbleSupport">
           <component :is="resolvedBubbleProvider" :box-renderer-matches="bubbleBoxRendererMatches">
             <component
@@ -107,7 +128,12 @@
         </template>
 
         <template v-else>
-          <article v-for="(turn, index) in turns" :key="turn.id" class="content-section" :data-content-nav-id="turn.id">
+          <article
+            v-for="(turn, index) in renderedTurns"
+            :key="turn.id"
+            class="content-section"
+            :data-content-nav-id="turn.id"
+          >
             <p class="section-kicker">Section {{ index + 1 }}</p>
             <h3 class="section-title">{{ turn.label }}</h3>
             <p class="section-question">{{ turn.user }}</p>
@@ -190,6 +216,9 @@ const fillerText =
 
 const bubbleMode = ref(false)
 const singleTurnMode = ref(false)
+const documentScrollMode = ref(false)
+const specialIdMode = ref(false)
+const emptyArrayMatcherMode = ref(false)
 const expandTrigger = ref<'hover' | 'manual'>('hover')
 const activeId = ref('')
 const expanded = ref(false)
@@ -198,19 +227,42 @@ const placement = ref<'left' | 'right'>('right')
 const lastEvent = ref('none')
 const scrollContainerRef = ref<HTMLElement | null>(null)
 
-const searchConfig = {
-  clearOnCollapse: false,
-  placeholder: 'Search',
-} as const
-
 const bubbleRoleConfigs = {
   assistant: { placement: 'start' },
   user: { placement: 'end' },
 } satisfies Record<string, BubbleRoleConfig>
 
 const turns = computed(() => (singleTurnMode.value ? allTurns.slice(0, 1) : allTurns))
+const renderedTurns = computed(() =>
+  turns.value.map((turn, index) => ({
+    ...turn,
+    id: specialIdMode.value ? `${turn.id}["${index + 1}"]` : turn.id,
+  })),
+)
+const resolvedScrollContainer = computed(() => (documentScrollMode.value ? null : scrollContainerRef.value))
+
+function emptyArrayMatcher(item: ContentNavItem, rawQuery: string) {
+  const keyword = rawQuery.trim().toLowerCase()
+  if (!keyword) {
+    return [{ text: item.label, highlighted: false }]
+  }
+
+  const source = `${item.label} ${item.searchText ?? ''}`.toLowerCase()
+  if (source.includes(keyword)) {
+    return [{ text: item.label, highlighted: false }]
+  }
+
+  return []
+}
+
+const searchConfig = computed(() => ({
+  clearOnCollapse: false,
+  placeholder: 'Search',
+  ...(emptyArrayMatcherMode.value ? { matcher: emptyArrayMatcher } : {}),
+}))
+
 const items = computed<ContentNavItem[]>(() =>
-  turns.value.map((turn) => ({
+  renderedTurns.value.map((turn) => ({
     id: turn.id,
     label: turn.label,
     searchText: `${turn.label} ${turn.user} ${turn.assistant}`,
@@ -218,7 +270,7 @@ const items = computed<ContentNavItem[]>(() =>
   })),
 )
 const bubbleMessages = computed<BubbleMessage[]>(() =>
-  turns.value.flatMap((turn) => [
+  renderedTurns.value.flatMap((turn) => [
     {
       id: turn.id,
       role: 'user',
@@ -311,7 +363,11 @@ function handleActivate(payload: unknown) {
 }
 
 function resetState() {
+  bubbleMode.value = false
   singleTurnMode.value = false
+  documentScrollMode.value = false
+  specialIdMode.value = false
+  emptyArrayMatcherMode.value = false
   query.value = ''
   expanded.value = false
   expandTrigger.value = 'hover'
@@ -320,6 +376,7 @@ function resetState() {
 
   nextTick(() => {
     activeId.value = items.value[0]?.id ?? ''
+    window.scrollTo({ top: 0, behavior: 'auto' })
     const container = scrollContainerRef.value
     if (container) {
       container.scrollTop = 0
@@ -402,7 +459,12 @@ watch(
   display: grid;
   grid-template-columns: 280px 1fr;
   gap: 12px;
+  align-items: start;
   min-height: 560px;
+}
+
+.workspace.is-document-scroll {
+  min-height: unset;
 }
 
 .content-nav-host {
@@ -412,6 +474,12 @@ watch(
   border: 1px dashed #ccd6e0;
   border-radius: 8px;
   padding: 8px;
+}
+
+.workspace.is-document-scroll .content-nav-host {
+  position: sticky;
+  top: 16px;
+  height: calc(100vh - 32px);
 }
 
 .content-nav-fallback {
@@ -431,6 +499,12 @@ watch(
   border-radius: 10px;
   background: linear-gradient(180deg, #fafcff 0%, #f4f8fc 100%);
   padding: 20px 22px 28px;
+}
+
+.content-scroll-container.is-document-scroll {
+  height: auto;
+  min-height: calc(100vh + 360px);
+  overflow: visible;
 }
 
 .content-section {
