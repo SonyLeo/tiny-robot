@@ -18,7 +18,10 @@
 补充说明：
 
 - 本文档主要负责问题分析和方向讨论
-- 当前阶段更具体的落地设计见 `ARCHITECTURE_REFACTOR_DESIGN.md`
+- 当前阶段更具体的落地设计已拆分为：
+  - `ARCHITECTURE_REFACTOR_DESIGN.md`
+  - `ARCHITECTURE_REFACTOR_API_RUNTIME.md`
+  - `ARCHITECTURE_REFACTOR_EXECUTION.md`
 - 新的详细设计已经采用“runtime 先留在 `packages/chat`，稳定后再评估是否下沉”的前提
 
 ## 2. 一句话结论
