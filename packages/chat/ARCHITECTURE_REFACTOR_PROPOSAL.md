@@ -1,5 +1,22 @@
 # Chat Package Rebuild Proposal
 
+Status: historical proposal and rationale log.
+
+This document keeps the earlier problem statement, option exploration, and review context.
+
+Settled decisions now live in:
+
+- `ARCHITECTURE_REFACTOR_DESIGN.md`
+- `ARCHITECTURE_REFACTOR_API_RUNTIME.md`
+- `ARCHITECTURE_REFACTOR_EXECUTION.md`
+
+Reading rule:
+
+- Use this file for rationale and historical alternatives.
+- Use `DESIGN/API_RUNTIME/EXECUTION` for the currently settled contract and migration direction.
+
+If this file conflicts with those newer docs on package boundaries, runtime ownership, cutover sequencing, or public guidance, the newer docs win.
+
 ## 1. 文档目的
 
 这份文档用于帮助团队评估 `packages/chat` 是否应该进行一次彻底重构，以及如果重构，新的方案应该如何设计。
@@ -294,6 +311,11 @@
 
 推荐拆成两层主包职责。
 
+Current settled direction:
+
+- Phase 1 freezes runtime contracts and baseline implementation inside `packages/chat`.
+- Moving shared pieces into `packages/kit` is a later evaluation item after contract freeze and parity, not the Phase 1 default.
+
 #### `packages/kit`
 
 负责 headless runtime：
@@ -333,15 +355,15 @@ UI 只依赖 runtime interface。
 例如：
 
 - `ConversationRuntime`
-  负责消息列表、发送状态、停止生成、重新生成
+  负责消息列表、发送状态、停止生成、重试、重新生成，以及 turn 级 streaming / error 语义
 - `SenderRuntime`
   负责输入框值、上传附件、草稿、发送动作
 - `MessageRuntime`
-  负责单条消息的编辑、复制、重试、反馈、tool action
+  负责单条消息的编辑草稿、提交编辑、复制、反馈、tool action，以及基于 `messageId` 的 action capability 解析
 - `HistoryRuntime`
   负责历史会话列表、切换、重命名、删除、新建
 - `WorkspaceRuntime`
-  负责 workspace 本地面板和区域状态
+  负责 `packages/chat` 内部的 workspace 本地面板和区域状态
 - `ModelRuntime`
   负责当前模型、可选模型、切换模型
 
@@ -365,21 +387,12 @@ type ChatUIMessage = {
   id: string
   role: 'user' | 'assistant' | 'system' | 'tool'
   createdAt?: number
-  status?: 'pending' | 'streaming' | 'done' | 'error'
   parts: ChatUIMessagePart[]
   meta?: {
     conversationId?: string
+    parentMessageId?: string
+    turnId?: string
     model?: string
-    error?: {
-      message: string
-      retryable?: boolean
-    }
-    capabilities?: {
-      editable?: boolean
-      retryable?: boolean
-      regeneratable?: boolean
-      feedbackable?: boolean
-    }
   }
 }
 
@@ -391,7 +404,27 @@ type ChatUIMessagePart =
   | { type: 'tool-result'; toolResult: ChatToolResult }
   | { type: 'error'; message: string }
   | { type: 'custom'; kind: string; payload: unknown }
+
+type ChatMessageViewState = {
+  status?: 'pending' | 'streaming' | 'done' | 'error'
+  error?: {
+    message: string
+    retryable?: boolean
+  }
+  capabilities?: {
+    editable?: boolean
+    retryable?: boolean
+    regeneratable?: boolean
+    feedbackable?: boolean
+  }
+}
 ```
+
+补充约束：
+
+- `ChatUIMessage` 只承载可持久化、可回放、可恢复的消息事实
+- `status / error / capabilities` 这类临时 UI 语义不直接写进 `ChatUIMessage`
+- 它们由 `ConversationRuntime` / `MessageRuntime` 推导为 `ChatMessageViewState`
 
 ### 6.4 新的 runtime 类型
 
@@ -466,18 +499,20 @@ UI 只消费统一 runtime interface，不关心底层来自 transport 还是外
 
 新的 `config` 不应再作为 UI 的中心。
 
-建议把它降级为“创建默认 runtime 的一种输入方式”。
+建议把它降级为“黑盒模式的稳定默认值 + 创建默认 runtime 的一种输入方式”。
 
 即：
 
-- `config` 是 `createTransportRuntime(config)` 的输入
-- 不是 UI 层主入口
-- 不是白盒组件的基础前提
+- `config` 是 `createTransportRuntime(config)` 或 `createRuntimeFromConfig(config)` 的输入
+- 它在黑盒模式下仍可表达稳定的 preset 默认值
+- 但不是 Root / whitebox 组件的基础前提
 
 这意味着：
 
 - `ChatScaffold` 可以消失，或者退化为 preset 级 helper
 - `configProjection.ts` 这种“UI 预设投影”逻辑应缩到 preset 层
+- 需要一条官方桥接路径把 `TrChat` 用户平滑带到 `TrChat.Root`
+  例如：`createRuntimeFromConfig(config)` 返回 `{ runtime, ui }`
 
 ### 6.7 状态管理建议
 
@@ -549,7 +584,7 @@ UI 只消费统一 runtime interface，不关心底层来自 transport 还是外
 
 如果这一步没有稳定，不建议进入实现。
 
-### 第二步：把 runtime contract 下沉到 `packages/kit`
+### 第二步：先在 `packages/chat` 内冻结并实现 runtime contract
 
 产出：
 
@@ -558,6 +593,11 @@ UI 只消费统一 runtime interface，不关心底层来自 transport 还是外
 - external store runtime
 - 生命周期/状态流模型
 - 消息转换层
+
+说明：
+
+- 当前阶段先不强制把这些 contract 下沉到 `packages/kit`
+- 等 `packages/chat` 内部 contract 稳定后，再评估哪些部分值得抽到 `packages/kit`
 
 ### 第三步：重建 `packages/chat` UI primitives
 
@@ -655,12 +695,13 @@ UI 只消费统一 runtime interface，不关心底层来自 transport 还是外
 
 我的倾向：
 
-- 更偏向方案 A，因为它更符合当前 monorepo 的职责分层
+- 当前阶段已明确采用方案 B
+- 是否进入方案 A，留到 contract 稳定后再评估
 
 不确定点：
 
-- 这会不会让 `kit` 的职责膨胀过快
-- 团队是否接受在这轮重构里同时调整两个包的定位
+- 哪一部分 runtime 真正值得抽到 `packages/kit`
+- `workspace` 这类明显带浏览器语义的能力是否应该永远留在 `packages/chat`
 
 ### D2. `ChatUIMessage` 的粒度应该多细
 
@@ -703,11 +744,13 @@ UI 只消费统一 runtime interface，不关心底层来自 transport 还是外
 
 我的倾向：
 
-- 更偏向方案 A
+- 当前阶段明确采用折中版本：
+- `workspace` 作为 `packages/chat` 内部的公开 UI runtime module 存在
+- 先不把它下沉到 `packages/kit`
 
 不确定点：
 
-- 如果未来强需求要求外部控制左右栏、sheet、history 可见性，是否还要再次上提接口
+- 如果未来要做更纯粹的 headless 抽象，是否拆成 `WorkspaceStateRuntime + browser adapter`
 
 ### D5. `config` 是否还保留 declarative feature projection
 
@@ -764,11 +807,14 @@ UI 只消费统一 runtime interface，不关心底层来自 transport 还是外
 
 我的倾向：
 
-- 更偏向方案 A，先打通主干
+- 更偏向“分层打通主干”：
+- 第一小阶段先打通 `conversation + sender + message + Root`
+- 在黑盒 cutover 前补齐 `history / model / workspace` baseline
+- `MCP` 和更复杂的 workspace parity 后置到后续阶段
 
 不确定点：
 
-- 如果第一阶段范围过窄，第二阶段是否会再次遇到契约重切
+- 如果 `history / model / workspace` baseline 进入得过晚，会不会让默认页面阶段再次返工
 
 ## 13. 建议的评审结论格式
 
@@ -791,7 +837,9 @@ UI 只消费统一 runtime interface，不关心底层来自 transport 还是外
 - 同意引入独立 `ChatUIMessage`
 - 同意采用 feature-sliced runtime
 - 同意把 `config` 收缩为黑盒模式的构造输入
-- 第一阶段先打通 `conversation + sender + message + preset UI` 主链路
+- 同意提供一条官方桥接入口，例如 `createRuntimeFromConfig(config)`
+- 第一阶段先打通 `conversation + sender + message + Root` 主链路
+- 在默认页面正式 cutover 前补齐 `history / model / workspace` baseline
 
 如果要一句话概括，就是：
 

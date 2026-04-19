@@ -28,8 +28,18 @@ It sits above:
 
 This package exposes two main usage styles:
 
+Current shipping surface:
+
 - blackbox: `TrChat`
 - whitebox / compound composition: `TrChat.Scaffold`, `TrChat.Provider`, `TrChat.Layout`, `TrChat.WorkspaceLayout`, `TrChat.Header`, `TrChat.MessageList`, `TrChat.Sender`, etc.
+
+Refactor target surface:
+
+- blackbox: `TrChat`
+- advanced runtime entry: `TrChat.Root`
+- official preset page layer: `TrChat.Page`
+
+Do not treat the refactor target surface as the current shipping default unless the cutover milestones in `ARCHITECTURE_REFACTOR_EXECUTION.md` explicitly say the flip has happened.
 
 It also exposes runtime/config helpers such as:
 
@@ -79,6 +89,7 @@ Important:
 
 - the chat docs are valuable and fairly current, but code and tests still win if there is drift
 - if code and docs disagree on public behavior, update the stale side in the same task when practical
+- if the task is explicitly about the future refactor plan under `ARCHITECTURE_REFACTOR_*.md`, keep those design docs aligned with each other before partially switching `AGENTS.md`, demos, or public guidance
 
 ## 5. Architecture Mental Model
 
@@ -173,12 +184,25 @@ Use this mental model before making changes:
 
 If you need user-facing intent, start with these docs:
 
+For the current shipping surface:
+
 - `docs/src/components/chat.md`
   Best first read for `TrChat`, `config`, `runtime`, `callbacks`, and `presetOverrides`.
 - `docs/src/components/chat-features.md`
   Best source for `models`, `providers`, `shell`, `layout`, `features`, and config-layer responsibilities.
 - `docs/src/components/chat-advanced.md`
   Best source for `Scaffold`, `Provider`, workspace panel slots, `messageActions`, `bubbleRenderers`, `messageTransforms`, and MCP integration.
+
+For the refactor target surface, also read:
+
+- `packages/chat/ARCHITECTURE_REFACTOR_DESIGN.md`
+- `packages/chat/ARCHITECTURE_REFACTOR_API_RUNTIME.md`
+- `packages/chat/ARCHITECTURE_REFACTOR_EXECUTION.md`
+
+When doing that work:
+
+- do not partially flip the package guidance from `Scaffold / Provider` to `Root / Page` without also updating the cutover and test-migration rules in the refactor docs
+- keep a visible distinction between current shipping guidance and target-architecture guidance until the execution doc says the default mindshare flip is complete
 
 If you need real usage examples, start with these demos:
 
@@ -252,6 +276,8 @@ Before hard-coding new branches into the package, check whether the requirement 
 
 Preferred escalation order:
 
+Current shipping order:
+
 1. `TrChat`
 2. `presetOverrides`
 3. slots
@@ -259,6 +285,15 @@ Preferred escalation order:
 5. `TrChat.Provider`
 
 Do not move straight to `Provider` when `TrChat` or `Scaffold` already fits the job.
+
+Refactor target order:
+
+1. `TrChat`
+2. `TrChat.Root + TrChat.Page`
+3. slots
+4. `TrChat.Root + primitives`
+
+Do not rewrite package guidance to the refactor target order until the execution doc marks that cutover milestone as complete.
 
 ## 10. Public Contract Guardrails
 

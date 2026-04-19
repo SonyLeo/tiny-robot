@@ -1,5 +1,10 @@
 # Chat Refactor Design Overview
 
+Status: settled design overview.
+
+Use this file for the target mental model and design-level boundaries.
+Use `ARCHITECTURE_REFACTOR_API_RUNTIME.md` for contract detail and `ARCHITECTURE_REFACTOR_EXECUTION.md` for phase/cutover rules.
+
 ## 1. 文档状态
 
 本文档是 `packages/chat` 重构设计的总览与索引文档。
@@ -64,9 +69,9 @@
 
 ## 4. 顶层设计结论
 
-### 4.1 正式对外只保留两层入口心智
+### 4.1 正式对外保留两层入口，并显式定义官方页面层
 
-推荐新的正式入口心智只保留两层：
+推荐新的正式用户心智分成三部分，但只有两层“入口”：
 
 #### A. `TrChat`
 
@@ -88,6 +93,16 @@
 - 想继续使用官方默认页面时，配合 `TrChat.Page`
 - 想局部复用 primitives 或完整白盒拼装页面
 
+#### C. `TrChat.Page`
+
+作为官方 preset page layer 存在。
+
+它不是第三层独立入口，但必须被显式文档化，因为用户会真实经历这条升级路径：
+
+- `TrChat`
+- `TrChat.Root + TrChat.Page`
+- `TrChat.Root + primitives`
+
 推荐示意：
 
 ```vue
@@ -107,7 +122,8 @@
 补充说明：
 
 - `TrChat.Page` 是官方默认页面组件
-- 它属于 `TrChat.Root` 之上的官方页面实现，不是第三层用户入口
+- 它属于 `TrChat.Root` 之上的官方页面实现，不是第三层独立入口
+- `TrChat.Root` 必须配套一条可信的官方桥接入口，例如 `createRuntimeFromConfig(config)`，否则这条升级路径会退化成重写 cliff
 
 ### 4.2 不再把这些概念作为主要用户心智
 
@@ -180,6 +196,12 @@ runtime 设计遵守两个原则：
 - 只有真正拥有独立 source of truth 的领域，才提升为一级 runtime module
 - UI 是否显示、动作是否可执行，都不通过隐藏状态或消息对象补丁表达
 
+补充：
+
+- `edit / retry / regenerate` 的归属必须在实现前定死，不能只停留在 runtime module 命名层
+- `messageId` 必须覆盖 streaming、rollback、transform、恢复、持久化场景下的稳定语义
+- `workspace` 在第一阶段按 `packages/chat` 内部公开 UI runtime 处理，不先强行下沉到 `packages/kit`
+
 ### 5.5 内部可以继续分层，但不要把内部术语直接外露
 
 内部仍然可以保留这些层：
@@ -206,11 +228,13 @@ runtime 设计遵守两个原则：
    - `TrChat.Page`
 2. `TrChatConfig` 的功能域结构
 3. `ChatUIMessage` 的稳定 `id` 语义
-4. `sender / attachments / conversation.send` 的唯一 source of truth
-5. `workspace + history` 的组合 contract
-6. `messageActions / feedback / renderers / transforms` 的统一扩展 contract
-7. `primitive -> runtime` 的读取边界
-8. `slot` 与配置项的优先级规则
+4. `ConversationRuntime / MessageRuntime / SenderRuntime / AttachmentsRuntime` 的方法级 contract
+5. `sender / attachments / conversation.send` 的唯一 source of truth 与 handoff 规则
+6. `workspace + history` 的组合 contract，以及 `workspace` 是 chat-local UI runtime 的阶段性定位
+7. `messageActions / feedback / renderers / transforms` 的统一扩展 contract
+8. `primitive -> runtime` 的读取边界
+9. `slot` 与配置项的优先级规则
+10. 新旧 public surface 的 cutover 规则、测试迁移表，以及 `AGENTS.md` / docs 的同步门禁
 
 ## 7. 旧功能覆盖原则
 
@@ -262,13 +286,15 @@ runtime 设计遵守两个原则：
 - 同意做彻底重构，不保留旧 API 兼容层
 - 同意以“旧能力覆盖”而不是“旧命名兼容”作为主要约束
 - 同意正式对外收敛到 `TrChat` 和 `TrChat.Root` 两层入口心智
-- 同意把 `TrChat.Page` 明确为官方默认页面组件，而不是第三层用户入口
+- 同意把 `TrChat.Page` 明确为官方默认页面组件与 preset page layer，而不是第三层独立入口
 - 同意黑盒模式收敛为单一 `config`，并按功能域组织
 - 同意命名上使用 `config.ui` 和 `config.lifecycle`
 - 同意 `ui` 只表达展示默认值与文案品牌配置，不承载 workspace 壳层或消息行为扩展
 - 同意 `workspace` 单独承接壳层结构、区域状态与 mobile/desktop 布局语义
 - 同意同一类能力只保留一个正式写入口，避免再次出现阶段式配置歧义
 - 同意旧术语映射主要留在执行文档里，不再放到总览和 API 文档里当作并列心智
+- 同意提供 `createRuntimeFromConfig(config)` 这类官方桥接入口，避免 `TrChat.Root` 成为没有 on-ramp 的高级接口
+- 同意先冻结 runtime 方法级 contract 与 trunk-safe cutover 规则，再进入实现
 - 同意把 runtime、message、workspace、message extension 的边界先冻结，再进入实现
 
 一句话概括：
