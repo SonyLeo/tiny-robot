@@ -1,50 +1,51 @@
 # Chat Refactor Execution Plan
 
-Status: active execution plan.
+Status: active development-phase execution plan.
 
-This document owns phase gates, cutover sequencing, and validation expectations.
+This document owns phase gates, implementation sequencing, and validation expectations for the refactor while it is still in active development.
 When it conflicts with the historical proposal, this document wins.
 
-Cutover milestones:
+For review cadence, phase status tracking, and stage-level decisions, use
+`ARCHITECTURE_REFACTOR_ALIGNMENT_TRACKER.md`.
+
+当前阶段固定前提：
+
+- 这是开发阶段文档，不以对外导出切换、deprecation、对外文档默认心智切换为当前门禁
+- 旧实现只作为能力边界、测试锚点和目录来源参考，不作为 API 命名兼容目标
+- 评审与实现优先级按 contract freeze、runtime 落地、page 落地、feature parity、测试分层推进
+
+Development milestones:
 
 | Milestone | Required artifacts | Forbidden repository state |
 | --- | --- | --- |
-| `next surface available` | `Root` baseline, `createRuntimeFromConfig(config)`, runtime contract tests, migration examples | announcing `Root/Page` as the default path before the bridge and tests exist |
-| `docs/AGENTS mindshare flip` | updated refactor docs, `packages/chat/AGENTS.md`, explicit legacy guidance window, slot catalog | flipping package guidance while demos/tests/exports still force old-only usage |
-| `public export flip` | export disposition table executed, `public-surface` tests updated, next-surface examples green | changing `src/index.ts` or contract tests without a mapped migration target |
-| `legacy removal` | parity complete, demos migrated, delete-or-internal decisions landed, deprecation window closed | removing legacy symbols while any required feature still lacks a new contract or example |
+| `contract freeze ready` | runtime owner tables, slot catalog, bridge subset, source-of-truth rules, implementation routing | opening runtime implementation while contract still depends on口头解释 |
+| `Root baseline runnable` | `Root`, `conversation/sender/message/attachments` baseline, `messageId`, Phase 1A tests | writing page/app-shell code before Root baseline and send chain are stable |
+| `Page baseline runnable` | `history/models/workspace` baseline, `Page`, primitive/page baseline tests | claiming default page is ready while app-shell contract is still implicit |
+| `feature parity runnable` | message extension, MCP, workspace details, parity tests | treating feature gaps as postscript after runtime/page shapes have shipped internally |
+| `hardening ready` | contract source artifacts, targeted suites, docs/AGENTS implementation guidance | continuing implementation while contracts and tests still drift |
 
 Owner rule:
 
 - The orchestrating implementer owns milestone transitions.
 - No single doc, demo, or export change should imply a milestone flip on its own.
 
-Export disposition table:
+Old implementation boundary reference:
 
-| Current export or surface | Disposition | Migration target | Test owner | Removal phase |
-| --- | --- | --- | --- | --- |
-| `TrChat` | retain | `TrChat` | `tests/contracts/public-surface.test.mjs` | n/a |
-| `TrChat.Root` | add and retain | `TrChat.Root` | next-surface contract tests | n/a |
-| `TrChat.Page` | add and retain | `TrChat.Page` | page integration tests | n/a |
-| `TrChat.Scaffold` / `TrChatProvider` / `TrChat.Provider` | legacy | `TrChat.Root + TrChat.Page` or `TrChat.Root + primitives` | scaffold/runtime migration tests | Phase 4 |
-| `TrChat.Layout` / `TrChat.WorkspaceLayout` | legacy | `TrChat.Page` or `TrChat.WorkspaceShell` | page integration tests | Phase 4 |
-| `TrChat.Header` / `TrChat.MessageList` / `TrChat.Sender` / `TrChat.Attachments` / `TrChat.History` / `TrChat.Footer` / `TrChat.WorkspaceShell` | retain | `TrChat.Root + primitives` | primitive UI tests | n/a |
-| `TrChat.Welcome` | legacy until `Page` welcome slot lands | `TrChat.Page` or `page-welcome` slot | page integration tests | Phase 4 |
-| `TrChat.HistorySurface` / `TrChat.WorkspaceRightSheet` | legacy | workspace slots or `WorkspaceShell` defaults | workspace/page tests | Phase 4 |
-| `TrMcpTrigger` / `TrChatMcpPanel` | rename toward `TrChat.McpTrigger` / `TrChat.McpPanel` once parity lands | `Root + primitives` or page slots | workspace/MCP tests | Phase 4 |
-| `TrModelSelector` | rename toward `TrChat.ModelSelector` once parity lands | `Root + primitives` | model/runtime tests | Phase 4 |
-| `TrChatFeedback` | legacy until message extension parity lands | `config.messages.feedback` or message extension contract | message extension tests | Phase 4 |
-| `useChatKit` | legacy | runtime factory plus debug or inspector helpers | runtime contract tests | Phase 4 |
-| `useMcpManager` | legacy until MCP contract lands | `config.mcp` plus MCP runtime helpers | MCP parity tests | Phase 4 |
-| `useChatAttachments` / `useModelSelector` / `useChatFeedback` | review under parity, keep only if still needed as stable helpers | feature-specific runtime helpers | feature parity tests | Phase 4 |
-| `loadChatConfig` / `createChatAdapterFromConfig` / `createPresetChatProps` / `createPresetChatSlices` | legacy | `TrChatConfig` plus `createRuntimeFromConfig(config)` | config contract tests | Phase 4 |
-| renderer exports such as `MarkStreamRenderer` / `ErrorRenderer` / `EditInputRenderer` / `ToolCallsRenderer` / `AttachmentsRenderer` | retain under message extension contract unless explicitly replaced | `config.messages.renderers` or Root message extension surface | message extension tests | Phase 3A review, final cleanup in Phase 4 |
+| Current boundary or anchor | Refactor target owner | Dev-stage treatment | Test owner |
+| --- | --- | --- | --- |
+| `Chat.vue` blackbox entry | `TrChat` + `TrChatConfig` | 只作为黑盒能力边界参考 | blackbox config tests |
+| `ChatScaffold.vue` / `ChatProvider.vue` | `TrChat.Root`, `TrChat.Page`, primitives | 只作为旧实现边界与组合拆分参考 | runtime/page baseline tests |
+| `useChatKit` and runtime chat-kit chain | `conversation/message/sender/attachments` runtimes | 只作为旧消息主链路 owner 参考 | runtime contract tests |
+| workspace components and slot behavior | `workspace/history/models` runtimes + `Page`/`WorkspaceShell` | 只作为 app-shell 行为参考 | workspace/history/page tests |
+| `messageActions / renderers / transforms / feedback` | message extension contract | 只作为 feature 边界参考 | message extension tests |
+| MCP trigger/panel/manager | `mcp runtime` + primitives / page slots | 只作为 MCP 边界参考 | MCP parity tests |
 
 Phase 0 must also produce:
 
-- a full export disposition table based on `src/index.ts` and `tests/contracts/public-surface.test.mjs`
+- a full old-boundary reference table based on current code and tests
 - a minimum slot catalog with slot names, slot props, replace or merge precedence, and `slot vs Root + primitives` rules
-- explicit ownership for the four cutover milestones above
+- contract source artifacts for slot catalog, page slot props, config bridge matrix, and public surface intent
+- explicit ownership for the development milestones above
 
 ## 1. 文档角色
 
@@ -96,17 +97,17 @@ Phase 0 must also produce:
 - `workspace` 只负责视图模式、左右区域、rail/sheet/mobile fallback 等壳层语义
 - 同一类能力不再保留 `config.messages.*` 与 `config.lifecycle.*` 这类双入口
 
-### 2.5 trunk-safe cutover 原则
+### 2.5 开发期实现路由原则
 
-这轮重构必须补一条显式 cutover 规则，避免主分支进入“旧 surface 还在扩展，新 surface 也没收口”的摇摆状态。
+这轮重构在开发阶段必须补一条显式实现路由规则，避免团队一边写新 runtime，一边继续把结构性改动长回旧路径。
 
 执行原则：
 
-- 任一时刻只能有一套“默认对外推荐”的 public surface
-- 新 surface 可以与旧 surface 并存，但必须明确标记为 `next` / `legacy`
-- 旧 surface 在 cutover 前只接受必要修复，不再承接新能力设计
-- `TrChat` / `TrChat.Root` / `TrChat.Page` 不得在缺少迁移文档、示例、public-surface 测试的情况下替换当前默认入口
-- `packages/chat/AGENTS.md`、chat docs、demo、contract tests 必须与 cutover 节点同步更新
+- 新的结构性实现优先写入 `src/root`、`src/page`、`src/primitives`、`src/runtime/*`、`src/legacy`
+- 旧实现只作为能力边界与测试锚点参考，不作为当前方案的命名或分层约束
+- `Chat.vue`、`ChatScaffold.vue`、`ChatProvider.vue` 在当前阶段不承担重构决策 source of truth，只承担旧边界参考
+- 没有 contract source、runtime contract tests、最小 page tests 之前，不进入大范围 feature 扩展
+- `packages/chat/AGENTS.md` 必须优先服务实现路由与评审，不必等待对外文档切换默认心智才允许推进代码结构
 
 ## 3. 旧能力覆盖表
 
@@ -122,7 +123,7 @@ Phase 0 must also produce:
 | workspace 左右栏 | `shell + workspace components + slots` | `config.workspace + workspace runtime + page slots` |
 | messageActions | `presetOverrides.messageActions` | 黑盒：`config.messages.actions`；Root：`message runtime + primitives / slots` |
 | bubbleRenderers | `presetOverrides.bubbleRenderers` | 黑盒：`config.messages.renderers`；Root：`message runtime + primitives / slots` |
-| messageTransforms | `runtime.messageTransforms` | `config.messages.transforms` 或 transport pipeline |
+| messageTransforms | `runtime.messageTransforms` | `config.messages.transforms`；在 refactor target 中 owner 冻结为 `message runtime` extension pipeline |
 | callbacks / onBeforeSend / onError | `callbacks + scaffold/provider callbacks` | `config.lifecycle.*` |
 | feedback | `features.feedback + ChatFeedback` | `config.messages.feedback + message extension contract` |
 | attachments | `features.attachments + attachmentsManager` | `sender runtime + attachments runtime + config.attachments` |
@@ -131,16 +132,16 @@ Phase 0 must also produce:
 | runtime 观测与调试 | `chatKit.runtime.*` | 后续单独 inspector / debug composables |
 | helper / public composables | `useChatKit/useMcpManager/useChatAttachments/...` | 重构完成后重新收口，保留必要稳定 helper |
 
-### 3.1 legacy surface 与测试迁移表
+### 3.1 旧实现边界与测试锚点表
 
-| 对象 | Phase 0-1 | Phase 2 | Phase 3 | Phase 4 |
-| --- | --- | --- | --- | --- |
-| `src/index.ts` 中的 `Scaffold / Provider / Layout / useChatKit` 等旧 surface | 保持可用并明确标注 legacy | 文档停止把它们当主路径；只保留迁移说明 | 只接受必要修复，不再承接新能力 | 在新 surface、docs、demo、tests 全绿后移除、下放 `internal` 或保留极少量稳定 helper |
-| `tests/contracts/public-surface.test.mjs` | 继续保护当前 shipping surface | 新增 next-surface 对照断言或新测试文件 | 旧 surface 断言只保留 cutover 必需项 | 完成 public surface 翻转后重写为新 contract |
-| `tests/runtime/scaffold-runtime.test.mjs` | 继续作为当前实现锚点 | 新增 `Root + createRuntimeFromConfig` 对照测试 | 旧 scaffold 只保留回归保护 | cutover 后删除或替换为新的 Root/runtime contract tests |
-| `tests/config/*` | 继续保护当前 config 行为 | 新增 next `TrChatConfig` 覆盖，不立即删除 legacy 分支断言 | 逐步把 feature 行为迁移到新 config / runtime contract | cutover 后统一收口旧 config 断言 |
-| `tests/ui/chat-ui-context.test.mjs` 与 `tests/contracts/workspace-slot-contract.test.mjs` | 视为当前 shipping workspace 语义锚点 | 保持 green，不允许为了推进新结构而忽略 | 作为 workspace/history/model parity 的硬门禁 | 由新的 workspace/page tests 接替后再调整 |
-| `packages/chat/AGENTS.md` 与 chat 相关 docs | Phase 0 纳入对齐清单 | 与 `Root/Page` 默认心智同步 | 跟随 parity 与 cutover 更新 | 完成新 public guidance 收口 |
+| 对象 | 当前阶段角色 | 开发期处理原则 |
+| --- | --- | --- |
+| `src/index.ts` 里的旧 surface | 现状参考，不是当前实现门禁 | 不围绕旧导出做设计回退 |
+| `tests/contracts/public-surface.test.mjs` | 现状锚点 | 只用于识别当前 shipping surface，不作为 refactor contract freeze 门禁 |
+| `tests/runtime/scaffold-runtime.test.mjs` | 旧主链路锚点 | 用于对照旧行为边界，不绑定新 runtime 的结构实现 |
+| `tests/config/*` | 旧黑盒 config 行为锚点 | 用于识别旧能力范围，不要求新方案继续复刻旧入口组织方式 |
+| `tests/ui/chat-ui-context.test.mjs` 与 `tests/contracts/workspace-slot-contract.test.mjs` | workspace 行为锚点 | 作为 workspace/history/model 语义参考，直到新的 page/workspace tests 接管 |
+| `packages/chat/AGENTS.md` | 实现路由说明 | 优先服务当前开发阶段的评审与实现，而不是对外发布切换 |
 
 ## 4. 必须提前守住的 parity guardrails
 
@@ -191,49 +192,48 @@ Phase 0 must also produce:
 
 ```text
 src/
-  components/
-    root/
-      TrChatRoot.vue
-    page/
-      TrChatPage.vue
-      TrChatPageHeader.vue
-      TrChatPageBody.vue
-      TrChatPageFooter.vue
-    primitives/
-      TrChatHeader.vue
-      TrChatMessageList.vue
-      TrChatMessage.vue
-      TrChatSender.vue
-      TrChatHistory.vue
-      TrChatModelSelector.vue
-      TrChatAttachments.vue
-    workspace/
-      TrChatWorkspaceShell.vue
-      TrChatWorkspaceRail.vue
-      TrChatWorkspaceSheet.vue
-    features/
-      message-actions/
-      feedback/
-      mcp/
-      renderers/
+  root/
+    TrChatRoot.vue
+    rootContext.ts
+    normalizeRuntime.ts
+  page/
+    TrChatPage.vue
+    TrChatPageHeaderRegion.vue
+    TrChatPageBodyRegion.vue
+    TrChatPageFooterRegion.vue
+  primitives/
+    TrChatHeader.vue
+    TrChatMessageList.vue
+    TrChatMessage.vue
+    TrChatSender.vue
+    TrChatFooter.vue
+    TrChatHistory.vue
+    TrChatModelSelector.vue
+    TrChatWorkspaceShell.vue
+    TrChatAttachments.vue
+    TrChatMcpTrigger.vue
+    TrChatMcpPanel.vue
   runtime/
     core/
       types.ts
       keys.ts
-      composables.ts
-      resolveRuntimeDefaults.ts
+      normalizeRuntime.ts
       resolveRuntimeCapabilities.ts
-    transport/
-      createTransportRuntime.ts
-      normalizeChatUIMessage.ts
-    external/
-      createExternalRuntime.ts
+    config/
+      createRuntimeFromConfig.ts
+      normalizeTrChatConfig.ts
+      mapLifecycleHooks.ts
     conversation/
       createConversationRuntime.ts
+      messageId.ts
+      transforms.ts
     sender/
       createSenderRuntime.ts
     message/
       createMessageRuntime.ts
+      actionRegistry.ts
+      rendererRegistry.ts
+      viewState.ts
     history/
       createHistoryRuntime.ts
     models/
@@ -242,15 +242,11 @@ src/
       createWorkspaceRuntime.ts
     attachments/
       createAttachmentsRuntime.ts
-  config/
-    normalizeChatConfig.ts
-    createTransportConfig.ts
-    createUiConfig.ts
-    createLifecycleConfig.ts
-  shared/
-    context/
-    copy/
-    utils/
+    mcp/
+      createMcpRuntime.ts
+  legacy/
+    createLegacyScaffoldBridge.ts
+    createLegacyProviderBridge.ts
 ```
 
 ### 5.1 ownership 原则
@@ -261,12 +257,10 @@ src/
   只负责官方默认页面结构与 slot contract
 - `primitives/`
   只负责单一 UI 职责，不负责跨区域状态编排
-- `workspace/`
-  只负责 shell / rail / sheet / responsive 布局
-- `features/`
-  承接 message actions、feedback、mcp、renderers 等 feature 级能力
 - `runtime/`
-  只放 source of truth 与动作语义
+  只放 source of truth、动作语义与 feature registry；`runtime/message/*` 承接 actions / feedback / renderers，`runtime/mcp/*` 承接 MCP bridge
+- `legacy/`
+  只承接 shipping surface 的 adapter、wrapper 与 `index -> id` 转译边界
 
 ## 6. phase 计划
 
@@ -284,18 +278,27 @@ src/
 - `ChatUIMessage` 与稳定 `messageId`
 - runtime modules 边界
 - `ConversationRuntime / MessageRuntime / SenderRuntime / AttachmentsRuntime` 方法级 contract
+- `ChatSendInput / ChatPendingAttachment / ChatResolvedMessageAction / ChatResolvedRenderer / ChatWorkspaceRegionRuntime` 最小辅助类型 contract
 - `ui vs workspace` 边界表
 - `messages vs lifecycle` 边界表
 - `sender / attachments` source of truth 规则
 - `status / error / capabilities` 是 canonical data 还是 derived view state
 - `workspace + history` contract
 - `workspace` 第一阶段是否保持为 `packages/chat` 本地 UI runtime
+- `mcp` 是否进入 `ChatRuntimeInput / ChatRuntime`
 - `message extension contract`
 - 官方 `createRuntimeFromConfig(config)` 桥接入口
+- `TrChat.Page` slot-provider contract
+- `TrChat.Page` 的 footer companion region contract
 - primitive 读取边界表
-- legacy surface cutover 表
-- 具体测试迁移表
-- `AGENTS.md` / docs / demo 对齐清单
+- slot catalog 最终命名
+- `messageTransforms` 的正式 owner
+- Phase 1A bridge 支持范围
+- 旧实现边界参考表
+- 高风险 alias / type 锚点表
+- 当前 `src/index.ts` 公开面附录（参考，不是开工门禁）
+- 关键测试锚点表
+- `AGENTS.md` 实现路由清单
 - phase-to-test matrix
 - 旧能力覆盖表
 
@@ -304,9 +307,11 @@ src/
 Phase 0 退出条件：
 
 - 三份设计文档中的命名、边界、目录、phase 叙述已经一致
+- `ui` 不再同时存在 display-only 版本与 `ui.page / ui.messages / ui.slots` 版本
+- slot catalog 已只保留一套公开命名，不再并行维护 `page-*` 与无前缀双体系
 - `ARCHITECTURE_REFACTOR_*.md`、`packages/chat/AGENTS.md`、相关 chat docs 对主路径表述一致
 - 边界表和覆盖表进入“可实现”状态，不再依赖口头解释
-- cutover 表和测试迁移表已经落地，不再靠临时判断决定删改哪些 surface / tests
+- 旧实现边界参考表和测试锚点表已经落地，不再靠临时判断决定该参考哪些旧结构 / tests
 - phase-to-test matrix 已写定，后续阶段不再临时补门禁
 
 ## Phase 1：runtime foundation + Root baseline
@@ -341,6 +346,30 @@ Phase 0 退出条件：
 - `TrChat.Message`
 - `TrChat.MessageList`
 - `TrChat.Sender`
+
+附加门禁：
+
+- 必须显式写清 Phase 1A bridge 只支持哪些 `config` 域
+- 不允许把 Phase 1A helper 宣称为“已完整覆盖黑盒路径”的官方 on-ramp
+
+字段级 bridge subset 必须至少冻结成下面这张表：
+
+| config 字段 | Phase 1A 状态 | 说明 |
+| --- | --- | --- |
+| `request.transport`, `request.systemPrompt` | `supported` | conversation baseline |
+| `request.defaultModelId` | `fixed-default-only` | 只作为 `ChatSendInput.modelId` 默认值注入 |
+| `request.models` | `deferred` | 不承诺产出 `models runtime` |
+| `conversation.initialMessages` | `supported` | conversation seed baseline |
+| `conversation.persistence` | `supported` | 只承诺 active-conversation hydrate / restore，不代表已有 `history runtime` |
+| `ui.*` | `supported` | 严格 display-only |
+| `sender.*` | `supported` | sender baseline |
+| `attachments.*` | `supported` | attachments prepare + handoff baseline |
+| `messages.actions`, `messages.renderers`, `messages.feedback` | `supported` | 最小 message extension 链 |
+| `messages.transforms` | `deferred` | owner 已冻结为 message extension pipeline，但不属于 Phase 1A bridge 承诺 |
+| `lifecycle.beforeSend`, `lifecycle.error` | `supported` | 最小 bridge hook |
+| `lifecycle.afterReceive` | `deferred` | 顺序冻结，但不要求 Phase 1A bridge 落地 |
+| `history.*`, `workspace.*`, `models.*`, `mcp.*` | `deferred` | 等 Phase 1B 或之后 |
+| `lifecycle.modelChange`, `lifecycle.conversationChange` | `deferred` | 等 `models / history` baseline 建立后再接入 |
 
 验收标准：
 
@@ -404,7 +433,7 @@ Phase 1B 退出条件：
 
 - `Root + Page` 最小主路径可运行
 - workspace/history/model baseline 已进入自动化回归保护
-- 旧默认页面仍是 shipping path，直到 Phase 2 cutover 条件满足
+- 旧默认页面仍只作为边界对照参考，直到新的 page baseline 稳定
 
 ## Phase 2：黑盒 `TrChat` + 官方 `TrChat.Page`
 
@@ -421,8 +450,8 @@ Phase 1B 退出条件：
 - 黑盒 slots
 - request / ui / workspace / history / sender / messages / lifecycle 的主路径配置
 - `TrChat.Page` 与 `WorkspaceShell` / `Header` / `MessageList` / `Sender` 的默认组合关系
-- `TrChat -> Root + Page -> Root + primitives` 迁移示例
-- legacy surface discoverability / deprecation 说明
+- `TrChat -> Root + Page -> Root + primitives` 开发期示例
+- 黑盒主路径的实现说明与评审样例
 
 重点验收：
 
@@ -430,14 +459,14 @@ Phase 1B 退出条件：
 - 用户只需要理解 `TrChat` 和 `TrChat.Root`
 - 常见默认接入能只靠一个 `config` 完成
 - `TrChat.Page` 被明确为官方默认页面组件与 preset page layer，而不是第三层独立入口
-- `createRuntimeFromConfig(config)` 已成为官方推荐的 Root on-ramp
+- `createRuntimeFromConfig(config)` 已成为带显式 bridge subset 的官方推荐 Root on-ramp
 
 Phase 2 必跑测试：
 
 - blackbox config contract tests
 - page integration tests
 - `TrChat` / `Root + Page` / `Root + whitebox primitives` 对照测试
-- migration example verification
+- blackbox example verification
 
 Phase 2 退出条件：
 
@@ -445,7 +474,7 @@ Phase 2 退出条件：
 - `ui`、`workspace`、`messages`、`lifecycle` 四类入口在黑盒模式下都能找到唯一写入口
 - `TrChat.Page` 自身只负责页面组合，不再吞并下层 primitives 的职责
 - 默认页面的 workspace/history/model baseline 已与当前 shipping 语义对齐
-- 旧 surface 已明确标记 legacy，但未提前删除
+- 旧实现边界与新 contract 的对应关系已稳定
 
 ## Phase 3：feature parity
 
@@ -497,33 +526,31 @@ Phase 3B 退出条件：
 - workspace / history / model / MCP 不再是后置补洞能力
 - stacked / workspace / mobile 三类主路径的交互语义有稳定回归保护
 
-## Phase 4：稳定化、文档、测试、helper 收口
+## Phase 4：稳定化、评审材料、测试、helper 收口
 
 目标：
 
-- 收口 public surface
-- 补齐 demo / docs / tests
-- 评估哪些 helper 应继续公开
+- 收口开发期评审材料
+- 补齐 docs / tests / examples
+- 评估哪些 helper 应继续保留
 
 完成项：
 
-- docs 全面切换到新心智
-- demo 全面迁移
+- docs / AGENTS / blueprint / execution 口径统一
+- 关键 examples 与 targeted suites 收口
 - helper / inspector 收口
-- 执行 public surface cutover
-- 删除旧术语与旧 surface
+- 旧边界参考与新 contract 对照稳定
 
 Phase 4 必跑测试：
 
-- docs and demo verification
-- public surface verification
+- docs and example verification
 - full targeted package suite
 
 Phase 4 退出条件：
 
 - 文档、示例、public surface 与实现保持一致
 - 每个正式入口至少有一个可运行 demo
-- legacy surface 的迁移窗口、保留项、删除项已经执行完毕
+- 旧边界参考与新 contract 的对应关系已固化
 - 收口类工作有自动化验证，不是仅靠人工检查
 
 ## 7. 测试策略
@@ -532,20 +559,40 @@ Phase 4 退出条件：
 
 | Phase | 必跑测试 | 禁止进入下一阶段的失败项 |
 | --- | --- | --- |
-| Phase 0 | 文档一致性检查 / cutover 表检查 / 测试迁移表检查 | 命名、边界、目录、phase 叙述不一致；cutover 与测试迁移规则未写定 |
+| Phase 0 | 文档一致性检查 / 旧边界参考表检查 / 测试锚点表检查 / slot catalog contract tests / contract source tests | 命名、边界、目录、phase 叙述不一致；slot 命名或 `ui` contract 仍双轨；旧边界参考仍依赖口头解释 |
 | Phase 1A | runtime contract tests / `message extension` 最小 contract tests / `sender-attachments` contract tests / `Root + createRuntimeFromConfig` baseline tests | runtime source of truth 漂移；attachments handoff 未成立；`messageId` 语义不稳定；Root on-ramp 不可运行 |
 | Phase 1B | workspace-history contract tests / primitive UI tests / `Root + Page` baseline integration tests | workspace/history/model baseline 未成立；默认页面主路径仍依赖口头约定 |
-| Phase 2 | blackbox config contract tests / page integration tests / `TrChat` vs `Root + Page` 对照测试 / migration example verification | 黑盒配置仍有双入口；`TrChat.Page` 仍吞并下层职责；默认页面 workspace/history/model 语义未对齐；迁移路径不可教 |
+| Phase 2 | blackbox config contract tests / page integration tests / `TrChat` vs `Root + Page` 对照测试 / blackbox example verification | 黑盒配置仍有双入口；`TrChat.Page` 仍吞并下层职责；默认页面 workspace/history/model 语义未对齐；黑盒主路径仍不可评审 |
 | Phase 3A | message extension contract tests / sender-attachments integration tests / feature parity tests: message-sender slice | 消息链路与发送链路没有稳定回归保护 |
 | Phase 3B | workspace-history contract tests / page integration tests: workspace variants / feature parity tests: workspace-MCP slice | workspace/history/model/MCP/mobile 主路径语义仍不稳定 |
-| Phase 4 | docs and demo verification / public surface verification / full targeted package suite | public surface、文档、demo 与实现不一致；legacy surface 未完成 cutover |
+| Phase 4 | docs and example verification / full targeted package suite | 文档、示例、tests 与实现不一致；旧边界参考与新 contract 仍漂移 |
+
+### 7.0A contract source tests
+
+验证：
+
+- slot catalog 命名与 precedence
+- `TrChat.Page` slot-provider contract
+- `config -> { runtime, ui }` bridge mapping
+- old export / helper boundary reference
+
+这些 tests 不能只靠 grep prose 文档，必须先有最小 contract source artifact。
+
+推荐最小产物：
+
+- `src/runtime/contracts/slotCatalog.ts`
+- `src/runtime/contracts/pageSlotProps.ts`
+- `src/runtime/contracts/configBridgeMatrix.ts`
+- `src/runtime/contracts/publicSurfaceMatrix.ts`
+
+contract tests 应优先断言这些 artifact，再由 docs 引用它们。
 
 ### 7.1 runtime contract tests
 
 验证：
 
 - `ChatUIMessage`
-- `conversation / sender / message / history / models / workspace / attachments`
+- `conversation / sender / message / history / models / workspace / attachments / mcp`
 - `resolveRuntimeDefaults`
 - `resolveRuntimeCapabilities`
 - source of truth 规则
@@ -604,7 +651,7 @@ Phase 4 退出条件：
 - 每个正式入口至少有一个 demo
 - 每个复杂 feature 至少有一个针对性 demo
 - 文档描述的用户心智必须和真实 public API 一致
-- `TrChat -> Root + Page -> Root + primitives` 至少有一条完整迁移示例
+- `TrChat -> Root + Page -> Root + primitives` 至少有一条完整开发期实践示例
 - slot catalog 与 slot props 文档已补齐
 
 ## 8. 评审 checklist
@@ -622,7 +669,7 @@ Phase 4 退出条件：
 9. `createRuntimeFromConfig(config)` 是否足以成为官方 Root on-ramp
 10. `message extension contract` 是否已经冻结
 11. slots 和配置优先级是否明确，并且 slot catalog 可教
-12. legacy surface cutover 表与测试迁移表是否已经落地
+12. 旧实现边界参考表与测试锚点表是否已经落地
 13. phase 是否把主路径能力放在足够早的位置
 14. phase-to-test matrix 是否已经落地
 15. 测试是否能按 runtime / primitive / page / feature parity 分层
@@ -634,13 +681,13 @@ Phase 4 退出条件：
 - 不做旧 API 兼容层
 - 先做契约冻结和能力覆盖表
 - 先把 `config.ui / config.lifecycle` 与单一入口原则定死
-- 先把 trunk-safe cutover 表、测试迁移表、`AGENTS.md` / docs 对齐门禁写死
+- 先把旧边界参考表、测试锚点表、`AGENTS.md` 实现路由门禁写死
 - 先把 `Root + runtime foundation + createRuntimeFromConfig` 做成立
 - 再补 `history / model / workspace` baseline 与 `Page`
 - 再回到黑盒 `TrChat`
 - 再补齐 feature parity
-- 最后统一收口 helper、docs、demo、tests 与 legacy surface
+- 最后统一收口 helper、docs、examples、tests 与旧边界参考
 
 一句话概括：
 
-先把“contract、cutover、主路径门禁”做对，再把“实现和命名”做完，这样才能真正解决旧方案“功能多但难理解、推进时还容易断层”的问题。
+先把“contract、旧边界参考、主路径门禁”做对，再把“实现和命名”做完，这样才能真正解决旧方案“功能多但难理解、推进时还容易断层”的问题。

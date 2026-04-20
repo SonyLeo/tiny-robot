@@ -3,7 +3,7 @@
 Status: settled design overview.
 
 Use this file for the target mental model and design-level boundaries.
-Use `ARCHITECTURE_REFACTOR_API_RUNTIME.md` for contract detail and `ARCHITECTURE_REFACTOR_EXECUTION.md` for phase/cutover rules.
+Use `ARCHITECTURE_REFACTOR_API_RUNTIME.md` for contract detail and `ARCHITECTURE_REFACTOR_EXECUTION.md` for phase and implementation rules.
 
 ## 1. 文档状态
 
@@ -31,6 +31,10 @@ Use `ARCHITECTURE_REFACTOR_API_RUNTIME.md` for contract detail and `ARCHITECTURE
   负责新的对外 API、配置模型、runtime 模型、UI 边界
 - [ARCHITECTURE_REFACTOR_EXECUTION.md](./ARCHITECTURE_REFACTOR_EXECUTION.md)
   负责能力覆盖、目录组织、phase 计划、测试策略
+- [ARCHITECTURE_REFACTOR_IMPLEMENTATION_BLUEPRINT.md](./ARCHITECTURE_REFACTOR_IMPLEMENTATION_BLUEPRINT.md)
+  负责 Phase 0.5 的实现级 contract 收口、slot catalog、bridge scope 与实施切片
+- [ARCHITECTURE_REFACTOR_ALIGNMENT_TRACKER.md](./ARCHITECTURE_REFACTOR_ALIGNMENT_TRACKER.md)
+  负责评审节奏、阶段状态、已决议项、未决问题与阶段汇报跟踪
 
 ## 2. 这次整理的核心变化
 
@@ -234,7 +238,7 @@ runtime 设计遵守两个原则：
 7. `messageActions / feedback / renderers / transforms` 的统一扩展 contract
 8. `primitive -> runtime` 的读取边界
 9. `slot` 与配置项的优先级规则
-10. 新旧 public surface 的 cutover 规则、测试迁移表，以及 `AGENTS.md` / docs 的同步门禁
+10. 旧实现边界参考表、测试锚点表，以及 `AGENTS.md` 的实现路由门禁
 
 ## 7. 旧功能覆盖原则
 
@@ -267,6 +271,7 @@ runtime 设计遵守两个原则：
 先看：
 
 - [ARCHITECTURE_REFACTOR_API_RUNTIME.md](./ARCHITECTURE_REFACTOR_API_RUNTIME.md)
+- [ARCHITECTURE_REFACTOR_IMPLEMENTATION_BLUEPRINT.md](./ARCHITECTURE_REFACTOR_IMPLEMENTATION_BLUEPRINT.md)
 
 如果你关心：
 
@@ -293,8 +298,8 @@ runtime 设计遵守两个原则：
 - 同意 `workspace` 单独承接壳层结构、区域状态与 mobile/desktop 布局语义
 - 同意同一类能力只保留一个正式写入口，避免再次出现阶段式配置歧义
 - 同意旧术语映射主要留在执行文档里，不再放到总览和 API 文档里当作并列心智
-- 同意提供 `createRuntimeFromConfig(config)` 这类官方桥接入口，避免 `TrChat.Root` 成为没有 on-ramp 的高级接口
-- 同意先冻结 runtime 方法级 contract 与 trunk-safe cutover 规则，再进入实现
+- 同意提供带显式 bridge subset 的 `createRuntimeFromConfig(config)` 作为官方桥接入口，避免 `TrChat.Root` 成为没有 on-ramp 的高级接口
+- 同意先冻结 runtime 方法级 contract 与开发阶段实现门禁，再进入实现
 - 同意把 runtime、message、workspace、message extension 的边界先冻结，再进入实现
 
 一句话概括：

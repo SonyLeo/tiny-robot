@@ -39,7 +39,11 @@ Refactor target surface:
 - advanced runtime entry: `TrChat.Root`
 - official preset page layer: `TrChat.Page`
 
-Do not treat the refactor target surface as the current shipping default unless the cutover milestones in `ARCHITECTURE_REFACTOR_EXECUTION.md` explicitly say the flip has happened.
+Current refactor-development default:
+
+- for refactor design, review, and implementation work, prioritize the target-surface contracts in the refactor docs
+- treat the current shipping surface mainly as a capability boundary and test anchor
+- do not let shipping export shape or publish-stage concerns override a better target-surface contract during active development
 
 It also exposes runtime/config helpers such as:
 
@@ -53,6 +57,8 @@ It also exposes runtime/config helpers such as:
 ## 3. First Read Order
 
 When starting a non-trivial task in this package, build context in roughly this order:
+
+For active refactor-next work, read the four `ARCHITECTURE_REFACTOR_*.md` docs before diving into shipping implementation files, then inspect current code only to confirm old boundaries, tests, and reusable logic.
 
 1. `packages/chat/src/index.ts`
    Understand the real public surface first.
@@ -198,11 +204,27 @@ For the refactor target surface, also read:
 - `packages/chat/ARCHITECTURE_REFACTOR_DESIGN.md`
 - `packages/chat/ARCHITECTURE_REFACTOR_API_RUNTIME.md`
 - `packages/chat/ARCHITECTURE_REFACTOR_EXECUTION.md`
+- `packages/chat/ARCHITECTURE_REFACTOR_IMPLEMENTATION_BLUEPRINT.md`
 
 When doing that work:
 
-- do not partially flip the package guidance from `Scaffold / Provider` to `Root / Page` without also updating the cutover and test-migration rules in the refactor docs
-- keep a visible distinction between current shipping guidance and target-architecture guidance until the execution doc says the default mindshare flip is complete
+- for development-stage refactor work, prefer contract clarity and implementation routing over publish-stage planning
+- do not let old shipping guidance become the decision source for new refactor structure work
+- keep a visible distinction between current shipping guidance and target-architecture guidance until the package explicitly enters publish stage
+- treat `ARCHITECTURE_REFACTOR_IMPLEMENTATION_BLUEPRINT.md` as the Phase 0.5 implementation source of truth once it narrows an ambiguity left by the older docs
+- do not reintroduce `ui.page`, `ui.messages`, or `ui.slots` after the blueprint freezes `ui` as display-only
+- keep refactor slot vocabulary aligned to the finalized catalog; do not maintain `page-*` and unprefixed slot names in parallel
+- for next-surface implementation planning, prefer the new-target directories documented in the refactor docs such as `src/root`, `src/page`, `src/primitives`, `src/runtime/*`, and `src/legacy`; do not silently mix those with shipping-path assumptions
+- when touching `docs/src/components/chat*.md`, preserve a clear "current shipping surface vs target refactor surface" note until the publish stage is explicitly entered
+
+Authoritative freeze anchors:
+
+- runtime owner / primitive read-boundary tables:
+  `ARCHITECTURE_REFACTOR_IMPLEMENTATION_BLUEPRINT.md section 6.2` and `ARCHITECTURE_REFACTOR_API_RUNTIME.md section 9`
+- slot catalog / slot-provider contract:
+  `ARCHITECTURE_REFACTOR_IMPLEMENTATION_BLUEPRINT.md section 6.3-6.4` and `ARCHITECTURE_REFACTOR_API_RUNTIME.md section 6.5D-6.5E / section 10`
+- old export / helper boundary reference:
+  `ARCHITECTURE_REFACTOR_IMPLEMENTATION_BLUEPRINT.md section 7.7` and `ARCHITECTURE_REFACTOR_EXECUTION.md` old-boundary reference table
 
 If you need real usage examples, start with these demos:
 
@@ -218,6 +240,19 @@ Do not copy demo-only tradeoffs into package runtime unless the logic is clearly
 ## 8. Change Routing Guide
 
 Use this routing table before editing:
+
+For refactor-next implementation, prefer this route first:
+
+- contract / owner / runtime normalize changes:
+  start with `ARCHITECTURE_REFACTOR_IMPLEMENTATION_BLUEPRINT.md`, then `src/runtime/core/*` and the owning runtime module under `src/runtime/*`.
+- Root wiring and provide/inject boundaries:
+  start with `src/root/*`.
+- official default page composition and slot-provider behavior:
+  start with `src/page/*`.
+- primitive-level UI contracts:
+  start with `src/primitives/*`.
+- old shipping files under `src/components/core/*`:
+  only touch them when a boundary anchor, comparison test, or temporary legacy adapter actually requires it.
 
 - Add or change a declarative config field:
   update `src/runtime/config/types.ts`, `configLoader.ts`, `configProjection.ts`, and the relevant tests under `tests/config`.
@@ -274,6 +309,11 @@ Before hard-coding new branches into the package, check whether the requirement 
 - `messageTransforms`
   for runtime message shaping before render
 
+For active refactor-target work, add two clarifications:
+
+- treat the `top-level runtime` and `messageTransforms` bullets above as current-shipping extension guidance
+- do not carry them over as the target-surface owner model; in the refactor docs, `config.messages.transforms` is frozen under the `message runtime` extension pipeline
+
 Preferred escalation order:
 
 Current shipping order:
@@ -293,7 +333,13 @@ Refactor target order:
 3. slots
 4. `TrChat.Root + primitives`
 
-Do not rewrite package guidance to the refactor target order until the execution doc marks that cutover milestone as complete.
+For internal refactor work, follow the refactor target order.
+For user-facing guidance, keep the current-shipping note until the package explicitly enters publish stage.
+
+Implementation routing during Phase 1A / 1B:
+
+- keep shipping wrappers (`Chat.vue`, `ChatScaffold.vue`, `ChatProvider.vue`) on legacy internals unless the phase table explicitly allows reroute
+- prefer writing new next-surface code into `src/root`, `src/page`, `src/primitives`, `src/runtime/*`, and `src/legacy`
 
 ## 10. Public Contract Guardrails
 
@@ -365,6 +411,13 @@ Update chat docs in the same task when you change:
 - `messageActions`, `bubbleRenderers`, or `messageTransforms` recommended extension paths
 - workspace slot or side-panel behavior
 - MCP integration expectations
+
+For refactor-target work, also sync `packages/chat/ARCHITECTURE_REFACTOR_*.md` when you change:
+
+- `messages.transforms` owner or lifecycle order
+- `conversation.persistence` vs `history runtime` boundaries
+- `TrChat.Page` region composition, footer companion region, or slot degrade rules
+- public-surface freeze level versus review appendix scope
 
 Minimum likely doc targets:
 

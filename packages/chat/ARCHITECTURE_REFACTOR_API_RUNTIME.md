@@ -2,7 +2,7 @@
 
 Status: settled API/runtime contract draft for implementation.
 
-This document defines the target public mental model, runtime ownership, and migration bridge.
+This document defines the target public mental model, runtime ownership, and development-stage implementation contract.
 When this file conflicts with the historical proposal, this file wins.
 
 ## 1. 文档角色
@@ -19,6 +19,12 @@ When this file conflicts with the historical proposal, this file wins.
 - [ARCHITECTURE_REFACTOR_EXECUTION.md](./ARCHITECTURE_REFACTOR_EXECUTION.md)
 
 ## 2. 对外心智模型
+
+重要说明：
+
+- 本文件描述的是重构 target surface
+- 当前开发阶段应以这里冻结的 contract 作为评审与实现基线
+- 现有 shipping surface 只作为能力边界与测试锚点参考，不作为当前方案的结构约束
 
 ### 2.1 正式用法 A：`TrChat`
 
@@ -103,8 +109,8 @@ const { runtime, ui } = createRuntimeFromConfig(config)
 
 Note:
 
-- `createRuntimeFromConfig(config)` is the planned public bridge helper for the post-cutover surface.
-- Until that helper ships, the current package still exposes the legacy shipping helpers from `src/index.ts`.
+- `createRuntimeFromConfig(config)` 是开发阶段官方推荐的 `config -> { runtime, ui }` 构造 helper，但在每个 phase 内只承诺当期 bridge subset。
+- 旧 shipping helpers 只用于对照旧能力边界，不决定 `Root` 的正式 contract。
 
 示意 B：自带 runtime，白盒拼装
 
@@ -246,7 +252,7 @@ type ChatRequestConfig = {
 
 #### `conversation`
 
-负责会话初始化与持久化类能力。
+负责当前 active conversation 的初始化与恢复能力。
 
 ```ts
 type ChatConversationConfig = {
@@ -254,6 +260,14 @@ type ChatConversationConfig = {
   persistence?: ChatPersistenceConfig
 }
 ```
+
+边界补充：
+
+- `initialMessages`
+  负责首屏种子消息
+- `persistence`
+  只负责当前 active conversation 的 hydrate / restore
+- 多会话列表、切换、标题、管理态不属于 `conversation`，统一归 `history runtime`
 
 #### `ui`
 
@@ -364,6 +378,21 @@ type ChatLifecycleConfig = {
 }
 ```
 
+bridge owner 与执行顺序冻结如下：
+
+- `beforeSend`
+  在 `sender` 组装出 `ChatSendInput` 之后、`conversation.send(input)` 之前执行；可返回新的 `ChatSendInput`，也可返回 `false` 取消发送
+- `afterReceive`
+  在 transport 输出被规范化成 canonical `ChatUIMessage` 之后、`messages.transforms` 之前执行；不能改写 `messageId`
+- `messages.transforms`
+  永远在 `afterReceive` 之后运行，只负责最终渲染前 shaping，不改变 canonical identity
+- `error`
+  只负责 bridge 层 side effect 或错误映射，不取得 `retry / regenerate / abort` 的 owner 身份
+- `modelChange`
+  只在 `models.selectModel()` 成功后触发
+- `conversationChange`
+  只在 `history` 成功切换或创建当前会话后触发
+
 ### 4.4 为什么采用 `ui / lifecycle`
 
 这里再明确两条命名判断：
@@ -442,6 +471,13 @@ type TrChatRootProps = {
 
 `ui` 不能替代 runtime source of truth。
 
+`ui` 的输入与内部消费语义也一并冻结：
+
+- `TrChatRootUiConfig` 是 public input，允许 partial overrides
+- `Root` 必须先把它解析成 resolved UI，再交给 `Page` 与 primitives
+- `copy` 在输入层仍是 overrides 语义，但内部消费一律基于 resolved copy
+- 不允许 `Page`、slots 或 primitives 自己回退默认文案
+
 `ui` 也不能承载这类能力：
 
 - `workspace.defaultView`
@@ -485,9 +521,10 @@ declare function createRuntimeFromConfig(config: TrChatConfig): CreateRuntimeFro
 
 约束：
 
-- 它是官方推荐的黑盒到 Root 迁移桥
+- 它是官方推荐的黑盒能力投影到 Root/runtime 的 on-ramp
 - 它不改变 `TrChat.Root` 的正式 contract
 - 它不替代更细粒度的 runtime factory
+- 它在每个 phase 内都只承诺当前文档与 execution 文档写明的 bridge subset
 - 所有 `Root + Page` 文档示例优先使用这条桥接路径
 
 ## 6. runtime 模型
@@ -505,6 +542,7 @@ runtime 只按 source of truth 切分，不按“页面上有没有一个按钮�
 - `models`
 - `workspace`
 - `attachments`
+- `mcp`
 
 ### 6.2 `workspace` 的阶段性定位
 
@@ -548,11 +586,13 @@ type ChatConversationRuntime = {
 ```ts
 type ChatMessageRuntime = {
   getViewState(messageId: string): ChatMessageViewState
+  getActions(messageId: string): ChatResolvedMessageAction[]
   startEdit(messageId: string): void
   cancelEdit(messageId: string): void
   commitEdit(messageId: string, draft: ChatMessageEditInput): Promise<boolean> | boolean
   copy(messageId: string): Promise<void> | void
   feedback?: (messageId: string, value: ChatFeedbackValue) => Promise<void> | void
+  resolveRenderer?: (message: ChatUIMessage) => ChatResolvedRenderer | null
 }
 ```
 
@@ -561,6 +601,7 @@ type ChatMessageRuntime = {
 - `message runtime` 拥有编辑中的草稿、action capability、inline error / busy 显示等派生 view state
 - 它不拥有会话级消息列表
 - `retry / regenerate` 可以由消息级 action 触发，但执行仍委托给 `conversation runtime`
+- `messages.transforms` 属于同一条 message extension pipeline，只负责 render-time shaping，不改 canonical identity
 
 ### 6.5 `ChatSenderRuntime` 与 `ChatAttachmentsRuntime`
 
@@ -628,37 +669,140 @@ They may support persistence or tracing, but they must not replace `messageId` a
 
 `TrChat.Root` must not recreate an implicit `configProjection` layer.
 
-Root-mode extension points are explicit:
+Root-mode extension points must stay explicit and layered:
 
-- page defaults and layout composition live in `ui.page`
-- message actions, renderers, and transforms live in `ui.messages`
-- slot registration lives in `ui.slots`
-- runtime-owned behavior stays in `conversation / sender / message / history / models / workspace / attachments`
+- `ui` 只承载展示默认值
+- page 组合默认值不放进 `ui`
+- message actions / renderers / transforms 不放进 `ui`
+- slot 注册不放进 `ui`
+- runtime-owned behavior stays in `conversation / sender / message / history / models / workspace / attachments / mcp`
+
+这意味着下面这些写法都应明确禁止：
+
+- `ui.page`
+- `ui.messages`
+- `ui.slots`
 
 `createRuntimeFromConfig(config)` is the canonical bridge that translates blackbox config into `{ runtime, ui }`.
 If a caller builds `{ runtime, ui }` manually, `TrChat.Root` should consume that contract directly rather than re-reading raw config.
 
-### 6.5D minimum slot catalog to freeze before implementation
+### 6.5D minimum slot catalog for the implementation baseline
 
 Phase 0 must freeze a minimum slot catalog, not only slot precedence rules.
 
 | Slot | Purpose | Minimum slot props |
 | --- | --- | --- |
-| `page-header-before` | inject content before the default header block | `runtime`, `ui`, `workspace` |
-| `page-header-after` | inject content after the default header block | `runtime`, `ui`, `workspace` |
-| `page-welcome` | replace or extend the default welcome area | `runtime`, `ui`, `conversation` |
-| `page-message-before` | inject content before the message list | `runtime`, `ui`, `conversation` |
-| `page-message-after` | inject content after the message list | `runtime`, `ui`, `conversation` |
-| `page-sender-before` | inject content before the sender area | `runtime`, `ui`, `sender`, `attachments` |
-| `page-sender-after` | inject content after the sender area | `runtime`, `ui`, `sender`, `attachments` |
-| `workspace-left` | customize the left workspace region | `runtime`, `ui`, `workspace`, `history` |
-| `workspace-right` | customize the right workspace region | `runtime`, `ui`, `workspace`, `history`, `models`, `mcp` |
+| `header` | replace the full default header region | `ui`, `workspace`, `history`, `models`, `conversation` |
+| `welcome` | replace the default welcome region | `ui`, `conversation` |
+| `message-list` | replace the default message list region | `ui`, `conversation`, `message` |
+| `sender` | replace the default sender region | `ui`, `sender`, `attachments`, `mcp` |
+| `header-before` | inject before the default header block | `ui`, `workspace` |
+| `header-after` | inject after the default header block | `ui`, `workspace`, `models` |
+| `message-before` | inject before the message list | `ui`, `conversation` |
+| `message-after` | inject after the message list | `ui`, `conversation` |
+| `sender-before` | inject before the sender area | `ui`, `sender`, `attachments` |
+| `sender-after` | inject after the sender area | `ui`, `sender`, `attachments`, `mcp` |
+| `footer-extra` | inject extra footer content | `ui`, `sender`, `attachments`, `mcp` |
+| `left` | customize the desktop left workspace region | `ui`, `workspace`, `history` |
+| `left-rail` | customize the desktop left rail | `ui`, `workspace`, `history` |
+| `right` | customize the desktop right workspace region | `ui`, `workspace`, `models`, `mcp` |
+| `mobile-left` | customize the mobile left sheet | `ui`, `workspace`, `history` |
+| `mobile-right` | customize the mobile right sheet | `ui`, `workspace`, `models`, `mcp` |
 
-The same Phase 0 freeze must also define:
+The same Phase 0 freeze also fixes:
 
 - replace vs merge precedence for each slot
 - whether a slot is page-only or also available in primitives
 - when users should prefer a slot over `Root + primitives`
+- slot props must expose named minimal modules, not the whole `runtime`
+
+Footer note:
+
+- the default page may include a lightweight footer companion region
+- Phase 0.5 only freezes `footer-extra` as an augment slot
+- no standalone `footer` replace slot is frozen before the page baseline proves that contract is stable
+
+### 6.5E `TrChat.Page` slot-provider contract
+
+`TrChat.Page` 仍然是 composition-only。
+
+因此需要额外冻结一条实现规则：
+
+- `Page` 自身只负责页面结构、slot anchor 与默认组合关系
+- 某个 slot 拿到 `conversation` 或 `sender`，不代表 `Page` 自身读取了整个 runtime
+- slot props 可以由 `Page` 内部的 region 组件装配
+- 如某个定制需求超出 slot props contract，应升级到 `Root + primitives`
+
+Region read-boundary freeze:
+
+| Region component | Allowed runtime |
+| --- | --- |
+| `TrChatPageHeaderRegion` | `conversation + history + models + workspace + ui` |
+| `TrChatPageBodyRegion` | `conversation + message + ui` |
+| `TrChatPageFooterRegion` | `sender + attachments + mcp + ui` |
+| `TrChatWorkspaceShell` | `workspace + history + models + mcp + ui` |
+
+### 6.5F `ChatHistoryRuntime`
+
+```ts
+type ChatHistoryRuntime = {
+  conversations: ReadonlyRef<ChatConversationSummary[]>
+  activeConversationId: ReadonlyRef<string | null>
+  createConversation: (params?: ChatConversationCreateInput) => Promise<string> | string
+  switchConversation: (id: string) => Promise<boolean> | boolean
+  deleteConversation: (id: string) => Promise<boolean> | boolean
+  renameConversation?: (id: string, title: string) => Promise<boolean> | boolean
+  management?: {
+    enabled: ReadonlyRef<boolean>
+    searchQuery: Ref<string>
+    selectedIds: ReadonlyRef<string[]>
+    setManagementEnabled: (value: boolean) => void
+    toggleSelection: (id: string) => void
+    clearSelection: () => void
+    selectAllVisible?: () => void
+  }
+}
+```
+
+### 6.5G `ChatModelRuntime`
+
+```ts
+type ChatModelRuntime = {
+  models: ReadonlyRef<ModelOption[]>
+  currentModelId: ReadonlyRef<string | null>
+  selectModel: (modelId: string) => Promise<boolean> | boolean
+}
+```
+
+### 6.5H `ChatWorkspaceRuntime`
+
+```ts
+type ChatWorkspaceRuntime = {
+  enabled: ReadonlyRef<boolean>
+  variant: ReadonlyRef<'stacked' | 'workspace'>
+  isMobile: ReadonlyRef<boolean>
+  left: ChatWorkspaceRegionRuntime
+  right: ChatWorkspaceRegionRuntime
+  historyVisible: ReadonlyRef<boolean>
+  openHistory: () => void
+  closeHistory: () => void
+  toggleHistory: () => void
+  setResponsiveHost: (el: HTMLElement | null) => void
+}
+```
+
+### 6.5I `ChatMcpRuntime`
+
+```ts
+type ChatMcpRuntime = {
+  enabled: ReadonlyRef<boolean>
+  tools?: ReadonlyRef<ChatMcpToolSummary[]>
+  openPanel?: () => void
+  closePanel?: () => void
+  togglePanel?: () => void
+  callTool?: (input: ChatMcpToolCallInput) => Promise<ChatMcpToolCallResult>
+}
+```
 
 ### 6.6 `ChatRuntimeInput`
 
@@ -671,6 +815,7 @@ type ChatRuntimeInput = {
   models?: ChatModelRuntime
   workspace?: ChatWorkspaceRuntime
   attachments?: ChatAttachmentsRuntime
+  mcp?: ChatMcpRuntime
 }
 ```
 
@@ -685,6 +830,7 @@ type ChatRuntime = {
   models?: ChatModelRuntime
   workspace?: ChatWorkspaceRuntime
   attachments?: ChatAttachmentsRuntime
+  mcp?: ChatMcpRuntime
 }
 ```
 
@@ -694,6 +840,21 @@ type ChatRuntime = {
   用户输入，可缺省部分模块
 - `ChatRuntime`
   `Root` 补齐后的标准化 runtime，供内部消费
+
+补充冻结规则：
+
+- `sender` 与 `message` 缺省时由 `Root` 自动补齐
+- `history`、`models`、`workspace`、`attachments`、`mcp` 缺省时保持缺省；`Root` 不得为了 slot props 伪造 no-op runtime
+- slot props 对这些可选模块使用可选命名字段；缺模块时表现为省略或 `undefined`
+- `Page` 与 primitives 必须基于缺省模块给出可预测降级，而不是各自偷偷兜底
+
+最低降级要求：
+
+- 无 `workspace` 时只渲染 stacked 主视图，不渲染 workspace slots
+- 无 `history` 时隐藏历史 affordance；原本含 `history` 的 slot props 只移除 `history`
+- 无 `models` 时隐藏模型 affordance；原本含 `models` 的 slot props 只移除 `models`
+- 无 `mcp` 时隐藏 MCP affordance；原本含 `mcp` 的 slot props 只移除 `mcp`
+- 无 `attachments` 时 sender 仍可纯文本运行；原本含 `attachments` 的 slot props 只移除 `attachments`
 
 ### 6.8 capability 的定位
 
@@ -776,6 +937,16 @@ type ChatMessageViewState = {
 - `retry / regenerate` 由 `conversation runtime` 承接
 - UI 可以统一以 `messageId` 发起动作，但不能再反向推导“到底该改哪段数组”
 
+### 7.4 legacy `messageIndex` coexistence 规则
+
+`messageIndex` 只允许留在 legacy adapter 边界，不能再次进入 next surface。
+
+冻结规则：
+
+- 新 runtime、新 public helpers、新 slots、新 contract tests 一律只接受 `messageId`
+- 如 legacy wrapper 仍依赖 index，只允许在 `legacy/` 内部做一次 `index -> messageId` 转译
+- 不允许把 `messageIndex` 重新暴露回 `Root`、`Page`、primitives、slot props 或新的 helper
+
 ## 8. source of truth 规则
 
 ### 8.1 必须唯一归属的数据
@@ -790,6 +961,7 @@ type ChatMessageViewState = {
 | 历史会话列表与当前选中会话 | `history runtime` |
 | 当前模型 | `model runtime` |
 | workspace 左右栏 / history open state / mobile state | `workspace runtime (packages/chat local)` |
+| MCP panel 可见性 / tools / tool call bridge | `mcp runtime` |
 
 ### 8.2 `sender` 与 `attachments` 的关系
 
@@ -815,17 +987,22 @@ type ChatMessageViewState = {
 | `TrChat.Page` | `workspace + ui` |
 | `TrChat.Header` | `conversation + history + models + workspace + ui` |
 | `TrChat.MessageList` | `conversation + message + ui` |
-| `TrChat.Message` | `message item runtime + ui` |
+| `TrChat.Message` | `message + ui` |
 | `TrChat.Sender` | `sender + attachments + ui` |
+| `TrChat.Footer` | `sender + attachments + mcp + ui` |
+| `TrChat.Attachments` | `sender + attachments + ui` |
 | `TrChat.History` | `history + workspace + ui` |
 | `TrChat.ModelSelector` | `models + ui` |
 | `TrChat.WorkspaceShell` | `workspace + ui` |
+| `TrChat.McpTrigger` | `mcp + ui` |
+| `TrChat.McpPanel` | `mcp + workspace + ui` |
 
 原则：
 
 - `TrChat.Page` 只负责官方页面结构、slot 编排和默认组合关系
 - primitive 不直接读“整个 runtime”
 - 读不到的能力，就不能顺手消费
+- slot props 的装配不应被视为 `Page` 直接读取整包 runtime
 
 ## 10. slots 与扩展路径
 
@@ -835,7 +1012,7 @@ type ChatMessageViewState = {
 
 | 需求 | 正式入口 |
 | --- | --- |
-| 改稳定默认值 | `TrChat.config.<domain>` |
+| 改稳定默认值 | `config.<domain>` |
 | 改品牌、文案、appearance、内容宽度 | `config.ui` |
 | 改 workspace 视图、左右区域、mobile fallback | `config.workspace` |
 | 响应发送、接收、错误、模型切换、会话切换 | `config.lifecycle` |
@@ -852,15 +1029,23 @@ type ChatMessageViewState = {
 - 对应区域的配置项如果还要继续生效，必须显式通过 slot props 透出
 - 不允许出现“slot 替换了结构，但 overrides 还在背后部分生效”的隐式混合状态
 
-### 10.3 slot catalog 要求
+### 10.3 slot catalog 与扩展判断表
 
-在实现前还必须补齐：
+本轮 contract 已经把下面三件事冻结到位：
 
 - slot 名称清单
 - 每个 slot 的 slot props
 - “用 slot 还是直接进 `Root + primitives`” 的判断表
 
-否则 slot 只能停留在原则层，无法成为真实可学的扩展路径。
+下面这张表是当前评审与实现都应直接遵守的判断表：
+
+| 需求 | 正式入口 |
+| --- | --- |
+| 只改某个默认区域的局部 UI，且所需数据已经在该 slot props contract 内 | slot |
+| 需要替换整块默认区域，但仍接受官方页面结构与生命周期 | replace 型 slot |
+| 需要跨多个区域重排结构 | `Root + primitives` |
+| 需要消费不在该 slot props contract 内的 runtime 模块 | `Root + primitives` |
+| 需要自行决定消息链路、发送链路、workspace 联动 | `Root + primitives` |
 
 ## 11. message extension contract
 
@@ -872,7 +1057,7 @@ type ChatMessageViewState = {
 - `messageTransforms`
 - 默认 renderer 注册顺序
 
-建议正式冻结的约束：
+正式冻结的约束：
 
 - action merge / replace 规则
 - operation / action 两类 placement
@@ -884,6 +1069,17 @@ type ChatMessageViewState = {
 ## 12. workspace 与 history contract
 
 workspace 不是单纯的壳层视觉能力，而是当前产品的真实交互主路径。
+
+跨模块 owner 规则补充冻结如下：
+
+- `history runtime`
+  只拥有会话列表与当前会话选择；`workspace runtime` 只拥有面板开关。成功切换会话后是否自动收起 mobile history，是 `Page / WorkspaceShell` 的 UI 策略，不改变 owner 归属
+- `conversation.persistence`
+  只拥有当前 active conversation 的 hydrate / restore；它不拥有多会话列表、当前会话选择、标题或管理态
+- `models runtime`
+  只拥有当前模型与模型切换；当 `sender.send()` 或调用方未显式传 `ChatSendInput.modelId` 时，由桥接层把 `models.currentModelId` 注入到 `conversation.send(input)` 的 `modelId`
+- `mcp runtime`
+  只拥有 MCP panel / tool bridge；任何 tool call 产出的消息回写，都必须通过 `conversation runtime` 完成，而不是由 `mcp runtime` 直接改写消息列表
 
 必须冻结的 contract：
 
@@ -914,7 +1110,7 @@ workspace 不是单纯的壳层视觉能力，而是当前产品的真实交互�
 
 - 正式对外只讲 `TrChat` 和 `TrChat.Root`
 - `TrChat.Page` 作为官方默认页面组件与 preset page layer 公开
-- 配套公开 `createRuntimeFromConfig(config)` 作为官方 Root 桥接入口
+- 配套公开 `createRuntimeFromConfig(config)` 作为带显式 bridge subset 的官方 Root 桥接入口
 - 黑盒只保留一个主配置对象，并按功能域组织
 - `config.ui` 和 `config.lifecycle` 作为正式命名
 - `ui` 只负责展示默认值；`workspace` 负责壳层与区域语义；`messages` 负责消息扩展；`lifecycle` 负责流程节点处理
