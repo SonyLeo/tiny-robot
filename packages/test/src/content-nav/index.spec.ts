@@ -66,6 +66,52 @@ test.describe('ContentNav component e2e', () => {
     await expect.poll(async () => (await helper.getOverlayBounds()).width).toBeGreaterThan(200)
   })
 
+  test('tooltip only appears for truncated items after the configured delay', async ({ page }) => {
+    const helper = helperFactory(page)
+
+    await helper.resetState()
+    await helper.hoverNavItemByLabel('Checklist')
+    await helper.expectTooltipVisibleForLabel('Checklist', false)
+    await page.waitForTimeout(320)
+    await helper.expectTooltipVisibleForLabel('Checklist', false)
+
+    await helper.hoverNavItemByLabel('Postmortem draft notes with extended follow-up context')
+    await helper.expectTooltipVisibleForLabel('Postmortem draft notes with extended follow-up context', false)
+    await page.waitForTimeout(320)
+    await helper.expectTooltipVisibleForLabel('Postmortem draft notes with extended follow-up context', true)
+  })
+
+  test('focus alone does not show tooltip for truncated items', async ({ page }) => {
+    const helper = helperFactory(page)
+    const longItemButton = page
+      .locator(helper.selectors.contentNavRoot)
+      .getByRole('button', { name: /Postmortem draft notes with extended follow-up context/i })
+      .first()
+
+    await helper.resetState()
+    await longItemButton.focus()
+    await helper.expectExpanded(true)
+    await page.waitForTimeout(320)
+    await helper.expectTooltipVisibleForLabel('Postmortem draft notes with extended follow-up context', false)
+  })
+
+  test('hovering a new item clears the previous tooltip even if the old item keeps focus', async ({ page }) => {
+    const helper = helperFactory(page)
+
+    await helper.resetState()
+    await helper.clickNavItemByLabel('Postmortem draft notes with extended follow-up context')
+    await helper.hoverNavItemByLabel('Postmortem draft notes with extended follow-up context')
+    await page.waitForTimeout(320)
+    await helper.expectTooltipVisibleForLabel('Postmortem draft notes with extended follow-up context', true)
+
+    await helper.hoverNavItemByLabel('Checklist')
+    await page.waitForTimeout(320)
+    await helper.expectTooltipVisibleForLabel('Postmortem draft notes with extended follow-up context', false)
+    await expect(
+      page.locator(`${helper.selectors.contentNavRoot} .tr-content-nav__list-item.is-tooltip-visible`),
+    ).toHaveCount(0)
+  })
+
   test('query model changes and list can be filtered by assistant reply text', async ({ page }) => {
     const helper = helperFactory(page)
 
@@ -108,6 +154,21 @@ test.describe('ContentNav component e2e', () => {
 
     await expect.poll(async () => helper.getScrollTop()).toBeGreaterThan(beforeScrollTop + 50)
     await helper.expectActiveId('turn-5')
+  })
+
+  test('clicking item applies and clears the target active class automatically', async ({ page }) => {
+    const helper = helperFactory(page)
+    const target = page.locator('[data-content-nav-id="turn-5"]').first()
+
+    await helper.resetState()
+    await expect(target).not.toHaveClass(/tr-content-nav-target--flash/)
+
+    await helper.clickNavItemByLabel('Release train dependencies')
+
+    await expect(target).toHaveClass(/tr-content-nav-target--flash/)
+    await expect
+      .poll(async () => (await target.getAttribute('class')) ?? '')
+      .not.toContain('tr-content-nav-target--flash')
   })
 
   test('falls back to document scrolling when scrollContainer is omitted', async ({ page }) => {

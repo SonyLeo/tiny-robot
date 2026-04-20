@@ -34,7 +34,7 @@ outline: [1, 3]
 
 <demo
   vue="../../demos/content-nav/controlled-search.vue"
-  :vueFiles="['../../demos/content-nav/controlled-search.vue']"
+  :vueFiles="['../../demos/content-nav/controlled-search.vue', '../../demos/content-nav/controlled-search.messages.ts']"
 />
 
 使用建议：
@@ -42,7 +42,7 @@ outline: [1, 3]
 - 参与导航的消息应提供稳定的 `id`
 - `ContentNavItem.id` 与目标 box 根节点上的 `data-content-nav-id` 保持一致
 - `label / searchText / tooltipText` 由调用方直接生成
-- 如需设置 `scroll-margin-top`、点击反馈或高亮样式，建议统一作用于同一目标节点
+- 如需设置 `scroll-margin-top`、点击反馈或高亮样式，建议统一作用于同一目标节点；业务侧可通过 `targetActiveClass / targetActiveDuration` 自定义目标反馈类名和保留时长
 - `expandTrigger="hover"` 适用于轻量侧边目录场景
 
 ### 普通内容场景
@@ -51,7 +51,7 @@ outline: [1, 3]
 
 <demo
   vue="../../demos/content-nav/basic-source.vue"
-  :vueFiles="['../../demos/content-nav/basic-source.vue']"
+  :vueFiles="['../../demos/content-nav/basic-source.vue', '../../demos/content-nav/basic-source.messages.ts']"
 />
 
 ## Props
@@ -61,11 +61,14 @@ outline: [1, 3]
 | `items` | `ContentNavItem[]` | - | 目录项列表。组件默认使用 `item.id` 匹配 `[data-content-nav-id="<id>"]`，并滚动到对应节点 |
 | `scrollContainer` | `HTMLElement \| null` | `null` | 滚动容器。传入后在该容器内解析目标节点并监听其滚动；未传入时回退到页面文档滚动 |
 | `search` | `false \| ContentNavSearchOptions` | `false` | 搜索区配置。传入 `false` 时不显示搜索区 |
+| `tooltipDelay` | `number` | `260` | tooltip 显示延迟，避免展开动画过程中短文本被误判为截断 |
 | `activeId` | `string` | 非受控 | 当前激活项。传入后进入受控模式 |
 | `expanded` | `boolean` | - | 展开状态。仅在 `expandTrigger="manual"` 时作为外部控制值使用 |
 | `query` | `string` | 非受控 | 搜索词。传入后进入受控模式 |
 | `placement` | `'left' \| 'right'` | `'right'` | 停靠位置 |
 | `expandTrigger` | `'hover' \| 'manual'` | `'hover'` | 展开方式。`hover` 为自动展开，`manual` 为外部控制 |
+| `targetActiveClass` | `string` | - | 点击目录项后追加到目标节点上的样式类名 |
+| `targetActiveDuration` | `number` | `700` | 目标节点样式类名保留时间，单位为毫秒 |
 | `emptyText` | `string` | `'No matching items'` | 搜索无结果文案 |
 
 ## Slots

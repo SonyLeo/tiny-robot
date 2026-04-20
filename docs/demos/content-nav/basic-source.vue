@@ -1,7 +1,7 @@
 <template>
   <section class="demo">
     <div class="controls">
-      <span class="controls-title">展开模式</span>
+      <span>展开模式</span>
 
       <label>
         <input v-model="expandTrigger" type="radio" value="hover" />
@@ -14,8 +14,6 @@
       </label>
 
       <template v-if="isManualMode">
-        <span class="controls-divider" aria-hidden="true"></span>
-
         <label>
           <input v-model="expanded" type="checkbox" />
           展开目录面板
@@ -42,7 +40,7 @@
           class="article-section"
         >
           <h4>{{ section.label }}</h4>
-          <p v-for="paragraph in section.paragraphs" :key="paragraph">{{ paragraph }}</p>
+          <p>{{ section.content }}</p>
         </section>
       </div>
 
@@ -53,216 +51,99 @@
         :expand-trigger="expandTrigger"
         v-model:expanded="expanded"
         :search="{ placeholder: '搜索章节' }"
-        @select="handleSelect"
+        target-active-class="article-section--active"
+        :target-active-duration="720"
       />
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref } from 'vue'
+import { computed, ref } from 'vue'
 import { TrContentNav } from '@opentiny/tiny-robot'
+import { basicSourceMessages } from './basic-source.messages'
 
-type DemoSection = {
-  id: string
-  label: string
-  paragraphs: string[]
+function isUserMessage(
+  message: (typeof basicSourceMessages)[number],
+): message is (typeof basicSourceMessages)[number] & { role: 'user' } {
+  return message.role === 'user'
 }
-
-const sections: DemoSection[] = [
-  {
-    id: 'overview',
-    label: 'Overview',
-    paragraphs: ['ContentNav 适合用于长内容区域的快速定位。', '接入时只需要准备目录项和真实滚动目标之间的映射关系。'],
-  },
-  {
-    id: 'structure',
-    label: 'Structure',
-    paragraphs: ['推荐把每个章节标题或段落容器作为滚动目标。', '目录文本可以保持简洁，搜索文本再补充更多上下文。'],
-  },
-  {
-    id: 'interaction',
-    label: 'Interaction',
-    paragraphs: [
-      '当用户点击目录项时，ContentNav 会滚动到对应目标。',
-      '滚动过程中，当前激活项也会随着可见区域自动更新。',
-    ],
-  },
-  {
-    id: 'tips',
-    label: 'Tips',
-    paragraphs: [
-      '推荐直接让章节节点带上 data-content-nav-id，并与目录项 id 保持一致。',
-      '这样目录项、滚动定位和激活态可以由 TrContentNav 在内部统一处理。',
-    ],
-  },
-]
 
 const scrollContainerRef = ref<HTMLElement | null>(null)
 const expandTrigger = ref<'hover' | 'manual'>('hover')
 const expanded = ref(false)
 const isManualMode = computed(() => expandTrigger.value === 'manual')
-const jumpFlashClassName = 'article-section-flash'
-const jumpTransitionDuration = '220ms'
-const jumpFeedbackDuration = 520
-let jumpFeedbackTimer: ReturnType<typeof setTimeout> | null = null
+const messages = basicSourceMessages
+const userMessages = messages.filter(isUserMessage)
+const messageById = new Map(messages.map((message) => [message.id, message]))
 
-const items = computed(() =>
-  sections.map((section) => ({
-    id: section.id,
-    label: section.label,
-    searchText: `${section.label} ${section.paragraphs.join(' ')}`,
-  })),
-)
+const sections = userMessages.map((message) => {
+  const assistantReply = messageById.get(`assistant-${message.id}`)
 
-function queryTargetById(root: ParentNode, id: string) {
-  if (typeof CSS !== 'undefined' && typeof CSS.escape === 'function') {
-    return root.querySelector<HTMLElement>(`[data-content-nav-id="${CSS.escape(id)}"]`)
+  return {
+    id: message.id,
+    label: message.content,
+    content: String(assistantReply?.content ?? ''),
   }
-
-  return Array.from(root.querySelectorAll<HTMLElement>('[data-content-nav-id]')).find(
-    (entry) => entry.dataset.contentNavId === id,
-  )
-}
-
-function findSectionTarget(id: string) {
-  const container = scrollContainerRef.value
-  if (!container) {
-    return null
-  }
-
-  return queryTargetById(container, id)
-}
-
-function clearJumpFeedback() {
-  if (jumpFeedbackTimer) {
-    clearTimeout(jumpFeedbackTimer)
-    jumpFeedbackTimer = null
-  }
-}
-
-function applyJumpFeedback(id: string) {
-  const target = findSectionTarget(id)
-  if (!target) {
-    return
-  }
-
-  clearJumpFeedback()
-  target.classList.remove(jumpFlashClassName)
-  void target.offsetWidth
-  target.classList.add(jumpFlashClassName)
-
-  jumpFeedbackTimer = setTimeout(() => {
-    target.classList.remove(jumpFlashClassName)
-    jumpFeedbackTimer = null
-  }, jumpFeedbackDuration)
-}
-
-function handleSelect(item: { id: string }) {
-  applyJumpFeedback(item.id)
-}
-
-onBeforeUnmount(() => {
-  clearJumpFeedback()
 })
+
+const items = sections.map((section) => ({
+  id: section.id,
+  label: section.label,
+  searchText: `${section.label} ${section.content}`,
+}))
 </script>
 
 <style lang="less" scoped>
+@import './demo-shell.less';
+
 .demo {
-  display: grid;
-  gap: 14px;
-}
-
-.controls {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 10px 12px;
-}
-
-.controls-title {
-  color: #34495e;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.controls label {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: #4f647a;
-  font-size: 13px;
-}
-
-.controls-divider {
-  width: 1px;
-  height: 16px;
-  background: #d7e1ec;
-}
-
-.controls button {
-  padding: 4px 10px;
+  --content-nav-demo-gap: 14px;
+  --content-nav-demo-controls-gap: 10px 12px;
 }
 
 .tip {
   margin: 0;
   color: #4f647a;
-  font-size: 13px;
-  line-height: 1.6;
-}
-
-.stage {
-  position: relative;
-  height: 420px;
-  overflow: hidden;
-  border: 1px solid #dfe7f2;
-  border-radius: 12px;
-  background: #fff;
+  line-height: 1.5;
 }
 
 .article {
+  display: grid;
+  gap: 16px;
   height: 100%;
   overflow: auto;
-  padding: 28px;
+  padding: 24px 28px;
 }
 
 .article-section {
-  padding: 28px;
+  padding: 20px 24px;
+  border: 1px solid #eef3f8;
+  border-radius: 12px;
+  background: #fff;
   scroll-margin-top: 16px;
-  transition:
-    background-color v-bind(jumpTransitionDuration) ease,
-    box-shadow v-bind(jumpTransitionDuration) ease,
-    border-color v-bind(jumpTransitionDuration) ease;
+  transition: background-color 220ms ease;
 }
 
-.article-section + .article-section {
-  border-top: 1px solid #eef3f8;
-  padding-top: 28px;
+.article-section--active {
+  background-color: #b9d7ff;
 }
 
-.article-section.article-section-flash {
-  background: linear-gradient(180deg, rgba(185, 215, 255, 0.42) 0%, rgba(185, 215, 255, 0.14) 100%);
-  box-shadow: 0 12px 28px -22px rgba(55, 132, 255, 0.55);
+.article-section h4,
+.article-section p {
+  margin: 0;
 }
 
 .article-section h4 {
-  margin: 0 0 12px;
   font-size: 18px;
   line-height: 1.4;
 }
 
 .article-section p {
-  margin: 0;
-  color: #4f647a;
-  line-height: 1.7;
-}
-
-.article-section p + p {
-  margin-top: 10px;
+  white-space: pre-line;
 }
 
 .nav {
-  top: 0;
   right: 16px;
 }
 </style>

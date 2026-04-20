@@ -28,6 +28,13 @@ async function getBoundingBoxOrThrow(target: ReturnType<Page['locator']>, errorM
 export function createContentNavTestHelper(page: Page) {
   const selectors = CONTENT_NAV_SELECTORS
 
+  function getNavButtonByLabel(label: string) {
+    return page
+      .locator(selectors.contentNavRoot)
+      .getByRole('button', { name: new RegExp(label, 'i') })
+      .first()
+  }
+
   async function readPlacement(): Promise<ContentNavPlacement> {
     const rawValue = (await page.locator(selectors.placementDisplay).textContent())?.trim()
     return rawValue === 'left' ? 'left' : 'right'
@@ -165,17 +172,17 @@ export function createContentNavTestHelper(page: Page) {
 
   async function clickNavItemByLabel(label: string) {
     const root = page.locator(selectors.contentNavRoot)
-    const regex = new RegExp(label, 'i')
 
     await readPlacement()
     await hoverNav()
 
-    const button = root.getByRole('button', { name: regex }).first()
+    const button = getNavButtonByLabel(label)
     if (await button.count()) {
       await button.click()
       return
     }
 
+    const regex = new RegExp(label, 'i')
     const link = root.getByRole('link', { name: regex }).first()
     if (await link.count()) {
       await link.click()
@@ -183,6 +190,25 @@ export function createContentNavTestHelper(page: Page) {
     }
 
     await root.locator('.tr-content-nav__item').filter({ hasText: regex }).first().click()
+  }
+
+  async function hoverNavItemByLabel(label: string) {
+    await hoverNav()
+
+    const button = getNavButtonByLabel(label)
+    await expect(button).toBeVisible()
+    await button.hover()
+  }
+
+  async function expectTooltipVisibleForLabel(label: string, visible: boolean) {
+    const listItem = getNavButtonByLabel(label).locator('xpath=..')
+
+    if (visible) {
+      await expect(listItem).toHaveClass(/is-tooltip-visible/)
+      return
+    }
+
+    await expect(listItem).not.toHaveClass(/is-tooltip-visible/)
   }
 
   async function expectNavVisible(visible: boolean) {
@@ -329,6 +355,8 @@ export function createContentNavTestHelper(page: Page) {
     fillSearchInput,
     moveMouseOutsideNav,
     clickNavItemByLabel,
+    hoverNavItemByLabel,
+    expectTooltipVisibleForLabel,
     expectNavVisible,
     expectExpanded,
     expectActiveId,

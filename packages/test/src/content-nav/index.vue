@@ -103,6 +103,9 @@
           :expand-trigger="expandTrigger"
           :placement="placement"
           :search="searchConfig"
+          :tooltip-delay="260"
+          target-active-class="tr-content-nav-target--flash"
+          :target-active-duration="700"
           @update:active-id="handleActiveIdUpdate"
           @select="handleSelect"
           @activate="handleActivate"
@@ -183,7 +186,7 @@ const allTurns: DemoTurn[] = [
   },
   {
     id: 'turn-3',
-    label: 'Data export checklist',
+    label: 'Checklist',
     user: 'Prepare a data export checklist for legal review and governance sign-off.',
     assistant:
       'The checklist covers retention windows, privacy fields, export audit metadata, and the legal handoff package.',
@@ -204,7 +207,7 @@ const allTurns: DemoTurn[] = [
   },
   {
     id: 'turn-6',
-    label: 'Postmortem draft notes',
+    label: 'Postmortem draft notes with extended follow-up context',
     user: 'Draft postmortem notes with timeline, root cause, impact, and follow-up actions.',
     assistant:
       'The draft captures incident scope, root cause, remediation status, open risks, and owner assignments for every follow-up.',

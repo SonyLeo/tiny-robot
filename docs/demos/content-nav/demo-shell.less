@@ -1,0 +1,38 @@
+.demo {
+  display: grid;
+  gap: var(--content-nav-demo-gap, 16px);
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--content-nav-demo-controls-gap, 12px 16px);
+  color: var(--content-nav-demo-controls-color, #4f647a);
+  font-size: 13px;
+}
+
+.controls label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: inherit;
+  font-size: inherit;
+}
+
+.controls button {
+  padding: 4px 10px;
+}
+
+.stage {
+  position: relative;
+  height: var(--content-nav-demo-stage-height, 420px);
+  overflow: hidden;
+  border: 1px solid var(--content-nav-demo-stage-border, #dfe7f2);
+  border-radius: 12px;
+  background: var(--content-nav-demo-stage-bg, #fff);
+}
+
+.nav {
+  top: 0;
+}
