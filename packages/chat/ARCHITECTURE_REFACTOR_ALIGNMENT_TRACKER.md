@@ -37,16 +37,17 @@ Status: active alignment tracker.
   负责 phase 划分、阶段门禁、测试矩阵、里程碑与退出条件
 - [ARCHITECTURE_REFACTOR_IMPLEMENTATION_BLUEPRINT.md](./ARCHITECTURE_REFACTOR_IMPLEMENTATION_BLUEPRINT.md)
   负责 Phase 0.5 的实现级 contract 收口、实现约束与第一批落地切片
+- [ARCHITECTURE_REFACTOR_REVIEW_SCHEME.md](./ARCHITECTURE_REFACTOR_REVIEW_SCHEME.md)
+  负责固定评审主线、分层框架、关键评审节奏与会议模板
 - 本文件
   负责评审节奏、进度追踪、阶段意见、已决议项与未决问题
 
 建议使用顺序：
 
-1. 先看 `DESIGN`，理解为什么要这样重构
-2. 再看 `API_RUNTIME`，理解新 contract 长什么样
-3. 再看 `EXECUTION`，理解为什么这么拆阶段
-4. 需要开工时看 `BLUEPRINT`
-5. 需要跟踪推进、汇报进展、记录评审结论时看本文件
+1. 先看 `ARCHITECTURE_REFACTOR_REVIEW_SCHEME.md`，理解这轮评审怎么组织
+2. 再看本文件，理解目前评到哪、当前阶段状态是什么
+3. 如果当前轮次已有 review packet，先读 packet 再开会
+4. 需要深挖时再回到 `DESIGN / API_RUNTIME / EXECUTION / BLUEPRINT`
 
 ## 3. 推荐的对齐方法
 
@@ -91,26 +92,33 @@ Status: active alignment tracker.
 
 | 对齐对象 | 当前状态 | 当前判断 | 主要依据 | 下一步 |
 | --- | --- | --- | --- | --- |
-| 整体方向 | `ready-for-review` | 已可进入正式评审 | `DESIGN` + `API_RUNTIME` | 做第一次方向评审 |
-| Phase 0 / 0.5 contract freeze | `ready-for-review` | 文档已基本收口，可做 contract sign-off | `API_RUNTIME` + `BLUEPRINT` + `EXECUTION` | 做 contract freeze 评审 |
-| Phase 1A | `pending` | 范围与门禁已清楚，但尚未进入实现证明 | `EXECUTION` + `BLUEPRINT` | 等 Phase 0.5 拍板后开工 |
+| 整体方向 | `ready-for-review` | 已可进入“方向 + contract sign-off”合并评审 | `DESIGN` + `API_RUNTIME` | 做第一次开工评审 |
+| Phase 0 / 0.5 contract freeze | `ready-for-review` | 文档已基本收口，应并入 Review A 一次性 sign-off | `API_RUNTIME` + `BLUEPRINT` + `EXECUTION` | 在 Review A 完成签字 |
+| Phase 1A | `pending` | 范围与门禁已清楚，等待 Review A 通过后直接开工 | `EXECUTION` + `BLUEPRINT` | 等 Review A sign-off 后开工 |
 | Phase 1B | `pending` | 已定义目标，但依赖 Phase 1A 收口 | `EXECUTION` | 等 Phase 1A 完成后对齐 |
 | Phase 2 | `pending` | 已定义黑盒主路径目标，但不应提前展开实现细节 | `EXECUTION` | 等 Page baseline 成立后再对齐 |
 | Phase 3A | `pending` | message/sender parity 需建立在 runtime foundation 之上 | `EXECUTION` | 等 Phase 2 后推进 |
 | Phase 3B | `pending` | workspace/MCP parity 需建立在 page baseline 之上 | `EXECUTION` | 等 Phase 3A 后推进 |
 | Phase 4 | `pending` | 稳定化、评审材料与 helper 收口属于后置阶段 | `EXECUTION` | feature parity 后推进 |
 
+说明：
+
+- 上表里的 phase 数量不等于评审场次数量
+- `Phase 3A / 3B / 4` 仍然可以作为实现推进阶段存在
+- 但在评审节奏上，它们统一并入 `Review D` 做最终收口判断
+
 ## 6. 推荐的评审序列
 
-### 6.1 评审 A：整体方向 + 当前阶段入口
+### 6.1 评审 A：整体方向 + Phase 0.5 contract sign-off
 
 本次只评：
 
 - 为什么要重构
 - `TrChat / TrChat.Root / TrChat.Page` 的用户心智是否合理
-- `TrChatConfig` 按功能域组织是否合理
-- `createRuntimeFromConfig(config)` 作为官方桥接入口是否合理
-- 为什么先做当前阶段，而不是直接铺开所有 feature parity
+- `config -> runtime/ui -> Root` 的桥接路径是否合理
+- runtime、`ui`、`Page` 的边界是否足够清楚
+- Phase 0.5 要冻结的 contract package 是否足够支撑开工
+- Phase 1A 的 scope / gate / exit criteria 是否合理
 
 本次不评：
 
@@ -128,33 +136,11 @@ Status: active alignment tracker.
 预期输出：
 
 - 是否认可整体方向
-- 是否认可入口心智
-- 是否认可当前阶段的拆法
-- 是否允许进入 Phase 0.5 / Phase 1A contract freeze
-
-### 6.2 评审 B：Phase 0.5 contract freeze
-
-本次只评：
-
-- runtime owner 是否清楚
-- `messageId` 语义是否清楚
-- `sender / attachments` handoff 是否清楚
-- `Page` / primitives / slot props 边界是否清楚
-- `createRuntimeFromConfig(config)` 的 bridge subset 是否清楚
-
-建议输入材料：
-
-- [ARCHITECTURE_REFACTOR_API_RUNTIME.md](./ARCHITECTURE_REFACTOR_API_RUNTIME.md)
-- [ARCHITECTURE_REFACTOR_IMPLEMENTATION_BLUEPRINT.md](./ARCHITECTURE_REFACTOR_IMPLEMENTATION_BLUEPRINT.md)
-- [ARCHITECTURE_REFACTOR_EXECUTION.md](./ARCHITECTURE_REFACTOR_EXECUTION.md)
-
-预期输出：
-
-- Contract freeze 是否通过
-- 是否仍存在需要先拍板的问题
+- 是否认可入口心智与桥接路径
+- 是否完成 Phase 0.5 contract sign-off
 - 是否允许进入 Phase 1A 实现
 
-### 6.3 评审 C：Phase 1A 汇报 + Phase 1B 对齐
+### 6.2 评审 B：Phase 1A 汇报 + Phase 1B 开工评审
 
 本次只评：
 
@@ -162,14 +148,14 @@ Status: active alignment tracker.
 - Phase 1A tests / baseline 是否证明 contract 成立
 - 实现与文档是否有偏差
 - Phase 1B 的 `history / models / workspace / Page shell` 范围是否合理
+- Phase 1B 的 gate 是否足够清楚
 
 预期输出：
 
 - Phase 1A 是否退出
-- 是否进入 Phase 1B
-- 是否需要调整后续阶段目标
+- 是否进入 Phase 1B 实现
 
-### 6.4 评审 D：Phase 1B 汇报 + Phase 2 对齐
+### 6.3 评审 C：Phase 1B 汇报 + Phase 2 开工评审
 
 本次只评：
 
@@ -178,40 +164,70 @@ Status: active alignment tracker.
 - 黑盒 `TrChat` 如何回到新主路径
 - Phase 2 的黑盒主路径 contract 是否清楚
 
-### 6.5 评审 E：Phase 2 汇报 + Phase 3 对齐
+预期输出：
+
+- Phase 1B 是否退出
+- 是否进入 Phase 2 实现
+
+### 6.4 评审 D：Phase 2 汇报 + Phase 3/4 最终收口评审
 
 本次只评：
 
-- 黑盒主路径是否已经可教、可测、可演示
-- `TrChat`、`Root + Page`、`Root + primitives` 三条路径是否闭环
-- Phase 3A / 3B 的 parity 范围是否拆分合理
+- 黑盒 `TrChat` 新主路径是否成立
+- `TrChat / Root + Page / Root + primitives` 三条路径是否对齐
+- Phase 3/4 的 parity / hardening 结果是否成立
+- docs / demos / tests / helper-public-surface 的最终收口是否足够闭环
 
-### 6.6 评审 F：Phase 3/4 收口评审
+预期输出：
 
-本次只评：
-
-- feature parity 是否成立
-- docs / demos / tests 是否一致
-- helper / public surface 是否需要最终收口
-- 是否满足稳定化与长期维护要求
+- Phase 2 是否退出
+- 是否完成 Phase 3/4 最终收口判断
 
 ## 7. 第一场评审建议只拍板的事情
 
-为了避免第一场会过长，建议只拍板下面 6 件事：
+为了避免第一场会过长，建议只拍板下面 8 件事：
 
 1. 是否认同这轮重构的目标与非目标
 2. 是否认同 `TrChat / TrChat.Root / TrChat.Page` 的关系
-3. 是否认同 `TrChatConfig` 按功能域组织
-4. 是否认同 `ui` display-only 与 runtime 按 source of truth 切分
-5. 是否认同 `createRuntimeFromConfig(config)` 作为唯一官方桥接入口
-6. 是否认同先做 Phase 0.5 / 1A，再推进 `Page` 和黑盒主路径
+3. 是否认同 `config -> runtime/ui -> Root` 的桥接路径
+4. 是否认同 runtime、`ui`、`Page` 的边界切法
+5. 是否认同第一场会后立刻编码会依赖的 API 已冻结
+6. 是否认同第一场会后立刻编码会依赖的 props contract 已冻结
+7. 是否认同第一场会后立刻编码会依赖的 slot contract 已冻结
+8. 是否认同 Phase 1A 的 scope / gate / exit criteria
 
 第一场不建议拍板：
 
 - helper 最终公开面
 - publish 策略
-- 所有 slot 的逐项微观实现
+- 所有 slot 的完整消费面与最终细粒度命名
 - 所有 Phase 3/4 的细节
+
+### 7.1 Review A 的冻结分层
+
+为了让 `Review A` 真正成为开工签字会，建议明确使用下面 3 桶内容：
+
+#### Must Freeze Now
+
+- `TrChat / TrChat.Root / TrChat.Page`
+- `createRuntimeFromConfig(config) -> { runtime, ui }`
+- `Root` 只消费 `{ runtime, ui }`
+- `Phase 1A` 直接依赖的 runtime / primitive contract
+- 核心 slot API / contract
+
+#### Freeze Semantics Now
+
+- `Page` slot-provider 机制
+- slot props 最小暴露原则
+- degrade rules 原则
+- `Page` composition-only 的落地约束
+
+#### Defer To Review B
+
+- `Page baseline` 的完整 slot 消费面
+- `history / models / workspace` 完整 props 矩阵
+- `Footer` 的最终落位
+- 全量 slot 细粒度命名与最终公开面
 
 ## 8. 当前重点关注的问题
 
@@ -299,32 +315,32 @@ Status: active alignment tracker.
 
 ### 9.2 当前预置记录位
 
-#### Review A：整体方向 + 当前阶段入口
+#### Review A：整体方向 + Phase 0.5 contract sign-off
+
+- 状态：`ready-to-schedule`
+- 结论：待补充
+- 评审材料：
+  - [REVIEW_A_OWNER_RUNBOOK.md](./review-packets/review-a-direction-and-phase-0-5-1a/REVIEW_A_OWNER_RUNBOOK.md)
+  - [REVIEW_A_SPEC_DETAIL.md](./review-packets/review-a-direction-and-phase-0-5-1a/REVIEW_A_SPEC_DETAIL.md)
+  - [REVIEW_A_REVIEWER_MEMO.md](./review-packets/review-a-direction-and-phase-0-5-1a/REVIEW_A_REVIEWER_MEMO.md)
+  - 会后 follow-ups、状态与结论统一回写本文件
+
+#### Review B：Phase 1A 汇报 + Phase 1B 开工评审
+
+- 状态：`prepared-awaiting-phase-1a`
+- 结论：待补充
+- 评审材料：
+  - [REVIEW_B_OWNER_RUNBOOK.md](./review-packets/review-b-phase-1a-report-and-phase-1b-kickoff/REVIEW_B_OWNER_RUNBOOK.md)
+  - [REVIEW_B_SPEC_DETAIL.md](./review-packets/review-b-phase-1a-report-and-phase-1b-kickoff/REVIEW_B_SPEC_DETAIL.md)
+  - [REVIEW_B_REVIEWER_MEMO.md](./review-packets/review-b-phase-1a-report-and-phase-1b-kickoff/REVIEW_B_REVIEWER_MEMO.md)
+  - 会后 follow-ups、状态与结论统一回写本文件
+
+#### Review C：Phase 1B 汇报 + Phase 2 开工评审
 
 - 状态：`pending`
 - 结论：待补充
 
-#### Review B：Phase 0.5 contract freeze
-
-- 状态：`pending`
-- 结论：待补充
-
-#### Review C：Phase 1A 汇报 + Phase 1B 对齐
-
-- 状态：`pending`
-- 结论：待补充
-
-#### Review D：Phase 1B 汇报 + Phase 2 对齐
-
-- 状态：`pending`
-- 结论：待补充
-
-#### Review E：Phase 2 汇报 + Phase 3 对齐
-
-- 状态：`pending`
-- 结论：待补充
-
-#### Review F：Phase 3/4 收口评审
+#### Review D：Phase 2 汇报 + Phase 3/4 最终收口评审
 
 - 状态：`pending`
 - 结论：待补充
@@ -391,10 +407,10 @@ Status: active alignment tracker.
 
 当前最合理的推进方式是：
 
-1. 先用本文件组织“整体方向 + Phase 0.5 / 1A”评审
-2. 评审通过后，把 Phase 0.5 contract freeze 当作开工门禁
-3. Phase 1A 完成后，用 tests 和 baseline 做第一轮阶段汇报
-4. 再进入 Phase 1B 与后续阶段的分段对齐
+1. 先用本文件组织“整体方向 + Phase 0.5 contract sign-off”合并评审
+2. Review A 通过后，直接进入 Phase 1A 编码
+3. Phase 1A 完成后，用 tests 和 baseline 做第一轮阶段汇报与下一阶段开工评审
+4. 按 `Review B -> Review C -> Review D` 的四场节奏完成后续 sign-off / implementation 闭环
 
 一句话总结：
 

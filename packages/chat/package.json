@@ -28,6 +28,7 @@
     "dev": "vue-tsc && vite build --watch",
     "build": "vue-tsc && vite build",
     "type-check": "vue-tsc --noEmit",
+    "check:docs": "node ./scripts/check-refactor-docs.mjs",
     "test": "node ./tests/run-all.mjs",
     "test:unit": "node ./tests/run-all.mjs"
   },

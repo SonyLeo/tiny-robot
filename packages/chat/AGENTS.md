@@ -60,6 +60,11 @@ When starting a non-trivial task in this package, build context in roughly this 
 
 For active refactor-next work, read the four `ARCHITECTURE_REFACTOR_*.md` docs before diving into shipping implementation files, then inspect current code only to confirm old boundaries, tests, and reusable logic.
 
+- `packages/chat/docs/README.md` and `packages/chat/docs/SOURCE_OF_TRUTH.md`
+  Use these first when you need to know which document category owns the answer.
+- `packages/chat/docs/CURRENT_VS_TARGET_SURFACE.md`
+  Read this before touching shipping docs or explaining the relationship between current usage guidance and target refactor contracts.
+
 1. `packages/chat/src/index.ts`
    Understand the real public surface first.
 2. `packages/chat/src/types/*.ts`
@@ -201,6 +206,8 @@ For the current shipping surface:
 
 For the refactor target surface, also read:
 
+- `packages/chat/ARCHITECTURE_REFACTOR_REVIEW_SCHEME.md`
+- `packages/chat/ARCHITECTURE_REFACTOR_ALIGNMENT_TRACKER.md`
 - `packages/chat/ARCHITECTURE_REFACTOR_DESIGN.md`
 - `packages/chat/ARCHITECTURE_REFACTOR_API_RUNTIME.md`
 - `packages/chat/ARCHITECTURE_REFACTOR_EXECUTION.md`
@@ -209,6 +216,12 @@ For the refactor target surface, also read:
 When doing that work:
 
 - for development-stage refactor work, prefer contract clarity and implementation routing over publish-stage planning
+- for refactor review/alignment work, read `ARCHITECTURE_REFACTOR_REVIEW_SCHEME.md` before reading stage details; use it as the stable method doc for review scope, meeting shape, and output expectations
+- use `ARCHITECTURE_REFACTOR_ALIGNMENT_TRACKER.md` as the process/state doc for what has already been aligned, what remains open, and which review milestone is current
+- keep a strict split between:
+  normative docs (`DESIGN / API_RUNTIME / EXECUTION / IMPLEMENTATION_BLUEPRINT`),
+  method docs (`REVIEW_SCHEME`),
+  and process docs (`ALIGNMENT_TRACKER`)
 - do not let old shipping guidance become the decision source for new refactor structure work
 - keep a visible distinction between current shipping guidance and target-architecture guidance until the package explicitly enters publish stage
 - treat `ARCHITECTURE_REFACTOR_IMPLEMENTATION_BLUEPRINT.md` as the Phase 0.5 implementation source of truth once it narrows an ambiguity left by the older docs
@@ -225,6 +238,33 @@ Authoritative freeze anchors:
   `ARCHITECTURE_REFACTOR_IMPLEMENTATION_BLUEPRINT.md section 6.3-6.4` and `ARCHITECTURE_REFACTOR_API_RUNTIME.md section 6.5D-6.5E / section 10`
 - old export / helper boundary reference:
   `ARCHITECTURE_REFACTOR_IMPLEMENTATION_BLUEPRINT.md section 7.7` and `ARCHITECTURE_REFACTOR_EXECUTION.md` old-boundary reference table
+
+Refactor review anchors:
+
+- review method / cadence / fixed meeting template:
+  `ARCHITECTURE_REFACTOR_REVIEW_SCHEME.md`
+- current milestone / open questions / stage status:
+  `ARCHITECTURE_REFACTOR_ALIGNMENT_TRACKER.md`
+
+When preparing or updating refactor review materials:
+
+- preserve the fixed main storyline:
+  `TrChat` -> `TrChat.Root + TrChat.Page` -> `TrChat.Root + primitives`
+- preserve the four-layer framing:
+  direction / contract / phase / implementation constraints
+- preserve the four-review cadence defined in `ARCHITECTURE_REFACTOR_REVIEW_SCHEME.md`
+- do not create a second contract source of truth inside tracker docs, review briefs, or phase packets
+- for current two-person refactor reviews, prefer a three-doc set:
+  `OWNER_RUNBOOK` + `SPEC_DETAIL` + `REVIEWER_MEMO`
+- keep status, follow-ups, and conclusions in `ARCHITECTURE_REFACTOR_ALIGNMENT_TRACKER.md`
+- review materials should summarize and reference the normative docs rather than duplicate them
+- for `Review A`, explicitly separate content into:
+  `Must Freeze Now`, `Freeze Semantics Now`, and `Defer To Review B`
+- do not let `Review A` stop at abstract direction only; it must freeze the immediate API / props / slot contract that Phase 1A coding will directly depend on
+- treat slot discussion as layered:
+  `Review A` freezes slot contract,
+  `Review B` freezes which slot scope enters `Phase 1B`,
+  `Review C` validates slot implementation results
 
 If you need real usage examples, start with these demos:
 
@@ -340,6 +380,7 @@ Implementation routing during Phase 1A / 1B:
 
 - keep shipping wrappers (`Chat.vue`, `ChatScaffold.vue`, `ChatProvider.vue`) on legacy internals unless the phase table explicitly allows reroute
 - prefer writing new next-surface code into `src/root`, `src/page`, `src/primitives`, `src/runtime/*`, and `src/legacy`
+- when implementing directly after `Review A`, do not reopen already-frozen entry API, `Root` props, bridge subset, or core slot contract in code review unless the issue is escalated back to review docs
 
 ## 10. Public Contract Guardrails
 
@@ -411,6 +452,7 @@ Update chat docs in the same task when you change:
 - `messageActions`, `bubbleRenderers`, or `messageTransforms` recommended extension paths
 - workspace slot or side-panel behavior
 - MCP integration expectations
+- documentation routing or the ownership split between normative docs, tracker docs, review packets, and generated artifacts
 
 For refactor-target work, also sync `packages/chat/ARCHITECTURE_REFACTOR_*.md` when you change:
 
@@ -424,6 +466,9 @@ Minimum likely doc targets:
 - `docs/src/components/chat.md`
 - `docs/src/components/chat-features.md`
 - `docs/src/components/chat-advanced.md`
+- `packages/chat/docs/README.md`
+- `packages/chat/docs/SOURCE_OF_TRUTH.md`
+- `packages/chat/docs/CURRENT_VS_TARGET_SURFACE.md`
 
 ## 14. Working Defaults
 
