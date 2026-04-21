@@ -11,6 +11,8 @@ import {
   ChatFooter as TrChatFooter,
   ChatSender as TrChatSender,
 } from './components/core'
+import { TrChatRoot } from './root'
+import { TrChatPage } from './page'
 import {
   ChatWorkspaceLayout as TrChatWorkspaceLayout,
   WorkspaceShell as TrChatWorkspaceShell,
@@ -23,6 +25,8 @@ import { ChatMcpPanel as TrChatMcpPanel, McpTrigger as TrMcpTrigger } from './co
 import { ModelSelector as TrModelSelector } from './components/model-selector'
 
 type TrChatWithSubComponents = typeof TrChat & {
+  Root: typeof TrChatRoot
+  Page: typeof TrChatPage
   Scaffold: typeof TrChatScaffold
   Provider: typeof TrChatProvider
   Layout: typeof TrChatLayout
@@ -40,6 +44,8 @@ type TrChatWithSubComponents = typeof TrChat & {
 }
 
 const TrChatFull = TrChat as TrChatWithSubComponents
+TrChatFull.Root = TrChatRoot
+TrChatFull.Page = TrChatPage
 TrChatFull.Scaffold = TrChatScaffold
 TrChatFull.Provider = TrChatProvider
 TrChatFull.Layout = TrChatLayout
@@ -56,6 +62,7 @@ TrChatFull.WorkspaceShell = TrChatWorkspaceShell
 TrChatFull.WorkspaceRightSheet = TrChatWorkspaceRightSheet
 
 export { TrChatFull as TrChat }
+export { TrChatRoot, TrChatPage }
 
 export { useChatKit } from './runtime/chat-kit/useChatKit'
 export { useChatAttachments } from './components/attachments/useChatAttachments'
@@ -93,6 +100,7 @@ export {
 }
 
 export {
+  createRuntimeFromConfig,
   loadChatConfig,
   createChatAdapterFromConfig,
   createPresetChatProps,
@@ -104,10 +112,30 @@ export { CHAT_MESSAGES, resolveChatMessages } from './shared/messages'
 
 export type {
   BrandConfig,
+  ChatAttachmentsRuntime,
+  ChatBeforeSendHandler,
   ChatScaffoldCallbacks,
+  ChatConversationCreateInput,
+  ChatConversationRuntime,
+  ChatConversationSummary,
   ChatBeforeSendPayload,
   ChatBeforeSendResult,
+  ChatErrorHandler,
+  ChatHistoryRuntime,
+  ChatMcpRuntime,
+  ChatMessageRuntime,
+  ChatMessageViewState,
+  ChatModelRuntime,
+  ChatRuntime,
+  ChatRuntimeInput,
+  ChatSenderRuntime,
+  ChatSendInput,
+  ChatUIMessage,
+  ChatUIMessageMeta,
+  ChatUIMessagePart,
+  ChatUIMessageRole,
   TrChatRuntimeInput,
+  ChatWorkspaceRegionRuntime,
   ChatAppearanceConfig,
   ChatContentLayout,
   ChatAppearanceMode,
@@ -152,6 +180,22 @@ export type {
   ChatMessagesOverrides,
   UseMessageResponseProvider,
   ModelOption,
+  CreateRuntimeFromConfigResult,
+  ReadonlyRef,
+  TrChatAttachmentsConfig,
+  TrChatConfig,
+  TrChatConversationConfig,
+  TrChatHistoryConfig,
+  TrChatLifecycleConfig,
+  TrChatMessagesConfig,
+  TrChatRequestConfig,
+  TrChatRequestModel,
+  TrChatRootProps,
+  TrChatRootUiConfig,
+  TrChatSenderConfig,
+  TrChatTransportConfig,
+  TrChatUiConfig,
+  TrChatWorkspaceConfig,
   TrChatScaffoldContextValue,
   ChatShellVariant,
   ChatWorkspaceRegionCollapseMode,

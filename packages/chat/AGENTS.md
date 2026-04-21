@@ -35,6 +35,8 @@ During this refactor branch, use this package in two modes:
   Read this to distinguish current behavior anchors from target refactor contracts.
 - `packages/chat/docs/refactor/README.md`
   Read this before touching refactor design, process, archive, or review docs.
+- `packages/chat/docs/refactor/knowledge/PLAYBOOK.md`
+  Read this when the task continues an active refactor slice and you want the latest recurring implementation lessons.
 
 If the task includes implementation files, then also inspect the nearest relevant code, tests, and demo files before editing.
 
@@ -58,6 +60,8 @@ If the task includes implementation files, then also inspect the nearest relevan
   Review method, meeting shape, and fixed cadence.
 - `packages/chat/docs/refactor/process/alignment-tracker.md`
   Current status, decisions, open questions, and next actions.
+- `packages/chat/docs/refactor/knowledge/EXPERIENCE_LOG.md`
+  Candidate and promoted recurring lessons gathered during implementation.
 - `packages/chat/docs/refactor/CODE_MAP.md`
   Intended implementation areas and ownership boundaries.
 - `packages/chat/docs/refactor/IMPLEMENTATION_ROUTING.md`
@@ -73,5 +77,7 @@ If the task includes implementation files, then also inspect the nearest relevan
 - Archive docs are historical context. Do not update them during routine coding unless the task is explicitly re-baselining history.
 - Review packets exist to prepare a specific meeting. They do not replace long-term source docs.
 - Generated docs are derived artifacts. Update them only when their owning source doc changed.
+- Knowledge docs are a thin reuse layer. Update them only when a lesson repeats, changes future implementation choices, or closes a recurring source of confusion.
 - If a change affects contract, update `api-runtime.md` or `execution.md` first, then update tracker or review material only if the task truly changed status or meeting narrative.
 - If a code or workflow change makes a local doc stale, update the stale doc in the same task when practical.
+- After each completed task, report the current estimated `Phase 1A` progress and overall refactor progress, using `alignment-tracker.md` plus the active execution slice as the default evidence base.

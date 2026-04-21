@@ -5,11 +5,13 @@ import type { BubbleMessage, FeedbackProps } from '@opentiny/tiny-robot'
 import type { ChatMessage } from '@opentiny/tiny-robot-kit'
 import { useResolvedChatMessages } from '@/shared/messages'
 import { getChatRenderSourceMessage, unwrapChatRenderMessages } from '@/runtime/chat-kit/chatRenderMessages'
+import { ensureRuntimeMessageId } from '@/runtime/core/messageIdentity'
 import type {
   ChatMessageActionContext,
   ChatMessageActionDefinition,
   ChatMessageActionsInput,
   ChatMessageActionsMode,
+  ChatRuntime,
   UseChatKitReturn,
 } from '@/types'
 
@@ -18,16 +20,31 @@ export interface UseChatFeedbackOptions {
   messageIndexes: number[]
   role?: string
   chatKit?: UseChatKitReturn | null
+  runtime?: ChatRuntime | null
   messageActions?: ChatMessageActionsInput
   messageActionsMode?: ChatMessageActionsMode
 }
 
 export function useChatFeedback(options: UseChatFeedbackOptions) {
-  const { messages, messageIndexes, role, chatKit = null } = options
+  const { messages, messageIndexes, role, chatKit = null, runtime = null } = options
   const sourceMessages = computed(() => unwrapChatRenderMessages(messages as unknown as ChatMessage[]))
   const { copy } = useClipboard()
   const chatMessages = useResolvedChatMessages()
   const messageActionMode = computed<ChatMessageActionsMode>(() => options.messageActionsMode ?? 'append')
+  const primaryMessage = computed(() =>
+    getChatRenderSourceMessage(sourceMessages.value[sourceMessages.value.length - 1]),
+  )
+  const messageIds = computed(() =>
+    sourceMessages.value
+      .map((message) => ensureRuntimeMessageId(message))
+      .filter((messageId): messageId is string => Boolean(messageId)),
+  )
+  const primaryMessageId = computed(() =>
+    primaryMessage.value ? ensureRuntimeMessageId(primaryMessage.value) : undefined,
+  )
+  const primaryViewState = computed(() =>
+    runtime && primaryMessageId.value ? runtime.message.getViewState(primaryMessageId.value) : undefined,
+  )
 
   const lastContent = computed(() => {
     const last = [...sourceMessages.value].reverse().find((message) => message.role === 'assistant' || !message.role)
@@ -63,20 +80,26 @@ export function useChatFeedback(options: UseChatFeedbackOptions) {
   })
 
   const isStreaming = computed(() =>
-    chatKit ? chatKit.status.value === 'streaming' || chatKit.status.value === 'submitted' : false,
+    primaryViewState.value
+      ? primaryViewState.value.status === 'streaming' || primaryViewState.value.status === 'pending'
+      : chatKit
+        ? chatKit.status.value === 'streaming' || chatKit.status.value === 'submitted'
+        : false,
   )
 
   const actionContext = computed<ChatMessageActionContext>(() => {
     const primaryMessageIndex = messageIndexes[0]
-    const primaryMessage = getChatRenderSourceMessage(sourceMessages.value[sourceMessages.value.length - 1])
 
     return {
       role,
       messages: sourceMessages.value,
+      messageIds: messageIds.value,
       messageIndexes,
-      message: primaryMessage as ChatMessage | undefined,
+      message: primaryMessage.value as ChatMessage | undefined,
       messageIndex: primaryMessageIndex,
+      messageId: primaryMessageId.value,
       chatKit,
+      runtime,
       conversationId: chatKit?.activeConversationId.value ?? undefined,
     }
   })
@@ -91,7 +114,12 @@ export function useChatFeedback(options: UseChatFeedbackOptions) {
           placement: 'actions',
           roles: ['user'],
           order: 100,
-          onClick: () => {
+          onClick: async () => {
+            if (runtime && primaryMessageId.value) {
+              await runtime.message.copy(primaryMessageId.value)
+              return
+            }
+
             copy(userContent.value)
           },
         },
@@ -103,6 +131,11 @@ export function useChatFeedback(options: UseChatFeedbackOptions) {
           roles: ['user'],
           order: 200,
           onClick: (context) => {
+            if (runtime && context.messageId) {
+              runtime.message.startEdit(context.messageId)
+              return
+            }
+
             if (chatKit && context.messageIndex !== undefined) {
               chatKit.startEditMessage(context.messageIndex)
             }
@@ -123,7 +156,12 @@ export function useChatFeedback(options: UseChatFeedbackOptions) {
         placement: 'actions',
         roles: ['assistant'],
         order: 100,
-        onClick: () => {
+        onClick: async () => {
+          if (runtime && primaryMessageId.value) {
+            await runtime.message.copy(primaryMessageId.value)
+            return
+          }
+
           copy(lastContent.value)
         },
       },
@@ -134,8 +172,20 @@ export function useChatFeedback(options: UseChatFeedbackOptions) {
         placement: 'actions',
         roles: ['assistant'],
         order: 200,
-        when: () => Boolean(chatKit && !isStreaming.value && lastUserContent.value),
+        when: () =>
+          Boolean((runtime && primaryMessageId.value) || (chatKit && !isStreaming.value && lastUserContent.value)),
         onClick: async (context) => {
+          if (runtime && context.messageId) {
+            const viewState = runtime.message.getViewState(context.messageId)
+            if (viewState?.error?.retryable) {
+              await runtime.conversation.retry(context.messageId)
+              return
+            }
+
+            await runtime.conversation.regenerate(context.messageId)
+            return
+          }
+
           if (!chatKit || isStreaming.value || !lastUserContent.value) {
             return
           }
@@ -215,6 +265,7 @@ export function useChatFeedback(options: UseChatFeedbackOptions) {
     feedbackOperations,
     getActionDefinition,
     actionContext,
+    messageIds,
     userContent,
   }
 }

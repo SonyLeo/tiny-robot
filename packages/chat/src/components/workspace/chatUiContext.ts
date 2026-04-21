@@ -5,6 +5,7 @@ import type {
   ChatWorkspaceRegionWidth,
   ChatWorkspaceShellConfig,
 } from '@/types/workspace'
+import type { ChatWorkspaceRuntime } from '@/types/root'
 
 export type ChatHistoryDisplayMode = 'drawer' | 'surface'
 
@@ -47,6 +48,7 @@ export interface CreateChatUiContextOptions {
   closableHistory?: boolean
   shell?: MaybeRefOrGetter<ChatWorkspaceShellConfig | undefined>
   mobileBreakpoint?: string
+  workspaceRuntime?: ChatWorkspaceRuntime
 }
 
 function resolveMaxWidthBreakpoint(query: string) {
@@ -104,6 +106,28 @@ function createWorkspaceRegionState(options: {
 }
 
 export function createChatUiContext(options: CreateChatUiContextOptions = {}): ChatUiContextValue {
+  if (options.workspaceRuntime) {
+    const display = ref<ChatHistoryDisplayMode>('drawer')
+
+    return {
+      workspace: {
+        enabled: options.workspaceRuntime.enabled as ComputedRef<boolean>,
+        variant: options.workspaceRuntime.variant as Ref<ChatShellVariant>,
+        isMobile: options.workspaceRuntime.isMobile as Ref<boolean>,
+        setResponsiveHost: options.workspaceRuntime.setResponsiveHost,
+        left: options.workspaceRuntime.left,
+        right: options.workspaceRuntime.right,
+      },
+      history: {
+        visible: options.workspaceRuntime.historyVisible as ComputedRef<boolean>,
+        display,
+        open: options.workspaceRuntime.openHistory,
+        close: options.workspaceRuntime.closeHistory,
+        toggle: options.workspaceRuntime.toggleHistory,
+      },
+    }
+  }
+
   const resolvedShell = computed(() => toValue(options.shell))
   const variant = ref<ChatShellVariant>(resolvedShell.value?.variant ?? 'stacked')
   const enabled = computed(() => variant.value === 'workspace')

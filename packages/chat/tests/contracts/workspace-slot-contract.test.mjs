@@ -8,6 +8,7 @@ const defaultRendererSource = readFileSync(
   fileURLToPath(new URL('../../src/components/core/default-renderer/ChatDefaultRenderer.vue', import.meta.url)),
   'utf8',
 )
+const chatPageSource = readFileSync(fileURLToPath(new URL('../../src/page/TrChatPage.vue', import.meta.url)), 'utf8')
 const workspaceLayoutSource = readFileSync(
   fileURLToPath(new URL('../../src/components/workspace/ChatWorkspaceLayout.vue', import.meta.url)),
   'utf8',
@@ -24,6 +25,7 @@ const workspaceRightSheetSource = readFileSync(
 await runTest('TrChat blackbox keeps workspace panel-level slot names aligned with the whitebox layout', async () => {
   assert.equal(chatSource.includes('<template v-for="(_, name) in slots" #[name]="slotProps" :key="name">'), true)
   assert.equal(chatSource.includes('<slot :name="name" v-bind="slotProps ?? {}" />'), true)
+  assert.equal(defaultRendererSource.includes('<TrChatPage'), true)
 
   const panelSlots = [
     '<template v-if="$slots.left" #left>',
@@ -34,7 +36,7 @@ await runTest('TrChat blackbox keeps workspace panel-level slot names aligned wi
   ]
 
   panelSlots.forEach((templateToken) => {
-    assert.equal(defaultRendererSource.includes(templateToken), true)
+    assert.equal(chatPageSource.includes(templateToken), true)
   })
 })
 

@@ -45,6 +45,31 @@
 
 一句话说，这次不是按“写了多少代码”判断，而是按“有没有证据证明 foundation 成立”判断。
 
+### 这次已经准备好的 5 组关键证据
+
+为了避免你在会上只听到抽象表述，我会直接把下面这 5 组已经落地的证据讲清楚：
+
+1. `Root + createRuntimeFromConfig` 已经是可运行 on-ramp，而不是只停留在设计文档里。
+2. `messageId` 已经在 edit / retry / regenerate / restore 路径里站住，action context 也已经显式带上 `messageId / messageIds`。
+3. `conversation.initialMessages` 现在是 eager first-screen baseline：没有 restore 时，会先 materialize active conversation，而不是等第一次 send。
+4. 默认 page source 现在已经把 `footer-extra` 锁成唯一 page-level footer slot，并有 contract tests 防止 standalone `footer` replace slot 提前漏进来。
+5. `Phase 1A` 默认验证基线已经存在：`type-check`、`test:runtime`、`test:contracts`、`check:docs`，以及收口脚本 `check:phase-1a`。
+
+### 如果你只想快速抽查证据，先看这 6 个 artifact
+
+- `packages/chat/tests/runtime/root-runtime.test.mjs`
+  看 `Root + createRuntimeFromConfig` baseline 和 `conversation.initialMessages` eager baseline
+- `packages/chat/tests/runtime/message-runtime.test.mjs`
+  看 `messageId` lifecycle、edit / retry / regenerate / view-state
+- `packages/chat/tests/runtime/message-actions.test.mjs`
+  看 built-in actions 和 custom action context 是否已经优先走 `messageId / messageIds`
+- `packages/chat/tests/contracts/public-surface.test.mjs`
+  看默认 page source 是否只冻结 `footer-extra`
+- `packages/chat/docs/exec-plans/completed/2026-04-21-phase-1a-bootstrap-and-root-baseline.md`
+  看这轮实际落地、验证命令和回写边界
+- `packages/chat/docs/histories/2026-04/2026-04-21-phase-1a-root-bootstrap.md`
+  看当前已知 drift、known limits、follow-ups
+
 ## 4. 如果 `Phase 1A` 通过，下一步准备做什么
 
 如果这轮通过，我准备直接进入 `Phase 1B`。
@@ -133,7 +158,7 @@
 ## 8. 如果你时间有限，只看这几句就够了
 
 - 这轮不重评大方向，只评 `Phase 1A` foundation 是否真的成立
-- 我会重点证明：runtime foundation、`Root + createRuntimeFromConfig`、最小 UI 主链路，以及对应 contract tests
+- 我会重点证明：runtime foundation、`Root + createRuntimeFromConfig`、最小 UI 主链路、`messageId / messageIds`、`conversation.initialMessages` eager baseline、`footer-extra` footer contract，以及对应 contract tests
 - 我会单独检查 `Review A` 冻结的硬门禁有没有在实现里被打穿
 - 如果这些成立，下一阶段我准备做 `Page baseline / history / models / workspace`
 - 这轮我最需要你帮我判断的是：当前证据够不够支撑 `Phase 1A pass`，以及 `Phase 1B` 立刻依赖的 API / props / slot contract 是否已经足够清楚

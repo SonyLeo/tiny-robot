@@ -8,6 +8,8 @@ This directory contains the active refactor knowledge base for `packages/chat`.
   active source docs for target design, contract, and phase execution
 - `process/`
   review method and current alignment state
+- `knowledge/`
+  thin recurring-knowledge layer for reusable implementation lessons
 - `reviews/`
   meeting-specific review materials
 - `archive/`
@@ -31,6 +33,10 @@ Read these by default:
   intended implementation areas and ownership boundaries
 - `IMPLEMENTATION_ROUTING.md`
   where to start for a given kind of implementation change
+- `knowledge/PLAYBOOK.md`
+  stable heuristics reused across multiple refactor slices
+- `knowledge/EXPERIENCE_LOG.md`
+  lightweight tracker for recurring lessons that are candidates for promotion
 
 ## Archive Policy
 

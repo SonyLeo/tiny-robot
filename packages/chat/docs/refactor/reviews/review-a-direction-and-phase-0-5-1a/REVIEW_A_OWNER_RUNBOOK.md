@@ -132,7 +132,7 @@
 
 这一段只有在你会前确实准备了 preview 的情况下使用。
 
-你要讲清 4 件事：
+你要讲清 4 条 preview 边界：
 
 1. 这批 preview 不是第一阶段完成报告，只是 feasibility evidence
 2. preview 只覆盖 `Must Freeze Now` 直接依赖的最小实现包
@@ -143,7 +143,7 @@
 
 > 我这次会前没有把第一阶段完整做完，但我带了一小批 preview。  
 > 这批 preview 的作用不是证明“Phase 1A 已完成”，而是证明当前这批 contract 不是纸上设计。  
-> 我会只用它来证明 4 件事：Root 最小链路能跑、bridge subset 能落、messageId 和 handoff 能被最小验证、foundation 能被最小 UI 消费。  
+> 我会只用它来补充证明 4 件 `Must Freeze Now` 相关的可实现性证据：Root 最小链路能跑、bridge subset 能落、messageId 和 handoff 能被最小验证、foundation 能被最小 UI 消费。  
 > 反过来说，我没有提前做 Page baseline、history/models/workspace、完整 slot 消费面，也没有让 preview 反向定义规范。  
 > 所以我希望你把它当成 feasibility evidence，而不是当成既成实现事实。
 

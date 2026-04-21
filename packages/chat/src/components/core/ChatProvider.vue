@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, provide } from 'vue'
+import { computed, inject, provide } from 'vue'
 import { useChatAttachments } from '@/components/attachments/useChatAttachments'
 import { useHistoryState } from '@/components/history/useHistoryState'
 import {
@@ -7,6 +7,7 @@ import {
   CHAT_HISTORY_KEY,
   CHAT_KIT_KEY,
   CHAT_MESSAGES_KEY,
+  CHAT_RUNTIME_KEY,
   CHAT_SENDER_ACTIONS_KEY,
   CHAT_UI_KEY,
   MCP_MANAGER_KEY,
@@ -21,10 +22,11 @@ defineOptions({ name: 'TrChatProvider' })
 
 const props = defineProps<TrChatProviderProps>()
 const scaffoldContext = useChatScaffoldContext()
+const runtime = inject(CHAT_RUNTIME_KEY, null)
 
 const chatKit = resolveProviderChatKit('TrChatProvider', props)
 const shell = computed(() => props.shell ?? scaffoldContext?.presetSlices.value.shell.shell)
-const chatUi = createChatUiContext({ historyDisplay: 'drawer', shell })
+const chatUi = createChatUiContext({ historyDisplay: 'drawer', shell, workspaceRuntime: runtime?.workspace })
 const chatMessages = computed(() => resolveChatMessages(props.messages))
 const attachmentsFeature = props.attachmentsFeature
 const attachmentsManager = props.attachmentsManager ?? (attachmentsFeature ? useChatAttachments() : null)

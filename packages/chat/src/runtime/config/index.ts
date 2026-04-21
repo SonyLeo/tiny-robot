@@ -1,4 +1,5 @@
 export { loadChatConfig } from './configLoader'
+export { createRuntimeFromConfig } from './createRuntimeFromConfig'
 export { createChatAdapterFromConfig, createPresetChatProps, createPresetChatSlices } from './configProjection'
 export { CHAT_FEATURE_REGISTRY, isChatFeatureExplicitlyDisabled, resolveChatFeatures } from './registry'
 export type {

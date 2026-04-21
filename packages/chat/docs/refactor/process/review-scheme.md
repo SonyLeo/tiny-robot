@@ -25,7 +25,7 @@ Status: active review scheme.
 
 对应分工：
 
-- 规范文档：`DESIGN / API_RUNTIME / EXECUTION / IMPLEMENTATION_BLUEPRINT`
+- 规范文档：`design/overview.md`、`design/api-runtime.md`、`design/execution.md`
 - 方法文档：本文件
 - 过程文档：[alignment-tracker.md](./alignment-tracker.md)
 
@@ -72,7 +72,7 @@ Status: active review scheme.
 
 主要看：
 
-- [overview.md](./overview.md)
+- [overview.md](../design/overview.md)
 
 ### 4.2 contract 层
 
@@ -97,7 +97,7 @@ Status: active review scheme.
 
 主要看：
 
-- [execution.md](./execution.md)
+- [execution.md](../design/execution.md)
 
 ### 4.4 实现约束层
 
@@ -141,9 +141,10 @@ Status: active review scheme.
 - `Root` props：
   只允许消费 `{ runtime, ui }`
 - `Phase 1A` 会直接编码到的 runtime / primitive contract：
-  `ChatUIMessage`、`messageId`、`createConversationRuntime`、`createSenderRuntime`、`createMessageRuntime`、`createAttachmentsRuntime`、`createTransportRuntime`、`TrChat.Message`、`TrChat.MessageList`、`TrChat.Sender`
+  `ChatUIMessage`、`messageId`、`createConversationRuntime`、`createSenderRuntime`、`createMessageRuntime`、`createAttachmentsRuntime`、`TrChat.Message`、`TrChat.MessageList`、`TrChat.Sender`
 - 核心 slot API / contract：
   slot 是否存在、`replace / augment` 两类是否成立、slot 不得拿 whole runtime、slot props 只暴露最小必要模块、核心一级 slot catalog 是否成立
+  这里的最小 slot catalog 以 `api-runtime.md` 为准，包含当前已冻结的 replace slots 与 augment slots
 
 #### B. Freeze Semantics Now
 
@@ -154,6 +155,7 @@ Status: active review scheme.
 - degrade rules 的基本原则
 - `Page` composition-only 的落地约束
 - 核心 slot 一级名称和区域归属
+- `footer-extra` augment slot 与 footer companion region 的读取边界
 
 #### C. Defer To Review B
 
@@ -161,7 +163,7 @@ Status: active review scheme.
 
 - `Page baseline` 的完整 slot 消费面
 - `history / models / workspace` 完整 props 矩阵
-- `Footer` 的最终落位细节
+- 独立 `footer` replace slot 与 `Footer` 的最终落位细节
 - 所有 augment hook 的最终细粒度命名
 - 最终公开面与发布语义
 
@@ -309,7 +311,7 @@ Status: active review scheme.
 
 推荐做法：
 
-- 规范内容继续留在 `DESIGN / API_RUNTIME / EXECUTION / IMPLEMENTATION_BLUEPRINT`
+- 规范内容继续留在 `design/overview.md`、`design/api-runtime.md`、`design/execution.md`
 - `OWNER_RUNBOOK` 负责流程把控，不对外发
 - `SPEC_DETAIL` 负责完整说明，是方案底稿
 - `REVIEWER_MEMO` 负责给评审人快速形成判断
@@ -334,7 +336,7 @@ Status: active review scheme.
 1. 先读本文件，明确评审方法
 2. 再读 [alignment-tracker.md](./alignment-tracker.md)，明确当前阶段状态
 3. 再读当前轮次的 `REVIEWER_MEMO`，明确本次会议的单入口材料
-4. 最后按需要进入 `DESIGN / API_RUNTIME / EXECUTION / IMPLEMENTATION_BLUEPRINT`
+4. 最后按需要进入 `design/overview.md`、`design/api-runtime.md`、`design/execution.md`
 
 这样可以确保：
 

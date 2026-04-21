@@ -3,12 +3,14 @@ import { nextTick, onMounted, ref, watch, inject } from 'vue'
 import { useMessageContent, type BubbleContentRendererProps } from '@opentiny/tiny-robot'
 import { ensureChatMessageState } from '@/runtime/chat-kit/chatMessageState'
 import { getChatRenderMessageIndex, getChatRenderSourceMessage } from '@/runtime/chat-kit/chatRenderMessages'
-import { CHAT_KIT_KEY } from '@/shared/context'
+import { getRuntimeMessageId } from '@/runtime/core/messageIdentity'
+import { CHAT_KIT_KEY, CHAT_RUNTIME_KEY } from '@/shared/context'
 import { useResolvedChatMessages } from '@/shared/messages'
-import type { UseChatKitReturn } from '@/types'
+import type { ChatRuntime, UseChatKitReturn } from '@/types'
 
 const props = defineProps<BubbleContentRendererProps>()
 const chatKit = inject<UseChatKitReturn>(CHAT_KIT_KEY)
+const chatRuntime = inject<ChatRuntime | null>(CHAT_RUNTIME_KEY, null)
 const chatMessages = useResolvedChatMessages()
 
 const { contentText } = useMessageContent(props)
@@ -35,6 +37,22 @@ const adjustHeight = async () => {
   }
 }
 
+function resolveSourceMessage() {
+  return getChatRenderSourceMessage(props.message as never) ?? (props.message as never)
+}
+
+function resolveMessageId() {
+  return getRuntimeMessageId(resolveSourceMessage())
+}
+
+function resolveMessageIndex() {
+  const sourceMessage = resolveSourceMessage()
+  return (
+    getChatRenderMessageIndex(props.message as never) ??
+    chatKit!.messages.value.findIndex((message) => message === sourceMessage)
+  )
+}
+
 const handleSave = async () => {
   if (!localContent.value.trim()) {
     console.warn('Message content cannot be empty')
@@ -43,10 +61,15 @@ const handleSave = async () => {
 
   isSaving.value = true
   try {
-    const sourceMessage = getChatRenderSourceMessage(props.message as never)
-    const messageIndex =
-      getChatRenderMessageIndex(props.message as never) ??
-      chatKit!.messages.value.findIndex((message) => message === sourceMessage)
+    const messageId = resolveMessageId()
+    if (chatRuntime && messageId) {
+      chatRuntime.message.cancelEdit(messageId)
+      await nextTick()
+      await chatRuntime.message.commitEdit(messageId, localContent.value)
+      return
+    }
+
+    const messageIndex = resolveMessageIndex()
     if (messageIndex === -1) {
       console.error('Current message could not be found')
       return
@@ -61,10 +84,13 @@ const handleSave = async () => {
 }
 
 const handleCancel = () => {
-  const sourceMessage = getChatRenderSourceMessage(props.message as never)
-  const messageIndex =
-    getChatRenderMessageIndex(props.message as never) ??
-    chatKit!.messages.value.findIndex((message) => message === sourceMessage)
+  const messageId = resolveMessageId()
+  if (chatRuntime && messageId) {
+    chatRuntime.message.cancelEdit(messageId)
+    return
+  }
+
+  const messageIndex = resolveMessageIndex()
   if (messageIndex !== -1) {
     chatKit!.cancelEditMessage(messageIndex)
   }

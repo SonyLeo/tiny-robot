@@ -1,6 +1,7 @@
 import { computed, shallowRef, watch, watchEffect } from 'vue'
 import type { ChatMessage } from '@opentiny/tiny-robot-kit'
 import type { UseChatKitOptions, UseChatKitReturn, UseMessageResponseProvider } from '@/types'
+import { getRuntimeMessageId, setRuntimeMessageId } from '@/runtime/core/messageIdentity'
 import { useChatConversation } from './useChatConversation'
 import { cloneMessages, useChatMessages } from './useChatMessages'
 import { useChatRequest } from './useChatRequest'
@@ -28,6 +29,10 @@ interface EditRollbackContext {
   conversationId: string
   messageIndex: number
   removedMessages: ChatMessage[]
+}
+
+interface ResendMessageOptions {
+  preserveUserMessageId?: string
 }
 
 function createTurnId() {
@@ -170,9 +175,9 @@ export function useChatKit(options: UseChatKitOptions): UseChatKitReturn {
 
   const messages = computed<ChatMessage[]>(() => conversation.activeConversation.value?.engine.messages.value ?? [])
 
-  function resendMessage(content: string) {
+  function resendMessage(content: string, options: ResendMessageOptions = {}) {
     conversation.sendMessage(content)
-    markOptimisticTurn()
+    markOptimisticTurn(options)
   }
 
   const messageActions = useChatMessages({
@@ -192,7 +197,7 @@ export function useChatKit(options: UseChatKitOptions): UseChatKitReturn {
     },
   })
 
-  function markOptimisticTurn() {
+  function markOptimisticTurn(options: ResendMessageOptions = {}) {
     const currentConversationId = conversation.activeConversationId.value
     const activeMessages = conversation.activeConversation.value?.engine.messages.value
     if (!currentConversationId || !activeMessages) return
@@ -200,6 +205,10 @@ export function useChatKit(options: UseChatKitOptions): UseChatKitReturn {
     const turnId = createTurnId()
     const userMessage = findLatestUserMessageWithoutTurnId(activeMessages)
     if (!userMessage) return
+
+    if (options.preserveUserMessageId) {
+      setRuntimeMessageId(userMessage, options.preserveUserMessageId)
+    }
 
     setChatMessageTurnId(userMessage, turnId)
     const assistantMessage = findAssistantMessageForTurn(activeMessages, userMessage)
@@ -284,7 +293,11 @@ export function useChatKit(options: UseChatKitOptions): UseChatKitReturn {
     )
 
     if (failedTurnStartIndex >= 0) {
+      const preservedUserMessageId = getRuntimeMessageId(activeMessages[failedTurnStartIndex])
       activeMessages.splice(failedTurnStartIndex)
+      clearFailureState()
+      resendMessage(currentRetryContext.userContent, { preserveUserMessageId: preservedUserMessageId })
+      return true
     }
 
     clearFailureState()
@@ -326,6 +339,8 @@ export function useChatKit(options: UseChatKitOptions): UseChatKitReturn {
       return false
     }
 
+    const preservedUserMessageId = getRuntimeMessageId(userMessage)
+
     clearFailureState()
     clearPendingEditRollback()
     editRollbackContext.value = {
@@ -335,7 +350,7 @@ export function useChatKit(options: UseChatKitOptions): UseChatKitReturn {
     }
 
     activeMessages.splice(userMessageIndex)
-    resendMessage(userMessage.content)
+    resendMessage(userMessage.content, { preserveUserMessageId: preservedUserMessageId })
     return true
   }
 

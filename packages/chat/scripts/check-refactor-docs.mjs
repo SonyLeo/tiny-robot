@@ -109,6 +109,9 @@ const requiredFiles = [
   'packages/chat/docs/refactor/REFACTOR_COLLAB_GUIDE.md',
   'packages/chat/docs/refactor/CODE_MAP.md',
   'packages/chat/docs/refactor/IMPLEMENTATION_ROUTING.md',
+  'packages/chat/docs/refactor/knowledge/README.md',
+  'packages/chat/docs/refactor/knowledge/PLAYBOOK.md',
+  'packages/chat/docs/refactor/knowledge/EXPERIENCE_LOG.md',
   'packages/chat/docs/refactor/design/overview.md',
   'packages/chat/docs/refactor/design/api-runtime.md',
   'packages/chat/docs/refactor/design/execution.md',
@@ -135,6 +138,7 @@ const requiredDirs = [
   'packages/chat/docs/generated',
   'packages/chat/docs/histories',
   'packages/chat/docs/refactor/design',
+  'packages/chat/docs/refactor/knowledge',
   'packages/chat/docs/refactor/process',
   'packages/chat/docs/refactor/archive',
   'packages/chat/docs/refactor/reviews',
@@ -169,9 +173,19 @@ assertIncludes(
   'packages/chat/AGENTS.md should point to the refactor docs map',
 )
 assertIncludes(
+  'packages/chat/AGENTS.md',
+  'packages/chat/docs/refactor/knowledge/PLAYBOOK.md',
+  'packages/chat/AGENTS.md should point to the refactor playbook',
+)
+assertIncludes(
   'packages/chat/docs/SOURCE_OF_TRUTH.md',
   'packages/chat/docs/refactor/design/overview.md',
   'SOURCE_OF_TRUTH.md should reference the normative refactor docs',
+)
+assertIncludes(
+  'packages/chat/docs/SOURCE_OF_TRUTH.md',
+  'packages/chat/docs/refactor/knowledge/PLAYBOOK.md',
+  'SOURCE_OF_TRUTH.md should reference the refactor knowledge layer',
 )
 assertIncludes(
   'packages/chat/docs/SOURCE_OF_TRUTH.md',

@@ -14,6 +14,7 @@ import type {
   UseMessagePlugin,
 } from '@opentiny/tiny-robot-kit'
 import type { FeedbackProps } from '@opentiny/tiny-robot'
+import type { ChatRuntime } from './root'
 
 export type ResponseProvider = (
   requestBody: MessageRequestBody,
@@ -42,9 +43,11 @@ export interface ChatMessageActionPayload {
   placement?: ChatMessageActionPlacement
   role?: string
   messages: ChatMessage[]
+  messageIds: string[]
   messageIndexes: number[]
   message?: ChatMessage
   messageIndex?: number
+  messageId?: string
   conversationId?: string
 }
 
@@ -55,10 +58,13 @@ export type ChatMessageActionsMode = 'append' | 'replace'
 export interface ChatMessageActionContext {
   role?: string
   messages: ChatMessage[]
+  messageIds: string[]
   messageIndexes: number[]
   message?: ChatMessage
   messageIndex?: number
+  messageId?: string
   chatKit?: UseChatKitReturn | null
+  runtime?: ChatRuntime | null
   conversationId?: string
 }
 

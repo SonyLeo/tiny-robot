@@ -42,6 +42,18 @@ These files are historical context and are not part of routine coding updates:
 Use them for rationale and historical freeze context.
 Do not update them during normal implementation unless the task is explicitly re-baselining history.
 
+## Knowledge Layer
+
+These files are the thin recurring-knowledge layer for the refactor:
+
+- `packages/chat/docs/refactor/knowledge/PLAYBOOK.md`
+  stable implementation heuristics that have repeated enough to guide future slices
+- `packages/chat/docs/refactor/knowledge/EXPERIENCE_LOG.md`
+  lightweight tracker for candidate, promoted, and dropped recurring lessons
+
+They are not a second contract source.
+They exist to reduce repeated mistakes and repeated rediscovery across slices.
+
 ## Execution Plans
 
 These files define the next implementation slice:
@@ -95,9 +107,12 @@ Try to keep each task to one primary source doc plus, when necessary, one status
   write or update a history entry
 - high-frequency reference table changed:
   update the owning generated artifact after its source doc changed
+- a lesson repeated, changed future implementation choices, or exposed a recurring source of confusion:
+  update `refactor/knowledge/EXPERIENCE_LOG.md`, and promote it into `PLAYBOOK.md` only when it is stable enough to reuse
 
 ## What Not To Do
 
 - Do not update every refactor document for a single code change.
 - Do not let review packets or tracker entries become the place where contracts are really defined.
 - Do not treat archive docs as active implementation guidance.
+- Do not write a knowledge-layer entry for every finished task; only capture lessons that are likely to recur.

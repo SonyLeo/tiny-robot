@@ -2,20 +2,23 @@
 
 ## 1. 这次我想和你讨论什么
 
-这次我想和你一起判断 4 件事：
+这次我想和你一起拍板 5 个问题，并判断这轮评审结束后能不能直接进入 `Phase 1A`：
 
-1. `TrChat` 这一层对外怎么用，讲得清不清楚
-2. 系统内部的数据和能力，分配得合不合理
-3. 黑盒模式怎么过渡到白盒模式，这条路径顺不顺
-4. 这些内容是不是已经足够支撑第一阶段直接开始开发
+1. `TrChat / TrChat.Root / TrChat.Page` 这组入口心智是不是足够清楚
+2. `ui`、runtime、`Page` 的边界切法是不是合理
+3. `config -> createRuntimeFromConfig(config) -> { runtime, ui } -> TrChat.Root` 这条桥接路径是不是成立
+4. 当前 `Phase 0.5` 冻结下来的 contract package，是不是已经足够支撑 `Phase 1A`
+5. `Phase 1A` 的 scope / gate / exit criteria 是不是可以直接作为开工门禁
 
 这次不要求你提前看完所有长文档，也不要求你评后面所有阶段的细节。
 
 我更希望你重点帮我判断：
 
-- 这套方案是不是好理解
-- 这套方案是不是值得继续做
-- 第一阶段开始之前，还有没有明显漏掉的关键问题
+- 这轮是否可以给出 `pass / pass with follow-ups / blocked`
+- 是否可以直接进入 `Phase 1A`
+- 如果还不能开工，最该先回写哪一块 contract 或阶段门禁
+
+换句话说，这次不是一场泛泛的方向聊天，而是一场 `Review A` 开工签字评审。
 
 ## 2. 现在为什么必须重构
 
@@ -204,6 +207,13 @@ TrChat(config)
 - 第一阶段直接会依赖的运行层和基础组件约定
 - 核心 slot 约定
 
+这里的核心 slot 约定，以 `api-runtime.md` 里当前已经冻结的最小 slot catalog 为准：
+
+- replace slots：
+  `header`、`welcome`、`message-list`、`sender`、`left`、`left-rail`、`right`、`mobile-left`、`mobile-right`
+- augment slots：
+  `header-before`、`header-after`、`message-before`、`message-after`、`sender-before`、`sender-after`、`footer-extra`
+
 ### 这一轮先定原则，但不展开全部细节的
 
 - `Page` 怎么给 slot 提供数据
@@ -215,7 +225,7 @@ TrChat(config)
 
 - 完整 `Page` 页面层
 - `history / models / workspace` 的完整消费方式
-- `Footer` 的最终落位
+- 独立 `footer` replace slot 与 `Footer` 的最终落位
 - 最终公开面和更细粒度的 slot 命名
 
 ## 8. 我希望第一阶段完成时至少达到什么程度
@@ -229,7 +239,7 @@ TrChat(config)
 
 换句话说，第一阶段不是“先写一堆类型和空壳就算完成”，而是基础部分已经真的能工作。
 
-## 9. 这次我最想请你帮我判断的 4 个问题
+## 9. 这次我最想请你帮我拍板的 5 个问题
 
 ### 1. 入口层是否合理
 
@@ -252,12 +262,19 @@ TrChat(config)
 - `config -> runtime/ui -> Root` 这条路径是不是自然
 - `Root` 只接收 `{ runtime, ui }` 是否合理
 
-### 4. 当前阶段是否已经足够开工
+### 4. 当前 `Phase 0.5` contract package 是否已经足够开工
 
 我想请你看：
 
-- 这轮定下来的内容是不是已经足够支撑第一阶段开始开发
+- 这轮定下来的内容是不是已经足够支撑 `Phase 1A` 开始开发
 - 现在还有没有明显漏掉的关键问题
+
+### 5. `Phase 1A` 的拆法是否合理
+
+我想请你看：
+
+- 先做 foundation、再做 `Page baseline` 和黑盒主路径，这个顺序是不是合理
+- 当前 `Phase 1A` 的 scope / gate / exit criteria 是否足够支撑直接开工
 
 ## 10. 这次不需要你先评的内容
 
@@ -273,11 +290,12 @@ TrChat(config)
 
 ## 11. 我希望这次会议最后得到什么
 
-我希望最后能收出 3 个结论：
+我希望最后能收出 4 个结论：
 
 1. `Review A` 的结论是 `pass / pass with follow-ups / blocked`
-2. 是否可以直接进入 `Phase 1A`
-3. 如果还不能开工，我最应该先改哪一块
+2. 是否完成当前 `Phase 0.5` contract sign-off
+3. 是否可以直接进入 `Phase 1A`
+4. 如果还不能开工，我最应该先改哪一块
 
 ## 12. 如果你时间有限，只看这几句就够了
 
@@ -286,4 +304,4 @@ TrChat(config)
 - 我想把入口收成 `TrChat` 和 `TrChat.Root`，把 `Page` 放回默认页面层
 - 我想把黑盒到白盒的路径收成：`config -> createRuntimeFromConfig -> { runtime, ui } -> Root`
 - 我想第一步先把该定下来的约定定下来，再把最核心的基础部分做起来
-- 这次我最需要你帮我判断的是：入口层、内部职责划分、过渡方式是否都合理，以及这轮评完能不能直接开工
+- 这次我最需要你帮我判断的是：入口层、职责划分、桥接路径、当前 contract package 和 `Phase 1A` 拆法是否都合理，以及这轮评完能不能直接开工

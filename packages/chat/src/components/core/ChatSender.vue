@@ -7,6 +7,7 @@ import {
   CHAT_ATTACHMENTS_KEY,
   CHAT_BEFORE_SEND_KEY,
   CHAT_KIT_KEY,
+  CHAT_RUNTIME_KEY,
   CHAT_SENDER_ACTIONS_KEY,
   useChatScaffoldContext,
 } from '@/shared/context'
@@ -27,6 +28,7 @@ const props = defineProps({
 })
 
 const chatKit = inject(CHAT_KIT_KEY)!
+const chatRuntime = inject(CHAT_RUNTIME_KEY, null)
 const attachmentsContext = inject(CHAT_ATTACHMENTS_KEY, null)
 const senderActionsContext = inject(CHAT_SENDER_ACTIONS_KEY, null)
 const beforeSendHandler = inject(CHAT_BEFORE_SEND_KEY, undefined)
@@ -35,9 +37,25 @@ const attrs = useAttrs()
 const slots = useSlots() as Record<string, Slot | undefined>
 const scaffoldContext = useChatScaffoldContext()
 
-const inputValue = ref('')
+const legacyInputValue = ref('')
+const inputValue = computed({
+  get() {
+    return chatRuntime?.sender.draft.value ?? legacyInputValue.value
+  },
+  set(value: string) {
+    if (chatRuntime) {
+      chatRuntime.sender.setDraft(value)
+      return
+    }
 
-const isLoading = computed(() => chatKit.status.value === 'submitted' || chatKit.status.value === 'streaming')
+    legacyInputValue.value = value
+  },
+})
+
+const isLoading = computed(() => {
+  const status = chatRuntime?.conversation.status.value ?? chatKit.status.value
+  return status === 'submitted' || status === 'streaming'
+})
 const senderActionsFeature = computed(() => senderActionsContext?.feature)
 const senderSlice = computed(() => scaffoldContext?.presetSlices.value.sender)
 const uploadActionConfig = computed(() => {
@@ -104,6 +122,14 @@ const mergedSenderAttrs = computed(() => ({
 }))
 
 async function handleSend(content: string, data?: StructuredData) {
+  if (chatRuntime) {
+    await chatRuntime.sender.send({
+      text: content,
+      attachments: chatRuntime.sender.pendingAttachments.value,
+    })
+    return
+  }
+
   let payload = {
     text: content,
     structuredData: data,
@@ -136,10 +162,21 @@ async function handleSend(content: string, data?: StructuredData) {
 }
 
 function handleAbort() {
+  if (chatRuntime) {
+    chatRuntime.conversation.abort()
+    return
+  }
+
   chatKit.abort()
 }
 
 function handleFileSelect(files: File[]) {
+  if (chatRuntime?.attachments) {
+    const prepared = chatRuntime.attachments.prepareFiles(files)
+    chatRuntime.sender.addPendingAttachments(prepared)
+    return
+  }
+
   attachmentsContext?.manager.addFiles(files)
 }
 

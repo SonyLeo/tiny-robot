@@ -36,9 +36,9 @@
 | --- | --- | --- | --- | --- | --- |
 | `request.transport` | `conversation runtime` factory input | `supported` | transport input | required for baseline send path | Phase 1A |
 | `request.systemPrompt` | `conversation runtime` factory input | `supported` | system prompt input | baseline conversation configuration | Phase 1A |
-| `request.defaultModelId` | default send model injection | `fixed-default-only` | `ChatSendInput.modelId` default injection | does not imply a full `models runtime` | Phase 1A |
-| `request.models` | `models runtime` | `deferred` | none | model selector semantics are not promised yet | Phase 1B or later |
-| `conversation.initialMessages` | `conversation runtime` seed input | `supported` | seed messages | minimum first-screen baseline | Phase 1A |
+| `request.defaultModelId` | `models runtime` + default send model injection | `supported` | `models.currentModelId` + `ChatSendInput.modelId` default injection | seeds the Phase 1B model baseline and sender fallback path | Phase 1B |
+| `request.models` | `models runtime` | `supported` | `models runtime` | powers the Phase 1B model selector baseline | Phase 1B |
+| `conversation.initialMessages` | `conversation runtime` seed input | `supported` | seed messages | minimum first-screen baseline; eagerly materialize the active conversation when no restore exists, and do not duplicate the seed on first send | Phase 1A |
 | `conversation.persistence` | active-conversation hydrate / restore | `supported` | conversation hydrate input | only current active conversation restore; not history runtime | Phase 1A |
 | `ui.brand` | resolved `ui` | `supported` | `ui` | display-only | Phase 1A |
 | `ui.welcome` | resolved `ui` | `supported` | `ui` | display-only | Phase 1A |
@@ -56,9 +56,8 @@
 | `lifecycle.afterReceive` | conversation/message bridge hook | `deferred` | none | order frozen; bridge may land later | later message parity phase |
 | `lifecycle.modelChange` | models bridge hook | `deferred` | none | waits for models baseline | Phase 1B or later |
 | `lifecycle.conversationChange` | history bridge hook | `deferred` | none | waits for history baseline | Phase 1B or later |
-| `history.*` | `history runtime` + workspace defaults | `deferred` | none | enters after history baseline | Phase 1B or later |
-| `workspace.*` | `workspace runtime` | `deferred` | none | enters after page/workspace baseline | Phase 1B or later |
-| `models.*` | `models runtime` | `deferred` | none | enters after model baseline | Phase 1B or later |
+| `history.*` | `history runtime` + workspace defaults | `supported` | `history runtime` | powers the Phase 1B history drawer / workspace baseline | Phase 1B |
+| `workspace.*` | `workspace runtime` | `supported` | `workspace runtime` | drives the Phase 1B page shell baseline and responsive shell state | Phase 1B |
 | `mcp.*` | `mcp runtime` | `deferred` | none | enters after MCP-capable baseline | Phase 1B or later |
 
 ## Reading Guide

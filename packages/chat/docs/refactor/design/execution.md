@@ -336,7 +336,6 @@ Phase 0 退出条件：
 必须完成：
 
 - `ChatUIMessage`
-- `createTransportRuntime`
 - `createConversationRuntime`
 - `createSenderRuntime`
 - `createMessageRuntime`
@@ -359,7 +358,7 @@ Phase 0 退出条件：
 | `request.transport`, `request.systemPrompt` | `supported` | conversation baseline |
 | `request.defaultModelId` | `fixed-default-only` | 只作为 `ChatSendInput.modelId` 默认值注入 |
 | `request.models` | `deferred` | 不承诺产出 `models runtime` |
-| `conversation.initialMessages` | `supported` | conversation seed baseline |
+| `conversation.initialMessages` | `supported` | conversation seed baseline；在没有 active-conversation restore 时需 eager materialize 首屏 baseline，且第一次 send 不得重复注入 seed |
 | `conversation.persistence` | `supported` | 只承诺 active-conversation hydrate / restore，不代表已有 `history runtime` |
 | `ui.*` | `supported` | 严格 display-only |
 | `sender.*` | `supported` | sender baseline |
@@ -385,12 +384,16 @@ Phase 1A 必跑测试：
 - `message extension` 最小 contract tests
 - `sender / attachments` source of truth contract tests
 - `Root + createRuntimeFromConfig` 最小链路测试
+- package shorthand:
+  `pnpm -F @opentiny/tiny-robot-chat check:phase-1a`
 
 Phase 1A 退出条件：
 
 - 基础 runtime suites 全绿
 - `Root + whitebox primitives` 最小链路可运行
 - attachments 不再是悬空能力
+- `conversation.initialMessages` 首屏 baseline 语义已锁定并有测试保护
+- footer companion region 只冻结 `footer-extra` augment slot 的实现期处理已显式记录并有 contract tests
 
 ### Phase 1B：history / models / workspace baseline + Page shell
 
@@ -416,6 +419,11 @@ Phase 1A 退出条件：
 - `TrChat.History`
 - `TrChat.ModelSelector`
 - `TrChat.WorkspaceShell`
+
+Phase 1B bridge subset note:
+
+- `createRuntimeFromConfig(config)` 进入 Phase 1B 后，允许把 `request.models`、`request.defaultModelId`、`history.*`、`workspace.*` 显式桥接到 `models / history / workspace` baseline runtime。
+- `lifecycle.modelChange` 和 `lifecycle.conversationChange` 仍然保持 deferred，直到对应 runtime baseline 之外的 hook contract 也被实现并验证。
 
 验收标准：
 

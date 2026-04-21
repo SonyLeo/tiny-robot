@@ -2,9 +2,10 @@
 import { useBubbleContentRenderer, type BubbleContentRendererProps } from '@opentiny/tiny-robot'
 import { computed, inject } from 'vue'
 import { getChatMessageError, getChatMessageState } from '@/runtime/chat-kit/chatMessageState'
-import { CHAT_KIT_KEY } from '@/shared/context'
+import { getRuntimeMessageId } from '@/runtime/core/messageIdentity'
+import { CHAT_KIT_KEY, CHAT_RUNTIME_KEY } from '@/shared/context'
 import { useResolvedChatMessages } from '@/shared/messages'
-import type { UseChatKitReturn } from '@/types'
+import type { ChatRuntime, UseChatKitReturn } from '@/types'
 
 const props = defineProps<
   BubbleContentRendererProps<
@@ -20,8 +21,16 @@ const props = defineProps<
 
 const error = computed(() => getChatMessageError(props.message))
 const chatKit = inject<UseChatKitReturn | null>(CHAT_KIT_KEY, null)
+const chatRuntime = inject<ChatRuntime | null>(CHAT_RUNTIME_KEY, null)
 const chatMessages = useResolvedChatMessages()
-const canRetry = computed(() => Boolean(error.value?.retryable && chatKit?.lastError.value?.retryable))
+const messageId = computed(() => getRuntimeMessageId(props.message))
+const canRetry = computed(() => {
+  if (chatRuntime && messageId.value) {
+    return Boolean(chatRuntime.message.getViewState(messageId.value)?.error?.retryable)
+  }
+
+  return Boolean(error.value?.retryable && chatKit?.lastError.value?.retryable)
+})
 const messageWithoutError = computed(() => {
   const messageState = getChatMessageState(props.message)
 
@@ -37,7 +46,14 @@ const messageWithoutError = computed(() => {
 const renderer = useBubbleContentRenderer(messageWithoutError, props.contentIndex)
 
 function handleRetry() {
-  if (!chatKit || !canRetry.value) return
+  if (!canRetry.value) return
+
+  if (chatRuntime && messageId.value) {
+    void chatRuntime.conversation.retry(messageId.value)
+    return
+  }
+
+  if (!chatKit) return
   void chatKit.retry()
 }
 </script>

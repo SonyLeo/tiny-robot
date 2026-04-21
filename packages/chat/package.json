@@ -30,7 +30,10 @@
     "type-check": "vue-tsc --noEmit",
     "check:docs": "node ./scripts/check-refactor-docs.mjs",
     "test": "node ./tests/run-all.mjs",
-    "test:unit": "node ./tests/run-all.mjs"
+    "test:unit": "node ./tests/run-all.mjs",
+    "test:runtime": "node ./tests/run-all.mjs ./tests/runtime",
+    "test:contracts": "node ./tests/run-all.mjs ./tests/contracts",
+    "check:phase-1a": "vue-tsc --noEmit && node ./tests/run-all.mjs ./tests/runtime && node ./tests/run-all.mjs ./tests/contracts && node ./scripts/check-refactor-docs.mjs"
   },
   "peerDependencies": {
     "vue": "^3.3.11",

@@ -265,6 +265,8 @@ type ChatConversationConfig = {
 
 - `initialMessages`
   负责首屏种子消息
+  在 `createRuntimeFromConfig(config)` 路径下，如果没有被 `conversation.persistence` 恢复出 active conversation，它必须 eager materialize 一个当前 active conversation 作为首屏 baseline，而不是等到第一次 send 时才出现。
+  同一组 seed messages 不得在第一次 send 时被重复注入。
 - `persistence`
   只负责当前 active conversation 的 hydrate / restore
 - 多会话列表、切换、标题、管理态不属于 `conversation`，统一归 `history runtime`
@@ -904,6 +906,8 @@ type ChatUIMessageMeta = {
 type ChatMessageViewState = {
   status?: 'pending' | 'streaming' | 'done' | 'error'
   error?: ChatMessageErrorView
+  editing?: boolean
+  optimistic?: boolean
   capabilities?: {
     editable?: boolean
     retryable?: boolean
@@ -940,6 +944,9 @@ type ChatMessageViewState = {
 ### 7.4 legacy `messageIndex` coexistence 规则
 
 `messageIndex` 只允许留在 legacy adapter 边界，不能再次进入 next surface。
+
+Action context and event payloads may temporarily carry `messageId`, `messageIds`, and `messageIndex` during the migration window.
+When both id- and index-based fields are present, `messageId` and `messageIds` are the formal action keys and `messageIndex` must be treated as legacy metadata only.
 
 冻结规则：
 

@@ -15,6 +15,7 @@ import type { UseChatAttachmentsReturn } from '@/components/attachments/useChatA
 import type { BubbleListProps } from '@opentiny/tiny-robot'
 import type { TrChatScaffoldContextValue } from '@/types/scaffold'
 import type { ChatUiContextValue } from '@/components/workspace/chatUiContext'
+import type { ChatRuntime } from '@/types/root'
 
 export { createChatUiContext } from '@/components/workspace/chatUiContext'
 export type {
@@ -43,6 +44,7 @@ export function useRequiredInject<T>(
 }
 
 export const CHAT_UI_KEY: InjectionKey<ChatUiContextValue> = Symbol('chatUI')
+export const CHAT_RUNTIME_KEY: InjectionKey<ChatRuntime> = Symbol('chatRuntime')
 
 export const MCP_MANAGER_KEY: InjectionKey<UseMcpManagerReturn> = Symbol('mcpManager')
 

@@ -1,10 +1,11 @@
 import type { ComputedRef } from 'vue'
 import type { ChatMessage } from '@opentiny/tiny-robot-kit'
+import { getRuntimeMessageId } from '@/runtime/core/messageIdentity'
 import { isChatMessageEditing, setChatMessageEditing } from './chatMessageState'
 
 interface UseChatMessagesOptions {
   messages: ComputedRef<ChatMessage[]>
-  resendMessage: (content: string) => void
+  resendMessage: (content: string, options?: { preserveUserMessageId?: string }) => void
   onOptimisticEdit?: (payload: { messageIndex: number; removedMessages: ChatMessage[]; newContent: string }) => void
 }
 
@@ -66,13 +67,15 @@ export function useChatMessages(options: UseChatMessagesOptions) {
       return
     }
 
+    const message = currentMessages[messageIndex]
+    const preservedUserMessageId = getRuntimeMessageId(message)
     options.onOptimisticEdit?.({
       messageIndex,
       removedMessages: cloneMessages(currentMessages.slice(messageIndex)),
       newContent,
     })
     currentMessages.splice(messageIndex)
-    options.resendMessage(newContent)
+    options.resendMessage(newContent, { preserveUserMessageId: preservedUserMessageId })
   }
 
   return {

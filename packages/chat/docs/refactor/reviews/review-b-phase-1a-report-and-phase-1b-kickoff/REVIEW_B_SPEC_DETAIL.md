@@ -178,6 +178,9 @@ Part B:
 - `lifecycle.beforeSend`
 - `lifecycle.error`
 
+其中 `conversation.initialMessages` 现在要额外检查一条更强的实现语义：  
+它不只是“bridge 支持 seed messages”，而是已经承诺在没有 restore 时 eager materialize 首屏 active conversation，且第一次 send 不得重复注入 seed。
+
 如果实现里已经偷偷把下面这些拉进来了，就说明 bridge 开始越界：
 
 - `history.*`
@@ -220,6 +223,71 @@ Part B:
    明确列出这轮没做什么，不要伪装成完整覆盖
 
 如果缺少其中任意一类，评审很容易退化成“你口头说 foundation 站住了”。
+
+### 7.1 当前已经拿到的关键证据
+
+基于现在这轮实现，`Review B` 不应该再把 `Phase 1A` 讲成“还在补骨架”。当前至少已经有下面这 5 组硬证据：
+
+1. `Root + createRuntimeFromConfig` baseline 已经成立  
+   `Root` 现在可以消费 normalize 后的 `{ runtime, ui }`，并通过受控 legacy bridge 让现有 primitives 跑起来；这说明官方 on-ramp 已经是真实现状，而不是未来目标。
+
+2. `messageId` 已经在 message runtime 里站住  
+   `messageId` 现在是 state-backed action key，edit / retry / regenerate / restore 都围绕它工作；built-in actions 优先走 `message runtime` 或 `conversation runtime`，custom action context 也已经带上 `messageId / messageIds`，所以 grouped-message path 不再只能依赖位置语义。
+
+3. `conversation.initialMessages` 已经锁成 eager first-screen baseline  
+   在没有 active-conversation restore 时，`createRuntimeFromConfig(config)` 会先 materialize active conversation，再进入第一次 send；这说明 bridge subset 不只是“能接 seed messages”，而是已经把首屏 baseline 语义钉死。
+
+4. 默认 footer contract 已经被 tests 锁住  
+   当前默认 page source 只允许 `footer-extra` 进入 page-level footer 语义，standalone `footer` replace slot 仍然明确延后到 `Phase 1B` page baseline；这说明 `Review A` 的 footer follow-up 已经在 `Phase 1A` 范围内被收口。
+
+5. `Phase 1A` 默认验证基线已经存在  
+   这轮不再只靠零散命令证明 foundation 成立，而是已经有 package-local baseline：
+   - `pnpm -F @opentiny/tiny-robot-chat type-check`
+   - `pnpm -F @opentiny/tiny-robot-chat test:runtime`
+   - `pnpm -F @opentiny/tiny-robot-chat test:contracts`
+   - `pnpm -F @opentiny/tiny-robot-chat check:docs`
+   - `pnpm -F @opentiny/tiny-robot-chat check:phase-1a`
+
+这一小节的作用不是提前宣布“已经 pass”，而是先把会议起点拉回真实现状：  
+`Phase 1A` 现在要被评的是“这些证据够不够支撑 foundation 成立”，而不是“是不是还停留在纸面设计”。
+
+### 7.2 这轮建议直接引用的 evidence index
+
+如果你不想在会中临时翻仓库，建议直接按下面顺序引用证据：
+
+1. `packages/chat/tests/runtime/root-runtime.test.mjs`
+   用来证明 `Root + createRuntimeFromConfig` baseline 已经可运行，以及 `conversation.initialMessages` 已经是 eager first-screen baseline。
+
+2. `packages/chat/tests/runtime/message-runtime.test.mjs`
+   用来证明 `messageId` 已经在 edit / retry / regenerate / restore / view-state 路径里站住。
+
+3. `packages/chat/tests/runtime/message-actions.test.mjs`
+   用来证明 built-in actions 与 custom action context 已经优先走 `messageId / messageIds`，而不是继续围绕位置语义组织。
+
+4. `packages/chat/tests/contracts/public-surface.test.mjs`
+   用来证明默认 page source 只冻结 `footer-extra`，而没有提前泄露 standalone `footer` replace slot。
+
+5. `packages/chat/docs/exec-plans/completed/2026-04-21-phase-1a-bootstrap-and-root-baseline.md`
+   用来汇总这轮的实现切片、验证命令、以及哪些内容已明确留给下一阶段。
+
+6. `packages/chat/docs/histories/2026-04/2026-04-21-phase-1a-root-bootstrap.md`
+   用来汇总这轮真实落地的结果、当前 drift、known limits 和 follow-ups。
+
+### 7.3 当前 drift 摘要
+
+为了避免现场把“已知限制”和“硬门禁 drift”混在一起，这轮建议直接按下面口径讲：
+
+- 当前没有已知 hard-gate drift：
+  - `Root` 仍只消费 `{ runtime, ui }`
+  - `ui` 仍保持 display-only
+  - `messageId` 仍是正式动作定位键
+  - Phase 1A bridge subset 没有提前把 `history / workspace / models / mcp` 拉进来
+- 当前存在 3 个 bounded follow-ups / known limits：
+  - 第一刀实现仍通过受控 `legacy` adapter 复用现有 primitives，但这没有重新打开 `Root` 输入边界
+  - standalone page-level `footer` replace slot 仍明确延后到 `Phase 1B`
+  - `messageIndex` 仍作为 migration-only metadata 留在 legacy 边界，目标是继续向 `messageId / messageIds` 收口
+
+这 3 个点都不应单独阻塞 `Phase 1A pass`；只有它们开始打穿 `Root` 输入边界、`messageId`、handoff、bridge subset 或证据充分性时，才应升级成 `blocked`。
 
 ## 8. Part B：为什么现在轮到 `Phase 1B`
 

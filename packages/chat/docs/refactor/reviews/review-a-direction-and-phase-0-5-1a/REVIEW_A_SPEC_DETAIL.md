@@ -97,7 +97,6 @@
 - `createSenderRuntime`
 - `createMessageRuntime`
 - `createAttachmentsRuntime`
-- `createTransportRuntime`
 - `TrChat.Message`
 - `TrChat.MessageList`
 - `TrChat.Sender`
@@ -114,17 +113,18 @@
 - slot props 只暴露最小必要模块
 - 核心一级 slot catalog 是否成立
 
-目前这一层至少包括：
+目前这一层至少包括两组：
 
-- `header`
-- `welcome`
-- `message-list`
-- `sender`
-- `left`
-- `left-rail`
-- `right`
-- `mobile-left`
-- `mobile-right`
+- replace slots：
+  `header`、`welcome`、`message-list`、`sender`、`left`、`left-rail`、`right`、`mobile-left`、`mobile-right`
+- 当前 Phase 0.5 已冻结的 augment slots：
+  `header-before`、`header-after`、`message-before`、`message-after`、`sender-before`、`sender-after`、`footer-extra`
+
+这里和 `api-runtime.md` 保持一致：
+
+- `Review A` 现在冻结的是最小 slot catalog、slot props 最小暴露原则，以及 region 归属
+- `Footer` 当前只冻结 `footer-extra` augment slot 和 footer companion region 的读取边界
+- 独立 `footer` replace slot 与 `Footer` 的最终落位细节放到 `Review B`
 
 #### B. Freeze Semantics Now
 
@@ -135,6 +135,7 @@
 - degrade rules 的基本原则
 - `Page` composition-only 的落地约束
 - 核心 slot 一级位点与 region 的归属关系
+- `footer-extra` augment slot 和 footer companion region 的读取边界
 
 这一桶的特点是：
 
@@ -147,7 +148,7 @@
 
 - `Page baseline` 的完整 slot 消费面
 - `history / models / workspace` 完整 props 矩阵
-- `Footer` 的最终落位细节
+- 独立 `footer` replace slot 与 `Footer` 的最终落位细节
 - 所有 augment hook 的最终细粒度命名
 - 最终公开面与发布语义
 
@@ -246,7 +247,6 @@ TrChat.Root({ runtime, ui })
 - `createSenderRuntime`
 - `createMessageRuntime`
 - `createAttachmentsRuntime`
-- `createTransportRuntime`
 
 这个包解决的问题：
 

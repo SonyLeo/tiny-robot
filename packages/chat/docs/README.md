@@ -25,6 +25,8 @@ It does not try to explain everything in one file. Its job is to route people an
   Meeting-specific review materials
 - `refactor/archive/`
   Historical proposal and freeze records
+- `refactor/knowledge/`
+  Thin recurring-knowledge layer for reusable lessons and tracked experience candidates
 - `refactor/REFACTOR_COLLAB_GUIDE.md`
   Default collaboration and doc-update discipline for this refactor branch
 - `refactor/CODE_MAP.md`
@@ -47,6 +49,7 @@ If you are doing refactor design or review:
 3. `refactor/design/overview.md`
 4. `refactor/design/api-runtime.md`
 5. `refactor/process/alignment-tracker.md`
+6. `refactor/knowledge/PLAYBOOK.md`
 
 If you are implementing the current phase:
 
@@ -55,6 +58,7 @@ If you are implementing the current phase:
 3. `refactor/design/api-runtime.md`
 4. `refactor/design/execution.md`
 5. the active execution slice under `exec-plans/active/`
+6. `refactor/knowledge/PLAYBOOK.md`
 
 ## Maintenance Rule
 

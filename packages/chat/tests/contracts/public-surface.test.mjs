@@ -7,6 +7,7 @@ const chatIndexSource = readFileSync(fileURLToPath(new URL('../../src/index.ts',
 const chatComponentsIndexSource = readFileSync(fileURLToPath(new URL('../../src/components/core/index.ts', import.meta.url)), 'utf8')
 const chatTypesIndexSource = readFileSync(fileURLToPath(new URL('../../src/types/index.ts', import.meta.url)), 'utf8')
 const chatCoreTypesSource = readFileSync(fileURLToPath(new URL('../../src/types/core.ts', import.meta.url)), 'utf8')
+const chatPageSource = readFileSync(fileURLToPath(new URL('../../src/page/TrChatPage.vue', import.meta.url)), 'utf8')
 const chatKitSource = readFileSync(fileURLToPath(new URL('../../src/runtime/chat-kit/useChatKit.ts', import.meta.url)), 'utf8')
 const chatSenderSource = readFileSync(fileURLToPath(new URL('../../src/components/core/ChatSender.vue', import.meta.url)), 'utf8')
 const chatHeaderSource = readFileSync(fileURLToPath(new URL('../../src/components/core/ChatHeader.vue', import.meta.url)), 'utf8')
@@ -31,9 +32,27 @@ const configProjectionSource = readFileSync(
   fileURLToPath(new URL('../../src/runtime/config/configProjection.ts', import.meta.url)),
   'utf8',
 )
+const editInputRendererSource = readFileSync(
+  fileURLToPath(new URL('../../src/components/renderers/EditInputRenderer.vue', import.meta.url)),
+  'utf8',
+)
+const errorRendererSource = readFileSync(
+  fileURLToPath(new URL('../../src/components/renderers/ErrorRenderer.vue', import.meta.url)),
+  'utf8',
+)
+const defaultRendererSource = readFileSync(
+  fileURLToPath(new URL('../../src/components/core/default-renderer/ChatDefaultRenderer.vue', import.meta.url)),
+  'utf8',
+)
+const defaultFooterRegionSource = readFileSync(
+  fileURLToPath(new URL('../../src/components/core/default-renderer/ChatDefaultFooterRegion.vue', import.meta.url)),
+  'utf8',
+)
 
 await runTest('TrChat compound source keeps the retained subcomponents', async () => {
   const retainedAssignments = [
+    'TrChatFull.Root = TrChatRoot',
+    'TrChatFull.Page = TrChatPage',
     'TrChatFull.Scaffold = TrChatScaffold',
     'TrChatFull.Provider = TrChatProvider',
     'TrChatFull.Layout = TrChatLayout',
@@ -89,6 +108,8 @@ await runTest('public source keeps removed legacy branches absent while retainin
 
 await runTest('named exports still advertise the retained scaffold and helper surface', async () => {
   const retainedExports = [
+    'TrChatRoot',
+    'TrChatPage',
     'TrMcpTrigger',
     'TrModelSelector',
     'TrChatScaffold',
@@ -106,6 +127,20 @@ await runTest('named exports still advertise the retained scaffold and helper su
   retainedExports.forEach((token) => {
     assert.equal(chatIndexSource.includes(token), true)
   })
+
+  assert.equal(chatIndexSource.includes('createRuntimeFromConfig'), true)
+})
+
+await runTest('official page surface is exported as a dedicated TrChat.Page wrapper', async () => {
+  assert.equal(chatIndexSource.includes('Page: typeof TrChatPage'), true)
+  assert.equal(chatIndexSource.includes('export { TrChatRoot, TrChatPage }'), true)
+  assert.equal(chatPageSource.includes('<ChatDefaultHeaderRegion'), true)
+  assert.equal(chatPageSource.includes('<ChatDefaultBodyRegion'), true)
+  assert.equal(chatPageSource.includes('<ChatDefaultFooterRegion'), true)
+  assert.equal(chatPageSource.includes('<ChatWorkspaceLayout v-if="isWorkspaceShell"'), true)
+  assert.equal(chatPageSource.includes('<ChatHistory />'), true)
+  assert.equal(defaultRendererSource.includes('<TrChatPage'), true)
+  assert.equal(defaultRendererSource.includes('<slot :name="name" v-bind="slotProps ?? {}" />'), true)
 })
 
 await runTest('public source advertises chat message action contracts for extension work', async () => {
@@ -126,12 +161,17 @@ await runTest('public source advertises chat message action contracts for extens
     assert.equal(chatIndexSource.includes(token), true)
     assert.equal(chatTypesIndexSource.includes(token), true)
   })
+
+  assert.equal(chatCoreTypesSource.includes('messageIds: string[]'), true)
 })
 
 await runTest('renamed provider-facing type exports stay visible through the public entrypoints', async () => {
   const topLevelTypeExports = [
+    'ChatRuntimeInput',
     'ChatConfigIntegrations',
+    'TrChatConfig',
     'ChatPresetProviderSlice',
+    'TrChatRootProps',
     'TrChatRuntimeInput',
     'TrChatProviderProps',
   ]
@@ -140,7 +180,14 @@ await runTest('renamed provider-facing type exports stay visible through the pub
     assert.equal(chatIndexSource.includes(token), true)
   })
 
-  const chatTypesExports = ['TrChatRuntimeInput', 'TrChatProviderProps', 'TrChatProviderSharedProps']
+  const chatTypesExports = [
+    'ChatRuntimeInput',
+    'TrChatConfig',
+    'TrChatRootProps',
+    'TrChatRuntimeInput',
+    'TrChatProviderProps',
+    'TrChatProviderSharedProps',
+  ]
 
   chatTypesExports.forEach((token) => {
     assert.equal(chatTypesIndexSource.includes(token), true)
@@ -182,5 +229,22 @@ await runTest('workspace-facing source reads default copy from chat messages ins
   assert.equal(registrySource.includes('语音输入'), false)
   assert.equal(configProjectionSource.includes("railLabel: 'History'"), false)
   assert.equal(configProjectionSource.includes("railLabel: 'Preview'"), false)
+})
+
+await runTest('message renderer source prefers runtime messageId hooks before legacy index fallback', async () => {
+  assert.equal(editInputRendererSource.includes('CHAT_RUNTIME_KEY'), true)
+  assert.equal(editInputRendererSource.includes('getRuntimeMessageId'), true)
+  assert.equal(editInputRendererSource.includes('chatRuntime.message.commitEdit(messageId, localContent.value)'), true)
+  assert.equal(errorRendererSource.includes('CHAT_RUNTIME_KEY'), true)
+  assert.equal(errorRendererSource.includes('chatRuntime.conversation.retry(messageId.value)'), true)
+})
+
+await runTest('default page footer source keeps footer-extra as the only page-level footer slot', async () => {
+  assert.equal(chatPageSource.includes("$slots['footer-extra']"), true)
+  assert.equal(chatPageSource.includes('$slots.footer'), false)
+  assert.equal(defaultRendererSource.includes('<TrChatPage'), true)
+  assert.equal(defaultFooterRegionSource.includes('<slot name="footer-extra" />'), true)
+  assert.equal(defaultFooterRegionSource.includes('<slot name="footer"'), false)
+  assert.equal(defaultFooterRegionSource.includes('<ChatFooter v-else>'), true)
 })
 

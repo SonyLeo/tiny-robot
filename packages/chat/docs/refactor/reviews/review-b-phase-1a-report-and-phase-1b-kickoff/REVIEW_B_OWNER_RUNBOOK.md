@@ -28,8 +28,27 @@
 
 1. `Phase 1A` 的结论：`pass / pass with follow-ups / blocked`
 2. 是否允许直接进入 `Phase 1B`
+   - 如果结论是 `pass with follow-ups`，必须额外写清是 `可直接进入` 还是 `需先收口 follow-ups`
 3. 如果不能进入，阻塞点是什么
 4. 如果可以进入，`Phase 1B` 的 `Must Freeze Now` 是什么
+
+### 会前先统一的现状
+
+建议在开场前先把下面这 5 个现状讲清楚，避免评审人还停留在旧版 `Phase 1A` 认知里：
+
+1. tracker 当前已经记录：
+   - `Phase 1A = completed`
+   - `Phase 1B = ready-to-start`
+   - `Review B = ready-to-schedule`
+2. `Root + createRuntimeFromConfig` 已经形成可运行 baseline，不再只是 bridge 设想。
+3. `messageId` 已经在实现里变成 state-backed action key，built-in actions 与 custom action context 现在都优先走 `messageId / messageIds`。
+4. `conversation.initialMessages` 已经锁成 eager first-screen baseline；默认 page path 也已经锁成 `footer-extra` 是唯一 page-level footer slot。
+5. `Phase 1A` 默认验证基线已经存在：
+   - `type-check`
+   - `test:runtime`
+   - `test:contracts`
+   - `check:docs`
+   - `check:phase-1a`
 
 ## 3. 这场会只讨论什么
 
@@ -79,8 +98,9 @@
 1. runtime foundation 做了什么
 2. `Root + createRuntimeFromConfig` 做到什么程度
 3. `Message / MessageList / Sender` 最小链路是否跑通
-4. `messageId`、handoff、bridge subset 是否站住
-5. tests / baseline 提供了哪些证据
+4. `messageId / messageIds`、handoff、bridge subset 是否站住
+5. `conversation.initialMessages` eager baseline 和 `footer-extra` footer contract 如何被测试锁住
+6. `test:runtime / test:contracts / check:phase-1a` 这条默认验证链提供了哪些证据
 
 这一段一定要持续回答两句话：
 
@@ -125,7 +145,7 @@
 
 - “foundation 成立了，但某个 tests 还要补强”
 - “`Phase 1B` 范围合理，但 slot scope 再收一收”
-- “`Page baseline` 可以开始，但 `Footer` 先别扩”
+- “`Page baseline` 可以开始，但 standalone `Footer` replace slot 先别扩”
 
 这类反馈通常意味着：
 
@@ -137,6 +157,7 @@
 - “我看不出 `Phase 1A` 已经证明了 foundation”
 - “`Root + createRuntimeFromConfig` 其实还没站住”
 - “`messageId` 和 handoff 看起来仍然只是口头定义”
+- “`conversation.initialMessages` 和默认 footer contract 只是 prose，没有被 tests 锁住”
 - “这轮没有把 `Phase 1B` 真正要依赖的 slot / props contract 讲清楚”
 
 这类反馈说明：
@@ -169,6 +190,7 @@
 
 - 有没有 targeted contract tests
 - 有没有最小 baseline 示例
+- 有没有把 `initialMessages` eager baseline、`footer-extra` footer contract、默认验证基线讲清楚
 - 有没有明确列出 drift
 
 ### 问题 4：`Phase 1B` 范围是否合理
@@ -250,9 +272,9 @@
 
 ### 如果结果是 `pass with follow-ups`
 
-1. 先回写 `REVIEW_B_SPEC_DETAIL.md`
-2. 再回写规范文档和 tracker
-3. follow-ups 收口后进入 `Phase 1B`
+1. 先判断 follow-ups 是否碰到硬门禁
+2. 如果 follow-ups 不碰 `Root` 输入边界、`messageId`、handoff、bridge subset、证据充分性，就按 `可直接进入 Phase 1B` 记录，并把 follow-ups 写入 `REVIEW_B_SPEC_DETAIL.md`、tracker、active plan
+3. 如果 follow-ups 实际碰到了硬门禁，就不要记成 `pass with follow-ups`，而应回判为 `blocked`
 
 ### 如果结果是 `blocked`
 

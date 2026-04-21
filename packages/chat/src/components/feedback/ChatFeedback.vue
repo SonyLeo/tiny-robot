@@ -6,8 +6,8 @@ import { computed, inject } from 'vue'
 import { getChatRenderSourceMessage } from '@/runtime/chat-kit/chatRenderMessages'
 import { useChatFeedback } from './useChatFeedback'
 import { getChatMessageError } from '@/runtime/chat-kit/chatMessageState'
-import { CHAT_KIT_KEY, MESSAGE_ACTION_KEY, MESSAGE_ACTIONS_KEY } from '@/shared/context'
-import type { ChatMessageActionPayload, UseChatKitReturn, TrChatMessageListProps } from '@/types'
+import { CHAT_KIT_KEY, CHAT_RUNTIME_KEY, MESSAGE_ACTION_KEY, MESSAGE_ACTIONS_KEY } from '@/shared/context'
+import type { ChatMessageActionPayload, ChatRuntime, UseChatKitReturn, TrChatMessageListProps } from '@/types'
 
 defineOptions({ name: 'TrChatFeedback' })
 
@@ -26,17 +26,20 @@ const emit = defineEmits<{
 }>()
 
 const chatKit = inject<UseChatKitReturn | null>(CHAT_KIT_KEY, null)
+const chatRuntime = inject<ChatRuntime | null>(CHAT_RUNTIME_KEY, null)
 const injectedActionHandler = inject(MESSAGE_ACTION_KEY, undefined)
 const injectedActionConfig = inject(MESSAGE_ACTIONS_KEY, null)
 
-const { feedbackActions, feedbackOperations, getActionDefinition, actionContext, userContent } = useChatFeedback({
-  messages: props.messages,
-  messageIndexes: props.messageIndexes,
-  role: props.role,
-  chatKit,
-  messageActions: props.messageActions ?? injectedActionConfig?.messageActions.value,
-  messageActionsMode: props.messageActionsMode ?? injectedActionConfig?.messageActionsMode.value,
-})
+const { feedbackActions, feedbackOperations, getActionDefinition, actionContext, messageIds, userContent } =
+  useChatFeedback({
+    messages: props.messages,
+    messageIndexes: props.messageIndexes,
+    role: props.role,
+    chatKit,
+    runtime: chatRuntime,
+    messageActions: props.messageActions ?? injectedActionConfig?.messageActions.value,
+    messageActionsMode: props.messageActionsMode ?? injectedActionConfig?.messageActionsMode.value,
+  })
 
 const primaryMessageIndex = computed(() => props.messageIndexes?.[0])
 const primaryMessage = computed(() => {
@@ -58,12 +61,23 @@ const latestAssistantIndex = computed(() => {
 })
 
 const isEditing = computed(() => {
+  if (actionContext.value.messageId && chatRuntime) {
+    return Boolean(chatRuntime.message.getViewState(actionContext.value.messageId)?.editing)
+  }
+
   if (!chatKit || primaryMessageIndex.value === undefined) return false
   return chatKit.isMessageEditing(primaryMessageIndex.value)
 })
 
 const isPendingAssistantTurn = computed(() => {
-  if (!chatKit || props.role !== 'assistant') return false
+  if (props.role !== 'assistant') return false
+
+  if (actionContext.value.messageId && chatRuntime) {
+    const status = chatRuntime.message.getViewState(actionContext.value.messageId)?.status
+    return status === 'pending' || status === 'streaming'
+  }
+
+  if (!chatKit) return false
 
   const latestIndex = latestAssistantIndex.value
   if (latestIndex === undefined) return false
@@ -71,7 +85,13 @@ const isPendingAssistantTurn = computed(() => {
   return props.messageIndexes.includes(latestIndex) && chatKit.status.value !== 'ready'
 })
 
-const hasError = computed(() => props.messages.some((message) => Boolean(getChatMessageError(message as ChatMessage))))
+const hasError = computed(() => {
+  if (actionContext.value.messageId && chatRuntime) {
+    return Boolean(chatRuntime.message.getViewState(actionContext.value.messageId)?.error)
+  }
+
+  return props.messages.some((message) => Boolean(getChatMessageError(message as ChatMessage)))
+})
 
 const shouldRenderFeedback = computed(() => {
   if (isEditing.value) return false
@@ -101,9 +121,11 @@ function emitAction(action: string, placement: 'actions' | 'operations' = 'actio
     messages: props.messages.map(
       (message) => getChatRenderSourceMessage(message as ChatMessage) ?? (message as ChatMessage),
     ),
+    messageIds: messageIds.value,
     messageIndexes: props.messageIndexes,
     message: primaryMessage.value,
     messageIndex: primaryMessageIndex.value,
+    messageId: actionContext.value.messageId,
     conversationId: chatKit?.activeConversationId.value ?? undefined,
   }
 

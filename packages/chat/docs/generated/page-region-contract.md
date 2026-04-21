@@ -67,6 +67,7 @@ Reminder:
 - `Footer` is currently frozen as a lightweight companion region inside the default page.
 - `footer-extra` is the only footer-related slot frozen in the current minimum contract.
 - a standalone `footer` replace slot remains deferred until page baseline implementation proves that contract is stable.
+- Phase 1A / 1B contract tests now treat this as the default page-source rule: `TrChat.Page` may expose `footer-extra`, and `ChatDefaultRenderer` must stay a compatibility delegate rather than growing a standalone page-level `footer` slot.
 
 ## Degrade Rules
 
