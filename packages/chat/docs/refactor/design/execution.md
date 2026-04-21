@@ -6,7 +6,7 @@ This document owns phase gates, implementation sequencing, and validation expect
 When it conflicts with the historical proposal, this document wins.
 
 For review cadence, phase status tracking, and stage-level decisions, use
-`ARCHITECTURE_REFACTOR_ALIGNMENT_TRACKER.md`.
+`alignment-tracker.md`.
 
 当前阶段固定前提：
 
@@ -58,7 +58,7 @@ Phase 0 must also produce:
 
 对外 API 与 runtime 设计请看：
 
-- [ARCHITECTURE_REFACTOR_API_RUNTIME.md](./ARCHITECTURE_REFACTOR_API_RUNTIME.md)
+- [api-runtime.md](./api-runtime.md)
 
 ## 2. 执行原则
 
@@ -309,7 +309,7 @@ Phase 0 退出条件：
 - 三份设计文档中的命名、边界、目录、phase 叙述已经一致
 - `ui` 不再同时存在 display-only 版本与 `ui.page / ui.messages / ui.slots` 版本
 - slot catalog 已只保留一套公开命名，不再并行维护 `page-*` 与无前缀双体系
-- `ARCHITECTURE_REFACTOR_*.md`、`packages/chat/AGENTS.md`、相关 chat docs 对主路径表述一致
+- `docs/refactor/design/*.md`、`packages/chat/AGENTS.md`、相关 chat docs 对主路径表述一致
 - 边界表和覆盖表进入“可实现”状态，不再依赖口头解释
 - 旧实现边界参考表和测试锚点表已经落地，不再靠临时判断决定该参考哪些旧结构 / tests
 - phase-to-test matrix 已写定，后续阶段不再临时补门禁

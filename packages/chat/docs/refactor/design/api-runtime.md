@@ -16,7 +16,7 @@ When this file conflicts with the historical proposal, this file wins.
 
 它不负责 phase 与任务拆解；那部分见：
 
-- [ARCHITECTURE_REFACTOR_EXECUTION.md](./ARCHITECTURE_REFACTOR_EXECUTION.md)
+- [execution.md](./execution.md)
 
 ## 2. 对外心智模型
 

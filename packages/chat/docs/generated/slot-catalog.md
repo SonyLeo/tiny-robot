@@ -6,16 +6,16 @@
 
 ## Sources
 
-- `packages/chat/ARCHITECTURE_REFACTOR_API_RUNTIME.md`
+- `packages/chat/docs/refactor/design/api-runtime.md`
   Sections:
   `6.5D minimum slot catalog`
   `6.5E TrChat.Page slot-provider contract`
   `10 slots 与扩展路径`
-- `packages/chat/ARCHITECTURE_REFACTOR_IMPLEMENTATION_BLUEPRINT.md`
+- `packages/chat/docs/refactor/archive/phase-0_5-freeze-record.md`
   Sections:
   `6.3 slot props contract`
   `6.4 slot catalog`
-- `packages/chat/ARCHITECTURE_REFACTOR_REVIEW_SCHEME.md`
+- `packages/chat/docs/refactor/process/review-scheme.md`
   Sections:
   `Review A`
   `Review B`

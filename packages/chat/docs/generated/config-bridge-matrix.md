@@ -10,15 +10,15 @@
 
 ## Sources
 
-- `packages/chat/ARCHITECTURE_REFACTOR_API_RUNTIME.md`
+- `packages/chat/docs/refactor/design/api-runtime.md`
   Sections:
   `3.3 官方桥接 helper`
   `4.3 各功能域职责`
   `4.7 config 与 Root 的边界`
-- `packages/chat/ARCHITECTURE_REFACTOR_EXECUTION.md`
+- `packages/chat/docs/refactor/design/execution.md`
   Section:
   `Phase 1A bridge subset`
-- `packages/chat/ARCHITECTURE_REFACTOR_IMPLEMENTATION_BLUEPRINT.md`
+- `packages/chat/docs/refactor/archive/phase-0_5-freeze-record.md`
   Sections:
   `2.6 createRuntimeFromConfig(config) 是唯一官方桥接入口`
   `5.7 Phase 1A 字段级 bridge subset`

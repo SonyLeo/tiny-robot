@@ -11,17 +11,17 @@
 
 它主要收敛以下文档中仍然开放或仍有冲突的部分：
 
-- `ARCHITECTURE_REFACTOR_API_RUNTIME.md`
-- `ARCHITECTURE_REFACTOR_EXECUTION.md`
-- `ARCHITECTURE_REFACTOR_DESIGN.md`
+- `api-runtime.md`
+- `execution.md`
+- `overview.md`
 
 若本文档与其他历史提案冲突，优先级按下面处理：
 
-1. `ARCHITECTURE_REFACTOR_EXECUTION.md`
+1. `execution.md`
    负责开发阶段 phase 顺序、实现门禁、测试门禁
 2. 本文档
    负责 Phase 0.5 的实现级 contract 收口
-3. `ARCHITECTURE_REFACTOR_API_RUNTIME.md`
+3. `api-runtime.md`
    负责对外心智与公开 contract 叙述
 
 ## 1. 优化后的目标

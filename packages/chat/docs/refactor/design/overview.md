@@ -3,7 +3,7 @@
 Status: settled design overview.
 
 Use this file for the target mental model and design-level boundaries.
-Use `ARCHITECTURE_REFACTOR_API_RUNTIME.md` for contract detail and `ARCHITECTURE_REFACTOR_EXECUTION.md` for phase and implementation rules.
+Use `api-runtime.md` for contract detail and `execution.md` for phase and implementation rules.
 
 ## 1. 文档状态
 
@@ -25,15 +25,15 @@ Use `ARCHITECTURE_REFACTOR_API_RUNTIME.md` for contract detail and `ARCHITECTURE
 
 与其他文档的关系：
 
-- [ARCHITECTURE_REFACTOR_PROPOSAL.md](./ARCHITECTURE_REFACTOR_PROPOSAL.md)
+- [proposal.md](../archive/proposal.md)
   负责背景、旧方案问题、方向论证
-- [ARCHITECTURE_REFACTOR_API_RUNTIME.md](./ARCHITECTURE_REFACTOR_API_RUNTIME.md)
+- [api-runtime.md](./api-runtime.md)
   负责新的对外 API、配置模型、runtime 模型、UI 边界
-- [ARCHITECTURE_REFACTOR_EXECUTION.md](./ARCHITECTURE_REFACTOR_EXECUTION.md)
+- [execution.md](./execution.md)
   负责能力覆盖、目录组织、phase 计划、测试策略
-- [ARCHITECTURE_REFACTOR_IMPLEMENTATION_BLUEPRINT.md](./ARCHITECTURE_REFACTOR_IMPLEMENTATION_BLUEPRINT.md)
+- [phase-0_5-freeze-record.md](../archive/phase-0_5-freeze-record.md)
   负责 Phase 0.5 的实现级 contract 收口、slot catalog、bridge scope 与实施切片
-- [ARCHITECTURE_REFACTOR_ALIGNMENT_TRACKER.md](./ARCHITECTURE_REFACTOR_ALIGNMENT_TRACKER.md)
+- [alignment-tracker.md](../process/alignment-tracker.md)
   负责评审节奏、阶段状态、已决议项、未决问题与阶段汇报跟踪
 
 ## 2. 这次整理的核心变化
@@ -270,8 +270,8 @@ runtime 设计遵守两个原则：
 
 先看：
 
-- [ARCHITECTURE_REFACTOR_API_RUNTIME.md](./ARCHITECTURE_REFACTOR_API_RUNTIME.md)
-- [ARCHITECTURE_REFACTOR_IMPLEMENTATION_BLUEPRINT.md](./ARCHITECTURE_REFACTOR_IMPLEMENTATION_BLUEPRINT.md)
+- [api-runtime.md](./api-runtime.md)
+- [phase-0_5-freeze-record.md](../archive/phase-0_5-freeze-record.md)
 
 如果你关心：
 
@@ -282,7 +282,7 @@ runtime 设计遵守两个原则：
 
 先看：
 
-- [ARCHITECTURE_REFACTOR_EXECUTION.md](./ARCHITECTURE_REFACTOR_EXECUTION.md)
+- [execution.md](./execution.md)
 
 ## 9. 推荐结论
 

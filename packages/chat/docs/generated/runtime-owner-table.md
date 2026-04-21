@@ -6,14 +6,14 @@
 
 ## Sources
 
-- `packages/chat/ARCHITECTURE_REFACTOR_API_RUNTIME.md`
+- `packages/chat/docs/refactor/design/api-runtime.md`
   Sections:
   `6.6 ChatRuntimeInput`
   `6.7 ChatRuntime`
   `8 source of truth 规则`
   `9 primitives 读取边界`
   `12 workspace 与 history contract`
-- `packages/chat/ARCHITECTURE_REFACTOR_IMPLEMENTATION_BLUEPRINT.md`
+- `packages/chat/docs/refactor/archive/phase-0_5-freeze-record.md`
   Sections:
   `2.4 runtime source of truth`
   `6 Page、primitives 与 slot 边界`

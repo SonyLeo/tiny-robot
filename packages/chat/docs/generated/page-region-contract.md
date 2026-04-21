@@ -6,7 +6,7 @@
 
 ## Sources
 
-- `packages/chat/ARCHITECTURE_REFACTOR_API_RUNTIME.md`
+- `packages/chat/docs/refactor/design/api-runtime.md`
   Sections:
   `5 TrChat.Root 合同`
   `6.5E TrChat.Page slot-provider contract`
@@ -14,7 +14,7 @@
   `9 primitives 读取边界`
   `10 slots 与扩展路径`
   `12 workspace 与 history contract`
-- `packages/chat/ARCHITECTURE_REFACTOR_IMPLEMENTATION_BLUEPRINT.md`
+- `packages/chat/docs/refactor/archive/phase-0_5-freeze-record.md`
   Sections:
   `2.7 TrChat.Page 不允许透传 whole runtime`
   `6.1 TrChat.Page 只负责组合`

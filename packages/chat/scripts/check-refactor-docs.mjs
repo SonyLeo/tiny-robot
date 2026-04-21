@@ -45,7 +45,7 @@ function assertIncludes(relPath, needle, message) {
 }
 
 function checkReviewPackets() {
-  const reviewPacketsRel = 'packages/chat/review-packets'
+  const reviewPacketsRel = 'packages/chat/docs/refactor/reviews'
   const reviewPacketsAbs = toAbs(reviewPacketsRel)
 
   assertDir(reviewPacketsRel)
@@ -59,7 +59,7 @@ function checkReviewPackets() {
     .map((entry) => entry.name)
 
   if (packetDirs.length === 0) {
-    errors.push('packages/chat/review-packets should contain at least one review packet directory')
+    errors.push('packages/chat/docs/refactor/reviews should contain at least one review directory')
     return
   }
 
@@ -89,27 +89,33 @@ function checkReviewPackets() {
 }
 
 function checkTrackerReviewLinks() {
-  const trackerRel = 'packages/chat/ARCHITECTURE_REFACTOR_ALIGNMENT_TRACKER.md'
+  const trackerRel = 'packages/chat/docs/refactor/process/alignment-tracker.md'
+  const trackerDir = path.posix.dirname(trackerRel)
   const trackerText = read(trackerRel)
-  const matches = trackerText.match(/review-packets\/[^\s)`]+\.md/g) ?? []
+  const matches = trackerText.match(/(?:\.\.\/)+reviews\/[^\s)`]+\.md/g) ?? []
   const requiredKinds = ['OWNER_RUNBOOK', 'SPEC_DETAIL', 'REVIEWER_MEMO']
 
   for (const relPath of matches) {
     if (!requiredKinds.some((kind) => relPath.endsWith(`${kind}.md`))) {
       continue
     }
-    assertFile(path.posix.join('packages/chat', relPath))
+    assertFile(path.posix.normalize(path.posix.join(trackerDir, relPath)))
   }
 }
 
 const requiredFiles = [
   'packages/chat/AGENTS.md',
-  'packages/chat/ARCHITECTURE_REFACTOR_DESIGN.md',
-  'packages/chat/ARCHITECTURE_REFACTOR_API_RUNTIME.md',
-  'packages/chat/ARCHITECTURE_REFACTOR_EXECUTION.md',
-  'packages/chat/ARCHITECTURE_REFACTOR_IMPLEMENTATION_BLUEPRINT.md',
-  'packages/chat/ARCHITECTURE_REFACTOR_ALIGNMENT_TRACKER.md',
-  'packages/chat/ARCHITECTURE_REFACTOR_REVIEW_SCHEME.md',
+  'packages/chat/docs/refactor/README.md',
+  'packages/chat/docs/refactor/REFACTOR_COLLAB_GUIDE.md',
+  'packages/chat/docs/refactor/CODE_MAP.md',
+  'packages/chat/docs/refactor/IMPLEMENTATION_ROUTING.md',
+  'packages/chat/docs/refactor/design/overview.md',
+  'packages/chat/docs/refactor/design/api-runtime.md',
+  'packages/chat/docs/refactor/design/execution.md',
+  'packages/chat/docs/refactor/archive/proposal.md',
+  'packages/chat/docs/refactor/archive/phase-0_5-freeze-record.md',
+  'packages/chat/docs/refactor/process/alignment-tracker.md',
+  'packages/chat/docs/refactor/process/review-scheme.md',
   'packages/chat/docs/README.md',
   'packages/chat/docs/SOURCE_OF_TRUTH.md',
   'packages/chat/docs/CURRENT_VS_TARGET_SURFACE.md',
@@ -120,9 +126,6 @@ const requiredFiles = [
   'packages/chat/docs/generated/page-region-contract.md',
   'packages/chat/docs/exec-plans/templates/execution-slice.md',
   'packages/chat/docs/histories/template.md',
-  'docs/src/components/chat.md',
-  'docs/src/components/chat-features.md',
-  'docs/src/components/chat-advanced.md',
 ]
 
 const requiredDirs = [
@@ -131,7 +134,10 @@ const requiredDirs = [
   'packages/chat/docs/exec-plans/templates',
   'packages/chat/docs/generated',
   'packages/chat/docs/histories',
-  'packages/chat/review-packets',
+  'packages/chat/docs/refactor/design',
+  'packages/chat/docs/refactor/process',
+  'packages/chat/docs/refactor/archive',
+  'packages/chat/docs/refactor/reviews',
 ]
 
 for (const relPath of requiredFiles) {
@@ -158,24 +164,24 @@ assertIncludes(
   'packages/chat/AGENTS.md should point to the surface-boundary guide',
 )
 assertIncludes(
+  'packages/chat/AGENTS.md',
+  'packages/chat/docs/refactor/README.md',
+  'packages/chat/AGENTS.md should point to the refactor docs map',
+)
+assertIncludes(
   'packages/chat/docs/SOURCE_OF_TRUTH.md',
-  'ARCHITECTURE_REFACTOR_DESIGN.md',
+  'packages/chat/docs/refactor/design/overview.md',
   'SOURCE_OF_TRUTH.md should reference the normative refactor docs',
 )
 assertIncludes(
   'packages/chat/docs/SOURCE_OF_TRUTH.md',
-  'ARCHITECTURE_REFACTOR_REVIEW_SCHEME.md',
+  'packages/chat/docs/refactor/process/review-scheme.md',
   'SOURCE_OF_TRUTH.md should reference the review scheme',
 )
 assertIncludes(
   'packages/chat/docs/SOURCE_OF_TRUTH.md',
-  'ARCHITECTURE_REFACTOR_ALIGNMENT_TRACKER.md',
+  'packages/chat/docs/refactor/process/alignment-tracker.md',
   'SOURCE_OF_TRUTH.md should reference the alignment tracker',
-)
-assertIncludes(
-  'packages/chat/docs/CURRENT_VS_TARGET_SURFACE.md',
-  'docs/src/components/chat.md',
-  'CURRENT_VS_TARGET_SURFACE.md should reference the shipping user docs',
 )
 assertIncludes(
   'packages/chat/docs/CURRENT_VS_TARGET_SURFACE.md',

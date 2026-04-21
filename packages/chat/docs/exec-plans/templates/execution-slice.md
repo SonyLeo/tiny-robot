@@ -17,11 +17,11 @@
 
 ## Relevant Source Docs
 
-- `packages/chat/ARCHITECTURE_REFACTOR_DESIGN.md`
-- `packages/chat/ARCHITECTURE_REFACTOR_API_RUNTIME.md`
-- `packages/chat/ARCHITECTURE_REFACTOR_EXECUTION.md`
-- `packages/chat/ARCHITECTURE_REFACTOR_IMPLEMENTATION_BLUEPRINT.md`
-- `packages/chat/ARCHITECTURE_REFACTOR_ALIGNMENT_TRACKER.md`
+- `packages/chat/docs/refactor/design/overview.md`
+- `packages/chat/docs/refactor/design/api-runtime.md`
+- `packages/chat/docs/refactor/design/execution.md`
+- `packages/chat/docs/refactor/archive/phase-0_5-freeze-record.md`
+- `packages/chat/docs/refactor/process/alignment-tracker.md`
 
 根据当前切片删减到真正相关的文件。
 

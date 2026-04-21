@@ -27,7 +27,7 @@ Status: active review scheme.
 
 - 规范文档：`DESIGN / API_RUNTIME / EXECUTION / IMPLEMENTATION_BLUEPRINT`
 - 方法文档：本文件
-- 过程文档：[ARCHITECTURE_REFACTOR_ALIGNMENT_TRACKER.md](./ARCHITECTURE_REFACTOR_ALIGNMENT_TRACKER.md)
+- 过程文档：[alignment-tracker.md](./alignment-tracker.md)
 
 ## 2. 评审总原则
 
@@ -72,7 +72,7 @@ Status: active review scheme.
 
 主要看：
 
-- [ARCHITECTURE_REFACTOR_DESIGN.md](./ARCHITECTURE_REFACTOR_DESIGN.md)
+- [overview.md](./overview.md)
 
 ### 4.2 contract 层
 
@@ -84,7 +84,7 @@ Status: active review scheme.
 
 主要看：
 
-- [ARCHITECTURE_REFACTOR_API_RUNTIME.md](./ARCHITECTURE_REFACTOR_API_RUNTIME.md)
+- [api-runtime.md](../design/api-runtime.md)
 
 ### 4.3 阶段层
 
@@ -97,7 +97,7 @@ Status: active review scheme.
 
 主要看：
 
-- [ARCHITECTURE_REFACTOR_EXECUTION.md](./ARCHITECTURE_REFACTOR_EXECUTION.md)
+- [execution.md](./execution.md)
 
 ### 4.4 实现约束层
 
@@ -109,7 +109,7 @@ Status: active review scheme.
 
 主要看：
 
-- [ARCHITECTURE_REFACTOR_IMPLEMENTATION_BLUEPRINT.md](./ARCHITECTURE_REFACTOR_IMPLEMENTATION_BLUEPRINT.md)
+- [phase-0_5-freeze-record.md](../archive/phase-0_5-freeze-record.md)
 
 ## 5. 四次关键评审
 
@@ -332,7 +332,7 @@ Status: active review scheme.
 后续如果 agent 被要求参与 chat 重构评审，应遵循下面顺序：
 
 1. 先读本文件，明确评审方法
-2. 再读 [ARCHITECTURE_REFACTOR_ALIGNMENT_TRACKER.md](./ARCHITECTURE_REFACTOR_ALIGNMENT_TRACKER.md)，明确当前阶段状态
+2. 再读 [alignment-tracker.md](./alignment-tracker.md)，明确当前阶段状态
 3. 再读当前轮次的 `REVIEWER_MEMO`，明确本次会议的单入口材料
 4. 最后按需要进入 `DESIGN / API_RUNTIME / EXECUTION / IMPLEMENTATION_BLUEPRINT`
 
