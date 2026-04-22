@@ -8,16 +8,22 @@ import { useChatScaffoldContext } from '@/shared/context'
 defineOptions({ name: 'TrChatWelcome' })
 
 interface Props {
+  compatibilityRelay?: boolean
   title?: string
   description?: string
   icon?: VNode | Component
   prompts?: PromptProps[]
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  compatibilityRelay: true,
+})
 const emit = defineEmits<{ 'prompt-click': [description: string] }>()
 const scaffoldContext = useChatScaffoldContext()
-const welcomeSlice = computed(() => scaffoldContext?.presetSlices.value.welcome)
+const shouldUseCompatibilityRelay = computed(() => props.compatibilityRelay !== false)
+const welcomeSlice = computed(() =>
+  shouldUseCompatibilityRelay.value ? scaffoldContext?.presetSlices.value.welcome : undefined,
+)
 
 const resolvedTitle = computed(() => props.title ?? welcomeSlice.value?.title ?? '')
 const resolvedDescription = computed(() => props.description ?? welcomeSlice.value?.description ?? '')

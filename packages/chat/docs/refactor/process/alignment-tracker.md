@@ -44,8 +44,8 @@ Historical rationale and freeze context live in:
 | overall direction | `signed-off-with-follow-ups` | Review A accepted the main mental model, bridge path, and ownership split |
 | Phase 0 / 0.5 freeze | `signed-off-with-follow-ups` | contract freeze passed with bounded follow-ups on footer treatment and contract-test baseline |
 | Phase 1A | `completed` | Root/bootstrap baseline, message runtime hardening, eager `initialMessages` baseline, footer treatment, and default Phase 1A validation workflow are all closed |
-| Phase 1B | `in-progress` | the page/history/models/workspace baseline slice is complete; `TrChat.Page` owns the default page composition, and direct mounted `Root + Page` integration coverage is the next active closure target |
-| Phase 2 | `pending` | blackbox cutover remains later-stage work |
+| Phase 1B | `completed` | page/history/models/workspace baseline, mounted `Root + Page` proof, page-input boundary, default-page primitive tightening, workspace relay tightening, `ChatLayout` authoritative renderer inputs, header/history opt-out, and welcome/message-list opt-out are all closed as the Phase 1B default-owner-path baseline |
+| Phase 2 | `in-progress` | Review C accepted the narrow target-`TrChatConfig` blackbox kickoff preview as the Phase 2 entry baseline; the lifecycle-compatible callback subset now also enters through `Root + Page`, while old `ChatConfig` shapes and scaffold-only callbacks remain explicit fallback |
 | Phase 3 / 4 | `pending` | parity and hardening remain later-stage work |
 
 ## Review Status
@@ -106,9 +106,30 @@ Historical rationale and freeze context live in:
 ### Review C
 
 - status:
-  `pending`
+  `pass-with-follow-ups`
 - goal:
   Phase 1B report plus Phase 2 kickoff
+- readiness note:
+  Review C packet has been prepared around the now-complete Phase 1B evidence bundle:
+  `TrChat.Page` owner baseline, `history / models / workspace` page consumption, mounted `Root + Page` proof, page-input boundary, the closed default-owner-path relay tightening chain, and a narrow target-`TrChatConfig` blackbox kickoff preview.
+- outcome:
+  - main decision:
+    Review C passed with follow-ups and accepted the current Phase 1B evidence bundle plus the narrow target-`TrChatConfig` blackbox kickoff preview.
+  - go or no-go:
+    Phase 2 may continue immediately.
+  - settled conclusions:
+    - `Phase 1B` is accepted as the completed default page owner-path baseline.
+    - the landed target-`TrChatConfig` blackbox kickoff preview is accepted as the formal Phase 2 entry baseline.
+    - blackbox `TrChat` should continue expanding from `createRuntimeFromConfig(config) -> Root + Page`, not by reopening config projection or broad scaffold relay.
+    - old `ChatConfig` shapes and compatibility-only props may remain bounded fallback paths while Phase 2 continues shrinking them.
+  - follow-ups:
+    - continue pruning legacy `ChatConfig` and compatibility-prop fallback paths without re-opening the closed Phase 1B owner-path contract.
+    - keep `footer` replace-slot final publishing semantics deferred until later review.
+    - keep Phase 2 reports evidence-driven with explicit blackbox integration proof and current drift summary.
+- packet:
+  - `../reviews/review-c-phase-1b-report-and-phase-2-kickoff/REVIEW_C_OWNER_RUNBOOK.md`
+  - `../reviews/review-c-phase-1b-report-and-phase-2-kickoff/REVIEW_C_SPEC_DETAIL.md`
+  - `../reviews/review-c-phase-1b-report-and-phase-2-kickoff/REVIEW_C_REVIEWER_MEMO.md`
 
 ### Review D
 
@@ -121,9 +142,12 @@ Historical rationale and freeze context live in:
 
 - The standalone page-level `footer` replace slot remains deferred until the Phase 1B page baseline proves that contract is stable.
 - Phase reports must stay evidence-driven instead of drifting back to purely narrative updates.
+- When a default owner path already passes explicit inputs into the nearest primitive, that primitive should treat those inputs as authoritative instead of silently merging raw scaffold defaults back in.
+- In the default page path, compatibility relay should become an explicit opt-in or opt-out choice, not an automatic fallback that stays active after owner inputs are already present.
+- `onBeforeSend / onMessageAction / onModelChange` still remain scaffold-only fallback and should not be silently mixed into the Phase 2 blackbox path until their target owner routes are implemented and evidenced.
 
 ## Next Actions
 
-1. Start the next Phase 1B slice for direct mounted `Root + Page` integration coverage on top of the landed page/history/models/workspace baseline.
+1. Continue Phase 2 by classifying the next safe legacy blackbox entry shape beyond lifecycle-compatible callbacks while keeping old config shapes and scaffold-only callbacks as explicit bounded fallback.
 2. Keep active contract changes in `design/api-runtime.md` and `design/execution.md`.
-3. Carry the deferred standalone `footer` replace-slot decision as an explicit Phase 1B follow-up instead of back-porting it into closed Phase 1A semantics.
+3. Carry the current drift summary and blackbox integration evidence into the next Phase 2 slice instead of reopening broad scaffold cutover.

@@ -2,7 +2,7 @@
 import { inject } from 'vue'
 import type { PropType } from 'vue'
 import { CHAT_KIT_KEY } from '@/shared/context'
-import type { ChatPresetMessageListSlice, ChatPresetWelcomeSlice } from '@/runtime/config'
+import type { ChatPageMessageListInput, ChatPageWelcomeInput } from '@/shared/context'
 import type { ChatListVariant } from '@/types'
 import ChatFeedback from '@/components/feedback/ChatFeedback.vue'
 import ChatMessageList from '../ChatMessageList.vue'
@@ -15,8 +15,8 @@ const props = defineProps({
     type: Boolean,
     required: true,
   },
-  welcomeSlice: Object as PropType<ChatPresetWelcomeSlice | undefined>,
-  messageListSlice: Object as PropType<ChatPresetMessageListSlice | undefined>,
+  welcomeInput: Object as PropType<ChatPageWelcomeInput | undefined>,
+  messageListInput: Object as PropType<ChatPageMessageListInput | undefined>,
   variant: {
     type: String as PropType<ChatListVariant>,
     required: true,
@@ -37,15 +37,32 @@ const chatKit = inject(CHAT_KIT_KEY)!
   <template v-else>
     <div v-if="props.showWelcome" class="tr-chat__welcome-area">
       <slot v-if="$slots.welcome" name="welcome" />
-      <ChatWelcome v-else-if="props.welcomeSlice" @prompt-click="chatKit.sendMessage($event)" />
+      <ChatWelcome
+        v-else-if="props.welcomeInput"
+        :compatibility-relay="false"
+        :title="props.welcomeInput.title"
+        :description="props.welcomeInput.description"
+        :icon="props.welcomeInput.icon"
+        :prompts="props.welcomeInput.prompts"
+        @prompt-click="chatKit.sendMessage($event)"
+      />
       <slot v-else name="empty" />
     </div>
 
-    <ChatMessageList v-else :variant="props.variant">
+    <ChatMessageList
+      v-else
+      :compatibility-relay="false"
+      :auto-scroll="props.messageListInput?.autoScroll"
+      :variant="props.variant"
+      :message-actions="props.messageListInput?.messageActions"
+      :message-actions-mode="props.messageListInput?.messageActionsMode"
+      :on-action-click="props.messageListInput?.onActionClick"
+      :group-strategy="props.messageListInput?.groupStrategy"
+    >
       <template v-for="name in props.bubbleSlotNames" #[name]="slotProps" :key="name">
         <slot :name="name" v-bind="slotProps ?? {}" />
       </template>
-      <template v-if="props.messageListSlice?.showFeedback" #after="slotProps">
+      <template v-if="props.messageListInput?.showFeedback" #after="slotProps">
         <ChatFeedback v-bind="slotProps" />
       </template>
     </ChatMessageList>

@@ -224,12 +224,14 @@ type TrChatProviderPropsB = {
 export type TrChatProviderProps = (TrChatProviderPropsA | TrChatProviderPropsB) & TrChatProviderSharedProps
 
 export interface TrChatHeaderProps {
+  compatibilityRelay?: boolean
   showHistory?: boolean
   showNewChat?: boolean
   title?: string
 }
 
 export interface TrChatWelcomeProps {
+  compatibilityRelay?: boolean
   title?: string
   description?: string
   icon?: VNode | Component
@@ -237,6 +239,7 @@ export interface TrChatWelcomeProps {
 }
 
 export interface TrChatMessageListProps {
+  compatibilityRelay?: boolean
   autoScroll?: boolean
   variant?: ChatListVariant
   messageActions?: ChatMessageActionsInput

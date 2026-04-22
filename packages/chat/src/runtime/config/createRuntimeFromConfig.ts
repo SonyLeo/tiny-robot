@@ -489,6 +489,9 @@ export function createRuntimeFromConfig(config: TrChatConfig): CreateRuntimeFrom
       storage: config.conversation?.persistence ?? createNullStorage(),
       initialMessages: config.conversation?.initialMessages,
       messageTransforms: config.messages?.transforms,
+      onAfterReceive: (message) => {
+        config.lifecycle?.afterReceive?.(message)
+      },
       onError: (error) => {
         config.lifecycle?.error?.(error)
       },

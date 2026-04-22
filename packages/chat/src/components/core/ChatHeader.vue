@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, inject } from 'vue'
+import { computed, inject, type PropType } from 'vue'
 import { TrIconButton } from '@opentiny/tiny-robot'
 import { IconClose, IconHistory, IconMenuOpen, IconMenu2, IconNewSession } from '@opentiny/tiny-robot-svgs'
 import {
@@ -10,19 +10,28 @@ import {
   useRequiredInject,
 } from '@/shared/context'
 import { useResolvedChatMessages } from '@/shared/messages'
+import type { ChatWorkspaceShellConfig } from '@/types/workspace'
 import { triStateBooleanProp } from '@/shared/utils'
 
 defineOptions({ name: 'TrChatHeader' })
 
 const props = defineProps({
+  compatibilityRelay: triStateBooleanProp,
   showHistory: triStateBooleanProp,
   showNewChat: triStateBooleanProp,
   showClose: triStateBooleanProp,
   title: String,
+  shell: Object as PropType<ChatWorkspaceShellConfig | undefined>,
 })
 const scaffoldContext = useChatScaffoldContext()
-const headerSlice = computed(() => scaffoldContext?.presetSlices.value.header)
-const shellSlice = computed(() => scaffoldContext?.presetSlices.value.shell.shell)
+const shouldUseCompatibilityRelay = computed(() => props.compatibilityRelay !== false)
+const headerSlice = computed(() =>
+  shouldUseCompatibilityRelay.value ? scaffoldContext?.presetSlices.value.header : undefined,
+)
+const shellConfig = computed(
+  () =>
+    props.shell ?? (shouldUseCompatibilityRelay.value ? scaffoldContext?.presetSlices.value.shell.shell : undefined),
+)
 
 const emit = defineEmits<{
   (e: 'close'): void
@@ -49,7 +58,7 @@ const showLegacyHistoryButton = computed(
   () => resolvedShowHistory.value && (!chatUi.workspace.enabled.value || chatUi.workspace.isMobile.value),
 )
 const showRightPanelToggle = computed(
-  () => chatUi.workspace.enabled.value && shellSlice.value?.rightRegion?.enabled !== false,
+  () => chatUi.workspace.enabled.value && shellConfig.value?.rightRegion?.enabled !== false,
 )
 
 function handleNewChat() {

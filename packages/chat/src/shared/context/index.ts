@@ -3,6 +3,8 @@ import type {
   ChatAttachmentsFeaturePreset,
   ChatBeforeSendPayload,
   ChatBeforeSendResult,
+  ChatBubbleRenderers,
+  ChatContentLayout,
   ChatMessageActionsInput,
   ChatMessageActionsMode,
   ChatMessageActionPayload,
@@ -12,10 +14,14 @@ import type {
 } from '@/types'
 import type { UseMcpManagerReturn } from '@/components/mcp/useMcpManager'
 import type { UseChatAttachmentsReturn } from '@/components/attachments/useChatAttachments'
-import type { BubbleListProps } from '@opentiny/tiny-robot'
+import type { BubbleListProps, PromptProps } from '@opentiny/tiny-robot'
 import type { TrChatScaffoldContextValue } from '@/types/scaffold'
 import type { ChatUiContextValue } from '@/components/workspace/chatUiContext'
 import type { ChatRuntime } from '@/types/root'
+import type { BrandConfig, ChatAppearanceConfig, ChatListVariant } from '@/types/core'
+import type { ModelOption } from '@/types/model'
+import type { WelcomeConfig } from '@/types/ui'
+import type { ChatWorkspaceShellConfig } from '@/types/workspace'
 
 export { createChatUiContext } from '@/components/workspace/chatUiContext'
 export type {
@@ -45,6 +51,60 @@ export function useRequiredInject<T>(
 
 export const CHAT_UI_KEY: InjectionKey<ChatUiContextValue> = Symbol('chatUI')
 export const CHAT_RUNTIME_KEY: InjectionKey<ChatRuntime> = Symbol('chatRuntime')
+
+export interface ChatPageWelcomeInput {
+  title: string
+  description?: string
+  icon?: WelcomeConfig['icon'] | BrandConfig['logo']
+  prompts?: PromptProps[]
+}
+
+export interface ChatPageHeaderInput {
+  title?: string
+  showHistory?: boolean
+  showClose?: boolean
+}
+
+export interface ChatPageLayoutInput {
+  show?: boolean
+  roleConfigs?: BubbleListProps['roleConfigs']
+  contentLayout?: ChatContentLayout
+  bubbleRenderers?: ChatBubbleRenderers
+}
+
+export interface ChatPageMessageListInput {
+  autoScroll?: boolean
+  variant?: ChatListVariant
+  messageActions?: ChatMessageActionsInput
+  messageActionsMode?: ChatMessageActionsMode
+  onActionClick?: (payload: ChatMessageActionPayload) => void
+  groupStrategy?: BubbleListProps['groupStrategy']
+  showFeedback?: boolean
+}
+
+export interface ChatPageModelSelectorInput {
+  enabled: boolean
+  models?: ModelOption[]
+  defaultModel?: string
+}
+
+export interface ChatPageHistoryInput {
+  enabled: boolean
+}
+
+export interface ChatPageInputsValue {
+  header?: ChatPageHeaderInput
+  layout?: ChatPageLayoutInput
+  welcome?: ChatPageWelcomeInput
+  messageList?: ChatPageMessageListInput
+  history?: ChatPageHistoryInput
+  appearance?: ChatAppearanceConfig
+  shell?: ChatWorkspaceShellConfig
+  modelSelector?: ChatPageModelSelectorInput
+  updateModel?: (model: ModelOption) => void
+}
+
+export const CHAT_PAGE_INPUTS_KEY: InjectionKey<ComputedRef<ChatPageInputsValue>> = Symbol('chatPageInputs')
 
 export const MCP_MANAGER_KEY: InjectionKey<UseMcpManagerReturn> = Symbol('mcpManager')
 
@@ -88,4 +148,8 @@ export const CHAT_HISTORY_KEY: InjectionKey<{
 
 export function useChatScaffoldContext() {
   return inject(CHAT_SCAFFOLD_KEY, null)
+}
+
+export function useChatPageInputs() {
+  return inject(CHAT_PAGE_INPUTS_KEY, null)
 }

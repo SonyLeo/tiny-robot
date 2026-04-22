@@ -32,6 +32,7 @@
     "test": "node ./tests/run-all.mjs",
     "test:unit": "node ./tests/run-all.mjs",
     "test:runtime": "node ./tests/run-all.mjs ./tests/runtime",
+    "test:integration": "node ./tests/run-all.mjs ./tests/integration",
     "test:contracts": "node ./tests/run-all.mjs ./tests/contracts",
     "check:phase-1a": "vue-tsc --noEmit && node ./tests/run-all.mjs ./tests/runtime && node ./tests/run-all.mjs ./tests/contracts && node ./scripts/check-refactor-docs.mjs"
   },

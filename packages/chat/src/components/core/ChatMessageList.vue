@@ -19,6 +19,7 @@ import { triStateBooleanProp } from '@/shared/utils'
 defineOptions({ name: 'TrChatMessageList', inheritAttrs: false })
 
 const props = defineProps({
+  compatibilityRelay: triStateBooleanProp,
   autoScroll: triStateBooleanProp,
   variant: String as PropType<ChatListVariant>,
   messageActions: null as unknown as PropType<TrChatMessageListProps['messageActions']>,
@@ -27,7 +28,10 @@ const props = defineProps({
   groupStrategy: null as unknown as PropType<BubbleListProps['groupStrategy']>,
 })
 const scaffoldContext = useChatScaffoldContext()
-const messageListSlice = computed(() => scaffoldContext?.presetSlices.value.messageList)
+const shouldUseCompatibilityRelay = computed(() => props.compatibilityRelay !== false)
+const messageListSlice = computed(() =>
+  shouldUseCompatibilityRelay.value ? scaffoldContext?.presetSlices.value.messageList : undefined,
+)
 
 const chatKit = inject(CHAT_KIT_KEY)!
 const bubbleConfig = inject(BUBBLE_CONFIG_KEY, null)

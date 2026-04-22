@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ThemeProvider } from '@opentiny/tiny-robot'
-import { Comment, Fragment, computed, getCurrentInstance, useSlots, type VNode } from 'vue'
-import { CHAT_UI_KEY, useChatScaffoldContext, useRequiredInject } from '@/shared/context'
+import { Comment, Fragment, computed, getCurrentInstance, useSlots, type PropType, type VNode } from 'vue'
+import { CHAT_UI_KEY, useRequiredInject } from '@/shared/context'
+import type { ChatAppearanceConfig } from '@/types'
 import ChatWorkspaceRightPanel from './ChatWorkspaceRightPanel.vue'
 
 defineOptions({ name: 'TrChatWorkspaceRightSheet' })
@@ -10,12 +11,15 @@ defineSlots<{
   default?: () => unknown
 }>()
 
+const props = defineProps({
+  appearance: Object as PropType<ChatAppearanceConfig | undefined>,
+})
+
 const chatUi = useRequiredInject(CHAT_UI_KEY, 'chat ui')
-const scaffoldContext = useChatScaffoldContext()
 const slots = useSlots()
 const shouldRender = computed(() => chatUi.workspace.enabled.value && chatUi.workspace.isMobile.value)
 const isOpen = computed(() => shouldRender.value && chatUi.workspace.right.visible.value)
-const appearance = computed(() => scaffoldContext?.presetSlices.value.appearance.appearance)
+const appearance = computed(() => props.appearance)
 const scopedColorMode = computed(() => {
   const mode = appearance.value?.mode
 

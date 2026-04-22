@@ -12,7 +12,6 @@ import {
   CHAT_UI_KEY,
   MCP_MANAGER_KEY,
   createChatUiContext,
-  useChatScaffoldContext,
 } from '@/shared/context'
 import { resolveChatMessages } from '@/shared/messages'
 import type { TrChatProviderProps } from '@/types'
@@ -21,11 +20,10 @@ import { resolveProviderChatKit } from '@/runtime/scaffold/resolveProviderChatKi
 defineOptions({ name: 'TrChatProvider' })
 
 const props = defineProps<TrChatProviderProps>()
-const scaffoldContext = useChatScaffoldContext()
 const runtime = inject(CHAT_RUNTIME_KEY, null)
 
 const chatKit = resolveProviderChatKit('TrChatProvider', props)
-const shell = computed(() => props.shell ?? scaffoldContext?.presetSlices.value.shell.shell)
+const shell = computed(() => props.shell)
 const chatUi = createChatUiContext({ historyDisplay: 'drawer', shell, workspaceRuntime: runtime?.workspace })
 const chatMessages = computed(() => resolveChatMessages(props.messages))
 const attachmentsFeature = props.attachmentsFeature

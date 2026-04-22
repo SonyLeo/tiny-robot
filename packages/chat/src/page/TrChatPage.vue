@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { computed, inject, useAttrs, useSlots, type Slot } from 'vue'
-import { BUBBLE_LIST_SLOTS, CHAT_KIT_KEY, MCP_MANAGER_KEY, useChatScaffoldContext } from '@/shared/context'
+import { BUBBLE_LIST_SLOTS, CHAT_KIT_KEY, MCP_MANAGER_KEY, useChatPageInputs } from '@/shared/context'
 import { useSlotFilter } from '@/components/core/useSlotFilter'
 import type { ChatListVariant, ModelOption } from '@/types'
-import type { ChatPresetMessageListSlice, ChatPresetWelcomeSlice } from '@/runtime/config'
 import ChatDefaultBodyRegion from '@/components/core/default-renderer/ChatDefaultBodyRegion.vue'
 import ChatDefaultFooterRegion from '@/components/core/default-renderer/ChatDefaultFooterRegion.vue'
 import ChatDefaultHeaderRegion from '@/components/core/default-renderer/ChatDefaultHeaderRegion.vue'
@@ -23,19 +22,20 @@ const slots = useSlots() as Record<string, Slot | undefined>
 const bubbleSlots = useSlotFilter(slots, BUBBLE_LIST_SLOTS)
 const chatKit = inject(CHAT_KIT_KEY)!
 const mcpManager = inject(MCP_MANAGER_KEY, null)
-const scaffoldContext = useChatScaffoldContext()
+const pageInputs = useChatPageInputs()
 const bubbleSlotNames = computed(() => Object.keys(bubbleSlots.value))
 
+const headerInput = computed(() => pageInputs?.value.header)
+const layoutInput = computed(() => pageInputs?.value.layout)
 const showWelcome = computed(() => chatKit.messages.value.length === 0)
-const welcomeSlice = computed<ChatPresetWelcomeSlice | undefined>(() => scaffoldContext?.presetSlices.value.welcome)
-const messageListSlice = computed<ChatPresetMessageListSlice | undefined>(
-  () => scaffoldContext?.presetSlices.value.messageList,
-)
-const appearanceSlice = computed(() => scaffoldContext?.presetSlices.value.appearance.appearance)
-const modelSelectorSlice = computed(() => scaffoldContext?.presetSlices.value.modelSelector)
+const welcomeInput = computed(() => pageInputs?.value.welcome)
+const messageListInput = computed(() => pageInputs?.value.messageList)
+const historyInput = computed(() => pageInputs?.value.history)
+const appearanceInput = computed(() => pageInputs?.value.appearance)
+const modelSelectorInput = computed(() => pageInputs?.value.modelSelector)
 const resolvedVariant = computed<ChatListVariant>(() => {
   const attrVariant = attrs['message-list-variant'] ?? attrs.messageListVariant
-  const variant = typeof attrVariant === 'string' ? attrVariant : messageListSlice.value?.variant
+  const variant = typeof attrVariant === 'string' ? attrVariant : messageListInput.value?.variant
 
   if (variant === 'docs' || variant === 'workspace') {
     return variant
@@ -44,21 +44,26 @@ const resolvedVariant = computed<ChatListVariant>(() => {
   return 'bubble'
 })
 const showModelSelector = computed(() =>
-  Boolean(modelSelectorSlice.value?.enabled && (modelSelectorSlice.value.models?.length ?? 0) > 1),
+  Boolean(modelSelectorInput.value?.enabled && (modelSelectorInput.value.models?.length ?? 0) > 1),
 )
-const shellSlice = computed(() => scaffoldContext?.presetSlices.value.shell.shell)
-const isWorkspaceShell = computed(() => shellSlice.value?.variant === 'workspace')
+const shellInput = computed(() => pageInputs?.value.shell)
+const isWorkspaceShell = computed(() => shellInput.value?.variant === 'workspace')
 const showMcpTrigger = computed(() => Boolean(mcpManager))
 const showFooterTools = computed(() => showModelSelector.value || showMcpTrigger.value)
 
 function handleModelChange(model: ModelOption) {
-  scaffoldContext?.updateModel(model)
+  pageInputs?.value.updateModel?.(model)
   emit('update:model', model.value)
 }
 </script>
 
 <template>
-  <ChatWorkspaceLayout v-if="isWorkspaceShell" :appearance="appearanceSlice" :shell="shellSlice">
+  <ChatWorkspaceLayout
+    v-if="isWorkspaceShell"
+    :appearance="appearanceInput"
+    :shell="shellInput"
+    :sidebar-title="headerInput?.title"
+  >
     <template v-if="$slots.left" #left>
       <slot name="left" />
     </template>
@@ -75,8 +80,14 @@ function handleModelChange(model: ModelOption) {
       <slot name="mobile-right" />
     </template>
 
-    <ChatLayout>
-      <ChatDefaultHeaderRegion @close="emit('update:show', false)">
+    <ChatLayout
+      :show="layoutInput?.show"
+      :role-configs="layoutInput?.roleConfigs"
+      :appearance="appearanceInput"
+      :content-layout="layoutInput?.contentLayout"
+      :bubble-renderers="layoutInput?.bubbleRenderers"
+    >
+      <ChatDefaultHeaderRegion :header-input="headerInput" :shell="shellInput" @close="emit('update:show', false)">
         <template v-if="$slots.header" #header>
           <slot name="header" />
         </template>
@@ -87,8 +98,8 @@ function handleModelChange(model: ModelOption) {
 
       <ChatDefaultBodyRegion
         :show-welcome="showWelcome"
-        :welcome-slice="welcomeSlice"
-        :message-list-slice="messageListSlice"
+        :welcome-input="welcomeInput"
+        :message-list-input="messageListInput"
         :variant="resolvedVariant"
         :bubble-slot-names="bubbleSlotNames"
       >
@@ -122,8 +133,15 @@ function handleModelChange(model: ModelOption) {
     </ChatLayout>
   </ChatWorkspaceLayout>
 
-  <ChatLayout v-else>
-    <ChatDefaultHeaderRegion @close="emit('update:show', false)">
+  <ChatLayout
+    v-else
+    :show="layoutInput?.show"
+    :role-configs="layoutInput?.roleConfigs"
+    :appearance="appearanceInput"
+    :content-layout="layoutInput?.contentLayout"
+    :bubble-renderers="layoutInput?.bubbleRenderers"
+  >
+    <ChatDefaultHeaderRegion :header-input="headerInput" :shell="shellInput" @close="emit('update:show', false)">
       <template v-if="$slots.header" #header>
         <slot name="header" />
       </template>
@@ -134,8 +152,8 @@ function handleModelChange(model: ModelOption) {
 
     <ChatDefaultBodyRegion
       :show-welcome="showWelcome"
-      :welcome-slice="welcomeSlice"
-      :message-list-slice="messageListSlice"
+      :welcome-input="welcomeInput"
+      :message-list-input="messageListInput"
       :variant="resolvedVariant"
       :bubble-slot-names="bubbleSlotNames"
     >
@@ -167,6 +185,6 @@ function handleModelChange(model: ModelOption) {
       </template>
     </ChatDefaultFooterRegion>
 
-    <ChatHistory />
+    <ChatHistory :compatibility-relay="false" :enabled="historyInput?.enabled" :appearance="appearanceInput" />
   </ChatLayout>
 </template>

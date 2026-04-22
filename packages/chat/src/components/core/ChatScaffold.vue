@@ -3,7 +3,7 @@ import { computed, provide, ref, useSlots, watch, type Slot } from 'vue'
 import { createChatAdapterFromConfig, createPresetChatProps, createPresetChatSlices } from '@/runtime/config'
 import { useChatKit } from '@/runtime/chat-kit/useChatKit'
 import { useModelSelector } from '@/components/model-selector/useModelSelector'
-import { CHAT_BEFORE_SEND_KEY, CHAT_SCAFFOLD_KEY } from '@/shared/context'
+import { CHAT_BEFORE_SEND_KEY, CHAT_PAGE_INPUTS_KEY, CHAT_SCAFFOLD_KEY } from '@/shared/context'
 import type { ModelOption, UseChatKitReturn } from '@/types'
 import type { TrChatScaffoldContextValue, TrChatScaffoldProps } from '@/types/scaffold'
 import {
@@ -126,6 +126,17 @@ const presetProps = computed(() => {
   )
 })
 const presetSlices = computed(() => createPresetChatSlices(presetProps.value))
+const pageInputs = computed(() => ({
+  header: presetSlices.value.header,
+  layout: presetSlices.value.layout,
+  welcome: presetSlices.value.welcome,
+  messageList: presetSlices.value.messageList,
+  history: presetSlices.value.history,
+  appearance: presetSlices.value.appearance.appearance,
+  shell: presetSlices.value.shell.shell,
+  modelSelector: presetSlices.value.modelSelector,
+  updateModel: selectModel,
+}))
 
 const scaffoldContext: TrChatScaffoldContextValue = {
   adapter,
@@ -156,13 +167,14 @@ function handleDefaultRendererModelUpdate(modelValue: string) {
 }
 
 provide(CHAT_SCAFFOLD_KEY, scaffoldContext)
+provide(CHAT_PAGE_INPUTS_KEY, pageInputs)
 if (props.callbacks?.onBeforeSend) {
   provide(CHAT_BEFORE_SEND_KEY, props.callbacks.onBeforeSend)
 }
 </script>
 
 <template>
-  <ChatProvider :chat-kit="chatKit" v-bind="presetSlices.provider">
+  <ChatProvider :chat-kit="chatKit" :shell="presetSlices.shell.shell" v-bind="presetSlices.provider">
     <slot v-if="$slots.default" v-bind="slotProps" />
     <ChatDefaultRenderer v-else @update:model="handleDefaultRendererModelUpdate">
       <template v-for="(_, name) in namedSlots" #[name]="defaultSlotProps" :key="name">

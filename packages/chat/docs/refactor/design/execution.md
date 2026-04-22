@@ -370,6 +370,12 @@ Phase 0 退出条件：
 | `history.*`, `workspace.*`, `models.*`, `mcp.*` | `deferred` | 等 Phase 1B 或之后 |
 | `lifecycle.modelChange`, `lifecycle.conversationChange` | `deferred` | 等 `models / history` baseline 建立后再接入 |
 
+当前状态补充：
+
+- 上表是 `Phase 1A` 当时冻结的 bridge subset。
+- `lifecycle.afterReceive` 在 `Phase 1A` 时仍是 deferred。
+- 进入 `Phase 2` 后，target `TrChatConfig` 黑盒入口已经允许把生命周期兼容的 `callbacks.onFinish` 规范化到 `config.lifecycle.afterReceive`，并继续走 `Root + Page` 主路径；当前状态以 `design/api-runtime.md` 和 `generated/config-bridge-matrix.md` 为准。
+
 验收标准：
 
 - UI 中不再直接依赖 `chatKit`
@@ -436,6 +442,7 @@ Phase 1B 必跑测试：
 - workspace / history contract tests
 - primitive UI tests: `Header` / `History` / `ModelSelector` / `WorkspaceShell`
 - page integration tests: `Root + Page` baseline
+- package-local mounted proof command: `node packages/chat/tests/run-all.mjs packages/chat/tests/integration`
 
 Phase 1B 退出条件：
 
@@ -449,6 +456,25 @@ Phase 1B 退出条件：
 
 - 建立新的黑盒心智
 - 让默认页面重新可用，并且比旧方案更容易理解
+
+当前 `Phase 2` 已先落地一条最窄 kickoff preview：
+
+- 当 `TrChat` 收到的输入已经匹配 target `TrChatConfig`
+- 且没有额外提供 `runtime`、`presetOverrides`
+- `callbacks` 要么缺省，要么只包含生命周期兼容的 `onFinish / onError`
+
+默认黑盒入口已允许先走：
+
+`createRuntimeFromConfig(config) -> Root + Page`
+
+同时保留明确的 compatibility fallback：
+
+- 旧 shipping `ChatConfig` 形态
+- 仍依赖 scaffold 语义的 callbacks：`onBeforeSend`、`onMessageAction`、`onModelChange`
+- compatibility-only props
+
+它们当前仍显式回退到 `ChatScaffold`。
+`Review C` 需要拍板的是：这条 preview 是否可以继续扩成正式的黑盒默认主路径。
 
 必须完成：
 

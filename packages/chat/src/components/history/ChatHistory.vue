@@ -1,23 +1,36 @@
 <script setup lang="ts">
 import { ThemeProvider } from '@opentiny/tiny-robot'
-import { computed, getCurrentInstance } from 'vue'
+import { computed, getCurrentInstance, type PropType } from 'vue'
 import { CHAT_UI_KEY, useChatScaffoldContext, useRequiredInject } from '@/shared/context'
+import type { ChatAppearanceConfig } from '@/types'
 import { triStateBooleanProp } from '@/shared/utils'
 import ChatHistoryContent from './ChatHistoryContent.vue'
 
 defineOptions({ name: 'TrChatHistory' })
 
 const props = defineProps({
+  compatibilityRelay: triStateBooleanProp,
   enabled: triStateBooleanProp,
+  appearance: Object as PropType<ChatAppearanceConfig | undefined>,
 })
 
 const scaffoldContext = useChatScaffoldContext()
 const chatUi = useRequiredInject(CHAT_UI_KEY, 'chat ui')
-const resolvedEnabled = computed(() => props.enabled ?? scaffoldContext?.presetSlices.value.history.enabled ?? true)
+const shouldUseCompatibilityRelay = computed(() => props.compatibilityRelay !== false)
+const resolvedEnabled = computed(
+  () =>
+    props.enabled ??
+    (shouldUseCompatibilityRelay.value ? scaffoldContext?.presetSlices.value.history.enabled : undefined) ??
+    true,
+)
 const shouldRenderDrawer = computed(
   () => resolvedEnabled.value && chatUi.history.display.value === 'drawer' && !chatUi.workspace.enabled.value,
 )
-const appearance = computed(() => scaffoldContext?.presetSlices.value.appearance.appearance)
+const appearance = computed(
+  () =>
+    props.appearance ??
+    (shouldUseCompatibilityRelay.value ? scaffoldContext?.presetSlices.value.appearance.appearance : undefined),
+)
 const scopedColorMode = computed(() => {
   const mode = appearance.value?.mode
 

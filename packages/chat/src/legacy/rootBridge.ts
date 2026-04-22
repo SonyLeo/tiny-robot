@@ -1,6 +1,7 @@
 import { computed, ref, watch } from 'vue'
 import type { ChatMessage } from '@opentiny/tiny-robot-kit'
 import { CHAT_MESSAGES, resolveChatMessages } from '@/shared/messages'
+import type { ChatPageInputsValue } from '@/shared/context'
 import type { UseChatAttachmentsReturn } from '@/components/attachments/useChatAttachments'
 import type { ChatPresetSlices } from '@/runtime/config'
 import { getChatMessageError } from '@/runtime/chat-kit/chatMessageState'
@@ -18,6 +19,7 @@ import type {
   ReadonlyRef,
   TrChatRootUiConfig,
 } from '@/types/root'
+import type { ModelOption } from '@/types/model'
 import type { ChatWorkspaceRegionConfig, ChatWorkspaceShellConfig } from '@/types/workspace'
 import { extractMessageText, getMessageEditingState } from '@/runtime/core/normalizeRuntime'
 import { getLegacyPhase1ABridgeHints } from './runtimeHints'
@@ -287,6 +289,53 @@ function createScaffoldSlices(
   }))
 }
 
+function createPageInputs(
+  uiRef: ReadonlyRef<TrChatRootUiConfig | undefined>,
+  runtimeRef: ReadonlyRef<ChatRuntime>,
+  updateModel: (model: ModelOption) => void,
+) {
+  return computed<ChatPageInputsValue>(() => ({
+    header: {
+      title: uiRef.value?.brand?.title,
+      showHistory: Boolean(runtimeRef.value.history),
+      showClose: false,
+    },
+    layout: {
+      show: true,
+      contentLayout: uiRef.value?.contentLayout,
+      bubbleRenderers: runtimeRef.value.message.config?.renderers,
+    },
+    welcome: uiRef.value?.welcome
+      ? {
+          title: uiRef.value.welcome.title,
+          description: uiRef.value.welcome.description,
+          icon: uiRef.value.welcome.icon ?? uiRef.value.brand?.logo,
+          prompts: undefined,
+        }
+      : undefined,
+    messageList: {
+      autoScroll: true,
+      variant: 'bubble',
+      messageActions: runtimeRef.value.message.config?.actions,
+      messageActionsMode: runtimeRef.value.message.config?.actionMode,
+      onActionClick: undefined,
+      groupStrategy: undefined,
+      showFeedback: runtimeRef.value.message.config?.feedback?.enabled ?? false,
+    },
+    history: {
+      enabled: Boolean(runtimeRef.value.history),
+    },
+    appearance: uiRef.value?.appearance,
+    shell: createWorkspaceShellConfig(runtimeRef.value),
+    modelSelector: {
+      enabled: Boolean(runtimeRef.value.models),
+      models: runtimeRef.value.models?.models.value,
+      defaultModel: runtimeRef.value.models?.currentModelId.value ?? undefined,
+    },
+    updateModel,
+  }))
+}
+
 export function createLegacyRootBridge(
   runtimeRef: ReadonlyRef<ChatRuntime>,
   uiRef: ReadonlyRef<TrChatRootUiConfig | undefined>,
@@ -381,11 +430,13 @@ export function createLegacyRootBridge(
       runtimeRef.value.models?.selectModel(model.value)
     },
   }
+  const pageInputs = createPageInputs(uiRef, runtimeRef, scaffoldContext.updateModel)
 
   return {
     chatKit,
     messages: computed<ChatMessagesOverrides | undefined>(() => uiRef.value?.copy),
     shell: computed(() => scaffoldSlices.value.shell.shell),
+    pageInputs,
     attachmentsManager,
     attachmentsFeature,
     resolvedCopy,

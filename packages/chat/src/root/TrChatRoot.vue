@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, provide } from 'vue'
 import ChatProvider from '@/components/core/ChatProvider.vue'
-import { CHAT_RUNTIME_KEY, CHAT_SCAFFOLD_KEY } from '@/shared/context'
+import { CHAT_PAGE_INPUTS_KEY, CHAT_RUNTIME_KEY, CHAT_SCAFFOLD_KEY } from '@/shared/context'
 import { createLegacyRootBridge } from '@/legacy/rootBridge'
 import { normalizeChatRuntime } from '@/runtime/core/normalizeRuntime'
 import type { TrChatRootProps } from '@/types/root'
@@ -17,6 +17,7 @@ const bridge = createLegacyRootBridge(
 )
 
 provide(CHAT_SCAFFOLD_KEY, bridge.scaffoldContext)
+provide(CHAT_PAGE_INPUTS_KEY, bridge.pageInputs)
 provide(CHAT_RUNTIME_KEY, normalizedRuntime.value)
 </script>
 

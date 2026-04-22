@@ -7,6 +7,11 @@ const chatIndexSource = readFileSync(fileURLToPath(new URL('../../src/index.ts',
 const chatComponentsIndexSource = readFileSync(fileURLToPath(new URL('../../src/components/core/index.ts', import.meta.url)), 'utf8')
 const chatTypesIndexSource = readFileSync(fileURLToPath(new URL('../../src/types/index.ts', import.meta.url)), 'utf8')
 const chatCoreTypesSource = readFileSync(fileURLToPath(new URL('../../src/types/core.ts', import.meta.url)), 'utf8')
+const chatSource = readFileSync(fileURLToPath(new URL('../../src/components/core/Chat.vue', import.meta.url)), 'utf8')
+const blackboxEntrySource = readFileSync(
+  fileURLToPath(new URL('../../src/runtime/config/blackboxEntry.ts', import.meta.url)),
+  'utf8',
+)
 const chatPageSource = readFileSync(fileURLToPath(new URL('../../src/page/TrChatPage.vue', import.meta.url)), 'utf8')
 const chatKitSource = readFileSync(fileURLToPath(new URL('../../src/runtime/chat-kit/useChatKit.ts', import.meta.url)), 'utf8')
 const chatSenderSource = readFileSync(fileURLToPath(new URL('../../src/components/core/ChatSender.vue', import.meta.url)), 'utf8')
@@ -44,10 +49,28 @@ const defaultRendererSource = readFileSync(
   fileURLToPath(new URL('../../src/components/core/default-renderer/ChatDefaultRenderer.vue', import.meta.url)),
   'utf8',
 )
+const defaultHeaderRegionSource = readFileSync(
+  fileURLToPath(new URL('../../src/components/core/default-renderer/ChatDefaultHeaderRegion.vue', import.meta.url)),
+  'utf8',
+)
+const defaultBodyRegionSource = readFileSync(
+  fileURLToPath(new URL('../../src/components/core/default-renderer/ChatDefaultBodyRegion.vue', import.meta.url)),
+  'utf8',
+)
 const defaultFooterRegionSource = readFileSync(
   fileURLToPath(new URL('../../src/components/core/default-renderer/ChatDefaultFooterRegion.vue', import.meta.url)),
   'utf8',
 )
+const chatProviderSource = readFileSync(
+  fileURLToPath(new URL('../../src/components/core/ChatProvider.vue', import.meta.url)),
+  'utf8',
+)
+const chatWelcomeSource = readFileSync(fileURLToPath(new URL('../../src/components/core/ChatWelcome.vue', import.meta.url)), 'utf8')
+const chatMessageListSource = readFileSync(
+  fileURLToPath(new URL('../../src/components/core/ChatMessageList.vue', import.meta.url)),
+  'utf8',
+)
+const chatHistorySource = readFileSync(fileURLToPath(new URL('../../src/components/history/ChatHistory.vue', import.meta.url)), 'utf8')
 
 await runTest('TrChat compound source keeps the retained subcomponents', async () => {
   const retainedAssignments = [
@@ -137,10 +160,64 @@ await runTest('official page surface is exported as a dedicated TrChat.Page wrap
   assert.equal(chatPageSource.includes('<ChatDefaultHeaderRegion'), true)
   assert.equal(chatPageSource.includes('<ChatDefaultBodyRegion'), true)
   assert.equal(chatPageSource.includes('<ChatDefaultFooterRegion'), true)
-  assert.equal(chatPageSource.includes('<ChatWorkspaceLayout v-if="isWorkspaceShell"'), true)
-  assert.equal(chatPageSource.includes('<ChatHistory />'), true)
+  assert.equal(chatPageSource.includes('<ChatWorkspaceLayout'), true)
+  assert.equal(chatPageSource.includes('v-if="isWorkspaceShell"'), true)
+  assert.equal(
+    chatPageSource.includes('<ChatHistory :compatibility-relay="false" :enabled="historyInput?.enabled" :appearance="appearanceInput" />'),
+    true,
+  )
   assert.equal(defaultRendererSource.includes('<TrChatPage'), true)
   assert.equal(defaultRendererSource.includes('<slot :name="name" v-bind="slotProps ?? {}" />'), true)
+})
+
+await runTest('blackbox TrChat source keeps Root + Page explicit for target TrChatConfig while classifying compatibility callbacks as either supported lifecycle hooks or scaffold fallback', async () => {
+  assert.equal(chatSource.includes('createRuntimeFromConfig'), true)
+  assert.equal(chatSource.includes('resolveRootPageBlackboxConfig(props)'), true)
+  assert.equal(chatSource.includes('!props.callbacks'), false)
+  assert.equal(chatSource.includes('<TrChatRoot v-if="blackboxResolution"'), true)
+  assert.equal(chatSource.includes('<TrChatPage>'), true)
+  assert.equal(chatSource.includes('<ChatScaffold'), true)
+  assert.equal(chatSource.includes('v-else'), true)
+  assert.equal(blackboxEntrySource.includes('callbacks?.onBeforeSend'), true)
+  assert.equal(blackboxEntrySource.includes('callbacks?.onMessageAction'), true)
+  assert.equal(blackboxEntrySource.includes('callbacks?.onModelChange'), true)
+  assert.equal(blackboxEntrySource.includes('afterReceive: chainHandlers'), true)
+  assert.equal(blackboxEntrySource.includes('error: chainHandlers'), true)
+})
+
+await runTest('official page source consumes the narrow page-input boundary instead of raw scaffold preset slices', async () => {
+  assert.equal(chatPageSource.includes('useChatPageInputs'), true)
+  assert.equal(chatPageSource.includes('const headerInput = computed(() => pageInputs?.value.header)'), true)
+  assert.equal(chatPageSource.includes('const layoutInput = computed(() => pageInputs?.value.layout)'), true)
+  assert.equal(chatPageSource.includes('const historyInput = computed(() => pageInputs?.value.history)'), true)
+  assert.equal(chatPageSource.includes('pageInputs?.value.shell'), true)
+  assert.equal(chatPageSource.includes('pageInputs?.value.messageList'), true)
+  assert.equal(chatPageSource.includes('pageInputs?.value.updateModel?.(model)'), true)
+  assert.equal(chatPageSource.includes('useChatScaffoldContext'), false)
+  assert.equal(chatPageSource.includes('presetSlices.value.shell.shell'), false)
+  assert.equal(chatPageSource.includes('presetSlices.value.messageList'), false)
+  assert.equal(chatPageSource.includes('presetSlices.value.modelSelector'), false)
+})
+
+await runTest('default page path passes explicit primitive inputs instead of relying on scaffold lookups near the page owner', async () => {
+  assert.equal(chatPageSource.includes(':header-input="headerInput"'), true)
+  assert.equal(chatPageSource.includes(':show="layoutInput?.show"'), true)
+  assert.equal(chatPageSource.includes(':appearance="appearanceInput"'), true)
+  assert.equal(chatPageSource.includes(':enabled="historyInput?.enabled"'), true)
+  assert.equal(chatPageSource.includes(':compatibility-relay="false" :enabled="historyInput?.enabled"'), true)
+  assert.equal(defaultHeaderRegionSource.includes(':compatibility-relay="false"'), true)
+  assert.equal(defaultBodyRegionSource.includes(':compatibility-relay="false"'), true)
+  assert.equal(defaultHeaderRegionSource.includes(':title="headerInput?.title"'), true)
+  assert.equal(defaultHeaderRegionSource.includes(':shell="shell"'), true)
+  assert.equal(chatHeaderSource.includes('const shouldUseCompatibilityRelay = computed(() => props.compatibilityRelay !== false)'), true)
+  assert.equal(chatHistorySource.includes('const shouldUseCompatibilityRelay = computed(() => props.compatibilityRelay !== false)'), true)
+  assert.equal(chatWelcomeSource.includes('const shouldUseCompatibilityRelay = computed(() => props.compatibilityRelay !== false)'), true)
+  assert.equal(chatMessageListSource.includes('const shouldUseCompatibilityRelay = computed(() => props.compatibilityRelay !== false)'), true)
+})
+
+await runTest('chat provider source no longer reads scaffold shell directly once callers pass shell explicitly', async () => {
+  assert.equal(chatProviderSource.includes('useChatScaffoldContext'), false)
+  assert.equal(chatProviderSource.includes('const shell = computed(() => props.shell)'), true)
 })
 
 await runTest('public source advertises chat message action contracts for extension work', async () => {

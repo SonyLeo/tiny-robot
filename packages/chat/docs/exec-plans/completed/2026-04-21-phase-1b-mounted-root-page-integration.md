@@ -56,6 +56,7 @@
   - `pnpm -F @opentiny/tiny-robot-chat type-check`
   - `node packages/chat/tests/run-all.mjs packages/chat/tests/runtime`
   - `node packages/chat/tests/run-all.mjs packages/chat/tests/contracts`
+  - `node packages/chat/tests/run-all.mjs packages/chat/tests/integration`
   - `node packages/chat/scripts/check-refactor-docs.mjs`
 
 ## Risks
@@ -71,10 +72,10 @@
 
 ## Exit Criteria
 
-- [ ] mounted `Root + Page` proof stands up
-- [ ] targeted tests pass
-- [ ] docs stay aligned
-- [ ] drift is recorded
+- [x] mounted `Root + Page` proof stands up
+- [x] targeted tests pass
+- [x] docs stay aligned
+- [x] drift is recorded
 
 ## Validation
 
@@ -82,6 +83,7 @@
   - `pnpm -F @opentiny/tiny-robot-chat type-check`
   - `node packages/chat/tests/run-all.mjs packages/chat/tests/runtime`
   - `node packages/chat/tests/run-all.mjs packages/chat/tests/contracts`
+  - `node packages/chat/tests/run-all.mjs packages/chat/tests/integration`
   - `node packages/chat/scripts/check-refactor-docs.mjs`
 - Demo / baseline checks:
   - one direct mounted `Root + Page` proof demonstrates page shell composition without routing through blackbox `TrChat`
@@ -98,7 +100,7 @@
 ## Drift Backwrite
 
 - What changed from the original slice:
-  - pending
+  - the mounted proof landed as a dedicated SSR-backed integration test that renders `TrChat.Root + TrChat.Page` through a Vite module load path, while aliasing `@opentiny/tiny-robot` and `markstream-vue` to narrow test stubs so the proof stays focused on page-shell ownership rather than upstream component-package SSR gaps
 - Which source docs need follow-up:
   - `alignment-tracker.md`
-  - `api-runtime.md` only if mounted proof forces a contract adjustment
+  - `execution.md`

@@ -41,19 +41,29 @@ await runTest('TrChat blackbox keeps workspace panel-level slot names aligned wi
 })
 
 await runTest('workspace mobile-left slot falls back to left when mobile-left is not provided', async () => {
-  assert.equal(workspaceLayoutSource.includes('<ChatWorkspaceLeftSheet>'), true)
+  assert.equal(
+    workspaceLayoutSource.includes('<ChatWorkspaceLeftSheet :appearance="resolvedAppearance" :sidebar-title="props.sidebarTitle">'),
+    true,
+  )
   assert.equal(workspaceLayoutSource.includes(`<slot v-if="$slots['mobile-left']" name="mobile-left" />`), true)
   assert.equal(workspaceLayoutSource.includes(`<slot v-else-if="$slots.left" name="left" />`), true)
 })
 
-await runTest('workspace mobile containers retain default sidebar and right panel fallback content when slots are absent', async () => {
+await runTest('workspace mobile containers retain explicit owner inputs for sidebar and sheet fallback content', async () => {
+  assert.equal(chatPageSource.includes(':sidebar-title="headerInput?.title"'), true)
   assert.equal(workspaceLayoutSource.includes('<slot name="left">'), true)
-  assert.equal(workspaceLayoutSource.includes('<ChatWorkspaceSidebar :mobile="false" />'), true)
+  assert.equal(workspaceLayoutSource.includes('<ChatWorkspaceSidebar :mobile="false" :title="props.sidebarTitle" />'), true)
   assert.equal(workspaceLayoutSource.includes('<slot name="right">'), true)
   assert.equal(workspaceLayoutSource.includes('<ChatWorkspaceRightPanel :mobile="false" />'), true)
+  assert.equal(workspaceLayoutSource.includes('<ChatWorkspaceRightSheet :appearance="resolvedAppearance">'), true)
   assert.equal(workspaceLeftSheetSource.includes('const slotContainsSidebar = computed('), true)
-  assert.equal(workspaceLeftSheetSource.includes('<ChatWorkspaceSidebar v-else mobile>'), true)
+  assert.equal(workspaceLeftSheetSource.includes('const appearance = computed(() => props.appearance)'), true)
+  assert.equal(workspaceLeftSheetSource.includes('<ChatWorkspaceSidebar v-else mobile :title="props.sidebarTitle">'), true)
   assert.equal(workspaceRightSheetSource.includes('const slotContainsRightPanel = computed('), true)
+  assert.equal(workspaceRightSheetSource.includes('const appearance = computed(() => props.appearance)'), true)
   assert.equal(workspaceRightSheetSource.includes('<ChatWorkspaceRightPanel v-else mobile>'), true)
+  assert.equal(workspaceLeftSheetSource.includes('useChatScaffoldContext'), false)
+  assert.equal(workspaceRightSheetSource.includes('useChatScaffoldContext'), false)
+  assert.equal(workspaceLayoutSource.includes('props.appearance ?? scaffoldContext?.presetSlices.value.appearance.appearance'), true)
 })
 

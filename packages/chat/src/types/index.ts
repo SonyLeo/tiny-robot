@@ -68,6 +68,7 @@ export type {
 } from './workspace'
 
 export type {
+  ChatAfterReceiveHandler,
   ChatAttachmentsRuntime,
   ChatBeforeSendHandler,
   ChatConversationCreateInput,

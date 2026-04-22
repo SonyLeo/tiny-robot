@@ -113,6 +113,7 @@ export interface UseChatKitOptions {
   storage?: ConversationStorageStrategy
   initialMessages?: ChatMessage[]
   messageTransforms?: ChatMessageTransforms
+  onAfterReceive?: (message: ChatMessage) => void
   onFinish?: (message: ChatMessage) => void
   onError?: (error: Error) => void
 }

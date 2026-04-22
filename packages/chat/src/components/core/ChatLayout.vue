@@ -19,22 +19,20 @@ const props = defineProps({
 const scaffoldContext = useChatScaffoldContext()
 const layoutSlice = computed(() => scaffoldContext?.presetSlices.value.layout)
 const appearanceSlice = computed(() => scaffoldContext?.presetSlices.value.appearance.appearance)
-
-const mergedBubbleRenderers = computed<ChatBubbleRenderers>(() => ({
-  contentMatches: [
-    ...(props.bubbleRenderers?.contentMatches ?? []),
-    ...(layoutSlice.value?.bubbleRenderers?.contentMatches ?? []),
-  ],
-  boxMatches: [...(props.bubbleRenderers?.boxMatches ?? []), ...(layoutSlice.value?.bubbleRenderers?.boxMatches ?? [])],
-}))
+const resolvedBubbleRenderers = computed<ChatBubbleRenderers | undefined>(
+  () => props.bubbleRenderers ?? layoutSlice.value?.bubbleRenderers,
+)
 
 const {
   contentMatches: defaultContentMatches,
   boxMatches: defaultBoxMatches,
   roles: defaultRoles,
 } = useDefaultBubbleConfig()
-const contentMatches = computed(() => [...(mergedBubbleRenderers.value.contentMatches ?? []), ...defaultContentMatches])
-const boxMatches = computed(() => [...(mergedBubbleRenderers.value.boxMatches ?? []), ...defaultBoxMatches])
+const contentMatches = computed(() => [
+  ...(resolvedBubbleRenderers.value?.contentMatches ?? []),
+  ...defaultContentMatches,
+])
+const boxMatches = computed(() => [...(resolvedBubbleRenderers.value?.boxMatches ?? []), ...defaultBoxMatches])
 const resolvedShow = computed(() => props.show ?? layoutSlice.value?.show ?? true)
 const resolvedAppearance = computed(() => props.appearance ?? appearanceSlice.value)
 const resolvedContentLayout = computed<ChatContentLayout>(
@@ -42,10 +40,11 @@ const resolvedContentLayout = computed<ChatContentLayout>(
 )
 const themeScopeId = `tr-chat-theme-scope-${getCurrentInstance()?.uid ?? 'fallback'}`
 const scopedThemeTargetElement = `#${themeScopeId}`
+const resolvedRoleConfigs = computed(() => props.roleConfigs ?? layoutSlice.value?.roleConfigs)
 
 const mergedRoleConfigs = computed(() => ({
   ...defaultRoles,
-  ...(props.roleConfigs ?? layoutSlice.value?.roleConfigs),
+  ...resolvedRoleConfigs.value,
 }))
 
 const scopedColorMode = computed(() => {

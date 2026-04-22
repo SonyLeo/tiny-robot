@@ -53,7 +53,7 @@
 | `messages.transforms` | `message runtime` extension pipeline | `deferred` | none | owner frozen; bridge support delayed | later message parity phase |
 | `lifecycle.beforeSend` | conversation/message bridge hook | `supported` | bridge hook | explicit Phase 1A commitment | Phase 1A |
 | `lifecycle.error` | conversation/message bridge hook | `supported` | bridge hook | explicit Phase 1A commitment | Phase 1A |
-| `lifecycle.afterReceive` | conversation/message bridge hook | `deferred` | none | order frozen; bridge may land later | later message parity phase |
+| `lifecycle.afterReceive` | conversation/message bridge hook | `supported` | bridge hook | supported once the Phase 2 blackbox path started normalizing lifecycle-compatible `callbacks.onFinish` into the target lifecycle owner path | Phase 2 |
 | `lifecycle.modelChange` | models bridge hook | `deferred` | none | waits for models baseline | Phase 1B or later |
 | `lifecycle.conversationChange` | history bridge hook | `deferred` | none | waits for history baseline | Phase 1B or later |
 | `history.*` | `history runtime` + workspace defaults | `supported` | `history runtime` | powers the Phase 1B history drawer / workspace baseline | Phase 1B |

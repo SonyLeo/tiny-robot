@@ -3,9 +3,9 @@ import type { Attachment } from '@opentiny/tiny-robot'
 import type { ChatMessage, ConversationStorageStrategy } from '@opentiny/tiny-robot-kit'
 import type {
   BrandConfig,
+  ChatErrorInfo,
   ChatAppearanceConfig,
   ChatContentLayout,
-  ChatErrorInfo,
   ChatMessageActionDefinition,
   ChatMessageActionsMode,
   ChatMessageTransforms,
@@ -89,6 +89,8 @@ export type ChatBeforeSendHandler = (
   | Promise<ChatSendInput | Partial<ChatSendInput> | false | void>
 
 export type ChatErrorHandler = (error: ChatErrorInfo | Error) => void
+
+export type ChatAfterReceiveHandler = (message: ChatMessage) => void
 
 export interface ChatConversationRuntime {
   messages: ReadonlyRef<ChatUIMessage[]>
@@ -309,6 +311,7 @@ export interface TrChatMessagesConfig {
 
 export interface TrChatLifecycleConfig {
   beforeSend?: ChatBeforeSendHandler
+  afterReceive?: ChatAfterReceiveHandler
   error?: ChatErrorHandler
 }
 

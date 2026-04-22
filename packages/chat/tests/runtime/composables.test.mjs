@@ -113,6 +113,40 @@ await runTest('useChatConversation bootstraps the first conversation from initia
   assert.equal(finished[0].role, 'assistant')
 })
 
+await runTest('useChatConversation runs onAfterReceive before transforms and keeps onFinish as the post-transform hook', async () => {
+  const callOrder = []
+  const conversation = useChatConversation({
+    responseProviderRef: shallowRef(createStreamingProvider()),
+    onAfterReceive: (message) => {
+      callOrder.push(`after:${message.content}`)
+    },
+    messageTransforms: {
+      onFinish: ({ message }) => {
+        callOrder.push(`transform:${message.content}`)
+        return {
+          content: `${message.content}::transformed`,
+        }
+      },
+    },
+    onFinish: (message) => {
+      callOrder.push(`finish:${message.content}`)
+    },
+  })
+
+  conversation.sendMessage('ordering-check')
+
+  await waitFor(() => {
+    assert.equal(conversation.activeConversation.value?.engine.requestState.value, 'completed')
+  })
+
+  assert.deepEqual(callOrder, [
+    'after:reply:ordering-check',
+    'transform:reply:ordering-check',
+    'finish:reply:ordering-check::transformed',
+  ])
+  assert.equal(conversation.activeConversation.value?.engine.messages.value[1]?.content, 'reply:ordering-check::transformed')
+})
+
 await runTest('useChatConversation keeps manual createConversation empty and surfaces provider errors', async () => {
   const capturedErrors = []
   const conversation = useChatConversation({

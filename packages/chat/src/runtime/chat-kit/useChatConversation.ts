@@ -7,7 +7,7 @@ import type { UseChatKitOptions, UseMessageResponseProvider } from '@/types'
 
 type UseChatConversationOptions = Pick<
   UseChatKitOptions,
-  'plugins' | 'storage' | 'initialMessages' | 'messageTransforms' | 'onFinish' | 'onError'
+  'plugins' | 'storage' | 'initialMessages' | 'messageTransforms' | 'onAfterReceive' | 'onFinish' | 'onError'
 > & {
   responseProviderRef: ShallowRef<UseMessageResponseProvider>
   onTurnError?: (payload: { context: BasePluginContext & { error: unknown }; error: unknown }) => void
@@ -82,6 +82,22 @@ function createTransformPlugin(options: Pick<UseChatConversationOptions, 'messag
   }
 }
 
+function createAfterReceivePlugin(options: Pick<UseChatConversationOptions, 'onAfterReceive'>): UseMessagePlugin {
+  return {
+    name: 'chatkit-after-receive',
+    onTurnEnd(ctx: BasePluginContext) {
+      if (!options.onAfterReceive) return
+
+      const lastAssistantMessage = [...ctx.currentTurn]
+        .reverse()
+        .find((message: ChatMessage) => message.role === 'assistant')
+      if (lastAssistantMessage) {
+        options.onAfterReceive(lastAssistantMessage)
+      }
+    },
+  }
+}
+
 function createLifecyclePlugin(
   options: Pick<UseChatKitOptions, 'onFinish' | 'onError'> & Pick<UseChatConversationOptions, 'onTurnError'>,
 ): UseMessagePlugin {
@@ -126,6 +142,7 @@ export function useChatConversation(options: UseChatConversationOptions): Pick<
     storage,
     initialMessages = [],
     messageTransforms,
+    onAfterReceive,
     onFinish,
     onError,
     onTurnError,
@@ -137,6 +154,7 @@ export function useChatConversation(options: UseChatConversationOptions): Pick<
       responseProvider: responseProviderRef.value as UseMessageOptions['responseProvider'],
       plugins: [
         ...plugins,
+        createAfterReceivePlugin({ onAfterReceive }),
         createTransformPlugin({ messageTransforms }),
         createLifecyclePlugin({ onFinish, onError, onTurnError }),
       ] as UseMessagePlugin[],

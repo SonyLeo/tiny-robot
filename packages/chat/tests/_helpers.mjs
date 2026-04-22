@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { fileURLToPath } from 'node:url'
 import { computed, nextTick, ref, shallowRef } from 'vue'
 import createJiti from 'jiti'
-import { expectThrowsAsync, runTest } from './_harness.mjs'
+import { expectThrowsAsync, runTest, resolveTestDir } from './_harness.mjs'
 
 const jiti = createJiti(import.meta.url, {
   alias: {
@@ -42,6 +42,7 @@ export const useMcpManager = mcpManagerModule.useMcpManager
 export const useModelSelector = modelSelectorModule.useModelSelector
 
 export const loadChatConfig = adapterModule.loadChatConfig
+export const createRuntimeFromConfig = adapterModule.createRuntimeFromConfig
 export const createChatAdapterFromConfig = adapterModule.createChatAdapterFromConfig
 export const createPresetChatProps = adapterModule.createPresetChatProps
 export const createPresetChatSlices = adapterModule.createPresetChatSlices
@@ -55,7 +56,7 @@ export const getRuntimeMessageId = messageIdentityModule.getRuntimeMessageId
 export const ensureRuntimeMessageId = messageIdentityModule.ensureRuntimeMessageId
 export const ChatProviderError = transportModule.ChatProviderError
 export const createOpenAICompatibleResponseProvider = transportModule.createOpenAICompatibleResponseProvider
-export { expectThrowsAsync, runTest }
+export { expectThrowsAsync, runTest, resolveTestDir }
 
 export function createChunk({ content, role, finishReason = null, model = 'mock-model' }) {
   return {

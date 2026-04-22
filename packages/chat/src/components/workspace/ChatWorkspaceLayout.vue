@@ -16,6 +16,7 @@ defineOptions({ name: 'TrChatWorkspaceLayout' })
 const props = defineProps({
   appearance: Object as PropType<ChatAppearanceConfig | undefined>,
   shell: Object as PropType<ChatWorkspaceShellConfig | undefined>,
+  sidebarTitle: String,
 })
 
 const scaffoldContext = useChatScaffoldContext()
@@ -51,7 +52,7 @@ function handleRightCollapsedChange(value: boolean) {
     >
       <template #left>
         <slot name="left">
-          <ChatWorkspaceSidebar :mobile="false" />
+          <ChatWorkspaceSidebar :mobile="false" :title="props.sidebarTitle" />
         </slot>
       </template>
 
@@ -70,12 +71,12 @@ function handleRightCollapsedChange(value: boolean) {
       </template>
     </WorkspaceShell>
 
-    <ChatWorkspaceLeftSheet>
+    <ChatWorkspaceLeftSheet :appearance="resolvedAppearance" :sidebar-title="props.sidebarTitle">
       <slot v-if="$slots['mobile-left']" name="mobile-left" />
       <slot v-else-if="$slots.left" name="left" />
     </ChatWorkspaceLeftSheet>
 
-    <ChatWorkspaceRightSheet>
+    <ChatWorkspaceRightSheet :appearance="resolvedAppearance">
       <slot v-if="$slots['mobile-right']" name="mobile-right" />
       <slot v-else-if="$slots.right" name="right" />
     </ChatWorkspaceRightSheet>

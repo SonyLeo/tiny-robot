@@ -99,3 +99,39 @@ Why this is promoted:
 Default question:
 
 - "What test and what lookup artifact will prove this ownership change is now real?"
+
+### 6. Once owner inputs are explicit, compatibility relay must become explicit too
+
+After a page or workspace owner path starts passing explicit inputs into the nearest primitive, do not leave compatibility relay silently active by default.
+
+Prefer one of these two states:
+
+- explicit owner input is authoritative
+- compatibility relay is still enabled, but only because that component is being used through a real compatibility path
+
+Why this is promoted:
+
+- `ChatLayout` stopped being a mixed owner/scaffold renderer path once explicit `bubbleRenderers` became authoritative
+- `ChatHeader` and `ChatHistory` became easier to reason about once the default page path explicitly disabled compatibility relay instead of leaving scaffold fallback silently active
+
+Default question:
+
+- "Is this fallback still protecting a real compatibility consumer, or is it just shadowing an owner path that already has explicit inputs?"
+
+### 7. Phase reviews should package evidence and drift explicitly
+
+When a review decides whether a phase may exit or a new phase may start, do not rely on narrative summaries alone.
+
+Prefer packets that include both:
+
+- an explicit evidence index
+- a current drift summary
+
+Why this is promoted:
+
+- `Review B` and `Review C` both became easier to schedule once the key tests, completed slices, histories, and bounded follow-ups were called out directly
+- without this, review meetings turn into live repository archaeology and the pass/blocked decision drifts
+
+Default question:
+
+- "Could a reviewer point to the exact artifacts and current drift without reconstructing the story from scratch?"

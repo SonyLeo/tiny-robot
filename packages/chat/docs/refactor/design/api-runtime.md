@@ -65,6 +65,29 @@ const config = {
 </template>
 ```
 
+当前 `Phase 2` 预热切片已经冻结下面这条默认黑盒入口语义：
+
+- 当 `TrChat` 收到的 `config` 已经匹配 `TrChatConfig`
+- 且没有额外提供 `runtime`、`presetOverrides`
+- `callbacks` 要么缺省，要么只包含生命周期兼容的 `onFinish / onError`
+
+默认主路径应直接进入：
+
+`createRuntimeFromConfig(config) -> TrChat.Root + TrChat.Page`
+
+同时保留一条明确的兼容分支：
+
+- 旧 shipping `ChatConfig` 形态
+- 仍依赖 `onBeforeSend / onMessageAction / onModelChange` 这类 scaffold-only callbacks 的调用方式
+- 仍依赖 compatibility-only props 的调用方式
+
+`Phase 2` 当前切片把一条额外规则也冻结下来了：
+
+- 生命周期兼容 callbacks 可以在黑盒入口边界被规范化成 `config.lifecycle.afterReceive / error`，并继续走 `createRuntimeFromConfig(config) -> TrChat.Root + TrChat.Page`
+- 其他仍然带 scaffold 语义的 callbacks 继续保持显式 fallback，直到对应 target owner path 真正实现并有证据支撑
+
+这些输入当前仍显式回退到 `ChatScaffold`，它们不是新的 target blackbox contract。
+
 ### 2.2 正式用法 B：`TrChat.Root`
 
 `TrChat.Root` 是高级定制入口。
@@ -419,6 +442,11 @@ bridge owner 与执行顺序冻结如下：
 - 改局部结构：用 slot
 - 自己带 runtime 或自己拼页面：进 `TrChat.Root`
 
+补充一条 `Phase 2` 黑盒切口规则：
+
+- 如果旧 callbacks 能一对一映射到已经冻结的 target owner（例如 `onFinish -> lifecycle.afterReceive`、`onError -> lifecycle.error`），可以在黑盒入口边界做窄归一化
+- 如果旧 callbacks 仍然依赖 scaffold 期语义（例如 `onBeforeSend`、`onMessageAction`、`onModelChange`），就继续保持显式 fallback，而不是把整条黑盒入口重新退回到混合 contract
+
 ### 4.6 边界速查表
 
 | 领域 | 负责什么 | 不负责什么 |
@@ -528,6 +556,7 @@ declare function createRuntimeFromConfig(config: TrChatConfig): CreateRuntimeFro
 - 它不替代更细粒度的 runtime factory
 - 它在每个 phase 内都只承诺当前文档与 execution 文档写明的 bridge subset
 - 所有 `Root + Page` 文档示例优先使用这条桥接路径
+- 进入 `TrChat` 黑盒主路径时，也应优先复用这条桥接路径，而不是重新展开第二套 `configProjection`
 
 ## 6. runtime 模型
 
@@ -734,6 +763,12 @@ Footer note:
 - 某个 slot 拿到 `conversation` 或 `sender`，不代表 `Page` 自身读取了整个 runtime
 - slot props 可以由 `Page` 内部的 region 组件装配
 - 如某个定制需求超出 slot props contract，应升级到 `Root + primitives`
+- `Page` 应该消费一个窄的 page-input boundary，例如 `welcome / messageList / appearance / shell / modelSelector / updateModel`
+- 当默认 owner 已经把显式输入传给最近一级 primitive 时，这些显式输入应当成为 authoritative contract；兼容 fallback 只能在显式输入缺失时生效，不能再把 raw scaffold bucket 无条件混回去
+- 对默认 page path 来说，header/history/welcome/messageList 这类最近一级 primitive 应允许显式关闭 compatibility relay，这样 owner path 不会在已经具备显式输入时继续隐式读 scaffold bucket
+- `Page` 不应直接以 generic scaffold bucket（例如原始 `presetSlices` 容器）作为默认读取面
+- 默认 page path 里的最近一级 primitives（如 `ChatLayout`、`ChatHeader`、`ChatHistory`、`ChatWelcome`、`ChatMessageList`）应优先接收 `Page` 显式传入的默认输入，而不是再次从 scaffold relay 重新查找同一组值
+- 默认 workspace path 里的最近一级 owner chain（如 `ChatWorkspaceLayout`、sidebar、mobile sheets）也应优先接收显式 owner 输入，例如 `appearance` 与 `sidebarTitle`，而不是再次从 scaffold relay 重取这些展示默认值
 
 Region read-boundary freeze:
 

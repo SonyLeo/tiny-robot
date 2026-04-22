@@ -110,6 +110,7 @@ export function useChatKit(options: UseChatKitOptions): UseChatKitReturn {
     storage: options.storage,
     initialMessages: options.initialMessages,
     messageTransforms: options.messageTransforms,
+    onAfterReceive: options.onAfterReceive,
     onFinish: options.onFinish,
     onError: options.onError,
     onTurnError: ({ context, error }) => {
