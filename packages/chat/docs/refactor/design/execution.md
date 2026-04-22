@@ -162,6 +162,7 @@ Phase 0 must also produce:
 - custom renderer 注册
 - messageActions merge / replace
 - feedback 行为
+- nearest renderer UI should prefer `message runtime.config.renderers` before page-input or scaffold relay
 - transform 后仍能继续命中 renderer / action 链
 
 ### 4.3 sender / attachments 链路
@@ -457,11 +458,21 @@ Phase 1B 退出条件：
 - 建立新的黑盒心智
 - 让默认页面重新可用，并且比旧方案更容易理解
 
-当前 `Phase 2` 已先落地一条最窄 kickoff preview：
+当前 `Phase 2` 先从一条最窄黑盒 entry baseline 起步，并已完成该 baseline 的边界收口：
 
 - 当 `TrChat` 收到的输入已经匹配 target `TrChatConfig`
 - 且没有额外提供 `runtime`、`presetOverrides`
 - `callbacks` 要么缺省，要么只包含生命周期兼容的 `onFinish / onError`
+- `config` 也可以是同一份 target `TrChatConfig` 的序列化 JSON 字符串
+- 或者 `config` 是旧 `ChatConfig` 的最窄 request-only subset：
+  - top-level 只包含 `models / providers / defaults`
+  - 所有 model 都指向同一个 provider
+- 或者 `config` 是旧 `ChatConfig` 的最窄 display-default subset：
+  - 在上述 request-only subset 基础上额外携带 `appearance` 与 `ui.brand / ui.welcome`
+- 或者 `config` 是旧 `ChatConfig` 的最窄 content-layout subset：
+  - 在已支持的 request-only / display-default subset 基础上额外携带 `layout.contentLayout`
+- 或者 `config` 是旧 `ChatConfig` 的最窄 shell subset：
+  - 在已支持的 request-only / display-default / `layout.contentLayout` subset 基础上额外携带 `shell.variant / shell.leftRegion / shell.rightRegion`
 
 默认黑盒入口已允许先走：
 
@@ -469,12 +480,21 @@ Phase 1B 退出条件：
 
 同时保留明确的 compatibility fallback：
 
-- 旧 shipping `ChatConfig` 形态
+- 明确依赖 `ui.prompts` 的旧 `ChatConfig` 形态
+- 明确依赖 `layout.variant / layout.placements` 这类旧 message-list / role-placement projection 的 `ChatConfig` 形态
+- 明确依赖 `shell.viewState` 的旧 `ChatConfig` 形态
+- 带 `features / integrations` 的旧 `ChatConfig` 形态
+- 同时依赖多个 provider 映射的旧 `ChatConfig` 对象或序列化字符串形态
 - 仍依赖 scaffold 语义的 callbacks：`onBeforeSend`、`onMessageAction`、`onModelChange`
 - compatibility-only props
 
 它们当前仍显式回退到 `ChatScaffold`。
-`Review C` 需要拍板的是：这条 preview 是否可以继续扩成正式的黑盒默认主路径。
+`Review C` 已经完成对这条 entry baseline 的拍板；当前阶段的重点不再是决定能否开工，而是保持这条黑盒主路径的 supported subset 与 explicit fallback 面稳定。
+
+当前 `Phase 2` 收口补充：
+
+- `shell.viewState` 已经被明确分类为显式 scaffold fallback，而不是新的 target workspace 默认值入口
+- 到此，`Phase 2` 中需要逐项分类的旧 `ChatConfig` 主要遗留字段已经完成“可提升子集”与“显式 fallback 面”的收口
 
 必须完成：
 

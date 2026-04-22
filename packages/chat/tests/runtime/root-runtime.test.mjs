@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { fileURLToPath } from 'node:url'
 import createJiti from 'jiti'
 import { runTest } from '../_harness.mjs'
+import { waitFor } from '../_helpers.mjs'
 
 const jiti = createJiti(import.meta.url, {
   alias: {
@@ -36,6 +37,11 @@ await runTest('createRuntimeFromConfig returns a Phase 1A Root baseline with run
       mode: 'multiple',
       maxLength: 4000,
       wordCount: true,
+      voice: {
+        enabled: true,
+        tooltip: 'Runtime voice',
+        autoInsert: false,
+      },
     },
     attachments: {
       enabled: true,
@@ -50,6 +56,10 @@ await runTest('createRuntimeFromConfig returns a Phase 1A Root baseline with run
     messages: {
       actions: [{ id: 'copy-custom', label: 'Copy custom' }],
       actionMode: 'append',
+      renderers: {
+        contentMatches: [{ find: () => false, renderer: { name: 'RuntimeContentRenderer' } }],
+        boxMatches: [{ find: () => false, renderer: { name: 'RuntimeBoxRenderer' } }],
+      },
       feedback: {
         enabled: true,
       },
@@ -67,8 +77,13 @@ await runTest('createRuntimeFromConfig returns a Phase 1A Root baseline with run
   assert.equal(Array.isArray(runtime.conversation.messages.value), true)
   assert.equal(runtime.sender?.defaults?.placeholder, 'Ask anything')
   assert.equal(runtime.sender?.defaults?.mode, 'multiple')
+  assert.equal(runtime.sender?.defaults?.wordCount, true)
+  assert.equal(runtime.sender?.defaults?.voice?.enabled, true)
+  assert.equal(runtime.sender?.defaults?.voice?.tooltip, 'Runtime voice')
   assert.equal(runtime.attachments?.enabled.value, true)
   assert.equal(runtime.attachments?.uploadConfig?.value?.multiple, true)
+  assert.equal(runtime.message?.config?.renderers?.contentMatches?.length, 1)
+  assert.equal(runtime.message?.config?.renderers?.boxMatches?.length, 1)
   assert.equal(runtime.message?.config?.feedback?.enabled, true)
   assert.equal(ui.brand?.title, 'Root Baseline')
   assert.equal(ui.contentLayout, 'wide')
@@ -127,6 +142,44 @@ await runTest('Root legacy bridge keeps attachments area bound to sender pending
   assert.equal(runtime.sender?.pendingAttachments.value[0]?.name, 'phase-1a.txt')
 })
 
+await runTest('createRuntimeFromConfig keeps sender attachment handoff and attachment configs on the runtime-owned path', async () => {
+  const { runtime } = createRuntimeFromConfig({
+    request: {
+      models: [{ id: 'gpt-4.1-mini', providerId: 'openai' }],
+      transport: {
+        type: 'openai-compatible',
+        endpoint: '/api/chat/completions',
+      },
+    },
+    attachments: {
+      enabled: true,
+      upload: {
+        enabled: true,
+        accept: '.md',
+        multiple: false,
+      },
+      list: {
+        wrap: true,
+      },
+    },
+  })
+
+  const file = new File(['runtime attachment'], 'phase-3a-runtime.md', { type: 'text/markdown' })
+  const prepared = runtime.attachments?.prepareFiles([file]) ?? []
+
+  runtime.sender?.addPendingAttachments(prepared)
+
+  assert.equal(runtime.attachments?.uploadConfig?.value?.accept, '.md')
+  assert.equal(runtime.attachments?.uploadConfig?.value?.multiple, false)
+  assert.equal(runtime.attachments?.listConfig?.value?.wrap, true)
+  assert.equal(runtime.sender?.pendingAttachments.value.length, 1)
+  assert.equal(runtime.sender?.pendingAttachments.value[0]?.name, 'phase-3a-runtime.md')
+
+  runtime.sender?.clearPendingAttachments()
+
+  assert.equal(runtime.sender?.pendingAttachments.value.length, 0)
+})
+
 await runTest('Phase 1B root baseline exposes history models workspace runtime and page bridge slices', async () => {
   const { runtime, ui } = createRuntimeFromConfig({
     request: {
@@ -183,4 +236,90 @@ await runTest('Phase 1B root baseline exposes history models workspace runtime a
   assert.equal(bridge.scaffoldContext.currentModel.value, 'claude-3.7-sonnet')
   assert.equal(bridge.chatKit.value.conversations.value.length, 1)
   assert.equal(bridge.chatKit.value.activeConversationId.value, runtime.history?.activeConversationId.value ?? null)
+})
+
+await runTest('createRuntimeFromConfig keeps messageTransforms active on the Root runtime send path', async () => {
+  const originalFetchDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'fetch')
+  const encoder = new TextEncoder()
+
+  Object.defineProperty(globalThis, 'fetch', {
+    configurable: true,
+    value: async (_input, init) => {
+      const requestBody = JSON.parse(String(init?.body ?? '{}'))
+      const lastMessage = requestBody.messages?.[requestBody.messages.length - 1]?.content ?? ''
+      const reply = `reply:${lastMessage}`
+      const chunks = [
+        `data: ${JSON.stringify({
+          id: 'mock-transform',
+          object: 'chat.completion.chunk',
+          created: 0,
+          model: 'mock-model',
+          choices: [{ index: 0, delta: { role: 'assistant', content: reply }, finish_reason: null }],
+        })}\n\n`,
+        `data: ${JSON.stringify({
+          id: 'mock-transform',
+          object: 'chat.completion.chunk',
+          created: 0,
+          model: 'mock-model',
+          choices: [{ index: 0, delta: {}, finish_reason: 'stop' }],
+        })}\n\n`,
+        'data: [DONE]\n\n',
+      ]
+
+      return new Response(
+        new ReadableStream({
+          start(controller) {
+            chunks.forEach((chunk) => controller.enqueue(encoder.encode(chunk)))
+            controller.close()
+          },
+        }),
+        {
+          status: 200,
+          headers: {
+            'content-type': 'text/event-stream',
+          },
+        },
+      )
+    },
+  })
+
+  try {
+    const { runtime } = createRuntimeFromConfig({
+      request: {
+        models: [{ id: 'gpt-4.1-mini', providerId: 'openai' }],
+        defaultModelId: 'gpt-4.1-mini',
+        transport: {
+          type: 'openai-compatible',
+          endpoint: '/api/chat/completions',
+        },
+      },
+      messages: {
+        transforms: {
+          onFinish: ({ message }) => ({
+            content: `runtime-transform:${message.content}`,
+            metadata: {
+              transformedBy: 'createRuntimeFromConfig',
+            },
+          }),
+        },
+      },
+    })
+
+    await runtime.sender.send({
+      text: 'root-transform',
+    })
+
+    await waitFor(() => {
+      assert.equal(runtime.conversation.status.value, 'ready')
+      assert.equal(runtime.conversation.messages.value.length, 2)
+      assert.equal(runtime.conversation.messages.value[1]?.parts[0]?.text, 'runtime-transform:reply:root-transform')
+      assert.equal(runtime.conversation.messages.value[1]?.raw?.metadata?.transformedBy, 'createRuntimeFromConfig')
+    })
+  } finally {
+    if (originalFetchDescriptor) {
+      Object.defineProperty(globalThis, 'fetch', originalFetchDescriptor)
+    } else {
+      Reflect.deleteProperty(globalThis, 'fetch')
+    }
+  }
 })

@@ -7,6 +7,7 @@
   createStreamingProvider,
   ensureRuntimeMessageId,
   useChatFeedback,
+  useRuntimeFeedbackEnabled,
   useChatKit,
   waitFor,
   runTest,
@@ -217,6 +218,124 @@ await runTest('useChatFeedback built-in actions prefer runtime messageId paths w
   assert.deepEqual(userFeedback.actionContext.value.messageIds, [userMessageId])
   assert.equal(assistantFeedback.actionContext.value.messageId, assistantMessageId)
   assert.deepEqual(assistantFeedback.actionContext.value.messageIds, [assistantMessageId])
+})
+
+await runTest('useChatFeedback falls back to runtime-owned action definitions and actionMode when messageActions are not passed explicitly', async () => {
+  const assistantMessage = {
+    role: 'assistant',
+    content: 'runtime-action-source',
+    state: {},
+  }
+  const assistantMessageId = ensureRuntimeMessageId(assistantMessage)
+  let customActionLog = ''
+
+  const runtime = {
+    conversation: {
+      messages: { value: [] },
+      status: { value: 'ready' },
+      send: () => undefined,
+      abort: () => undefined,
+      retry: async () => true,
+      regenerate: async () => true,
+    },
+    sender: {
+      draft: { value: '' },
+      pendingAttachments: { value: [] },
+      canSend: { value: true },
+      setDraft: () => undefined,
+      send: () => undefined,
+      addPendingAttachments: () => undefined,
+      setPendingAttachments: () => undefined,
+      removePendingAttachment: () => undefined,
+      clearPendingAttachments: () => undefined,
+    },
+    message: {
+      getViewState: () => ({
+        status: 'done',
+        editing: false,
+        optimistic: false,
+      }),
+      getActions: (messageId) => [
+        {
+          id: 'save-case',
+          label: 'Save Case',
+          placement: 'operations',
+          roles: ['assistant'],
+          onClick: () => {
+            customActionLog = messageId
+          },
+        },
+      ],
+      startEdit: () => undefined,
+      cancelEdit: () => undefined,
+      commitEdit: () => true,
+      copy: async () => undefined,
+      config: {
+        actionMode: 'replace',
+      },
+    },
+  }
+
+  const feedback = runWithAppContext(() =>
+    useChatFeedback({
+      messages: [assistantMessage],
+      messageIndexes: [0],
+      role: 'assistant',
+      runtime,
+    }),
+  )
+
+  assert.deepEqual(feedback.feedbackActions.value, [])
+  assert.deepEqual(
+    feedback.feedbackOperations.value.map((action) => action.name),
+    ['save-case'],
+  )
+
+  await feedback.getActionDefinition('save-case')?.onClick?.(feedback.actionContext.value)
+  assert.equal(customActionLog, assistantMessageId)
+  assert.equal(feedback.actionContext.value.messageId, assistantMessageId)
+})
+
+await runTest('useRuntimeFeedbackEnabled prefers explicit enablement and otherwise falls back to runtime-owned feedback config', async () => {
+  const runtimeEnabled = {
+    message: {
+      config: {
+        feedback: {
+          enabled: true,
+        },
+      },
+    },
+  }
+  const runtimeDisabled = {
+    message: {
+      config: {
+        feedback: {
+          enabled: false,
+        },
+      },
+    },
+  }
+
+  const explicitDisabled = runWithAppContext(() =>
+    useRuntimeFeedbackEnabled({
+      enabled: false,
+      runtime: runtimeEnabled,
+    }),
+  )
+  const fallbackDisabled = runWithAppContext(() =>
+    useRuntimeFeedbackEnabled({
+      runtime: runtimeDisabled,
+    }),
+  )
+  const fallbackDefault = runWithAppContext(() =>
+    useRuntimeFeedbackEnabled({
+      runtime: null,
+    }),
+  )
+
+  assert.equal(explicitDisabled.value, false)
+  assert.equal(fallbackDisabled.value, false)
+  assert.equal(fallbackDefault.value, true)
 })
 
 await runTest('createPresetChatSlices projects message action settings through the message list slice', async () => {

@@ -36,6 +36,7 @@ const chatMessages = useResolvedChatMessages()
 const attrs = useAttrs()
 const slots = useSlots() as Record<string, Slot | undefined>
 const scaffoldContext = useChatScaffoldContext()
+const senderDefaults = computed(() => chatRuntime?.sender.defaults)
 
 const legacyInputValue = ref('')
 const inputValue = computed({
@@ -58,23 +59,32 @@ const isLoading = computed(() => {
 })
 const senderActionsFeature = computed(() => senderActionsContext?.feature)
 const senderSlice = computed(() => scaffoldContext?.presetSlices.value.sender)
+const senderWordCount = computed(() => senderDefaults.value?.wordCount ?? senderActionsFeature.value?.wordCount)
+const runtimeUploadConfig = computed(() => chatRuntime?.attachments?.uploadConfig?.value)
+const hasAttachmentOwner = computed(() => Boolean(chatRuntime?.attachments || attachmentsContext))
 const uploadActionConfig = computed(() => {
-  const uploadConfig = senderActionsFeature.value?.upload ?? attachmentsContext?.feature.upload
+  const uploadConfig =
+    runtimeUploadConfig.value ?? attachmentsContext?.feature.upload ?? senderActionsFeature.value?.upload
   if (!uploadConfig) {
     return uploadConfig
   }
+
+  const usesSenderActionsCopy =
+    !runtimeUploadConfig.value &&
+    !attachmentsContext?.feature.upload &&
+    uploadConfig === senderActionsFeature.value?.upload
 
   return {
     ...uploadConfig,
     tooltip:
       uploadConfig.tooltip ??
-      (senderActionsFeature.value?.upload
+      (usesSenderActionsCopy
         ? chatMessages.value.senderActions.uploadTooltip
         : chatMessages.value.attachments.uploadTooltip),
   }
 })
 const voiceActionConfig = computed(() => {
-  const voiceConfig = senderActionsFeature.value?.voice
+  const voiceConfig = senderDefaults.value?.voice ?? senderActionsFeature.value?.voice
   if (!voiceConfig) {
     return voiceConfig
   }
@@ -84,23 +94,35 @@ const voiceActionConfig = computed(() => {
     tooltip: voiceConfig.tooltip ?? chatMessages.value.senderActions.voiceTooltip,
   }
 })
-const showDefaultUploadButton = computed(() => Boolean(uploadActionConfig.value?.enabled !== false))
-const showDefaultVoiceButton = computed(() => Boolean(voiceActionConfig.value?.enabled))
+const showDefaultUploadButton = computed(() =>
+  Boolean(hasAttachmentOwner.value && uploadActionConfig.value?.enabled !== false),
+)
+const showDefaultVoiceButton = computed(() =>
+  Boolean(voiceActionConfig.value && voiceActionConfig.value.enabled !== false),
+)
 const senderMode = computed<'single' | 'multiple'>(() => {
   const modeFromSlice = senderSlice.value?.mode
   return (
-    props.mode ?? (modeFromSlice === 'single' || modeFromSlice === 'multiple' ? modeFromSlice : undefined) ?? 'multiple'
+    props.mode ??
+    senderDefaults.value?.mode ??
+    (modeFromSlice === 'single' || modeFromSlice === 'multiple' ? modeFromSlice : undefined) ??
+    'multiple'
   )
 })
 const senderPlaceholder = computed(() => {
   return (
     props.placeholder ??
+    senderDefaults.value?.placeholder ??
     (typeof senderSlice.value?.placeholder === 'string' ? senderSlice.value.placeholder : undefined) ??
     chatMessages.value.sender.placeholder
   )
 })
 const senderMaxLength = computed(() => {
-  return props.maxLength ?? (typeof senderSlice.value?.maxLength === 'number' ? senderSlice.value.maxLength : undefined)
+  return (
+    props.maxLength ??
+    senderDefaults.value?.maxLength ??
+    (typeof senderSlice.value?.maxLength === 'number' ? senderSlice.value.maxLength : undefined)
+  )
 })
 const fallbackSenderAttrs = computed(() => {
   if (!senderSlice.value) return {}
@@ -114,7 +136,7 @@ const fallbackSenderAttrs = computed(() => {
   )
 })
 const mergedSenderAttrs = computed(() => ({
-  showWordLimit: senderActionsFeature.value?.wordCount || undefined,
+  showWordLimit: senderWordCount.value,
   defaultActions: senderActionsFeature.value?.defaultActions,
   maxLength: senderMaxLength.value,
   ...fallbackSenderAttrs.value,
@@ -207,10 +229,10 @@ const forwardedSlots = computed<Partial<Record<string, Slot>>>(() =>
       <slot name="footer-right" v-bind="slotProps ?? {}" />
     </template>
     <template
-      v-else-if="!$slots['footer-right'] && ((attachmentsContext && showDefaultUploadButton) || showDefaultVoiceButton)"
+      v-else-if="!$slots['footer-right'] && ((hasAttachmentOwner && showDefaultUploadButton) || showDefaultVoiceButton)"
       #footer-right
     >
-      <span v-if="attachmentsContext && showDefaultUploadButton" data-testid="chat-attachments-upload">
+      <span v-if="hasAttachmentOwner && showDefaultUploadButton" data-testid="chat-attachments-upload">
         <UploadButton v-bind="uploadActionConfig" @select="handleFileSelect" />
       </span>
       <span v-if="showDefaultVoiceButton" data-testid="chat-sender-action-voice">

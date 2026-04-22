@@ -45,7 +45,7 @@
 | `ui.appearance` | resolved `ui` | `supported` | `ui` | display-only | Phase 1A |
 | `ui.contentLayout` | resolved `ui` | `supported` | `ui` | display-only | Phase 1A |
 | `ui.copy` | resolved `ui` | `supported` | `ui` | resolved once by `Root`; not by `Page` or slots | Phase 1A |
-| `sender.*` | `sender runtime` | `supported` | sender runtime defaults | draft/send/placeholder baseline only | Phase 1A |
+| `sender.*` | `sender runtime` | `supported` | sender runtime defaults | runtime-owned sender defaults now include `placeholder / mode / maxLength / wordCount / voice`; default owner paths should consume these before legacy `senderActionsFeature` fallback | Phase 3A |
 | `attachments.*` | `attachments runtime` + sender handoff | `supported` | attachments runtime + sender defaults | supports `prepare -> addPendingAttachments` path only | Phase 1A |
 | `messages.actions` | `message runtime` extension path | `supported` | message runtime config | minimum action chain | Phase 1A |
 | `messages.renderers` | `message runtime` extension path | `supported` | message runtime config | minimum renderer chain | Phase 1A |

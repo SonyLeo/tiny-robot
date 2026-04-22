@@ -19,7 +19,10 @@ await runTest('renderer registry source contract keeps bubble renderer extension
 
 await runTest('ChatLayout source treats explicit bubbleRenderers as authoritative before scaffold relay', async () => {
   assert.equal(chatLayoutSource.includes('const resolvedBubbleRenderers = computed<ChatBubbleRenderers | undefined>('), true)
-  assert.equal(chatLayoutSource.includes('props.bubbleRenderers ?? layoutSlice.value?.bubbleRenderers'), true)
+  assert.equal(
+    chatLayoutSource.includes('props.bubbleRenderers ?? chatRuntime?.message.config?.renderers ?? layoutSlice.value?.bubbleRenderers'),
+    true,
+  )
   assert.equal(chatLayoutSource.includes('...(layoutSlice.value?.bubbleRenderers?.contentMatches ?? [])'), false)
   assert.equal(chatLayoutSource.includes('...(layoutSlice.value?.bubbleRenderers?.boxMatches ?? [])'), false)
 })

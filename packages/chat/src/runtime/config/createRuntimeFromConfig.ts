@@ -458,6 +458,7 @@ function createSenderRuntimeFromChatKit(
       mode: config.sender?.mode,
       maxLength: config.sender?.maxLength,
       wordCount: config.sender?.wordCount,
+      voice: config.sender?.voice,
     },
   }
 }

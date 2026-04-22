@@ -92,6 +92,7 @@ Reminder:
 - `left-rail`, `mobile-left`, and `mobile-right` are resolved placement targets inside `workspace runtime` and `TrChat.Page`
 - `mobile-left` falls back to `left`
 - `mobile-right` falls back to `right`
+- on the default owner path, the nearest workspace layout should read explicit page `shell` input first and only fall back to runtime-derived workspace shell state, not raw scaffold preset buckets
 - `history runtime` owns conversation list data; `workspace runtime` owns panel visibility
 
 ## Escalation Rule

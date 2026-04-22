@@ -17,6 +17,7 @@ import type {
   ChatAttachmentsUploadConfig,
   ChatBubbleRenderers,
   ChatMessagesOverrides,
+  ChatSenderActionVoiceConfig,
   WelcomeConfig,
 } from './ui'
 import type {
@@ -116,6 +117,7 @@ export interface ChatSenderRuntime {
     mode?: 'single' | 'multiple'
     maxLength?: number
     wordCount?: boolean
+    voice?: ChatSenderActionVoiceConfig
   }
 }
 
@@ -279,6 +281,7 @@ export interface TrChatSenderConfig {
   mode?: 'single' | 'multiple'
   maxLength?: number
   wordCount?: boolean
+  voice?: ChatSenderActionVoiceConfig
 }
 
 export interface TrChatAttachmentsConfig {

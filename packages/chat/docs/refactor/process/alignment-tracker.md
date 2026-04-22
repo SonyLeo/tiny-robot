@@ -45,8 +45,8 @@ Historical rationale and freeze context live in:
 | Phase 0 / 0.5 freeze | `signed-off-with-follow-ups` | contract freeze passed with bounded follow-ups on footer treatment and contract-test baseline |
 | Phase 1A | `completed` | Root/bootstrap baseline, message runtime hardening, eager `initialMessages` baseline, footer treatment, and default Phase 1A validation workflow are all closed |
 | Phase 1B | `completed` | page/history/models/workspace baseline, mounted `Root + Page` proof, page-input boundary, default-page primitive tightening, workspace relay tightening, `ChatLayout` authoritative renderer inputs, header/history opt-out, and welcome/message-list opt-out are all closed as the Phase 1B default-owner-path baseline |
-| Phase 2 | `in-progress` | Review C accepted the narrow target-`TrChatConfig` blackbox kickoff preview as the Phase 2 entry baseline; the lifecycle-compatible callback subset now also enters through `Root + Page`, while old `ChatConfig` shapes and scaffold-only callbacks remain explicit fallback |
-| Phase 3 / 4 | `pending` | parity and hardening remain later-stage work |
+| Phase 2 | `completed` | Review C accepted the narrow target-`TrChatConfig` blackbox kickoff preview as the Phase 2 entry baseline; the lifecycle-compatible callback subset, serialized target config, and the narrow old-`ChatConfig` request-only, display-default, `layout.contentLayout`, and shell-owner subsets now all enter through `Root + Page`, while `ui.prompts`, `layout.variant / placements`, `shell.viewState`, broader old config shapes, and scaffold-only callbacks are now all explicitly bounded fallback |
+| Phase 3 / 4 | `in-progress` | Phase 3A is now closed with sender `voice / wordCount`, sender-plus-attachments parity, runtime-owned message-action fallback, feedback enablement fallback, renderer fallback, and formal-path `messages.transforms` proof all landed; Phase 3B has now landed runtime-owned workspace mobile fallback parity, and the next active work is history/model/workspace linkage plus MCP parity |
 
 ## Review Status
 
@@ -145,9 +145,12 @@ Historical rationale and freeze context live in:
 - When a default owner path already passes explicit inputs into the nearest primitive, that primitive should treat those inputs as authoritative instead of silently merging raw scaffold defaults back in.
 - In the default page path, compatibility relay should become an explicit opt-in or opt-out choice, not an automatic fallback that stays active after owner inputs are already present.
 - `onBeforeSend / onMessageAction / onModelChange` still remain scaffold-only fallback and should not be silently mixed into the Phase 2 blackbox path until their target owner routes are implemented and evidenced.
+- old `ChatConfig.ui.prompts`, `layout.variant / placements`, and `shell.viewState` are now all explicitly classified as scaffold fallback; the remaining risk is to keep broader legacy shapes bounded instead of letting later parity work silently widen fallback again.
+- `senderActionsFeature` and attachment feature presets still survive as compatibility fallbacks; the remaining risk is to keep Phase 3B and later work from reviving feature-first ownership on already-closed sender plus attachments paths.
+- Phase 3B still needs parity coverage for history/model/workspace linkage and MCP so later work does not treat the closed Phase 1B baseline and the landed mobile fallback slice as a substitute for full parity-level coverage.
 
 ## Next Actions
 
-1. Continue Phase 2 by classifying the next safe legacy blackbox entry shape beyond lifecycle-compatible callbacks while keeping old config shapes and scaffold-only callbacks as explicit bounded fallback.
+1. Continue Phase 3B by hardening history/model/workspace linkage and MCP parity on top of the landed workspace mobile fallback slice.
 2. Keep active contract changes in `design/api-runtime.md` and `design/execution.md`.
-3. Carry the current drift summary and blackbox integration evidence into the next Phase 2 slice instead of reopening broad scaffold cutover.
+3. Prepare Review D around the now-closed Phase 2 blackbox entry matrix and the Phase 3/4 closure path.

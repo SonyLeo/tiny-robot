@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { BubbleProvider, ThemeProvider } from '@opentiny/tiny-robot'
 import type { BubbleListProps } from '@opentiny/tiny-robot'
-import { computed, getCurrentInstance, type PropType, provide } from 'vue'
+import { computed, getCurrentInstance, inject, type PropType, provide } from 'vue'
 import { useDefaultBubbleConfig } from './useDefaultBubbleConfig'
-import { BUBBLE_CONFIG_KEY, useChatScaffoldContext } from '@/shared/context'
-import type { ChatAppearanceConfig, ChatBubbleRenderers, ChatContentLayout } from '@/types'
+import { BUBBLE_CONFIG_KEY, CHAT_RUNTIME_KEY, useChatScaffoldContext } from '@/shared/context'
+import type { ChatAppearanceConfig, ChatBubbleRenderers, ChatContentLayout, ChatRuntime } from '@/types'
 import { triStateBooleanProp } from '@/shared/utils'
 
 defineOptions({ name: 'TrChatLayout' })
@@ -17,10 +17,11 @@ const props = defineProps({
   bubbleRenderers: Object as PropType<ChatBubbleRenderers>,
 })
 const scaffoldContext = useChatScaffoldContext()
+const chatRuntime = inject<ChatRuntime | null>(CHAT_RUNTIME_KEY, null)
 const layoutSlice = computed(() => scaffoldContext?.presetSlices.value.layout)
 const appearanceSlice = computed(() => scaffoldContext?.presetSlices.value.appearance.appearance)
 const resolvedBubbleRenderers = computed<ChatBubbleRenderers | undefined>(
-  () => props.bubbleRenderers ?? layoutSlice.value?.bubbleRenderers,
+  () => props.bubbleRenderers ?? chatRuntime?.message.config?.renderers ?? layoutSlice.value?.bubbleRenderers,
 )
 
 const {

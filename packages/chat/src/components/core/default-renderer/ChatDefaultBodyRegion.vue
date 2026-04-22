@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { inject } from 'vue'
+import { computed, inject } from 'vue'
 import type { PropType } from 'vue'
-import { CHAT_KIT_KEY } from '@/shared/context'
+import { CHAT_KIT_KEY, CHAT_RUNTIME_KEY } from '@/shared/context'
 import type { ChatPageMessageListInput, ChatPageWelcomeInput } from '@/shared/context'
 import type { ChatListVariant } from '@/types'
+import type { ChatRuntime } from '@/types/root'
 import ChatFeedback from '@/components/feedback/ChatFeedback.vue'
 import ChatMessageList from '../ChatMessageList.vue'
 import ChatWelcome from '../ChatWelcome.vue'
@@ -28,6 +29,10 @@ const props = defineProps({
 })
 
 const chatKit = inject(CHAT_KIT_KEY)!
+const chatRuntime = inject<ChatRuntime | null>(CHAT_RUNTIME_KEY, null)
+const resolvedShowFeedback = computed(
+  () => props.messageListInput?.showFeedback ?? chatRuntime?.message.config?.feedback?.enabled ?? false,
+)
 </script>
 
 <template>
@@ -62,7 +67,7 @@ const chatKit = inject(CHAT_KIT_KEY)!
       <template v-for="name in props.bubbleSlotNames" #[name]="slotProps" :key="name">
         <slot :name="name" v-bind="slotProps ?? {}" />
       </template>
-      <template v-if="props.messageListInput?.showFeedback" #after="slotProps">
+      <template v-if="resolvedShowFeedback" #after="slotProps">
         <ChatFeedback v-bind="slotProps" />
       </template>
     </ChatMessageList>

@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, inject } from 'vue'
 import type { PropType } from 'vue'
-import { CHAT_UI_KEY, useChatScaffoldContext, useRequiredInject } from '@/shared/context'
+import { CHAT_RUNTIME_KEY, CHAT_UI_KEY, useRequiredInject } from '@/shared/context'
 import type { ChatAppearanceConfig } from '@/types'
+import type { ChatRuntime } from '@/types/root'
 import type { ChatWorkspaceShellConfig } from '@/types/workspace'
 import WorkspaceShell from './WorkspaceShell.vue'
 import ChatWorkspaceLeftSheet from './ChatWorkspaceLeftSheet.vue'
@@ -19,11 +20,38 @@ const props = defineProps({
   sidebarTitle: String,
 })
 
-const scaffoldContext = useChatScaffoldContext()
+const chatRuntime = inject<ChatRuntime | null>(CHAT_RUNTIME_KEY, null)
 const chatUi = useRequiredInject(CHAT_UI_KEY, 'chat ui')
 
-const resolvedAppearance = computed(() => props.appearance ?? scaffoldContext?.presetSlices.value.appearance.appearance)
-const resolvedShell = computed(() => props.shell ?? scaffoldContext?.presetSlices.value.shell.shell)
+const runtimeShell = computed<ChatWorkspaceShellConfig | undefined>(() => {
+  const workspace = chatRuntime?.workspace
+
+  if (!workspace) {
+    return undefined
+  }
+
+  return {
+    variant: workspace.variant.value,
+    leftRegion: {
+      enabled: workspace.left.enabled.value,
+      collapsible: workspace.left.collapsible.value,
+      defaultOpen: workspace.left.visible.value && !workspace.left.collapsed.value,
+      collapseMode: workspace.left.collapseMode.value,
+      width: workspace.left.width.value,
+      railLabel: workspace.left.railLabel.value,
+    },
+    rightRegion: {
+      enabled: workspace.right.enabled.value,
+      collapsible: workspace.right.collapsible.value,
+      defaultOpen: workspace.right.visible.value && !workspace.right.collapsed.value,
+      collapseMode: workspace.right.collapseMode.value,
+      width: workspace.right.width.value,
+      railLabel: workspace.right.railLabel.value,
+    },
+  }
+})
+const resolvedAppearance = computed(() => props.appearance)
+const resolvedShell = computed(() => props.shell ?? runtimeShell.value)
 
 function handleLeftCollapsedChange(value: boolean) {
   chatUi.workspace.left.collapsed.value = value

@@ -44,7 +44,33 @@ export const BubbleRendererMatchPriority = {
   NORMAL: 'normal',
 }
 
-export const BubbleProvider = passthroughComponent('StubBubbleProvider')
+export const BubbleProvider = defineComponent({
+  name: 'StubBubbleProvider',
+  inheritAttrs: false,
+  props: {
+    boxRendererMatches: {
+      type: Array,
+      default: () => [],
+    },
+    contentRendererMatches: {
+      type: Array,
+      default: () => [],
+    },
+  },
+  setup(props, { attrs, slots }) {
+    return () =>
+      h(
+        'div',
+        {
+          ...attrs,
+          'data-stub': 'StubBubbleProvider',
+          'data-box-renderer-count': props.boxRendererMatches.length,
+          'data-content-renderer-count': props.contentRendererMatches.length,
+        },
+        slots.default?.(),
+      )
+  },
+})
 export const ThemeProvider = passthroughComponent('StubThemeProvider')
 
 export const TrIconButton = defineComponent({
@@ -149,10 +175,25 @@ export const TrSender = defineComponent({
     loading: Boolean,
     mode: String,
     placeholder: String,
+    maxLength: Number,
+    showWordLimit: {
+      type: Boolean,
+      default: undefined,
+    },
   },
   setup(props, { attrs, slots }) {
     return () =>
-      h('div', { ...attrs, 'data-stub': 'TrSender', 'data-loading': String(Boolean(props.loading)) }, [
+      h(
+        'div',
+        {
+          ...attrs,
+          'data-stub': 'TrSender',
+          'data-loading': String(Boolean(props.loading)),
+          'data-mode': props.mode ?? '',
+          'data-max-length': props.maxLength ?? '',
+          'data-show-word-limit': props.showWordLimit === undefined ? '' : String(props.showWordLimit),
+        },
+        [
         h('textarea', {
           'data-stub': 'TrSenderInput',
           placeholder: props.placeholder ?? '',
@@ -161,7 +202,8 @@ export const TrSender = defineComponent({
         slots.default?.(),
         slots.footer?.(),
         slots['footer-right']?.(),
-      ])
+        ],
+      )
   },
 })
 

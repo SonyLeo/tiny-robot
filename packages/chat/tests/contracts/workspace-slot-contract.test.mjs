@@ -56,6 +56,12 @@ await runTest('workspace mobile containers retain explicit owner inputs for side
   assert.equal(workspaceLayoutSource.includes('<slot name="right">'), true)
   assert.equal(workspaceLayoutSource.includes('<ChatWorkspaceRightPanel :mobile="false" />'), true)
   assert.equal(workspaceLayoutSource.includes('<ChatWorkspaceRightSheet :appearance="resolvedAppearance">'), true)
+  assert.equal(workspaceLayoutSource.includes('CHAT_RUNTIME_KEY'), true)
+  assert.equal(
+    workspaceLayoutSource.includes('const resolvedShell = computed(() => props.shell ?? runtimeShell.value)'),
+    true,
+  )
+  assert.equal(workspaceLayoutSource.includes('const resolvedAppearance = computed(() => props.appearance)'), true)
   assert.equal(workspaceLeftSheetSource.includes('const slotContainsSidebar = computed('), true)
   assert.equal(workspaceLeftSheetSource.includes('const appearance = computed(() => props.appearance)'), true)
   assert.equal(workspaceLeftSheetSource.includes('<ChatWorkspaceSidebar v-else mobile :title="props.sidebarTitle">'), true)
@@ -64,6 +70,8 @@ await runTest('workspace mobile containers retain explicit owner inputs for side
   assert.equal(workspaceRightSheetSource.includes('<ChatWorkspaceRightPanel v-else mobile>'), true)
   assert.equal(workspaceLeftSheetSource.includes('useChatScaffoldContext'), false)
   assert.equal(workspaceRightSheetSource.includes('useChatScaffoldContext'), false)
-  assert.equal(workspaceLayoutSource.includes('props.appearance ?? scaffoldContext?.presetSlices.value.appearance.appearance'), true)
+  assert.equal(workspaceLayoutSource.includes('useChatScaffoldContext'), false)
+  assert.equal(workspaceLayoutSource.includes('presetSlices.value.shell.shell'), false)
+  assert.equal(workspaceLayoutSource.includes('presetSlices.value.appearance.appearance'), false)
 })
 

@@ -135,3 +135,104 @@ Why this is promoted:
 Default question:
 
 - "Could a reviewer point to the exact artifacts and current drift without reconstructing the story from scratch?"
+
+### 8. Promote legacy config only in owner-aligned slices
+
+When old config shapes still coexist with the target blackbox path, do not promote them all at once.
+
+Only admit a legacy subset when every admitted field can be normalized at the entry boundary into already-frozen target owner domains.
+
+Prefer slices like:
+
+- request-only subset
+- display-default subset
+- one narrowly named layout or lifecycle subset
+
+Avoid slices like:
+
+- "support old ChatConfig"
+- "accept legacy UI options"
+- "bring layout and shell along for convenience"
+
+Why this is promoted:
+
+- `Phase 2` stayed reviewable when old `ChatConfig` first promoted only `models / providers / defaults`, then separately promoted `appearance / ui.brand / ui.welcome`
+- that sequencing widened blackbox support without quietly reopening scaffold projection or multi-domain adapter behavior
+
+Default question:
+
+- "Can I name the exact owner domains this legacy subset collapses into, and are they already frozen?"
+
+### 9. When a legacy field has no frozen target owner, prove fallback instead of inventing a bridge
+
+If a legacy field only feeds preset projection or other scaffold-owned shaping and there is no already-frozen target owner domain for it, prefer proving explicit fallback.
+
+Do not invent a pseudo-normalization path just because the field looks adjacent to other admitted blackbox subsets.
+
+Why this is promoted:
+
+- `ui.prompts` stayed on scaffold fallback because it still belongs to old preset and welcome-prompts projection
+- `layout.variant / placements` also stayed on scaffold fallback because they still belong to old message-list and role-placement projection, not a frozen target blackbox owner
+- `shell.viewState` also stayed on scaffold fallback because it still describes old shell display-state semantics, not a frozen target workspace owner default
+
+Default question:
+
+- "Which frozen target owner would read this field after normalization?" If the answer is unclear or still scaffold-only, keep it on explicit fallback.
+
+### 10. Let nearest extension UI fall back to runtime-owned message extension config
+
+When `message runtime` already exposes extension config such as:
+
+- action definitions
+- action mode
+- feedback enablement
+- renderer config
+
+the nearest extension UI should read those runtime-owned values before depending on page-input, message-list, or scaffold relay.
+
+Why this is promoted:
+
+- `ChatFeedback` stopped depending on higher-level action relay once it could read `runtime.message.getActions()` and runtime `actionMode`
+- the next feedback parity slice only became real once `ChatFeedback` and the default body region could fall back to runtime-owned feedback enablement instead of assuming page-input relay had already projected it
+- renderer parity only became durable once `ChatLayout` could read `runtime.message.config.renderers` directly instead of assuming page-input or scaffold projection had already happened
+
+Default question:
+
+- "Does the owning runtime already expose this extension setting?" If yes, the nearest extension UI should read it there first and treat relay as compatibility or override input.
+
+### 11. Keep sender and attachments UI on runtime-owned defaults and handoff once they exist
+
+When the runtime already exposes:
+
+- `sender.defaults`
+- `attachments.uploadConfig / listConfig`
+- `sender.pendingAttachments`
+
+the nearest sender and attachments UI should read those runtime-owned values before depending on compatibility feature presets or attachment managers.
+
+Why this is promoted:
+
+- sender parity only became real once `voice / wordCount` moved onto `sender runtime.defaults` instead of depending on `senderActionsFeature`
+- attachments parity only became real once `ChatSender` and `ChatAttachments` could read runtime-owned upload config, list config, and pending attachments without needing attachment feature context
+
+Default question:
+
+- "Does this footer or attachment UI still need a compatibility feature preset, or can it now read the frozen runtime owner directly?"
+
+### 12. Keep workspace mobile fallback on explicit shell input or runtime workspace state
+
+When the default page or workspace owner path already has:
+
+- explicit page `shell` input
+- runtime-owned workspace state
+
+the nearest workspace layout and mobile sheets should resolve their fallback behavior from those owner inputs before reaching for scaffold projection.
+
+Why this is promoted:
+
+- `Phase 1B` narrowed the workspace owner chain onto explicit page inputs
+- `Phase 3B` mobile parity only became real once `ChatWorkspaceLayout` stopped reading raw scaffold preset buckets and instead fell back from `props.shell` to runtime-derived workspace shell state
+
+Default question:
+
+- "Is this workspace mobile fallback still reading an owner input or runtime owner, or is it slipping back into raw scaffold presets?"

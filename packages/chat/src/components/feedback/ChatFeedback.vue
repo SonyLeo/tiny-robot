@@ -4,7 +4,7 @@ import type { BubbleMessage } from '@opentiny/tiny-robot'
 import type { ChatMessage } from '@opentiny/tiny-robot-kit'
 import { computed, inject } from 'vue'
 import { getChatRenderSourceMessage } from '@/runtime/chat-kit/chatRenderMessages'
-import { useChatFeedback } from './useChatFeedback'
+import { useChatFeedback, useRuntimeFeedbackEnabled } from './useChatFeedback'
 import { getChatMessageError } from '@/runtime/chat-kit/chatMessageState'
 import { CHAT_KIT_KEY, CHAT_RUNTIME_KEY, MESSAGE_ACTION_KEY, MESSAGE_ACTIONS_KEY } from '@/shared/context'
 import type { ChatMessageActionPayload, ChatRuntime, UseChatKitReturn, TrChatMessageListProps } from '@/types'
@@ -15,6 +15,7 @@ const props = defineProps<{
   messages: BubbleMessage[]
   messageIndexes: number[]
   role?: string
+  enabled?: boolean
   messageActions?: TrChatMessageListProps['messageActions']
   messageActionsMode?: TrChatMessageListProps['messageActionsMode']
   onActionClick?: (payload: ChatMessageActionPayload) => void
@@ -42,6 +43,10 @@ const { feedbackActions, feedbackOperations, getActionDefinition, actionContext,
   })
 
 const primaryMessageIndex = computed(() => props.messageIndexes?.[0])
+const feedbackEnabled = useRuntimeFeedbackEnabled({
+  enabled: props.enabled,
+  runtime: chatRuntime,
+})
 const primaryMessage = computed(() => {
   if (!props.messages?.length) return undefined
   return getChatRenderSourceMessage(props.messages[props.messages.length - 1] as ChatMessage) as ChatMessage | undefined
@@ -94,6 +99,7 @@ const hasError = computed(() => {
 })
 
 const shouldRenderFeedback = computed(() => {
+  if (!feedbackEnabled.value) return false
   if (isEditing.value) return false
   if (props.role === 'assistant') {
     if (hasError.value) return false

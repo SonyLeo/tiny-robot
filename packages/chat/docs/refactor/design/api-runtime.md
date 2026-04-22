@@ -70,6 +70,7 @@ const config = {
 - 当 `TrChat` 收到的 `config` 已经匹配 `TrChatConfig`
 - 且没有额外提供 `runtime`、`presetOverrides`
 - `callbacks` 要么缺省，要么只包含生命周期兼容的 `onFinish / onError`
+- `config` 也可以是上述 target `TrChatConfig` 的序列化 JSON 字符串；这属于同一份 target contract 的输入外壳，而不是新的 legacy config 语义
 
 默认主路径应直接进入：
 
@@ -84,7 +85,25 @@ const config = {
 `Phase 2` 当前切片把一条额外规则也冻结下来了：
 
 - 生命周期兼容 callbacks 可以在黑盒入口边界被规范化成 `config.lifecycle.afterReceive / error`，并继续走 `createRuntimeFromConfig(config) -> TrChat.Root + TrChat.Page`
+- serialized target `TrChatConfig` 可以在黑盒入口边界先被解析回 target contract，再继续走 `Root + Page`
+- 旧 `ChatConfig` 的最窄 request-only subset 现在也可以被提升进黑盒主路径，但只限于：
+  - top-level 只包含 `models / providers / defaults`
+  - 所有 model 都指向同一个 provider
+  - 该 legacy shape 会在入口边界被规范化成 target `TrChatConfig.request`
+- 旧 `ChatConfig` 的最窄 display-default subset 现在也可以被提升进黑盒主路径，但只限于：
+  - 在上述 request-only subset 基础上额外携带 `appearance` 与 `ui.brand / ui.welcome`
+  - 这些字段会在入口边界被规范化成 target `config.ui`
+- 旧 `ChatConfig.layout.contentLayout` 现在也可以在同一条黑盒主路径里被提升，但只限于：
+  - 在已支持的 request-only / display-default subset 基础上额外携带 `layout.contentLayout`
+  - 它会在入口边界被规范化成 target `config.ui.contentLayout`
+- 旧 `ChatConfig.shell` 的最窄 owner-aligned subset 现在也可以在同一条黑盒主路径里被提升，但只限于：
+  - 在已支持的 request-only / display-default / `layout.contentLayout` subset 基础上额外携带 `shell.variant / shell.leftRegion / shell.rightRegion`
+  - 它们会在入口边界被规范化成 target `config.workspace.defaultView / left / right`
 - 其他仍然带 scaffold 语义的 callbacks 继续保持显式 fallback，直到对应 target owner path 真正实现并有证据支撑
+- `ui.prompts` 当前已被明确分类为显式 scaffold fallback：它落在旧 preset / welcome-prompts 投影链上，而不是任何已经冻结的 target owner domain
+- `layout.variant / layout.placements` 当前也已被明确分类为显式 scaffold fallback：它们仍然只落在旧的 message-list / role-placement projection 链上，而不是任何已经冻结的 target blackbox owner domain
+- `shell.viewState` 当前也已经被明确分类为显式 scaffold fallback：它仍然只表达旧 shell display-state 语义，而不是任何已经冻结的 target workspace owner
+- 带 `features / integrations` 的旧 `ChatConfig`，以及同时依赖多个 provider 映射的旧 `ChatConfig` 当前仍然保持显式 fallback
 
 这些输入当前仍显式回退到 `ChatScaffold`，它们不是新的 target blackbox contract。
 
@@ -326,6 +345,7 @@ Public boundary note:
 - `left-rail`, `mobile-left`, and `mobile-right` are resolved placement targets inside `workspace runtime` and `TrChat.Page`.
 - In the first public contract, they are not separate top-level `config.workspace.*` keys.
 - Public config stays centered on `left`, `right`, and `defaultView`; responsive fallbacks are derived by the workspace runtime.
+- On the default owner path, the nearest workspace layout should treat explicit `shell` input as authoritative and only fall back to runtime-derived workspace shell state, not raw scaffold preset buckets.
 
 #### `messages`
 
@@ -631,8 +651,13 @@ type ChatMessageRuntime = {
 
 - `message runtime` 拥有编辑中的草稿、action capability、inline error / busy 显示等派生 view state
 - 它不拥有会话级消息列表
+- `message runtime.getActions(messageId)` is the default owner path for message-action definitions once a runtime exists
+- message-extension UI should fall back to `message runtime` actions and action mode before expecting higher-level prop relay
+- message-extension UI should also fall back to `message runtime` feedback enablement before assuming page-input or scaffold relay has already projected it
+- nearest renderer UI should also fall back to `message runtime.config.renderers` before assuming page-input or scaffold relay already projected renderer config
 - `retry / regenerate` 可以由消息级 action 触发，但执行仍委托给 `conversation runtime`
 - `messages.transforms` 属于同一条 message extension pipeline，只负责 render-time shaping，不改 canonical identity
+- `createRuntimeFromConfig(config)` already carries `messages.transforms` through the formal Root send path; transform proof must stay on the runtime path instead of being left only at lower-level `useChatKit` tests
 
 ### 6.5 `ChatSenderRuntime` 与 `ChatAttachmentsRuntime`
 
@@ -659,6 +684,9 @@ handoff 规则：
 - `attachments runtime` 负责上传、解析、预览、复用型能力
 - `sender runtime` 是“待发送附件”的唯一可写 source of truth
 - `attachments runtime` 不能直接改写 `sender runtime`
+- `sender runtime.defaults` owns sender-facing defaults such as `placeholder`, `mode`, `maxLength`, `wordCount`, and `voice`
+- once a sender default exists on `sender runtime.defaults`, default owner paths should consume it before falling back to legacy `senderActionsFeature`
+- once `attachments runtime.uploadConfig / listConfig` and `sender.pendingAttachments` exist, nearest sender and attachments UI should consume them before falling back to compatibility feature presets or attachment managers
 - UI 通过显式 handoff 完成桥接：
   `prepare(files) -> addPendingAttachments(items)`
 
@@ -1105,6 +1133,8 @@ When both id- and index-based fields are present, `messageId` and `messageIds` a
 - operation / action 两类 placement
 - action 去重规则
 - action 执行回调归 action 定义自身，不再通过顶层 `lifecycle` 二次承接
+- feedback enablement should default from `message runtime.config.feedback` in the nearest extension UI when explicit props are absent
+- renderer config should default from `message runtime.config.renderers` in the nearest renderer UI when explicit props are absent, while keeping the frozen default renderer ordering intact
 - error / editing / optimistic / tool_calls / attachments 的默认 renderer 命中顺序
 - transform 后的消息仍然能继续进入 renderer / action 链
 

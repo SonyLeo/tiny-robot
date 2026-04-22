@@ -34,6 +34,7 @@ export const useChatRequest = chatRequestModule.useChatRequest
 export const useChatAttachments = chatAttachmentsModule.useChatAttachments
 export const useChatKit = chatKitModule.useChatKit
 export const useChatFeedback = chatFeedbackModule.useChatFeedback
+export const useRuntimeFeedbackEnabled = chatFeedbackModule.useRuntimeFeedbackEnabled
 export const normalizeChatRenderMessages = chatRenderMessagesModule.normalizeChatRenderMessages
 export const getChatRenderSourceMessage = chatRenderMessagesModule.getChatRenderSourceMessage
 export const getChatRenderMessageIndex = chatRenderMessagesModule.getChatRenderMessageIndex

@@ -15,6 +15,11 @@ const blackboxEntrySource = readFileSync(
 const chatPageSource = readFileSync(fileURLToPath(new URL('../../src/page/TrChatPage.vue', import.meta.url)), 'utf8')
 const chatKitSource = readFileSync(fileURLToPath(new URL('../../src/runtime/chat-kit/useChatKit.ts', import.meta.url)), 'utf8')
 const chatSenderSource = readFileSync(fileURLToPath(new URL('../../src/components/core/ChatSender.vue', import.meta.url)), 'utf8')
+const chatAttachmentsSource = readFileSync(
+  fileURLToPath(new URL('../../src/components/attachments/ChatAttachments.vue', import.meta.url)),
+  'utf8',
+)
+const chatLayoutSource = readFileSync(fileURLToPath(new URL('../../src/components/core/ChatLayout.vue', import.meta.url)), 'utf8')
 const chatHeaderSource = readFileSync(fileURLToPath(new URL('../../src/components/core/ChatHeader.vue', import.meta.url)), 'utf8')
 const workspaceShellSource = readFileSync(
   fileURLToPath(new URL('../../src/components/workspace/WorkspaceShell.vue', import.meta.url)),
@@ -26,6 +31,10 @@ const workspaceSidebarRailSource = readFileSync(
 )
 const workspaceRightPanelSource = readFileSync(
   fileURLToPath(new URL('../../src/components/workspace/ChatWorkspaceRightPanel.vue', import.meta.url)),
+  'utf8',
+)
+const workspaceLayoutSource = readFileSync(
+  fileURLToPath(new URL('../../src/components/workspace/ChatWorkspaceLayout.vue', import.meta.url)),
   'utf8',
 )
 const modelSelectorSource = readFileSync(
@@ -55,6 +64,10 @@ const defaultHeaderRegionSource = readFileSync(
 )
 const defaultBodyRegionSource = readFileSync(
   fileURLToPath(new URL('../../src/components/core/default-renderer/ChatDefaultBodyRegion.vue', import.meta.url)),
+  'utf8',
+)
+const chatFeedbackSource = readFileSync(
+  fileURLToPath(new URL('../../src/components/feedback/ChatFeedback.vue', import.meta.url)),
   'utf8',
 )
 const defaultFooterRegionSource = readFileSync(
@@ -183,6 +196,23 @@ await runTest('blackbox TrChat source keeps Root + Page explicit for target TrCh
   assert.equal(blackboxEntrySource.includes('callbacks?.onModelChange'), true)
   assert.equal(blackboxEntrySource.includes('afterReceive: chainHandlers'), true)
   assert.equal(blackboxEntrySource.includes('error: chainHandlers'), true)
+  assert.equal(blackboxEntrySource.includes('JSON.parse(value)'), true)
+  assert.equal(blackboxEntrySource.includes("new Set(['models', 'providers', 'defaults'])"), true)
+  assert.equal(blackboxEntrySource.includes("new Set([...LEGACY_REQUEST_KEYS, 'appearance', 'ui'])"), true)
+  assert.equal(blackboxEntrySource.includes("new Set(['brand', 'welcome'])"), true)
+  assert.equal(blackboxEntrySource.includes("new Set([...LEGACY_DISPLAY_KEYS, 'layout'])"), true)
+  assert.equal(blackboxEntrySource.includes("new Set(['contentLayout'])"), true)
+  assert.equal(blackboxEntrySource.includes("new Set([...LEGACY_CONTENT_LAYOUT_KEYS, 'shell'])"), true)
+  assert.equal(blackboxEntrySource.includes("new Set(['variant', 'leftRegion', 'rightRegion'])"), true)
+  assert.equal(blackboxEntrySource.includes("new Set([...LEGACY_SHELL_CONFIG_KEYS, 'viewState'])"), true)
+  assert.equal(blackboxEntrySource.includes("new Set(['fullWidth'])"), true)
+  assert.equal(
+    blackboxEntrySource.includes("new Set(['enabled', 'collapsible', 'defaultOpen', 'collapseMode', 'width', 'railLabel'])"),
+    true,
+  )
+  assert.equal(blackboxEntrySource.includes('isLegacyShellViewStateFallbackSubset(props.config)'), true)
+  assert.equal(blackboxEntrySource.includes('workspace:'), true)
+  assert.equal(blackboxEntrySource.includes('loadChatConfig(parsedValue)'), true)
 })
 
 await runTest('official page source consumes the narrow page-input boundary instead of raw scaffold preset slices', async () => {
@@ -218,6 +248,15 @@ await runTest('default page path passes explicit primitive inputs instead of rel
 await runTest('chat provider source no longer reads scaffold shell directly once callers pass shell explicitly', async () => {
   assert.equal(chatProviderSource.includes('useChatScaffoldContext'), false)
   assert.equal(chatProviderSource.includes('const shell = computed(() => props.shell)'), true)
+})
+
+await runTest('workspace layout source keeps mobile shell fallback on page or runtime owner inputs instead of raw scaffold presets', async () => {
+  assert.equal(workspaceLayoutSource.includes('CHAT_RUNTIME_KEY'), true)
+  assert.equal(workspaceLayoutSource.includes('const resolvedShell = computed(() => props.shell ?? runtimeShell.value)'), true)
+  assert.equal(workspaceLayoutSource.includes('const resolvedAppearance = computed(() => props.appearance)'), true)
+  assert.equal(workspaceLayoutSource.includes('useChatScaffoldContext'), false)
+  assert.equal(workspaceLayoutSource.includes('presetSlices.value.shell.shell'), false)
+  assert.equal(workspaceLayoutSource.includes('presetSlices.value.appearance.appearance'), false)
 })
 
 await runTest('public source advertises chat message action contracts for extension work', async () => {
@@ -278,6 +317,74 @@ await runTest('public runtime sendMessage surface stays single-argument while st
   assert.equal(chatKitSource.includes('_data?: StructuredData'), false)
   assert.equal(chatSenderSource.includes('structuredData: data,'), true)
   assert.equal(chatSenderSource.includes('chatKit.sendMessage(payload.text)'), true)
+})
+
+await runTest('chat sender source prefers runtime-owned sender and attachment defaults before compatibility features', async () => {
+  assert.equal(chatSenderSource.includes('const senderDefaults = computed(() => chatRuntime?.sender.defaults)'), true)
+  assert.equal(chatSenderSource.includes('senderDefaults.value?.voice ?? senderActionsFeature.value?.voice'), true)
+  assert.equal(chatSenderSource.includes('senderDefaults.value?.wordCount ?? senderActionsFeature.value?.wordCount'), true)
+  assert.equal(
+    chatSenderSource.includes(
+      'const uploadConfig = runtimeUploadConfig.value ?? attachmentsContext?.feature.upload ?? senderActionsFeature.value?.upload',
+    ),
+    true,
+  )
+  assert.equal(chatSenderSource.includes('const hasAttachmentOwner = computed(() => Boolean(chatRuntime?.attachments || attachmentsContext))'), true)
+  assert.equal(chatSenderSource.includes('senderDefaults.value?.mode'), true)
+  assert.equal(chatSenderSource.includes('senderDefaults.value?.placeholder'), true)
+  assert.equal(chatSenderSource.includes('senderDefaults.value?.maxLength'), true)
+})
+
+await runTest('chat attachments source can fall back to runtime-owned pending attachments and list config without attachment feature context', async () => {
+  assert.equal(chatAttachmentsSource.includes('CHAT_RUNTIME_KEY'), true)
+  assert.equal(
+    chatAttachmentsSource.includes(
+      'attachmentsContext?.manager.items.value ?? chatRuntime?.sender.pendingAttachments.value ?? []',
+    ),
+    true,
+  )
+  assert.equal(
+    chatAttachmentsSource.includes(
+      'attachmentsContext?.feature.list ?? chatRuntime?.attachments?.listConfig?.value ?? {}',
+    ),
+    true,
+  )
+  assert.equal(chatAttachmentsSource.includes('chatRuntime?.sender.setPendingAttachments(items)'), true)
+})
+
+await runTest('chat feedback source can fall back to runtime-owned message actions when no explicit action config is passed', async () => {
+  assert.equal(chatSource.includes('createRuntimeFromConfig'), true)
+  assert.equal(chatPageSource.includes('ChatDefaultBodyRegion'), true)
+  const feedbackSource = readFileSync(
+    fileURLToPath(new URL('../../src/components/feedback/useChatFeedback.ts', import.meta.url)),
+    'utf8',
+  )
+  assert.equal(feedbackSource.includes('runtime?.message.config?.actionMode'), true)
+  assert.equal(feedbackSource.includes('runtime?.message.getActions && primaryMessageId.value'), true)
+  assert.equal(feedbackSource.includes('return runtime.message.getActions(primaryMessageId.value) ?? []'), true)
+})
+
+await runTest('feedback owner-path source can fall back to runtime-owned feedback enablement without relying on page-input relay', async () => {
+  assert.equal(defaultBodyRegionSource.includes('CHAT_RUNTIME_KEY'), true)
+  assert.equal(
+    defaultBodyRegionSource.includes(
+      'props.messageListInput?.showFeedback ?? chatRuntime?.message.config?.feedback?.enabled ?? false',
+    ),
+    true,
+  )
+  assert.equal(chatFeedbackSource.includes('const feedbackEnabled = useRuntimeFeedbackEnabled({'), true)
+  assert.equal(chatFeedbackSource.includes('enabled: props.enabled,'), true)
+  assert.equal(chatFeedbackSource.includes('runtime: chatRuntime,'), true)
+  assert.equal(chatFeedbackSource.includes('if (!feedbackEnabled.value) return false'), true)
+})
+
+await runTest('renderer owner-path source can fall back to runtime-owned renderer config before scaffold relay', async () => {
+  assert.equal(chatLayoutSource.includes('CHAT_RUNTIME_KEY'), true)
+  assert.equal(chatLayoutSource.includes('const chatRuntime = inject<ChatRuntime | null>(CHAT_RUNTIME_KEY, null)'), true)
+  assert.equal(
+    chatLayoutSource.includes('props.bubbleRenderers ?? chatRuntime?.message.config?.renderers ?? layoutSlice.value?.bubbleRenderers'),
+    true,
+  )
 })
 
 await runTest('workspace-facing source reads default copy from chat messages instead of hardcoded literals', async () => {

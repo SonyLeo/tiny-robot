@@ -25,12 +25,19 @@ export interface UseChatFeedbackOptions {
   messageActionsMode?: ChatMessageActionsMode
 }
 
+export function useRuntimeFeedbackEnabled(options: { enabled?: boolean; runtime?: ChatRuntime | null }) {
+  return computed(() => options.enabled ?? options.runtime?.message.config?.feedback?.enabled ?? true)
+}
+
 export function useChatFeedback(options: UseChatFeedbackOptions) {
   const { messages, messageIndexes, role, chatKit = null, runtime = null } = options
   const sourceMessages = computed(() => unwrapChatRenderMessages(messages as unknown as ChatMessage[]))
   const { copy } = useClipboard()
   const chatMessages = useResolvedChatMessages()
-  const messageActionMode = computed<ChatMessageActionsMode>(() => options.messageActionsMode ?? 'append')
+  const runtimeActionMode = computed<ChatMessageActionsMode | undefined>(() => runtime?.message.config?.actionMode)
+  const messageActionMode = computed<ChatMessageActionsMode>(
+    () => options.messageActionsMode ?? runtimeActionMode.value ?? 'append',
+  )
   const primaryMessage = computed(() =>
     getChatRenderSourceMessage(sourceMessages.value[sourceMessages.value.length - 1]),
   )
@@ -203,11 +210,15 @@ export function useChatFeedback(options: UseChatFeedbackOptions) {
 
   const customActions = computed<ChatMessageActionDefinition[]>(() => {
     const { messageActions } = options
-    if (!messageActions) {
-      return []
+    if (messageActions) {
+      return typeof messageActions === 'function' ? messageActions(actionContext.value) : messageActions
     }
 
-    return typeof messageActions === 'function' ? messageActions(actionContext.value) : messageActions
+    if (runtime?.message.getActions && primaryMessageId.value) {
+      return runtime.message.getActions(primaryMessageId.value) ?? []
+    }
+
+    return []
   })
 
   const resolvedActions = computed<ChatMessageActionDefinition[]>(() => {

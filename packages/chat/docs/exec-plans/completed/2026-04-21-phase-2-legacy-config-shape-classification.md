@@ -70,10 +70,10 @@ Choose the next safe legacy blackbox input shape beyond lifecycle-compatible cal
 
 ## Exit Criteria
 
-- [ ] at least one additional legacy input shape is explicitly classified as either promoted or fallback
-- [ ] any newly promoted shape has targeted blackbox proof
-- [ ] docs stay aligned
-- [ ] drift is recorded
+- [x] at least one additional legacy input shape is explicitly classified as either promoted or fallback
+- [x] any newly promoted shape has targeted blackbox proof
+- [x] docs stay aligned
+- [x] drift is recorded
 
 ## Validation
 
@@ -96,7 +96,10 @@ Choose the next safe legacy blackbox input shape beyond lifecycle-compatible cal
 ## Drift Backwrite
 
 - What changed from the original slice:
-  - pending
+  - the slice classified serialized target `TrChatConfig` as a promoted blackbox entry shape
+  - old `ChatConfig` and serialized old `ChatConfig` stayed explicit scaffold fallback
 - Which source docs need follow-up:
-  - `alignment-tracker.md`
-  - `design/execution.md`
+  - completed in:
+    - `design/api-runtime.md`
+    - `design/execution.md`
+    - `alignment-tracker.md`
