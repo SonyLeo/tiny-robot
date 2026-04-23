@@ -23,6 +23,11 @@
       </label>
 
       <label class="control-item">
+        <input data-testid="toggle-missing-target-mode" type="checkbox" v-model="missingTargetMode" />
+        Add targetless item
+      </label>
+
+      <label class="control-item">
         <input data-testid="toggle-special-id-mode" type="checkbox" v-model="specialIdMode" />
         Use special IDs
       </label>
@@ -77,6 +82,9 @@
         Active ID: <code data-testid="active-id-display">{{ activeId }}</code>
       </div>
       <div>
+        Active updates: <code data-testid="active-update-count-display">{{ activeUpdateCount }}</code>
+      </div>
+      <div>
         Expanded: <code data-testid="expanded-display">{{ String(expanded) }}</code>
       </div>
       <div>
@@ -114,7 +122,7 @@
 
       <div
         class="content-scroll-container"
-        :class="{ 'is-document-scroll': documentScrollMode }"
+        :class="{ 'is-document-scroll': documentScrollMode, 'is-targetless-case': missingTargetMode }"
         :data-scroll-mode="documentScrollMode ? 'document' : 'container'"
         data-testid="content-scroll-container"
         ref="scrollContainerRef"
@@ -220,10 +228,12 @@ const fillerText =
 const bubbleMode = ref(false)
 const singleTurnMode = ref(false)
 const documentScrollMode = ref(false)
+const missingTargetMode = ref(false)
 const specialIdMode = ref(false)
 const emptyArrayMatcherMode = ref(false)
 const expandTrigger = ref<'hover' | 'manual'>('hover')
 const activeId = ref('')
+const activeUpdateCount = ref(0)
 const expanded = ref(false)
 const searchQuery = ref('')
 const placement = ref<'left' | 'right'>('right')
@@ -264,14 +274,24 @@ const searchOptions = computed(() => ({
   ...(emptyArrayMatcherMode.value ? { matcher: emptyArrayMatcher } : {}),
 }))
 
-const items = computed<ContentNavItem[]>(() =>
-  renderedTurns.value.map((turn) => ({
+const items = computed<ContentNavItem[]>(() => [
+  ...renderedTurns.value.map((turn) => ({
     id: turn.id,
     label: turn.label,
     searchText: `${turn.label} ${turn.user} ${turn.assistant}`,
     tooltipText: turn.label,
   })),
-)
+  ...(missingTargetMode.value
+    ? [
+        {
+          id: 'turn-missing',
+          label: 'Targetless appendix',
+          searchText: 'A content-nav item without any matching DOM target.',
+          tooltipText: 'Targetless appendix',
+        },
+      ]
+    : []),
+])
 const bubbleMessages = computed<BubbleMessage[]>(() =>
   renderedTurns.value.flatMap((turn) => [
     {
@@ -357,6 +377,7 @@ function handleSelect(payload: unknown) {
 }
 
 function handleActiveIdUpdate(value: string | undefined) {
+  activeUpdateCount.value += 1
   activeId.value = value ?? ''
 }
 
@@ -364,6 +385,7 @@ function resetState() {
   bubbleMode.value = false
   singleTurnMode.value = false
   documentScrollMode.value = false
+  missingTargetMode.value = false
   specialIdMode.value = false
   emptyArrayMatcherMode.value = false
   searchQuery.value = ''
@@ -371,6 +393,7 @@ function resetState() {
   expandTrigger.value = 'hover'
   placement.value = 'right'
   lastEvent.value = 'none'
+  activeUpdateCount.value = 0
 
   nextTick(() => {
     activeId.value = items.value[0]?.id ?? ''
@@ -503,6 +526,10 @@ watch(
   height: auto;
   min-height: calc(100vh + 360px);
   overflow: visible;
+}
+
+.content-scroll-container.is-targetless-case {
+  height: 2400px;
 }
 
 .content-section {

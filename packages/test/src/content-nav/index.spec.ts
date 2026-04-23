@@ -171,6 +171,19 @@ test.describe('ContentNav component e2e', () => {
       .not.toContain('tr-content-nav-target--flash')
   })
 
+  test('does not emit duplicate active-id updates when scroll sync keeps the same item active', async ({ page }) => {
+    const helper = helperFactory(page)
+
+    await helper.resetState()
+    await helper.expectActiveId('turn-1')
+
+    const beforeCount = await helper.getActiveUpdateCount()
+    await helper.wheelScrollContainer(24)
+    await helper.expectActiveId('turn-1')
+
+    await expect.poll(async () => helper.getActiveUpdateCount()).toBe(beforeCount)
+  })
+
   test('falls back to document scrolling when scrollContainer is omitted', async ({ page }) => {
     const helper = helperFactory(page)
 
@@ -191,6 +204,19 @@ test.describe('ContentNav component e2e', () => {
       window.scrollTo({ top: 0, behavior: 'auto' })
     })
     await expect.poll(async () => page.locator(helper.selectors.activeIdDisplay).textContent()).toBe('turn-1')
+  })
+
+  test('non-scrollable content keeps the first anchored item active even when a targetless item exists', async ({
+    page,
+  }) => {
+    const helper = helperFactory(page)
+
+    await helper.resetState()
+    await helper.setMissingTargetMode(true)
+
+    await helper.expectItemCount(7)
+    await helper.expectActiveId('turn-1')
+    await expect(page.locator(helper.selectors.activeIdDisplay)).not.toHaveText('turn-missing')
   })
 
   test('bubble scene resolves marked box nodes as scroll targets', async ({ page }) => {

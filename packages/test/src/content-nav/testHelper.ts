@@ -75,6 +75,14 @@ export function createContentNavTestHelper(page: Page) {
     }
   }
 
+  async function setMissingTargetMode(enabled: boolean) {
+    const checkbox = page.locator(selectors.toggleMissingTargetMode)
+    const current = await checkbox.isChecked()
+    if (current !== enabled) {
+      await checkbox.click()
+    }
+  }
+
   async function setSpecialIdMode(enabled: boolean) {
     const checkbox = page.locator(selectors.toggleSpecialIdMode)
     const current = await checkbox.isChecked()
@@ -254,6 +262,11 @@ export function createContentNavTestHelper(page: Page) {
     await expect(page.locator(selectors.activeIdDisplay)).toHaveText(expectedId)
   }
 
+  async function getActiveUpdateCount() {
+    const rawValue = (await page.locator(selectors.activeUpdateCountDisplay).textContent())?.trim() ?? '0'
+    return Number.parseInt(rawValue, 10)
+  }
+
   async function expectQueryValue(expected: string) {
     await expect(page.locator(selectors.queryDisplay)).toHaveText(expected)
   }
@@ -353,6 +366,7 @@ export function createContentNavTestHelper(page: Page) {
     setBubbleMode,
     setSingleTurnMode,
     setDocumentScrollMode,
+    setMissingTargetMode,
     setSpecialIdMode,
     setEmptyArrayMatcher,
     setExpandTrigger,
@@ -378,6 +392,7 @@ export function createContentNavTestHelper(page: Page) {
     expectNavVisible,
     expectExpanded,
     expectActiveId,
+    getActiveUpdateCount,
     expectQueryValue,
     expectPlacement,
     expectItemCount,
