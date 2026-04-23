@@ -12,7 +12,7 @@ test.describe('Chat Message Transforms', () => {
     await page.getByTestId('chat-message-transforms-blackbox').waitFor()
   })
 
-  test('blackbox runtime messageTransforms should stream chunk diagnostics and rewrite final assistant content', async ({
+  test('blackbox config.messages.transforms should stream chunk diagnostics and rewrite final assistant content', async ({
     page,
   }) => {
     const sceneRoot = page.locator('[data-testid="chat-message-transforms-blackbox"]')
@@ -27,7 +27,7 @@ test.describe('Chat Message Transforms', () => {
     )
   })
 
-  test('whitebox useChatKit messageTransforms should flow through the same renderer contract', async ({ page }) => {
+  test('Root + Page config-owned transforms should flow through the same renderer contract', async ({ page }) => {
     const sceneRoot = page.locator('[data-testid="chat-message-transforms-whitebox"]')
     const chatRoot = '[data-testid="chat-message-transforms-whitebox"] .tr-chat'
 

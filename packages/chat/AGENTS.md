@@ -27,6 +27,8 @@ During this refactor branch, use this package in two modes:
 
 ## Read At The Start Of Each Task
 
+- `packages/chat/README.md`
+  Read this first for the official package entry surfaces, helper boundary, and demo route map.
 - `packages/chat/docs/README.md`
   Start here for the docs map.
 - `packages/chat/docs/SOURCE_OF_TRUTH.md`
@@ -60,6 +62,16 @@ If the task includes implementation files, then also inspect the nearest relevan
   Review method, meeting shape, and fixed cadence.
 - `packages/chat/docs/refactor/process/alignment-tracker.md`
   Current status, decisions, open questions, and next actions.
+- `packages/chat/docs/refactor/process/test-boundary-baseline.md`
+  Post-closure test-boundary baseline for official-path cleanup, keep/adapt/retire classification, and deletion-gate commands.
+- `packages/chat/docs/refactor/process/legacy-surface-inventory.md`
+  Post-closure inventory of remaining legacy entry, bridge, helper, and test surfaces after the first cleanup batches.
+- `packages/chat/docs/refactor/process/legacy-retirement-roadmap.md`
+  Ordered path from current post-closure cleanup to full legacy retirement, including delete sequencing, gate rules, and end-state checklist.
+- `packages/chat/docs/refactor/process/provider-helper-decision-baseline.md`
+  Concrete keep/delete recommendation baseline for provider/comparison helper surfaces before helper-retirement slices start deleting code.
+- `packages/chat/docs/refactor/process/full-cutover-closure-checklist.md`
+  Final end-state checklist and progress model for the remaining legacy-retirement work.
 - `packages/chat/docs/refactor/knowledge/EXPERIENCE_LOG.md`
   Candidate and promoted recurring lessons gathered during implementation.
 - `packages/chat/docs/refactor/CODE_MAP.md`
@@ -80,4 +92,5 @@ If the task includes implementation files, then also inspect the nearest relevan
 - Knowledge docs are a thin reuse layer. Update them only when a lesson repeats, changes future implementation choices, or closes a recurring source of confusion.
 - If a change affects contract, update `api-runtime.md` or `execution.md` first, then update tracker or review material only if the task truly changed status or meeting narrative.
 - If a code or workflow change makes a local doc stale, update the stale doc in the same task when practical.
-- After each completed task, report the current estimated `Phase 1A` progress and overall refactor progress, using `alignment-tracker.md` plus the active execution slice as the default evidence base.
+- After each completed task, report the current estimated active-phase progress and overall refactor progress, using `alignment-tracker.md` plus the active execution slice as the default evidence base.
+- For the remaining legacy-retirement work, also report the current full-cutover closure progress using `full-cutover-closure-checklist.md`.

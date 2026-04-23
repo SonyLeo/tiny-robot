@@ -67,10 +67,10 @@ Continue Phase 3B by proving that history/model/workspace linkage and MCP afford
 
 ## Exit Criteria
 
-- [ ] history/model/workspace linkage parity lands with targeted proof
-- [ ] MCP affordance parity lands with targeted proof
-- [ ] docs stay aligned
-- [ ] drift is recorded
+- [x] history/model/workspace linkage parity lands with targeted proof
+- [x] MCP affordance parity lands with targeted proof
+- [x] docs stay aligned
+- [x] drift is recorded
 
 ## Validation
 
@@ -86,11 +86,11 @@ Continue Phase 3B by proving that history/model/workspace linkage and MCP afford
 
 - 2026-04-22:
   - after workspace mobile fallback parity closed, history/model/workspace linkage plus MCP parity became the next remaining Phase 3B slice
+  - the strongest proof ended up as mounted `ChatDefaultHeaderRegion + ChatDefaultFooterRegion` with explicit owner inputs and manager/runtime injection, instead of only asserting these affordances through a full `Root + Page` render
 
 ## Drift Backwrite
 
 - What changed from the original slice:
-  - pending
+  - the final proof was tightened to direct mounted owner-region rendering so history, model, workspace, and MCP affordances could be evidenced without page-level relay masking gaps
 - Which source docs need follow-up:
-  - `alignment-tracker.md`
-  - `generated/page-region-contract.md`
+  - none

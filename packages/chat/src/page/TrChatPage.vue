@@ -121,6 +121,7 @@ function handleModelChange(model: ModelOption) {
         :show-footer-tools="showFooterTools"
         :show-model-selector="showModelSelector"
         :show-mcp-trigger="showMcpTrigger"
+        :model-selector-input="modelSelectorInput"
         @change-model="handleModelChange"
       >
         <template v-if="$slots.sender" #sender="slotProps">
@@ -175,6 +176,7 @@ function handleModelChange(model: ModelOption) {
       :show-footer-tools="showFooterTools"
       :show-model-selector="showModelSelector"
       :show-mcp-trigger="showMcpTrigger"
+      :model-selector-input="modelSelectorInput"
       @change-model="handleModelChange"
     >
       <template v-if="$slots.sender" #sender="slotProps">

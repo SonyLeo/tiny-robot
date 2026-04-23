@@ -4,6 +4,14 @@ This file defines which document category owns which kind of knowledge during th
 
 The goal is to reduce duplicate updates, not to create more paperwork.
 
+## Package Entry Guide
+
+This file owns the package-level entry map, helper boundary, and official demo route map:
+
+- `packages/chat/README.md`
+
+Use it when the task changes how the package should be introduced to users, reviewers, or future agents.
+
 ## Active Normative Docs
 
 These files define the current refactor design and should be treated as the primary source for active decisions:
@@ -23,6 +31,14 @@ These files define how the refactor is reviewed and where the current process st
   review cadence, meeting template, and packet expectations
 - `packages/chat/docs/refactor/process/alignment-tracker.md`
   current status, decisions, open questions, risks, and next actions
+- `packages/chat/docs/refactor/process/test-boundary-baseline.md`
+  post-closure cleanup test classification, official-path gate boundary, and keep/adapt/retire rules for chat package tests plus chat e2e
+- `packages/chat/docs/refactor/process/legacy-retirement-roadmap.md`
+  ordered path from post-closure cleanup to full legacy retirement, delete sequencing, and completion criteria
+- `packages/chat/docs/refactor/process/provider-helper-decision-baseline.md`
+  concrete keep/delete recommendation baseline for remaining provider/comparison helper surfaces
+- `packages/chat/docs/refactor/process/full-cutover-closure-checklist.md`
+  final end-state checklist for calling the package fully cut over after helper/test retirement
 
 ## Review Materials
 
@@ -93,12 +109,22 @@ Try to keep each task to one primary source doc plus, when necessary, one status
   update `refactor/design/api-runtime.md`
 - phase gate or validation policy changed:
   update `refactor/design/execution.md`
+- official package entry, helper guidance, or demo route map changed:
+  update `packages/chat/README.md`
 - design intent or top-level mental model changed:
   update `refactor/design/overview.md`
 - review method or packet expectations changed:
   update `refactor/process/review-scheme.md`
 - current status, decisions, risks, or next actions changed:
   update `refactor/process/alignment-tracker.md`
+- post-closure test-boundary or keep/adapt/retire classification changed:
+  update `refactor/process/test-boundary-baseline.md`
+- full legacy-retirement sequencing, delete order, or end-state definition changed:
+  update `refactor/process/legacy-retirement-roadmap.md`
+- provider/comparison helper keep/delete recommendations changed:
+  update `refactor/process/provider-helper-decision-baseline.md`
+- full remaining-cutover completion bar or progress model changed:
+  update `refactor/process/full-cutover-closure-checklist.md`
 - preparing a specific review:
   update only the relevant review packet
 - implementing a slice across sessions:

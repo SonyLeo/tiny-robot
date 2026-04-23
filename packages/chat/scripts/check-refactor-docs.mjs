@@ -105,6 +105,7 @@ function checkTrackerReviewLinks() {
 
 const requiredFiles = [
   'packages/chat/AGENTS.md',
+  'packages/chat/README.md',
   'packages/chat/docs/refactor/README.md',
   'packages/chat/docs/refactor/REFACTOR_COLLAB_GUIDE.md',
   'packages/chat/docs/refactor/CODE_MAP.md',
@@ -119,6 +120,7 @@ const requiredFiles = [
   'packages/chat/docs/refactor/archive/phase-0_5-freeze-record.md',
   'packages/chat/docs/refactor/process/alignment-tracker.md',
   'packages/chat/docs/refactor/process/review-scheme.md',
+  'packages/chat/docs/refactor/process/test-boundary-baseline.md',
   'packages/chat/docs/README.md',
   'packages/chat/docs/SOURCE_OF_TRUTH.md',
   'packages/chat/docs/CURRENT_VS_TARGET_SURFACE.md',
@@ -154,6 +156,11 @@ for (const relPath of requiredDirs) {
 
 assertIncludes(
   'packages/chat/AGENTS.md',
+  'packages/chat/README.md',
+  'packages/chat/AGENTS.md should point to the package entry guide',
+)
+assertIncludes(
+  'packages/chat/AGENTS.md',
   'packages/chat/docs/README.md',
   'packages/chat/AGENTS.md should point to the chat docs map',
 )
@@ -178,6 +185,26 @@ assertIncludes(
   'packages/chat/AGENTS.md should point to the refactor playbook',
 )
 assertIncludes(
+  'packages/chat/AGENTS.md',
+  'packages/chat/docs/refactor/process/test-boundary-baseline.md',
+  'packages/chat/AGENTS.md should point to the test-boundary baseline',
+)
+assertIncludes(
+  'packages/chat/docs/README.md',
+  '../README.md',
+  'docs/README.md should point to the package entry guide',
+)
+assertIncludes(
+  'packages/chat/docs/README.md',
+  'test-boundary-baseline.md',
+  'docs/README.md should route readers to the test-boundary baseline',
+)
+assertIncludes(
+  'packages/chat/docs/SOURCE_OF_TRUTH.md',
+  'packages/chat/README.md',
+  'SOURCE_OF_TRUTH.md should reference the package entry guide',
+)
+assertIncludes(
   'packages/chat/docs/SOURCE_OF_TRUTH.md',
   'packages/chat/docs/refactor/design/overview.md',
   'SOURCE_OF_TRUTH.md should reference the normative refactor docs',
@@ -196,6 +223,11 @@ assertIncludes(
   'packages/chat/docs/SOURCE_OF_TRUTH.md',
   'packages/chat/docs/refactor/process/alignment-tracker.md',
   'SOURCE_OF_TRUTH.md should reference the alignment tracker',
+)
+assertIncludes(
+  'packages/chat/docs/SOURCE_OF_TRUTH.md',
+  'packages/chat/docs/refactor/process/test-boundary-baseline.md',
+  'SOURCE_OF_TRUTH.md should reference the test-boundary baseline',
 )
 assertIncludes(
   'packages/chat/docs/CURRENT_VS_TARGET_SURFACE.md',

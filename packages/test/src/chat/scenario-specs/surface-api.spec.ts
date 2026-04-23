@@ -12,7 +12,9 @@ test.describe('Chat Surface API', () => {
     await page.locator('[data-testid="chat-surface-slots-default"]').waitFor()
   })
 
-  test('default renderer slots should keep header/footer and bubble slot passthrough alive', async ({ page }) => {
+  test('default renderer slots should keep header/footer and official bubble slot passthrough alive', async ({
+    page,
+  }) => {
     const root = '[data-testid="chat-surface-slots-default"] .tr-chat'
 
     await expect(page.getByTestId('surface-header-extra')).toBeVisible()
@@ -24,7 +26,6 @@ test.describe('Chat Surface API', () => {
 
     await expect(page.getByTestId('surface-prefix-slot')).toBeVisible()
     await expect(page.getByTestId('surface-suffix-slot')).toBeVisible()
-    await expect(page.getByTestId('surface-after-slot')).toBeVisible()
     await expect(page.getByTestId('surface-content-footer-slot')).toBeVisible()
   })
 
@@ -41,18 +42,20 @@ test.describe('Chat Surface API', () => {
     await expect(emptyRoot.getByTestId('surface-empty-slot')).toBeVisible()
   })
 
-  test('message-list and sender slots should receive live slot props', async ({ page }) => {
+  test('message-list and sender slots should receive live slot props on the official blackbox path', async ({
+    page,
+  }) => {
     const root = page.locator('[data-testid="chat-surface-custom-render"]')
 
-    await expect(root.getByTestId('surface-message-list-slot')).toContainText('messages:0')
+    await expect(root.getByTestId('surface-message-list-slot')).toContainText('messages:1')
     await expect(root.getByTestId('surface-sender-slot-status')).toContainText('status:ready')
 
     await root.getByTestId('surface-sender-slot-send').click()
     await expect(root.getByTestId('surface-message-list-slot')).toContainText('messages:3', { timeout: 10000 })
   })
 
-  test('TrChat should preserve an injected runtime.chatKit responseProvider', async ({ page }) => {
-    const root = '[data-testid="chat-surface-runtime-chat-kit"] .tr-chat'
+  test('TrChat.Provider should preserve an injected chatKit responseProvider', async ({ page }) => {
+    const root = '[data-testid="chat-surface-provider-chat-kit"] .tr-chat'
 
     await helper.sendMessage('runtime-chat-kit-path', root)
     await helper.waitForStreamingComplete(root)
@@ -95,23 +98,25 @@ test.describe('Chat Surface API', () => {
     await expect(sceneRoot.getByTestId('surface-runtime-bridge-message-count')).toContainText('messages:0')
   })
 
-  test('TrChat.Scaffold should expose live slot props for manual composition and model switching', async ({ page }) => {
-    const root = '[data-testid="chat-surface-scaffold"] .tr-chat'
-    const sceneRoot = page.locator('[data-testid="chat-surface-scaffold"]')
+  test('Root + primitives should expose live model runtime for manual composition and keep the send chain working after a model switch', async ({
+    page,
+  }) => {
+    const root = '[data-testid="chat-surface-granular-model"] .tr-chat'
+    const sceneRoot = page.locator('[data-testid="chat-surface-granular-model"]')
 
-    await expect(sceneRoot.getByTestId('surface-scaffold-current-model')).toContainText('openai-test')
-    await expect(sceneRoot.getByTestId('surface-scaffold-header-title')).toContainText('Surface Scaffold')
+    await expect(sceneRoot.getByTestId('surface-granular-current-model')).toContainText('openai-test')
+    await expect(sceneRoot.getByTestId('surface-granular-header-title')).toContainText('Surface Granular Model Switch')
 
-    await sceneRoot.getByTestId('surface-scaffold-switch-model').click()
+    await sceneRoot.getByTestId('surface-granular-switch-model').click()
 
-    await expect(sceneRoot.getByTestId('surface-scaffold-current-model')).toContainText('deepseek-test')
-    await expect(sceneRoot.getByTestId('surface-scaffold-model-log')).toContainText('deepseek-test')
+    await expect(sceneRoot.getByTestId('surface-granular-current-model')).toContainText('deepseek-test')
+    await expect(sceneRoot.getByTestId('surface-granular-model-log')).toContainText('deepseek-test')
 
     await helper.clickPrompt(0, root)
     await helper.waitForStreamingComplete(root)
 
     const contents = page.locator(root).locator(helper.selectors.bubbleContent)
-    await expect(contents.last()).toContainText('[deepseek:deepseek-test]')
+    await expect(contents.last()).toContainText('This is a streamed reply from the mock provider.')
   })
 
   test('TrChat.Provider responseProvider branch and leaf-component header slots should work together', async ({
@@ -129,6 +134,26 @@ test.describe('Chat Surface API', () => {
 
     const contents = page.locator(root).locator(helper.selectors.bubbleContent)
     await expect(contents.last()).toContainText('[provider-branch:provider-branch-model]')
+  })
+
+  test('official granular footer-right slot should suppress default upload and voice sender actions', async ({
+    page,
+  }) => {
+    const root = '[data-testid="chat-surface-granular-footer-right"] .tr-chat'
+
+    await expect(page.getByTestId('surface-granular-footer-right-slot')).toBeVisible()
+    await helper.expectUploadActionVisible(false, root)
+    await helper.expectVoiceActionVisible(false, root)
+  })
+
+  test('official leaf close composition should allow the consumer shell to disappear after the close action', async ({
+    page,
+  }) => {
+    const sceneRoot = page.getByTestId('chat-surface-granular-close')
+    const closeButton = sceneRoot.locator('.tr-chat').locator('[title="关闭"]')
+
+    await closeButton.click()
+    await expect(sceneRoot).toHaveCount(0)
   })
 
   test('HistorySurface should render independent history UI and support filtering', async ({ page }) => {

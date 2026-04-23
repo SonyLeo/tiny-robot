@@ -10,7 +10,6 @@
     "type-check": "vue-tsc --noEmit"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "1.17.5",
     "@opentiny/tiny-robot": "workspace:*",
     "@opentiny/tiny-robot-chat": "workspace:*",
     "@opentiny/tiny-robot-kit": "workspace:*",
@@ -18,8 +17,7 @@
     "dompurify": "^3.0.6",
     "markdown-it": "^14.1.0",
     "markstream-vue": "0.0.8-beta.3",
-    "vue": "^3.4.0",
-    "zod": "4.3.6"
+    "vue": "^3.4.0"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.0",

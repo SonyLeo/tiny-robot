@@ -12,51 +12,49 @@ test.describe('Chat Layout Config', () => {
     await page.locator('[data-testid="chat-layout-config-blackbox"]').waitFor()
   })
 
-  test('blackbox layout config should drive docs variant and custom placements', async ({ page }) => {
+  test('blackbox should honor the official wide content-layout and explicit dark appearance', async ({ page }) => {
     const root = '[data-testid="chat-layout-config-blackbox"] .tr-chat'
 
-    await helper.clickPrompt(0, root)
+    await helper.sendMessage('layout wide blackbox', root)
     await helper.waitForAssistantReply(root)
 
     await expect(page.locator(root)).toHaveAttribute('data-tr-color-mode', 'dark')
-    await expect(page.locator(root).locator('.tr-chat__body')).toHaveAttribute('data-variant', 'docs')
+    await expect(page.locator(root)).toHaveAttribute('data-chat-content-layout', 'wide')
     await expect(page.locator(root).locator(helper.selectors.bubbleItem).nth(0)).toHaveAttribute(
-      'data-placement',
-      'start',
-    )
-    await expect(page.locator(root).locator(helper.selectors.bubbleItem).nth(1)).toHaveAttribute(
       'data-placement',
       'end',
     )
+    await expect(page.locator(root).locator(helper.selectors.bubbleItem).nth(1)).toHaveAttribute(
+      'data-placement',
+      'start',
+    )
   })
 
-  test('whitebox preset slices should preserve docs variant and placement defaults', async ({ page }) => {
+  test('Root + Page should preserve the same official wide content-layout boundary', async ({ page }) => {
     const root = '[data-testid="chat-layout-config-whitebox"] .tr-chat'
 
-    await helper.clickPrompt(0, root)
+    await helper.sendMessage('layout wide whitebox', root)
     await helper.waitForAssistantReply(root)
 
     await expect(page.locator(root)).toHaveAttribute('data-tr-color-mode', 'dark')
-    await expect(page.locator(root).locator('.tr-chat__body')).toHaveAttribute('data-variant', 'docs')
+    await expect(page.locator(root)).toHaveAttribute('data-chat-content-layout', 'wide')
     await expect(page.locator(root).locator(helper.selectors.bubbleItem).nth(0)).toHaveAttribute(
-      'data-placement',
-      'start',
-    )
-    await expect(page.locator(root).locator(helper.selectors.bubbleItem).nth(1)).toHaveAttribute(
       'data-placement',
       'end',
     )
+    await expect(page.locator(root).locator(helper.selectors.bubbleItem).nth(1)).toHaveAttribute(
+      'data-placement',
+      'start',
+    )
   })
 
-  test('blackbox layout config should preserve workspace variant without docs-only role overrides', async ({
-    page,
-  }) => {
+  test('blackbox should keep centered content-layout as the default official layout boundary', async ({ page }) => {
     const root = '[data-testid="chat-layout-workspace-blackbox"] .tr-chat'
 
-    await helper.clickPrompt(0, root)
+    await helper.sendMessage('layout centered blackbox', root)
     await helper.waitForAssistantReply(root)
 
-    await expect(page.locator(root).locator('.tr-chat__body')).toHaveAttribute('data-variant', 'workspace')
+    await expect(page.locator(root)).toHaveAttribute('data-chat-content-layout', 'centered')
     await expect(page.locator(root).locator(helper.selectors.bubbleItem).nth(0)).toHaveAttribute(
       'data-placement',
       'end',
@@ -65,18 +63,17 @@ test.describe('Chat Layout Config', () => {
       'data-placement',
       'start',
     )
-    await expect(
-      page.locator(root).locator(helper.selectors.bubbleItem).nth(1).locator('.tr-bubble__box'),
-    ).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
   })
 
-  test('whitebox preset slices should preserve workspace variant as a pure layout choice', async ({ page }) => {
+  test('Root + primitives should keep centered content-layout without old layout.variant or placement overrides', async ({
+    page,
+  }) => {
     const root = '[data-testid="chat-layout-workspace-whitebox"] .tr-chat'
 
-    await helper.clickPrompt(0, root)
+    await helper.sendMessage('layout centered granular', root)
     await helper.waitForAssistantReply(root)
 
-    await expect(page.locator(root).locator('.tr-chat__body')).toHaveAttribute('data-variant', 'workspace')
+    await expect(page.locator(root)).toHaveAttribute('data-chat-content-layout', 'centered')
     await expect(page.locator(root).locator(helper.selectors.bubbleItem).nth(0)).toHaveAttribute(
       'data-placement',
       'end',
@@ -85,8 +82,5 @@ test.describe('Chat Layout Config', () => {
       'data-placement',
       'start',
     )
-    await expect(
-      page.locator(root).locator(helper.selectors.bubbleItem).nth(1).locator('.tr-bubble__box'),
-    ).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
   })
 })

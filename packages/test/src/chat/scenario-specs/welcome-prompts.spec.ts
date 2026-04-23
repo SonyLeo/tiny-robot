@@ -11,7 +11,7 @@ test.describe('Chat Welcome Prompts Feature', () => {
     helper = createChatTestHelper(page)
   })
 
-  test('feature welcomePrompts should replace legacy ui.prompts', async () => {
+  test('official ui.welcome.prompts should render on the blackbox path', async () => {
     const root = '[data-testid="chat-welcome-prompts-enabled"] .tr-chat'
 
     await helper.expectWelcomeVisible(true, root)
@@ -21,18 +21,16 @@ test.describe('Chat Welcome Prompts Feature', () => {
     await expect(prompts.nth(0)).toContainText('feature prompt 1')
     await expect(prompts.nth(1)).toContainText('feature prompt 2')
     await expect(prompts.nth(2)).toContainText('feature prompt 3')
-    await expect(helper.getLocator(root)).not.toContainText('legacy prompt')
   })
 
-  test('disabled welcomePrompts should clear both feature prompts and legacy prompts', async () => {
+  test('an empty official prompt list should leave the welcome surface without prompt items', async () => {
     const root = '[data-testid="chat-welcome-prompts-disabled"] .tr-chat'
 
     await helper.expectWelcomeVisible(true, root)
     await helper.expectPromptCount(0, root)
-    await expect(helper.getLocator(root)).not.toContainText('legacy prompt')
   })
 
-  test('explicit prompts override should win over resolved welcomePrompts', async () => {
+  test('scene-local official prompt sets should override the default prompt list', async () => {
     const root = '[data-testid="chat-welcome-prompts-override"] .tr-chat'
 
     await helper.expectWelcomeVisible(true, root)
@@ -41,7 +39,7 @@ test.describe('Chat Welcome Prompts Feature', () => {
     await expect(helper.getLocator(root)).not.toContainText('feature prompt 1')
   })
 
-  test('clicking a welcome prompt should transition into the message list', async () => {
+  test('clicking an official welcome prompt should transition into the message list', async () => {
     const root = '[data-testid="chat-welcome-prompts-enabled"] .tr-chat'
 
     await helper.clickPrompt(1, root)
@@ -50,15 +48,14 @@ test.describe('Chat Welcome Prompts Feature', () => {
     await helper.waitForAssistantReply(root)
   })
 
-  test('#welcome slot should suppress preset welcome prompts rendering', async ({ page }) => {
+  test('#welcome slot should suppress the default welcome prompt surface', async ({ page }) => {
     const root = '[data-testid="chat-welcome-prompts-slot"] .tr-chat'
 
     await expect(page.getByTestId('welcome-slot-content')).toBeVisible()
     await helper.expectPromptCount(0, root)
-    await expect(page.locator(root)).not.toContainText('feature prompt 1')
   })
 
-  test('whitebox welcome prompts should consume preset slices and keep prompt click working', async () => {
+  test('Root + Page should preserve official welcome prompts and keep prompt click working', async () => {
     const root = '[data-testid="chat-welcome-prompts-whitebox"] .tr-chat'
 
     await helper.expectWelcomeVisible(true, root)

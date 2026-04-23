@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, type Ref } from 'vue'
 import type { ModelOption } from '@/types'
-import { useChatScaffoldContext } from '@/shared/context'
+import { useChatPageInputs } from '@/shared/context'
 import { useResolvedChatMessages } from '@/shared/messages'
 import { getProviderIcon } from '@/shared/utils/iconMap'
 import { useModelSelector } from './useModelSelector'
@@ -19,17 +19,15 @@ const emit = defineEmits<{
 }>()
 
 const modelValue = defineModel<string>()
-const scaffoldContext = useChatScaffoldContext()
+const pageInputs = useChatPageInputs()
 const chatMessages = useResolvedChatMessages()
+const modelSelectorInput = computed(() => pageInputs?.value.modelSelector)
 
-const resolvedModels = computed(() => props.models ?? scaffoldContext?.models.value ?? [])
+const resolvedModels = computed(() => props.models ?? modelSelectorInput.value?.models ?? [])
 const currentModel = computed<string>({
-  get: () => modelValue.value ?? scaffoldContext?.currentModel.value ?? '',
+  get: () => modelValue.value ?? modelSelectorInput.value?.defaultModel ?? '',
   set: (value) => {
     modelValue.value = value
-    if (scaffoldContext) {
-      scaffoldContext.currentModel.value = value
-    }
   },
 }) as Ref<string>
 

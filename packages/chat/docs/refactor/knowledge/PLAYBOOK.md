@@ -219,6 +219,26 @@ Default question:
 
 - "Does this footer or attachment UI still need a compatibility feature preset, or can it now read the frozen runtime owner directly?"
 
+### 12. Prove parity at the nearest owner region or primitive, not only through the full page
+
+When a slice is about ownership or parity, prefer adding at least one mounted proof at the nearest owner region or primitive that is supposed to consume the contract.
+
+Typical examples:
+
+- `ChatLayout` for renderer ownership
+- `ChatSender + ChatAttachments` for sender and attachments ownership
+- `ChatWorkspaceLayout` for workspace mobile fallback
+- `ChatDefaultHeaderRegion + ChatDefaultFooterRegion` for history/model/MCP affordances
+
+Why this is promoted:
+
+- full `Root + Page` rendering can still pass while relay or context projection hides the real owner-path gap
+- repeated Phase 3A and Phase 3B slices became easier to debug once the proof mounted the nearest owner surface directly
+
+Default question:
+
+- "What is the narrowest owner surface that should already prove this contract without the rest of the page helping it?"
+
 ### 12. Keep workspace mobile fallback on explicit shell input or runtime workspace state
 
 When the default page or workspace owner path already has:

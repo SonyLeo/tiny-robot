@@ -25,8 +25,8 @@ Use this guide to decide where a change should start.
   start with `src/primitives/`
 - source-of-truth behavior changed:
   start with the owning module under `src/runtime/`
-- temporary compatibility glue changed:
-  start with `src/legacy/`
+- root bootstrap or remaining compatibility-shaped helper wiring changed:
+  start with `src/root/createRootBootstrapState.ts`
 
 ## Start With Tests When
 

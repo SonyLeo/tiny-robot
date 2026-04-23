@@ -68,44 +68,19 @@ const config = {
 当前 `Phase 2` 预热切片已经冻结下面这条默认黑盒入口语义：
 
 - 当 `TrChat` 收到的 `config` 已经匹配 `TrChatConfig`
-- 且没有额外提供 `runtime`、`presetOverrides`
-- `callbacks` 要么缺省，要么只包含生命周期兼容的 `onFinish / onError`
-- `config` 也可以是上述 target `TrChatConfig` 的序列化 JSON 字符串；这属于同一份 target contract 的输入外壳，而不是新的 legacy config 语义
+- 或 `config` 是上述 target `TrChatConfig` 的序列化 JSON 字符串；这属于同一份 target contract 的输入外壳，而不是新的 legacy config 语义
 
 默认主路径应直接进入：
 
 `createRuntimeFromConfig(config) -> TrChat.Root + TrChat.Page`
 
-同时保留一条明确的兼容分支：
+补充冻结规则：
 
-- 旧 shipping `ChatConfig` 形态
-- 仍依赖 `onBeforeSend / onMessageAction / onModelChange` 这类 scaffold-only callbacks 的调用方式
-- 仍依赖 compatibility-only props 的调用方式
-
-`Phase 2` 当前切片把一条额外规则也冻结下来了：
-
-- 生命周期兼容 callbacks 可以在黑盒入口边界被规范化成 `config.lifecycle.afterReceive / error`，并继续走 `createRuntimeFromConfig(config) -> TrChat.Root + TrChat.Page`
 - serialized target `TrChatConfig` 可以在黑盒入口边界先被解析回 target contract，再继续走 `Root + Page`
-- 旧 `ChatConfig` 的最窄 request-only subset 现在也可以被提升进黑盒主路径，但只限于：
-  - top-level 只包含 `models / providers / defaults`
-  - 所有 model 都指向同一个 provider
-  - 该 legacy shape 会在入口边界被规范化成 target `TrChatConfig.request`
-- 旧 `ChatConfig` 的最窄 display-default subset 现在也可以被提升进黑盒主路径，但只限于：
-  - 在上述 request-only subset 基础上额外携带 `appearance` 与 `ui.brand / ui.welcome`
-  - 这些字段会在入口边界被规范化成 target `config.ui`
-- 旧 `ChatConfig.layout.contentLayout` 现在也可以在同一条黑盒主路径里被提升，但只限于：
-  - 在已支持的 request-only / display-default subset 基础上额外携带 `layout.contentLayout`
-  - 它会在入口边界被规范化成 target `config.ui.contentLayout`
-- 旧 `ChatConfig.shell` 的最窄 owner-aligned subset 现在也可以在同一条黑盒主路径里被提升，但只限于：
-  - 在已支持的 request-only / display-default / `layout.contentLayout` subset 基础上额外携带 `shell.variant / shell.leftRegion / shell.rightRegion`
-  - 它们会在入口边界被规范化成 target `config.workspace.defaultView / left / right`
-- 其他仍然带 scaffold 语义的 callbacks 继续保持显式 fallback，直到对应 target owner path 真正实现并有证据支撑
-- `ui.prompts` 当前已被明确分类为显式 scaffold fallback：它落在旧 preset / welcome-prompts 投影链上，而不是任何已经冻结的 target owner domain
-- `layout.variant / layout.placements` 当前也已被明确分类为显式 scaffold fallback：它们仍然只落在旧的 message-list / role-placement projection 链上，而不是任何已经冻结的 target blackbox owner domain
-- `shell.viewState` 当前也已经被明确分类为显式 scaffold fallback：它仍然只表达旧 shell display-state 语义，而不是任何已经冻结的 target workspace owner
-- 带 `features / integrations` 的旧 `ChatConfig`，以及同时依赖多个 provider 映射的旧 `ChatConfig` 当前仍然保持显式 fallback
-
-这些输入当前仍显式回退到 `ChatScaffold`，它们不是新的 target blackbox contract。
+- 旧 `ChatConfig` 形态不再作为当前开发分支的官方黑盒入口能力被提升进 `Root + Page`
+- 黑盒 `TrChat` 不再接收顶层 `runtime`、`callbacks`、`presetOverrides` 或其它 compatibility-only props
+- 所有旧 `ChatConfig` 对象或序列化字符串，以及依赖 `ui.prompts`、`layout.variant / layout.placements`、`shell.viewState`、`features / integrations`、多 provider 映射等 legacy 投影语义的输入，都不属于当前开发分支的官方 blackbox contract
+- 这些旧输入如果仍需保留，必须升级到 `TrChat.Root + TrChat.Page`、`TrChat.Root + primitives` 或 `TrChat.Provider` 明确装配，而不是继续期待 `TrChat` 黑盒入口兜底
 
 ### 2.2 正式用法 B：`TrChat.Root`
 
@@ -462,10 +437,10 @@ bridge owner 与执行顺序冻结如下：
 - 改局部结构：用 slot
 - 自己带 runtime 或自己拼页面：进 `TrChat.Root`
 
-补充一条 `Phase 2` 黑盒切口规则：
+补充一条 post-closure 黑盒规则：
 
-- 如果旧 callbacks 能一对一映射到已经冻结的 target owner（例如 `onFinish -> lifecycle.afterReceive`、`onError -> lifecycle.error`），可以在黑盒入口边界做窄归一化
-- 如果旧 callbacks 仍然依赖 scaffold 期语义（例如 `onBeforeSend`、`onMessageAction`、`onModelChange`），就继续保持显式 fallback，而不是把整条黑盒入口重新退回到混合 contract
+- `TrChat` 黑盒入口不再承接旧 callbacks 的窄归一化或 scaffold 期语义迁移
+- 如果业务仍依赖旧 callbacks、provider helper、或其它 comparison-only 装配方式，应直接升级到 `TrChat.Root + TrChat.Page`、`TrChat.Root + primitives` 或 `TrChat.Provider`
 
 ### 4.6 边界速查表
 
@@ -794,6 +769,7 @@ Footer note:
 - `Page` 应该消费一个窄的 page-input boundary，例如 `welcome / messageList / appearance / shell / modelSelector / updateModel`
 - 当默认 owner 已经把显式输入传给最近一级 primitive 时，这些显式输入应当成为 authoritative contract；兼容 fallback 只能在显式输入缺失时生效，不能再把 raw scaffold bucket 无条件混回去
 - 对默认 page path 来说，header/history/welcome/messageList 这类最近一级 primitive 应允许显式关闭 compatibility relay，这样 owner path 不会在已经具备显式输入时继续隐式读 scaffold bucket
+- 默认 header / footer affordance path 也遵守同一条规则：`ChatDefaultHeaderRegion` 负责把 `headerInput + shell` 显式传给 `ChatHeader`，`ChatDefaultFooterRegion` 负责把 `modelSelectorInput` 与显式的 `showMcpTrigger` 传给最近一级工具 UI，而不是让这些 affordance 再回头依赖 scaffold-level relay
 - `Page` 不应直接以 generic scaffold bucket（例如原始 `presetSlices` 容器）作为默认读取面
 - 默认 page path 里的最近一级 primitives（如 `ChatLayout`、`ChatHeader`、`ChatHistory`、`ChatWelcome`、`ChatMessageList`）应优先接收 `Page` 显式传入的默认输入，而不是再次从 scaffold relay 重新查找同一组值
 - 默认 workspace path 里的最近一级 owner chain（如 `ChatWorkspaceLayout`、sidebar、mobile sheets）也应优先接收显式 owner 输入，例如 `appearance` 与 `sidebarTitle`，而不是再次从 scaffold relay 重取这些展示默认值

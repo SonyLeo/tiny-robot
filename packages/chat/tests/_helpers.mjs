@@ -23,7 +23,7 @@ const modelSelectorModule = await jiti.import('../src/components/model-selector/
 const adapterModule = await jiti.import('../src/runtime/config/index.ts')
 const transportModule = await jiti.import('../src/runtime/config/openaiCompatibleTransport.ts')
 const messagesModule = await jiti.import('../src/shared/messages/index.ts')
-const providerChatKitModule = await jiti.import('../src/runtime/scaffold/resolveProviderChatKit.ts')
+const providerChatKitModule = await jiti.import('../src/runtime/provider/resolveProviderChatKit.ts')
 const messageIdentityModule = await jiti.import('../src/runtime/core/messageIdentity.ts')
 
 export { assert, computed, nextTick, ref, shallowRef }

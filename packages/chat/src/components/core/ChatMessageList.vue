@@ -9,7 +9,7 @@ import {
   CHAT_KIT_KEY,
   MESSAGE_ACTION_KEY,
   MESSAGE_ACTIONS_KEY,
-  useChatScaffoldContext,
+  useChatPageInputs,
 } from '@/shared/context'
 import { normalizeChatRenderMessages } from '@/runtime/chat-kit/chatRenderMessages'
 import { useSlotFilter } from './useSlotFilter'
@@ -27,24 +27,21 @@ const props = defineProps({
   onActionClick: Function as PropType<TrChatMessageListProps['onActionClick']>,
   groupStrategy: null as unknown as PropType<BubbleListProps['groupStrategy']>,
 })
-const scaffoldContext = useChatScaffoldContext()
-const shouldUseCompatibilityRelay = computed(() => props.compatibilityRelay !== false)
-const messageListSlice = computed(() =>
-  shouldUseCompatibilityRelay.value ? scaffoldContext?.presetSlices.value.messageList : undefined,
-)
+const pageInputs = useChatPageInputs()
+const messageListInput = computed(() => pageInputs?.value.messageList)
 
 const chatKit = inject(CHAT_KIT_KEY)!
 const bubbleConfig = inject(BUBBLE_CONFIG_KEY, null)
 const slots = useSlots() as Record<string, Slot | undefined>
 const attrs = useAttrs()
-const resolvedVariant = computed<ChatListVariant>(() => props.variant ?? messageListSlice.value?.variant ?? 'bubble')
-const resolvedAutoScroll = computed(() => props.autoScroll ?? messageListSlice.value?.autoScroll)
-const resolvedMessageActions = computed(() => props.messageActions ?? messageListSlice.value?.messageActions)
+const resolvedVariant = computed<ChatListVariant>(() => props.variant ?? messageListInput.value?.variant ?? 'bubble')
+const resolvedAutoScroll = computed(() => props.autoScroll ?? messageListInput.value?.autoScroll)
+const resolvedMessageActions = computed(() => props.messageActions ?? messageListInput.value?.messageActions)
 const resolvedMessageActionsMode = computed(
-  () => props.messageActionsMode ?? messageListSlice.value?.messageActionsMode,
+  () => props.messageActionsMode ?? messageListInput.value?.messageActionsMode,
 )
-const resolvedActionClick = computed(() => props.onActionClick ?? messageListSlice.value?.onActionClick)
-const resolvedGroupStrategy = computed(() => props.groupStrategy ?? messageListSlice.value?.groupStrategy)
+const resolvedActionClick = computed(() => props.onActionClick ?? messageListInput.value?.onActionClick)
+const resolvedGroupStrategy = computed(() => props.groupStrategy ?? messageListInput.value?.groupStrategy)
 
 provide(MESSAGE_ACTION_KEY, (payload) => {
   resolvedActionClick.value?.(payload)

@@ -8,6 +8,7 @@ This directory contains the active refactor knowledge base for `packages/chat`.
   active source docs for target design, contract, and phase execution
 - `process/`
   review method and current alignment state
+  plus post-closure test-boundary classification
 - `knowledge/`
   thin recurring-knowledge layer for reusable implementation lessons
 - `reviews/`
@@ -24,6 +25,10 @@ Read these by default:
 - `design/execution.md`
 - `process/review-scheme.md`
 - `process/alignment-tracker.md`
+- `process/test-boundary-baseline.md`
+- `process/legacy-retirement-roadmap.md`
+- `process/provider-helper-decision-baseline.md`
+- `process/full-cutover-closure-checklist.md`
 
 ## Supporting Guides
 

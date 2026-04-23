@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ThemeProvider } from '@opentiny/tiny-robot'
 import { computed, getCurrentInstance, type PropType } from 'vue'
-import { CHAT_UI_KEY, useChatScaffoldContext, useRequiredInject } from '@/shared/context'
+import { CHAT_UI_KEY, useChatPageInputs, useRequiredInject } from '@/shared/context'
 import type { ChatAppearanceConfig } from '@/types'
 import { triStateBooleanProp } from '@/shared/utils'
 import ChatHistoryContent from './ChatHistoryContent.vue'
@@ -14,23 +14,15 @@ const props = defineProps({
   appearance: Object as PropType<ChatAppearanceConfig | undefined>,
 })
 
-const scaffoldContext = useChatScaffoldContext()
+const pageInputs = useChatPageInputs()
 const chatUi = useRequiredInject(CHAT_UI_KEY, 'chat ui')
-const shouldUseCompatibilityRelay = computed(() => props.compatibilityRelay !== false)
-const resolvedEnabled = computed(
-  () =>
-    props.enabled ??
-    (shouldUseCompatibilityRelay.value ? scaffoldContext?.presetSlices.value.history.enabled : undefined) ??
-    true,
-)
+const historyInput = computed(() => pageInputs?.value.history)
+const appearanceInput = computed(() => pageInputs?.value.appearance)
+const resolvedEnabled = computed(() => props.enabled ?? historyInput.value?.enabled ?? true)
 const shouldRenderDrawer = computed(
   () => resolvedEnabled.value && chatUi.history.display.value === 'drawer' && !chatUi.workspace.enabled.value,
 )
-const appearance = computed(
-  () =>
-    props.appearance ??
-    (shouldUseCompatibilityRelay.value ? scaffoldContext?.presetSlices.value.appearance.appearance : undefined),
-)
+const appearance = computed(() => props.appearance ?? appearanceInput.value)
 const scopedColorMode = computed(() => {
   const mode = appearance.value?.mode
 

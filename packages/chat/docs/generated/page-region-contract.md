@@ -35,6 +35,7 @@
 - once those explicit defaults reach the nearest primitive, treat them as authoritative instead of silently merging raw scaffold buckets back in
 - if the default page path already provides all required owner inputs, compatibility relay should be explicitly disabled instead of remaining silently active
 - this now applies to the default header/history path and the default welcome/message-list path as well as layout/workspace owner inputs
+- default header tools should consume explicit `headerInput + shell` from `Page`, and default footer tools should consume explicit `modelSelectorInput` plus explicit MCP visibility from the nearest owner region
 - keep the default workspace owner chain on explicit owner inputs too, including sidebar and mobile-sheet display defaults
 - delegate deeper custom composition to `Root + primitives`
 

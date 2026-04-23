@@ -9,11 +9,11 @@ test.describe('Chat Sender Extensions Passthrough', () => {
     await page.locator('nav').getByRole('link').nth(2).click()
     await expect(page.locator('h2')).toContainText('Chat')
     helper = createChatTestHelper(page)
-    await page.locator('[data-testid="chat-sender-extensions-blackbox"]').waitFor()
+    await page.locator('[data-testid="chat-sender-extensions-granular"]').waitFor()
   })
 
-  test('blackbox senderProps.extensions should render suggestion UI and allow selection', async ({ page }) => {
-    const root = '[data-testid="chat-sender-extensions-blackbox"] .tr-chat'
+  test('granular TrChat.Sender extensions should render suggestion UI and allow selection', async ({ page }) => {
+    const root = '[data-testid="chat-sender-extensions-granular"] .tr-chat'
 
     await helper.expectWelcomeVisible(true, root)
     await helper.typeMessage('ECS', root)
@@ -24,8 +24,10 @@ test.describe('Chat Sender Extensions Passthrough', () => {
     await expect(page.locator(root).locator(helper.selectors.senderInput)).toContainText('ECS instance startup issue')
   })
 
-  test('whitebox TrChat.Sender should receive extensions and keep the submit chain working', async ({ page }) => {
-    const root = '[data-testid="chat-sender-extensions-whitebox"] .tr-chat'
+  test('provider-backed TrChat.Sender should receive extensions and keep the submit chain working', async ({
+    page,
+  }) => {
+    const root = '[data-testid="chat-sender-extensions-provider"] .tr-chat'
 
     await helper.expectWelcomeVisible(true, root)
     await helper.typeMessage('ECS', root)

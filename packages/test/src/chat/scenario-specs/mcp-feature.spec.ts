@@ -9,12 +9,12 @@ test.describe('Chat MCP Feature', () => {
     await page.locator('nav').getByRole('link').nth(2).click()
     await expect(page.locator('h2')).toContainText('Chat')
     helper = createChatTestHelper(page)
-    await page.locator('[data-testid="chat-mcp-feature-blackbox"]').waitFor()
+    await page.locator('[data-testid="chat-mcp-feature-provider"]').waitFor()
   })
 
-  test('blackbox default renderer should render the MCP trigger and open the panel', async ({ page }) => {
-    const scene = page.locator('[data-testid="chat-mcp-feature-blackbox"]')
-    const root = '[data-testid="chat-mcp-feature-blackbox"] .tr-chat'
+  test('provider footer trigger should render the MCP trigger and open the panel', async ({ page }) => {
+    const scene = page.locator('[data-testid="chat-mcp-feature-provider"]')
+    const root = '[data-testid="chat-mcp-feature-provider"] .tr-chat'
 
     await expect(page.locator(root).locator(helper.selectors.mcpTriggerLabel)).toBeVisible()
     await expect(page.locator(root).locator(helper.selectors.mcpTriggerCount)).toContainText('1')
@@ -24,21 +24,23 @@ test.describe('Chat MCP Feature', () => {
     await expect(scene).toContainText('Get Weather')
   })
 
-  test('blackbox MCP trigger should remain usable on mobile while keeping the count visible', async ({ page }) => {
-    const root = '[data-testid="chat-mcp-feature-blackbox"] .tr-chat'
+  test('provider footer MCP trigger should remain usable on mobile while keeping the count visible', async ({
+    page,
+  }) => {
+    const root = '[data-testid="chat-mcp-feature-provider"] .tr-chat'
 
     await page.setViewportSize({ width: 390, height: 844 })
     await page.reload()
     await page.locator('nav').getByRole('link').nth(2).click()
-    await page.locator('[data-testid="chat-mcp-feature-blackbox"]').waitFor()
+    await page.locator('[data-testid="chat-mcp-feature-provider"]').waitFor()
 
     await expect(page.locator(root).locator(helper.selectors.mcpTrigger)).toBeVisible()
     await expect(page.locator(root).locator(helper.selectors.mcpTriggerCount)).toBeVisible()
   })
 
-  test('whitebox sender footer should open the MCP panel through TrMcpTrigger', async ({ page }) => {
-    const scene = page.locator('[data-testid="chat-mcp-feature-whitebox"]')
-    const root = '[data-testid="chat-mcp-feature-whitebox"] .tr-chat'
+  test('granular sender footer should open the MCP panel through TrMcpTrigger', async ({ page }) => {
+    const scene = page.locator('[data-testid="chat-mcp-feature-granular"]')
+    const root = '[data-testid="chat-mcp-feature-granular"] .tr-chat'
 
     await helper.openMcpTrigger(root)
 

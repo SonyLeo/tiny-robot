@@ -53,17 +53,19 @@ export function useFloatingDropdown(
     },
   )
 
-  useEventListener(document, 'keydown', (event: KeyboardEvent) => {
-    if (!isOpen.value) {
-      return
-    }
+  if (typeof document !== 'undefined') {
+    useEventListener(document, 'keydown', (event: KeyboardEvent) => {
+      if (!isOpen.value) {
+        return
+      }
 
-    if (event.key === 'Escape') {
-      event.preventDefault()
-      isOpen.value = false
-      referenceEl.value?.focus()
-    }
-  })
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        isOpen.value = false
+        referenceEl.value?.focus()
+      }
+    })
+  }
 
   watch(isOpen, async (newVal) => {
     if (newVal) {

@@ -14,8 +14,8 @@ Use it as a routing aid, not as a replacement for the actual code.
   primitive UI surfaces with explicit read boundaries
 - `src/runtime/`
   feature runtimes, bridge helpers, and source-of-truth ownership
-- `src/legacy/`
-  temporary compatibility or comparison adapters while the refactor is in flight
+- `src/root/createRootBootstrapState.ts`
+  remaining root bootstrap assembly that still feeds the official entry ladder without reintroducing `src/legacy/*`
 
 ## Legacy Anchors
 

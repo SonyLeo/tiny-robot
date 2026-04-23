@@ -1,12 +1,6 @@
 <template>
   <div class="chat-demo-container">
-    <TrChat
-      :config="chatConfig"
-      :preset-overrides="{
-        showHistory: true,
-        placeholder: '请输入问题...',
-      }"
-    />
+    <TrChat :config="chatConfig" />
   </div>
 </template>
 
@@ -14,19 +8,17 @@
 import { TrChat } from '@opentiny/tiny-robot-chat'
 
 const chatConfig = {
-  models: [
-    { id: 'gpt-4o-mini', providerId: 'openai', label: 'GPT-4o Mini' },
-    { id: 'gpt-4.1-mini', providerId: 'openai', label: 'GPT-4.1 Mini' },
-  ],
-  providers: {
-    openai: {
+  request: {
+    models: [
+      { id: 'gpt-4o-mini', providerId: 'openai', label: 'GPT-4o Mini' },
+      { id: 'gpt-4.1-mini', providerId: 'openai', label: 'GPT-4.1 Mini' },
+    ],
+    defaultModelId: 'gpt-4o-mini',
+    transport: {
       type: 'openai-compatible' as const,
       endpoint: '/api/chat/completions',
       systemPrompt: 'You are a helpful assistant for the TinyRobot docs.',
     },
-  },
-  defaults: {
-    model: 'gpt-4o-mini',
   },
   ui: {
     brand: {
@@ -34,15 +26,23 @@ const chatConfig = {
     },
     welcome: {
       title: '欢迎使用 Chat 套件',
-      description: '这个示例直接请求 /api/chat/completions，在文档站内由 SW 返回 mock 响应。',
+      description: '这个示例直接使用 target TrChatConfig 走官方黑盒入口。',
+      prompts: [
+        { label: '快速上手', description: '如何引入并配置 TrChat 组件？' },
+        { label: '流式响应', description: '演示一下打字机效果。' },
+      ],
     },
-    prompts: [
-      { label: '快速上手', description: '如何引入并配置 TrChat 组件？' },
-      { label: '流式响应', description: '演示一下打字机效果。' },
-    ],
-  },
-  layout: {
     contentLayout: 'centered' as const,
+  },
+  sender: {
+    placeholder: '请输入问题...',
+    mode: 'multiple' as const,
+    maxLength: 200,
+    wordCount: true,
+  },
+  history: {
+    enabled: true,
+    defaultOpen: false,
   },
 }
 </script>

@@ -2,13 +2,7 @@
 import { computed, inject, type PropType } from 'vue'
 import { TrIconButton } from '@opentiny/tiny-robot'
 import { IconClose, IconHistory, IconMenuOpen, IconMenu2, IconNewSession } from '@opentiny/tiny-robot-svgs'
-import {
-  CHAT_ATTACHMENTS_KEY,
-  CHAT_KIT_KEY,
-  CHAT_UI_KEY,
-  useChatScaffoldContext,
-  useRequiredInject,
-} from '@/shared/context'
+import { CHAT_ATTACHMENTS_KEY, CHAT_KIT_KEY, CHAT_UI_KEY, useChatPageInputs, useRequiredInject } from '@/shared/context'
 import { useResolvedChatMessages } from '@/shared/messages'
 import type { ChatWorkspaceShellConfig } from '@/types/workspace'
 import { triStateBooleanProp } from '@/shared/utils'
@@ -23,15 +17,9 @@ const props = defineProps({
   title: String,
   shell: Object as PropType<ChatWorkspaceShellConfig | undefined>,
 })
-const scaffoldContext = useChatScaffoldContext()
-const shouldUseCompatibilityRelay = computed(() => props.compatibilityRelay !== false)
-const headerSlice = computed(() =>
-  shouldUseCompatibilityRelay.value ? scaffoldContext?.presetSlices.value.header : undefined,
-)
-const shellConfig = computed(
-  () =>
-    props.shell ?? (shouldUseCompatibilityRelay.value ? scaffoldContext?.presetSlices.value.shell.shell : undefined),
-)
+const pageInputs = useChatPageInputs()
+const headerInput = computed(() => pageInputs?.value.header)
+const shellConfig = computed(() => props.shell ?? pageInputs?.value.shell)
 
 const emit = defineEmits<{
   (e: 'close'): void
@@ -41,16 +29,16 @@ const chatKit = useRequiredInject(CHAT_KIT_KEY, 'chat kit')
 const attachmentsContext = inject(CHAT_ATTACHMENTS_KEY, null)
 const chatUi = useRequiredInject(CHAT_UI_KEY, 'chat ui')
 const chatMessages = useResolvedChatMessages()
-const brandTitle = computed(() => props.title ?? headerSlice.value?.title ?? '')
+const brandTitle = computed(() => props.title ?? headerInput.value?.title ?? '')
 const hasActiveConversation = computed(() => Boolean(chatKit.activeConversationId.value))
 const activeConversationTitle = computed(() => {
   const title = chatKit.activeConversation.value?.title?.trim()
   return title || chatMessages.value.history.defaultConversationTitle
 })
 const resolvedTitle = computed(() => (hasActiveConversation.value ? activeConversationTitle.value : brandTitle.value))
-const resolvedShowHistory = computed(() => props.showHistory ?? headerSlice.value?.showHistory ?? false)
+const resolvedShowHistory = computed(() => props.showHistory ?? headerInput.value?.showHistory ?? false)
 const resolvedShowNewChat = computed(() => props.showNewChat ?? true)
-const resolvedShowClose = computed(() => props.showClose ?? headerSlice.value?.showClose ?? false)
+const resolvedShowClose = computed(() => props.showClose ?? headerInput.value?.showClose ?? false)
 const showWorkspaceMobileHistory = computed(
   () => resolvedShowHistory.value && chatUi.workspace.enabled.value && chatUi.workspace.isMobile.value,
 )

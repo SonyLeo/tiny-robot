@@ -151,7 +151,9 @@ export function createMockChatApiPlugin(): Plugin {
         const userMessage = getLastUserMessageContent(body)
         res.setHeader('Set-Cookie', `mock-chat-session=${sessionId}; Path=/; SameSite=Lax`)
 
-        if (providerId === 'edge' && userMessage === 'err') {
+        const shouldFailOnce = userMessage === 'err-once'
+
+        if ((providerId === 'edge' && userMessage === 'err') || shouldFailOnce) {
           const failureKey = `${sessionId}:${providerId}:${model}:${userMessage}`
           const currentFailureCount = failureCount.get(failureKey) ?? 0
           failureCount.set(failureKey, currentFailureCount + 1)

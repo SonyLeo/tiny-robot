@@ -45,8 +45,8 @@ Historical rationale and freeze context live in:
 | Phase 0 / 0.5 freeze | `signed-off-with-follow-ups` | contract freeze passed with bounded follow-ups on footer treatment and contract-test baseline |
 | Phase 1A | `completed` | Root/bootstrap baseline, message runtime hardening, eager `initialMessages` baseline, footer treatment, and default Phase 1A validation workflow are all closed |
 | Phase 1B | `completed` | page/history/models/workspace baseline, mounted `Root + Page` proof, page-input boundary, default-page primitive tightening, workspace relay tightening, `ChatLayout` authoritative renderer inputs, header/history opt-out, and welcome/message-list opt-out are all closed as the Phase 1B default-owner-path baseline |
-| Phase 2 | `completed` | Review C accepted the narrow target-`TrChatConfig` blackbox kickoff preview as the Phase 2 entry baseline; the lifecycle-compatible callback subset, serialized target config, and the narrow old-`ChatConfig` request-only, display-default, `layout.contentLayout`, and shell-owner subsets now all enter through `Root + Page`, while `ui.prompts`, `layout.variant / placements`, `shell.viewState`, broader old config shapes, and scaffold-only callbacks are now all explicitly bounded fallback |
-| Phase 3 / 4 | `in-progress` | Phase 3A is now closed with sender `voice / wordCount`, sender-plus-attachments parity, runtime-owned message-action fallback, feedback enablement fallback, renderer fallback, and formal-path `messages.transforms` proof all landed; Phase 3B has now landed runtime-owned workspace mobile fallback parity, and the next active work is history/model/workspace linkage plus MCP parity |
+| Phase 2 | `completed` | Review C accepted the narrow target-`TrChatConfig` blackbox kickoff preview as the Phase 2 entry baseline; post-closure cleanup has now tightened that blackbox contract to target `TrChatConfig` plus serialized target config only, removed scaffold fallback from `TrChat`, and retired the explicit scaffold helper surface |
+| Phase 3 / 4 | `completed` | Phase 3A and Phase 3B are both closed; Review D passed with follow-ups, accepted the Phase 2 exit plus Phase 3/4 closure, and left only bounded post-closure cleanup on later legacy deletion plus deferred standalone `footer` replace-slot publishing semantics |
 
 ## Review Status
 
@@ -134,23 +134,50 @@ Historical rationale and freeze context live in:
 ### Review D
 
 - status:
-  `pending`
+  `pass-with-follow-ups`
 - goal:
   Phase 2 report plus final Phase 3/4 closure
+- outcome:
+  - main decision:
+    Review D passed with follow-ups and accepted the current Phase 2 evidence bundle plus the Phase 3/4 closure result.
+  - go or no-go:
+    The refactor is now `closure-ready-with-follow-ups`; later cleanup may proceed without reopening active architecture execution.
+  - settled conclusions:
+    - `Phase 2` is accepted as the closed blackbox `TrChat` default-path result.
+    - `Phase 3` parity is accepted as sufficiently owner-aligned and evidenced at the nearest runtime, page, and primitive boundaries.
+    - `Phase 4` closure is accepted as bounded hardening rather than hidden unfinished implementation.
+    - package README, official demo routes, review packet, and package-level validation now all describe the same official entry ladder.
+  - follow-ups:
+    - later legacy-path deletion remains explicit post-closure cleanup, not a closure blocker.
+    - standalone page-level `footer` replace-slot publishing semantics remain deferred.
+- packet:
+  - `../reviews/review-d-phase-2-report-and-phase-3-4-closure/REVIEW_D_OWNER_RUNBOOK.md`
+  - `../reviews/review-d-phase-2-report-and-phase-3-4-closure/REVIEW_D_SPEC_DETAIL.md`
+  - `../reviews/review-d-phase-2-report-and-phase-3-4-closure/REVIEW_D_REVIEWER_MEMO.md`
 
 ## Open Questions And Risks
 
 - The standalone page-level `footer` replace slot remains deferred until the Phase 1B page baseline proves that contract is stable.
-- Phase reports must stay evidence-driven instead of drifting back to purely narrative updates.
-- When a default owner path already passes explicit inputs into the nearest primitive, that primitive should treat those inputs as authoritative instead of silently merging raw scaffold defaults back in.
-- In the default page path, compatibility relay should become an explicit opt-in or opt-out choice, not an automatic fallback that stays active after owner inputs are already present.
-- `onBeforeSend / onMessageAction / onModelChange` still remain scaffold-only fallback and should not be silently mixed into the Phase 2 blackbox path until their target owner routes are implemented and evidenced.
-- old `ChatConfig.ui.prompts`, `layout.variant / placements`, and `shell.viewState` are now all explicitly classified as scaffold fallback; the remaining risk is to keep broader legacy shapes bounded instead of letting later parity work silently widen fallback again.
-- `senderActionsFeature` and attachment feature presets still survive as compatibility fallbacks; the remaining risk is to keep Phase 3B and later work from reviving feature-first ownership on already-closed sender plus attachments paths.
-- Phase 3B still needs parity coverage for history/model/workspace linkage and MCP so later work does not treat the closed Phase 1B baseline and the landed mobile fallback slice as a substitute for full parity-level coverage.
+- Phase reports and later cleanup notes must stay evidence-driven instead of drifting back to purely narrative updates.
+- Later cleanup should not silently widen old `ChatConfig` fallback or feature-first ownership on already-closed runtime, page, sender, attachments, and workspace paths.
+- package-level validation is green again after exporting the missing sibling `tiny-robot-svgs` icons and rebuilding its dist artifacts; the remaining hardening question is whether to clean up the non-blocking runtime warning separately from refactor closure.
+- Post-closure cleanup in this development branch should optimize for preserving official-path functionality, not for keeping legacy compatibility code alive by default.
+- `packages/test/src/chat` is still a mixed e2e suite; retained official-path scenarios need a keep/adapt/retire pass before the whole folder can become a hard legacy-pruning gate.
+- the first retained Playwright gate batch is now adapted around the official entry ladder (`index.spec.ts`, `history.spec.ts`, `request-lifecycle.spec.ts`, `workspace-slots.spec.ts`, `renderer-registry.spec.ts`), and the scaffold-surface-removal closure batch is now green for `layout-config`, `welcome-prompts`, `sender-actions`, `surface-api`, `sender-extensions`, `mcp-feature`, and `message-transforms`; the rest of `packages/test/src/chat` still needs the same keep/adapt/retire tightening before it can gate broad legacy deletion.
+- compatibility-only `senderActions.upload = false` no longer acts as a supported retained boundary when an attachments owner is still present; that expectation is now an explicit contract drop instead of a cleanup blocker.
+- the roadmap's first cleanup slice has now landed: the remaining `edge-overrides` holdouts (`wordCount = false`, `voice = false`, and explicit close composition) were handed off to official-path proofs, and the edge scene/spec pair has retired.
+- post-closure cleanup has now removed the remaining `TrChat` scaffold fallback and explicit scaffold helper surface, retired the internal scaffold provision plus runtime bridge hints, removed the official-path scaffold-context readers, and deleted `src/legacy/rootBridge.ts`; the surviving bootstrap behavior now lives in `src/root/createRootBootstrapState.ts` instead of any `src/legacy/*` file.
+- the remaining post-closure legacy surface is explicitly inventoried in `legacy-surface-inventory.md`; the unresolved items are now limited to a small `delete-later` set of provider/comparison helpers, mixed `adapt` e2e scenes, and package-local legacy sentinels.
+- the ordered path from current post-closure cleanup to full legacy retirement now lives in `legacy-retirement-roadmap.md`; use it instead of inventing ad-hoc cleanup sequencing from the tracker.
+- the concrete keep/delete baseline for provider/comparison helper surfaces now lives in `provider-helper-decision-baseline.md`; use that document before opening the next helper-retirement implementation batch.
+- the final “can we call this fully cut over?” bar now lives in `full-cutover-closure-checklist.md`; use that checklist plus the active closure plan for future progress reporting.
 
 ## Next Actions
 
-1. Continue Phase 3B by hardening history/model/workspace linkage and MCP parity on top of the landed workspace mobile fallback slice.
-2. Keep active contract changes in `design/api-runtime.md` and `design/execution.md`.
-3. Prepare Review D around the now-closed Phase 2 blackbox entry matrix and the Phase 3/4 closure path.
+1. Treat the root-bridge-retirement slice as closed: the last `src/legacy/*` implementation file is gone, the hard gate is green, and the remaining cleanup surface is explicitly limited to helper/test retirement work.
+2. If later cleanup continues, drive progress from `full-cutover-closure-checklist.md` plus the active full-cutover plan, and implement the remaining parts in order:
+   - provider helper retirement
+   - legacy test retirement
+   - final surface cleanup
+3. Keep any future contract changes in `design/api-runtime.md` and `design/execution.md` first, then backwrite the tracker.
+4. Treat deferred standalone `footer` publishing semantics as a separate contract task, not as a blocker for later cleanup.

@@ -37,17 +37,33 @@ try {
     { default: TrChatPage },
     { default: ChatLayout },
     { default: ChatWorkspaceLayout },
+    { default: ChatDefaultHeaderRegion },
+    { default: ChatDefaultFooterRegion },
+    { default: ChatHeader },
+    { default: ChatWelcome },
+    { default: ChatMessageList },
+    { default: ChatFooter },
     { default: ChatSender },
     { default: ChatAttachments },
-    { CHAT_KIT_KEY, CHAT_RUNTIME_KEY, CHAT_UI_KEY, createChatUiContext },
+    { default: ChatHistorySurface },
+    { useMcpManager },
+    { CHAT_KIT_KEY, CHAT_RUNTIME_KEY, CHAT_UI_KEY, MCP_MANAGER_KEY, createChatUiContext },
   ] =
     await Promise.all([
       vite.ssrLoadModule('/src/root/TrChatRoot.vue'),
       vite.ssrLoadModule('/src/page/TrChatPage.vue'),
       vite.ssrLoadModule('/src/components/core/ChatLayout.vue'),
       vite.ssrLoadModule('/src/components/workspace/ChatWorkspaceLayout.vue'),
+      vite.ssrLoadModule('/src/components/core/default-renderer/ChatDefaultHeaderRegion.vue'),
+      vite.ssrLoadModule('/src/components/core/default-renderer/ChatDefaultFooterRegion.vue'),
+      vite.ssrLoadModule('/src/components/core/ChatHeader.vue'),
+      vite.ssrLoadModule('/src/components/core/ChatWelcome.vue'),
+      vite.ssrLoadModule('/src/components/core/ChatMessageList.vue'),
+      vite.ssrLoadModule('/src/components/core/ChatFooter.vue'),
       vite.ssrLoadModule('/src/components/core/ChatSender.vue'),
       vite.ssrLoadModule('/src/components/attachments/ChatAttachments.vue'),
+      vite.ssrLoadModule('/src/components/history/ChatHistorySurface.vue'),
+      vite.ssrLoadModule('/src/components/mcp/useMcpManager.ts'),
       vite.ssrLoadModule('/src/shared/context/index.ts'),
     ])
 
@@ -235,6 +251,273 @@ try {
     return renderToString(app)
   }
 
+  async function renderMountedRootPageWelcomeState() {
+    const welcomePrompts = [
+      { label: 'Mounted root page prompt', description: 'Mounted root page prompt' },
+      { label: 'Mounted root page follow-up', description: 'Mounted root page follow-up' },
+    ]
+
+    const { runtime, ui } = createRuntimeFromConfig({
+      request: {
+        models: [{ id: 'gpt-4.1-mini', providerId: 'openai' }],
+        transport: {
+          type: 'openai-compatible',
+          endpoint: '/api/chat/completions',
+        },
+      },
+      ui: {
+        brand: {
+          title: 'SSR Root Page Welcome',
+        },
+        welcome: {
+          title: 'SSR Root Page Welcome',
+          description: 'Mounted root page should keep official welcome prompts on the default page path.',
+          prompts: welcomePrompts,
+        },
+      },
+    })
+
+    const app = createSSRApp({
+      render: () => h(TrChatRoot, { runtime, ui }, { default: () => h(TrChatPage) }),
+    })
+
+    return renderToString(app)
+  }
+
+  async function renderMountedRootPrimitives({ initialMessages }) {
+    const brandTitle = 'Root + primitives'
+    const welcomeTitle = 'Official Root + primitives entry'
+    const welcomeDescription = 'Compose the public building blocks directly when you want to own page structure yourself.'
+    const welcomePrompts = [{ label: 'Use granular prompt', description: 'Use granular prompt' }]
+
+    const { runtime, ui } = createRuntimeFromConfig({
+      request: {
+        models: [{ id: 'gpt-4.1-mini', providerId: 'openai' }],
+        transport: {
+          type: 'openai-compatible',
+          endpoint: '/api/chat/completions',
+        },
+      },
+      conversation: initialMessages
+        ? {
+            initialMessages,
+          }
+        : undefined,
+      history: {
+        enabled: true,
+        defaultOpen: true,
+      },
+      workspace: {
+        enabled: true,
+        defaultView: 'workspace',
+        left: {
+          enabled: true,
+          defaultOpen: true,
+          collapseMode: 'rail',
+          railLabel: 'History',
+          width: 'md',
+        },
+        right: {
+          enabled: true,
+          defaultOpen: true,
+          collapseMode: 'hidden',
+          width: 'lg',
+        },
+      },
+      attachments: {
+        enabled: true,
+        upload: {
+          enabled: true,
+          accept: '.txt',
+          tooltip: 'Granular runtime upload',
+          multiple: false,
+        },
+        list: {
+          wrap: true,
+        },
+      },
+      sender: {
+        placeholder: 'Granular sender placeholder',
+        mode: 'multiple',
+        maxLength: 400,
+        wordCount: true,
+      },
+      ui: {
+        brand: {
+          title: brandTitle,
+        },
+        welcome: {
+          title: welcomeTitle,
+          description: welcomeDescription,
+          prompts: welcomePrompts,
+        },
+        contentLayout: 'wide',
+      },
+    })
+
+    if (runtime.attachments && initialMessages?.length) {
+      const file = new File(['granular mounted attachment'], 'granular-proof.txt', { type: 'text/plain' })
+      const prepared = runtime.attachments.prepareFiles([file])
+      runtime.sender.addPendingAttachments(prepared)
+    }
+
+    const hasMessages = runtime.conversation.messages.value.length > 0
+
+    const app = createSSRApp({
+      render: () =>
+        h(TrChatRoot, { runtime, ui }, {
+          default: () =>
+            h(
+              ChatWorkspaceLayout,
+              {
+                appearance: ui.appearance,
+                sidebarTitle: ui.brand?.title,
+              },
+              {
+                left: () => h(ChatHistorySurface),
+                right: () =>
+                  h('aside', { 'data-testid': 'granular-right-panel' }, [
+                    h('p', { 'data-testid': 'granular-right-eyebrow' }, 'Public composition'),
+                    h('h3', { 'data-testid': 'granular-right-title' }, 'Root + primitives'),
+                  ]),
+                default: () =>
+                  h(
+                    ChatLayout,
+                    null,
+                    {
+                      default: () => [
+                        h(
+                          ChatHeader,
+                          {
+                            compatibilityRelay: false,
+                            showHistory: true,
+                          },
+                          {
+                            extra: () => h('div', { 'data-testid': 'granular-header-extra' }, 'granular header extra'),
+                          },
+                        ),
+                        hasMessages
+                          ? h(ChatMessageList, {
+                              compatibilityRelay: false,
+                              variant: 'workspace',
+                            })
+                          : h(ChatWelcome, {
+                              compatibilityRelay: false,
+                            }),
+                        h(ChatFooter, null, {
+                          default: () => [h(ChatAttachments), h(ChatSender)],
+                        }),
+                      ],
+                    },
+                  ),
+              },
+            ),
+        }),
+    })
+
+    return renderToString(app)
+  }
+
+  async function renderOwnerLinkedHeaderAndFooterTools() {
+    const { runtime } = createRuntimeFromConfig({
+      request: {
+        models: [
+          { id: 'gpt-4.1-mini', providerId: 'openai' },
+          { id: 'claude-3-7-sonnet', providerId: 'anthropic' },
+        ],
+        transport: {
+          type: 'openai-compatible',
+          endpoint: '/api/chat/completions',
+        },
+      },
+      history: {
+        enabled: true,
+        defaultOpen: true,
+      },
+      workspace: {
+        enabled: true,
+        defaultView: 'workspace',
+        right: {
+          enabled: true,
+          defaultOpen: false,
+          collapseMode: 'rail',
+        },
+      },
+      sender: {
+        placeholder: 'Owner linked footer sender',
+      },
+    })
+
+    runtime.workspace.isMobile.value = true
+    runtime.workspace.left.visible.value = false
+    runtime.workspace.left.collapsed.value = false
+    runtime.workspace.right.visible.value = false
+    runtime.workspace.right.collapsed.value = true
+
+    const chatUi = createChatUiContext({ workspaceRuntime: runtime.workspace })
+    const mcpManager = useMcpManager({
+      initialPlugins: [
+        {
+          id: 'owner-linked-plugin',
+          name: 'Owner Linked Plugin',
+          enabled: true,
+          tools: [],
+        },
+      ],
+    })
+
+    const app = createSSRApp({
+      render: () =>
+        h('div', [
+          h(ChatDefaultHeaderRegion, {
+            headerInput: {
+              title: 'Owner linked header',
+              showHistory: true,
+              showClose: false,
+            },
+            shell: {
+              variant: 'workspace',
+              rightRegion: {
+                enabled: true,
+              },
+            },
+          }),
+          h(ChatDefaultFooterRegion, {
+            showFooterTools: true,
+            showModelSelector: true,
+            showMcpTrigger: true,
+            modelSelectorInput: {
+              enabled: true,
+              models: [
+                { value: 'gpt-4.1-mini', label: 'GPT 4.1 Mini', providerId: 'openai' },
+                { value: 'claude-3-7-sonnet', label: 'Claude 3.7 Sonnet', providerId: 'anthropic' },
+              ],
+              defaultModel: 'gpt-4.1-mini',
+            },
+            onChangeModel() {},
+          }),
+        ]),
+    })
+
+    app.provide(CHAT_RUNTIME_KEY, runtime)
+    app.provide(CHAT_UI_KEY, chatUi)
+    app.provide(MCP_MANAGER_KEY, mcpManager)
+    app.provide(CHAT_KIT_KEY, {
+      activeConversationId: ref(null),
+      activeConversation: ref(null),
+      status: ref('ready'),
+      lastError: ref(null),
+      sendMessage() {},
+      abort() {},
+      retry() {},
+      createConversation() {
+        return { id: 'new-conversation' }
+      },
+    })
+
+    return renderToString(app)
+  }
+
   await runTest('TrChat.Root + TrChat.Page mounted proof renders the Phase 1B workspace baseline', async () => {
     const html = await renderMountedRootPage()
 
@@ -252,12 +535,51 @@ try {
     assert.equal(html.includes('data-testid="chat-sender-action-voice"'), true)
   })
 
+  await runTest('TrChat.Root + TrChat.Page mounted proof keeps ui.welcome.prompts on the default page path', async () => {
+    const html = await renderMountedRootPageWelcomeState()
+
+    assert.equal(html.includes('SSR Root Page Welcome'), true)
+    assert.equal(html.includes('Mounted root page prompt'), true)
+    assert.equal(html.includes('Mounted root page follow-up'), true)
+  })
+
   await runTest('ChatLayout mounted proof can fall back to runtime-owned renderer config without page-input or scaffold relay', async () => {
     const html = await renderRuntimeBackedLayout()
 
     assert.equal(html.includes('renderer-runtime-proof'), true)
     assert.equal(html.includes('data-content-renderer-count="5"'), true)
     assert.equal(html.includes('data-box-renderer-count="4"'), true)
+  })
+
+  await runTest('TrChat.Root + primitives mounted proof renders the official welcome-state composition without page relay', async () => {
+    const html = await renderMountedRootPrimitives({ initialMessages: [] })
+
+    assert.equal(html.includes('Root + primitives'), true)
+    assert.equal(html.includes('Official Root + primitives entry'), true)
+    assert.equal(html.includes('Use granular prompt'), true)
+    assert.equal(html.includes('data-testid="granular-header-extra"'), true)
+    assert.equal(html.includes('data-testid="granular-right-panel"'), true)
+    assert.equal(html.includes('data-stub="TrHistory"'), true)
+    assert.equal(html.includes('placeholder="Granular sender placeholder"'), true)
+    assert.equal(html.includes('data-mode="multiple"'), true)
+    assert.equal(html.includes('data-show-word-limit="true"'), true)
+    assert.equal(html.includes('data-chat-content-layout="wide"'), true)
+  })
+
+  await runTest('TrChat.Root + primitives mounted proof renders the official message-state composition with history, attachments, and sender defaults', async () => {
+    const html = await renderMountedRootPrimitives({
+      initialMessages: [{ role: 'assistant', content: 'granular owner-path message' }],
+    })
+
+    assert.equal(html.includes('data-testid="stub-bubble-list"'), true)
+    assert.equal(html.includes('granular owner-path message'), true)
+    assert.equal(html.includes('Official Root + primitives entry'), false)
+    assert.equal(html.includes('data-testid="chat-attachments-area"'), true)
+    assert.equal(html.includes('granular-proof.txt'), true)
+    assert.equal(html.includes('data-stub="TrSender"'), true)
+    assert.equal(html.includes('data-count="1"'), true)
+    assert.equal(html.includes('data-history-id='), true)
+    assert.equal(html.includes('data-chat-content-layout="wide"'), true)
   })
 
   await runTest('ChatSender and ChatAttachments mounted proof can fall back to runtime-owned attachment config without feature context', async () => {
@@ -279,6 +601,17 @@ try {
     assert.equal(html.includes('runtime right fallback'), true)
     assert.equal(html.includes('tr-chat-drawer is-open'), true)
     assert.equal(html.includes('tr-chat-workspace-right-sheet is-open'), true)
+  })
+
+  await runTest('default owner header and footer tools mounted proof keep history, model, workspace, and MCP affordances on explicit inputs', async () => {
+    const html = await renderOwnerLinkedHeaderAndFooterTools()
+
+    assert.equal(html.includes('aria-label="打开历史"'), true)
+    assert.equal(html.includes('aria-label="切换工作区面板"'), true)
+    assert.equal(html.includes('data-testid="chat-mcp-trigger"'), true)
+    assert.equal(html.includes('data-testid="chat-mcp-trigger-count"'), true)
+    assert.equal(html.includes('aria-label="选择模型"'), true)
+    assert.equal(html.includes('title="gpt-4.1-mini"'), true)
   })
 } finally {
   await vite.close()

@@ -1,13 +1,4 @@
 export type {
-  ChatScaffoldCallbacks,
-  ChatBeforeSendPayload,
-  ChatBeforeSendResult,
-  TrChatRuntimeInput,
-  TrChatScaffoldContextValue,
-  TrChatScaffoldProps,
-} from './scaffold'
-
-export type {
   BrandConfig,
   ChatAppearanceConfig,
   ChatContentLayout,

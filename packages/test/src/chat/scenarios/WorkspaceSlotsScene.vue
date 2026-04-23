@@ -5,7 +5,7 @@
         <template #left>
           <div class="workspace-panel workspace-panel--left" data-testid="workspace-left-default">
             <strong>Desktop Left Slot</strong>
-            <p>Default blackbox workspace scene uses this left panel on desktop and as the mobile-left fallback.</p>
+            <p>Default workspace scene uses this left panel on desktop and as the mobile-left fallback.</p>
           </div>
         </template>
 
@@ -57,67 +57,29 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { TrChat } from '@opentiny/tiny-robot-chat'
-import { createChatSceneConfig, sharedBrand, sharedPrompts, sharedWelcome } from './sharedDemoFixtures'
+import { createOfficialSceneConfig } from './officialSceneConfig'
 
-const baseWorkspaceConfig = {
-  shell: {
-    variant: 'workspace' as const,
-    leftRegion: {
-      enabled: true,
-      width: 300,
-      collapsible: true,
-      defaultOpen: true,
-      collapseMode: 'rail' as const,
-      railLabel: 'Control',
-    },
-    rightRegion: {
-      enabled: true,
-      width: 320,
-      collapsible: true,
-      defaultOpen: false,
-      collapseMode: 'hidden' as const,
-      railLabel: 'Preview',
-    },
-  },
-  layout: {
-    variant: 'workspace' as const,
-    contentLayout: 'wide' as const,
-  },
-  features: {
-    history: true,
-  },
-}
+const defaultWorkspaceConfig = computed(() =>
+  createOfficialSceneConfig({
+    brandTitle: 'Workspace Slot Default',
+    welcomeTitle: 'Workspace Slot Default Welcome',
+    welcomeDescription: 'Official workspace slot baseline for the blackbox path.',
+    workspace: true,
+    contentLayout: 'wide',
+  }),
+)
 
-const defaultWorkspaceConfig = createChatSceneConfig({
-  ...baseWorkspaceConfig,
-  ui: {
-    brand: {
-      ...sharedBrand,
-      title: 'Workspace Slot Default',
-    },
-    welcome: {
-      ...sharedWelcome,
-      title: 'Workspace Slot Default Welcome',
-    },
-    prompts: sharedPrompts,
-  },
-})
-
-const overrideWorkspaceConfig = createChatSceneConfig({
-  ...baseWorkspaceConfig,
-  ui: {
-    brand: {
-      ...sharedBrand,
-      title: 'Workspace Slot Override',
-    },
-    welcome: {
-      ...sharedWelcome,
-      title: 'Workspace Slot Override Welcome',
-    },
-    prompts: sharedPrompts,
-  },
-})
+const overrideWorkspaceConfig = computed(() =>
+  createOfficialSceneConfig({
+    brandTitle: 'Workspace Slot Override',
+    welcomeTitle: 'Workspace Slot Override Welcome',
+    welcomeDescription: 'Official workspace slot mobile override baseline for the blackbox path.',
+    workspace: true,
+    contentLayout: 'wide',
+  }),
+)
 </script>
 
 <style scoped>

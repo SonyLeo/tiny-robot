@@ -3,7 +3,7 @@ import { BubbleProvider, ThemeProvider } from '@opentiny/tiny-robot'
 import type { BubbleListProps } from '@opentiny/tiny-robot'
 import { computed, getCurrentInstance, inject, type PropType, provide } from 'vue'
 import { useDefaultBubbleConfig } from './useDefaultBubbleConfig'
-import { BUBBLE_CONFIG_KEY, CHAT_RUNTIME_KEY, useChatScaffoldContext } from '@/shared/context'
+import { BUBBLE_CONFIG_KEY, CHAT_RUNTIME_KEY, useChatPageInputs } from '@/shared/context'
 import type { ChatAppearanceConfig, ChatBubbleRenderers, ChatContentLayout, ChatRuntime } from '@/types'
 import { triStateBooleanProp } from '@/shared/utils'
 
@@ -16,12 +16,12 @@ const props = defineProps({
   contentLayout: String as PropType<ChatContentLayout>,
   bubbleRenderers: Object as PropType<ChatBubbleRenderers>,
 })
-const scaffoldContext = useChatScaffoldContext()
 const chatRuntime = inject<ChatRuntime | null>(CHAT_RUNTIME_KEY, null)
-const layoutSlice = computed(() => scaffoldContext?.presetSlices.value.layout)
-const appearanceSlice = computed(() => scaffoldContext?.presetSlices.value.appearance.appearance)
+const pageInputs = useChatPageInputs()
+const layoutInput = computed(() => pageInputs?.value.layout)
+const appearanceInput = computed(() => pageInputs?.value.appearance)
 const resolvedBubbleRenderers = computed<ChatBubbleRenderers | undefined>(
-  () => props.bubbleRenderers ?? chatRuntime?.message.config?.renderers ?? layoutSlice.value?.bubbleRenderers,
+  () => props.bubbleRenderers ?? chatRuntime?.message.config?.renderers ?? layoutInput.value?.bubbleRenderers,
 )
 
 const {
@@ -34,14 +34,14 @@ const contentMatches = computed(() => [
   ...defaultContentMatches,
 ])
 const boxMatches = computed(() => [...(resolvedBubbleRenderers.value?.boxMatches ?? []), ...defaultBoxMatches])
-const resolvedShow = computed(() => props.show ?? layoutSlice.value?.show ?? true)
-const resolvedAppearance = computed(() => props.appearance ?? appearanceSlice.value)
+const resolvedShow = computed(() => props.show ?? layoutInput.value?.show ?? true)
+const resolvedAppearance = computed(() => props.appearance ?? appearanceInput.value)
 const resolvedContentLayout = computed<ChatContentLayout>(
-  () => props.contentLayout ?? layoutSlice.value?.contentLayout ?? 'centered',
+  () => props.contentLayout ?? layoutInput.value?.contentLayout ?? 'centered',
 )
 const themeScopeId = `tr-chat-theme-scope-${getCurrentInstance()?.uid ?? 'fallback'}`
 const scopedThemeTargetElement = `#${themeScopeId}`
-const resolvedRoleConfigs = computed(() => props.roleConfigs ?? layoutSlice.value?.roleConfigs)
+const resolvedRoleConfigs = computed(() => props.roleConfigs ?? layoutInput.value?.roleConfigs)
 
 const mergedRoleConfigs = computed(() => ({
   ...defaultRoles,

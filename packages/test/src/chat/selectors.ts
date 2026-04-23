@@ -11,6 +11,10 @@ export const CHAT_SELECTORS = {
   whiteboxRoot: '[data-testid="chat-whitebox"]',
   whiteboxChat: '[data-testid="chat-whitebox"] .tr-chat',
 
+  // === 细粒度模式选择器 ===
+  granularRoot: '[data-testid="chat-granular"]',
+  granularChat: '[data-testid="chat-granular"] .tr-chat',
+
   // === 布局结构 ===
   header: '.tr-chat__header',
   body: '.tr-chat__body',
@@ -77,7 +81,7 @@ export const CHAT_SELECTORS = {
   // === 测试 Demo 控制按钮 ===
   switchToBlackbox: '[data-testid="switch-blackbox"]',
   switchToWhitebox: '[data-testid="switch-whitebox"]',
-  switchToBlackboxEdge: '[data-testid="switch-blackbox-edge"]',
+  switchToGranular: '[data-testid="switch-granular"]',
   switchToSurfaceApi: '[data-testid="switch-surface-api"]',
 
   // === 状态指示器（白盒 Demo 中注入） ===

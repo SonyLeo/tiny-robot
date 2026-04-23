@@ -15,7 +15,7 @@ import {
 } from '@/shared/context'
 import { resolveChatMessages } from '@/shared/messages'
 import type { TrChatProviderProps } from '@/types'
-import { resolveProviderChatKit } from '@/runtime/scaffold/resolveProviderChatKit'
+import { resolveProviderChatKit } from '@/runtime/provider/resolveProviderChatKit'
 
 defineOptions({ name: 'TrChatProvider' })
 

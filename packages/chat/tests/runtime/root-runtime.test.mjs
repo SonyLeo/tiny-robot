@@ -11,7 +11,7 @@ const jiti = createJiti(import.meta.url, {
 })
 
 const { createRuntimeFromConfig } = await jiti.import('../../src/runtime/config/createRuntimeFromConfig.ts')
-const { createLegacyRootBridge } = await jiti.import('../../src/legacy/rootBridge.ts')
+const { createRootBootstrapState } = await jiti.import('../../src/root/createRootBootstrapState.ts')
 const { computed } = await jiti.import('vue')
 
 await runTest('createRuntimeFromConfig returns a Phase 1A Root baseline with runtime and ui outputs', async () => {
@@ -107,12 +107,12 @@ await runTest('createRuntimeFromConfig eagerly materializes the initialMessages 
 
   await new Promise((resolve) => setTimeout(resolve, 0))
 
-  assert.equal(Boolean(runtime.__legacyPhase1ABridge?.chatKit?.activeConversationId.value), true)
+  assert.equal(Boolean(runtime.history?.activeConversationId.value), true)
   assert.equal(runtime.conversation.messages.value.length, 1)
   assert.equal(runtime.conversation.messages.value[0]?.parts[0]?.text, 'seed-visible-baseline')
 })
 
-await runTest('Root legacy bridge keeps attachments area bound to sender pending attachments', async () => {
+await runTest('Root bootstrap state keeps attachments area bound to sender pending attachments', async () => {
   const { runtime, ui } = createRuntimeFromConfig({
     request: {
       models: [{ id: 'gpt-4.1-mini', providerId: 'openai' }],
@@ -129,16 +129,16 @@ await runTest('Root legacy bridge keeps attachments area bound to sender pending
     },
   })
 
-  const bridge = createLegacyRootBridge(
+  const bootstrap = createRootBootstrapState(
     computed(() => runtime),
     computed(() => ui),
   )
   const file = new File(['hello'], 'phase-1a.txt', { type: 'text/plain' })
 
-  bridge.attachmentsManager.value?.addFiles([file])
+  bootstrap.attachmentsManager.value?.addFiles([file])
 
   assert.equal(runtime.sender?.pendingAttachments.value.length, 1)
-  assert.equal(bridge.attachmentsManager.value?.items, runtime.sender?.pendingAttachments)
+  assert.equal(bootstrap.attachmentsManager.value?.items, runtime.sender?.pendingAttachments)
   assert.equal(runtime.sender?.pendingAttachments.value[0]?.name, 'phase-1a.txt')
 })
 
@@ -180,7 +180,7 @@ await runTest('createRuntimeFromConfig keeps sender attachment handoff and attac
   assert.equal(runtime.sender?.pendingAttachments.value.length, 0)
 })
 
-await runTest('Phase 1B root baseline exposes history models workspace runtime and page bridge slices', async () => {
+await runTest('Phase 1B root baseline exposes history models workspace runtime and page bootstrap slices', async () => {
   const { runtime, ui } = createRuntimeFromConfig({
     request: {
       models: [
@@ -213,7 +213,7 @@ await runTest('Phase 1B root baseline exposes history models workspace runtime a
 
   await new Promise((resolve) => setTimeout(resolve, 0))
 
-  const bridge = createLegacyRootBridge(
+  const bootstrap = createRootBootstrapState(
     computed(() => runtime),
     computed(() => ui),
   )
@@ -223,19 +223,20 @@ await runTest('Phase 1B root baseline exposes history models workspace runtime a
   assert.equal(runtime.models?.currentModelId.value, 'gpt-4.1-mini')
   assert.equal(runtime.workspace?.variant.value, 'workspace')
   assert.equal(runtime.workspace?.enabled.value, true)
-  assert.equal(bridge.shell.value?.variant, 'workspace')
-  assert.equal(bridge.scaffoldContext.presetSlices.value.history.enabled, true)
-  assert.equal(bridge.scaffoldContext.presetSlices.value.modelSelector.enabled, true)
-  assert.equal(bridge.scaffoldContext.models.value.length, 2)
+  assert.equal(bootstrap.shell.value?.variant, 'workspace')
+  assert.equal('scaffoldContext' in bootstrap, false)
+  assert.equal(bootstrap.pageInputs.value.history?.enabled, true)
+  assert.equal(bootstrap.pageInputs.value.modelSelector?.enabled, true)
+  assert.equal(bootstrap.pageInputs.value.modelSelector?.models?.length, 2)
 
-  bridge.scaffoldContext.updateModel(bridge.scaffoldContext.models.value[1])
+  bootstrap.pageInputs.value.updateModel?.(bootstrap.pageInputs.value.modelSelector?.models?.[1])
 
   await new Promise((resolve) => setTimeout(resolve, 0))
 
   assert.equal(runtime.models?.currentModelId.value, 'claude-3.7-sonnet')
-  assert.equal(bridge.scaffoldContext.currentModel.value, 'claude-3.7-sonnet')
-  assert.equal(bridge.chatKit.value.conversations.value.length, 1)
-  assert.equal(bridge.chatKit.value.activeConversationId.value, runtime.history?.activeConversationId.value ?? null)
+  assert.equal(bootstrap.pageInputs.value.modelSelector?.defaultModel, 'claude-3.7-sonnet')
+  assert.equal(bootstrap.chatKit.value.conversations.value.length, 1)
+  assert.equal(bootstrap.chatKit.value.activeConversationId.value, runtime.history?.activeConversationId.value ?? null)
 })
 
 await runTest('createRuntimeFromConfig keeps messageTransforms active on the Root runtime send path', async () => {

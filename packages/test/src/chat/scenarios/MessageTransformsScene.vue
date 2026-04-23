@@ -5,13 +5,7 @@
         <span data-testid="transform-blackbox-chunk-count">chunks:{{ blackboxChunkCount }}</span>
       </div>
 
-      <TrChat
-        :config="messageTransformsConfig"
-        :runtime="{
-          messageTransforms: blackboxTransforms,
-        }"
-        :preset-overrides="messageTransformsOverrides"
-      />
+      <TrChat :config="blackboxConfig" />
     </div>
 
     <div data-testid="chat-message-transforms-whitebox" class="chat-wrapper">
@@ -19,37 +13,18 @@
         <span data-testid="transform-whitebox-chunk-count">chunks:{{ whiteboxChunkCount }}</span>
       </div>
 
-      <TrChat.Provider :chat-kit="messageTransformsWhiteboxChat" v-bind="messageTransformsWhiteboxSlices.provider">
-        <TrChat.Layout
-          v-bind="{ ...messageTransformsWhiteboxSlices.layout, ...messageTransformsWhiteboxSlices.appearance }"
-        >
-          <TrChat.Header v-bind="messageTransformsWhiteboxSlices.header" />
-          <TrChat.Welcome
-            v-if="messageTransformsWhiteboxChat.messages.value.length === 0 && messageTransformsWhiteboxSlices.welcome"
-            v-bind="messageTransformsWhiteboxSlices.welcome"
-            @prompt-click="messageTransformsWhiteboxChat.sendMessage($event)"
-          />
-          <TrChat.MessageList v-else v-bind="messageTransformsWhiteboxSlices.messageList" />
-          <TrChat.Footer>
-            <TrChat.Sender v-bind="messageTransformsWhiteboxSlices.sender" />
-          </TrChat.Footer>
-        </TrChat.Layout>
-      </TrChat.Provider>
+      <TrChat.Root :runtime="whiteboxResolution.runtime" :ui="whiteboxResolution.ui">
+        <TrChat.Page />
+      </TrChat.Root>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import type { BubbleContentRendererProps } from '@opentiny/tiny-robot'
-import { defineComponent, h, ref } from 'vue'
-import {
-  TrChat,
-  createChatAdapterFromConfig,
-  createPresetChatProps,
-  createPresetChatSlices,
-  useChatKit,
-} from '@opentiny/tiny-robot-chat'
-import { createChatSceneConfig } from './sharedDemoFixtures'
+import { computed, defineComponent, h, ref } from 'vue'
+import { TrChat, createRuntimeFromConfig } from '@opentiny/tiny-robot-chat'
+import { createOfficialSceneConfig } from './officialSceneConfig'
 
 const TransformCardRenderer = defineComponent({
   name: 'TransformCardRenderer',
@@ -74,32 +49,6 @@ const TransformCardRenderer = defineComponent({
       )
   },
 })
-
-const messageTransformsConfig = createChatSceneConfig({
-  ui: {
-    brand: {
-      title: 'Message Transforms',
-    },
-    welcome: {
-      title: 'Message Transforms Welcome',
-      description: 'Transform hooks should rewrite the final assistant message and preserve streaming state.',
-    },
-    prompts: [{ label: 'transform prompt', description: 'transform prompt' }],
-  },
-})
-
-const messageTransformsOverrides = {
-  bubbleRenderers: {
-    contentMatches: [
-      {
-        find: (_message: unknown, content: { type?: string; text?: string }) =>
-          content.type === 'text' && Boolean(content.text?.startsWith('[card]')),
-        renderer: TransformCardRenderer,
-        priority: -2,
-      },
-    ],
-  },
-}
 
 const blackboxChunkCount = ref(0)
 const whiteboxChunkCount = ref(0)
@@ -134,16 +83,44 @@ const whiteboxTransforms = {
   },
 }
 
-const messageTransformsWhiteboxAdapter = createChatAdapterFromConfig(messageTransformsConfig)
-const messageTransformsWhiteboxPreset = createPresetChatProps(
-  messageTransformsWhiteboxAdapter,
-  messageTransformsOverrides,
+const transformRenderers = {
+  contentMatches: [
+    {
+      find: (_message: unknown, content: { type?: string; text?: string }) =>
+        content.type === 'text' && Boolean(content.text?.startsWith('[card]')),
+      renderer: TransformCardRenderer,
+      priority: -2,
+    },
+  ],
+}
+
+const blackboxConfig = computed(() =>
+  createOfficialSceneConfig({
+    brandTitle: 'Message Transforms',
+    welcomeTitle: 'Message Transforms Welcome',
+    welcomeDescription: 'Transform hooks should rewrite the final assistant message and preserve streaming state.',
+    welcomePrompts: [{ label: 'transform prompt', description: 'transform prompt' }],
+    messages: {
+      renderers: transformRenderers,
+      transforms: blackboxTransforms,
+    },
+  }),
 )
-const messageTransformsWhiteboxSlices = createPresetChatSlices(messageTransformsWhiteboxPreset)
-const messageTransformsWhiteboxChat = useChatKit({
-  responseProvider: messageTransformsWhiteboxAdapter.createResponseProvider(),
-  messageTransforms: whiteboxTransforms,
-})
+
+const whiteboxConfig = computed(() =>
+  createOfficialSceneConfig({
+    brandTitle: 'Message Transforms Root + Page',
+    welcomeTitle: 'Message Transforms Root + Page',
+    welcomeDescription: 'The whitebox page path should preserve config-owned transforms and renderers.',
+    welcomePrompts: [{ label: 'transform prompt', description: 'transform prompt' }],
+    messages: {
+      renderers: transformRenderers,
+      transforms: whiteboxTransforms,
+    },
+  }),
+)
+
+const whiteboxResolution = computed(() => createRuntimeFromConfig(whiteboxConfig.value))
 </script>
 
 <style scoped>

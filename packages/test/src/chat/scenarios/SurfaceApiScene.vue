@@ -1,7 +1,7 @@
 <template>
   <div class="surface-grid">
     <div data-testid="chat-surface-slots-default" class="chat-wrapper">
-      <TrChat :config="slotSurfaceConfig" :preset-overrides="slotSurfaceOverrides">
+      <TrChat :config="slotSurfaceConfig">
         <template #header-extra>
           <button data-testid="surface-header-extra">Header Extra</button>
         </template>
@@ -22,12 +22,6 @@
           </span>
         </template>
 
-        <template #after="{ role, messageIndexes }">
-          <span v-if="role === 'assistant'" data-testid="surface-after-slot">
-            after-{{ messageIndexes.join('-') }}
-          </span>
-        </template>
-
         <template #content-footer="{ role, messageIndexes }">
           <span v-if="role === 'assistant'" data-testid="surface-content-footer-slot">
             footer-{{ messageIndexes.join('-') }}
@@ -37,7 +31,7 @@
     </div>
 
     <div data-testid="chat-surface-header-slot" class="chat-wrapper">
-      <TrChat :config="slotSurfaceConfig" :preset-overrides="slotSurfaceOverrides">
+      <TrChat :config="slotSurfaceConfig">
         <template #header>
           <div data-testid="surface-header-slot">Custom Header Slot</div>
         </template>
@@ -45,7 +39,7 @@
     </div>
 
     <div data-testid="chat-surface-welcome-slot" class="chat-wrapper">
-      <TrChat :config="slotSurfaceConfig" :preset-overrides="slotSurfaceOverrides">
+      <TrChat :config="slotSurfaceConfig">
         <template #welcome>
           <div data-testid="surface-welcome-slot">Custom Welcome Slot</div>
         </template>
@@ -53,7 +47,7 @@
     </div>
 
     <div data-testid="chat-surface-empty-slot" class="chat-wrapper">
-      <TrChat :config="emptySlotConfig" :preset-overrides="emptySlotOverrides">
+      <TrChat :config="emptySlotConfig">
         <template #empty>
           <div data-testid="surface-empty-slot">Custom Empty Slot</div>
         </template>
@@ -61,7 +55,7 @@
     </div>
 
     <div data-testid="chat-surface-custom-render" class="chat-wrapper">
-      <TrChat :config="customRenderConfig" :runtime="customRenderRuntime" :preset-overrides="customRenderOverrides">
+      <TrChat :config="customRenderConfig">
         <template #message-list="{ messages }">
           <div data-testid="surface-message-list-slot">messages:{{ messages.value.length }}</div>
         </template>
@@ -75,8 +69,24 @@
       </TrChat>
     </div>
 
-    <div data-testid="chat-surface-runtime-chat-kit" class="chat-wrapper">
-      <TrChat :config="runtimeChatKitConfig" :runtime="{ chatKit: runtimeProvidedChatKit }" />
+    <div data-testid="chat-surface-provider-chat-kit" class="chat-wrapper">
+      <TrChat.Provider :chat-kit="runtimeProvidedChatKit">
+        <TrChat.Layout>
+          <TrChat.Header title="Provider ChatKit Surface" :show-new-chat="false" />
+
+          <TrChat.Welcome
+            v-if="runtimeProvidedChatKit.messages.value.length === 0"
+            title="Provider ChatKit Welcome"
+            description="An injected chatKit should keep its own responseProvider."
+          />
+
+          <TrChat.MessageList v-else auto-scroll />
+
+          <TrChat.Footer>
+            <TrChat.Sender placeholder="Provider chatKit sender..." />
+          </TrChat.Footer>
+        </TrChat.Layout>
+      </TrChat.Provider>
     </div>
 
     <div data-testid="chat-surface-runtime-bridge" class="chat-wrapper">
@@ -126,35 +136,45 @@
       </TrChat.Provider>
     </div>
 
-    <div data-testid="chat-surface-scaffold" class="chat-wrapper">
-      <TrChat.Scaffold :config="scaffoldConfig" :callbacks="scaffoldCallbacks" :preset-overrides="scaffoldOverrides">
-        <template #default="{ chatKit, currentModel, selectModel, presetSlices }">
-          <div class="surface-diagnostics">
-            <span data-testid="surface-scaffold-current-model">{{ currentModel.value }}</span>
-            <span data-testid="surface-scaffold-header-title">{{ presetSlices.header.title }}</span>
-            <span data-testid="surface-scaffold-model-log">{{ scaffoldModelLog }}</span>
-            <button data-testid="surface-scaffold-switch-model" @click="selectModel(scaffoldDeepseekModel)">
-              Switch To DeepSeek
-            </button>
-          </div>
+    <div data-testid="chat-surface-granular-model" class="chat-wrapper">
+      <TrChat.Root :runtime="granularModelResolution.runtime" :ui="granularModelResolution.ui">
+        <div class="surface-diagnostics">
+          <span data-testid="surface-granular-current-model">
+            {{ granularModelResolution.runtime.models?.currentModelId.value }}
+          </span>
+          <span data-testid="surface-granular-header-title">
+            {{ granularModelResolution.ui.brand?.title }}
+          </span>
+          <span data-testid="surface-granular-model-log">{{ granularModelLog }}</span>
+          <button data-testid="surface-granular-switch-model" @click="switchGranularModel">Switch To DeepSeek</button>
+        </div>
 
-          <TrChat.Layout>
-            <TrChat.Header />
+        <TrChat.Layout
+          :appearance="granularModelResolution.ui.appearance"
+          :content-layout="granularModelResolution.ui.contentLayout"
+        >
+          <TrChat.Header
+            :title="granularModelResolution.ui.brand?.title"
+            :show-history="false"
+            :show-new-chat="false"
+          />
 
-            <TrChat.Welcome
-              v-if="chatKit.messages.value.length === 0 && presetSlices.welcome"
-              v-bind="presetSlices.welcome"
-              @prompt-click="chatKit.sendMessage($event)"
-            />
+          <TrChat.Welcome
+            v-if="showGranularModelWelcome"
+            :compatibility-relay="false"
+            :title="granularModelResolution.ui.welcome?.title"
+            :description="granularModelResolution.ui.welcome?.description"
+            :prompts="granularModelResolution.ui.welcome?.prompts"
+            @prompt-click="granularModelResolution.runtime.conversation.send({ text: $event })"
+          />
 
-            <TrChat.MessageList v-else v-bind="presetSlices.messageList" />
+          <TrChat.MessageList v-else :compatibility-relay="false" />
 
-            <TrChat.Footer>
-              <TrChat.Sender v-bind="presetSlices.sender" />
-            </TrChat.Footer>
-          </TrChat.Layout>
-        </template>
-      </TrChat.Scaffold>
+          <TrChat.Footer>
+            <TrChat.Sender />
+          </TrChat.Footer>
+        </TrChat.Layout>
+      </TrChat.Root>
     </div>
 
     <div data-testid="chat-surface-provider-branch" class="chat-wrapper">
@@ -178,6 +198,94 @@
       </TrChat.Provider>
     </div>
 
+    <div data-testid="chat-surface-granular-footer-right" class="chat-wrapper">
+      <TrChat.Root :runtime="granularFooterRightResolution.runtime" :ui="granularFooterRightResolution.ui">
+        <TrChat.Layout
+          :appearance="granularFooterRightResolution.ui.appearance"
+          :content-layout="granularFooterRightResolution.ui.contentLayout"
+        >
+          <TrChat.Header :title="granularFooterRightResolution.ui.brand?.title" :show-history="false" />
+
+          <TrChat.Welcome
+            v-if="showGranularFooterRightWelcome"
+            :compatibility-relay="false"
+            :title="granularFooterRightResolution.ui.welcome?.title"
+            :description="granularFooterRightResolution.ui.welcome?.description"
+            :prompts="granularFooterRightResolution.ui.welcome?.prompts"
+            @prompt-click="granularFooterRightResolution.runtime.conversation.send({ text: $event })"
+          />
+
+          <TrChat.MessageList v-else :compatibility-relay="false" />
+
+          <TrChat.Footer>
+            <TrChat.Sender>
+              <template #footer-right>
+                <button data-testid="surface-granular-footer-right-slot">Granular Footer Right Slot</button>
+              </template>
+            </TrChat.Sender>
+          </TrChat.Footer>
+        </TrChat.Layout>
+      </TrChat.Root>
+    </div>
+
+    <div data-testid="chat-surface-granular-sender-config" class="chat-wrapper">
+      <TrChat.Root :runtime="granularSenderConfigResolution.runtime" :ui="granularSenderConfigResolution.ui">
+        <TrChat.Layout
+          :appearance="granularSenderConfigResolution.ui.appearance"
+          :content-layout="granularSenderConfigResolution.ui.contentLayout"
+        >
+          <TrChat.Header :title="granularSenderConfigResolution.ui.brand?.title" :show-history="false" />
+
+          <TrChat.Welcome
+            v-if="showGranularSenderConfigWelcome"
+            :compatibility-relay="false"
+            :title="granularSenderConfigResolution.ui.welcome?.title"
+            :description="granularSenderConfigResolution.ui.welcome?.description"
+            :prompts="granularSenderConfigResolution.ui.welcome?.prompts"
+            @prompt-click="granularSenderConfigResolution.runtime.conversation.send({ text: $event })"
+          />
+
+          <TrChat.MessageList v-else :compatibility-relay="false" />
+
+          <TrChat.Footer>
+            <TrChat.Sender />
+          </TrChat.Footer>
+        </TrChat.Layout>
+      </TrChat.Root>
+    </div>
+
+    <div v-if="showGranularCloseShell" data-testid="chat-surface-granular-close" class="chat-wrapper">
+      <TrChat.Root :runtime="granularCloseResolution.runtime" :ui="granularCloseResolution.ui">
+        <TrChat.Layout
+          :appearance="granularCloseResolution.ui.appearance"
+          :content-layout="granularCloseResolution.ui.contentLayout"
+        >
+          <TrChat.Header
+            :title="granularCloseResolution.ui.brand?.title"
+            :show-history="false"
+            :show-new-chat="false"
+            show-close
+            @close="showGranularCloseShell = false"
+          />
+
+          <TrChat.Welcome
+            v-if="showGranularCloseWelcome"
+            :compatibility-relay="false"
+            :title="granularCloseResolution.ui.welcome?.title"
+            :description="granularCloseResolution.ui.welcome?.description"
+            :prompts="granularCloseResolution.ui.welcome?.prompts"
+            @prompt-click="granularCloseResolution.runtime.conversation.send({ text: $event })"
+          />
+
+          <TrChat.MessageList v-else :compatibility-relay="false" />
+
+          <TrChat.Footer>
+            <TrChat.Sender />
+          </TrChat.Footer>
+        </TrChat.Layout>
+      </TrChat.Root>
+    </div>
+
     <div data-testid="chat-surface-history-surface" class="history-surface-wrapper">
       <div class="history-surface-toolbar">
         <button data-testid="history-surface-seed" @click="seedHistorySurface">Seed Conversations</button>
@@ -191,77 +299,59 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { TrChat, useChatKit } from '@opentiny/tiny-robot-chat'
+import { computed, ref } from 'vue'
+import { TrChat, createRuntimeFromConfig, useChatKit } from '@opentiny/tiny-robot-chat'
 import type { ChatMessage, ConversationStorageStrategy } from '@opentiny/tiny-robot-kit'
 import { createMockProvider } from '../mockProvider'
-import { createChatSceneConfig } from './sharedDemoFixtures'
+import { createOfficialSceneConfig } from './officialSceneConfig'
 
 const SurfaceWelcomeIcon = {
   template: '<span data-testid="surface-welcome-icon">I</span>',
 }
 
-const slotSurfaceConfig = createChatSceneConfig({
-  ui: {
-    brand: {
-      title: 'Surface Default Slots',
+const slotSurfaceConfig = computed(() =>
+  createOfficialSceneConfig({
+    brandTitle: 'Surface Default Slots',
+    welcomeTitle: 'Surface Welcome',
+    welcomeDescription: 'Default renderer slot passthrough should stay intact.',
+    welcomeIcon: SurfaceWelcomeIcon,
+    sender: {
+      placeholder: 'slot surface sender...',
+      maxLength: 80,
     },
-    welcome: {
-      title: 'Surface Welcome',
-      description: 'Default renderer slot passthrough should stay intact.',
-      icon: SurfaceWelcomeIcon,
+  }),
+)
+
+const emptySlotConfig = computed(() => {
+  const config = createOfficialSceneConfig({
+    brandTitle: 'Empty Slot Surface',
+    welcomeTitle: 'Unused Welcome',
+    welcomeDescription: 'This welcome content is removed so the empty slot can take over.',
+  })
+
+  return {
+    ...config,
+    ui: {
+      ...config.ui,
+      welcome: undefined,
     },
-    prompts: [{ label: 'slot prompt', description: 'slot prompt' }],
-  },
+  }
 })
 
-const slotSurfaceOverrides = {
-  placeholder: 'slot surface sender...',
-  maxLength: 80,
-}
-
-const emptySlotConfig = createChatSceneConfig({
-  ui: {
-    brand: {
-      title: 'Empty Slot Surface',
-    },
-  },
-})
-
-const emptySlotOverrides = {}
-
-const customRenderConfig = createChatSceneConfig({
-  ui: {
-    brand: {
-      title: 'Custom Render Surface',
-    },
-  },
-})
-
-const customRenderRuntime = {
-  initialMessages: [
-    {
-      id: 'custom-render-initial',
-      role: 'assistant',
-      content: 'Initial custom render message',
-    },
-  ],
-}
-
-const customRenderOverrides = {}
-
-const runtimeChatKitConfig = createChatSceneConfig({
-  ui: {
-    brand: {
-      title: 'Runtime ChatKit Surface',
-    },
-    welcome: {
-      title: 'Runtime ChatKit Welcome',
-      description: 'An injected chatKit should keep its own responseProvider.',
-    },
-    prompts: [{ label: 'runtime chatKit prompt', description: 'runtime chatKit prompt' }],
-  },
-})
+const customRenderConfig = computed(() =>
+  createOfficialSceneConfig({
+    brandTitle: 'Custom Render Surface',
+    welcomeTitle: 'Custom Render Surface',
+    welcomeDescription: 'Message-list and sender slots should receive live slot props.',
+    initialMessages: [
+      {
+        id: 'custom-render-initial',
+        role: 'assistant',
+        content: 'Initial custom render message',
+      },
+    ],
+  }),
+)
 
 const runtimeProvidedChatKit = useChatKit({
   responseProvider: createMockProvider({
@@ -330,38 +420,89 @@ function sendRuntimeBridgeMessage() {
   runtimeBridgeChat.sendMessage('runtime-bridge-path')
 }
 
-const scaffoldModelLog = ref('')
-const scaffoldConfig = createChatSceneConfig({
-  ui: {
-    brand: {
-      title: 'Surface Scaffold',
-    },
-    welcome: {
-      title: 'Scaffold Welcome',
-      description: 'Scaffold slot should expose adapter and model state.',
-    },
-    prompts: [{ label: 'scaffold prompt', description: 'scaffold prompt' }],
-  },
-})
+const granularModelLog = ref('')
+const granularModelConfig = computed(() =>
+  createOfficialSceneConfig({
+    brandTitle: 'Surface Granular Model Switch',
+    welcomeTitle: 'Granular Model Switch',
+    welcomeDescription: 'Manual Root + primitives composition should expose model runtime and page inputs.',
+    models: [
+      { id: 'openai-test', label: 'OpenAI Test', providerId: 'openai' },
+      { id: 'deepseek-test', label: 'DeepSeek Test', providerId: 'deepseek' },
+    ],
+    defaultModelId: 'openai-test',
+    welcomePrompts: [{ label: 'granular prompt', description: 'granular prompt' }],
+  }),
+)
+const granularModelResolution = computed(() => createRuntimeFromConfig(granularModelConfig.value))
+const showGranularModelWelcome = computed(
+  () => granularModelResolution.value.runtime.conversation.messages.value.length === 0,
+)
 
-const scaffoldCallbacks = {
-  onModelChange(model: { value: string }) {
-    scaffoldModelLog.value = model.value
-  },
-}
+async function switchGranularModel() {
+  const modelsRuntime = granularModelResolution.value.runtime.models
+  if (!modelsRuntime) {
+    return
+  }
 
-const scaffoldOverrides = {}
-
-const scaffoldDeepseekModel = {
-  value: 'deepseek-test',
-  label: 'DeepSeek Test',
-  providerId: 'deepseek',
+  const nextModelId = 'deepseek-test'
+  const changed = await Promise.resolve(modelsRuntime.selectModel(nextModelId))
+  if (changed !== false) {
+    granularModelLog.value = modelsRuntime.currentModelId.value ?? ''
+  }
 }
 
 const providerBranchResponseProvider = createMockProvider({
   provider: 'provider-branch',
   model: 'provider-branch-model',
 })
+
+const granularFooterRightConfig = computed(() =>
+  createOfficialSceneConfig({
+    brandTitle: 'Granular Footer Right Surface',
+    welcomeTitle: 'Granular Footer Right Surface',
+    welcomeDescription:
+      'The official granular path should allow footer-right slot replacement without default sender tools.',
+  }),
+)
+
+const granularFooterRightResolution = computed(() => createRuntimeFromConfig(granularFooterRightConfig.value))
+const showGranularFooterRightWelcome = computed(
+  () => granularFooterRightResolution.value.runtime.conversation.messages.value.length === 0,
+)
+
+const granularSenderConfig = computed(() =>
+  createOfficialSceneConfig({
+    brandTitle: 'Granular Sender Config Surface',
+    welcomeTitle: 'Granular Sender Config Surface',
+    welcomeDescription:
+      'The official granular path should allow sender config to disable voice and word-count affordances.',
+    sender: {
+      wordCount: false,
+      voice: {
+        enabled: false,
+      },
+    },
+  }),
+)
+
+const granularSenderConfigResolution = computed(() => createRuntimeFromConfig(granularSenderConfig.value))
+const showGranularSenderConfigWelcome = computed(
+  () => granularSenderConfigResolution.value.runtime.conversation.messages.value.length === 0,
+)
+
+const showGranularCloseShell = ref(true)
+const granularCloseConfig = computed(() =>
+  createOfficialSceneConfig({
+    brandTitle: 'Granular Close Surface',
+    welcomeTitle: 'Granular Close Surface',
+    welcomeDescription: 'Leaf composition should be able to remove the surrounding shell after close.',
+  }),
+)
+const granularCloseResolution = computed(() => createRuntimeFromConfig(granularCloseConfig.value))
+const showGranularCloseWelcome = computed(
+  () => granularCloseResolution.value.runtime.conversation.messages.value.length === 0,
+)
 
 const historySurfaceChat = useChatKit({
   responseProvider: createMockProvider({

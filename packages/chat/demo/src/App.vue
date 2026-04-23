@@ -11,17 +11,17 @@ import './styles/index.css'
 const demoCases = [
   {
     id: 'blackbox',
-    label: '默认接入',
+    label: 'TrChat',
     component: BlackboxDemo,
   },
   {
     id: 'whitebox',
-    label: '结构装配',
+    label: 'Root + Page',
     component: WhiteboxDemo,
   },
   {
     id: 'granular',
-    label: '面板粒度',
+    label: 'Root + primitives',
     component: GranularWorkspaceDemo,
   },
 ] as const

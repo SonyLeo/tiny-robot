@@ -12,22 +12,32 @@ test.describe('Chat Renderer Registry', () => {
     await page.getByTestId('chat-renderer-registry-blackbox').waitFor()
   })
 
-  test('blackbox renderer registry should replace the targeted assistant content renderer and box attributes', async ({
+  test('blackbox TrChat should replace the targeted assistant content renderer and box attributes', async ({
     page,
   }) => {
     const root = page.locator('[data-testid="chat-renderer-registry-blackbox"] .tr-chat')
 
-    await expect(root.getByTestId('renderer-registry-card')).toContainText('[card] Blackbox custom renderer card')
+    await expect(root.getByTestId('renderer-registry-card')).toContainText('[card] Official custom renderer card')
     await expect(root.locator('.tr-bubble__box[data-registry-box="true"]')).toHaveCount(1)
     await expect(
       root.locator(helper.selectors.bubbleContent).filter({ hasText: 'Plain assistant fallback' }),
     ).toBeVisible()
   })
 
-  test('whitebox layout should consume the same renderer registry contract through preset slices', async ({ page }) => {
+  test('Root + Page should consume the same runtime-owned renderer registry', async ({ page }) => {
     const root = page.locator('[data-testid="chat-renderer-registry-whitebox"] .tr-chat')
 
-    await expect(root.getByTestId('renderer-registry-card')).toContainText('[card] Blackbox custom renderer card')
+    await expect(root.getByTestId('renderer-registry-card')).toContainText('[card] Official custom renderer card')
+    await expect(root.locator('.tr-bubble__box[data-registry-box="true"]')).toHaveCount(1)
+    await expect(
+      root.locator(helper.selectors.bubbleContent).filter({ hasText: 'Plain assistant fallback' }),
+    ).toBeVisible()
+  })
+
+  test('Root + primitives should keep the renderer registry without relying on page relay', async ({ page }) => {
+    const root = page.locator('[data-testid="chat-renderer-registry-granular"] .tr-chat')
+
+    await expect(root.getByTestId('renderer-registry-card')).toContainText('[card] Official custom renderer card')
     await expect(root.locator('.tr-bubble__box[data-registry-box="true"]')).toHaveCount(1)
     await expect(
       root.locator(helper.selectors.bubbleContent).filter({ hasText: 'Plain assistant fallback' }),

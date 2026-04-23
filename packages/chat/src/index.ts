@@ -2,7 +2,6 @@ import './styles/index.css'
 
 import {
   Chat as TrChat,
-  ChatScaffold as TrChatScaffold,
   ChatProvider as TrChatProvider,
   ChatLayout as TrChatLayout,
   ChatHeader as TrChatHeader,
@@ -27,7 +26,6 @@ import { ModelSelector as TrModelSelector } from './components/model-selector'
 type TrChatWithSubComponents = typeof TrChat & {
   Root: typeof TrChatRoot
   Page: typeof TrChatPage
-  Scaffold: typeof TrChatScaffold
   Provider: typeof TrChatProvider
   Layout: typeof TrChatLayout
   WorkspaceLayout: typeof TrChatWorkspaceLayout
@@ -46,7 +44,6 @@ type TrChatWithSubComponents = typeof TrChat & {
 const TrChatFull = TrChat as TrChatWithSubComponents
 TrChatFull.Root = TrChatRoot
 TrChatFull.Page = TrChatPage
-TrChatFull.Scaffold = TrChatScaffold
 TrChatFull.Provider = TrChatProvider
 TrChatFull.Layout = TrChatLayout
 TrChatFull.WorkspaceLayout = TrChatWorkspaceLayout
@@ -88,7 +85,6 @@ export {
   TrMcpTrigger,
   TrModelSelector,
   TrChatProvider,
-  TrChatScaffold,
   TrChatFeedback,
   TrChatMcpPanel,
   TrChatLayout,
@@ -114,12 +110,9 @@ export type {
   BrandConfig,
   ChatAttachmentsRuntime,
   ChatBeforeSendHandler,
-  ChatScaffoldCallbacks,
   ChatConversationCreateInput,
   ChatConversationRuntime,
   ChatConversationSummary,
-  ChatBeforeSendPayload,
-  ChatBeforeSendResult,
   ChatErrorHandler,
   ChatHistoryRuntime,
   ChatMcpRuntime,
@@ -134,7 +127,6 @@ export type {
   ChatUIMessageMeta,
   ChatUIMessagePart,
   ChatUIMessageRole,
-  TrChatRuntimeInput,
   ChatWorkspaceRegionRuntime,
   ChatAppearanceConfig,
   ChatContentLayout,
@@ -159,7 +151,6 @@ export type {
   UseChatKitReturn,
   TrChatProps,
   TrChatProviderProps,
-  TrChatScaffoldProps,
   TrChatHeaderProps,
   TrChatWelcomeProps,
   TrChatMessageListProps,
@@ -196,7 +187,6 @@ export type {
   TrChatTransportConfig,
   TrChatUiConfig,
   TrChatWorkspaceConfig,
-  TrChatScaffoldContextValue,
   ChatShellVariant,
   ChatWorkspaceRegionCollapseMode,
   ChatWorkspaceRegionConfig,

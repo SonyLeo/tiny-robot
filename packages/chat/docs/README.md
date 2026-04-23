@@ -6,6 +6,8 @@ It does not try to explain everything in one file. Its job is to route people an
 
 ## Start Here
 
+- `../README.md`
+  Use this first for the official package entry surfaces, helper boundary, and demo route map.
 - `SOURCE_OF_TRUTH.md`
   Use this first when you need to know which file should be edited.
 - `CURRENT_VS_TARGET_SURFACE.md`
@@ -20,7 +22,7 @@ It does not try to explain everything in one file. Its job is to route people an
   `overview.md`, `api-runtime.md`, `execution.md`
 - `refactor/process/`
   Active process docs:
-  `review-scheme.md`, `alignment-tracker.md`
+  `review-scheme.md`, `alignment-tracker.md`, `test-boundary-baseline.md`, `legacy-surface-inventory.md`, `legacy-retirement-roadmap.md`, `provider-helper-decision-baseline.md`, `full-cutover-closure-checklist.md`
 - `refactor/reviews/`
   Meeting-specific review materials
 - `refactor/archive/`
@@ -49,16 +51,26 @@ If you are doing refactor design or review:
 3. `refactor/design/overview.md`
 4. `refactor/design/api-runtime.md`
 5. `refactor/process/alignment-tracker.md`
-6. `refactor/knowledge/PLAYBOOK.md`
+6. `refactor/process/test-boundary-baseline.md`
+7. `refactor/process/legacy-retirement-roadmap.md`
+8. `refactor/process/provider-helper-decision-baseline.md`
+9. `refactor/process/full-cutover-closure-checklist.md`
+10. `refactor/knowledge/PLAYBOOK.md`
 
 If you are implementing the current phase:
 
-1. `SOURCE_OF_TRUTH.md`
-2. `refactor/REFACTOR_COLLAB_GUIDE.md`
-3. `refactor/design/api-runtime.md`
-4. `refactor/design/execution.md`
-5. the active execution slice under `exec-plans/active/`
-6. `refactor/knowledge/PLAYBOOK.md`
+1. `../README.md`
+2. `SOURCE_OF_TRUTH.md`
+3. `refactor/REFACTOR_COLLAB_GUIDE.md`
+4. `refactor/design/api-runtime.md`
+5. `refactor/design/execution.md`
+6. `refactor/process/test-boundary-baseline.md`
+7. `refactor/process/legacy-surface-inventory.md`
+8. `refactor/process/legacy-retirement-roadmap.md`
+9. `refactor/process/provider-helper-decision-baseline.md`
+10. `refactor/process/full-cutover-closure-checklist.md`
+11. the active execution slice under `exec-plans/active/`
+12. `refactor/knowledge/PLAYBOOK.md`
 
 ## Maintenance Rule
 

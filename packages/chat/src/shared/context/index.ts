@@ -1,8 +1,6 @@
 import { getCurrentInstance, inject, type ComputedRef, type InjectionKey, type Ref } from 'vue'
 import type {
   ChatAttachmentsFeaturePreset,
-  ChatBeforeSendPayload,
-  ChatBeforeSendResult,
   ChatBubbleRenderers,
   ChatContentLayout,
   ChatMessageActionsInput,
@@ -15,7 +13,6 @@ import type {
 import type { UseMcpManagerReturn } from '@/components/mcp/useMcpManager'
 import type { UseChatAttachmentsReturn } from '@/components/attachments/useChatAttachments'
 import type { BubbleListProps, PromptProps } from '@opentiny/tiny-robot'
-import type { TrChatScaffoldContextValue } from '@/types/scaffold'
 import type { ChatUiContextValue } from '@/components/workspace/chatUiContext'
 import type { ChatRuntime } from '@/types/root'
 import type { BrandConfig, ChatAppearanceConfig, ChatListVariant } from '@/types/core'
@@ -118,10 +115,6 @@ export const CHAT_SENDER_ACTIONS_KEY: InjectionKey<{
 }> = Symbol('chatSenderActions')
 
 export const CHAT_MESSAGES_KEY: InjectionKey<ComputedRef<ChatMessages>> = Symbol('chatMessages')
-export const CHAT_SCAFFOLD_KEY: InjectionKey<TrChatScaffoldContextValue> = Symbol('chatScaffold')
-export const CHAT_BEFORE_SEND_KEY: InjectionKey<
-  ((payload: ChatBeforeSendPayload) => ChatBeforeSendResult | Promise<ChatBeforeSendResult>) | undefined
-> = Symbol('chatBeforeSend')
 
 export const MESSAGE_ACTION_KEY: InjectionKey<((payload: ChatMessageActionPayload) => void) | undefined> =
   Symbol('messageAction')
@@ -145,10 +138,6 @@ export const CHAT_HISTORY_KEY: InjectionKey<{
   selectAll: (ids: string[]) => void
   clearSelection: () => void
 }> = Symbol('chatHistory')
-
-export function useChatScaffoldContext() {
-  return inject(CHAT_SCAFFOLD_KEY, null)
-}
 
 export function useChatPageInputs() {
   return inject(CHAT_PAGE_INPUTS_KEY, null)

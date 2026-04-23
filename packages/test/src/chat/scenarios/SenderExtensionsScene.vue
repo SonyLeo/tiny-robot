@@ -1,18 +1,38 @@
 <template>
   <div class="sender-extensions-grid">
-    <div data-testid="chat-sender-extensions-blackbox" class="chat-wrapper">
-      <TrChat :config="senderExtensionsConfig" :preset-overrides="senderExtensionsBlackboxOverrides" />
-    </div>
-
-    <div data-testid="chat-sender-extensions-whitebox" class="chat-wrapper">
-      <TrChat.Provider :chat-kit="senderExtensionsWhiteboxChat">
-        <TrChat.Layout>
-          <TrChat.Header title="Sender Extensions Whitebox" />
+    <div data-testid="chat-sender-extensions-granular" class="chat-wrapper">
+      <TrChat.Root :runtime="granularResolution.runtime" :ui="granularResolution.ui">
+        <TrChat.Layout
+          :appearance="granularResolution.ui.appearance"
+          :content-layout="granularResolution.ui.contentLayout"
+        >
+          <TrChat.Header :title="granularResolution.ui.brand?.title" />
 
           <TrChat.Welcome
-            v-if="showSenderExtensionsWhiteboxWelcome"
+            v-if="showSenderExtensionsGranularWelcome"
+            :compatibility-relay="false"
+            :title="granularResolution.ui.welcome?.title"
+            :description="granularResolution.ui.welcome?.description"
+          />
+
+          <TrChat.MessageList v-else :compatibility-relay="false" auto-scroll />
+
+          <TrChat.Footer>
+            <TrChat.Sender :extensions="senderSuggestionExtensions" placeholder="Type ECS to trigger suggestions..." />
+          </TrChat.Footer>
+        </TrChat.Layout>
+      </TrChat.Root>
+    </div>
+
+    <div data-testid="chat-sender-extensions-provider" class="chat-wrapper">
+      <TrChat.Provider :chat-kit="senderExtensionsProviderChat">
+        <TrChat.Layout>
+          <TrChat.Header title="Sender Extensions Provider" />
+
+          <TrChat.Welcome
+            v-if="showSenderExtensionsProviderWelcome"
             title="Sender Extensions"
-            description="White-box passthrough verification for senderProps.extensions."
+            description="Provider passthrough verification for TrChat.Sender extensions."
           />
 
           <TrChat.MessageList v-else auto-scroll />
@@ -29,8 +49,9 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { TrSender } from '@opentiny/tiny-robot'
-import { TrChat, createChatAdapterFromConfig, useChatKit } from '@opentiny/tiny-robot-chat'
-import { createChatSceneConfig } from './sharedDemoFixtures'
+import { TrChat, createRuntimeFromConfig, useChatKit } from '@opentiny/tiny-robot-chat'
+import { createMockProvider } from '../mockProvider'
+import { createOfficialSceneConfig } from './officialSceneConfig'
 
 const senderExtensionSuggestions = [
   { content: 'ECS instance startup issue' },
@@ -40,30 +61,25 @@ const senderExtensionSuggestions = [
 
 const senderSuggestionExtensions = [TrSender.suggestion(senderExtensionSuggestions)]
 
-const senderExtensionsConfig = createChatSceneConfig({
-  ui: {
-    brand: {
-      title: 'Sender Extensions Blackbox',
-    },
-    welcome: {
-      title: 'Sender Extensions',
-      description: 'Type ECS in the sender to verify senderProps.extensions passthrough.',
-    },
-  },
-})
+const senderExtensionsConfig = computed(() =>
+  createOfficialSceneConfig({
+    brandTitle: 'Sender Extensions Granular',
+    welcomeTitle: 'Sender Extensions',
+    welcomeDescription: 'Type ECS in the sender to verify TrChat.Sender extensions on the granular path.',
+  }),
+)
 
-const senderExtensionsBlackboxOverrides = {
-  senderProps: {
-    extensions: senderSuggestionExtensions,
-    placeholder: 'Type ECS to trigger suggestions...',
-  },
-}
-
-const senderExtensionsAdapter = createChatAdapterFromConfig(senderExtensionsConfig)
-const senderExtensionsWhiteboxChat = useChatKit({
-  responseProvider: senderExtensionsAdapter.createResponseProvider(),
+const granularResolution = computed(() => createRuntimeFromConfig(senderExtensionsConfig.value))
+const senderExtensionsProviderChat = useChatKit({
+  responseProvider: createMockProvider({
+    provider: 'sender-extensions-provider',
+    model: 'sender-extensions-model',
+  }),
 })
-const showSenderExtensionsWhiteboxWelcome = computed(() => senderExtensionsWhiteboxChat.messages.value.length === 0)
+const showSenderExtensionsGranularWelcome = computed(
+  () => granularResolution.value.runtime.conversation.messages.value.length === 0,
+)
+const showSenderExtensionsProviderWelcome = computed(() => senderExtensionsProviderChat.messages.value.length === 0)
 </script>
 
 <style scoped>

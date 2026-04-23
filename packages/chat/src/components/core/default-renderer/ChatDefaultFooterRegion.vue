@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { inject } from 'vue'
-import { CHAT_KIT_KEY } from '@/shared/context'
+import { CHAT_KIT_KEY, type ChatPageModelSelectorInput } from '@/shared/context'
 import type { ModelOption } from '@/types'
 import ChatAttachments from '@/components/attachments/ChatAttachments.vue'
 import ChatFooter from '../ChatFooter.vue'
@@ -14,6 +14,7 @@ const props = defineProps<{
   showFooterTools: boolean
   showModelSelector: boolean
   showMcpTrigger: boolean
+  modelSelectorInput?: ChatPageModelSelectorInput
 }>()
 
 const emit = defineEmits<{
@@ -47,7 +48,12 @@ function handleModelChange(model: ModelOption) {
       <ChatSender>
         <template v-if="props.showFooterTools" #footer>
           <div class="tr-chat-footer-tools">
-            <ModelSelector v-if="props.showModelSelector" @change="handleModelChange" />
+            <ModelSelector
+              v-if="props.showModelSelector"
+              :models="props.modelSelectorInput?.models"
+              :model-value="props.modelSelectorInput?.defaultModel"
+              @change="handleModelChange"
+            />
             <McpTrigger v-if="props.showMcpTrigger" />
           </div>
         </template>

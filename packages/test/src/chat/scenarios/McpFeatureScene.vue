@@ -1,20 +1,28 @@
 <template>
   <div class="scene-grid">
-    <div data-testid="chat-mcp-feature-blackbox" class="chat-wrapper">
-      <TrChat :config="mcpFeatureConfig" :runtime="{ mcpManager: mcpBlackboxManager }" />
+    <div data-testid="chat-mcp-feature-provider" class="chat-wrapper">
+      <TrChat.Provider :response-provider="mcpProviderResponseProvider" :mcp-manager="mcpProviderManager">
+        <TrChat.Layout>
+          <TrChat.Header title="MCP Provider" />
+          <TrChat.MessageList auto-scroll />
+          <TrChat.Footer>
+            <TrChat.Sender placeholder="Provider MCP sender...">
+              <template #footer>
+                <TrMcpTrigger />
+              </template>
+            </TrChat.Sender>
+          </TrChat.Footer>
+        </TrChat.Layout>
+      </TrChat.Provider>
     </div>
 
-    <div data-testid="chat-mcp-feature-whitebox" class="chat-wrapper">
-      <TrChat.Provider :chat-kit="mcpWhiteboxChat" v-bind="mcpWhiteboxSlices.provider">
-        <TrChat.Layout v-bind="{ ...mcpWhiteboxSlices.layout, ...mcpWhiteboxSlices.appearance }">
-          <TrChat.Header v-bind="mcpWhiteboxSlices.header" />
-          <TrChat.Welcome
-            v-if="showMcpWhiteboxWelcome && mcpWhiteboxSlices.welcome"
-            v-bind="mcpWhiteboxSlices.welcome"
-          />
-          <TrChat.MessageList v-else v-bind="mcpWhiteboxSlices.messageList" />
+    <div data-testid="chat-mcp-feature-granular" class="chat-wrapper">
+      <TrChat.Provider :response-provider="mcpGranularResponseProvider" :mcp-manager="mcpGranularManager">
+        <TrChat.Layout>
+          <TrChat.Header title="MCP Granular" />
+          <TrChat.MessageList auto-scroll />
           <TrChat.Footer>
-            <TrChat.Sender v-bind="mcpWhiteboxSlices.sender">
+            <TrChat.Sender placeholder="Granular MCP sender...">
               <template #footer>
                 <TrMcpTrigger />
               </template>
@@ -27,17 +35,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import {
-  TrChat,
-  TrMcpTrigger,
-  createChatAdapterFromConfig,
-  createPresetChatProps,
-  createPresetChatSlices,
-  useChatKit,
-  useMcpManager,
-} from '@opentiny/tiny-robot-chat'
-import { createChatSceneConfig } from './sharedDemoFixtures'
+import { TrChat, TrMcpTrigger, useMcpManager } from '@opentiny/tiny-robot-chat'
+import { createMockProvider } from '../mockProvider'
 
 const mcpFeaturePlugins = [
   {
@@ -59,38 +58,20 @@ const mcpFeaturePlugins = [
   },
 ]
 
-const mcpBlackboxManager = useMcpManager({
+const mcpProviderManager = useMcpManager({
   initialPlugins: mcpFeaturePlugins,
 })
-const mcpWhiteboxManager = useMcpManager({
+const mcpGranularManager = useMcpManager({
   initialPlugins: mcpFeaturePlugins,
 })
-
-const mcpFeatureConfig = createChatSceneConfig({
-  ui: {
-    brand: {
-      title: 'MCP Feature',
-    },
-    welcome: {
-      title: 'MCP Feature Welcome',
-      description: 'MCP manager should travel through integrations / preset / provider.',
-    },
-  },
+const mcpProviderResponseProvider = createMockProvider({
+  provider: 'mcp-provider',
+  model: 'mcp-provider-model',
 })
-
-const mcpWhiteboxAdapter = createChatAdapterFromConfig({
-  ...mcpFeatureConfig,
-  integrations: {
-    mcpManager: mcpWhiteboxManager,
-  },
+const mcpGranularResponseProvider = createMockProvider({
+  provider: 'mcp-granular',
+  model: 'mcp-granular-model',
 })
-const mcpWhiteboxPreset = createPresetChatProps(mcpWhiteboxAdapter)
-const mcpWhiteboxSlices = createPresetChatSlices(mcpWhiteboxPreset)
-const mcpWhiteboxChat = useChatKit({
-  responseProvider: mcpWhiteboxAdapter.createResponseProvider(),
-})
-
-const showMcpWhiteboxWelcome = computed(() => mcpWhiteboxChat.messages.value.length === 0)
 </script>
 
 <style scoped>

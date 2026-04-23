@@ -1,44 +1,102 @@
-# Chat Test Conventions
+# Chat E2E Conventions
 
-This folder contains the E2E-facing chat demo entry, scenario fixtures, and Playwright specs used to verify `packages/chat`.
+This folder contains the Playwright-facing chat demo entry, scene fixtures, and end-to-end specs used to verify `packages/chat`.
+
+Post-closure cleanup treats this suite as the slower user-path gate.
+The fast pre-delete gate lives in `packages/chat/tests`.
+
+The current official entry ladder is:
+
+1. `TrChat`
+2. `TrChat.Root + TrChat.Page`
+3. `TrChat.Root + primitives`
+
+Use that ladder as the default mental model for new scenes and spec updates.
+
+The detailed keep/adapt/retire classification lives in:
+
+- `packages/chat/docs/refactor/process/test-boundary-baseline.md`
+
+The first promoted official-path Playwright gate now includes:
+
+- `index.spec.ts`
+- `history.spec.ts`
+- `request-lifecycle.spec.ts`
+- `scenario-specs/workspace-slots.spec.ts`
+- `scenario-specs/renderer-registry.spec.ts`
+
+The next adapted official-path handoff batch is now green, but not yet promoted into the default gate:
+
+- `scenario-specs/layout-config.spec.ts`
+- `scenario-specs/welcome-prompts.spec.ts`
+- `sender-actions.spec.ts`
+- `scenario-specs/surface-api.spec.ts`
+- `scenario-specs/sender-extensions.spec.ts`
+- `scenario-specs/mcp-feature.spec.ts`
+- `scenario-specs/message-transforms.spec.ts`
 
 ## Directory Layout
 
 - `index.vue`
-  - Demo entry only.
-  - Owns `chatMode` routing and mounts scene components.
+  - demo entry and `chatMode` router only
 - `scenarios/`
-  - Demo scene components and shared fixtures.
-  - Put demo-only Vue scenes here, not Playwright specs.
+  - scene components and shared demo fixtures
 - `scenario-specs/`
-  - Specs for independent scene pages that are entered with `?chatMode=...`.
-  - Current examples: `layout-config`, `mcp-feature`, `sender-extensions`, `surface-api`, `welcome-prompts`.
+  - specs that target one dedicated `chatMode` scene
 - top-level `*.spec.ts`
-  - Keep entry smoke specs, main-entry capability specs, and cross-scene regression specs here.
-  - Current examples:
-    - `index.spec.ts`
-    - `attachments.spec.ts`
-    - `history.spec.ts`
-    - `request-lifecycle.spec.ts`
-    - `feedback.spec.ts`
-    - `edge-overrides.spec.ts`
-    - `model-switch.spec.ts`
-    - `sender-actions.spec.ts`
+  - entry smoke specs, shared-flow specs, and cross-scene regression specs
 - `testHelper.ts`
-  - Shared chat interaction helpers and assertions.
+  - shared chat interaction helpers
 - `selectors.ts`
-  - Stable selectors for reusable chat DOM access.
+  - stable selectors reused across specs
+
+## Current Gate Role
+
+### Official-path gate after adaptation
+
+These are the user-visible behaviors that should survive post-closure cleanup:
+
+- blackbox `TrChat` request flow
+- `Root + Page` page-shell behavior
+- `Root + primitives` granular composition behavior
+- sender, attachments, history, model switching, workspace slots
+- renderer registry, message transforms, request lifecycle, MCP affordances
+
+### Mixed or legacy-oriented coverage
+
+Current reality:
+
+- some scenes still use `TrChat.Provider` or comparison-oriented helper setup
+- that setup is still useful while cleanup is in progress
+- it should not be treated as one undifferentiated hard gate
+
+Default rule:
+
+- keep or adapt only the specs that still prove official-path behavior
+- retire specs that only protect explicit compatibility or already-deferred legacy behavior
 
 ## File Placement Rules
 
-- Add a new file under `scenarios/` when you need a new demo scene or fixture page.
-- Add a new file under `scenario-specs/` when the spec targets one dedicated `chatMode` scene.
-- Keep a spec at the top level only when it verifies:
-  - the main entry switching flow
-  - a main-entry capability that still uses the shared blackbox/whitebox demo entry
+- add a file under `scenarios/` when you need a new scene or fixture page
+- add a file under `scenario-specs/` when a spec targets one dedicated `chatMode` scene
+- keep a spec at the top level only when it verifies:
+  - main-entry scene switching
+  - a shared blackbox or whitebox user flow
   - behavior spanning multiple scenes
-  - shared helper behavior
-- Do not mix Vue scene code and Playwright spec code in the same file.
+- do not mix Vue scene code and Playwright spec code in the same file
+
+## Scene Rules
+
+- prefer scenes that start from the official entry ladder
+- keep `index.vue` as a thin router, not a large fixture dump
+- preserve `data-testid` values once a spec depends on them
+- keep shared target-config defaults in `scenarios/officialSceneConfig.ts` when reused
+
+If a scene still uses helper-heavy compatibility setup:
+
+- keep it narrow
+- document why it still exists
+- do not let it become the default example for new specs
 
 ## Spec Writing Pattern
 
@@ -46,7 +104,7 @@ Use this structure for new specs:
 
 ```ts
 import { expect, test } from '@playwright/test'
-import { createChatTestHelper } from '../testHelper'
+import { createChatTestHelper } from './testHelper'
 
 test.describe('Feature Name', () => {
   let helper: ReturnType<typeof createChatTestHelper>
@@ -61,94 +119,58 @@ test.describe('Feature Name', () => {
 })
 ```
 
-When a test still depends on the top-level demo entry, use `helper.switchToBlackbox()`, `helper.switchToWhitebox()`, or `helper.switchToBlackboxEdge()` instead of open-coded button clicks.
+When a test still depends on the top-level demo entry, prefer:
 
-## Selector Rules
+- `helper.switchToBlackbox()`
+- `helper.switchToWhitebox()`
+- `helper.switchToGranular()`
 
-- Prefer `testHelper` methods first.
-- Prefer `selectors.ts` for reusable DOM lookups.
-- Prefer `data-testid` for scene roots and demo-only controls.
-- Prefer semantic selectors already used by the component when they are stable enough across specs.
-- Do not add ad-hoc long CSS chains into multiple specs. If a selector is reused, move it into `selectors.ts` or a helper method.
+instead of open-coded button clicks.
 
-## Assertion Rules
+## Selector And Assertion Rules
 
-- One test should verify one behavior slice.
-- Keep test names behavior-first:
-  - good: `blackbox layout config should drive docs variant and custom placements`
-  - avoid: `test layout config`
-- Assert the smallest stable signal that proves the behavior:
+- prefer `testHelper` methods first
+- prefer `selectors.ts` for reusable DOM lookups
+- prefer `data-testid` for scene roots and demo-only controls
+- keep assertions focused on the smallest stable signal:
   - visible state
   - count
   - attribute
   - text
-  - event side effect rendered in the demo
-- Prefer root-scoped assertions like `const root = '[data-testid="..."] .tr-chat'` to avoid cross-scene leakage.
+  - rendered side effect
+- scope assertions to one scene root whenever possible
 
 ## Flake Reduction
 
-- Always wait for the scene root before interacting.
-- Use helper methods such as `waitForAssistantReply()` and `waitForStreamingComplete()` instead of raw timeouts.
-- Avoid `page.waitForTimeout(...)` unless the UI behavior is animation-bound and there is no stable DOM signal.
-- Do not make width or position assertions stricter than the rendered UI needs. If pixel rounding is possible, prefer a tolerant assertion.
-- Keep each spec focused on one scene and one state flow.
+- always wait for the scene root before interacting
+- use helper waits such as `waitForAssistantReply()` and `waitForStreamingComplete()`
+- avoid raw timeouts when a DOM signal exists
+- keep width or position assertions tolerant when pixel rounding is possible
 
-## Scene Conventions
+## Post-Closure Adaptation Policy
 
-- Scene components should preserve existing `data-testid` values once a spec depends on them.
-- Shared scene data belongs in `scenarios/sharedDemoFixtures.ts` when reused across multiple scenes.
-- `index.vue` should remain a thin scene router, not a large fixture dump.
+When updating this suite for cleanup:
 
-## E2E Coverage Checklist
+1. check `test-boundary-baseline.md`
+2. adapt retained specs toward the official entry ladder
+3. only then promote them into the post-closure deletion gate
 
-Use this checklist when changing `packages/chat` public behavior.
+Do not spend cleanup time preserving specs that only prove:
 
-- `TrChat` blackbox scaffold flow
-  - `config` drives brand, welcome, prompts, appearance, layout variant, role placement, and providerId-based model routing.
-  - `callbacks` cover `onFinish`, `onError`, `onMessageAction`, and `onModelChange`.
-  - `presetOverrides` cover placeholder, maxLength, sender mode, history, feedback, and role config overrides.
-  - local blackbox scenarios should prefer the adapter-owned runtime path backed by the test app's `/api/*` mock endpoints, not legacy provider-factory injection.
-- `TrChat` default renderer slots
-  - `header`
-  - `header-extra`
-  - `welcome`
-  - `empty`
-  - `message-list`
-  - `sender`
-  - `footer-extra`
-  - workspace panel slots: `left`, `left-rail`, `right`, `mobile-left`, `mobile-right`
-  - bubble passthrough slots: `prefix`, `suffix`, `after`, `content-footer`
-- workspace panel behavior
-  - blackbox `TrChat` should forward panel-level workspace slots through the default renderer chain
-  - `mobile-left` should fall back to `left`, then default sidebar
-  - `mobile-right` should fall back to `right`, then default right panel
-- `TrChat.Scaffold`
-  - slot props expose `chatKit`, `adapter`, `presetProps`, `presetSlices`, `currentModel`, and `selectModel`
-  - custom composition still renders and model switching still works
-- `TrChat.Provider`
-  - `chatKit` branch
-  - `responseProvider` branch
-  - feature/message injections remain available to descendants
-- Leaf component surfaces
-  - `TrChat.Layout`
-  - `TrChat.Header`
-  - `TrChat.Welcome`
-  - `TrChat.MessageList`
-  - `TrChat.Footer`
-  - `TrChat.Sender`
-  - `TrChat.Attachments`
-  - `TrChat.History`
-  - `TrChat.HistorySurface`
-  - `TrMcpTrigger`
-  - `TrModelSelector`
-  - `TrChatFeedback`
-  - `TrChatMcpPanel`
+- `ui.prompts`
+- old `layout.variant / placements`
+- broad edge override compatibility
+- helper-heavy setup that is no longer part of the official package story
 
-## Helper Conventions
+If a compatibility-only assertion is intentionally dropped during handoff, record that contract drop in
+`packages/chat/docs/refactor/process/test-boundary-baseline.md` before deleting or rewriting the old spec branch.
 
-- Add a helper method only when the interaction is reused or non-trivial.
-- Keep helper names action-oriented: `sendMessage`, `clickPrompt`, `expectDrawerOpen`.
-- If a new helper is scene-specific and only used once, keep it local to that spec first.
+The old `edge-overrides.spec.ts` file has now retired.
+Keep following the same rule it used to model:
+
+- hand off official-path boundaries first
+- delete the legacy spec and scene as soon as nothing unresolved remains
+- do not keep a compatibility-only scene alive once every remaining branch has either an official successor or an explicit contract drop
 
 ## Commands
 
@@ -156,16 +178,12 @@ Common targeted runs:
 
 ```powershell
 pnpm.cmd -F tiny-robot-test test -- src/chat/index.spec.ts
-pnpm.cmd -F tiny-robot-test test -- src/chat/scenario-specs/layout-config.spec.ts
+pnpm.cmd -F tiny-robot-test test -- src/chat/scenario-specs/workspace-slots.spec.ts
 ```
 
-When moving or adding specs:
+When moving or adapting specs:
 
-1. run the affected spec before changes
-2. make the move or refactor
-3. rerun the affected spec on the new path
-4. update any docs or progress notes that hardcode the old path
-
-## Historical Note
-
-`workspace` scenes and legacy preset-root coverage were removed after the underlying chat package APIs were deleted. New demo scenes and Playwright specs should target the retained `TrChat`, `TrChat.Scaffold`, `ChatProvider`, and `ChatLayout` surfaces.
+1. run the affected spec before changes if it still represents real behavior
+2. adapt the scene or assertion
+3. rerun the affected spec
+4. update `test-boundary-baseline.md` if its keep/adapt/retire status changed

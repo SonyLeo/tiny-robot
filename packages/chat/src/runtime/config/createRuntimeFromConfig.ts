@@ -11,7 +11,6 @@ import {
   isChatMessageEditing,
   isChatMessageOptimistic,
 } from '@/runtime/chat-kit/chatMessageState'
-import { attachLegacyPhase1ABridgeHints } from '@/legacy/runtimeHints'
 import { ensureRuntimeMessageId } from '@/runtime/core/messageIdentity'
 import { extractMessageText } from '@/runtime/core/normalizeRuntime'
 import { cloneMessages } from '@/runtime/chat-kit/useChatMessages'
@@ -524,28 +523,22 @@ export function createRuntimeFromConfig(config: TrChatConfig): CreateRuntimeFrom
     const history = createHistoryRuntimeFromChatKit(chatKit)
     const workspace = createWorkspaceRuntimeFromConfig(config)
 
-    const runtime: ChatRuntimeInput = attachLegacyPhase1ABridgeHints(
-      {
-        conversation,
-        sender,
-        message,
-        history,
-        models,
-        workspace,
-        attachments: {
-          enabled: computed(() => config.attachments?.enabled !== false),
-          prepareFiles(files) {
-            return files.map(normalizeAttachment)
-          },
-          uploadConfig: computed(() => config.attachments?.upload),
-          listConfig: computed(() => config.attachments?.list),
+    const runtime: ChatRuntimeInput = {
+      conversation,
+      sender,
+      message,
+      history,
+      models,
+      workspace,
+      attachments: {
+        enabled: computed(() => config.attachments?.enabled !== false),
+        prepareFiles(files) {
+          return files.map(normalizeAttachment)
         },
+        uploadConfig: computed(() => config.attachments?.upload),
+        listConfig: computed(() => config.attachments?.list),
       },
-      {
-        chatKit,
-        attachmentsManager,
-      },
-    )
+    }
 
     return {
       runtime,

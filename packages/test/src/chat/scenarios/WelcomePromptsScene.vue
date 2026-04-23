@@ -1,19 +1,19 @@
 <template>
   <div data-testid="chat-welcome-prompts" class="welcome-prompts-grid">
     <div data-testid="chat-welcome-prompts-enabled" class="chat-wrapper">
-      <TrChat :config="welcomePromptsConfig" />
+      <TrChat :config="enabledPromptsConfig" />
     </div>
 
     <div data-testid="chat-welcome-prompts-disabled" class="chat-wrapper">
-      <TrChat :config="disabledWelcomePromptsConfig" />
+      <TrChat :config="disabledPromptsConfig" />
     </div>
 
     <div data-testid="chat-welcome-prompts-override" class="chat-wrapper">
-      <TrChat :config="welcomePromptsConfig" :preset-overrides="overrideWelcomePromptsBlackboxOverrides" />
+      <TrChat :config="overridePromptsConfig" />
     </div>
 
     <div data-testid="chat-welcome-prompts-slot" class="chat-wrapper">
-      <TrChat :config="welcomePromptsConfig">
+      <TrChat :config="enabledPromptsConfig">
         <template #welcome>
           <div data-testid="welcome-slot-content">Custom welcome slot</div>
         </template>
@@ -21,94 +21,61 @@
     </div>
 
     <div data-testid="chat-welcome-prompts-whitebox" class="chat-wrapper">
-      <TrChat.Provider :chat-kit="whiteboxWelcomePromptsChat" v-bind="whiteboxWelcomePromptsSlices.provider">
-        <TrChat.Layout v-bind="{ ...whiteboxWelcomePromptsSlices.layout, ...whiteboxWelcomePromptsSlices.appearance }">
-          <TrChat.Header v-bind="whiteboxWelcomePromptsSlices.header" />
-
-          <TrChat.Welcome
-            v-if="showWhiteboxWelcomePrompts && whiteboxWelcomePromptsSlices.welcome"
-            v-bind="whiteboxWelcomePromptsSlices.welcome"
-            @prompt-click="handleWhiteboxWelcomePromptClick"
-          />
-
-          <TrChat.MessageList v-else auto-scroll />
-
-          <TrChat.Footer>
-            <TrChat.Sender
-              v-bind="whiteboxWelcomePromptsSlices.sender"
-              placeholder="Whitebox welcome prompts test..."
-            />
-          </TrChat.Footer>
-        </TrChat.Layout>
-      </TrChat.Provider>
+      <TrChat.Root :runtime="whiteboxResolution.runtime" :ui="whiteboxResolution.ui">
+        <TrChat.Page />
+      </TrChat.Root>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import {
-  TrChat,
-  createChatAdapterFromConfig,
-  createPresetChatProps,
-  createPresetChatSlices,
-  useChatKit,
-} from '@opentiny/tiny-robot-chat'
-import { createChatSceneConfig } from './sharedDemoFixtures'
+import { TrChat, createRuntimeFromConfig } from '@opentiny/tiny-robot-chat'
+import { createOfficialSceneConfig } from './officialSceneConfig'
 
-const welcomePromptsConfig = createChatSceneConfig({
-  ui: {
-    brand: {
-      title: 'Welcome Prompts Test',
-    },
-    welcome: {
-      title: 'Welcome Prompts',
-      description: 'Verify welcomePrompts feature -> preset -> TrChat flow.',
-    },
-    prompts: [{ label: 'legacy prompt', description: 'legacy prompt' }],
-  },
-  features: {
-    welcomePrompts: {
-      welcome: [
-        { label: 'feature prompt 1', description: 'feature prompt 1' },
-        { label: 'feature prompt 2', description: 'feature prompt 2' },
-        { label: 'feature prompt 3', description: 'feature prompt 3' },
-      ],
-    },
-  },
-})
+const enabledPrompts = [
+  { label: 'feature prompt 1', description: 'feature prompt 1' },
+  { label: 'feature prompt 2', description: 'feature prompt 2' },
+  { label: 'feature prompt 3', description: 'feature prompt 3' },
+]
 
-const disabledWelcomePromptsConfig = createChatSceneConfig({
-  ui: {
-    brand: {
-      title: 'Welcome Prompts Disabled Test',
-    },
-    welcome: {
-      title: 'Welcome Prompts Disabled',
-      description: 'Verify disabled welcomePrompts clears all prompts.',
-    },
-    prompts: [{ label: 'legacy prompt', description: 'legacy prompt' }],
-  },
-  features: {
-    welcomePrompts: false,
-  },
-})
+const enabledPromptsConfig = computed(() =>
+  createOfficialSceneConfig({
+    brandTitle: 'Welcome Prompts Official',
+    welcomeTitle: 'Welcome Prompts Official',
+    welcomeDescription: 'Official ui.welcome.prompts should render on the blackbox path.',
+    welcomePrompts: enabledPrompts,
+  }),
+)
 
-const overrideWelcomePromptsBlackboxOverrides = {
-  prompts: [{ label: 'override prompt', description: 'override prompt' }],
-}
+const disabledPromptsConfig = computed(() =>
+  createOfficialSceneConfig({
+    brandTitle: 'Welcome Prompts Disabled',
+    welcomeTitle: 'Welcome Prompts Disabled',
+    welcomeDescription: 'An empty official prompt list should leave the welcome surface without prompt items.',
+    welcomePrompts: [],
+  }),
+)
 
-const whiteboxWelcomePromptsAdapter = createChatAdapterFromConfig(welcomePromptsConfig)
-const whiteboxWelcomePromptsPreset = createPresetChatProps(whiteboxWelcomePromptsAdapter)
-const whiteboxWelcomePromptsSlices = createPresetChatSlices(whiteboxWelcomePromptsPreset)
-const whiteboxWelcomePromptsChat = useChatKit({
-  responseProvider: whiteboxWelcomePromptsAdapter.createResponseProvider(),
-})
-const showWhiteboxWelcomePrompts = computed(() => whiteboxWelcomePromptsChat.messages.value.length === 0)
+const overridePromptsConfig = computed(() =>
+  createOfficialSceneConfig({
+    brandTitle: 'Welcome Prompts Override',
+    welcomeTitle: 'Welcome Prompts Override',
+    welcomeDescription: 'A scene-local official prompt set should replace the default prompt list.',
+    welcomePrompts: [{ label: 'override prompt', description: 'override prompt' }],
+  }),
+)
 
-function handleWhiteboxWelcomePromptClick(description: string) {
-  whiteboxWelcomePromptsChat.sendMessage(description)
-}
+const whiteboxConfig = computed(() =>
+  createOfficialSceneConfig({
+    brandTitle: 'Welcome Prompts Root + Page',
+    welcomeTitle: 'Welcome Prompts Root + Page',
+    welcomeDescription: 'Official Root + Page should preserve ui.welcome.prompts and welcome transition behavior.',
+    welcomePrompts: enabledPrompts,
+  }),
+)
+
+const whiteboxResolution = computed(() => createRuntimeFromConfig(whiteboxConfig.value))
 </script>
 
 <style scoped>

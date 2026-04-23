@@ -1,27 +1,28 @@
 <template>
   <div class="scene-grid">
     <div data-testid="chat-renderer-registry-blackbox" class="chat-wrapper">
-      <TrChat
-        :config="rendererRegistryConfig"
-        :runtime="{
-          chatKit: rendererRegistryBlackboxChat,
-        }"
-        :preset-overrides="rendererRegistryOverrides"
-      />
+      <TrChat :config="blackboxConfig" />
     </div>
 
     <div data-testid="chat-renderer-registry-whitebox" class="chat-wrapper">
-      <TrChat.Provider :chat-kit="rendererRegistryWhiteboxChat" v-bind="rendererRegistryWhiteboxSlices.provider">
+      <TrChat.Root :runtime="whiteboxResolution.runtime" :ui="whiteboxResolution.ui">
+        <TrChat.Page />
+      </TrChat.Root>
+    </div>
+
+    <div data-testid="chat-renderer-registry-granular" class="chat-wrapper">
+      <TrChat.Root :runtime="granularResolution.runtime" :ui="granularResolution.ui">
         <TrChat.Layout
-          v-bind="{ ...rendererRegistryWhiteboxSlices.layout, ...rendererRegistryWhiteboxSlices.appearance }"
+          :appearance="granularResolution.ui.appearance"
+          :content-layout="granularResolution.ui.contentLayout"
         >
-          <TrChat.Header v-bind="rendererRegistryWhiteboxSlices.header" />
-          <TrChat.MessageList v-bind="rendererRegistryWhiteboxSlices.messageList" />
+          <TrChat.Header :title="granularResolution.ui.brand?.title" />
+          <TrChat.MessageList :compatibility-relay="false" variant="stacked" />
           <TrChat.Footer>
-            <TrChat.Sender v-bind="rendererRegistryWhiteboxSlices.sender" />
+            <TrChat.Sender />
           </TrChat.Footer>
         </TrChat.Layout>
-      </TrChat.Provider>
+      </TrChat.Root>
     </div>
   </div>
 </template>
@@ -29,19 +30,12 @@
 <script setup lang="ts">
 import { BubbleRenderers } from '@opentiny/tiny-robot'
 import type { BubbleContentRendererProps } from '@opentiny/tiny-robot'
-import { defineComponent, h } from 'vue'
-import {
-  TrChat,
-  type TrChatPresetOverrides,
-  createChatAdapterFromConfig,
-  createPresetChatProps,
-  createPresetChatSlices,
-  useChatKit,
-} from '@opentiny/tiny-robot-chat'
-import { createChatSceneConfig } from './sharedDemoFixtures'
+import { computed, defineComponent, h } from 'vue'
+import { TrChat, createRuntimeFromConfig, type TrChatConfig } from '@opentiny/tiny-robot-chat'
+import { createOfficialSceneConfig } from './officialSceneConfig'
 
 const CustomCardRenderer = defineComponent({
-  name: 'RendererRegistryCard',
+  name: 'OfficialRendererRegistryCard',
   props: {
     message: {
       type: Object,
@@ -64,79 +58,85 @@ const CustomCardRenderer = defineComponent({
   },
 })
 
-const rendererRegistryMessages = [
+const rendererRegistryMessages: NonNullable<NonNullable<TrChatConfig['conversation']>['initialMessages']> = [
   {
+    id: 'renderer-registry-assistant-card',
     role: 'assistant',
-    content: '[card] Blackbox custom renderer card',
+    content: '[card] Official custom renderer card',
   },
   {
+    id: 'renderer-registry-user-divider',
     role: 'user',
     content: 'divider',
   },
   {
+    id: 'renderer-registry-assistant-plain',
     role: 'assistant',
     content: 'Plain assistant fallback',
   },
 ]
 
-const rendererRegistryBubbleRenderers: NonNullable<TrChatPresetOverrides['bubbleRenderers']> = {
-  contentMatches: [
-    {
-      find: (_message, content) => content.type === 'text' && Boolean(content.text?.startsWith('[card]')),
-      renderer: CustomCardRenderer,
-      priority: -2,
-    },
-  ],
-  boxMatches: [
-    {
-      find: (messages, content) =>
-        messages.length === 1 &&
-        messages[0]?.role === 'assistant' &&
-        content?.type === 'text' &&
-        Boolean(content.text?.startsWith('[card]')),
-      renderer: BubbleRenderers.Box,
-      priority: -2,
-      attributes: {
-        'data-registry-box': 'true',
+const rendererRegistryConfig = {
+  renderers: {
+    contentMatches: [
+      {
+        find: (_message, content) => content.type === 'text' && Boolean(content.text?.startsWith('[card]')),
+        renderer: CustomCardRenderer,
+        priority: -2,
       },
-    },
-  ],
-}
-
-const rendererRegistryConfig = createChatSceneConfig({
-  ui: {
-    brand: {
-      title: 'Renderer Registry',
-    },
+    ],
+    boxMatches: [
+      {
+        find: (messages, content) =>
+          messages.length === 1 &&
+          messages[0]?.role === 'assistant' &&
+          content?.type === 'text' &&
+          Boolean(content.text?.startsWith('[card]')),
+        renderer: BubbleRenderers.Box,
+        priority: -2,
+        attributes: {
+          'data-registry-box': 'true',
+        },
+      },
+    ],
   },
-  features: {
-    feedback: true,
-  },
-})
+} satisfies NonNullable<TrChatConfig['messages']>
 
-const rendererRegistryOverrides = {
-  bubbleRenderers: rendererRegistryBubbleRenderers,
-}
+const blackboxConfig = computed<TrChatConfig>(() =>
+  createOfficialSceneConfig({
+    brandTitle: 'Renderer Registry Blackbox',
+    welcomeTitle: 'Renderer Registry Blackbox',
+    welcomeDescription: 'Official TrChat path should consume message runtime renderers.',
+    contentLayout: 'wide',
+    initialMessages: rendererRegistryMessages,
+    messages: rendererRegistryConfig,
+  }),
+)
 
-const rendererRegistryWhiteboxAdapter = createChatAdapterFromConfig(rendererRegistryConfig)
-const rendererRegistryWhiteboxPreset = createPresetChatProps(rendererRegistryWhiteboxAdapter, rendererRegistryOverrides)
-const rendererRegistryWhiteboxSlices = createPresetChatSlices(rendererRegistryWhiteboxPreset)
-const rendererRegistryBlackboxChat = useChatKit({
-  responseProvider: rendererRegistryWhiteboxAdapter.createResponseProvider(),
-})
-const rendererRegistryWhiteboxChat = useChatKit({
-  responseProvider: rendererRegistryWhiteboxAdapter.createResponseProvider(),
-})
+const whiteboxConfig = computed<TrChatConfig>(() =>
+  createOfficialSceneConfig({
+    brandTitle: 'Renderer Registry Root + Page',
+    welcomeTitle: 'Renderer Registry Root + Page',
+    welcomeDescription: 'Official Root + Page path should consume the same renderer registry.',
+    contentLayout: 'wide',
+    initialMessages: rendererRegistryMessages,
+    messages: rendererRegistryConfig,
+  }),
+)
 
-const rendererRegistryBlackboxConversation = rendererRegistryBlackboxChat.createConversation({
-  title: 'Renderer Registry Blackbox',
-})
-rendererRegistryBlackboxConversation.engine.messages.value.push(...rendererRegistryMessages)
+const granularConfig = computed<TrChatConfig>(() =>
+  createOfficialSceneConfig({
+    brandTitle: 'Renderer Registry Root + primitives',
+    welcomeTitle: 'Renderer Registry Root + primitives',
+    welcomeDescription: 'Official granular path should consume runtime-owned renderers without page relay.',
+    contentLayout: 'wide',
+    initialMessages: rendererRegistryMessages,
+    messages: rendererRegistryConfig,
+  }),
+)
 
-const rendererRegistryWhiteboxConversation = rendererRegistryWhiteboxChat.createConversation({
-  title: 'Renderer Registry Whitebox',
-})
-rendererRegistryWhiteboxConversation.engine.messages.value.push(...rendererRegistryMessages)
+const whiteboxResolution = computed(() => createRuntimeFromConfig(whiteboxConfig.value))
+const granularResolution = computed(() => createRuntimeFromConfig(granularConfig.value))
 </script>
 
 <style scoped>

@@ -13,6 +13,9 @@ const blackboxEntrySource = readFileSync(
   'utf8',
 )
 const chatPageSource = readFileSync(fileURLToPath(new URL('../../src/page/TrChatPage.vue', import.meta.url)), 'utf8')
+const chatRootSource = readFileSync(fileURLToPath(new URL('../../src/root/TrChatRoot.vue', import.meta.url)), 'utf8')
+const internalSource = readFileSync(fileURLToPath(new URL('../../src/internal.ts', import.meta.url)), 'utf8')
+const sharedContextSource = readFileSync(fileURLToPath(new URL('../../src/shared/context/index.ts', import.meta.url)), 'utf8')
 const chatKitSource = readFileSync(fileURLToPath(new URL('../../src/runtime/chat-kit/useChatKit.ts', import.meta.url)), 'utf8')
 const chatSenderSource = readFileSync(fileURLToPath(new URL('../../src/components/core/ChatSender.vue', import.meta.url)), 'utf8')
 const chatAttachmentsSource = readFileSync(
@@ -89,7 +92,6 @@ await runTest('TrChat compound source keeps the retained subcomponents', async (
   const retainedAssignments = [
     'TrChatFull.Root = TrChatRoot',
     'TrChatFull.Page = TrChatPage',
-    'TrChatFull.Scaffold = TrChatScaffold',
     'TrChatFull.Provider = TrChatProvider',
     'TrChatFull.Layout = TrChatLayout',
     'TrChatFull.Header = TrChatHeader',
@@ -148,7 +150,6 @@ await runTest('named exports still advertise the retained scaffold and helper su
     'TrChatPage',
     'TrMcpTrigger',
     'TrModelSelector',
-    'TrChatScaffold',
     'TrChatFeedback',
     'TrChatMcpPanel',
     'TrChatLayout',
@@ -185,34 +186,24 @@ await runTest('official page surface is exported as a dedicated TrChat.Page wrap
 
 await runTest('blackbox TrChat source keeps Root + Page explicit for target TrChatConfig while classifying compatibility callbacks as either supported lifecycle hooks or scaffold fallback', async () => {
   assert.equal(chatSource.includes('createRuntimeFromConfig'), true)
-  assert.equal(chatSource.includes('resolveRootPageBlackboxConfig(props)'), true)
-  assert.equal(chatSource.includes('!props.callbacks'), false)
-  assert.equal(chatSource.includes('<TrChatRoot v-if="blackboxResolution"'), true)
+  assert.equal(chatSource.includes('resolveRootPageBlackboxConfig(props.config)'), true)
+  assert.equal(chatSource.includes('<TrChatRoot :runtime="blackboxResolution.runtime" :ui="blackboxResolution.ui">'), true)
   assert.equal(chatSource.includes('<TrChatPage>'), true)
-  assert.equal(chatSource.includes('<ChatScaffold'), true)
-  assert.equal(chatSource.includes('v-else'), true)
-  assert.equal(blackboxEntrySource.includes('callbacks?.onBeforeSend'), true)
-  assert.equal(blackboxEntrySource.includes('callbacks?.onMessageAction'), true)
-  assert.equal(blackboxEntrySource.includes('callbacks?.onModelChange'), true)
-  assert.equal(blackboxEntrySource.includes('afterReceive: chainHandlers'), true)
-  assert.equal(blackboxEntrySource.includes('error: chainHandlers'), true)
+  assert.equal(chatSource.includes('<ChatScaffold'), false)
+  assert.equal(chatSource.includes('v-else'), false)
   assert.equal(blackboxEntrySource.includes('JSON.parse(value)'), true)
-  assert.equal(blackboxEntrySource.includes("new Set(['models', 'providers', 'defaults'])"), true)
-  assert.equal(blackboxEntrySource.includes("new Set([...LEGACY_REQUEST_KEYS, 'appearance', 'ui'])"), true)
-  assert.equal(blackboxEntrySource.includes("new Set(['brand', 'welcome'])"), true)
-  assert.equal(blackboxEntrySource.includes("new Set([...LEGACY_DISPLAY_KEYS, 'layout'])"), true)
-  assert.equal(blackboxEntrySource.includes("new Set(['contentLayout'])"), true)
-  assert.equal(blackboxEntrySource.includes("new Set([...LEGACY_CONTENT_LAYOUT_KEYS, 'shell'])"), true)
-  assert.equal(blackboxEntrySource.includes("new Set(['variant', 'leftRegion', 'rightRegion'])"), true)
-  assert.equal(blackboxEntrySource.includes("new Set([...LEGACY_SHELL_CONFIG_KEYS, 'viewState'])"), true)
-  assert.equal(blackboxEntrySource.includes("new Set(['fullWidth'])"), true)
-  assert.equal(
-    blackboxEntrySource.includes("new Set(['enabled', 'collapsible', 'defaultOpen', 'collapseMode', 'width', 'railLabel'])"),
-    true,
-  )
-  assert.equal(blackboxEntrySource.includes('isLegacyShellViewStateFallbackSubset(props.config)'), true)
-  assert.equal(blackboxEntrySource.includes('workspace:'), true)
-  assert.equal(blackboxEntrySource.includes('loadChatConfig(parsedValue)'), true)
+  assert.equal(blackboxEntrySource.includes('isTargetTrChatConfig(resolvedConfig)'), true)
+  assert.equal(blackboxEntrySource.includes('mergeLifecycleCompatibleCallbacks'), false)
+  assert.equal(blackboxEntrySource.includes('hasUnsupportedBlackboxCallbacks'), false)
+})
+
+await runTest('root bootstrap source no longer provides internal scaffold context or runtime bridge hints', async () => {
+  assert.equal(chatRootSource.includes('CHAT_SCAFFOLD_KEY'), false)
+  assert.equal(chatRootSource.includes('provide(CHAT_SCAFFOLD_KEY'), false)
+  assert.equal(sharedContextSource.includes('export const CHAT_SCAFFOLD_KEY'), false)
+  assert.equal(sharedContextSource.includes('export function useChatScaffoldContext'), false)
+  assert.equal(internalSource.includes('CHAT_SCAFFOLD_KEY'), false)
+  assert.equal(internalSource.includes('useChatScaffoldContext'), false)
 })
 
 await runTest('official page source consumes the narrow page-input boundary instead of raw scaffold preset slices', async () => {
@@ -235,14 +226,23 @@ await runTest('default page path passes explicit primitive inputs instead of rel
   assert.equal(chatPageSource.includes(':appearance="appearanceInput"'), true)
   assert.equal(chatPageSource.includes(':enabled="historyInput?.enabled"'), true)
   assert.equal(chatPageSource.includes(':compatibility-relay="false" :enabled="historyInput?.enabled"'), true)
+  assert.equal(chatPageSource.includes(':model-selector-input="modelSelectorInput"'), true)
   assert.equal(defaultHeaderRegionSource.includes(':compatibility-relay="false"'), true)
   assert.equal(defaultBodyRegionSource.includes(':compatibility-relay="false"'), true)
   assert.equal(defaultHeaderRegionSource.includes(':title="headerInput?.title"'), true)
   assert.equal(defaultHeaderRegionSource.includes(':shell="shell"'), true)
-  assert.equal(chatHeaderSource.includes('const shouldUseCompatibilityRelay = computed(() => props.compatibilityRelay !== false)'), true)
-  assert.equal(chatHistorySource.includes('const shouldUseCompatibilityRelay = computed(() => props.compatibilityRelay !== false)'), true)
-  assert.equal(chatWelcomeSource.includes('const shouldUseCompatibilityRelay = computed(() => props.compatibilityRelay !== false)'), true)
-  assert.equal(chatMessageListSource.includes('const shouldUseCompatibilityRelay = computed(() => props.compatibilityRelay !== false)'), true)
+  assert.equal(chatHeaderSource.includes('useChatPageInputs'), true)
+  assert.equal(chatHeaderSource.includes('useChatScaffoldContext'), false)
+  assert.equal(chatMessageListSource.includes('useChatPageInputs'), true)
+  assert.equal(chatMessageListSource.includes('useChatScaffoldContext'), false)
+  assert.equal(chatWelcomeSource.includes('useChatPageInputs'), true)
+  assert.equal(chatWelcomeSource.includes('useChatScaffoldContext'), false)
+  assert.equal(chatHistorySource.includes('useChatPageInputs'), true)
+  assert.equal(chatHistorySource.includes('useChatScaffoldContext'), false)
+  assert.equal(chatHeaderSource.includes('const headerInput = computed(() => pageInputs?.value.header)'), true)
+  assert.equal(chatMessageListSource.includes('const messageListInput = computed(() => pageInputs?.value.messageList)'), true)
+  assert.equal(chatWelcomeSource.includes('const welcomeInput = computed(() => pageInputs?.value.welcome)'), true)
+  assert.equal(chatHistorySource.includes('const historyInput = computed(() => pageInputs?.value.history)'), true)
 })
 
 await runTest('chat provider source no longer reads scaffold shell directly once callers pass shell explicitly', async () => {
@@ -288,7 +288,6 @@ await runTest('renamed provider-facing type exports stay visible through the pub
     'TrChatConfig',
     'ChatPresetProviderSlice',
     'TrChatRootProps',
-    'TrChatRuntimeInput',
     'TrChatProviderProps',
   ]
 
@@ -300,7 +299,6 @@ await runTest('renamed provider-facing type exports stay visible through the pub
     'ChatRuntimeInput',
     'TrChatConfig',
     'TrChatRootProps',
-    'TrChatRuntimeInput',
     'TrChatProviderProps',
     'TrChatProviderSharedProps',
   ]
@@ -323,16 +321,16 @@ await runTest('chat sender source prefers runtime-owned sender and attachment de
   assert.equal(chatSenderSource.includes('const senderDefaults = computed(() => chatRuntime?.sender.defaults)'), true)
   assert.equal(chatSenderSource.includes('senderDefaults.value?.voice ?? senderActionsFeature.value?.voice'), true)
   assert.equal(chatSenderSource.includes('senderDefaults.value?.wordCount ?? senderActionsFeature.value?.wordCount'), true)
-  assert.equal(
-    chatSenderSource.includes(
-      'const uploadConfig = runtimeUploadConfig.value ?? attachmentsContext?.feature.upload ?? senderActionsFeature.value?.upload',
-    ),
-    true,
-  )
+  assert.equal(chatSenderSource.includes('const uploadConfig ='), true)
+  assert.equal(chatSenderSource.includes('runtimeUploadConfig.value ?? attachmentsContext?.feature.upload'), true)
+  assert.equal(chatSenderSource.includes('?? senderActionsFeature.value?.upload'), true)
   assert.equal(chatSenderSource.includes('const hasAttachmentOwner = computed(() => Boolean(chatRuntime?.attachments || attachmentsContext))'), true)
   assert.equal(chatSenderSource.includes('senderDefaults.value?.mode'), true)
   assert.equal(chatSenderSource.includes('senderDefaults.value?.placeholder'), true)
   assert.equal(chatSenderSource.includes('senderDefaults.value?.maxLength'), true)
+  assert.equal(chatSenderSource.includes('useChatScaffoldContext'), false)
+  assert.equal(chatSenderSource.includes('senderSlice'), false)
+  assert.equal(chatSenderSource.includes('fallbackSenderAttrs'), false)
 })
 
 await runTest('chat attachments source can fall back to runtime-owned pending attachments and list config without attachment feature context', async () => {
@@ -378,11 +376,13 @@ await runTest('feedback owner-path source can fall back to runtime-owned feedbac
   assert.equal(chatFeedbackSource.includes('if (!feedbackEnabled.value) return false'), true)
 })
 
-await runTest('renderer owner-path source can fall back to runtime-owned renderer config before scaffold relay', async () => {
+await runTest('renderer owner-path source can fall back to runtime-owned renderer config before page-input relay', async () => {
   assert.equal(chatLayoutSource.includes('CHAT_RUNTIME_KEY'), true)
   assert.equal(chatLayoutSource.includes('const chatRuntime = inject<ChatRuntime | null>(CHAT_RUNTIME_KEY, null)'), true)
+  assert.equal(chatLayoutSource.includes('useChatPageInputs'), true)
+  assert.equal(chatLayoutSource.includes('useChatScaffoldContext'), false)
   assert.equal(
-    chatLayoutSource.includes('props.bubbleRenderers ?? chatRuntime?.message.config?.renderers ?? layoutSlice.value?.bubbleRenderers'),
+    chatLayoutSource.includes('props.bubbleRenderers ?? chatRuntime?.message.config?.renderers ?? layoutInput.value?.bubbleRenderers'),
     true,
   )
 })
@@ -430,5 +430,14 @@ await runTest('default page footer source keeps footer-extra as the only page-le
   assert.equal(defaultFooterRegionSource.includes('<slot name="footer-extra" />'), true)
   assert.equal(defaultFooterRegionSource.includes('<slot name="footer"'), false)
   assert.equal(defaultFooterRegionSource.includes('<ChatFooter v-else>'), true)
+})
+
+await runTest('default page footer and model selector source prefer explicit model owner inputs before page-input fallback', async () => {
+  assert.equal(defaultFooterRegionSource.includes(':models="props.modelSelectorInput?.models"'), true)
+  assert.equal(defaultFooterRegionSource.includes(':model-value="props.modelSelectorInput?.defaultModel"'), true)
+  assert.equal(modelSelectorSource.includes('useChatPageInputs'), true)
+  assert.equal(modelSelectorSource.includes('useChatScaffoldContext'), false)
+  assert.equal(modelSelectorSource.includes('props.models ?? modelSelectorInput.value?.models ?? []'), true)
+  assert.equal(modelSelectorSource.includes('modelValue.value ?? modelSelectorInput.value?.defaultModel ?? \'\''), true)
 })
 

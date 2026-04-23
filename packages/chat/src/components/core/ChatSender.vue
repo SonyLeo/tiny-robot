@@ -3,14 +3,7 @@ import { inject, ref, computed, useSlots, useAttrs } from 'vue'
 import type { PropType, Slot } from 'vue'
 import { TrSender, UploadButton, VoiceButton } from '@opentiny/tiny-robot'
 import type { StructuredData } from '@opentiny/tiny-robot'
-import {
-  CHAT_ATTACHMENTS_KEY,
-  CHAT_BEFORE_SEND_KEY,
-  CHAT_KIT_KEY,
-  CHAT_RUNTIME_KEY,
-  CHAT_SENDER_ACTIONS_KEY,
-  useChatScaffoldContext,
-} from '@/shared/context'
+import { CHAT_ATTACHMENTS_KEY, CHAT_KIT_KEY, CHAT_RUNTIME_KEY, CHAT_SENDER_ACTIONS_KEY } from '@/shared/context'
 import { useResolvedChatMessages } from '@/shared/messages'
 
 defineOptions({ name: 'TrChatSender', inheritAttrs: false })
@@ -31,11 +24,9 @@ const chatKit = inject(CHAT_KIT_KEY)!
 const chatRuntime = inject(CHAT_RUNTIME_KEY, null)
 const attachmentsContext = inject(CHAT_ATTACHMENTS_KEY, null)
 const senderActionsContext = inject(CHAT_SENDER_ACTIONS_KEY, null)
-const beforeSendHandler = inject(CHAT_BEFORE_SEND_KEY, undefined)
 const chatMessages = useResolvedChatMessages()
 const attrs = useAttrs()
 const slots = useSlots() as Record<string, Slot | undefined>
-const scaffoldContext = useChatScaffoldContext()
 const senderDefaults = computed(() => chatRuntime?.sender.defaults)
 
 const legacyInputValue = ref('')
@@ -58,7 +49,6 @@ const isLoading = computed(() => {
   return status === 'submitted' || status === 'streaming'
 })
 const senderActionsFeature = computed(() => senderActionsContext?.feature)
-const senderSlice = computed(() => scaffoldContext?.presetSlices.value.sender)
 const senderWordCount = computed(() => senderDefaults.value?.wordCount ?? senderActionsFeature.value?.wordCount)
 const runtimeUploadConfig = computed(() => chatRuntime?.attachments?.uploadConfig?.value)
 const hasAttachmentOwner = computed(() => Boolean(chatRuntime?.attachments || attachmentsContext))
@@ -100,46 +90,15 @@ const showDefaultUploadButton = computed(() =>
 const showDefaultVoiceButton = computed(() =>
   Boolean(voiceActionConfig.value && voiceActionConfig.value.enabled !== false),
 )
-const senderMode = computed<'single' | 'multiple'>(() => {
-  const modeFromSlice = senderSlice.value?.mode
-  return (
-    props.mode ??
-    senderDefaults.value?.mode ??
-    (modeFromSlice === 'single' || modeFromSlice === 'multiple' ? modeFromSlice : undefined) ??
-    'multiple'
-  )
-})
-const senderPlaceholder = computed(() => {
-  return (
-    props.placeholder ??
-    senderDefaults.value?.placeholder ??
-    (typeof senderSlice.value?.placeholder === 'string' ? senderSlice.value.placeholder : undefined) ??
-    chatMessages.value.sender.placeholder
-  )
-})
-const senderMaxLength = computed(() => {
-  return (
-    props.maxLength ??
-    senderDefaults.value?.maxLength ??
-    (typeof senderSlice.value?.maxLength === 'number' ? senderSlice.value.maxLength : undefined)
-  )
-})
-const fallbackSenderAttrs = computed(() => {
-  if (!senderSlice.value) return {}
-
-  return Object.fromEntries(
-    Object.entries(senderSlice.value).filter(([key, value]) => {
-      if (key === 'mode' || key === 'placeholder' || key === 'maxLength') return false
-      if (value === undefined) return false
-      return !(key in attrs)
-    }),
-  )
-})
+const senderMode = computed<'single' | 'multiple'>(() => props.mode ?? senderDefaults.value?.mode ?? 'multiple')
+const senderPlaceholder = computed(
+  () => props.placeholder ?? senderDefaults.value?.placeholder ?? chatMessages.value.sender.placeholder,
+)
+const senderMaxLength = computed(() => props.maxLength ?? senderDefaults.value?.maxLength)
 const mergedSenderAttrs = computed(() => ({
   showWordLimit: senderWordCount.value,
   defaultActions: senderActionsFeature.value?.defaultActions,
   maxLength: senderMaxLength.value,
-  ...fallbackSenderAttrs.value,
   ...attrs,
 }))
 
@@ -152,26 +111,9 @@ async function handleSend(content: string, data?: StructuredData) {
     return
   }
 
-  let payload = {
+  const payload = {
     text: content,
     structuredData: data,
-  }
-
-  if (beforeSendHandler) {
-    try {
-      const result = await beforeSendHandler(payload)
-      if (result === false) {
-        return
-      }
-
-      payload = {
-        ...payload,
-        ...(result ?? {}),
-      }
-    } catch (error) {
-      console.error('[TrChatSender] onBeforeSend failed:', error)
-      return
-    }
   }
 
   if (!payload.text.trim()) {

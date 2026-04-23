@@ -1,14 +1,18 @@
 import { expect, test, type Page } from '@playwright/test'
 import { createChatTestHelper } from './testHelper'
 
+async function openChatDemo(page: Page) {
+  await page.goto('/')
+  await page.locator('nav').getByRole('link').nth(2).click()
+  await expect(page.locator('h2')).toContainText('Chat')
+}
+
 test.describe('Chat Request Lifecycle', () => {
   test.describe('blackbox', () => {
     let helper: ReturnType<typeof createChatTestHelper>
 
     test.beforeEach(async ({ page }: { page: Page }) => {
-      await page.goto('/')
-      await page.click('text=Chat 组件')
-      await expect(page.locator('h2')).toContainText('Chat 组件测试')
+      await openChatDemo(page)
       helper = createChatTestHelper(page)
       await helper.switchToBlackbox()
     })
@@ -30,41 +34,23 @@ test.describe('Chat Request Lifecycle', () => {
       await helper.waitForStreamingComplete(root)
       await expect(optimisticBubble).toHaveCount(0)
     })
-  })
 
-  test.describe('blackbox edge', () => {
-    let helper: ReturnType<typeof createChatTestHelper>
+    test('should expose retry and recover from a transient provider failure on the official blackbox path', async ({
+      page,
+    }) => {
+      const root = helper.selectors.blackboxChat
 
-    test.beforeEach(async ({ page }: { page: Page }) => {
-      await page.goto('/')
-      await page.click('text=Chat 组件')
-      await expect(page.locator('h2')).toContainText('Chat 组件测试')
-      helper = createChatTestHelper(page)
-      await helper.switchToBlackboxEdge()
-    })
-
-    test('should surface the error callback when the provider fails', async ({ page }) => {
-      const root = '[data-testid="chat-blackbox-edge"] .tr-chat'
-
-      await helper.sendMessage('err', root)
-
-      const errLog = page.getByTestId('on-error-log')
-      await expect(errLog).toContainText('Mock API Error: provider execution failed')
-    })
-
-    test('should retry a failed request through the error action', async ({ page }) => {
-      const root = '[data-testid="chat-blackbox-edge"] .tr-chat'
-
-      await helper.sendMessage('err', root)
+      await helper.sendMessage('err-once', root)
 
       const retryButton = page.locator(root).getByTestId('chat-error-retry')
       await expect(retryButton).toBeVisible()
 
       await retryButton.click()
       await helper.waitForAssistantReply(root)
+      await helper.waitForStreamingComplete(root)
 
       const contents = page.locator(root).locator(helper.selectors.bubbleContent)
-      await expect(contents.last()).toContainText('[edge-provider:edge-model] err')
+      await expect(contents.last()).toContainText('[openai:openai-test] err-once')
     })
   })
 
@@ -72,9 +58,7 @@ test.describe('Chat Request Lifecycle', () => {
     let helper: ReturnType<typeof createChatTestHelper>
 
     test.beforeEach(async ({ page }: { page: Page }) => {
-      await page.goto('/')
-      await page.click('text=Chat 组件')
-      await expect(page.locator('h2')).toContainText('Chat 组件测试')
+      await openChatDemo(page)
       helper = createChatTestHelper(page)
       await helper.switchToWhitebox()
     })
@@ -84,7 +68,7 @@ test.describe('Chat Request Lifecycle', () => {
       await helper.expectStatusMessageCount('0')
     })
 
-    test('should return to ready and increase message count after a completed request', async ({ page }) => {
+    test('should return to ready and update the lifecycle diagnostics after a completed request', async ({ page }) => {
       const root = helper.selectors.whiteboxChat
 
       await helper.sendMessage('status-flow', root)
@@ -92,25 +76,22 @@ test.describe('Chat Request Lifecycle', () => {
       await helper.expectStatus('ready')
 
       const messageCount = page.locator(helper.selectors.messageCount)
-      const countText = await messageCount.textContent()
-      expect(Number(countText)).toBeGreaterThanOrEqual(2)
+      await expect(messageCount).toContainText('messages:2')
+      await helper.expectFinishLog('finish:[openai:openai-test] status-flow')
     })
 
-    test('should emit onFinish after a successful response', async () => {
-      const root = helper.selectors.whiteboxChat
-
-      await helper.sendMessage('test onFinish', root)
-      await helper.waitForStreamingComplete(root)
-      await helper.expectFinishLog('finish:')
-    })
-
-    test('should terminate cleanly and report the error when the provider throws', async ({ page }) => {
+    test('should report the lifecycle error log and surface retry affordances when the provider fails', async ({
+      page,
+    }) => {
       const root = helper.selectors.whiteboxChat
 
       await helper.sendMessage('err', root)
 
-      const finishLog = page.getByTestId('on-finish-log')
-      await expect(finishLog).toContainText('Mock API Error: provider execution failed')
+      const errorLog = page.getByTestId('on-error-log')
+      await expect(errorLog).toContainText('Mock API Error: provider execution failed')
+
+      const retryButton = page.locator(root).getByTestId('chat-error-retry')
+      await expect(retryButton).toBeVisible()
     })
   })
 })

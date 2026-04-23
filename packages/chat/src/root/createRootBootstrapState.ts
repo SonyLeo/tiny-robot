@@ -1,16 +1,8 @@
-import { computed, ref, watch } from 'vue'
+import { computed } from 'vue'
 import type { ChatMessage } from '@opentiny/tiny-robot-kit'
-import { CHAT_MESSAGES, resolveChatMessages } from '@/shared/messages'
-import type { ChatPageInputsValue } from '@/shared/context'
-import type { UseChatAttachmentsReturn } from '@/components/attachments/useChatAttachments'
-import type { ChatPresetSlices } from '@/runtime/config'
 import { getChatMessageError } from '@/runtime/chat-kit/chatMessageState'
-import type {
-  ChatAttachmentsFeaturePreset,
-  ChatMessagesOverrides,
-  TrChatScaffoldContextValue,
-  UseChatKitReturn,
-} from '@/types'
+import type { UseChatAttachmentsReturn } from '@/components/attachments/useChatAttachments'
+import type { ChatAttachmentsFeaturePreset, ChatMessagesOverrides, UseChatKitReturn } from '@/types'
 import type {
   ChatConversationSummary,
   ChatRuntime,
@@ -19,10 +11,9 @@ import type {
   ReadonlyRef,
   TrChatRootUiConfig,
 } from '@/types/root'
-import type { ModelOption } from '@/types/model'
 import type { ChatWorkspaceRegionConfig, ChatWorkspaceShellConfig } from '@/types/workspace'
+import type { ChatPageInputsValue } from '@/shared/context'
 import { extractMessageText, getMessageEditingState } from '@/runtime/core/normalizeRuntime'
-import { getLegacyPhase1ABridgeHints } from './runtimeHints'
 
 function toLegacyChatMessage(message: ChatUIMessage): ChatMessage {
   if (message.raw && typeof message.raw === 'object') {
@@ -35,7 +26,7 @@ function toLegacyChatMessage(message: ChatUIMessage): ChatMessage {
   } as ChatMessage
 }
 
-function createGenericAttachmentsManager(runtime: ChatRuntime): UseChatAttachmentsReturn | undefined {
+function createAttachmentsManager(runtime: ChatRuntime): UseChatAttachmentsReturn | undefined {
   if (!runtime.attachments) {
     return undefined
   }
@@ -227,73 +218,7 @@ function createFallbackChatKit(runtimeRef: ReadonlyRef<ChatRuntime>): UseChatKit
   } as unknown as UseChatKitReturn
 }
 
-function createScaffoldSlices(
-  uiRef: ReadonlyRef<TrChatRootUiConfig | undefined>,
-  runtimeRef: ReadonlyRef<ChatRuntime>,
-) {
-  return computed<ChatPresetSlices>(() => ({
-    provider: {
-      attachmentsFeature: runtimeRef.value.attachments
-        ? {
-            enabled: runtimeRef.value.attachments.enabled.value,
-            upload: runtimeRef.value.attachments.uploadConfig?.value,
-            list: runtimeRef.value.attachments.listConfig?.value,
-          }
-        : undefined,
-      messages: uiRef.value?.copy,
-    },
-    layout: {
-      contentLayout: uiRef.value?.contentLayout,
-      bubbleRenderers: runtimeRef.value.message.config?.renderers,
-    },
-    appearance: {
-      appearance: uiRef.value?.appearance,
-    },
-    shell: {
-      shell: createWorkspaceShellConfig(runtimeRef.value),
-    },
-    header: {
-      title: uiRef.value?.brand?.title,
-      showHistory: Boolean(runtimeRef.value.history),
-      showClose: false,
-    },
-    welcome: uiRef.value?.welcome
-      ? {
-          title: uiRef.value.welcome.title,
-          description: uiRef.value.welcome.description,
-          icon: uiRef.value.welcome.icon ?? uiRef.value.brand?.logo,
-          prompts: undefined,
-        }
-      : undefined,
-    messageList: {
-      autoScroll: true,
-      variant: 'bubble',
-      messageActions: runtimeRef.value.message.config?.actions,
-      messageActionsMode: runtimeRef.value.message.config?.actionMode,
-      showFeedback: runtimeRef.value.message.config?.feedback?.enabled ?? false,
-    },
-    sender: {
-      placeholder: runtimeRef.value.sender.defaults?.placeholder,
-      mode: runtimeRef.value.sender.defaults?.mode,
-      maxLength: runtimeRef.value.sender.defaults?.maxLength,
-      showWordLimit: runtimeRef.value.sender.defaults?.wordCount || undefined,
-    },
-    history: {
-      enabled: Boolean(runtimeRef.value.history),
-    },
-    modelSelector: {
-      enabled: Boolean(runtimeRef.value.models),
-      models: runtimeRef.value.models?.models.value,
-      defaultModel: runtimeRef.value.models?.currentModelId.value ?? undefined,
-    },
-  }))
-}
-
-function createPageInputs(
-  uiRef: ReadonlyRef<TrChatRootUiConfig | undefined>,
-  runtimeRef: ReadonlyRef<ChatRuntime>,
-  updateModel: (model: ModelOption) => void,
-) {
+function createPageInputs(uiRef: ReadonlyRef<TrChatRootUiConfig | undefined>, runtimeRef: ReadonlyRef<ChatRuntime>) {
   return computed<ChatPageInputsValue>(() => ({
     header: {
       title: uiRef.value?.brand?.title,
@@ -310,7 +235,7 @@ function createPageInputs(
           title: uiRef.value.welcome.title,
           description: uiRef.value.welcome.description,
           icon: uiRef.value.welcome.icon ?? uiRef.value.brand?.logo,
-          prompts: undefined,
+          prompts: uiRef.value.welcome.prompts,
         }
       : undefined,
     messageList: {
@@ -332,22 +257,17 @@ function createPageInputs(
       models: runtimeRef.value.models?.models.value,
       defaultModel: runtimeRef.value.models?.currentModelId.value ?? undefined,
     },
-    updateModel,
+    updateModel(model) {
+      runtimeRef.value.models?.selectModel(model.value)
+    },
   }))
 }
 
-export function createLegacyRootBridge(
+export function createRootBootstrapState(
   runtimeRef: ReadonlyRef<ChatRuntime>,
   uiRef: ReadonlyRef<TrChatRootUiConfig | undefined>,
 ) {
-  const hints = computed(() => getLegacyPhase1ABridgeHints(runtimeRef.value))
-  const resolvedCopy = computed(() => {
-    const overrides = uiRef.value?.copy
-    return overrides ? resolveChatMessages(overrides) : CHAT_MESSAGES
-  })
-  const attachmentsManager = computed(
-    () => createGenericAttachmentsManager(runtimeRef.value) ?? hints.value?.attachmentsManager,
-  )
+  const attachmentsManager = computed(() => createAttachmentsManager(runtimeRef.value))
   const attachmentsFeature = computed<ChatAttachmentsFeaturePreset | undefined>(() => {
     if (!runtimeRef.value.attachments) {
       return undefined
@@ -360,86 +280,13 @@ export function createLegacyRootBridge(
     }
   })
   const fallbackChatKit = createFallbackChatKit(runtimeRef)
-  const chatKit = computed<UseChatKitReturn>(() => {
-    const hinted = hints.value?.chatKit
-    if (!hinted) {
-      return fallbackChatKit
-    }
-
-    return {
-      ...hinted,
-      sendMessage(content: string) {
-        return runtimeRef.value.sender.send({ text: content })
-      },
-      abort() {
-        return Promise.resolve(runtimeRef.value.conversation.abort())
-      },
-      retry() {
-        return Promise.resolve(runtimeRef.value.conversation.retry())
-      },
-      regenerate(messageIndex?: number) {
-        const target =
-          typeof messageIndex === 'number' ? runtimeRef.value.conversation.messages.value[messageIndex] : undefined
-        return Promise.resolve(runtimeRef.value.conversation.regenerate(target?.id))
-      },
-      startEditMessage(messageIndex: number) {
-        const message = runtimeRef.value.conversation.messages.value[messageIndex]
-        if (message) {
-          runtimeRef.value.message.startEdit(message.id)
-        }
-      },
-      cancelEditMessage(messageIndex: number) {
-        const message = runtimeRef.value.conversation.messages.value[messageIndex]
-        if (message) {
-          runtimeRef.value.message.cancelEdit(message.id)
-        }
-      },
-      isMessageEditing(messageIndex: number) {
-        const message = runtimeRef.value.conversation.messages.value[messageIndex]
-        return runtimeRef.value.message.getViewState(message?.id ?? '')?.editing ?? getMessageEditingState(message)
-      },
-      editMessage(messageIndex: number, newContent: string) {
-        const message = runtimeRef.value.conversation.messages.value[messageIndex]
-        if (message) {
-          return runtimeRef.value.message.commitEdit(message.id, newContent)
-        }
-      },
-    }
-  })
-  const scaffoldSlices = createScaffoldSlices(uiRef, runtimeRef)
-  const currentModel = ref(runtimeRef.value.models?.currentModelId.value ?? '')
-  const models = computed(() => runtimeRef.value.models?.models.value ?? [])
-  const defaultModel = computed(() => runtimeRef.value.models?.currentModelId.value ?? models.value[0]?.value)
-
-  watch(
-    () => runtimeRef.value.models?.currentModelId.value ?? '',
-    (nextModel) => {
-      currentModel.value = nextModel
-    },
-    { immediate: true },
-  )
-
-  const scaffoldContext: TrChatScaffoldContextValue = {
-    presetProps: computed(() => ({}) as never),
-    presetSlices: scaffoldSlices,
-    currentModel,
-    models,
-    defaultModel,
-    updateModel(model) {
-      currentModel.value = model.value
-      runtimeRef.value.models?.selectModel(model.value)
-    },
-  }
-  const pageInputs = createPageInputs(uiRef, runtimeRef, scaffoldContext.updateModel)
 
   return {
-    chatKit,
+    chatKit: computed<UseChatKitReturn>(() => fallbackChatKit),
     messages: computed<ChatMessagesOverrides | undefined>(() => uiRef.value?.copy),
-    shell: computed(() => scaffoldSlices.value.shell.shell),
-    pageInputs,
+    shell: computed(() => createWorkspaceShellConfig(runtimeRef.value)),
+    pageInputs: createPageInputs(uiRef, runtimeRef),
     attachmentsManager,
     attachmentsFeature,
-    resolvedCopy,
-    scaffoldContext,
   }
 }

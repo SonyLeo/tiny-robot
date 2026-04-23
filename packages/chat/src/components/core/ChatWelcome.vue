@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { TrWelcome, TrPrompts } from '@opentiny/tiny-robot'
 import type { Component, VNode } from 'vue'
 import type { PromptProps } from '@opentiny/tiny-robot'
-import { useChatScaffoldContext } from '@/shared/context'
+import { useChatPageInputs } from '@/shared/context'
 
 defineOptions({ name: 'TrChatWelcome' })
 
@@ -19,16 +19,13 @@ const props = withDefaults(defineProps<Props>(), {
   compatibilityRelay: true,
 })
 const emit = defineEmits<{ 'prompt-click': [description: string] }>()
-const scaffoldContext = useChatScaffoldContext()
-const shouldUseCompatibilityRelay = computed(() => props.compatibilityRelay !== false)
-const welcomeSlice = computed(() =>
-  shouldUseCompatibilityRelay.value ? scaffoldContext?.presetSlices.value.welcome : undefined,
-)
+const pageInputs = useChatPageInputs()
+const welcomeInput = computed(() => pageInputs?.value.welcome)
 
-const resolvedTitle = computed(() => props.title ?? welcomeSlice.value?.title ?? '')
-const resolvedDescription = computed(() => props.description ?? welcomeSlice.value?.description ?? '')
-const resolvedPrompts = computed(() => props.prompts ?? welcomeSlice.value?.prompts)
-const iconVNode = computed(() => (props.icon ?? welcomeSlice.value?.icon) as VNode | undefined)
+const resolvedTitle = computed(() => props.title ?? welcomeInput.value?.title ?? '')
+const resolvedDescription = computed(() => props.description ?? welcomeInput.value?.description ?? '')
+const resolvedPrompts = computed(() => props.prompts ?? welcomeInput.value?.prompts)
+const iconVNode = computed(() => (props.icon ?? welcomeInput.value?.icon) as VNode | undefined)
 
 const welcomeStyle = computed(() => ({
   '--title-color': 'var(--chat-text-primary)',

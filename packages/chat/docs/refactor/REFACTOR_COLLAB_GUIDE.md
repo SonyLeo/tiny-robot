@@ -17,6 +17,8 @@ You should almost never need to update every refactor document in a single code 
   `design/api-runtime.md`
 - phase, gate, or validation change:
   `design/execution.md`
+- package entry, helper boundary, or official demo guidance:
+  `../README.md` plus the relevant files under `../demo/src/`
 - top-level design direction change:
   `design/overview.md`
 - review method change:
@@ -41,6 +43,7 @@ When a real change happens:
 3. update a generated artifact only if its source contract changed
 4. write a history entry only when code or repository behavior actually landed
 5. write a knowledge entry only when a lesson repeated, changed future implementation choices, or surfaced the same confusion more than once
+6. when package entry or helper guidance changes, update `packages/chat/README.md` and the official demo routes in the same task
 
 ## Archive Rule
 

@@ -34,7 +34,7 @@ Old implementation boundary reference:
 | Current boundary or anchor | Refactor target owner | Dev-stage treatment | Test owner |
 | --- | --- | --- | --- |
 | `Chat.vue` blackbox entry | `TrChat` + `TrChatConfig` | 只作为黑盒能力边界参考 | blackbox config tests |
-| `ChatScaffold.vue` / `ChatProvider.vue` | `TrChat.Root`, `TrChat.Page`, primitives | 只作为旧实现边界与组合拆分参考 | runtime/page baseline tests |
+| `ChatProvider.vue` / `src/root/createRootBootstrapState.ts` | `TrChat.Root`, `TrChat.Page`, primitives | 只作为剩余内部 bootstrap 边界与组合拆分参考 | runtime/page baseline tests |
 | `useChatKit` and runtime chat-kit chain | `conversation/message/sender/attachments` runtimes | 只作为旧消息主链路 owner 参考 | runtime contract tests |
 | workspace components and slot behavior | `workspace/history/models` runtimes + `Page`/`WorkspaceShell` | 只作为 app-shell 行为参考 | workspace/history/page tests |
 | `messageActions / renderers / transforms / feedback` | message extension contract | 只作为 feature 边界参考 | message extension tests |
@@ -103,9 +103,9 @@ Phase 0 must also produce:
 
 执行原则：
 
-- 新的结构性实现优先写入 `src/root`、`src/page`、`src/primitives`、`src/runtime/*`、`src/legacy`
+- 新的结构性实现优先写入 `src/root`、`src/page`、`src/primitives`、`src/runtime/*`
 - 旧实现只作为能力边界与测试锚点参考，不作为当前方案的命名或分层约束
-- `Chat.vue`、`ChatScaffold.vue`、`ChatProvider.vue` 在当前阶段不承担重构决策 source of truth，只承担旧边界参考
+- `Chat.vue`、`ChatProvider.vue`、`src/root/createRootBootstrapState.ts` 在当前阶段不承担重构决策 source of truth，只承担边界参考与剩余 bootstrap 组装
 - 没有 contract source、runtime contract tests、最小 page tests 之前，不进入大范围 feature 扩展
 - `packages/chat/AGENTS.md` 必须优先服务实现路由与评审，不必等待对外文档切换默认心智才允许推进代码结构
 
@@ -114,7 +114,7 @@ Phase 0 must also produce:
 | 旧能力族 | 当前旧入口 | 新方案正式承接 |
 | --- | --- | --- |
 | 黑盒默认接入 | `TrChat + config` | `TrChat + TrChatConfig` |
-| 自带 runtime + 官方默认页面 | `TrChat.Scaffold` / `TrChat.Provider` 变体 | `TrChat.Root + TrChat.Page` |
+| 自带 runtime + 官方默认页面 | 历史 `TrChat.Scaffold` / `TrChat.Provider` 变体 | `TrChat.Root + TrChat.Page` |
 | 白盒拼装 | `TrChat.Provider + compounds` | `TrChat.Root + primitives` |
 | provider / model / defaults | `config.models/providers/defaults` | `config.request.*` |
 | appearance / brand / welcome / layout | `config.ui / layout / appearance` | `config.ui / config.workspace` |
@@ -138,7 +138,6 @@ Phase 0 must also produce:
 | --- | --- | --- |
 | `src/index.ts` 里的旧 surface | 现状参考，不是当前实现门禁 | 不围绕旧导出做设计回退 |
 | `tests/contracts/public-surface.test.mjs` | 现状锚点 | 只用于识别当前 shipping surface，不作为 refactor contract freeze 门禁 |
-| `tests/runtime/scaffold-runtime.test.mjs` | 旧主链路锚点 | 用于对照旧行为边界，不绑定新 runtime 的结构实现 |
 | `tests/config/*` | 旧黑盒 config 行为锚点 | 用于识别旧能力范围，不要求新方案继续复刻旧入口组织方式 |
 | `tests/ui/chat-ui-context.test.mjs` 与 `tests/contracts/workspace-slot-contract.test.mjs` | workspace 行为锚点 | 作为 workspace/history/model 语义参考，直到新的 page/workspace tests 接管 |
 | `packages/chat/AGENTS.md` | 实现路由说明 | 优先服务当前开发阶段的评审与实现，而不是对外发布切换 |
@@ -375,7 +374,7 @@ Phase 0 退出条件：
 
 - 上表是 `Phase 1A` 当时冻结的 bridge subset。
 - `lifecycle.afterReceive` 在 `Phase 1A` 时仍是 deferred。
-- 进入 `Phase 2` 后，target `TrChatConfig` 黑盒入口已经允许把生命周期兼容的 `callbacks.onFinish` 规范化到 `config.lifecycle.afterReceive`，并继续走 `Root + Page` 主路径；当前状态以 `design/api-runtime.md` 和 `generated/config-bridge-matrix.md` 为准。
+- post-closure cleanup 之后，blackbox `TrChat` 已经收紧到只接受 target `TrChatConfig` 或其序列化 JSON 形式；所有旧 callbacks、runtime 注入、preset overrides 与其它 compatibility-only props 都不再属于黑盒主路径。当前状态以 `design/api-runtime.md` 和 `generated/config-bridge-matrix.md` 为准。
 
 验收标准：
 
@@ -461,40 +460,24 @@ Phase 1B 退出条件：
 当前 `Phase 2` 先从一条最窄黑盒 entry baseline 起步，并已完成该 baseline 的边界收口：
 
 - 当 `TrChat` 收到的输入已经匹配 target `TrChatConfig`
-- 且没有额外提供 `runtime`、`presetOverrides`
-- `callbacks` 要么缺省，要么只包含生命周期兼容的 `onFinish / onError`
-- `config` 也可以是同一份 target `TrChatConfig` 的序列化 JSON 字符串
-- 或者 `config` 是旧 `ChatConfig` 的最窄 request-only subset：
-  - top-level 只包含 `models / providers / defaults`
-  - 所有 model 都指向同一个 provider
-- 或者 `config` 是旧 `ChatConfig` 的最窄 display-default subset：
-  - 在上述 request-only subset 基础上额外携带 `appearance` 与 `ui.brand / ui.welcome`
-- 或者 `config` 是旧 `ChatConfig` 的最窄 content-layout subset：
-  - 在已支持的 request-only / display-default subset 基础上额外携带 `layout.contentLayout`
-- 或者 `config` 是旧 `ChatConfig` 的最窄 shell subset：
-  - 在已支持的 request-only / display-default / `layout.contentLayout` subset 基础上额外携带 `shell.variant / shell.leftRegion / shell.rightRegion`
-
-默认黑盒入口已允许先走：
+- 或 `config` 是同一份 target `TrChatConfig` 的序列化 JSON 字符串
+- 默认黑盒入口只允许先走：
 
 `createRuntimeFromConfig(config) -> Root + Page`
 
-同时保留明确的 compatibility fallback：
+post-closure cleanup 已经把这条黑盒入口进一步收紧：
 
-- 明确依赖 `ui.prompts` 的旧 `ChatConfig` 形态
-- 明确依赖 `layout.variant / layout.placements` 这类旧 message-list / role-placement projection 的 `ChatConfig` 形态
-- 明确依赖 `shell.viewState` 的旧 `ChatConfig` 形态
-- 带 `features / integrations` 的旧 `ChatConfig` 形态
-- 同时依赖多个 provider 映射的旧 `ChatConfig` 对象或序列化字符串形态
-- 仍依赖 scaffold 语义的 callbacks：`onBeforeSend`、`onMessageAction`、`onModelChange`
-- compatibility-only props
+- 所有旧 `ChatConfig` 对象或序列化字符串
+- 依赖 `ui.prompts`、`layout.variant / layout.placements`、`shell.viewState`、`features / integrations`、多 provider 映射等 legacy 投影语义的输入
+- 所有旧 callbacks、runtime 注入、`presetOverrides`、以及其它 compatibility-only props
 
-它们当前仍显式回退到 `ChatScaffold`。
-`Review C` 已经完成对这条 entry baseline 的拍板；当前阶段的重点不再是决定能否开工，而是保持这条黑盒主路径的 supported subset 与 explicit fallback 面稳定。
+都不再属于 `TrChat` 黑盒官方合同。
+`Review C` 对 entry baseline 的拍板已经通过；当前阶段的重点不再是维持黑盒 fallback，而是把官方黑盒入口保持为 config-only 主路径。
 
 当前 `Phase 2` 收口补充：
 
-- `shell.viewState` 已经被明确分类为显式 scaffold fallback，而不是新的 target workspace 默认值入口
-- 到此，`Phase 2` 中需要逐项分类的旧 `ChatConfig` 主要遗留字段已经完成“可提升子集”与“显式 fallback 面”的收口
+- `shell.viewState` 已经被明确分类为 legacy-only 语义，而不是新的 target workspace 默认值入口
+- post-closure cleanup 已将黑盒入口继续收紧到“target `TrChatConfig` 或其序列化形式”这一份官方 contract；旧 `ChatConfig` promoted subset 不再属于当前开发分支的黑盒主路径能力
 
 必须完成：
 
@@ -606,6 +589,12 @@ Phase 4 退出条件：
 - 每个正式入口至少有一个可运行 demo
 - 旧边界参考与新 contract 的对应关系已固化
 - 收口类工作有自动化验证，不是仅靠人工检查
+
+Current Phase 4 hardening note:
+
+- package-level validation is back to green after fixing sibling `tiny-robot-svgs` export/type drift at the owner package
+- Review D prep should now proceed in parallel with docs/examples/helper closure instead of waiting for another parity slice
+- package-level README guidance and the official demo routes now mirror the same `TrChat -> Root + Page -> Root + primitives` ladder, so Phase 4 no longer treats docs/examples/helper drift as an open hardening gap
 
 ## 7. 测试策略
 

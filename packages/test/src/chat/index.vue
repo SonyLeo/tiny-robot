@@ -20,8 +20,8 @@
 
 <script setup lang="ts">
 import { computed, ref, type Component } from 'vue'
-import BlackboxEdgeScene from './scenarios/BlackboxEdgeScene.vue'
 import BlackboxScene from './scenarios/BlackboxScene.vue'
+import GranularScene from './scenarios/GranularScene.vue'
 import LayoutConfigScene from './scenarios/LayoutConfigScene.vue'
 import McpFeatureScene from './scenarios/McpFeatureScene.vue'
 import MessageTransformsScene from './scenarios/MessageTransformsScene.vue'
@@ -35,7 +35,7 @@ import WorkspaceSlotsScene from './scenarios/WorkspaceSlotsScene.vue'
 type ChatMode =
   | 'blackbox'
   | 'whitebox'
-  | 'blackbox-edge'
+  | 'granular'
   | 'welcome-prompts'
   | 'sender-extensions'
   | 'mcp-feature'
@@ -48,7 +48,7 @@ type ChatMode =
 const modeOptions: ReadonlyArray<{ value: ChatMode; label: string; testId: string }> = [
   { value: 'blackbox', label: '黑盒模式', testId: 'switch-blackbox' },
   { value: 'whitebox', label: '白盒模式', testId: 'switch-whitebox' },
-  { value: 'blackbox-edge', label: '边界场景', testId: 'switch-blackbox-edge' },
+  { value: 'granular', label: '细粒度模式', testId: 'switch-granular' },
   { value: 'welcome-prompts', label: 'Welcome Prompts', testId: 'switch-welcome-prompts' },
   { value: 'sender-extensions', label: 'Sender Extensions', testId: 'switch-sender-extensions' },
   { value: 'mcp-feature', label: 'MCP Feature', testId: 'switch-mcp-feature' },
@@ -62,7 +62,7 @@ const modeOptions: ReadonlyArray<{ value: ChatMode; label: string; testId: strin
 const sceneByMode: Record<ChatMode, Component> = {
   blackbox: BlackboxScene,
   whitebox: WhiteboxScene,
-  'blackbox-edge': BlackboxEdgeScene,
+  granular: GranularScene,
   'welcome-prompts': WelcomePromptsScene,
   'sender-extensions': SenderExtensionsScene,
   'mcp-feature': McpFeatureScene,
