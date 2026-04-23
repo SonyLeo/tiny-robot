@@ -57,12 +57,12 @@
       </fieldset>
 
       <label class="control-item">
-        External query:
+        External search query:
         <input
           data-testid="external-query-input"
           type="search"
-          placeholder="Type to sync query model"
-          v-model="query"
+          placeholder="Type to sync search query model"
+          v-model="searchQuery"
         />
       </label>
 
@@ -80,7 +80,7 @@
         Expanded: <code data-testid="expanded-display">{{ String(expanded) }}</code>
       </div>
       <div>
-        Query: <code data-testid="query-display">{{ query }}</code>
+        Search Query: <code data-testid="query-display">{{ searchQuery }}</code>
       </div>
       <div>
         Placement: <code data-testid="placement-display">{{ placement }}</code>
@@ -98,17 +98,17 @@
           :items="items"
           :scroll-container="resolvedScrollContainer"
           :active-id="activeId"
+          :active-offset="24"
           v-model:expanded="expanded"
-          v-model:query="query"
+          v-model:search-query="searchQuery"
           :expand-trigger="expandTrigger"
           :placement="placement"
-          :search="searchConfig"
+          :search-options="searchOptions"
           :tooltip-delay="260"
-          target-active-class="tr-content-nav-target--flash"
-          :target-active-duration="700"
+          target-feedback-class="tr-content-nav-target--flash"
+          :target-feedback-duration="700"
           @update:active-id="handleActiveIdUpdate"
           @select="handleSelect"
-          @activate="handleActivate"
         />
       </div>
 
@@ -225,7 +225,7 @@ const emptyArrayMatcherMode = ref(false)
 const expandTrigger = ref<'hover' | 'manual'>('hover')
 const activeId = ref('')
 const expanded = ref(false)
-const query = ref('')
+const searchQuery = ref('')
 const placement = ref<'left' | 'right'>('right')
 const lastEvent = ref('none')
 const scrollContainerRef = ref<HTMLElement | null>(null)
@@ -258,7 +258,7 @@ function emptyArrayMatcher(item: ContentNavItem, rawQuery: string) {
   return []
 }
 
-const searchConfig = computed(() => ({
+const searchOptions = computed(() => ({
   clearOnCollapse: false,
   placeholder: 'Search',
   ...(emptyArrayMatcherMode.value ? { matcher: emptyArrayMatcher } : {}),
@@ -360,18 +360,13 @@ function handleActiveIdUpdate(value: string | undefined) {
   activeId.value = value ?? ''
 }
 
-function handleActivate(payload: unknown) {
-  const turnId = resolvePayloadId(payload)
-  lastEvent.value = turnId ? `activate:${turnId}` : 'activate:unknown'
-}
-
 function resetState() {
   bubbleMode.value = false
   singleTurnMode.value = false
   documentScrollMode.value = false
   specialIdMode.value = false
   emptyArrayMatcherMode.value = false
-  query.value = ''
+  searchQuery.value = ''
   expanded.value = false
   expandTrigger.value = 'hover'
   placement.value = 'right'

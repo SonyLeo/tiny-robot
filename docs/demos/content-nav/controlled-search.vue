@@ -20,29 +20,28 @@
     </div>
 
     <div class="stage">
-      <div ref="scrollContainerRef" class="conversation">
-        <tr-bubble-provider :box-renderer-matches="boxRendererMatches">
-          <tr-bubble-list class="conversation-list" :messages="messages" :role-configs="roles" />
-        </tr-bubble-provider>
-      </div>
+      <tr-bubble-provider :box-renderer-matches="boxRendererMatches">
+        <tr-bubble-list ref="bubbleListRef" class="conversation-list" :messages="messages" :role-configs="roles" />
+      </tr-bubble-provider>
 
       <tr-content-nav
         :class="['nav', `is-${placement}`]"
         :items="contentNavItems"
         :scroll-container="scrollContainerRef"
+        :active-offset="20"
         :placement="placement"
-        :search="search"
+        :search-options="searchOptions"
         v-model:active-id="activeId"
-        v-model:query="query"
-        :target-active-class="styles.userBubbleActive"
-        :target-active-duration="560"
+        v-model:search-query="searchQuery"
+        :target-feedback-class="styles.userBubbleActive"
+        :target-feedback-duration="560"
       />
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed, h, ref, useCssModule } from 'vue'
+import { computed, h, ref, useCssModule, watch } from 'vue'
 import {
   TrBubbleList,
   TrBubbleProvider,
@@ -80,13 +79,25 @@ const roles = {
 const userMessages = messages.filter(isUserMessage)
 const messageById = new Map(messages.map((message) => [String(message.id), message]))
 
-const scrollContainerRef = ref<HTMLElement | null>(null)
+type BubbleListExpose = {
+  rootEl: HTMLDivElement | null
+}
+
+const bubbleListRef = ref<BubbleListExpose | null>(null)
+const scrollContainerRef = computed(() => bubbleListRef.value?.rootEl ?? null)
 const placement = ref<'left' | 'right'>('right')
 const activeId = ref(userMessages[0]?.id ?? '')
-const query = ref('')
+const searchQuery = ref('')
 const searchEnabled = ref(false)
 
-const search = computed(() => (searchEnabled.value ? { placeholder: '搜索用户问题或回复关键词' } : false))
+const searchOptions = computed(() => (searchEnabled.value ? { placeholder: '搜索用户问题或回复关键词' } : undefined))
+
+watch(searchEnabled, (enabled) => {
+  if (!enabled) {
+    searchQuery.value = ''
+  }
+})
+
 const contentNavItems = userMessages.map((message) => {
   const assistantReply = messageById.get(`assistant-${message.id}`)
   const label = String(message.content)
@@ -151,15 +162,11 @@ const boxRendererMatches = [
   gap: 6px;
 }
 
-.conversation {
-  height: 100%;
-  overflow: auto;
-}
-
 .conversation-list {
   --tr-bubble-list-gap: 16px;
   --tr-bubble-list-padding: 24px 72px 40px;
   --tr-bubble-max-width: 560px;
+  height: 100%;
 }
 
 .nav {

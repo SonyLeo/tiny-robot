@@ -112,7 +112,7 @@ test.describe('ContentNav component e2e', () => {
     ).toHaveCount(0)
   })
 
-  test('query model changes and list can be filtered by assistant reply text', async ({ page }) => {
+  test('search query model changes and list can be filtered by assistant reply text', async ({ page }) => {
     const helper = helperFactory(page)
 
     await helper.setExternalQuery('retry storms')
@@ -121,7 +121,7 @@ test.describe('ContentNav component e2e', () => {
     await expect(page.locator(helper.selectors.contentNavRoot)).not.toContainText('Project kickoff summary')
   })
 
-  test('highlighted item resyncs to the active item after clearing a filtered query', async ({ page }) => {
+  test('highlighted item resyncs to the active item after clearing a filtered search query', async ({ page }) => {
     const helper = helperFactory(page)
 
     await helper.resetState()
@@ -184,8 +184,13 @@ test.describe('ContentNav component e2e', () => {
     await expect.poll(async () => helper.getPageScrollTop()).toBeGreaterThan(beforeScrollTop + 50)
     await helper.expectActiveId('turn-5')
 
-    await helper.scrollPageToBottom()
+    await helper.wheelPage(4000)
     await expect.poll(async () => page.locator(helper.selectors.activeIdDisplay).textContent()).toBe('turn-6')
+
+    await page.evaluate(() => {
+      window.scrollTo({ top: 0, behavior: 'auto' })
+    })
+    await expect.poll(async () => page.locator(helper.selectors.activeIdDisplay).textContent()).toBe('turn-1')
   })
 
   test('bubble scene resolves marked box nodes as scroll targets', async ({ page }) => {
@@ -219,6 +224,87 @@ test.describe('ContentNav component e2e', () => {
       .toBeGreaterThanOrEqual(0)
   })
 
+  test('bubble scene keeps the clicked turn active when nearby turns are close together', async ({ page }) => {
+    const helper = helperFactory(page)
+
+    await helper.resetState()
+    await helper.setBubbleMode(true)
+
+    const beforeScrollTop = await helper.getScrollTop()
+    await helper.clickNavItemByLabel('Security review items')
+
+    await helper.expectLastEventContains('turn-4')
+    await expect.poll(async () => helper.getScrollTop()).toBeGreaterThan(beforeScrollTop + 50)
+    await helper.expectActiveId('turn-4')
+  })
+
+  test('bubble scene keeps the clicked penultimate turn active when the jump lands near the bottom', async ({
+    page,
+  }) => {
+    const helper = helperFactory(page)
+
+    await helper.resetState()
+    await helper.setBubbleMode(true)
+
+    const beforeScrollTop = await helper.getScrollTop()
+    await helper.clickNavItemByLabel('Release train dependencies')
+
+    await helper.expectLastEventContains('turn-5')
+    await expect.poll(async () => helper.getScrollTop()).toBeGreaterThan(beforeScrollTop + 50)
+    await helper.expectActiveId('turn-5')
+  })
+
+  test('bubble scene releases the clicked lock after the user scrolls again', async ({ page }) => {
+    const helper = helperFactory(page)
+
+    await helper.resetState()
+    await helper.setBubbleMode(true)
+
+    const beforeScrollTop = await helper.getScrollTop()
+    await helper.clickNavItemByLabel('Security review items')
+
+    await helper.expectLastEventContains('turn-4')
+    await expect.poll(async () => helper.getScrollTop()).toBeGreaterThan(beforeScrollTop + 50)
+    await helper.expectActiveId('turn-4')
+
+    await helper.wheelScrollContainer(1600)
+    await expect.poll(async () => page.locator(helper.selectors.activeIdDisplay).textContent()).toBe('turn-6')
+  })
+
+  test('bubble scene still auto-expands on hover when expanded is bound', async ({ page }) => {
+    const helper = helperFactory(page)
+
+    await helper.resetState()
+    await helper.setBubbleMode(true)
+    await helper.expectExpanded(false)
+
+    await helper.hoverNav()
+
+    await expect.poll(async () => page.locator(helper.selectors.expandedDisplay).textContent()).toBe('true')
+  })
+
+  test('bubble scene keeps the current turn active until the next turn reaches the configured offset', async ({
+    page,
+  }) => {
+    const helper = helperFactory(page)
+
+    await helper.resetState()
+    await helper.setBubbleMode(true)
+
+    await page.locator(helper.selectors.scrollContainer).evaluate((container) => {
+      const root = container as HTMLElement
+      const nextTurn = root.querySelector('[data-content-nav-id="turn-4"]') as HTMLElement | null
+      if (!nextTurn) {
+        throw new Error('Expected turn-4 target to exist in bubble scene.')
+      }
+
+      const targetTop = nextTurn.getBoundingClientRect().top - root.getBoundingClientRect().top + root.scrollTop
+      root.scrollTop = Math.max(0, targetTop - 80)
+    })
+
+    await expect.poll(async () => page.locator(helper.selectors.activeIdDisplay).textContent()).toBe('turn-3')
+  })
+
   test('keyboard activation works', async ({ page }) => {
     const helper = helperFactory(page)
 
@@ -229,9 +315,7 @@ test.describe('ContentNav component e2e', () => {
     await page.keyboard.press('ArrowDown')
     await page.keyboard.press('Enter')
 
-    await expect
-      .poll(async () => page.locator(helper.selectors.lastEventDisplay).textContent())
-      .toMatch(/(select|activate):turn-/)
+    await expect.poll(async () => page.locator(helper.selectors.lastEventDisplay).textContent()).toMatch(/select:turn-/)
     await expect.poll(async () => helper.getScrollTop()).toBeGreaterThan(beforeScrollTop)
   })
 
@@ -252,7 +336,7 @@ test.describe('ContentNav component e2e', () => {
     await expect.poll(async () => helper.getScrollTop()).toBe(beforeScrollTop)
   })
 
-  test('shows empty state when the controlled query has no matches', async ({ page }) => {
+  test('shows empty state when the controlled search query has no matches', async ({ page }) => {
     const helper = helperFactory(page)
 
     await helper.resetState()

@@ -13,7 +13,7 @@ export const basicSourceMessages = [
   {
     id: 'assistant-overview',
     role: 'assistant',
-    content: 'ContentNav 适合用于长内容区域的快速定位。\n\n接入时只需要准备目录项和真实滚动目标之间的映射关系。',
+    content: '这一节介绍目录导航的基础用法，以及在长内容场景中的整体效果。',
   },
   {
     id: 'structure',
@@ -23,7 +23,7 @@ export const basicSourceMessages = [
   {
     id: 'assistant-structure',
     role: 'assistant',
-    content: '推荐把每个章节标题或段落容器作为滚动目标。\n\n目录文本可以保持简洁，搜索文本再补充更多上下文。',
+    content: '目录项可以直接对应到页面章节，结构清晰时，跳转和回看都会更快。',
   },
   {
     id: 'interaction',
@@ -33,7 +33,7 @@ export const basicSourceMessages = [
   {
     id: 'assistant-interaction',
     role: 'assistant',
-    content: '当用户点击目录项时，ContentNav 会滚动到对应目标。\n\n滚动过程中，当前激活项也会随着可见区域自动更新。',
+    content: '点击目录项后会滚动到对应章节，同时保留当前章节的可见反馈。',
   },
   {
     id: 'tips',
@@ -43,7 +43,6 @@ export const basicSourceMessages = [
   {
     id: 'assistant-tips',
     role: 'assistant',
-    content:
-      '推荐直接让章节节点带上 data-content-nav-id，并与目录项 id 保持一致。\n\n这样目录项、滚动定位和激活态可以由 TrContentNav 在内部统一处理。',
+    content: '需要搜索时可以补充搜索文案，需要点击反馈时可以为目标章节添加额外样式。',
   },
 ] satisfies ContentNavDemoMessage[]

@@ -48,11 +48,12 @@
         class="nav"
         :items="items"
         :scroll-container="scrollContainerRef"
+        :active-offset="20"
         :expand-trigger="expandTrigger"
         v-model:expanded="expanded"
-        :search="{ placeholder: '搜索章节' }"
-        target-active-class="article-section--active"
-        :target-active-duration="720"
+        :search-options="{ placeholder: '搜索章节' }"
+        target-feedback-class="article-section--active"
+        :target-feedback-duration="720"
       />
     </div>
   </section>

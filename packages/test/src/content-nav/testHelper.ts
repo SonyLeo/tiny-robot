@@ -130,6 +130,22 @@ export function createContentNavTestHelper(page: Page) {
     })
   }
 
+  async function wheelScrollContainer(deltaY: number) {
+    const container = page.locator(selectors.scrollContainer)
+    const box = await getBoundingBoxOrThrow(
+      container,
+      'Expected content-nav scroll container to be measurable, but no bounding box was returned.',
+    )
+
+    await page.mouse.move(box.x + box.width / 2, box.y + Math.min(box.height / 2, 120))
+    await page.mouse.wheel(0, deltaY)
+  }
+
+  async function wheelPage(deltaY: number) {
+    await page.mouse.move(640, 360)
+    await page.mouse.wheel(0, deltaY)
+  }
+
   async function hoverNav() {
     const overlay = page.locator(selectors.contentNavOverlay)
     await overlay.hover()
@@ -347,6 +363,8 @@ export function createContentNavTestHelper(page: Page) {
     scrollToBottom,
     getPageScrollTop,
     scrollPageToBottom,
+    wheelScrollContainer,
+    wheelPage,
     hoverNav,
     focusFirstInteractiveInNav,
     focusFirstNavItem,
