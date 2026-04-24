@@ -1,13 +1,13 @@
 # Full Cutover Closure Checklist
 
-Status: paused end-state checklist while `core-flow-stabilization-baseline.md` is red.
+Status: green end-state checklist for the current supported package story.
 
 This file answers one question:
 
 - when can the chat package be described as fully cut over to the new refactor model, with old helper and comparison usage retired
 
 It is not a new contract source.
-Use it as the final closure bar for the remaining legacy-retirement work.
+Use it as the final closure bar for the supported branch story and any later optional cleanup.
 
 Read this together with:
 
@@ -90,24 +90,32 @@ These are the biggest remaining indicators that the package still tolerates the 
 - [x] `node packages/chat/tests/run-all.mjs packages/chat/tests/runtime`
 - [x] `node packages/chat/tests/run-all.mjs packages/chat/tests/contracts`
 - [x] `node packages/chat/tests/run-all.mjs packages/chat/tests/integration`
-- [ ] retained Playwright gate is green again after stabilization
-- [ ] current closure batch is green again after stabilization
+- [x] retained Playwright gate is green again after stabilization
+- [x] current closure batch is green again after stabilization
 - [x] `node packages/chat/scripts/check-refactor-docs.mjs`
 
-Until `core-flow-stabilization-baseline.md` is green, this checklist should not be used to claim that the branch is fully cut over in practice.
+The branch can now truthfully use this checklist to describe the current supported package story as fully cut over in practice.
 
 ## Remaining Work Breakdown
 
-Use this checklist with the remaining execution plan, but only after the stabilization slice is green again:
+Use this checklist with later optional work only when needed:
 
-1. `post-closure-core-flow-stabilization`
+1. keep the retained validation baseline green while test expansion and suite normalization proceeds
 2. resume any remaining private-runtime or optional follow-up from `legacy-retirement-roadmap.md` only if the branch still needs it
 
-The package should only be called “fully cut over” after the stabilization slice is complete and this checklist is fully checked off again in practice.
+The package can now be called “fully cut over” for the current supported branch story; subsequent work should be treated as test expansion, suite normalization, or optional deeper runtime cleanup.
+
+## Recorded Optional Follow-Ups
+
+These are deliberately out of the current full-cutover bar, but recorded here so they stay visible:
+
+1. add formal code-coverage reporting instead of relying only on behavior-coverage summaries
+2. optionally continue deeper private-runtime cleanup around the internal `chat-kit` chain
+3. resolve deferred standalone page-level `footer` publishing semantics in a separate contract task
 
 ## Progress Rule
 
-For the remaining legacy-retirement work, progress updates should use this checklist plus the active execution slice.
+For any remaining optional cleanup, progress updates should use this checklist plus the active execution slice.
 
 Recommended reporting style:
 

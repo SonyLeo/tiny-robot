@@ -1,10 +1,11 @@
 # Core-Flow Stabilization Baseline
 
-Status: active stabilization baseline for post-closure regression recovery.
+Status: completed stabilization baseline for post-closure regression recovery.
 
-This file exists because the package has already completed the planned refactor and legacy-retirement slices, but the current development branch has regressed a few core user flows while those cleanup slices were landing.
+This file exists because the package had already completed the planned refactor and legacy-retirement slices, but the development branch temporarily regressed a few core user flows while those cleanup slices were landing.
 
-Until this baseline is green again, no further helper-retirement or surface-pruning work should be treated as the active priority.
+That recovery work is now complete.
+Keep this file as the branch-level closure record for that stabilization effort.
 
 Read this together with:
 
@@ -16,24 +17,26 @@ Read this together with:
 
 Use this file to answer:
 
-- which flows must be stable before more retirement work resumes
-- which commands prove those flows on a fresh build/runtime path
-- which current regressions are red, yellow, or green
+- which flows had to be stable before more retirement work resumed
+- which commands proved those flows on a fresh build/runtime path
+- which regressions were red, yellow, or green at closure time
 
 It is not a contract doc.
-It is the temporary execution gate for recovering basic usability on the new package path.
+It is the closure record for the temporary execution gate that recovered basic usability on the new package path.
 
 ## Stabilization Rule
 
-Until all red items below are green:
+While this baseline was red:
 
-1. `post-closure full cutover closure` stays paused
+1. `post-closure full cutover closure` stayed paused
 2. no new legacy-helper deletion slice should start
 3. fixes should optimize for restoring official-path functionality first
 
+That temporary rule is now satisfied and closed.
+
 ## Core Flow Gate
 
-The stabilization gate is built around the same official entry ladder:
+The stabilization gate was built around the same official entry ladder:
 
 1. `TrChat`
 2. `TrChat.Root + TrChat.Page`
@@ -41,7 +44,7 @@ The stabilization gate is built around the same official entry ladder:
 
 ### Required Core Flows
 
-| Flow | Why it is blocking |
+| Flow | Why it was blocking |
 | --- | --- |
 | blackbox send and reply | proves the main `TrChat` request path still works |
 | whitebox send and reply | proves the `Root + Page` request path still works |
@@ -67,35 +70,36 @@ For stabilization slices:
 - `node packages/chat/tests/run-all.mjs packages/chat/tests/integration`
 - the nearest retained Playwright specs for the touched flow on a fresh server path
 
-## Current Matrix
+## Closure Matrix
 
 ### Red
 
-| Flow | Current evidence |
-| --- | --- |
-| model switch then prompt send | local scene probing on `localhost:3333` still showed `DeepSeek Test` selected while the next prompt-send response came back from `[openai:openai-test]` |
-| model switch then sender submit | local scene probing on `localhost:3333` showed typed content in the sender, but clicking submit left `messages:0` and returned the main body to the welcome-state shape |
+None.
 
 ### Yellow
 
-| Flow | Current evidence |
-| --- | --- |
-| assistant feedback render and interaction | source-level fix landed for `ChatFeedback` enablement, but the retained feedback gate still needs a fresh-server rerun to close the loop cleanly |
-| full retained Playwright gate | current branch needs a fresh-server rerun after the stabilization fixes; the old “fully green” closure statement is no longer trustworthy |
+None.
 
 ### Green
 
 | Flow | Current evidence |
 | --- | --- |
-| runtime first-send-after-model-switch contract | `packages/chat/tests/runtime/root-runtime.test.mjs` now proves that selecting a model before the first send creates the conversation with the newly selected provider |
-| runtime/contracts/integration hard gate | the package-local runtime/contracts/integration layers are currently green after the latest runtime patch |
+| runtime first-send-after-model-switch contract | `packages/chat/tests/runtime/root-runtime.test.mjs` proves that selecting a model before the first send creates the conversation with the newly selected provider |
+| runtime/contracts/integration hard gate | package-local runtime/contracts/integration layers remained green after the latest runtime patch |
+| blackbox send and reply | retained smoke gate is green again on the official `TrChat` path |
+| whitebox send and reply | retained smoke gate is green again on the official `Root + Page` path |
+| model switch then prompt send | `pnpm.cmd -F tiny-robot-test test:chat:smoke:full` is green again and confirms prompt-send continuity after switching models |
+| model switch then sender submit | `pnpm.cmd -F tiny-robot-test test:chat:smoke:full` is green again and confirms sender submit continuity after switching models |
+| assistant feedback render and interaction | `pnpm.cmd -F tiny-robot-test test:chat:smoke:full` is green again and confirms assistant feedback visibility and interaction on the retained path |
+| history and attachments baseline | `pnpm.cmd -F tiny-robot-test test:chat:smoke:full` is green again and confirms shell/history/attachments baselines |
+| retained Playwright gate | `pnpm.cmd -F tiny-robot-test test:chat:smoke:full` and `pnpm.cmd -F tiny-robot-test test:chat:scenario:full` both passed on the current branch |
 
 ## Exit Condition
 
-This stabilization baseline is complete only when:
+This stabilization baseline is now complete because:
 
-- all `Red` rows are moved to `Green`
-- all `Yellow` rows are either `Green` or explicitly downgraded with written rationale
+- all former `Red` rows are now green
+- there is no remaining `Yellow` row
 - `full-cutover-closure-checklist.md` can truthfully mark the retained gate as green again
 
-Only then may the branch resume deeper retirement work.
+The next active priority can now move back to test-governance-driven expansion and suite normalization work.

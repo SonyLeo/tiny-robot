@@ -20,7 +20,6 @@
 
 <script setup lang="ts">
 import { computed, ref, type Component } from 'vue'
-import BlackboxScene from './scenarios/BlackboxScene.vue'
 import GranularScene from './scenarios/GranularScene.vue'
 import LayoutConfigScene from './scenarios/LayoutConfigScene.vue'
 import McpFeatureScene from './scenarios/McpFeatureScene.vue'
@@ -28,12 +27,13 @@ import MessageTransformsScene from './scenarios/MessageTransformsScene.vue'
 import RendererRegistryScene from './scenarios/RendererRegistryScene.vue'
 import SenderExtensionsScene from './scenarios/SenderExtensionsScene.vue'
 import SurfaceApiScene from './scenarios/SurfaceApiScene.vue'
+import TrChatScene from './scenarios/TrChatScene.vue'
 import WelcomePromptsScene from './scenarios/WelcomePromptsScene.vue'
 import WhiteboxScene from './scenarios/WhiteboxScene.vue'
 import WorkspaceSlotsScene from './scenarios/WorkspaceSlotsScene.vue'
 
 type ChatMode =
-  | 'blackbox'
+  | 'trchat'
   | 'whitebox'
   | 'granular'
   | 'welcome-prompts'
@@ -46,9 +46,9 @@ type ChatMode =
   | 'workspace-slots'
 
 const modeOptions: ReadonlyArray<{ value: ChatMode; label: string; testId: string }> = [
-  { value: 'blackbox', label: '黑盒模式', testId: 'switch-blackbox' },
-  { value: 'whitebox', label: '白盒模式', testId: 'switch-whitebox' },
-  { value: 'granular', label: '细粒度模式', testId: 'switch-granular' },
+  { value: 'trchat', label: 'TrChat 入口', testId: 'switch-trchat' },
+  { value: 'whitebox', label: 'Root + Page', testId: 'switch-whitebox' },
+  { value: 'granular', label: 'Root + primitives', testId: 'switch-granular' },
   { value: 'welcome-prompts', label: 'Welcome Prompts', testId: 'switch-welcome-prompts' },
   { value: 'sender-extensions', label: 'Sender Extensions', testId: 'switch-sender-extensions' },
   { value: 'mcp-feature', label: 'MCP Feature', testId: 'switch-mcp-feature' },
@@ -60,7 +60,7 @@ const modeOptions: ReadonlyArray<{ value: ChatMode; label: string; testId: strin
 ]
 
 const sceneByMode: Record<ChatMode, Component> = {
-  blackbox: BlackboxScene,
+  trchat: TrChatScene,
   whitebox: WhiteboxScene,
   granular: GranularScene,
   'welcome-prompts': WelcomePromptsScene,
@@ -79,7 +79,7 @@ function isChatMode(value: string | null): value is ChatMode {
 
 function getInitialMode(): ChatMode {
   if (typeof window === 'undefined') {
-    return 'blackbox'
+    return 'trchat'
   }
 
   const mode = new URLSearchParams(window.location.search).get('chatMode')
@@ -87,7 +87,7 @@ function getInitialMode(): ChatMode {
     return mode
   }
 
-  return 'blackbox'
+  return 'trchat'
 }
 
 const mode = ref<ChatMode>(getInitialMode())

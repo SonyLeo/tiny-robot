@@ -1,11 +1,11 @@
 <template>
   <div class="scene-grid">
-    <div data-testid="chat-message-transforms-blackbox" class="chat-wrapper">
+    <div data-testid="chat-message-transforms-trchat" class="chat-wrapper">
       <div class="transform-toolbar">
-        <span data-testid="transform-blackbox-chunk-count">chunks:{{ blackboxChunkCount }}</span>
+        <span data-testid="transform-trchat-chunk-count">chunks:{{ trChatChunkCount }}</span>
       </div>
 
-      <TrChat :config="blackboxConfig" />
+      <TrChat :config="trChatConfig" />
     </div>
 
     <div data-testid="chat-message-transforms-whitebox" class="chat-wrapper">
@@ -23,8 +23,9 @@
 <script setup lang="ts">
 import type { BubbleContentRendererProps } from '@opentiny/tiny-robot'
 import { computed, defineComponent, h, ref } from 'vue'
-import { TrChat, createRuntimeFromConfig } from '@opentiny/tiny-robot-chat'
+import { TrChat } from '@opentiny/tiny-robot-chat'
 import { createOfficialSceneConfig } from './officialSceneConfig'
+import { useStableSceneRuntime } from './useStableSceneRuntime'
 
 const TransformCardRenderer = defineComponent({
   name: 'TransformCardRenderer',
@@ -50,12 +51,12 @@ const TransformCardRenderer = defineComponent({
   },
 })
 
-const blackboxChunkCount = ref(0)
+const trChatChunkCount = ref(0)
 const whiteboxChunkCount = ref(0)
 
-const blackboxTransforms = {
+const trChatTransforms = {
   onChunk() {
-    blackboxChunkCount.value += 1
+    trChatChunkCount.value += 1
   },
   onFinish({ message }: { message: { content?: string; metadata?: Record<string, unknown> } }) {
     return {
@@ -94,7 +95,7 @@ const transformRenderers = {
   ],
 }
 
-const blackboxConfig = computed(() =>
+const trChatConfig = computed(() =>
   createOfficialSceneConfig({
     brandTitle: 'Message Transforms',
     welcomeTitle: 'Message Transforms Welcome',
@@ -102,7 +103,7 @@ const blackboxConfig = computed(() =>
     welcomePrompts: [{ label: 'transform prompt', description: 'transform prompt' }],
     messages: {
       renderers: transformRenderers,
-      transforms: blackboxTransforms,
+      transforms: trChatTransforms,
     },
   }),
 )
@@ -120,7 +121,7 @@ const whiteboxConfig = computed(() =>
   }),
 )
 
-const whiteboxResolution = computed(() => createRuntimeFromConfig(whiteboxConfig.value))
+const whiteboxResolution = useStableSceneRuntime(whiteboxConfig)
 </script>
 
 <style scoped>

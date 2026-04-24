@@ -9,13 +9,13 @@ test.describe('Chat Layout Config', () => {
     await page.locator('nav').getByRole('link').nth(2).click()
     await expect(page.locator('h2')).toContainText('Chat')
     helper = createChatTestHelper(page)
-    await page.locator('[data-testid="chat-layout-config-blackbox"]').waitFor()
+    await page.locator('[data-testid="chat-layout-config-trchat"]').waitFor()
   })
 
-  test('blackbox should honor the official wide content-layout and explicit dark appearance', async ({ page }) => {
-    const root = '[data-testid="chat-layout-config-blackbox"] .tr-chat'
+  test('TrChat should honor the official wide content-layout and explicit dark appearance', async ({ page }) => {
+    const root = '[data-testid="chat-layout-config-trchat"] .tr-chat'
 
-    await helper.sendMessage('layout wide blackbox', root)
+    await helper.sendMessage('layout wide trchat', root)
     await helper.waitForAssistantReply(root)
 
     await expect(page.locator(root)).toHaveAttribute('data-tr-color-mode', 'dark')
@@ -48,10 +48,10 @@ test.describe('Chat Layout Config', () => {
     )
   })
 
-  test('blackbox should keep centered content-layout as the default official layout boundary', async ({ page }) => {
-    const root = '[data-testid="chat-layout-workspace-blackbox"] .tr-chat'
+  test('TrChat should keep centered content-layout as the default official layout boundary', async ({ page }) => {
+    const root = '[data-testid="chat-layout-workspace-trchat"] .tr-chat'
 
-    await helper.sendMessage('layout centered blackbox', root)
+    await helper.sendMessage('layout centered trchat', root)
     await helper.waitForAssistantReply(root)
 
     await expect(page.locator(root)).toHaveAttribute('data-chat-content-layout', 'centered')

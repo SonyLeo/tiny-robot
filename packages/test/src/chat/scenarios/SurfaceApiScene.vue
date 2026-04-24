@@ -302,10 +302,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, shallowRef, watch, type Ref } from 'vue'
-import { TrChat, createRuntimeFromConfig, type TrChatConfig } from '@opentiny/tiny-robot-chat'
+import { computed, ref } from 'vue'
+import { TrChat } from '@opentiny/tiny-robot-chat'
 import { createMockProvider } from '../mockProvider'
 import { createOfficialSceneConfig } from './officialSceneConfig'
+import { useStableSceneRuntime } from './useStableSceneRuntime'
+import { useSceneWelcomeState } from './useSceneWelcomeState'
 
 const SurfaceWelcomeIcon = {
   template: '<span data-testid="surface-welcome-icon">I</span>',
@@ -355,16 +357,6 @@ const customRenderConfig = computed(() =>
   }),
 )
 
-function createStableRuntimeResolution(configRef: Readonly<Ref<TrChatConfig>>) {
-  const resolution = shallowRef(createRuntimeFromConfig(configRef.value))
-
-  watch(configRef, (nextConfig) => {
-    resolution.value = createRuntimeFromConfig(nextConfig)
-  })
-
-  return resolution
-}
-
 const runtimeDiagnosticsConfig = computed(() =>
   createOfficialSceneConfig({
     brandTitle: 'Runtime Diagnostics Surface',
@@ -373,10 +365,8 @@ const runtimeDiagnosticsConfig = computed(() =>
       'Official Root + runtime diagnostics should stay visible without any retired provider passthrough.',
   }),
 )
-const runtimeDiagnosticsResolution = createStableRuntimeResolution(runtimeDiagnosticsConfig)
-const showRuntimeDiagnosticsWelcome = computed(
-  () => runtimeDiagnosticsResolution.value.runtime.conversation.messages.value.length === 0,
-)
+const runtimeDiagnosticsResolution = useStableSceneRuntime(runtimeDiagnosticsConfig)
+const showRuntimeDiagnosticsWelcome = useSceneWelcomeState(runtimeDiagnosticsResolution)
 
 function sendRuntimeDiagnosticsMessage() {
   runtimeDiagnosticsResolution.value.runtime.sender?.send({ text: 'runtime-diagnostics-path' })
@@ -408,10 +398,8 @@ const granularModelConfig = computed(() =>
     welcomePrompts: [{ label: 'granular prompt', description: 'granular prompt' }],
   }),
 )
-const granularModelResolution = createStableRuntimeResolution(granularModelConfig)
-const showGranularModelWelcome = computed(
-  () => granularModelResolution.value.runtime.conversation.messages.value.length === 0,
-)
+const granularModelResolution = useStableSceneRuntime(granularModelConfig)
+const showGranularModelWelcome = useSceneWelcomeState(granularModelResolution)
 
 async function switchGranularModel() {
   const modelsRuntime = granularModelResolution.value.runtime.models
@@ -440,10 +428,8 @@ const granularFooterRightConfig = computed(() =>
   }),
 )
 
-const granularFooterRightResolution = createStableRuntimeResolution(granularFooterRightConfig)
-const showGranularFooterRightWelcome = computed(
-  () => granularFooterRightResolution.value.runtime.conversation.messages.value.length === 0,
-)
+const granularFooterRightResolution = useStableSceneRuntime(granularFooterRightConfig)
+const showGranularFooterRightWelcome = useSceneWelcomeState(granularFooterRightResolution)
 
 const granularSenderConfig = computed(() =>
   createOfficialSceneConfig({
@@ -460,10 +446,8 @@ const granularSenderConfig = computed(() =>
   }),
 )
 
-const granularSenderConfigResolution = createStableRuntimeResolution(granularSenderConfig)
-const showGranularSenderConfigWelcome = computed(
-  () => granularSenderConfigResolution.value.runtime.conversation.messages.value.length === 0,
-)
+const granularSenderConfigResolution = useStableSceneRuntime(granularSenderConfig)
+const showGranularSenderConfigWelcome = useSceneWelcomeState(granularSenderConfigResolution)
 
 const showGranularCloseShell = ref(true)
 const granularCloseConfig = computed(() =>
@@ -473,10 +457,8 @@ const granularCloseConfig = computed(() =>
     welcomeDescription: 'Leaf composition should be able to remove the surrounding shell after close.',
   }),
 )
-const granularCloseResolution = createStableRuntimeResolution(granularCloseConfig)
-const showGranularCloseWelcome = computed(
-  () => granularCloseResolution.value.runtime.conversation.messages.value.length === 0,
-)
+const granularCloseResolution = useStableSceneRuntime(granularCloseConfig)
+const showGranularCloseWelcome = useSceneWelcomeState(granularCloseResolution)
 
 const workspaceHistoryConfig = computed(() =>
   createOfficialSceneConfig({
@@ -486,10 +468,8 @@ const workspaceHistoryConfig = computed(() =>
     workspace: true,
   }),
 )
-const workspaceHistoryResolution = createStableRuntimeResolution(workspaceHistoryConfig)
-const showWorkspaceHistoryWelcome = computed(
-  () => workspaceHistoryResolution.value.runtime.conversation.messages.value.length === 0,
-)
+const workspaceHistoryResolution = useStableSceneRuntime(workspaceHistoryConfig)
+const showWorkspaceHistoryWelcome = useSceneWelcomeState(workspaceHistoryResolution)
 
 async function seedWorkspaceHistory() {
   const history = workspaceHistoryResolution.value.runtime.history

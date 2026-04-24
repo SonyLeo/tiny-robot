@@ -42,9 +42,7 @@ test.describe('Chat Surface API', () => {
     await expect(emptyRoot.getByTestId('surface-empty-slot')).toBeVisible()
   })
 
-  test('message-list and sender slots should receive live slot props on the official blackbox path', async ({
-    page,
-  }) => {
+  test('message-list and sender slots should receive live slot props on the official TrChat path', async ({ page }) => {
     const root = page.locator('[data-testid="chat-surface-custom-render"]')
 
     await expect(root.getByTestId('surface-message-list-slot')).toContainText('messages:1')

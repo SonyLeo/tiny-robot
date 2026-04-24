@@ -26,7 +26,11 @@
             :prompts="granularResolution.ui.welcome?.prompts"
             @prompt-click="granularResolution.runtime.conversation.send({ text: $event })"
           />
-          <TrChat.MessageList v-else :compatibility-relay="false" variant="workspace" />
+          <TrChat.MessageList v-else :compatibility-relay="false" variant="workspace">
+            <template #after="slotProps">
+              <TrChatFeedback v-bind="slotProps" />
+            </template>
+          </TrChat.MessageList>
 
           <TrChat.Footer>
             <TrChat.Attachments />
@@ -40,8 +44,10 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { TrChat, createRuntimeFromConfig } from '@opentiny/tiny-robot-chat'
+import { TrChat, TrChatFeedback } from '@opentiny/tiny-robot-chat'
 import { createOfficialSceneConfig } from './officialSceneConfig'
+import { useStableSceneRuntime } from './useStableSceneRuntime'
+import { useSceneWelcomeState } from './useSceneWelcomeState'
 
 const granularConfig = computed(() =>
   createOfficialSceneConfig({
@@ -53,8 +59,8 @@ const granularConfig = computed(() =>
   }),
 )
 
-const granularResolution = computed(() => createRuntimeFromConfig(granularConfig.value))
-const showWelcome = computed(() => granularResolution.value.runtime.conversation.messages.value.length === 0)
+const granularResolution = useStableSceneRuntime(granularConfig)
+const showWelcome = useSceneWelcomeState(granularResolution)
 </script>
 
 <style scoped>

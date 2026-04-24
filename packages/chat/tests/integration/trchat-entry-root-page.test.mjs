@@ -45,7 +45,7 @@ const vite = await createServer({
 try {
   const [{ default: TrChat }] = await Promise.all([vite.ssrLoadModule('/src/components/core/Chat.vue')])
 
-  async function renderBlackboxTrChat(config) {
+  async function renderTrChatEntry(config) {
     const app = createSSRApp({
       render: () =>
         h(TrChat, {
@@ -85,32 +85,32 @@ try {
     }
   }
 
-  await runTest('TrChat blackbox default path uses Root + Page when given target TrChatConfig input', async () => {
-    const html = await renderBlackboxTrChat(createTargetConfig('Blackbox Root Page', 'phase-2 blackbox baseline'))
+  await runTest('TrChat config entry uses Root + Page when given target TrChatConfig input', async () => {
+    const html = await renderTrChatEntry(createTargetConfig('TrChat Root Page', 'phase-2 trchat baseline'))
 
-    assert.equal(html.includes('Blackbox Root Page'), true)
-    assert.equal(html.includes('phase-2 blackbox baseline'), true)
+    assert.equal(html.includes('TrChat Root Page'), true)
+    assert.equal(html.includes('phase-2 trchat baseline'), true)
     assert.equal(html.includes('tr-chat-workspace-layout'), true)
     assert.equal(html.includes('data-testid="stub-bubble-list"'), true)
     assert.equal(html.includes('data-stub="TrSender"'), true)
   })
 
-  await runTest('TrChat blackbox keeps Root + Page active for serialized target TrChatConfig input', async () => {
-    const html = await renderBlackboxTrChat(
-      JSON.stringify(createTargetConfig('Serialized Blackbox Root Page', 'phase-2 serialized blackbox baseline')),
+  await runTest('TrChat config entry keeps Root + Page active for serialized target TrChatConfig input', async () => {
+    const html = await renderTrChatEntry(
+      JSON.stringify(createTargetConfig('Serialized TrChat Root Page', 'phase-2 serialized trchat baseline')),
     )
 
-    assert.equal(html.includes('Serialized Blackbox Root Page'), true)
-    assert.equal(html.includes('phase-2 serialized blackbox baseline'), true)
+    assert.equal(html.includes('Serialized TrChat Root Page'), true)
+    assert.equal(html.includes('phase-2 serialized trchat baseline'), true)
     assert.equal(html.includes('tr-chat-workspace-layout'), true)
     assert.equal(html.includes('data-testid="stub-bubble-list"'), true)
     assert.equal(html.includes('data-stub="TrSender"'), true)
   })
 
-  await runTest('TrChat blackbox now throws for old ChatConfig objects instead of routing them through scaffold fallback', async () => {
+  await runTest('TrChat config entry now throws for old ChatConfig objects instead of routing them through scaffold fallback', async () => {
     await expectThrowsAsync(
       () =>
-        renderBlackboxTrChat({
+        renderTrChatEntry({
           models: [{ id: 'gpt-4.1-mini', providerId: 'openai', label: 'GPT-4.1 Mini' }],
           providers: {
             openai: {
@@ -123,14 +123,14 @@ try {
             systemPrompt: 'legacy-request-subset-system',
           },
         }),
-      /\[TrChat\] The blackbox entry now accepts only target TrChatConfig/,
+      /\[TrChat\] The TrChat config entry accepts only target TrChatConfig/,
     )
   })
 
-  await runTest('TrChat blackbox now throws for non-target serialized config instead of falling back to scaffold', async () => {
+  await runTest('TrChat config entry now throws for non-target serialized config instead of falling back to scaffold', async () => {
     await expectThrowsAsync(
-      () => renderBlackboxTrChat('{"legacy":true}'),
-      /\[TrChat\] The blackbox entry now accepts only target TrChatConfig/,
+      () => renderTrChatEntry('{"legacy":true}'),
+      /\[TrChat\] The TrChat config entry accepts only target TrChatConfig/,
     )
   })
 } finally {

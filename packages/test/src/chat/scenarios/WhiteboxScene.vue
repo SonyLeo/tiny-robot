@@ -18,9 +18,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, shallowRef, watch } from 'vue'
-import { TrChat, createRuntimeFromConfig, type TrChatConfig } from '@opentiny/tiny-robot-chat'
+import { computed, ref } from 'vue'
+import { TrChat, type TrChatConfig } from '@opentiny/tiny-robot-chat'
 import { createOfficialSceneConfig } from './officialSceneConfig'
+import { useStableSceneRuntime } from './useStableSceneRuntime'
 
 const finishLog = ref('finish:pending')
 const errorLog = ref('error:none')
@@ -70,14 +71,7 @@ const whiteboxConfig = computed<TrChatConfig>(() => ({
   },
 }))
 
-const whiteboxResolution = shallowRef(createRuntimeFromConfig(whiteboxConfig.value))
-
-watch(
-  () => whiteboxConfig.value,
-  (nextConfig) => {
-    whiteboxResolution.value = createRuntimeFromConfig(nextConfig)
-  },
-)
+const whiteboxResolution = useStableSceneRuntime(whiteboxConfig)
 </script>
 
 <style scoped>

@@ -1,4 +1,4 @@
-﻿import { fileURLToPath } from 'node:url'
+import { fileURLToPath } from 'node:url'
 import { effectScope, nextTick, ref } from 'vue'
 import createJiti from 'jiti'
 import { assert, runTest } from '../_helpers.mjs'
@@ -165,4 +165,3 @@ await runTest('createChatUiContext reactively syncs shell config changes without
     scope.stop()
   }
 })
-

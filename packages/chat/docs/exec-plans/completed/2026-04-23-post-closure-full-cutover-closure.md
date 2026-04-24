@@ -1,14 +1,12 @@
 # Post-Closure Full Cutover Closure
 
-Status: paused pending `2026-04-23-post-closure-core-flow-stabilization.md`.
-
-This slice is not canceled, but it is no longer the active execution priority while the branch has known regressions in model switching, sender submit continuity, and retained-gate freshness.
+Status: completed after the retained test surface was stabilized, expanded, and frozen green for the current supported package story.
 
 ## Goal
 
 Track the remaining implementation work needed before the chat package can be described as fully cut over to the new refactor model.
 
-At the moment this closure work is paused until the stabilization baseline is green again.
+This slice is now complete for the current supported package story.
 
 ## Scope
 
@@ -87,30 +85,10 @@ Current status:
 
 ## Progress Model
 
-Use these two numbers in future progress updates:
-
-- current slice progress
-- full-cutover closure progress
-
-While this slice is paused, also report the active stabilization progress from:
-
-- `packages/chat/docs/exec-plans/active/2026-04-23-post-closure-core-flow-stabilization.md`
-
-Suggested closure milestones:
-
-- `0-25%`
-  helper decision baseline exists, but helper retirement has not started in code
-- `25-55%`
-  provider helper story is narrowed and the first comparison helper branches are retired
-- `55-80%`
-  old helper families and their package-local tests are mostly gone
-- `80-100%`
-  remaining e2e scenes, docs, and demos have been aligned with the final package story
+This slice is complete; use later progress updates only for optional follow-up work outside the current supported package story.
 
 ## Exit Criteria
 
-This slice should not be closed while the stabilization baseline is still red.
-
 - [x] `full-cutover-closure-checklist.md` is fully checked off
-- [ ] retained gates are green
-- [ ] the final retirement history entry has landed
+- [x] retained gates are green
+- [x] the final retirement history entry has landed

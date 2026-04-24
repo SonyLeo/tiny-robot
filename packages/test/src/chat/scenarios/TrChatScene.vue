@@ -1,10 +1,10 @@
 <template>
-  <div data-testid="chat-blackbox" class="chat-wrapper">
+  <div data-testid="chat-trchat" class="chat-wrapper">
     <div class="status-bar">
       <span data-testid="business-action-log">{{ businessActionLog }}</span>
       <span data-testid="on-action-log">{{ actionLog }}</span>
     </div>
-    <TrChat :config="blackboxConfig" />
+    <TrChat :config="trChatConfig" />
   </div>
 </template>
 
@@ -16,10 +16,10 @@ import { createOfficialSceneConfig } from './officialSceneConfig'
 const businessActionLog = ref('business:none')
 const actionLog = ref('action:none')
 
-const blackboxConfig = computed(() =>
+const trChatConfig = computed(() =>
   createOfficialSceneConfig({
     brandTitle: 'TrChat',
-    welcomeTitle: 'Official blackbox entry',
+    welcomeTitle: 'Official TrChat entry',
     welcomeDescription: 'Pass a target TrChatConfig directly into TrChat.',
     workspace: true,
     models: [

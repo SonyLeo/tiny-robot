@@ -1,34 +1,27 @@
 import { expect, test, type Page } from '@playwright/test'
-import { createChatTestHelper } from './testHelper'
-
-async function openChatDemo(page: Page) {
-  await page.goto('/')
-  await page.locator('nav').getByRole('link').nth(2).click()
-  await expect(page.locator('h2')).toContainText('Chat')
-}
+import { createChatTestHelper } from '../testHelper'
+import { openChatSmokeScene } from './openChatSmokeScene'
 
 test.describe('Chat Entry Smoke', () => {
-  test.describe('blackbox', () => {
+  test.describe('trchat-entry', () => {
     let helper: ReturnType<typeof createChatTestHelper>
 
     test.beforeEach(async ({ page }: { page: Page }) => {
-      await openChatDemo(page)
-      helper = createChatTestHelper(page)
-      await helper.switchToBlackbox()
+      helper = await openChatSmokeScene(page, 'trchat')
     })
 
-    test('should render the official blackbox shell with welcome state and sender affordances', async () => {
+    test('should render the official TrChat shell with welcome state and sender affordances', async () => {
       await helper.expectHeaderVisible()
       await helper.expectFooterVisible()
       await helper.expectWelcomeVisible(true)
       await helper.expectBrandTitle('TrChat')
-      await helper.expectWelcomeTitle('Official blackbox entry')
+      await helper.expectWelcomeTitle('Official TrChat entry')
       await helper.expectUploadActionVisible(true)
       await helper.expectVoiceActionVisible(true)
     })
 
-    test('should send from the welcome state and transition into the blackbox message list', async () => {
-      await helper.sendMessage('blackbox welcome send')
+    test('should send from the welcome state and transition into the TrChat message list', async () => {
+      await helper.sendMessage('trchat welcome send')
       await helper.expectWelcomeVisible(false)
       await helper.expectMessageListVisible()
       await helper.waitForAssistantReply()
@@ -46,9 +39,7 @@ test.describe('Chat Entry Smoke', () => {
     let helper: ReturnType<typeof createChatTestHelper>
 
     test.beforeEach(async ({ page }: { page: Page }) => {
-      await openChatDemo(page)
-      helper = createChatTestHelper(page)
-      await helper.switchToWhitebox()
+      helper = await openChatSmokeScene(page, 'whitebox')
     })
 
     test('should render the official Root + Page shell with diagnostics and welcome state', async ({ page }) => {
@@ -77,9 +68,7 @@ test.describe('Chat Entry Smoke', () => {
     let helper: ReturnType<typeof createChatTestHelper>
 
     test.beforeEach(async ({ page }: { page: Page }) => {
-      await openChatDemo(page)
-      helper = createChatTestHelper(page)
-      await helper.switchToGranular()
+      helper = await openChatSmokeScene(page, 'granular')
     })
 
     test('should render the official Root + primitives shell with workspace, sender, and attachments visible', async ({

@@ -5,7 +5,7 @@
 Use the package through one of these three official entry levels:
 
 1. `TrChat`
-   The blackbox entry. Pass a target `TrChatConfig` directly.
+   The `TrChat` config entry. Pass a target `TrChatConfig` directly.
 2. `TrChat.Root + TrChat.Page`
    The official whitebox page path. Use this when you want to own runtime creation but keep the official page composition.
 3. `TrChat.Root + primitives`
@@ -49,7 +49,7 @@ Treat this as internal-only. It exists for package internals and targeted tests,
 
 The demo app mirrors the official entry ladder:
 
-- `#/blackbox`
+- `#/trchat`
   `TrChat`
 - `#/whitebox`
   `TrChat.Root + TrChat.Page`

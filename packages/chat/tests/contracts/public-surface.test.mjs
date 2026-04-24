@@ -9,8 +9,8 @@ const chatTypesIndexSource = readFileSync(fileURLToPath(new URL('../../src/types
 const chatCoreTypesSource = readFileSync(fileURLToPath(new URL('../../src/types/core.ts', import.meta.url)), 'utf8')
 const chatUiTypesSource = readFileSync(fileURLToPath(new URL('../../src/types/ui.ts', import.meta.url)), 'utf8')
 const chatSource = readFileSync(fileURLToPath(new URL('../../src/components/core/Chat.vue', import.meta.url)), 'utf8')
-const blackboxEntrySource = readFileSync(
-  fileURLToPath(new URL('../../src/runtime/config/blackboxEntry.ts', import.meta.url)),
+const trChatConfigEntrySource = readFileSync(
+  fileURLToPath(new URL('../../src/runtime/config/trchatConfigEntry.ts', import.meta.url)),
   'utf8',
 )
 const chatPageSource = readFileSync(fileURLToPath(new URL('../../src/page/TrChatPage.vue', import.meta.url)), 'utf8')
@@ -192,17 +192,18 @@ await runTest('official page surface is exported as a dedicated TrChat.Page wrap
   assert.equal(defaultRendererSource.includes('<slot :name="name" v-bind="slotProps ?? {}" />'), true)
 })
 
-await runTest('blackbox TrChat source keeps Root + Page explicit for target TrChatConfig while classifying compatibility callbacks as either supported lifecycle hooks or scaffold fallback', async () => {
-  assert.equal(chatSource.includes('createRuntimeFromConfig'), true)
-  assert.equal(chatSource.includes('resolveRootPageBlackboxConfig(props.config)'), true)
-  assert.equal(chatSource.includes('<TrChatRoot :runtime="blackboxResolution.runtime" :ui="blackboxResolution.ui">'), true)
+await runTest('TrChat source keeps Root + Page explicit for target TrChatConfig while classifying compatibility callbacks as either supported lifecycle hooks or scaffold fallback', async () => {
+  assert.equal(chatSource.includes('useTrChatConfigRuntimeResolution(() => props.config)'), true)
+  assert.equal(chatSource.includes('<TrChatRoot :runtime="runtimeResolution.runtime" :ui="runtimeResolution.ui">'), true)
   assert.equal(chatSource.includes('<TrChatPage>'), true)
   assert.equal(chatSource.includes('<ChatScaffold'), false)
   assert.equal(chatSource.includes('v-else'), false)
-  assert.equal(blackboxEntrySource.includes('JSON.parse(value)'), true)
-  assert.equal(blackboxEntrySource.includes('isTargetTrChatConfig(resolvedConfig)'), true)
-  assert.equal(blackboxEntrySource.includes('mergeLifecycleCompatibleCallbacks'), false)
-  assert.equal(blackboxEntrySource.includes('hasUnsupportedBlackboxCallbacks'), false)
+  assert.equal(trChatConfigEntrySource.includes('JSON.parse(value)'), true)
+  assert.equal(trChatConfigEntrySource.includes('isTargetTrChatConfig(resolvedConfig)'), true)
+  assert.equal(trChatConfigEntrySource.includes('stableSerialize'), true)
+  assert.equal(trChatConfigEntrySource.includes('resolveTrChatConfigEntryInput'), true)
+  assert.equal(trChatConfigEntrySource.includes('mergeLifecycleCompatibleCallbacks'), false)
+  assert.equal(trChatConfigEntrySource.includes('hasUnsupportedBlackboxCallbacks'), false)
 })
 
 await runTest('root bootstrap source no longer provides internal scaffold context or runtime bridge hints', async () => {
@@ -378,7 +379,6 @@ await runTest('chat attachments source can fall back to runtime-owned pending at
 })
 
 await runTest('chat feedback source can fall back to runtime-owned message actions when no explicit action config is passed', async () => {
-  assert.equal(chatSource.includes('createRuntimeFromConfig'), true)
   assert.equal(chatPageSource.includes('ChatDefaultBodyRegion'), true)
   const feedbackSource = readFileSync(
     fileURLToPath(new URL('../../src/components/feedback/useChatFeedback.ts', import.meta.url)),

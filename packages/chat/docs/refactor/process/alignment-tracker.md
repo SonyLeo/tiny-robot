@@ -163,6 +163,17 @@ Historical rationale and freeze context live in:
 - package-level validation is green again after exporting the missing sibling `tiny-robot-svgs` icons and rebuilding its dist artifacts; the remaining hardening question is whether to clean up the non-blocking runtime warning separately from refactor closure.
 - Post-closure cleanup in this development branch should optimize for preserving official-path functionality, not for keeping legacy compatibility code alive by default.
 - `packages/test/src/chat` no longer has an unresolved retained `adapt` bucket for the supported package story; the official-path and bounded advanced-provider Playwright set is now promoted into the retained gate.
+- future unit/e2e cleanup and legacy-test retirement should now follow `test-governance-standard.md` first and use `test-boundary-baseline.md` as the file-by-file inventory, instead of mixing design rules and current classification in one document.
+- the full file-level audit now lives in `test-suite-audit-baseline.md`; use it before moving directories, retiring scenes/helpers, or freezing new smoke/scenario command sets.
+- the concrete test-expansion landing queue now lives in `test-gap-backlog.md`; use it to choose the next missing-coverage slice instead of inventing ad-hoc priorities from the tracker.
+- `G-001` is now closed: the `TrChat` config-entry path has a package-local same-config runtime continuity guard in `runtime/trchat-config-runtime-resolution.test.mjs`, and the new internal helper uses `TrChat config` naming instead of introducing more blackbox-only jargon into the source.
+- `G-002` and `G-003` are now closed as well: retained granular smoke now proves request lifecycle, assistant feedback, and attachments on the official `Root + primitives` path, and `GranularScene.vue` explicitly mounts the feedback after-slot that the default page body uses on the same supported contract.
+- `G-004` is now closed too: `integration/root-page-mounted.test.mjs` mounts `TrChat.Provider(responseProvider)` directly and proves the retained leaf-composition contract at the nearest owner boundary instead of only through runtime helper tests or browser routing.
+- `N-002` is now closed: retained Playwright specs are consolidated under `packages/test/src/chat/scenario-specs/`, so the top level of `packages/test/src/chat` is support-first again and the frozen smoke/scenario commands no longer mix two directory conventions.
+- the retained Playwright gate now has named commands in `packages/test/package.json`: `pnpm.cmd -F tiny-robot-test test:chat:smoke` and `pnpm.cmd -F tiny-robot-test test:chat:scenario`; use those names instead of retyping the file list in future slices.
+- the retained Playwright gate now also exposes `test:chat:smoke:full` and `test:chat:scenario:full` with an explicit `4`-worker baseline; use the non-`full` scripts as the stable fallback when local worker or web-server instability shows up.
+- `packages/chat/tests` no longer has a dangling `adapt` bucket: the old `ui/chat-ui-context.test.mjs` sentinel has been re-homed into `contracts/chat-ui-context.test.mjs` and promoted into the hard contract gate for workspace UI responsiveness.
+- the current `packages/test/src/chat/scenarios/*.vue` set now has an explicit ownership map in `test-suite-audit-baseline.md`; there is no orphan retained scene fixture that can be deleted wholesale without first rewriting a consuming smoke/scenario spec.
 - compatibility-only `senderActions.upload = false` no longer acts as a supported retained boundary when an attachments owner is still present; that expectation is now an explicit contract drop instead of a cleanup blocker.
 - the roadmap's first cleanup slice has now landed: the remaining `edge-overrides` holdouts (`wordCount = false`, `voice = false`, and explicit close composition) were handed off to official-path proofs, and the edge scene/spec pair has retired.
 - post-closure cleanup has now removed the remaining `TrChat` scaffold fallback and explicit scaffold helper surface, retired the internal scaffold provision plus runtime bridge hints, removed the official-path scaffold-context readers, and deleted `src/legacy/rootBridge.ts`; the surviving bootstrap behavior now lives in `src/root/createRootBootstrapState.ts` instead of any `src/legacy/*` file.
@@ -175,12 +186,22 @@ Historical rationale and freeze context live in:
 - public `useChatKit` has now retired from the package surface and docs story as well; the remaining `useChatKit` implementation and package-local runtime tests are now treated as private runtime-chain proof instead of a supported helper surface.
 - the final “can we call this fully cut over?” bar now lives in `full-cutover-closure-checklist.md`; use that checklist plus the active closure plan for future progress reporting.
 
-- `post-closure full cutover closure` is now paused while `post-closure core-flow stabilization` restores the regressed official-path model-switch and sender-submit flows.
-- `core-flow-stabilization-baseline.md` is now the temporary execution gate for this branch; no new helper-retirement slice should start until that baseline is green again.
+- `post-closure core-flow stabilization` is now complete; the retained smoke/scenario gates are green again, and the branch no longer has an active official-path usability blocker.
+- `full-cutover-closure-checklist.md` is green again for the current supported package story, and the follow-up test expansion / suite-normalization slice has now closed with the retained hard gate plus Playwright gate green.
+- the next three follow-ups are now explicitly recorded as optional and not active:
+  - add formal code-coverage reporting instead of relying only on behavior-coverage language
+  - optionally continue deeper private-runtime cleanup by reducing the internal `chat-kit` chain
+  - handle deferred standalone page-level `footer` publishing semantics as its own contract task
 
 ## Next Actions
 
-1. Treat `post-closure core-flow stabilization` as the active slice until the model-switch prompt path, model-switch sender-submit path, and retained Playwright gate are green again.
-2. Resume `post-closure full cutover closure` only after `core-flow-stabilization-baseline.md` is green.
-3. Keep any future contract changes in `design/api-runtime.md` and `design/execution.md` first, then backwrite the tracker.
-4. Treat deferred standalone `footer` publishing semantics as a separate contract task, not as a blocker for public cutover closure.
+1. There is no blocking active post-closure slice for the current supported package story.
+2. Use `test-governance-standard.md`, `test-boundary-baseline.md`, `test-suite-audit-baseline.md`, and `test-gap-backlog.md` together before adding, retiring, or moving tests.
+3. Keep `pnpm.cmd -F tiny-robot-test test:chat:smoke:full` and `pnpm.cmd -F tiny-robot-test test:chat:scenario:full` as the preferred retained Playwright gate, with the non-`full` scripts as the stable fallback when local worker or web-server instability shows up.
+4. Keep any future contract changes in `design/api-runtime.md` and `design/execution.md` first, then backwrite the tracker.
+5. Treat deferred standalone `footer` publishing semantics as a separate contract task, not as a blocker for public cutover closure.
+6. Treat any further work as a new scoped slice: optional deeper runtime cleanup, additional test expansion, or new feature work.
+7. When the branch is ready for non-blocking follow-up work, prefer this order:
+   - formal code-coverage reporting
+   - optional deeper private-runtime `chat-kit` cleanup
+   - deferred standalone `footer` publishing semantics

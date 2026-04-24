@@ -30,8 +30,9 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { TrChat, createRuntimeFromConfig } from '@opentiny/tiny-robot-chat'
+import { TrChat } from '@opentiny/tiny-robot-chat'
 import { createOfficialSceneConfig } from './officialSceneConfig'
+import { useStableSceneRuntime } from './useStableSceneRuntime'
 
 const enabledPrompts = [
   { label: 'feature prompt 1', description: 'feature prompt 1' },
@@ -43,7 +44,7 @@ const enabledPromptsConfig = computed(() =>
   createOfficialSceneConfig({
     brandTitle: 'Welcome Prompts Official',
     welcomeTitle: 'Welcome Prompts Official',
-    welcomeDescription: 'Official ui.welcome.prompts should render on the blackbox path.',
+    welcomeDescription: 'Official ui.welcome.prompts should render on the TrChat path.',
     welcomePrompts: enabledPrompts,
   }),
 )
@@ -75,7 +76,7 @@ const whiteboxConfig = computed(() =>
   }),
 )
 
-const whiteboxResolution = computed(() => createRuntimeFromConfig(whiteboxConfig.value))
+const whiteboxResolution = useStableSceneRuntime(whiteboxConfig)
 </script>
 
 <style scoped>

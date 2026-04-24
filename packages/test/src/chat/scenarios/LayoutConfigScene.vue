@@ -1,7 +1,7 @@
 <template>
   <div class="scene-grid">
-    <div data-testid="chat-layout-config-blackbox" class="chat-wrapper">
-      <TrChat :config="wideBlackboxConfig" />
+    <div data-testid="chat-layout-config-trchat" class="chat-wrapper">
+      <TrChat :config="wideTrChatConfig" />
     </div>
 
     <div data-testid="chat-layout-config-whitebox" class="chat-wrapper">
@@ -10,8 +10,8 @@
       </TrChat.Root>
     </div>
 
-    <div data-testid="chat-layout-workspace-blackbox" class="chat-wrapper">
-      <TrChat :config="centeredBlackboxConfig" />
+    <div data-testid="chat-layout-workspace-trchat" class="chat-wrapper">
+      <TrChat :config="centeredTrChatConfig" />
     </div>
 
     <div data-testid="chat-layout-workspace-whitebox" class="chat-wrapper">
@@ -41,14 +41,16 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { TrChat, createRuntimeFromConfig } from '@opentiny/tiny-robot-chat'
+import { TrChat } from '@opentiny/tiny-robot-chat'
 import { createOfficialSceneConfig } from './officialSceneConfig'
+import { useStableSceneRuntime } from './useStableSceneRuntime'
+import { useSceneWelcomeState } from './useSceneWelcomeState'
 
-const wideBlackboxConfig = computed(() =>
+const wideTrChatConfig = computed(() =>
   createOfficialSceneConfig({
-    brandTitle: 'Layout Wide Blackbox',
-    welcomeTitle: 'Layout Wide Blackbox',
-    welcomeDescription: 'Official blackbox path should honor wide content layout and explicit appearance mode.',
+    brandTitle: 'Layout Wide TrChat',
+    welcomeTitle: 'Layout Wide TrChat',
+    welcomeDescription: 'Official TrChat path should honor wide content layout and explicit appearance mode.',
     contentLayout: 'wide',
     appearanceMode: 'dark',
   }),
@@ -64,11 +66,11 @@ const wideWhiteboxConfig = computed(() =>
   }),
 )
 
-const centeredBlackboxConfig = computed(() =>
+const centeredTrChatConfig = computed(() =>
   createOfficialSceneConfig({
-    brandTitle: 'Layout Centered Blackbox',
-    welcomeTitle: 'Layout Centered Blackbox',
-    welcomeDescription: 'Official blackbox path should keep centered layout as the default content boundary.',
+    brandTitle: 'Layout Centered TrChat',
+    welcomeTitle: 'Layout Centered TrChat',
+    welcomeDescription: 'Official TrChat path should keep centered layout as the default content boundary.',
     contentLayout: 'centered',
   }),
 )
@@ -82,11 +84,9 @@ const centeredGranularConfig = computed(() =>
   }),
 )
 
-const wideWhiteboxResolution = computed(() => createRuntimeFromConfig(wideWhiteboxConfig.value))
-const centeredGranularResolution = computed(() => createRuntimeFromConfig(centeredGranularConfig.value))
-const showCenteredGranularWelcome = computed(
-  () => centeredGranularResolution.value.runtime.conversation.messages.value.length === 0,
-)
+const wideWhiteboxResolution = useStableSceneRuntime(wideWhiteboxConfig)
+const centeredGranularResolution = useStableSceneRuntime(centeredGranularConfig)
+const showCenteredGranularWelcome = useSceneWelcomeState(centeredGranularResolution)
 </script>
 
 <style scoped>

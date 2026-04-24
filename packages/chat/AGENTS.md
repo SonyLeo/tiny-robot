@@ -62,8 +62,14 @@ If the task includes implementation files, then also inspect the nearest relevan
   Review method, meeting shape, and fixed cadence.
 - `packages/chat/docs/refactor/process/alignment-tracker.md`
   Current status, decisions, open questions, and next actions.
+- `packages/chat/docs/refactor/process/test-governance-standard.md`
+  Lasting unit/e2e design standard, smoke-vs-scenario split, and keep/adapt/retire rules.
 - `packages/chat/docs/refactor/process/test-boundary-baseline.md`
   Post-closure test-boundary baseline for official-path cleanup, keep/adapt/retire classification, and deletion-gate commands.
+- `packages/chat/docs/refactor/process/test-suite-audit-baseline.md`
+  File-level audit of the current package tests, e2e specs, scene fixtures, and helpers.
+- `packages/chat/docs/refactor/process/test-gap-backlog.md`
+  Concrete missing-coverage and suite-normalization landing queue derived from the current audit.
 - `packages/chat/docs/refactor/process/legacy-surface-inventory.md`
   Post-closure inventory of remaining legacy entry, bridge, helper, and test surfaces after the first cleanup batches.
 - `packages/chat/docs/refactor/process/legacy-retirement-roadmap.md`

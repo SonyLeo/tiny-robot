@@ -25,7 +25,10 @@ Read these by default:
 - `design/execution.md`
 - `process/review-scheme.md`
 - `process/alignment-tracker.md`
+- `process/test-governance-standard.md`
 - `process/test-boundary-baseline.md`
+- `process/test-suite-audit-baseline.md`
+- `process/test-gap-backlog.md`
 - `process/legacy-retirement-roadmap.md`
 - `process/provider-helper-decision-baseline.md`
 - `process/full-cutover-closure-checklist.md`

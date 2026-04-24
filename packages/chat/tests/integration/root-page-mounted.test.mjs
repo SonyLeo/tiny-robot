@@ -4,7 +4,7 @@ import { createServer } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { createSSRApp, h, ref } from 'vue'
 import { renderToString } from 'vue/server-renderer'
-import { assert, createRuntimeFromConfig, runTest, resolveTestDir } from '../_helpers.mjs'
+import { assert, createRuntimeFromConfig, createStreamingProvider, runTest, resolveTestDir } from '../_helpers.mjs'
 
 const testDir = resolveTestDir(import.meta.url)
 const chatRoot = resolve(testDir, '..', '..')
@@ -35,6 +35,7 @@ try {
   const [
     { default: TrChatRoot },
     { default: TrChatPage },
+    { default: ChatProvider },
     { default: ChatLayout },
     { default: ChatWorkspaceLayout },
     { default: ChatDefaultHeaderRegion },
@@ -42,6 +43,7 @@ try {
     { default: ChatHeader },
     { default: ChatWelcome },
     { default: ChatMessageList },
+    { default: ChatFeedback },
     { default: ChatFooter },
     { default: ChatSender },
     { default: ChatAttachments },
@@ -51,6 +53,7 @@ try {
     await Promise.all([
       vite.ssrLoadModule('/src/root/TrChatRoot.vue'),
       vite.ssrLoadModule('/src/page/TrChatPage.vue'),
+      vite.ssrLoadModule('/src/components/core/ChatProvider.vue'),
       vite.ssrLoadModule('/src/components/core/ChatLayout.vue'),
       vite.ssrLoadModule('/src/components/workspace/ChatWorkspaceLayout.vue'),
       vite.ssrLoadModule('/src/components/core/default-renderer/ChatDefaultHeaderRegion.vue'),
@@ -58,6 +61,7 @@ try {
       vite.ssrLoadModule('/src/components/core/ChatHeader.vue'),
       vite.ssrLoadModule('/src/components/core/ChatWelcome.vue'),
       vite.ssrLoadModule('/src/components/core/ChatMessageList.vue'),
+      vite.ssrLoadModule('/src/components/feedback/ChatFeedback.vue'),
       vite.ssrLoadModule('/src/components/core/ChatFooter.vue'),
       vite.ssrLoadModule('/src/components/core/ChatSender.vue'),
       vite.ssrLoadModule('/src/components/attachments/ChatAttachments.vue'),
@@ -520,6 +524,62 @@ try {
     return renderToString(app)
   }
 
+  async function renderMountedProviderLeafComposition() {
+    const app = createSSRApp({
+      render: () =>
+        h(
+          ChatProvider,
+          {
+            responseProvider: createStreamingProvider(),
+            initialMessages: [{ role: 'assistant', content: 'provider mounted message' }],
+          },
+          {
+            default: () =>
+              h(
+                ChatLayout,
+                {
+                  appearance: {
+                    mode: 'light',
+                  },
+                },
+                {
+                  default: () => [
+                    h(
+                      ChatHeader,
+                      {
+                        title: 'Provider mounted title',
+                        showHistory: true,
+                      },
+                      {
+                        title: () =>
+                          h('span', { 'data-testid': 'provider-mounted-title-slot' }, 'Provider mounted title slot'),
+                        extra: () =>
+                          h('span', { 'data-testid': 'provider-mounted-extra-slot' }, 'Provider mounted extra slot'),
+                      },
+                    ),
+                    h(
+                      ChatMessageList,
+                      null,
+                      {
+                        after: (slotProps) => h(ChatFeedback, slotProps),
+                      },
+                    ),
+                    h(ChatFooter, null, {
+                      default: () =>
+                        h(ChatSender, {
+                          placeholder: 'Provider mounted sender...',
+                        }),
+                    }),
+                  ],
+                },
+              ),
+          },
+        ),
+    })
+
+    return renderToString(app)
+  }
+
   await runTest('TrChat.Root + TrChat.Page mounted proof renders the Phase 1B workspace baseline', async () => {
     const html = await renderMountedRootPage()
 
@@ -615,6 +675,14 @@ try {
     assert.equal(html.includes('data-testid="chat-mcp-trigger-count"'), true)
     assert.equal(html.includes('aria-label="选择模型"'), true)
     assert.equal(html.includes('title="gpt-4.1-mini"'), true)
+  })
+  await runTest('TrChat.Provider mounted proof keeps the retained responseProvider leaf-composition contract near the owner surface', async () => {
+    const html = await renderMountedProviderLeafComposition()
+
+    assert.equal(html.includes('Provider mounted title slot'), true)
+    assert.equal(html.includes('Provider mounted extra slot'), true)
+    assert.equal(html.includes('data-testid="stub-bubble-list"'), true)
+    assert.equal(html.includes('placeholder="Provider mounted sender..."'), true)
   })
 } finally {
   await vite.close()

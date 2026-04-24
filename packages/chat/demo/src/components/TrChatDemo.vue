@@ -16,19 +16,19 @@ const emit = defineEmits<{
   (e: 'update:contentLayout', value: ChatContentLayout): void
 }>()
 
-const blackboxConfig = computed<TrChatConfig>(() =>
+const trChatConfig = computed<TrChatConfig>(() =>
   createOfficialDemoConfig({
-    storageKey: 'tiny-robot-chat-demo-blackbox',
+    storageKey: 'tiny-robot-chat-demo-trchat',
     contentLayout: props.contentLayout,
     brandTitle: 'TrChat',
-    welcomeTitle: 'Official blackbox entry',
+    welcomeTitle: 'Official TrChat entry',
     welcomeDescription: 'Pass a target TrChatConfig directly into TrChat.',
   }),
 )
 </script>
 
 <template>
-  <TrChat :config="blackboxConfig">
+  <TrChat :config="trChatConfig">
     <template #header-extra>
       <DemoHeaderActions
         :color-mode="props.colorMode"

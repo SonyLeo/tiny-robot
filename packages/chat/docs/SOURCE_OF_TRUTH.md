@@ -31,8 +31,14 @@ These files define how the refactor is reviewed and where the current process st
   review cadence, meeting template, and packet expectations
 - `packages/chat/docs/refactor/process/alignment-tracker.md`
   current status, decisions, open questions, risks, and next actions
+- `packages/chat/docs/refactor/process/test-governance-standard.md`
+  lasting unit/e2e design standard, smoke-vs-scenario split, selector/helper/scene rules, and keep/adapt/retire policy
 - `packages/chat/docs/refactor/process/test-boundary-baseline.md`
   post-closure cleanup test classification, official-path gate boundary, and keep/adapt/retire rules for chat package tests plus chat e2e
+- `packages/chat/docs/refactor/process/test-suite-audit-baseline.md`
+  file-level audit of every current chat package test, e2e spec, scene fixture, and helper against the governance standard
+- `packages/chat/docs/refactor/process/test-gap-backlog.md`
+  concrete missing-coverage and suite-normalization landing queue derived from the audit
 - `packages/chat/docs/refactor/process/core-flow-stabilization-baseline.md`
   temporary stabilization gate, red/yellow/green recovery matrix, and fresh-server validation rule while core flows are regressed
 - `packages/chat/docs/refactor/process/legacy-retirement-roadmap.md`
@@ -119,8 +125,14 @@ Try to keep each task to one primary source doc plus, when necessary, one status
   update `refactor/process/review-scheme.md`
 - current status, decisions, risks, or next actions changed:
   update `refactor/process/alignment-tracker.md`
+- lasting test-layer responsibility, smoke/scenario policy, selector/helper/scene standards, or keep/adapt/retire rules changed:
+  update `refactor/process/test-governance-standard.md`
 - post-closure test-boundary or keep/adapt/retire classification changed:
   update `refactor/process/test-boundary-baseline.md`
+- file-level classification or audit inventory changed:
+  update `refactor/process/test-suite-audit-baseline.md`
+- concrete missing-coverage or suite-normalization landing priority changed:
+  update `refactor/process/test-gap-backlog.md`
 - core-flow stabilization status, red/yellow/green recovery matrix, or fresh-server validation rule changed:
   update `refactor/process/core-flow-stabilization-baseline.md`
 - full legacy-retirement sequencing, delete order, or end-state definition changed:

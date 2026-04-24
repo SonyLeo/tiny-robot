@@ -1,29 +1,22 @@
 import { expect, test, type Page } from '@playwright/test'
-import { createChatTestHelper } from './testHelper'
-
-async function openChatDemo(page: Page) {
-  await page.goto('/')
-  await page.locator('nav').getByRole('link').nth(2).click()
-  await expect(page.locator('h2')).toContainText('Chat')
-}
+import { createChatTestHelper } from '../testHelper'
+import { openChatSmokeScene } from './openChatSmokeScene'
 
 test.describe('Chat History And Conversation', () => {
-  test.describe('blackbox', () => {
+  test.describe('trchat-entry', () => {
     let helper: ReturnType<typeof createChatTestHelper>
 
     test.beforeEach(async ({ page }: { page: Page }) => {
-      await openChatDemo(page)
-      helper = createChatTestHelper(page)
-      await helper.switchToBlackbox()
+      helper = await openChatSmokeScene(page, 'trchat')
     })
 
     test('should open and close the workspace mobile-left drawer on small viewports', async ({ page }) => {
       await page.setViewportSize({ width: 480, height: 900 })
-      await helper.clickHistoryBtn(helper.selectors.blackboxChat)
-      await helper.expectDrawerOpen(true, helper.selectors.blackboxRoot)
+      await helper.clickHistoryBtn(helper.selectors.trChatChat)
+      await helper.expectDrawerOpen(true, helper.selectors.trChatRoot)
 
-      await helper.clickOverlayToClose(helper.selectors.blackboxRoot)
-      await helper.expectDrawerOpen(false, helper.selectors.blackboxRoot)
+      await helper.clickOverlayToClose(helper.selectors.trChatRoot)
+      await helper.expectDrawerOpen(false, helper.selectors.trChatRoot)
     })
 
     test('should reset the conversation back to welcome when creating a new chat', async () => {
@@ -38,7 +31,7 @@ test.describe('Chat History And Conversation', () => {
       await helper.sendMessage('history conversation')
       await helper.waitForStreamingComplete()
 
-      const items = helper.getLocator(helper.selectors.blackboxRoot).locator(helper.selectors.historyItem)
+      const items = helper.getLocator(helper.selectors.trChatRoot).locator(helper.selectors.historyItem)
       await expect(items).toHaveCount(1, { timeout: 5000 })
     })
   })
@@ -47,9 +40,7 @@ test.describe('Chat History And Conversation', () => {
     let helper: ReturnType<typeof createChatTestHelper>
 
     test.beforeEach(async ({ page }: { page: Page }) => {
-      await openChatDemo(page)
-      helper = createChatTestHelper(page)
-      await helper.switchToWhitebox()
+      helper = await openChatSmokeScene(page, 'whitebox')
     })
 
     test('should keep the official Root + Page history drawer wiring live on mobile', async ({ page }) => {
@@ -78,9 +69,7 @@ test.describe('Chat History And Conversation', () => {
     let helper: ReturnType<typeof createChatTestHelper>
 
     test.beforeEach(async ({ page }: { page: Page }) => {
-      await openChatDemo(page)
-      helper = createChatTestHelper(page)
-      await helper.switchToGranular()
+      helper = await openChatSmokeScene(page, 'granular')
     })
 
     test('should open and close the granular history drawer on mobile', async ({ page }) => {

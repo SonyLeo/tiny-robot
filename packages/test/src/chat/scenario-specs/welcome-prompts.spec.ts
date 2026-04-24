@@ -11,7 +11,7 @@ test.describe('Chat Welcome Prompts Feature', () => {
     helper = createChatTestHelper(page)
   })
 
-  test('official ui.welcome.prompts should render on the blackbox path', async () => {
+  test('official ui.welcome.prompts should render on the TrChat path', async () => {
     const root = '[data-testid="chat-welcome-prompts-enabled"] .tr-chat'
 
     await helper.expectWelcomeVisible(true, root)

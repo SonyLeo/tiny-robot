@@ -43,9 +43,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { TrSender } from '@opentiny/tiny-robot'
-import { TrChat, createRuntimeFromConfig } from '@opentiny/tiny-robot-chat'
+import { TrChat } from '@opentiny/tiny-robot-chat'
 import { createMockProvider } from '../mockProvider'
 import { createOfficialSceneConfig } from './officialSceneConfig'
+import { useStableSceneRuntime } from './useStableSceneRuntime'
+import { useSceneWelcomeState } from './useSceneWelcomeState'
 
 const senderExtensionSuggestions = [
   { content: 'ECS instance startup issue' },
@@ -63,14 +65,12 @@ const senderExtensionsConfig = computed(() =>
   }),
 )
 
-const granularResolution = computed(() => createRuntimeFromConfig(senderExtensionsConfig.value))
+const granularResolution = useStableSceneRuntime(senderExtensionsConfig)
 const senderExtensionsProviderResponseProvider = createMockProvider({
   provider: 'sender-extensions-provider',
   model: 'sender-extensions-model',
 })
-const showSenderExtensionsGranularWelcome = computed(
-  () => granularResolution.value.runtime.conversation.messages.value.length === 0,
-)
+const showSenderExtensionsGranularWelcome = useSceneWelcomeState(granularResolution)
 </script>
 
 <style scoped>

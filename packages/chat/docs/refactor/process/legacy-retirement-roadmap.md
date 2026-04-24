@@ -1,6 +1,6 @@
 # Legacy Retirement Roadmap
 
-Status: closure-complete roadmap for public cutover; while `core-flow-stabilization-baseline.md` is red, use that stabilization slice before resuming any optional private-runtime or retirement follow-up.
+Status: closure-complete roadmap for public cutover; stabilization is closed, so use the current test-expansion slice before resuming any optional private-runtime or retirement follow-up.
 
 This file defines the ordered path from the current `closure-ready` refactor state to a stricter end-state where old usage patterns, compatibility-only helper paths, and their related files are retired.
 
@@ -72,11 +72,11 @@ Before deleting implementation-side compatibility code, keep this hard gate gree
 
 When a slice changes entry wiring, visible behavior, or helper scenes, also rerun the retained Playwright gate:
 
-- `pnpm.cmd -F tiny-robot-test test -- src/chat/index.spec.ts src/chat/history.spec.ts src/chat/request-lifecycle.spec.ts src/chat/scenario-specs/workspace-slots.spec.ts src/chat/scenario-specs/renderer-registry.spec.ts`
+- `pnpm.cmd -F tiny-robot-test test -- src/chat/scenario-specs/index.spec.ts src/chat/scenario-specs/history.spec.ts src/chat/scenario-specs/request-lifecycle.spec.ts src/chat/scenario-specs/workspace-slots.spec.ts src/chat/scenario-specs/renderer-registry.spec.ts`
 
 When a slice changes helper/comparison scenes, slot passthrough, or remaining compatibility proofs, also rerun the current closure batch:
 
-- `pnpm.cmd -F tiny-robot-test test -- src/chat/scenario-specs/layout-config.spec.ts src/chat/scenario-specs/welcome-prompts.spec.ts src/chat/sender-actions.spec.ts src/chat/scenario-specs/surface-api.spec.ts src/chat/scenario-specs/sender-extensions.spec.ts src/chat/scenario-specs/mcp-feature.spec.ts src/chat/scenario-specs/message-transforms.spec.ts`
+- `pnpm.cmd -F tiny-robot-test test -- src/chat/scenario-specs/layout-config.spec.ts src/chat/scenario-specs/welcome-prompts.spec.ts src/chat/scenario-specs/sender-actions.spec.ts src/chat/scenario-specs/surface-api.spec.ts src/chat/scenario-specs/sender-extensions.spec.ts src/chat/scenario-specs/mcp-feature.spec.ts src/chat/scenario-specs/message-transforms.spec.ts`
 
 If the environment hits the known Playwright `EPERM: lstat C:\Users\SonyLeo` issue, rerun the same retained batch outside the sandbox instead of changing the scope of the gate.
 
@@ -243,6 +243,14 @@ These are separate tasks and should not block legacy retirement:
 - new feature work
 - re-expanding old `ChatConfig` compatibility
 
+## Recorded Optional Follow-Ups
+
+These are explicitly recorded for later work, but they are not part of the completed legacy-retirement bar:
+
+- add formal code-coverage reporting so the package has a true coverage report in addition to the current behavior-gate baseline
+- optionally continue deeper private-runtime cleanup by shrinking the internal `chat-kit` implementation chain
+- resolve the deferred standalone page-level `footer` publishing semantics in a separate contract slice
+
 ## Completion Checklist
 
 Use this before claiming full retirement:
@@ -254,7 +262,7 @@ Use this before claiming full retirement:
 - [x] legacy-only e2e scenes/specs are removed or retired
 - [x] official-path gate is green
 - [x] package README, docs pages, demo routes, and tests agree on the final usage model
-- [ ] final retirement history has been written
+- [x] final retirement history has been written
 
 For the live progress bar against those remaining items, use:
 

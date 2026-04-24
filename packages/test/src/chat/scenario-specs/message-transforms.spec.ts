@@ -9,21 +9,21 @@ test.describe('Chat Message Transforms', () => {
     await page.locator('nav').getByRole('link').nth(2).click()
     await expect(page.locator('h2')).toContainText('Chat')
     helper = createChatTestHelper(page)
-    await page.getByTestId('chat-message-transforms-blackbox').waitFor()
+    await page.getByTestId('chat-message-transforms-trchat').waitFor()
   })
 
-  test('blackbox config.messages.transforms should stream chunk diagnostics and rewrite final assistant content', async ({
+  test('TrChat config.messages.transforms should stream chunk diagnostics and rewrite final assistant content', async ({
     page,
   }) => {
-    const sceneRoot = page.locator('[data-testid="chat-message-transforms-blackbox"]')
-    const chatRoot = '[data-testid="chat-message-transforms-blackbox"] .tr-chat'
+    const sceneRoot = page.locator('[data-testid="chat-message-transforms-trchat"]')
+    const chatRoot = '[data-testid="chat-message-transforms-trchat"] .tr-chat'
 
-    await helper.sendMessage('transform blackbox', chatRoot)
+    await helper.sendMessage('transform trchat', chatRoot)
     await helper.waitForStreamingComplete(chatRoot)
 
-    await expect(sceneRoot.getByTestId('transform-blackbox-chunk-count')).not.toContainText('chunks:0')
+    await expect(sceneRoot.getByTestId('transform-trchat-chunk-count')).not.toContainText('chunks:0')
     await expect(sceneRoot.locator('[data-testid="message-transform-card"]')).toContainText(
-      '[card] [openai:openai-test] transform blackbox',
+      '[card] [openai:openai-test] transform trchat',
     )
   })
 

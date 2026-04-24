@@ -65,7 +65,7 @@ const defaultWorkspaceConfig = computed(() =>
   createOfficialSceneConfig({
     brandTitle: 'Workspace Slot Default',
     welcomeTitle: 'Workspace Slot Default Welcome',
-    welcomeDescription: 'Official workspace slot baseline for the blackbox path.',
+    welcomeDescription: 'Official workspace slot baseline for the TrChat path.',
     workspace: true,
     contentLayout: 'wide',
   }),
@@ -75,7 +75,7 @@ const overrideWorkspaceConfig = computed(() =>
   createOfficialSceneConfig({
     brandTitle: 'Workspace Slot Override',
     welcomeTitle: 'Workspace Slot Override Welcome',
-    welcomeDescription: 'Official workspace slot mobile override baseline for the blackbox path.',
+    welcomeDescription: 'Official workspace slot mobile override baseline for the TrChat path.',
     workspace: true,
     contentLayout: 'wide',
   }),

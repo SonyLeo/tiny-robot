@@ -3,16 +3,16 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { ThemeProvider } from '@opentiny/tiny-robot'
 import type { ColorMode } from '@opentiny/tiny-robot'
 import type { ChatContentLayout } from '@opentiny/tiny-robot-chat'
-import BlackboxDemo from './components/BlackboxDemo.vue'
 import GranularWorkspaceDemo from './components/GranularWorkspaceDemo.vue'
+import TrChatDemo from './components/TrChatDemo.vue'
 import WhiteboxDemo from './components/WhiteboxDemo.vue'
 import './styles/index.css'
 
 const demoCases = [
   {
-    id: 'blackbox',
+    id: 'trchat',
     label: 'TrChat',
-    component: BlackboxDemo,
+    component: TrChatDemo,
   },
   {
     id: 'whitebox',
@@ -28,7 +28,7 @@ const demoCases = [
 
 type DemoCaseId = (typeof demoCases)[number]['id']
 
-const DEFAULT_DEMO_CASE_ID: DemoCaseId = 'blackbox'
+const DEFAULT_DEMO_CASE_ID: DemoCaseId = 'trchat'
 const demoCaseIds = new Set<DemoCaseId>(demoCases.map((item) => item.id))
 
 function resolveRouteCaseId(): DemoCaseId {

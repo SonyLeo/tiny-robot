@@ -9,13 +9,11 @@ test.describe('Chat Renderer Registry', () => {
     await page.locator('nav').getByRole('link').nth(2).click()
     await expect(page.locator('h2')).toContainText('Chat')
     helper = createChatTestHelper(page)
-    await page.getByTestId('chat-renderer-registry-blackbox').waitFor()
+    await page.getByTestId('chat-renderer-registry-trchat').waitFor()
   })
 
-  test('blackbox TrChat should replace the targeted assistant content renderer and box attributes', async ({
-    page,
-  }) => {
-    const root = page.locator('[data-testid="chat-renderer-registry-blackbox"] .tr-chat')
+  test('TrChat should replace the targeted assistant content renderer and box attributes', async ({ page }) => {
+    const root = page.locator('[data-testid="chat-renderer-registry-trchat"] .tr-chat')
 
     await expect(root.getByTestId('renderer-registry-card')).toContainText('[card] Official custom renderer card')
     await expect(root.locator('.tr-bubble__box[data-registry-box="true"]')).toHaveCount(1)

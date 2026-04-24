@@ -1,20 +1,13 @@
 import { expect, test, type Page } from '@playwright/test'
-import { createChatTestHelper } from './testHelper'
-
-async function openChatDemo(page: Page) {
-  await page.goto('/')
-  await page.locator('nav').getByRole('link').nth(2).click()
-  await expect(page.locator('h2')).toContainText('Chat')
-}
+import { createChatTestHelper } from '../testHelper'
+import { openChatSmokeScene } from './openChatSmokeScene'
 
 test.describe('Chat Request Lifecycle', () => {
-  test.describe('blackbox', () => {
+  test.describe('trchat-entry', () => {
     let helper: ReturnType<typeof createChatTestHelper>
 
     test.beforeEach(async ({ page }: { page: Page }) => {
-      await openChatDemo(page)
-      helper = createChatTestHelper(page)
-      await helper.switchToBlackbox()
+      helper = await openChatSmokeScene(page, 'trchat')
     })
 
     test('should allow an in-flight response to be aborted', async () => {
@@ -24,7 +17,7 @@ test.describe('Chat Request Lifecycle', () => {
     })
 
     test('should show and then clear optimistic bubbles during a pending request', async ({ page }) => {
-      const root = helper.selectors.blackboxChat
+      const root = helper.selectors.trChatChat
 
       await helper.sendMessage('optimistic-state', root)
 
@@ -35,10 +28,10 @@ test.describe('Chat Request Lifecycle', () => {
       await expect(optimisticBubble).toHaveCount(0)
     })
 
-    test('should expose retry and recover from a transient provider failure on the official blackbox path', async ({
+    test('should expose retry and recover from a transient provider failure on the official TrChat path', async ({
       page,
     }) => {
-      const root = helper.selectors.blackboxChat
+      const root = helper.selectors.trChatChat
 
       await helper.sendMessage('err-once', root)
 
@@ -58,9 +51,7 @@ test.describe('Chat Request Lifecycle', () => {
     let helper: ReturnType<typeof createChatTestHelper>
 
     test.beforeEach(async ({ page }: { page: Page }) => {
-      await openChatDemo(page)
-      helper = createChatTestHelper(page)
-      await helper.switchToWhitebox()
+      helper = await openChatSmokeScene(page, 'whitebox')
     })
 
     test('should start in the ready state with zero messages', async () => {
@@ -92,6 +83,52 @@ test.describe('Chat Request Lifecycle', () => {
 
       const retryButton = page.locator(root).getByTestId('chat-error-retry')
       await expect(retryButton).toBeVisible()
+    })
+  })
+
+  test.describe('granular', () => {
+    let helper: ReturnType<typeof createChatTestHelper>
+
+    test.beforeEach(async ({ page }: { page: Page }) => {
+      helper = await openChatSmokeScene(page, 'granular')
+    })
+
+    test('should allow an in-flight granular response to be aborted', async () => {
+      const root = helper.selectors.granularChat
+
+      await helper.sendMessage('granular-abort-request', root)
+      await helper.clickAbort(root)
+      await helper.waitForStreamingComplete(root)
+    })
+
+    test('should show and then clear optimistic bubbles during a pending granular request', async ({ page }) => {
+      const root = helper.selectors.granularChat
+
+      await helper.sendMessage('granular-optimistic-state', root)
+
+      const optimisticBubble = page.locator(root).locator(helper.selectors.bubbleOptimistic)
+      await expect(optimisticBubble.first()).toBeVisible()
+
+      await helper.waitForStreamingComplete(root)
+      await expect(optimisticBubble).toHaveCount(0)
+    })
+
+    test('should expose retry and recover from a transient provider failure on the official granular path', async ({
+      page,
+    }) => {
+      const root = helper.selectors.granularChat
+
+      await helper.sendMessage('err-once', root)
+
+      const retryButton = page.locator(root).getByTestId('chat-error-retry')
+      await expect(retryButton).toBeVisible()
+
+      await retryButton.click()
+      await helper.waitForAssistantReply(root)
+      await helper.waitForStreamingComplete(root)
+
+      const contents = page.locator(root).locator(helper.selectors.bubbleContent)
+      await expect(contents.last()).toContainText('[openai:openai-test] err-once')
     })
   })
 })

@@ -13,7 +13,7 @@ test.describe('Chat Workspace Panel Slots', () => {
     await page.getByTestId('chat-workspace-slots-default').waitFor()
   })
 
-  test('blackbox workspace slots render custom desktop left and right panels', async ({ page }) => {
+  test('TrChat workspace slots render custom desktop left and right panels', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 1000 })
     const root = page.locator('[data-testid="chat-workspace-slots-default"]')
     const rightPanelToggle = root.locator('.tr-chat__header-right button').last()

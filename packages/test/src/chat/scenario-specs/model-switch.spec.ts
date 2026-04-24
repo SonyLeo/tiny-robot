@@ -1,16 +1,11 @@
 import { expect, test } from '@playwright/test'
-import { createChatTestHelper } from './testHelper'
+import { openChatSmokeScene } from './openChatSmokeScene'
 
 test.describe('Chat Model Switching', () => {
   test('dropdown should close on outside click and Escape without breaking later model switching', async ({ page }) => {
-    await page.goto('/')
-    await page.locator('nav').getByRole('link').nth(2).click()
-    await expect(page.locator('h2')).toContainText('Chat')
+    const helper = await openChatSmokeScene(page, 'trchat')
 
-    const helper = createChatTestHelper(page)
-    await helper.switchToBlackbox()
-
-    const root = helper.selectors.blackboxChat
+    const root = helper.selectors.trChatChat
     await helper.openModelSelector(root)
 
     const dropdown = page.locator('.tr-model-selector__dropdown-wrapper')
@@ -33,18 +28,13 @@ test.describe('Chat Model Switching', () => {
     await expect(contents.last()).toContainText('[deepseek:deepseek-test]')
   })
 
-  test('blackbox should use the newly selected provider and emit onModelChange', async ({ page }) => {
-    await page.goto('/')
-    await page.locator('nav').getByRole('link').nth(2).click()
-    await expect(page.locator('h2')).toContainText('Chat')
+  test('TrChat should use the newly selected provider and emit onModelChange', async ({ page }) => {
+    const helper = await openChatSmokeScene(page, 'trchat')
 
-    const helper = createChatTestHelper(page)
-    await helper.switchToBlackbox()
-
-    const root = helper.selectors.blackboxChat
+    const root = helper.selectors.trChatChat
     await helper.selectModel('DeepSeek Test', root)
 
-    await helper.sendMessage('switch-blackbox', root)
+    await helper.sendMessage('switch-trchat', root)
     await helper.waitForStreamingComplete(root)
 
     const contents = page.locator(root).locator(helper.selectors.bubbleContent)
@@ -54,12 +44,7 @@ test.describe('Chat Model Switching', () => {
   test('Root + Page should update the selected model and keep the request path aligned after switching', async ({
     page,
   }) => {
-    await page.goto('/')
-    await page.locator('nav').getByRole('link').nth(2).click()
-    await expect(page.locator('h2')).toContainText('Chat')
-
-    const helper = createChatTestHelper(page)
-    await helper.switchToWhitebox()
+    const helper = await openChatSmokeScene(page, 'whitebox')
 
     const root = helper.selectors.whiteboxChat
     await helper.selectModel('DeepSeek Test', root)

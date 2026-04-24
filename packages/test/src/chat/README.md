@@ -17,17 +17,25 @@ The detailed keep/adapt/retire classification lives in:
 
 - `packages/chat/docs/refactor/process/test-boundary-baseline.md`
 
+The lasting test-layer, smoke/scenario, selector, helper, and retirement rules live in:
+
+- `packages/chat/docs/refactor/process/test-governance-standard.md`
+
+The current file-level audit inventory lives in:
+
+- `packages/chat/docs/refactor/process/test-suite-audit-baseline.md`
+
 The promoted official-path Playwright gate now includes:
 
-- `index.spec.ts`
-- `history.spec.ts`
-- `request-lifecycle.spec.ts`
+- `scenario-specs/index.spec.ts`
+- `scenario-specs/history.spec.ts`
+- `scenario-specs/request-lifecycle.spec.ts`
 - `scenario-specs/workspace-slots.spec.ts`
 - `scenario-specs/renderer-registry.spec.ts`
-- `attachments.spec.ts`
-- `feedback.spec.ts`
-- `model-switch.spec.ts`
-- `sender-actions.spec.ts`
+- `scenario-specs/attachments.spec.ts`
+- `scenario-specs/feedback.spec.ts`
+- `scenario-specs/model-switch.spec.ts`
+- `scenario-specs/sender-actions.spec.ts`
 - `scenario-specs/layout-config.spec.ts`
 - `scenario-specs/welcome-prompts.spec.ts`
 - `scenario-specs/surface-api.spec.ts`
@@ -42,13 +50,17 @@ The promoted official-path Playwright gate now includes:
 - `scenarios/`
   - scene components and shared demo fixtures
 - `scenario-specs/`
-  - specs that target one dedicated `chatMode` scene
-- top-level `*.spec.ts`
-  - entry smoke specs, shared-flow specs, and cross-scene regression specs
+  - all Playwright specs, including smoke and feature-specific scenarios
 - `testHelper.ts`
   - shared chat interaction helpers
+- `scenario-specs/openChatSmokeScene.ts`
+  - shared smoke-only chat-entry and mode-open helper for both `demo-nav` and `component-test` entry variants
 - `selectors.ts`
   - stable selectors reused across specs
+- `scenarios/useStableSceneRuntime.ts`
+  - shared runtime-resolution helper for scene-local `createRuntimeFromConfig(config)` usage
+- `scenarios/useSceneWelcomeState.ts`
+  - shared welcome/message-list visibility helper for retained scenes
 
 ## Current Gate Role
 
@@ -56,7 +68,7 @@ The promoted official-path Playwright gate now includes:
 
 These are the user-visible behaviors that should survive post-closure cleanup:
 
-- blackbox `TrChat` request flow
+- `TrChat` request flow
 - `Root + Page` page-shell behavior
 - `Root + primitives` granular composition behavior
 - sender, attachments, history, model switching, workspace slots
@@ -78,11 +90,8 @@ Default rule:
 ## File Placement Rules
 
 - add a file under `scenarios/` when you need a new scene or fixture page
-- add a file under `scenario-specs/` when a spec targets one dedicated `chatMode` scene
-- keep a spec at the top level only when it verifies:
-  - main-entry scene switching
-  - a shared blackbox or whitebox user flow
-  - behavior spanning multiple scenes
+- add every Playwright `*.spec.ts` file under `scenario-specs/`
+- use naming and helper usage to distinguish smoke vs scenario responsibilities instead of relying on top-level placement
 - do not mix Vue scene code and Playwright spec code in the same file
 
 ## Scene Rules
@@ -91,6 +100,23 @@ Default rule:
 - keep `index.vue` as a thin router, not a large fixture dump
 - preserve `data-testid` values once a spec depends on them
 - keep shared target-config defaults in `scenarios/officialSceneConfig.ts` when reused
+- if a scene owns runtime creation from config, prefer `scenarios/useStableSceneRuntime.ts` over scene-local `computed(() => createRuntimeFromConfig(...))`
+- if a scene gates between welcome and message-list regions from runtime state, prefer `scenarios/useSceneWelcomeState.ts` over repeating the same message-count computed branch
+- if a smoke spec just needs to enter the chat app and open `TrChat` / `Root + Page` / `Root + primitives`, prefer `scenario-specs/openChatSmokeScene.ts` over repeating the same top-nav click plus mode-switch setup
+- use the default `demo-nav` entry unless the smoke spec specifically needs the narrower component-test entry before switching modes
+
+Current ownership map:
+
+- `TrChatScene.vue`, `WhiteboxScene.vue`, and `GranularScene.vue`
+  - shared official root scenes for the smoke gate
+- `SurfaceApiScene.vue`
+  - shared advanced/leaf-composition fixture used by both `scenario-specs/surface-api.spec.ts` and the granular sender-config branch in `scenario-specs/sender-actions.spec.ts`
+- all other `scenarios/*.vue`
+  - currently one-to-one with a dedicated `scenario-specs/*.spec.ts` file
+
+Do not delete or merge a scene only because it looks feature-specific.
+First confirm its consumers in `test-suite-audit-baseline.md`.
+At the current retained gate, there is no orphan scene fixture waiting to be deleted outright.
 
 If a scene still uses a non-default advanced setup:
 
@@ -121,11 +147,14 @@ test.describe('Feature Name', () => {
 
 When a test still depends on the top-level demo entry, prefer:
 
-- `helper.switchToBlackbox()`
+- `helper.switchToTrChat()`
 - `helper.switchToWhitebox()`
 - `helper.switchToGranular()`
 
 instead of open-coded button clicks.
+
+For feature scenes such as `surface-api`, prefer routing directly with `/?chatMode=surface-api`
+instead of adding more top-level switch helpers into `testHelper.ts`.
 
 ## Selector And Assertion Rules
 
@@ -174,10 +203,26 @@ Keep following the same rule for any future legacy scene:
 
 ## Commands
 
+Frozen retained gates:
+
+```powershell
+pnpm.cmd -F tiny-robot-test test:chat:smoke:full
+pnpm.cmd -F tiny-robot-test test:chat:scenario:full
+pnpm.cmd -F tiny-robot-test test:chat:smoke
+pnpm.cmd -F tiny-robot-test test:chat:scenario
+```
+
+Preferred execution order:
+
+1. try the `:full` command first
+   - current baseline is `4` Playwright workers
+2. if the local environment shows worker or web-server instability, fall back to the non-`full` command
+   - this remains the stable gate variant
+
 Common targeted runs:
 
 ```powershell
-pnpm.cmd -F tiny-robot-test test -- src/chat/index.spec.ts
+pnpm.cmd -F tiny-robot-test test -- src/chat/scenario-specs/index.spec.ts
 pnpm.cmd -F tiny-robot-test test -- src/chat/scenario-specs/workspace-slots.spec.ts
 ```
 
@@ -187,3 +232,9 @@ When moving or adapting specs:
 2. adapt the scene or assertion
 3. rerun the affected spec
 4. update `test-boundary-baseline.md` if its keep/adapt/retire status changed
+
+Current support-surface note:
+
+- `selectors.ts` and `testHelper.ts` are intentionally narrower than the full demo router
+- do not add top-level mode-switch helpers unless a retained smoke/spec actually needs them
+- if a selector only serves a zero-call helper branch, retire the helper and selector together in the same slice

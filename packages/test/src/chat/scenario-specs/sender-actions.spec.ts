@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test'
-import { createChatTestHelper } from './testHelper'
+import { createChatTestHelper } from '../testHelper'
 
 function registerFakeSpeechRecognition(page: Page) {
   return page.addInitScript(() => {
@@ -39,15 +39,15 @@ test.describe('Chat Sender Actions Feature', () => {
     helper = createChatTestHelper(page)
   })
 
-  test.describe('blackbox', () => {
+  test.describe('trchat-entry', () => {
     test.beforeEach(async () => {
-      await helper.switchToBlackbox()
+      await helper.switchToTrChat()
     })
 
-    test('sender maxLength should disable submit without truncating the typed content on the official blackbox path', async ({
+    test('sender maxLength should disable submit without truncating the typed content on the official TrChat path', async ({
       page,
     }) => {
-      const root = helper.selectors.blackboxChat
+      const root = helper.selectors.trChatChat
       const input = page.locator(root).locator(helper.selectors.senderInput)
       const submitBtn = page.locator(root).locator(helper.selectors.senderSubmitBtn)
       const overLimitText = 'x'.repeat(121)
@@ -61,20 +61,20 @@ test.describe('Chat Sender Actions Feature', () => {
     })
 
     test('wordCount should be rendered when sender defaults enable it', async ({ page }) => {
-      const root = helper.selectors.blackboxChat
+      const root = helper.selectors.trChatChat
 
       await helper.typeMessage('12345', root)
       await expect(page.locator(root).locator(helper.selectors.senderWordCounter)).toContainText('5/120')
     })
 
     test('voice action should be visible when sender defaults enable it', async () => {
-      const root = helper.selectors.blackboxChat
+      const root = helper.selectors.trChatChat
 
       await helper.expectVoiceActionVisible(true, root)
     })
 
     test('default footer tools should keep the upload action visible alongside footer controls', async () => {
-      const root = helper.selectors.blackboxChat
+      const root = helper.selectors.trChatChat
 
       await helper.expectUploadActionVisible(true, root)
     })

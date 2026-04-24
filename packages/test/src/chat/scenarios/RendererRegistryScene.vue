@@ -1,7 +1,7 @@
 <template>
   <div class="scene-grid">
-    <div data-testid="chat-renderer-registry-blackbox" class="chat-wrapper">
-      <TrChat :config="blackboxConfig" />
+    <div data-testid="chat-renderer-registry-trchat" class="chat-wrapper">
+      <TrChat :config="trChatConfig" />
     </div>
 
     <div data-testid="chat-renderer-registry-whitebox" class="chat-wrapper">
@@ -31,8 +31,9 @@
 import { BubbleRenderers } from '@opentiny/tiny-robot'
 import type { BubbleContentRendererProps } from '@opentiny/tiny-robot'
 import { computed, defineComponent, h } from 'vue'
-import { TrChat, createRuntimeFromConfig, type TrChatConfig } from '@opentiny/tiny-robot-chat'
+import { TrChat, type TrChatConfig } from '@opentiny/tiny-robot-chat'
 import { createOfficialSceneConfig } from './officialSceneConfig'
+import { useStableSceneRuntime } from './useStableSceneRuntime'
 
 const CustomCardRenderer = defineComponent({
   name: 'OfficialRendererRegistryCard',
@@ -102,10 +103,10 @@ const rendererRegistryConfig = {
   },
 } satisfies NonNullable<TrChatConfig['messages']>
 
-const blackboxConfig = computed<TrChatConfig>(() =>
+const trChatConfig = computed<TrChatConfig>(() =>
   createOfficialSceneConfig({
-    brandTitle: 'Renderer Registry Blackbox',
-    welcomeTitle: 'Renderer Registry Blackbox',
+    brandTitle: 'Renderer Registry TrChat',
+    welcomeTitle: 'Renderer Registry TrChat',
     welcomeDescription: 'Official TrChat path should consume message runtime renderers.',
     contentLayout: 'wide',
     initialMessages: rendererRegistryMessages,
@@ -135,8 +136,8 @@ const granularConfig = computed<TrChatConfig>(() =>
   }),
 )
 
-const whiteboxResolution = computed(() => createRuntimeFromConfig(whiteboxConfig.value))
-const granularResolution = computed(() => createRuntimeFromConfig(granularConfig.value))
+const whiteboxResolution = useStableSceneRuntime(whiteboxConfig)
+const granularResolution = useStableSceneRuntime(granularConfig)
 </script>
 
 <style scoped>
