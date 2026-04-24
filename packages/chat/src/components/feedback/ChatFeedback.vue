@@ -5,10 +5,11 @@ import type { ChatMessage } from '@opentiny/tiny-robot-kit'
 import { computed, inject } from 'vue'
 import type { PropType } from 'vue'
 import { getChatRenderSourceMessage } from '@/runtime/chat-kit/chatRenderMessages'
-import { useChatFeedback, useRuntimeFeedbackEnabled } from './useChatFeedback'
+import { useChatFeedbackWithFallbackRuntime, useRuntimeFeedbackEnabled } from './useChatFeedback'
 import { getChatMessageError, isChatMessageEditing } from '@/runtime/chat-kit/chatMessageState'
 import { CHAT_KIT_KEY, CHAT_RUNTIME_KEY, MESSAGE_ACTION_KEY, MESSAGE_ACTIONS_KEY } from '@/shared/context'
-import type { ChatMessageActionPayload, ChatRuntime, UseChatKitReturn, TrChatMessageListProps } from '@/types'
+import type { ChatMessageActionPayload, ChatRuntime, TrChatMessageListProps } from '@/types'
+import type { UseChatKitReturn } from '@/types/core'
 import { triStateBooleanProp } from '@/shared/utils'
 
 defineOptions({ name: 'TrChatFeedback' })
@@ -40,11 +41,11 @@ const injectedActionHandler = inject(MESSAGE_ACTION_KEY, undefined)
 const injectedActionConfig = inject(MESSAGE_ACTIONS_KEY, null)
 
 const { feedbackActions, feedbackOperations, getActionDefinition, actionContext, messageIds, userContent } =
-  useChatFeedback({
+  useChatFeedbackWithFallbackRuntime({
     messages: props.messages,
     messageIndexes: props.messageIndexes,
     role: props.role,
-    chatKit,
+    fallbackRuntime: chatKit,
     runtime: chatRuntime,
     messageActions: props.messageActions ?? injectedActionConfig?.messageActions.value,
     messageActionsMode: props.messageActionsMode ?? injectedActionConfig?.messageActionsMode.value,

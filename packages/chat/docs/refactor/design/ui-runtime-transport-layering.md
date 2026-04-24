@@ -270,7 +270,7 @@ For the current package state, the recommended path is:
 This preserves the most valuable user-facing balance:
 
 - a default black-box path
-- a middle path for "our transport, your UI and runtime"
+- a middle path for "our UI and runtime, your transport"
 - a deep customization path for "our runtime too"
 
 ## 10. Relationship To Current Follow-Ups

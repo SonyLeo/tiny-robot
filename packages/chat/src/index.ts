@@ -134,6 +134,7 @@ export type {
   ChatMessageTransformFinishContext,
   ChatMessageTransforms,
   ChatListVariant,
+  TrChatProviderRuntimeOptions,
   TrChatProps,
   TrChatProviderProps,
   TrChatHeaderProps,

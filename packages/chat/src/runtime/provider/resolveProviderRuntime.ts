@@ -1,14 +1,15 @@
 import { useChatKit } from '@/runtime/chat-kit/useChatKit'
-import type { TrChatProviderProps, UseChatKitOptions, UseChatKitReturn } from '@/types'
+import type { TrChatProviderProps } from '@/types'
+import type { TrChatProviderRuntimeOptions, UseChatKitReturn } from '@/types/core'
 
-interface ProviderChatKitResolution {
-  chatKitOptions: UseChatKitOptions
+interface ProviderRuntimeResolution {
+  providerRuntimeOptions: TrChatProviderRuntimeOptions
 }
 
-export function getProviderChatKitResolution(
+export function getProviderRuntimeResolution(
   componentName: string,
   props: TrChatProviderProps,
-): ProviderChatKitResolution {
+): ProviderRuntimeResolution {
   const responseProvider = props.responseProvider
 
   if (!responseProvider) {
@@ -16,7 +17,7 @@ export function getProviderChatKitResolution(
   }
 
   return {
-    chatKitOptions: {
+    providerRuntimeOptions: {
       responseProvider,
       plugins: props.plugins,
       storage: props.storage,
@@ -28,11 +29,11 @@ export function getProviderChatKitResolution(
   }
 }
 
-export function resolveProviderChatKit(
+export function resolveProviderRuntime(
   componentName: string,
   props: TrChatProviderProps,
-  createChatKit: (options: UseChatKitOptions) => UseChatKitReturn = useChatKit,
+  createChatKit: (options: TrChatProviderRuntimeOptions) => UseChatKitReturn = useChatKit,
 ): UseChatKitReturn {
-  const resolution = getProviderChatKitResolution(componentName, props)
-  return createChatKit(resolution.chatKitOptions)
+  const resolution = getProviderRuntimeResolution(componentName, props)
+  return createChatKit(resolution.providerRuntimeOptions)
 }

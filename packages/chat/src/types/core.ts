@@ -63,7 +63,6 @@ export interface ChatMessageActionContext {
   message?: ChatMessage
   messageIndex?: number
   messageId?: string
-  chatKit?: UseChatKitReturn | null
   runtime?: ChatRuntime | null
   conversationId?: string
 }
@@ -107,15 +106,18 @@ export interface ChatAppearanceConfig {
   mode?: ChatAppearanceMode
 }
 
-export interface UseChatKitOptions {
+export interface TrChatProviderRuntimeOptions {
   responseProvider: ResponseProvider
   plugins?: UseMessagePlugin[]
   storage?: ConversationStorageStrategy
   initialMessages?: ChatMessage[]
   messageTransforms?: ChatMessageTransforms
-  onAfterReceive?: (message: ChatMessage) => void
   onFinish?: (message: ChatMessage) => void
   onError?: (error: Error) => void
+}
+
+export interface UseChatKitOptions extends TrChatProviderRuntimeOptions {
+  onAfterReceive?: (message: ChatMessage) => void
 }
 
 export interface UseChatKitRuntimeBridge {

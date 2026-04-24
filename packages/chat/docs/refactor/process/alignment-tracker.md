@@ -188,20 +188,18 @@ Historical rationale and freeze context live in:
 
 - `post-closure core-flow stabilization` is now complete; the retained smoke/scenario gates are green again, and the branch no longer has an active official-path usability blocker.
 - `full-cutover-closure-checklist.md` is green again for the current supported package story, and the follow-up test expansion / suite-normalization slice has now closed with the retained hard gate plus Playwright gate green.
-- the next three follow-ups are now explicitly recorded as optional and not active:
-  - add formal code-coverage reporting instead of relying only on behavior-coverage language
-  - optionally continue deeper private-runtime cleanup by reducing the internal `chat-kit` chain
+- formal package-local code-coverage reporting has now landed as `pnpm.cmd -F @opentiny/tiny-robot-chat test:coverage`; it reuses `packages/chat/tests` (`runtime`, `contracts`, `integration`) to report against `packages/chat/src`, and it does not replace the retained Playwright gate under `packages/test/src/chat`.
+- the post-closure coverage / story / surface-cleanup slice is now complete as well: README and design guidance explicitly describe the settled three-layer product model, the retained `TrChat.Provider(responseProvider)` tier is called out as "our UI + runtime, your transport", and the first bounded public-surface cleanup batch has removed `UseChatKit*`-shaped provider exports from the public package surface while keeping the private runtime chain internal.
+- the remaining optional follow-ups after that completed slice are:
+  - only resume deeper private-runtime cleanup if a separate scoped task justifies more public-surface or internal naming work
   - handle deferred standalone page-level `footer` publishing semantics as its own contract task
 
 ## Next Actions
 
-1. There is no blocking active post-closure slice for the current supported package story.
-2. Use `test-governance-standard.md`, `test-boundary-baseline.md`, `test-suite-audit-baseline.md`, and `test-gap-backlog.md` together before adding, retiring, or moving tests.
-3. Keep `pnpm.cmd -F tiny-robot-test test:chat:smoke:full` and `pnpm.cmd -F tiny-robot-test test:chat:scenario:full` as the preferred retained Playwright gate, with the non-`full` scripts as the stable fallback when local worker or web-server instability shows up.
-4. Keep any future contract changes in `design/api-runtime.md` and `design/execution.md` first, then backwrite the tracker.
-5. Treat deferred standalone `footer` publishing semantics as a separate contract task, not as a blocker for public cutover closure.
-6. Treat any further work as a new scoped slice: optional deeper runtime cleanup, additional test expansion, or new feature work.
-7. When the branch is ready for non-blocking follow-up work, prefer this order:
-   - formal code-coverage reporting
-   - optional deeper private-runtime `chat-kit` cleanup
-   - deferred standalone `footer` publishing semantics
+1. There is no required active optional slice for the current supported package story; the remaining follow-ups are deferred, not blocking.
+2. Use `pnpm.cmd -F @opentiny/tiny-robot-chat test:coverage` when a slice needs formal package-local coverage evidence, and keep `packages/test/src/chat` as the separate retained e2e gate.
+3. If future work resumes private-runtime cleanup, keep it bounded to public-surface or internal naming cleanup first; do not reopen deep runtime re-architecture without a separate scoped task.
+4. Use `test-governance-standard.md`, `test-boundary-baseline.md`, `test-suite-audit-baseline.md`, and `test-gap-backlog.md` together before adding, retiring, or moving tests.
+5. Keep `pnpm.cmd -F tiny-robot-test test:chat:smoke:full` and `pnpm.cmd -F tiny-robot-test test:chat:scenario:full` as the preferred retained Playwright gate, with the non-`full` scripts as the stable fallback when local worker or web-server instability shows up.
+6. Keep any future contract changes in `design/api-runtime.md` and `design/execution.md` first, then backwrite the tracker.
+7. Treat deferred standalone `footer` publishing semantics as a separate contract task, not as a blocker for public cutover closure.

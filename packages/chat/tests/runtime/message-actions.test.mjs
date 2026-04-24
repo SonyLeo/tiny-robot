@@ -5,6 +5,7 @@
   createStreamingProvider,
   ensureRuntimeMessageId,
   useChatFeedback,
+  useChatFeedbackWithFallbackRuntime,
   useRuntimeFeedbackEnabled,
   useChatKit,
   waitFor,
@@ -58,11 +59,11 @@ await runTest('useChatFeedback merges built-in and custom message actions into f
   ]
 
   const feedback = runWithAppContext(() =>
-    useChatFeedback({
+    useChatFeedbackWithFallbackRuntime({
       messages: [chatKit.messages.value[1]],
       messageIndexes: [1],
       role: 'assistant',
-      chatKit,
+      fallbackRuntime: chatKit,
       messageActions,
     }),
   )

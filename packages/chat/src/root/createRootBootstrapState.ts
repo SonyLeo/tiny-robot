@@ -2,7 +2,8 @@ import { computed } from 'vue'
 import type { ChatMessage } from '@opentiny/tiny-robot-kit'
 import { getChatMessageError } from '@/runtime/chat-kit/chatMessageState'
 import type { UseChatAttachmentsReturn } from '@/components/attachments/useChatAttachments'
-import type { ChatAttachmentsFeaturePreset, ChatMessagesOverrides, UseChatKitReturn } from '@/types'
+import type { ChatAttachmentsFeaturePreset, ChatMessagesOverrides } from '@/types'
+import type { UseChatKitReturn } from '@/types/core'
 import type {
   ChatConversationSummary,
   ChatRuntime,

@@ -6,7 +6,8 @@ import { getChatRenderMessageIndex, getChatRenderSourceMessage } from '@/runtime
 import { getRuntimeMessageId } from '@/runtime/core/messageIdentity'
 import { CHAT_KIT_KEY, CHAT_RUNTIME_KEY } from '@/shared/context'
 import { useResolvedChatMessages } from '@/shared/messages'
-import type { ChatRuntime, UseChatKitReturn } from '@/types'
+import type { ChatRuntime } from '@/types'
+import type { UseChatKitReturn } from '@/types/core'
 
 const props = defineProps<BubbleContentRendererProps>()
 const chatKit = inject<UseChatKitReturn>(CHAT_KIT_KEY)

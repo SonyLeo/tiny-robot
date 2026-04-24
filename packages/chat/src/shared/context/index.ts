@@ -8,12 +8,12 @@ import type {
   ChatMessageActionPayload,
   ChatMessages,
   ChatSenderActionsFeaturePreset,
-  UseChatKitReturn,
 } from '@/types'
 import type { UseMcpManagerReturn } from '@/components/mcp/useMcpManager'
 import type { UseChatAttachmentsReturn } from '@/components/attachments/useChatAttachments'
 import type { BubbleListProps, PromptProps } from '@opentiny/tiny-robot'
 import type { ChatUiContextValue } from '@/components/workspace/chatUiContext'
+import type { UseChatKitReturn } from '@/types/core'
 import type { ChatRuntime } from '@/types/root'
 import type { BrandConfig, ChatAppearanceConfig, ChatListVariant } from '@/types/core'
 import type { ModelOption } from '@/types/model'

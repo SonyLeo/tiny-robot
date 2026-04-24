@@ -1,6 +1,6 @@
 import { computed, shallowRef, watch, watchEffect } from 'vue'
 import type { ChatMessage } from '@opentiny/tiny-robot-kit'
-import type { UseChatKitOptions, UseChatKitReturn, UseMessageResponseProvider } from '@/types'
+import type { UseChatKitOptions, UseChatKitReturn, UseMessageResponseProvider } from '@/types/core'
 import { getRuntimeMessageId, setRuntimeMessageId } from '@/runtime/core/messageIdentity'
 import { useChatConversation } from './useChatConversation'
 import { cloneMessages, useChatMessages } from './useChatMessages'

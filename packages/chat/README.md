@@ -21,6 +21,28 @@ If you need explicit runtime injection, provider wiring, or granular composition
 `TrChat.Provider` is the bounded advanced helper surface.
 It now accepts a `responseProvider`-based setup only; direct `chatKit` passthrough is no longer part of the supported package story.
 
+## Three-Layer Product Model
+
+The supported package story is intentionally three-layered, not just "UI vs data":
+
+- UI / page composition
+- orchestration runtime
+- transport / data-access
+
+The entry surfaces map to those layers like this:
+
+- `TrChat`
+  package-owned UI, package-owned orchestration runtime, package-owned transport bridge through `TrChatConfig`
+- `TrChat.Provider(responseProvider)`
+  package-owned UI, package-owned orchestration runtime, user-owned transport / data-access through `responseProvider`
+- `TrChat.Root + TrChat.Page`
+  package-owned UI, user-owned runtime, user-owned transport as part of that runtime
+- `TrChat.Root + primitives`
+  package-owned primitives, user-owned runtime, user-owned transport as part of that runtime
+
+Use `TrChat` by default.
+Use `TrChat.Provider(responseProvider)` when teams want our UI and chat behavior but need their own data-access layer.
+
 ## Official Bridge Helper
 
 - `createRuntimeFromConfig(config)`
@@ -58,6 +80,8 @@ The demo app mirrors the official entry ladder:
 
 ## Validation Shortcuts
 
+- `pnpm -F @opentiny/tiny-robot-chat test:coverage`
+  formal package-local coverage reporting for `packages/chat/tests` (`runtime`, `contracts`, `integration`) against `packages/chat/src`; Playwright e2e remains the separate retained gate under `packages/test/src/chat`
 - `pnpm -F @opentiny/tiny-robot-chat check:demo`
 - `pnpm -F @opentiny/tiny-robot-chat check:phase-4`
 

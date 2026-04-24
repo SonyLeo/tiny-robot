@@ -3,7 +3,7 @@ import type { ChatMessage } from '@opentiny/tiny-robot-kit'
 import type { BasePluginContext, UseMessagePlugin, UseMessageOptions } from '@opentiny/tiny-robot-kit'
 import type { UseConversationReturn } from '@opentiny/tiny-robot-kit'
 import type { ShallowRef } from 'vue'
-import type { UseChatKitOptions, UseMessageResponseProvider } from '@/types'
+import type { UseChatKitOptions, UseMessageResponseProvider } from '@/types/core'
 
 type UseChatConversationOptions = Pick<
   UseChatKitOptions,

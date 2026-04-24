@@ -5,7 +5,8 @@ import { getChatMessageError, getChatMessageState } from '@/runtime/chat-kit/cha
 import { getRuntimeMessageId } from '@/runtime/core/messageIdentity'
 import { CHAT_KIT_KEY, CHAT_RUNTIME_KEY } from '@/shared/context'
 import { useResolvedChatMessages } from '@/shared/messages'
-import type { ChatRuntime, UseChatKitReturn } from '@/types'
+import type { ChatRuntime } from '@/types'
+import type { UseChatKitReturn } from '@/types/core'
 
 const props = defineProps<
   BubbleContentRendererProps<

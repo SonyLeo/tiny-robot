@@ -2,13 +2,13 @@ import {
   assert,
   createMemoryStorage,
   createStreamingProvider,
-  getProviderChatKitResolution,
-  resolveProviderChatKit,
+  getProviderRuntimeResolution,
+  resolveProviderRuntime,
   runTest,
 } from '../_helpers.mjs'
 
 await runTest(
-  'getProviderChatKitResolution derives useChatKit options from provider props when responseProvider is present',
+  'getProviderRuntimeResolution derives provider-facing runtime options from provider props when responseProvider is present',
   async () => {
     const responseProvider = createStreamingProvider()
     const onFinish = () => {}
@@ -21,7 +21,7 @@ await runTest(
     const storage = createMemoryStorage()
     const initialMessages = [{ role: 'system', content: 'seed' }]
 
-    const resolution = getProviderChatKitResolution('TrChatProvider', {
+    const resolution = getProviderRuntimeResolution('TrChatProvider', {
       responseProvider,
       storage,
       initialMessages,
@@ -30,29 +30,29 @@ await runTest(
       onError,
     })
 
-    assert.equal(resolution.chatKitOptions?.responseProvider, responseProvider)
-    assert.equal(resolution.chatKitOptions?.storage, storage)
-    assert.equal(resolution.chatKitOptions?.messageTransforms, messageTransforms)
-    assert.equal(resolution.chatKitOptions?.onFinish, onFinish)
-    assert.equal(resolution.chatKitOptions?.onError, onError)
-    assert.deepEqual(resolution.chatKitOptions?.initialMessages, initialMessages)
+    assert.equal(resolution.providerRuntimeOptions?.responseProvider, responseProvider)
+    assert.equal(resolution.providerRuntimeOptions?.storage, storage)
+    assert.equal(resolution.providerRuntimeOptions?.messageTransforms, messageTransforms)
+    assert.equal(resolution.providerRuntimeOptions?.onFinish, onFinish)
+    assert.equal(resolution.providerRuntimeOptions?.onError, onError)
+    assert.deepEqual(resolution.providerRuntimeOptions?.initialMessages, initialMessages)
   },
 )
 
-await runTest('resolveProviderChatKit throws a component-scoped error when responseProvider is missing', async () => {
+await runTest('resolveProviderRuntime throws a component-scoped error when responseProvider is missing', async () => {
   assert.throws(
-    () => resolveProviderChatKit('TrChatProvider', {}),
+    () => resolveProviderRuntime('TrChatProvider', {}),
     /\[TrChatProvider\] responseProvider must be provided/,
   )
 })
 
-await runTest('resolveProviderChatKit delegates chatKit creation through the shared helper path', async () => {
+await runTest('resolveProviderRuntime delegates runtime creation through the shared helper path', async () => {
   const responseProvider = createStreamingProvider()
   const storage = createMemoryStorage()
   const created = { kind: 'mock-chat-kit' }
   const receivedOptions = []
 
-  const chatKit = resolveProviderChatKit(
+  const providerRuntime = resolveProviderRuntime(
     'TrChatProvider',
     {
       responseProvider,
@@ -64,7 +64,7 @@ await runTest('resolveProviderChatKit delegates chatKit creation through the sha
     },
   )
 
-  assert.equal(chatKit, created)
+  assert.equal(providerRuntime, created)
   assert.equal(receivedOptions.length, 1)
   assert.equal(receivedOptions[0].responseProvider, responseProvider)
   assert.equal(receivedOptions[0].storage, storage)

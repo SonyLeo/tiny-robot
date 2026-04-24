@@ -13,7 +13,8 @@ import {
   createChatUiContext,
 } from '@/shared/context'
 import { resolveChatMessages } from '@/shared/messages'
-import type { ChatAttachmentsFeaturePreset, ChatMessagesOverrides, UseChatKitReturn } from '@/types'
+import type { ChatAttachmentsFeaturePreset, ChatMessagesOverrides } from '@/types'
+import type { UseChatKitReturn } from '@/types/core'
 import type { ChatWorkspaceShellConfig } from '@/types/workspace'
 
 defineOptions({ name: 'RootBootstrapProvider' })

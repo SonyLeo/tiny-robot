@@ -187,6 +187,26 @@ Recommended scenario categories:
 - scenario gate blocks feature-level regression before deleting more old scenes or helper surfaces
 - neither gate should include legacy-only assertions once a boundary has been handed off or explicitly dropped
 
+## Coverage Reporting Baseline
+
+Formal code-coverage reporting should start from the existing package-local suites, not from a new test tier.
+
+Use:
+
+- `pnpm.cmd -F @opentiny/tiny-robot-chat test:coverage`
+
+This coverage command should:
+
+- reuse `packages/chat/tests/runtime`, `packages/chat/tests/contracts`, and `packages/chat/tests/integration`
+- report against `packages/chat/src`
+- write durable package-local artifacts under `packages/chat/coverage/`
+
+It should not:
+
+- replace the retained Playwright smoke or scenario gates under `packages/test/src/chat`
+- be described as a third test suite
+- hide which source files were never loaded by the package-local tests
+
 ## Keep / Adapt / Retire Policy
 
 Every existing test file should eventually be labeled as one of:

@@ -89,7 +89,7 @@ const chatMessageListSource = readFileSync(
 )
 const chatHistorySource = readFileSync(fileURLToPath(new URL('../../src/components/history/ChatHistory.vue', import.meta.url)), 'utf8')
 const providerResolutionSource = readFileSync(
-  fileURLToPath(new URL('../../src/runtime/provider/resolveProviderChatKit.ts', import.meta.url)),
+  fileURLToPath(new URL('../../src/runtime/provider/resolveProviderRuntime.ts', import.meta.url)),
   'utf8',
 )
 
@@ -261,12 +261,16 @@ await runTest('chat provider source no longer reads scaffold shell directly once
 
 await runTest('public provider source is narrowed to responseProvider while root keeps private chatKit bootstrap wiring internal', async () => {
   assert.equal(chatUiTypesSource.includes('type TrChatProviderPropsB'), false)
-  assert.equal(chatUiTypesSource.includes('export type TrChatProviderProps = TrChatProviderSharedProps & {'), true)
-  assert.equal(chatUiTypesSource.includes("responseProvider: UseChatKitOptions['responseProvider']"), true)
+  assert.equal(chatCoreTypesSource.includes('export interface TrChatProviderRuntimeOptions {'), true)
+  assert.equal(chatUiTypesSource.includes('export type TrChatProviderProps = TrChatProviderSharedProps & TrChatProviderRuntimeOptions'), true)
+  assert.equal(chatUiTypesSource.includes('UseChatKitOptions'), false)
   assert.equal(providerResolutionSource.includes('const responseProvider = props.responseProvider'), true)
   assert.equal(providerResolutionSource.includes("conditionalProp(props, 'chatKit')"), false)
   assert.equal(providerResolutionSource.includes('providedChatKit'), false)
+  assert.equal(providerResolutionSource.includes('providerRuntimeOptions'), true)
   assert.equal(providerResolutionSource.includes('responseProvider must be provided'), true)
+  assert.equal(chatProviderSource.includes('resolveProviderRuntime'), true)
+  assert.equal(chatProviderSource.includes('resolveProviderChatKit'), false)
   assert.equal(chatRootSource.includes('RootBootstrapProvider'), true)
   assert.equal(chatRootSource.includes('<ChatProvider'), false)
   assert.equal(rootBootstrapProviderSource.includes('provide(CHAT_KIT_KEY, props.chatKit)'), true)
@@ -300,6 +304,11 @@ await runTest('public source advertises chat message action contracts for extens
     assert.equal(chatTypesIndexSource.includes(token), true)
   })
 
+  assert.equal(chatIndexSource.includes('ChatMessageActionFallbackRuntime'), false)
+  assert.equal(chatTypesIndexSource.includes('ChatMessageActionFallbackRuntime'), false)
+  assert.equal(chatCoreTypesSource.includes('export interface ChatMessageActionFallbackRuntime {'), false)
+  assert.equal(chatCoreTypesSource.includes('fallbackRuntime?: ChatMessageActionFallbackRuntime | null'), false)
+  assert.equal(chatCoreTypesSource.includes('chatKit?: UseChatKitReturn | null'), false)
   assert.equal(chatCoreTypesSource.includes('messageIds: string[]'), true)
 })
 
@@ -309,6 +318,7 @@ await runTest('renamed provider-facing type exports stay visible through the pub
     'TrChatConfig',
     'TrChatRootProps',
     'TrChatProviderProps',
+    'TrChatProviderRuntimeOptions',
   ]
 
   topLevelTypeExports.forEach((token) => {
@@ -320,6 +330,7 @@ await runTest('renamed provider-facing type exports stay visible through the pub
     'TrChatConfig',
     'TrChatRootProps',
     'TrChatProviderProps',
+    'TrChatProviderRuntimeOptions',
     'TrChatProviderSharedProps',
   ]
 
@@ -334,6 +345,9 @@ await runTest('renamed provider-facing type exports stay visible through the pub
   assert.equal(chatIndexSource.includes('UseChatKitOptions'), false)
   assert.equal(chatIndexSource.includes('UseChatKitRuntimeBridge'), false)
   assert.equal(chatIndexSource.includes('UseChatKitReturn'), false)
+  assert.equal(chatTypesIndexSource.includes('UseChatKitOptions'), false)
+  assert.equal(chatTypesIndexSource.includes('UseChatKitRuntimeBridge'), false)
+  assert.equal(chatTypesIndexSource.includes('UseChatKitReturn'), false)
 })
 
 await runTest('public runtime sendMessage surface stays single-argument while structuredData remains sender-local', async () => {

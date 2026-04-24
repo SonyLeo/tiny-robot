@@ -20,7 +20,7 @@ import type {
   ChatMessageActionsInput,
   ChatMessageActionsMode,
   ChatMessageActionPayload,
-  UseChatKitOptions,
+  TrChatProviderRuntimeOptions,
 } from './core'
 import type { ModelOption } from './model'
 import type { ChatWorkspaceShellConfig } from './workspace'
@@ -195,15 +195,7 @@ export type TrChatProviderSharedProps = {
   shell?: ChatWorkspaceShellConfig
 }
 
-export type TrChatProviderProps = TrChatProviderSharedProps & {
-  responseProvider: UseChatKitOptions['responseProvider']
-  plugins?: UseChatKitOptions['plugins']
-  storage?: UseChatKitOptions['storage']
-  initialMessages?: UseChatKitOptions['initialMessages']
-  messageTransforms?: UseChatKitOptions['messageTransforms']
-  onFinish?: UseChatKitOptions['onFinish']
-  onError?: UseChatKitOptions['onError']
-}
+export type TrChatProviderProps = TrChatProviderSharedProps & TrChatProviderRuntimeOptions
 
 export interface TrChatHeaderProps {
   compatibilityRelay?: boolean

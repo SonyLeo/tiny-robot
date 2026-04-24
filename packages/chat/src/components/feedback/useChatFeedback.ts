@@ -1,4 +1,4 @@
-import { computed, h } from 'vue'
+import { computed, type ComputedRef, h, type Ref } from 'vue'
 import { useClipboard } from '@vueuse/core'
 import { IconEditPen } from '@opentiny/tiny-robot-svgs'
 import type { BubbleMessage, FeedbackProps } from '@opentiny/tiny-robot'
@@ -7,30 +7,44 @@ import { useResolvedChatMessages } from '@/shared/messages'
 import { getChatRenderSourceMessage, unwrapChatRenderMessages } from '@/runtime/chat-kit/chatRenderMessages'
 import { ensureRuntimeMessageId } from '@/runtime/core/messageIdentity'
 import type {
+  ChatErrorInfo,
   ChatMessageActionContext,
   ChatMessageActionDefinition,
   ChatMessageActionsInput,
   ChatMessageActionsMode,
   ChatRuntime,
-  UseChatKitReturn,
+  ChatStatus,
 } from '@/types'
 
 export interface UseChatFeedbackOptions {
   messages: BubbleMessage[]
   messageIndexes: number[]
   role?: string
-  chatKit?: UseChatKitReturn | null
   runtime?: ChatRuntime | null
   messageActions?: ChatMessageActionsInput
   messageActionsMode?: ChatMessageActionsMode
+}
+
+interface ChatFeedbackFallbackRuntime {
+  activeConversationId: Readonly<Ref<string | null>>
+  messages: ComputedRef<ChatMessage[]>
+  status: ComputedRef<ChatStatus>
+  lastError: ComputedRef<ChatErrorInfo | null>
+  startEditMessage: (messageIndex: number) => void
+  retry: () => Promise<boolean>
+  regenerate: (messageIndex?: number) => Promise<boolean>
+}
+
+export interface UseChatFeedbackWithFallbackRuntimeOptions extends UseChatFeedbackOptions {
+  fallbackRuntime?: ChatFeedbackFallbackRuntime | null
 }
 
 export function useRuntimeFeedbackEnabled(options: { enabled?: boolean; runtime?: ChatRuntime | null }) {
   return computed(() => options.enabled ?? options.runtime?.message.config?.feedback?.enabled ?? true)
 }
 
-export function useChatFeedback(options: UseChatFeedbackOptions) {
-  const { messages, messageIndexes, role, chatKit = null, runtime = null } = options
+function createChatFeedbackState(options: UseChatFeedbackWithFallbackRuntimeOptions) {
+  const { messages, messageIndexes, role, fallbackRuntime = null, runtime = null } = options
   const sourceMessages = computed(() => unwrapChatRenderMessages(messages as unknown as ChatMessage[]))
   const { copy } = useClipboard()
   const chatMessages = useResolvedChatMessages()
@@ -62,11 +76,11 @@ export function useChatFeedback(options: UseChatFeedbackOptions) {
   })
 
   const lastUserContent = computed(() => {
-    if (!chatKit) {
+    if (!fallbackRuntime) {
       return ''
     }
 
-    const allMessages = chatKit.messages.value
+    const allMessages = fallbackRuntime.messages.value
     const firstIndex = messageIndexes[0] ?? 0
     for (let index = firstIndex - 1; index >= 0; index--) {
       if (allMessages[index]?.role === 'user') {
@@ -89,8 +103,8 @@ export function useChatFeedback(options: UseChatFeedbackOptions) {
   const isStreaming = computed(() =>
     primaryViewState.value
       ? primaryViewState.value.status === 'streaming' || primaryViewState.value.status === 'pending'
-      : chatKit
-        ? chatKit.status.value === 'streaming' || chatKit.status.value === 'submitted'
+      : fallbackRuntime
+        ? fallbackRuntime.status.value === 'streaming' || fallbackRuntime.status.value === 'submitted'
         : false,
   )
 
@@ -105,9 +119,8 @@ export function useChatFeedback(options: UseChatFeedbackOptions) {
       message: primaryMessage.value as ChatMessage | undefined,
       messageIndex: primaryMessageIndex,
       messageId: primaryMessageId.value,
-      chatKit,
       runtime,
-      conversationId: chatKit?.activeConversationId.value ?? undefined,
+      conversationId: runtime ? undefined : (fallbackRuntime?.activeConversationId.value ?? undefined),
     }
   })
 
@@ -143,8 +156,8 @@ export function useChatFeedback(options: UseChatFeedbackOptions) {
               return
             }
 
-            if (chatKit && context.messageIndex !== undefined) {
-              chatKit.startEditMessage(context.messageIndex)
+            if (fallbackRuntime && context.messageIndex !== undefined) {
+              fallbackRuntime.startEditMessage(context.messageIndex)
             }
           },
         },
@@ -180,7 +193,9 @@ export function useChatFeedback(options: UseChatFeedbackOptions) {
         roles: ['assistant'],
         order: 200,
         when: () =>
-          Boolean((runtime && primaryMessageId.value) || (chatKit && !isStreaming.value && lastUserContent.value)),
+          Boolean(
+            (runtime && primaryMessageId.value) || (fallbackRuntime && !isStreaming.value && lastUserContent.value),
+          ),
         onClick: async (context) => {
           if (runtime && context.messageId) {
             const viewState = runtime.message.getViewState(context.messageId)
@@ -193,16 +208,16 @@ export function useChatFeedback(options: UseChatFeedbackOptions) {
             return
           }
 
-          if (!chatKit || isStreaming.value || !lastUserContent.value) {
+          if (!fallbackRuntime || isStreaming.value || !lastUserContent.value) {
             return
           }
 
-          if (chatKit.lastError.value?.retryable) {
-            await chatKit.retry()
+          if (fallbackRuntime.lastError.value?.retryable) {
+            await fallbackRuntime.retry()
             return
           }
 
-          await chatKit.regenerate(context.messageIndex)
+          await fallbackRuntime.regenerate(context.messageIndex)
         },
       },
     ]
@@ -279,4 +294,12 @@ export function useChatFeedback(options: UseChatFeedbackOptions) {
     messageIds,
     userContent,
   }
+}
+
+export function useChatFeedback(options: UseChatFeedbackOptions) {
+  return createChatFeedbackState(options)
+}
+
+export function useChatFeedbackWithFallbackRuntime(options: UseChatFeedbackWithFallbackRuntimeOptions) {
+  return createChatFeedbackState(options)
 }

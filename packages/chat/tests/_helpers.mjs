@@ -23,7 +23,7 @@ const modelSelectorModule = await jiti.import('../src/components/model-selector/
 const adapterModule = await jiti.import('../src/runtime/config/index.ts')
 const transportModule = await jiti.import('../src/runtime/config/openaiCompatibleTransport.ts')
 const messagesModule = await jiti.import('../src/shared/messages/index.ts')
-const providerChatKitModule = await jiti.import('../src/runtime/provider/resolveProviderChatKit.ts')
+const providerRuntimeModule = await jiti.import('../src/runtime/provider/resolveProviderRuntime.ts')
 const messageIdentityModule = await jiti.import('../src/runtime/core/messageIdentity.ts')
 
 export { assert, computed, nextTick, ref, shallowRef }
@@ -34,6 +34,7 @@ export const useChatRequest = chatRequestModule.useChatRequest
 export const useChatAttachments = chatAttachmentsModule.useChatAttachments
 export const useChatKit = chatKitModule.useChatKit
 export const useChatFeedback = chatFeedbackModule.useChatFeedback
+export const useChatFeedbackWithFallbackRuntime = chatFeedbackModule.useChatFeedbackWithFallbackRuntime
 export const useRuntimeFeedbackEnabled = chatFeedbackModule.useRuntimeFeedbackEnabled
 export const normalizeChatRenderMessages = chatRenderMessagesModule.normalizeChatRenderMessages
 export const getChatRenderSourceMessage = chatRenderMessagesModule.getChatRenderSourceMessage
@@ -47,8 +48,8 @@ export const resolveChatFeatures = adapterModule.resolveChatFeatures
 
 export const CHAT_MESSAGES = messagesModule.CHAT_MESSAGES
 export const resolveChatMessages = messagesModule.resolveChatMessages
-export const getProviderChatKitResolution = providerChatKitModule.getProviderChatKitResolution
-export const resolveProviderChatKit = providerChatKitModule.resolveProviderChatKit
+export const getProviderRuntimeResolution = providerRuntimeModule.getProviderRuntimeResolution
+export const resolveProviderRuntime = providerRuntimeModule.resolveProviderRuntime
 export const getRuntimeMessageId = messageIdentityModule.getRuntimeMessageId
 export const ensureRuntimeMessageId = messageIdentityModule.ensureRuntimeMessageId
 export const ChatProviderError = transportModule.ChatProviderError

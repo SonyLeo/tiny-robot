@@ -15,14 +15,14 @@ import {
 } from '@/shared/context'
 import { resolveChatMessages } from '@/shared/messages'
 import type { TrChatProviderProps } from '@/types'
-import { resolveProviderChatKit } from '@/runtime/provider/resolveProviderChatKit'
+import { resolveProviderRuntime } from '@/runtime/provider/resolveProviderRuntime'
 
 defineOptions({ name: 'TrChatProvider' })
 
 const props = defineProps<TrChatProviderProps>()
 const runtime = inject(CHAT_RUNTIME_KEY, null)
 
-const chatKit = resolveProviderChatKit('TrChatProvider', props)
+const providerRuntime = resolveProviderRuntime('TrChatProvider', props)
 const shell = computed(() => props.shell)
 const chatUi = createChatUiContext({ historyDisplay: 'drawer', shell, workspaceRuntime: runtime?.workspace })
 const chatMessages = computed(() => resolveChatMessages(props.messages))
@@ -30,7 +30,7 @@ const attachmentsFeature = props.attachmentsFeature
 const attachmentsManager = props.attachmentsManager ?? (attachmentsFeature ? useChatAttachments() : null)
 const historyState = useHistoryState()
 
-provide(CHAT_KIT_KEY, chatKit)
+provide(CHAT_KIT_KEY, providerRuntime)
 provide(CHAT_UI_KEY, chatUi)
 provide(CHAT_MESSAGES_KEY, chatMessages)
 provide(CHAT_HISTORY_KEY, historyState)

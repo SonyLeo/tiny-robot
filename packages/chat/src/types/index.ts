@@ -18,9 +18,7 @@ export type {
   ChatMessageTransforms,
   ChatStatus,
   ResponseProvider,
-  UseChatKitOptions,
-  UseChatKitRuntimeBridge,
-  UseChatKitReturn,
+  TrChatProviderRuntimeOptions,
   UseMessageResponseProvider,
 } from './core'
 
