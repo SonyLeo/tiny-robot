@@ -22,6 +22,7 @@ Read these by default:
 
 - `design/overview.md`
 - `design/api-runtime.md`
+- `design/ui-runtime-transport-layering.md`
 - `design/execution.md`
 - `process/review-scheme.md`
 - `process/alignment-tracker.md`

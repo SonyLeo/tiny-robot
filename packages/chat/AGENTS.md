@@ -56,6 +56,8 @@ If the task includes implementation files, then also inspect the nearest relevan
   Target mental model and design boundaries.
 - `packages/chat/docs/refactor/design/api-runtime.md`
   Public contract, runtime ownership, slot, and message-model source of truth.
+- `packages/chat/docs/refactor/design/ui-runtime-transport-layering.md`
+  Product-layering baseline for UI vs orchestration runtime vs transport ownership, supported entry-surface balance, and follow-up scope guidance.
 - `packages/chat/docs/refactor/design/execution.md`
   Phase gates, sequencing, and validation expectations.
 - `packages/chat/docs/refactor/process/review-scheme.md`

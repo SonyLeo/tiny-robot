@@ -20,6 +20,8 @@ These files define the current refactor design and should be treated as the prim
   design-level mental model, goals, and high-level boundaries
 - `packages/chat/docs/refactor/design/api-runtime.md`
   public contract, runtime ownership, slot contract, message model, and source-of-truth rules
+- `packages/chat/docs/refactor/design/ui-runtime-transport-layering.md`
+  product-layering baseline for UI vs orchestration runtime vs transport ownership, supported entry-surface balance, and follow-up scope guidance
 - `packages/chat/docs/refactor/design/execution.md`
   phase gates, sequencing, validation expectations, and milestone rules
 
@@ -121,6 +123,8 @@ Try to keep each task to one primary source doc plus, when necessary, one status
   update `packages/chat/README.md`
 - design intent or top-level mental model changed:
   update `refactor/design/overview.md`
+- UI/runtime/transport product-layering guidance, entry-surface balance, or follow-up ambition level changed:
+  update `refactor/design/ui-runtime-transport-layering.md`
 - review method or packet expectations changed:
   update `refactor/process/review-scheme.md`
 - current status, decisions, risks, or next actions changed:

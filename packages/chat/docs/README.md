@@ -19,7 +19,7 @@ It does not try to explain everything in one file. Its job is to route people an
 
 - `refactor/design/`
   Active refactor source docs:
-  `overview.md`, `api-runtime.md`, `execution.md`
+  `overview.md`, `api-runtime.md`, `execution.md`, `ui-runtime-transport-layering.md`
 - `refactor/process/`
   Active process docs:
   `review-scheme.md`, `alignment-tracker.md`, `test-governance-standard.md`, `test-boundary-baseline.md`, `test-suite-audit-baseline.md`, `test-gap-backlog.md`, `legacy-surface-inventory.md`, `legacy-retirement-roadmap.md`, `provider-helper-decision-baseline.md`, `full-cutover-closure-checklist.md`, `core-flow-stabilization-baseline.md`
@@ -50,16 +50,17 @@ If you are doing refactor design or review:
 2. `refactor/README.md`
 3. `refactor/design/overview.md`
 4. `refactor/design/api-runtime.md`
-5. `refactor/process/alignment-tracker.md`
-6. `refactor/process/test-governance-standard.md`
-7. `refactor/process/test-boundary-baseline.md`
-8. `refactor/process/test-suite-audit-baseline.md`
-9. `refactor/process/test-gap-backlog.md`
-10. `refactor/process/legacy-retirement-roadmap.md`
-11. `refactor/process/provider-helper-decision-baseline.md`
-12. `refactor/process/full-cutover-closure-checklist.md`
-13. `refactor/process/core-flow-stabilization-baseline.md`
-14. `refactor/knowledge/PLAYBOOK.md`
+5. `refactor/design/ui-runtime-transport-layering.md`
+6. `refactor/process/alignment-tracker.md`
+7. `refactor/process/test-governance-standard.md`
+8. `refactor/process/test-boundary-baseline.md`
+9. `refactor/process/test-suite-audit-baseline.md`
+10. `refactor/process/test-gap-backlog.md`
+11. `refactor/process/legacy-retirement-roadmap.md`
+12. `refactor/process/provider-helper-decision-baseline.md`
+13. `refactor/process/full-cutover-closure-checklist.md`
+14. `refactor/process/core-flow-stabilization-baseline.md`
+15. `refactor/knowledge/PLAYBOOK.md`
 
 If you are implementing the current phase:
 
@@ -67,18 +68,19 @@ If you are implementing the current phase:
 2. `SOURCE_OF_TRUTH.md`
 3. `refactor/REFACTOR_COLLAB_GUIDE.md`
 4. `refactor/design/api-runtime.md`
-5. `refactor/design/execution.md`
-6. `refactor/process/test-governance-standard.md`
-7. `refactor/process/test-boundary-baseline.md`
-8. `refactor/process/test-suite-audit-baseline.md`
-9. `refactor/process/test-gap-backlog.md`
-10. `refactor/process/legacy-surface-inventory.md`
-11. `refactor/process/legacy-retirement-roadmap.md`
-12. `refactor/process/provider-helper-decision-baseline.md`
-13. `refactor/process/full-cutover-closure-checklist.md`
-14. `refactor/process/core-flow-stabilization-baseline.md`
-15. the active execution slice under `exec-plans/active/`
-16. `refactor/knowledge/PLAYBOOK.md`
+5. `refactor/design/ui-runtime-transport-layering.md`
+6. `refactor/design/execution.md`
+7. `refactor/process/test-governance-standard.md`
+8. `refactor/process/test-boundary-baseline.md`
+9. `refactor/process/test-suite-audit-baseline.md`
+10. `refactor/process/test-gap-backlog.md`
+11. `refactor/process/legacy-surface-inventory.md`
+12. `refactor/process/legacy-retirement-roadmap.md`
+13. `refactor/process/provider-helper-decision-baseline.md`
+14. `refactor/process/full-cutover-closure-checklist.md`
+15. `refactor/process/core-flow-stabilization-baseline.md`
+16. the active execution slice under `exec-plans/active/`
+17. `refactor/knowledge/PLAYBOOK.md`
 
 ## Maintenance Rule
 
