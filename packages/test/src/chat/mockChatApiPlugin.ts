@@ -68,6 +68,24 @@ function writeSseEvent(res: ServerResponse, payload: unknown) {
   res.write(`data: ${JSON.stringify(payload)}\n\n`)
 }
 
+function resolveProviderLabel(providerId: string, model: string) {
+  const normalizedModel = model.toLowerCase()
+
+  if (normalizedModel.includes('deepseek')) {
+    return 'deepseek'
+  }
+
+  if (normalizedModel.includes('openai')) {
+    return 'openai'
+  }
+
+  if (normalizedModel.includes('claude') || normalizedModel.includes('anthropic')) {
+    return 'anthropic'
+  }
+
+  return providerId === 'edge' ? 'edge-provider' : providerId
+}
+
 async function streamMockChatResponse(
   req: IncomingMessage,
   res: ServerResponse,
@@ -81,7 +99,7 @@ async function streamMockChatResponse(
     userMessage: string
   },
 ) {
-  const providerLabel = providerId === 'edge' ? 'edge-provider' : providerId
+  const providerLabel = resolveProviderLabel(providerId, model)
   const reply = `[${providerLabel}:${model}] ${userMessage}\nThis is a streamed reply from the mock provider.`
   const initialDelay = userMessage === 'abort-request' || userMessage === 'optimistic-state' ? 120 : 10
   const isConnectionClosed = () => req.aborted || res.destroyed || res.writableEnded

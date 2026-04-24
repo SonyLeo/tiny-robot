@@ -69,71 +69,48 @@
       </TrChat>
     </div>
 
-    <div data-testid="chat-surface-provider-chat-kit" class="chat-wrapper">
-      <TrChat.Provider :chat-kit="runtimeProvidedChatKit">
-        <TrChat.Layout>
-          <TrChat.Header title="Provider ChatKit Surface" :show-new-chat="false" />
-
-          <TrChat.Welcome
-            v-if="runtimeProvidedChatKit.messages.value.length === 0"
-            title="Provider ChatKit Welcome"
-            description="An injected chatKit should keep its own responseProvider."
-          />
-
-          <TrChat.MessageList v-else auto-scroll />
-
-          <TrChat.Footer>
-            <TrChat.Sender placeholder="Provider chatKit sender..." />
-          </TrChat.Footer>
-        </TrChat.Layout>
-      </TrChat.Provider>
-    </div>
-
-    <div data-testid="chat-surface-runtime-bridge" class="chat-wrapper">
-      <div class="surface-runtime-bridge-toolbar">
-        <span data-testid="surface-runtime-bridge-request-state">
-          request:{{ runtimeBridgeChat.runtime.requestState.value }}
+    <div data-testid="chat-surface-runtime-diagnostics" class="chat-wrapper">
+      <div class="surface-runtime-diagnostics-toolbar">
+        <span data-testid="surface-runtime-diagnostics-status">
+          status:{{ runtimeDiagnosticsResolution.runtime.conversation.status.value }}
         </span>
-        <span data-testid="surface-runtime-bridge-processing-state">
-          processing:{{ runtimeBridgeChat.runtime.processingState.value ?? 'none' }}
+        <span data-testid="surface-runtime-diagnostics-message-count">
+          messages:{{ runtimeDiagnosticsResolution.runtime.conversation.messages.value.length }}
         </span>
-        <span data-testid="surface-runtime-bridge-is-processing">
-          active:{{ runtimeBridgeChat.runtime.isProcessing.value ? 'true' : 'false' }}
+        <span data-testid="surface-runtime-diagnostics-model">
+          model:{{ runtimeDiagnosticsResolution.runtime.models?.currentModelId.value ?? 'none' }}
         </span>
-        <span data-testid="surface-runtime-bridge-message-count">
-          messages:{{ runtimeBridgeChat.messages.value.length }}
-        </span>
-        <span data-testid="surface-runtime-bridge-save-count">saves:{{ runtimeBridgeSaveCount }}</span>
-        <button data-testid="surface-runtime-bridge-send" @click="sendRuntimeBridgeMessage">
+        <button data-testid="surface-runtime-diagnostics-send" @click="sendRuntimeDiagnosticsMessage">
           Send Runtime Message
         </button>
-        <button data-testid="surface-runtime-bridge-save" @click="runtimeBridgeChat.runtime.saveMessages()">
-          Save
+        <button data-testid="surface-runtime-diagnostics-reset" @click="resetRuntimeDiagnosticsConversation">
+          Reset Conversation
         </button>
-        <button data-testid="surface-runtime-bridge-clear" @click="runtimeBridgeChat.runtime.clear()">Clear</button>
       </div>
 
-      <TrChat.Provider :chat-kit="runtimeBridgeChat">
-        <TrChat.Layout>
-          <TrChat.Header :show-new-chat="false">
-            <template #title>
-              <span data-testid="surface-runtime-bridge-title">Runtime Bridge Surface</span>
-            </template>
-          </TrChat.Header>
+      <TrChat.Root :runtime="runtimeDiagnosticsResolution.runtime" :ui="runtimeDiagnosticsResolution.ui">
+        <TrChat.Layout
+          :appearance="runtimeDiagnosticsResolution.ui.appearance"
+          :content-layout="runtimeDiagnosticsResolution.ui.contentLayout"
+        >
+          <TrChat.Header :title="runtimeDiagnosticsResolution.ui.brand?.title" :show-history="false" />
 
           <TrChat.Welcome
-            v-if="runtimeBridgeChat.messages.value.length === 0"
-            title="Runtime Bridge Welcome"
-            description="This surface verifies runtime bridge state consumption."
+            v-if="showRuntimeDiagnosticsWelcome"
+            :compatibility-relay="false"
+            :title="runtimeDiagnosticsResolution.ui.welcome?.title"
+            :description="runtimeDiagnosticsResolution.ui.welcome?.description"
+            :prompts="runtimeDiagnosticsResolution.ui.welcome?.prompts"
+            @prompt-click="runtimeDiagnosticsResolution.runtime.conversation.send({ text: $event })"
           />
 
-          <TrChat.MessageList v-else auto-scroll />
+          <TrChat.MessageList v-else :compatibility-relay="false" auto-scroll />
 
           <TrChat.Footer>
-            <TrChat.Sender placeholder="Runtime bridge sender..." />
+            <TrChat.Sender />
           </TrChat.Footer>
         </TrChat.Layout>
-      </TrChat.Provider>
+      </TrChat.Root>
     </div>
 
     <div data-testid="chat-surface-granular-model" class="chat-wrapper">
@@ -286,22 +263,47 @@
       </TrChat.Root>
     </div>
 
-    <div data-testid="chat-surface-history-surface" class="history-surface-wrapper">
+    <div data-testid="chat-surface-workspace-history" class="history-surface-wrapper">
       <div class="history-surface-toolbar">
-        <button data-testid="history-surface-seed" @click="seedHistorySurface">Seed Conversations</button>
+        <button data-testid="workspace-history-seed" @click="seedWorkspaceHistory">Seed Conversations</button>
       </div>
 
-      <TrChat.Provider :chat-kit="historySurfaceChat">
-        <TrChat.HistorySurface />
-      </TrChat.Provider>
+      <TrChat.Root :runtime="workspaceHistoryResolution.runtime" :ui="workspaceHistoryResolution.ui">
+        <TrChat.WorkspaceLayout
+          :appearance="workspaceHistoryResolution.ui.appearance"
+          :sidebar-title="workspaceHistoryResolution.ui.brand?.title"
+        >
+          <template #right>
+            <aside class="surface-history-placeholder" data-testid="workspace-history-placeholder">
+              Workspace history default left owner path
+            </aside>
+          </template>
+
+          <TrChat.Layout
+            :appearance="workspaceHistoryResolution.ui.appearance"
+            :content-layout="workspaceHistoryResolution.ui.contentLayout"
+          >
+            <TrChat.Header :title="workspaceHistoryResolution.ui.brand?.title" :show-history="false" />
+            <TrChat.Welcome
+              v-if="showWorkspaceHistoryWelcome"
+              :compatibility-relay="false"
+              :title="workspaceHistoryResolution.ui.welcome?.title"
+              :description="workspaceHistoryResolution.ui.welcome?.description"
+            />
+            <TrChat.MessageList v-else :compatibility-relay="false" auto-scroll />
+            <TrChat.Footer>
+              <TrChat.Sender />
+            </TrChat.Footer>
+          </TrChat.Layout>
+        </TrChat.WorkspaceLayout>
+      </TrChat.Root>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { TrChat, createRuntimeFromConfig, useChatKit } from '@opentiny/tiny-robot-chat'
-import type { ChatMessage, ConversationStorageStrategy } from '@opentiny/tiny-robot-kit'
+import { computed, ref, shallowRef, watch, type Ref } from 'vue'
+import { TrChat, createRuntimeFromConfig, type TrChatConfig } from '@opentiny/tiny-robot-chat'
 import { createMockProvider } from '../mockProvider'
 import { createOfficialSceneConfig } from './officialSceneConfig'
 
@@ -353,71 +355,43 @@ const customRenderConfig = computed(() =>
   }),
 )
 
-const runtimeProvidedChatKit = useChatKit({
-  responseProvider: createMockProvider({
-    provider: 'runtime-chat-kit',
-    model: 'runtime-chat-kit-model',
-  }),
-})
+function createStableRuntimeResolution(configRef: Readonly<Ref<TrChatConfig>>) {
+  const resolution = shallowRef(createRuntimeFromConfig(configRef.value))
 
-const runtimeBridgeSaveCount = ref(0)
-const runtimeBridgeConversations: Array<{
-  id: string
-  title?: string
-  createdAt: number
-  updatedAt: number
-  metadata?: Record<string, unknown>
-}> = []
-const runtimeBridgeMessageMap = new Map<string, ChatMessage[]>()
-const runtimeBridgeStorage: ConversationStorageStrategy = {
-  saveConversation(conversation) {
-    const nextConversation = { ...conversation }
-    const index = runtimeBridgeConversations.findIndex((item) => item.id === nextConversation.id)
-    if (index === -1) {
-      runtimeBridgeConversations.unshift(nextConversation)
-    } else {
-      runtimeBridgeConversations.splice(index, 1, nextConversation)
-    }
-  },
-  loadConversations() {
-    return runtimeBridgeConversations.map((conversation) => ({ ...conversation }))
-  },
-  saveMessages(conversationId, messages) {
-    runtimeBridgeSaveCount.value += 1
-    runtimeBridgeMessageMap.set(
-      conversationId,
-      messages.map((message) => ({
-        ...message,
-        metadata: message.metadata ? { ...message.metadata } : message.metadata,
-        state:
-          message.state && typeof message.state === 'object'
-            ? { ...(message.state as Record<string, unknown>) }
-            : message.state,
-      })),
-    )
-  },
-  loadMessages(conversationId) {
-    return runtimeBridgeMessageMap.get(conversationId)?.map((message) => ({ ...message })) ?? []
-  },
-  deleteConversation(conversationId) {
-    const index = runtimeBridgeConversations.findIndex((item) => item.id === conversationId)
-    if (index !== -1) {
-      runtimeBridgeConversations.splice(index, 1)
-    }
-    runtimeBridgeMessageMap.delete(conversationId)
-  },
+  watch(configRef, (nextConfig) => {
+    resolution.value = createRuntimeFromConfig(nextConfig)
+  })
+
+  return resolution
 }
 
-const runtimeBridgeChat = useChatKit({
-  responseProvider: createMockProvider({
-    provider: 'runtime-bridge',
-    model: 'runtime-bridge-model',
+const runtimeDiagnosticsConfig = computed(() =>
+  createOfficialSceneConfig({
+    brandTitle: 'Runtime Diagnostics Surface',
+    welcomeTitle: 'Runtime Diagnostics',
+    welcomeDescription:
+      'Official Root + runtime diagnostics should stay visible without any retired provider passthrough.',
   }),
-  storage: runtimeBridgeStorage,
-})
+)
+const runtimeDiagnosticsResolution = createStableRuntimeResolution(runtimeDiagnosticsConfig)
+const showRuntimeDiagnosticsWelcome = computed(
+  () => runtimeDiagnosticsResolution.value.runtime.conversation.messages.value.length === 0,
+)
 
-function sendRuntimeBridgeMessage() {
-  runtimeBridgeChat.sendMessage('runtime-bridge-path')
+function sendRuntimeDiagnosticsMessage() {
+  runtimeDiagnosticsResolution.value.runtime.sender?.send({ text: 'runtime-diagnostics-path' })
+}
+
+async function resetRuntimeDiagnosticsConversation() {
+  const history = runtimeDiagnosticsResolution.value.runtime.history
+  if (!history) {
+    return
+  }
+
+  const nextConversationId = await Promise.resolve(history.createConversation({ title: 'Runtime diagnostics reset' }))
+  if (nextConversationId) {
+    await Promise.resolve(history.switchConversation(nextConversationId))
+  }
 }
 
 const granularModelLog = ref('')
@@ -434,7 +408,7 @@ const granularModelConfig = computed(() =>
     welcomePrompts: [{ label: 'granular prompt', description: 'granular prompt' }],
   }),
 )
-const granularModelResolution = computed(() => createRuntimeFromConfig(granularModelConfig.value))
+const granularModelResolution = createStableRuntimeResolution(granularModelConfig)
 const showGranularModelWelcome = computed(
   () => granularModelResolution.value.runtime.conversation.messages.value.length === 0,
 )
@@ -466,7 +440,7 @@ const granularFooterRightConfig = computed(() =>
   }),
 )
 
-const granularFooterRightResolution = computed(() => createRuntimeFromConfig(granularFooterRightConfig.value))
+const granularFooterRightResolution = createStableRuntimeResolution(granularFooterRightConfig)
 const showGranularFooterRightWelcome = computed(
   () => granularFooterRightResolution.value.runtime.conversation.messages.value.length === 0,
 )
@@ -486,7 +460,7 @@ const granularSenderConfig = computed(() =>
   }),
 )
 
-const granularSenderConfigResolution = computed(() => createRuntimeFromConfig(granularSenderConfig.value))
+const granularSenderConfigResolution = createStableRuntimeResolution(granularSenderConfig)
 const showGranularSenderConfigWelcome = computed(
   () => granularSenderConfigResolution.value.runtime.conversation.messages.value.length === 0,
 )
@@ -499,26 +473,35 @@ const granularCloseConfig = computed(() =>
     welcomeDescription: 'Leaf composition should be able to remove the surrounding shell after close.',
   }),
 )
-const granularCloseResolution = computed(() => createRuntimeFromConfig(granularCloseConfig.value))
+const granularCloseResolution = createStableRuntimeResolution(granularCloseConfig)
 const showGranularCloseWelcome = computed(
   () => granularCloseResolution.value.runtime.conversation.messages.value.length === 0,
 )
 
-const historySurfaceChat = useChatKit({
-  responseProvider: createMockProvider({
-    provider: 'history-surface',
-    model: 'history-surface-model',
+const workspaceHistoryConfig = computed(() =>
+  createOfficialSceneConfig({
+    brandTitle: 'Workspace History Surface',
+    welcomeTitle: 'Workspace History',
+    welcomeDescription: 'WorkspaceLayout default left owner path should keep history search and filtering alive.',
+    workspace: true,
   }),
-})
+)
+const workspaceHistoryResolution = createStableRuntimeResolution(workspaceHistoryConfig)
+const showWorkspaceHistoryWelcome = computed(
+  () => workspaceHistoryResolution.value.runtime.conversation.messages.value.length === 0,
+)
 
-function seedHistorySurface() {
-  if (historySurfaceChat.conversations.value.length > 0) {
+async function seedWorkspaceHistory() {
+  const history = workspaceHistoryResolution.value.runtime.history
+  if (!history || history.conversations.value.length > 0) {
     return
   }
 
-  const firstConversation = historySurfaceChat.createConversation({ title: 'Alpha Surface' })
-  historySurfaceChat.createConversation({ title: 'Beta Surface' })
-  void historySurfaceChat.switchConversation(firstConversation.id)
+  const firstConversationId = await Promise.resolve(history.createConversation({ title: 'Alpha Surface' }))
+  await Promise.resolve(history.createConversation({ title: 'Beta Surface' }))
+  if (firstConversationId) {
+    await Promise.resolve(history.switchConversation(firstConversationId))
+  }
 }
 </script>
 
@@ -547,7 +530,7 @@ function seedHistorySurface() {
 .surface-custom-sender button,
 .surface-diagnostics button,
 .history-surface-toolbar button,
-.surface-runtime-bridge-toolbar button {
+.surface-runtime-diagnostics-toolbar button {
   padding: 6px 12px;
   border: 1px solid #d0d7e2;
   border-radius: 8px;
@@ -555,7 +538,7 @@ function seedHistorySurface() {
   cursor: pointer;
 }
 
-.surface-runtime-bridge-toolbar {
+.surface-runtime-diagnostics-toolbar {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -563,7 +546,7 @@ function seedHistorySurface() {
   font-size: 12px;
 }
 
-.surface-runtime-bridge-toolbar span {
+.surface-runtime-diagnostics-toolbar span {
   padding: 2px 6px;
   border-radius: 999px;
   background: #eef2ff;
@@ -599,7 +582,10 @@ function seedHistorySurface() {
   gap: 8px;
 }
 
-.history-surface-wrapper :deep(.tr-chat-history-surface) {
-  min-height: 360px;
+.surface-history-placeholder {
+  height: 100%;
+  padding: 16px;
+  color: #667085;
+  font-size: 13px;
 }
 </style>

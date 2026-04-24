@@ -3,23 +3,31 @@ import { TrFeedback } from '@opentiny/tiny-robot'
 import type { BubbleMessage } from '@opentiny/tiny-robot'
 import type { ChatMessage } from '@opentiny/tiny-robot-kit'
 import { computed, inject } from 'vue'
+import type { PropType } from 'vue'
 import { getChatRenderSourceMessage } from '@/runtime/chat-kit/chatRenderMessages'
 import { useChatFeedback, useRuntimeFeedbackEnabled } from './useChatFeedback'
-import { getChatMessageError } from '@/runtime/chat-kit/chatMessageState'
+import { getChatMessageError, isChatMessageEditing } from '@/runtime/chat-kit/chatMessageState'
 import { CHAT_KIT_KEY, CHAT_RUNTIME_KEY, MESSAGE_ACTION_KEY, MESSAGE_ACTIONS_KEY } from '@/shared/context'
 import type { ChatMessageActionPayload, ChatRuntime, UseChatKitReturn, TrChatMessageListProps } from '@/types'
+import { triStateBooleanProp } from '@/shared/utils'
 
 defineOptions({ name: 'TrChatFeedback' })
 
-const props = defineProps<{
-  messages: BubbleMessage[]
-  messageIndexes: number[]
-  role?: string
-  enabled?: boolean
-  messageActions?: TrChatMessageListProps['messageActions']
-  messageActionsMode?: TrChatMessageListProps['messageActionsMode']
-  onActionClick?: (payload: ChatMessageActionPayload) => void
-}>()
+const props = defineProps({
+  messages: {
+    type: Array as () => BubbleMessage[],
+    required: true,
+  },
+  messageIndexes: {
+    type: Array as () => number[],
+    required: true,
+  },
+  role: String,
+  enabled: triStateBooleanProp,
+  messageActions: null as unknown as PropType<TrChatMessageListProps['messageActions']>,
+  messageActionsMode: String as PropType<TrChatMessageListProps['messageActionsMode']>,
+  onActionClick: Function as PropType<(payload: ChatMessageActionPayload) => void>,
+})
 
 const emit = defineEmits<{
   edit: [content: string]
@@ -51,6 +59,9 @@ const primaryMessage = computed(() => {
   if (!props.messages?.length) return undefined
   return getChatRenderSourceMessage(props.messages[props.messages.length - 1] as ChatMessage) as ChatMessage | undefined
 })
+const primarySourceError = computed(() => getChatMessageError(primaryMessage.value))
+const primarySourceEditing = computed(() => isChatMessageEditing(primaryMessage.value))
+const primarySourceStreaming = computed(() => Boolean(primaryMessage.value?.loading))
 
 const latestAssistantIndex = computed(() => {
   if (!chatKit) return undefined
@@ -67,11 +78,18 @@ const latestAssistantIndex = computed(() => {
 
 const isEditing = computed(() => {
   if (actionContext.value.messageId && chatRuntime) {
-    return Boolean(chatRuntime.message.getViewState(actionContext.value.messageId)?.editing)
+    const runtimeEditing = chatRuntime.message.getViewState(actionContext.value.messageId)?.editing
+    if (runtimeEditing !== undefined) {
+      return Boolean(runtimeEditing)
+    }
+  }
+
+  if (primarySourceEditing.value) {
+    return true
   }
 
   if (!chatKit || primaryMessageIndex.value === undefined) return false
-  return chatKit.isMessageEditing(primaryMessageIndex.value)
+  return Boolean(chatKit.isMessageEditing(primaryMessageIndex.value))
 })
 
 const isPendingAssistantTurn = computed(() => {
@@ -79,8 +97,12 @@ const isPendingAssistantTurn = computed(() => {
 
   if (actionContext.value.messageId && chatRuntime) {
     const status = chatRuntime.message.getViewState(actionContext.value.messageId)?.status
-    return status === 'pending' || status === 'streaming'
+    if (status !== undefined) {
+      return status === 'pending' || status === 'streaming'
+    }
   }
+
+  if (primarySourceStreaming.value) return true
 
   if (!chatKit) return false
 
@@ -92,7 +114,14 @@ const isPendingAssistantTurn = computed(() => {
 
 const hasError = computed(() => {
   if (actionContext.value.messageId && chatRuntime) {
-    return Boolean(chatRuntime.message.getViewState(actionContext.value.messageId)?.error)
+    const runtimeError = chatRuntime.message.getViewState(actionContext.value.messageId)?.error
+    if (runtimeError !== undefined) {
+      return Boolean(runtimeError)
+    }
+  }
+
+  if (primarySourceError.value) {
+    return true
   }
 
   return props.messages.some((message) => Boolean(getChatMessageError(message as ChatMessage)))

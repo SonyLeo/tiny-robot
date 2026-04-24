@@ -33,6 +33,8 @@ These files define how the refactor is reviewed and where the current process st
   current status, decisions, open questions, risks, and next actions
 - `packages/chat/docs/refactor/process/test-boundary-baseline.md`
   post-closure cleanup test classification, official-path gate boundary, and keep/adapt/retire rules for chat package tests plus chat e2e
+- `packages/chat/docs/refactor/process/core-flow-stabilization-baseline.md`
+  temporary stabilization gate, red/yellow/green recovery matrix, and fresh-server validation rule while core flows are regressed
 - `packages/chat/docs/refactor/process/legacy-retirement-roadmap.md`
   ordered path from post-closure cleanup to full legacy retirement, delete sequencing, and completion criteria
 - `packages/chat/docs/refactor/process/provider-helper-decision-baseline.md`
@@ -119,6 +121,8 @@ Try to keep each task to one primary source doc plus, when necessary, one status
   update `refactor/process/alignment-tracker.md`
 - post-closure test-boundary or keep/adapt/retire classification changed:
   update `refactor/process/test-boundary-baseline.md`
+- core-flow stabilization status, red/yellow/green recovery matrix, or fresh-server validation rule changed:
+  update `refactor/process/core-flow-stabilization-baseline.md`
 - full legacy-retirement sequencing, delete order, or end-state definition changed:
   update `refactor/process/legacy-retirement-roadmap.md`
 - provider/comparison helper keep/delete recommendations changed:

@@ -25,17 +25,11 @@
     </div>
 
     <div data-testid="chat-sender-extensions-provider" class="chat-wrapper">
-      <TrChat.Provider :chat-kit="senderExtensionsProviderChat">
+      <TrChat.Provider :response-provider="senderExtensionsProviderResponseProvider">
         <TrChat.Layout>
           <TrChat.Header title="Sender Extensions Provider" />
 
-          <TrChat.Welcome
-            v-if="showSenderExtensionsProviderWelcome"
-            title="Sender Extensions"
-            description="Provider passthrough verification for TrChat.Sender extensions."
-          />
-
-          <TrChat.MessageList v-else auto-scroll />
+          <TrChat.MessageList auto-scroll />
 
           <TrChat.Footer>
             <TrChat.Sender :extensions="senderSuggestionExtensions" placeholder="Type ECS to trigger suggestions..." />
@@ -49,7 +43,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { TrSender } from '@opentiny/tiny-robot'
-import { TrChat, createRuntimeFromConfig, useChatKit } from '@opentiny/tiny-robot-chat'
+import { TrChat, createRuntimeFromConfig } from '@opentiny/tiny-robot-chat'
 import { createMockProvider } from '../mockProvider'
 import { createOfficialSceneConfig } from './officialSceneConfig'
 
@@ -70,16 +64,13 @@ const senderExtensionsConfig = computed(() =>
 )
 
 const granularResolution = computed(() => createRuntimeFromConfig(senderExtensionsConfig.value))
-const senderExtensionsProviderChat = useChatKit({
-  responseProvider: createMockProvider({
-    provider: 'sender-extensions-provider',
-    model: 'sender-extensions-model',
-  }),
+const senderExtensionsProviderResponseProvider = createMockProvider({
+  provider: 'sender-extensions-provider',
+  model: 'sender-extensions-model',
 })
 const showSenderExtensionsGranularWelcome = computed(
   () => granularResolution.value.runtime.conversation.messages.value.length === 0,
 )
-const showSenderExtensionsProviderWelcome = computed(() => senderExtensionsProviderChat.messages.value.length === 0)
 </script>
 
 <style scoped>

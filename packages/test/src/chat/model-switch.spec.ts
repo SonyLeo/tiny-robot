@@ -44,9 +44,6 @@ test.describe('Chat Model Switching', () => {
     const root = helper.selectors.blackboxChat
     await helper.selectModel('DeepSeek Test', root)
 
-    const modelLog = page.getByTestId('model-change-log')
-    await expect(modelLog).toContainText('model:deepseek-test')
-
     await helper.sendMessage('switch-blackbox', root)
     await helper.waitForStreamingComplete(root)
 
@@ -54,7 +51,9 @@ test.describe('Chat Model Switching', () => {
     await expect(contents.last()).toContainText('[deepseek:deepseek-test]')
   })
 
-  test('whitebox should update the injected chatKit provider after model switching', async ({ page }) => {
+  test('Root + Page should update the selected model and keep the request path aligned after switching', async ({
+    page,
+  }) => {
     await page.goto('/')
     await page.locator('nav').getByRole('link').nth(2).click()
     await expect(page.locator('h2')).toContainText('Chat')

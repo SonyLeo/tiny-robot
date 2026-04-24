@@ -6,6 +6,10 @@ This file fixes which tests protect the official chat package paths during post-
 
 It exists so legacy pruning can start from a stable baseline instead of rediscovering test scope on every slice.
 
+Temporary override:
+
+- while `core-flow-stabilization-baseline.md` is red, this file still defines the retained gate, but the active priority is to restore those retained flows before deleting more legacy/helper surface
+
 For the remaining implementation-side inventory after the first delete-now batches, also see:
 
 - `./legacy-surface-inventory.md`
@@ -80,9 +84,9 @@ These files directly protect the official owner-aligned paths and should stay gr
 
 | Area | Files | Why they stay hard-gate |
 | --- | --- | --- |
-| runtime entry and owner proof | `runtime/blackbox-entry.test.mjs`, `runtime/root-runtime.test.mjs`, `runtime/composables.test.mjs` | prove the tightened blackbox entry contract (`target TrChatConfig` plus serialized target config only), the absence of runtime legacy hints on the active bootstrap path, and runtime-owned request, conversation, sender, and workspace behavior |
+| runtime entry and owner proof | `runtime/blackbox-entry.test.mjs`, `runtime/root-runtime.test.mjs`, `runtime/composables.test.mjs`, `runtime/provider-response-provider.test.mjs`, `runtime/openai-compatible-transport.test.mjs` | prove the tightened blackbox entry contract (`target TrChatConfig` plus serialized target config only), the absence of runtime legacy hints on the active bootstrap path, the supported `TrChat.Provider` response-provider branch, the surviving transport factory, and runtime-owned request, conversation, sender, and workspace behavior |
 | message extension proof | `runtime/message-actions.test.mjs`, `runtime/message-runtime.test.mjs`, `runtime/message-transforms.test.mjs`, `runtime/render-message-normalization.test.mjs` | prove message id, actions, renderer, transform, and normalized render behavior on the official runtime path |
-| source contracts | `contracts/public-surface.test.mjs`, `contracts/renderer-registry.test.mjs`, `contracts/workspace-slot-contract.test.mjs`, `contracts/appearance-runtime.test.mjs`, `contracts/mcp-panel-positioning.test.mjs`, `contracts/theme-token-contract.test.mjs` | pin the public owner surface, region wiring, renderer ownership, theme tokens, MCP-facing affordances, and the absence of internal scaffold-context exports on the official bootstrap path |
+| source contracts | `contracts/public-surface.test.mjs`, `contracts/renderer-registry.test.mjs`, `contracts/chat-messages.test.mjs`, `contracts/workspace-slot-contract.test.mjs`, `contracts/appearance-runtime.test.mjs`, `contracts/mcp-panel-positioning.test.mjs`, `contracts/theme-token-contract.test.mjs` | pin the public owner surface, region wiring, renderer ownership, shared copy contract, theme tokens, MCP-facing affordances, and the absence of internal scaffold-context exports on the official bootstrap path |
 | mounted owner-path proof | `integration/trchat-blackbox-root-page.test.mjs`, `integration/root-page-mounted.test.mjs` | prove `TrChat`, `Root + Page`, and mounted owner regions on the official path instead of only through documentation; post-closure cleanup now uses this layer to prove the config-only blackbox path, the surviving owner-aligned whitebox paths, and page-input-backed defaults on the granular `Root + primitives` route |
 
 ### Secondary Or Temporary Coverage
@@ -91,14 +95,10 @@ These files are still useful, but they are not the primary post-closure deletion
 
 | Area | Files | Current role |
 | --- | --- | --- |
-| config and preset legacy sentinels | `config/config-and-features.test.mjs`, `config/messages.test.mjs`, `config/preset-slices.test.mjs`, `config/provider-factories.test.mjs` | still useful while legacy entry/helper code survives, but not the first gate for owner-path cleanup |
-| legacy helper/runtime sentinels | `runtime/provider-chat-kit.test.mjs` | keep as bounded helper coverage while provider/comparison helper deletion is still pending |
 | ui context sentinel | `ui/chat-ui-context.test.mjs` | useful local proof, but lower priority than mounted owner-path and public-surface coverage |
 
-These package-local secondary files are now part of post-closure cleanup scope:
-
-- delete them when the helper, scaffold, or config-projection code they exclusively protect is deleted
-- do not keep them alive after the associated compatibility-only implementation is removed
+The old `tests/config/*` bucket has now retired with the config-projection helper family.
+Do not recreate a dedicated legacy-config sentinel folder once the target helper surface is gone.
 
 The concrete helper-side keep/delete recommendation now lives in:
 
@@ -115,18 +115,19 @@ These specs now follow the official entry ladder closely enough to act as the fi
 | `gate` | `index.spec.ts`, `history.spec.ts`, `request-lifecycle.spec.ts` | these now exercise `TrChat`, `Root + Page`, and `Root + primitives` directly instead of treating helper-heavy blackbox/whitebox scenes as the default story |
 | `gate` | `scenario-specs/workspace-slots.spec.ts`, `scenario-specs/renderer-registry.spec.ts` | these now verify official workspace-slot and renderer-registry behavior through target-config scenes instead of preset-slice or provider-heavy fixtures |
 
-### Adapt Into The Official E2E Gate
+### Extended Official-Path Gate
 
-These specs still verify behavior that matters after cleanup, but their scene setup or assertions must move toward the official entry ladder before they should block deletion:
+These specs are now green on the official entry ladder or the bounded advanced-provider path, so they can also block deletion work:
 
-| Status | Files | Why adaptation is needed |
+| Status | Files | Why they now stay in the gate |
 | --- | --- | --- |
-| `adapt` | `attachments.spec.ts`, `feedback.spec.ts`, `model-switch.spec.ts`, `sender-actions.spec.ts` | these still depend on top-level scenes that mix official-path assertions with helper-first fixture setup and need the same official-entry tightening as the first promoted batch |
-| `adapt` | `scenario-specs/layout-config.spec.ts`, `scenario-specs/welcome-prompts.spec.ts`, `scenario-specs/mcp-feature.spec.ts`, `scenario-specs/message-transforms.spec.ts`, `scenario-specs/sender-extensions.spec.ts`, `scenario-specs/surface-api.spec.ts` | each scene now carries at least one owner-aligned official-path proof, but some still mix retained user behavior with `Provider` or comparison-oriented helper setup that should not become the primary cleanup gate automatically |
+| `gate` | `attachments.spec.ts`, `feedback.spec.ts`, `model-switch.spec.ts`, `sender-actions.spec.ts` | these now prove blackbox and `Root + Page` behavior without relying on retired helper surfaces; the remaining top-level scene switching is just the shared test-app router, not a legacy contract |
+| `gate` | `scenario-specs/layout-config.spec.ts`, `scenario-specs/welcome-prompts.spec.ts`, `scenario-specs/mcp-feature.spec.ts`, `scenario-specs/message-transforms.spec.ts`, `scenario-specs/sender-extensions.spec.ts`, `scenario-specs/surface-api.spec.ts` | these now prove official blackbox, `Root + Page`, `Root + primitives`, or bounded `responseProvider` advanced behavior without depending on retired provider `chatKit`, `HistorySurface`, or config-projection helpers |
 
 ### Retire From The Primary Gate
 
 There are currently no unresolved files in the primary `retire` bucket.
+There is also no remaining unresolved `adapt` bucket for the retained Playwright set.
 The old `edge-overrides.spec.ts` and `BlackboxEdgeScene.vue` pair is now fully retired after the last remaining boundaries were handed off.
 
 Retired e2e should be removed from the default test app once no retained spec or helper still depends on their scene.
@@ -156,11 +157,10 @@ Use this matrix before deleting a legacy-oriented spec or scene.
 
 ## Immediate Gate Policy
 
-Until the retained Playwright specs are adapted to the official ladder:
-
 1. every cleanup slice must keep the hard-gate subset in `packages/chat/tests` green
-2. any slice that changes visible user behavior should adapt or rerun the nearest retained Playwright scenario before deleting the next layer
+2. any slice that changes visible user behavior should rerun the nearest retained Playwright scenario before deleting the next layer
 3. legacy-only Playwright coverage should not veto deletion by itself
+4. while `post-closure core-flow stabilization` is active, use this retained gate to recover core user flows before resuming more retirement work
 
 ## Current Validation Baseline
 
@@ -173,20 +173,38 @@ Until the retained Playwright specs are adapted to the official ladder:
 
 ### Required When A Slice Touches Demo-Level Or User-Visible Flow
 
-Run the nearest retained Playwright scenario after adapting it to the official ladder.
+Run the nearest retained Playwright scenario on the official ladder.
 
-Current candidates to promote first:
+Current promoted official-path gate:
 
 - `src/chat/index.spec.ts`
 - `src/chat/history.spec.ts`
 - `src/chat/request-lifecycle.spec.ts`
 - `src/chat/scenario-specs/workspace-slots.spec.ts`
 - `src/chat/scenario-specs/renderer-registry.spec.ts`
+- `src/chat/attachments.spec.ts`
+- `src/chat/feedback.spec.ts`
+- `src/chat/model-switch.spec.ts`
+- `src/chat/sender-actions.spec.ts`
+- `src/chat/scenario-specs/layout-config.spec.ts`
+- `src/chat/scenario-specs/welcome-prompts.spec.ts`
+- `src/chat/scenario-specs/surface-api.spec.ts`
+- `src/chat/scenario-specs/sender-extensions.spec.ts`
+- `src/chat/scenario-specs/mcp-feature.spec.ts`
+- `src/chat/scenario-specs/message-transforms.spec.ts`
 
-These files are now the first promoted official-path Playwright gate and should be rerun first when a deletion slice changes entry wiring or visible behavior.
+These files now form the retained Playwright gate and should be rerun first when a deletion slice changes entry wiring or visible behavior.
 
-When a cleanup slice touches scaffold/helper entry wiring, slot passthrough, or provider/comparison helper scenes, also rerun the current closure batch:
+When a cleanup slice touches scaffold/helper entry wiring, slot passthrough, or advanced-provider scenes, rerun the full retained gate:
 
+- `src/chat/index.spec.ts`
+- `src/chat/history.spec.ts`
+- `src/chat/request-lifecycle.spec.ts`
+- `src/chat/scenario-specs/workspace-slots.spec.ts`
+- `src/chat/scenario-specs/renderer-registry.spec.ts`
+- `src/chat/attachments.spec.ts`
+- `src/chat/feedback.spec.ts`
+- `src/chat/model-switch.spec.ts`
 - `src/chat/scenario-specs/layout-config.spec.ts`
 - `src/chat/scenario-specs/welcome-prompts.spec.ts`
 - `src/chat/sender-actions.spec.ts`

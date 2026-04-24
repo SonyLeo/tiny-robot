@@ -17,19 +17,19 @@ The detailed keep/adapt/retire classification lives in:
 
 - `packages/chat/docs/refactor/process/test-boundary-baseline.md`
 
-The first promoted official-path Playwright gate now includes:
+The promoted official-path Playwright gate now includes:
 
 - `index.spec.ts`
 - `history.spec.ts`
 - `request-lifecycle.spec.ts`
 - `scenario-specs/workspace-slots.spec.ts`
 - `scenario-specs/renderer-registry.spec.ts`
-
-The next adapted official-path handoff batch is now green, but not yet promoted into the default gate:
-
+- `attachments.spec.ts`
+- `feedback.spec.ts`
+- `model-switch.spec.ts`
+- `sender-actions.spec.ts`
 - `scenario-specs/layout-config.spec.ts`
 - `scenario-specs/welcome-prompts.spec.ts`
-- `sender-actions.spec.ts`
 - `scenario-specs/surface-api.spec.ts`
 - `scenario-specs/sender-extensions.spec.ts`
 - `scenario-specs/mcp-feature.spec.ts`
@@ -66,9 +66,9 @@ These are the user-visible behaviors that should survive post-closure cleanup:
 
 Current reality:
 
-- some scenes still use `TrChat.Provider` or comparison-oriented helper setup
-- that setup is still useful while cleanup is in progress
-- it should not be treated as one undifferentiated hard gate
+- some scenes still use advanced surfaces like `TrChat.Provider`
+- that setup is now part of the supported advanced story, not a retired helper fallback
+- the retained gate should stay centered on the official entry ladder plus bounded advanced-provider proof
 
 Default rule:
 
@@ -92,11 +92,11 @@ Default rule:
 - preserve `data-testid` values once a spec depends on them
 - keep shared target-config defaults in `scenarios/officialSceneConfig.ts` when reused
 
-If a scene still uses helper-heavy compatibility setup:
+If a scene still uses a non-default advanced setup:
 
 - keep it narrow
 - document why it still exists
-- do not let it become the default example for new specs
+- do not let it overshadow the default `TrChat -> Root + Page -> Root + primitives` ladder
 
 ## Spec Writing Pattern
 
@@ -149,7 +149,7 @@ instead of open-coded button clicks.
 
 ## Post-Closure Adaptation Policy
 
-When updating this suite for cleanup:
+When updating this suite for later cleanup:
 
 1. check `test-boundary-baseline.md`
 2. adapt retained specs toward the official entry ladder
@@ -165,8 +165,8 @@ Do not spend cleanup time preserving specs that only prove:
 If a compatibility-only assertion is intentionally dropped during handoff, record that contract drop in
 `packages/chat/docs/refactor/process/test-boundary-baseline.md` before deleting or rewriting the old spec branch.
 
-The old `edge-overrides.spec.ts` file has now retired.
-Keep following the same rule it used to model:
+The old `edge-overrides.spec.ts` file has now retired, and the retained official-path gate has absorbed the surviving boundaries.
+Keep following the same rule for any future legacy scene:
 
 - hand off official-path boundaries first
 - delete the legacy spec and scene as soon as nothing unresolved remains

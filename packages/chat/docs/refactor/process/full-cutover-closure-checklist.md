@@ -1,6 +1,6 @@
 # Full Cutover Closure Checklist
 
-Status: active end-state checklist for post-closure legacy retirement.
+Status: paused end-state checklist while `core-flow-stabilization-baseline.md` is red.
 
 This file answers one question:
 
@@ -43,8 +43,8 @@ The package can be described as fully cut over only when all of the following ar
 ### B. Helper Fate Is Fully Decided
 
 - [x] a concrete keep/delete recommendation exists for each provider/comparison helper cluster
-- [ ] every surviving helper surface is explicitly marked `promote`
-- [ ] every retiring helper surface has a deletion slice opened or completed
+- [x] every surviving helper surface is explicitly marked `promote`
+- [x] every retiring helper surface has a deletion slice opened or completed
 
 Reference:
 
@@ -52,57 +52,58 @@ Reference:
 
 ### C. Provider Story Is Final
 
-- [ ] `TrChat.Provider` is explicitly documented as an advanced surface, not a default on-ramp
-- [ ] the `responseProvider` branch is retained as the supported advanced provider path
-- [ ] the `chatKit` injection branch is retired
-- [ ] provider scenes/specs no longer rely on `chatKit` passthrough as a supported package story
+- [x] `TrChat.Provider` is explicitly documented as an advanced surface, not a default on-ramp
+- [x] the `responseProvider` branch is retained as the supported advanced provider path
+- [x] the `chatKit` injection branch is retired
+- [x] provider scenes/specs no longer rely on `chatKit` passthrough as a supported package story
 
 ### D. Comparison Helper Families Are Retired
 
-- [ ] `useChatKit` is retired
-- [ ] `TrChatHistorySurface` is retired
-- [ ] `loadChatConfig` is retired
-- [ ] `createChatAdapterFromConfig` is retired
-- [ ] `createPresetChatProps` is retired
-- [ ] `createPresetChatSlices` is retired
+- [x] `useChatKit` is retired from the public package surface
+- [x] `TrChatHistorySurface` is retired
+- [x] `loadChatConfig` is retired
+- [x] `createChatAdapterFromConfig` is retired
+- [x] `createPresetChatProps` is retired
+- [x] `createPresetChatSlices` is retired
 
 These are the biggest remaining indicators that the package still tolerates the old assembly mental model.
 
 ### E. Legacy Tests And Scenes Are Retired With Handoff
 
-- [ ] `tests/runtime/provider-chat-kit.test.mjs` is removed after helper handoff
-- [ ] `tests/config/*` is removed after config-projection helper retirement
-- [ ] remaining `adapt` e2e scenes are either:
+- [x] `tests/runtime/provider-chat-kit.test.mjs` is removed after helper handoff
+- [x] `tests/config/*` is removed after config-projection helper retirement
+- [x] remaining `adapt` e2e scenes are either:
   - promoted into the official gate
   - or retired/deleted
-- [ ] no retained e2e scene depends on a helper surface that the package has already retired
+- [x] no retained e2e scene depends on a helper surface that the package has already retired
 
 ### F. Docs And Demo Story Are Unified
 
-- [ ] `packages/chat/README.md` describes the final supported package story
-- [ ] docs site pages under `docs/src/components/` no longer teach retired helper/comparison paths as viable package guidance
-- [ ] demo routes and retained scenes no longer center retired helper usage
-- [ ] process docs no longer describe already-retired helper surfaces as still pending decisions
+- [x] `packages/chat/README.md` describes the final supported package story
+- [x] docs site pages under `docs/src/components/` no longer teach retired helper/comparison paths as viable package guidance
+- [x] demo routes and retained scenes no longer center retired helper usage
+- [x] process docs no longer describe already-retired helper surfaces as still pending decisions
 
 ### G. Final Validation Gate Is Green
 
-- [ ] `pnpm.cmd -F @opentiny/tiny-robot-chat type-check`
-- [ ] `node packages/chat/tests/run-all.mjs packages/chat/tests/runtime`
-- [ ] `node packages/chat/tests/run-all.mjs packages/chat/tests/contracts`
-- [ ] `node packages/chat/tests/run-all.mjs packages/chat/tests/integration`
-- [ ] retained Playwright gate is green
-- [ ] current closure batch is green
-- [ ] `node packages/chat/scripts/check-refactor-docs.mjs`
+- [x] `pnpm.cmd -F @opentiny/tiny-robot-chat type-check`
+- [x] `node packages/chat/tests/run-all.mjs packages/chat/tests/runtime`
+- [x] `node packages/chat/tests/run-all.mjs packages/chat/tests/contracts`
+- [x] `node packages/chat/tests/run-all.mjs packages/chat/tests/integration`
+- [ ] retained Playwright gate is green again after stabilization
+- [ ] current closure batch is green again after stabilization
+- [x] `node packages/chat/scripts/check-refactor-docs.mjs`
+
+Until `core-flow-stabilization-baseline.md` is green, this checklist should not be used to claim that the branch is fully cut over in practice.
 
 ## Remaining Work Breakdown
 
-Use this checklist with the remaining execution plan:
+Use this checklist with the remaining execution plan, but only after the stabilization slice is green again:
 
-1. `post-closure-provider-helper-retirement`
-2. `post-closure-legacy-test-retirement`
-3. `post-closure-final-surface-cleanup`
+1. `post-closure-core-flow-stabilization`
+2. resume any remaining private-runtime or optional follow-up from `legacy-retirement-roadmap.md` only if the branch still needs it
 
-The package should only be called “fully cut over” after all three are complete and this checklist is fully checked off.
+The package should only be called “fully cut over” after the stabilization slice is complete and this checklist is fully checked off again in practice.
 
 ## Progress Rule
 

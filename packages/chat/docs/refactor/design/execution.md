@@ -138,7 +138,7 @@ Phase 0 must also produce:
 | --- | --- | --- |
 | `src/index.ts` 里的旧 surface | 现状参考，不是当前实现门禁 | 不围绕旧导出做设计回退 |
 | `tests/contracts/public-surface.test.mjs` | 现状锚点 | 只用于识别当前 shipping surface，不作为 refactor contract freeze 门禁 |
-| `tests/config/*` | 旧黑盒 config 行为锚点 | 用于识别旧能力范围，不要求新方案继续复刻旧入口组织方式 |
+| retired `tests/config/*` | 旧黑盒 config 行为锚点 | 已随 config-projection helper retirement 删除；剩余 transport / renderer / message / copy 边界由当前 runtime 与 contract tests 接管 |
 | `tests/ui/chat-ui-context.test.mjs` 与 `tests/contracts/workspace-slot-contract.test.mjs` | workspace 行为锚点 | 作为 workspace/history/model 语义参考，直到新的 page/workspace tests 接管 |
 | `packages/chat/AGENTS.md` | 实现路由说明 | 优先服务当前开发阶段的评审与实现，而不是对外发布切换 |
 

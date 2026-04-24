@@ -48,10 +48,6 @@ const ownerChecklist = [
       :appearance="granularResolution.ui.appearance"
       :sidebar-title="granularResolution.ui.brand?.title"
     >
-      <template #left>
-        <TrChat.HistorySurface />
-      </template>
-
       <template #right>
         <aside class="granular-workspace__panel">
           <p class="granular-workspace__eyebrow">Public composition</p>

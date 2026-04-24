@@ -18,22 +18,22 @@ Use the package through one of these three official entry levels:
 
 If you need explicit runtime injection, provider wiring, or granular composition, upgrade to `TrChat.Root + TrChat.Page`, `TrChat.Root + primitives`, or `TrChat.Provider` directly.
 
+`TrChat.Provider` is the bounded advanced helper surface.
+It now accepts a `responseProvider`-based setup only; direct `chatKit` passthrough is no longer part of the supported package story.
+
 ## Official Bridge Helper
 
 - `createRuntimeFromConfig(config)`
   The official `config -> { runtime, ui }` bridge helper for moving from target `TrChatConfig` into `TrChat.Root`.
 
-## Compatibility And Comparison Helpers
+## Domain Helpers
 
-These helpers remain public for bounded compatibility, comparison, or advanced migration work, but they are not the default on-ramp:
+These helpers remain public only where they still map cleanly onto a current owner domain:
 
-- `createChatAdapterFromConfig`
-- `createPresetChatProps`
-- `createPresetChatSlices`
-- `useChatKit`
+- `useChatAttachments`
 - `useMcpManager`
 
-If you are teaching or documenting the package, prefer the three official entry levels first and introduce these helpers only when the task truly depends on compatibility behavior.
+If you are teaching or documenting the package, prefer the three official entry levels first and introduce these helpers only when the task truly depends on explicit owner-domain composition.
 
 The current keep/delete decision baseline for these helper surfaces lives in:
 

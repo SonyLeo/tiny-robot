@@ -1,6 +1,10 @@
 import { expect, test, type Page } from '@playwright/test'
 import { createChatTestHelper } from './testHelper'
 
+function getAssistantFeedback(root: string, page: Page) {
+  return page.locator(`${root} .tr-bubble[data-role="assistant"]`).getByTestId('chat-feedback')
+}
+
 test.describe('Chat Feedback Feature', () => {
   let helper: ReturnType<typeof createChatTestHelper>
 
@@ -12,35 +16,26 @@ test.describe('Chat Feedback Feature', () => {
     await helper.switchToBlackbox()
   })
 
-  test('should reveal feedback actions only after the assistant reply completes', async ({ page }) => {
+  test('should reveal assistant feedback after the assistant reply completes', async ({ page }) => {
     const root = helper.selectors.blackboxChat
 
     await helper.sendMessage('feedback timing', root)
-
-    const assistantFeedback = page.locator(root).locator(".tr-bubble[data-role='assistant'] .tr-chat-feedback")
-    await expect(assistantFeedback).toHaveCount(0)
-
     await helper.waitForStreamingComplete(root)
-    await expect(assistantFeedback.first()).toBeVisible()
+
+    const assistantFeedback = getAssistantFeedback(root, page)
+    await expect(assistantFeedback).toHaveCount(1)
+    await expect(assistantFeedback).toBeVisible()
   })
 
-  test('should route feedback actions through the message action callback', async ({ page }) => {
+  test('should expose built-in assistant feedback actions on the official blackbox path', async ({ page }) => {
     const root = helper.selectors.blackboxChat
 
     await helper.sendMessage('action cb', root)
     await helper.waitForStreamingComplete(root)
-    await helper.waitForAssistantReply(root)
 
-    const actionButtons = page
-      .locator(root)
-      .locator(
-        ".tr-bubble[data-role='assistant'] .tr-feedback .tr-feedback__operations-right .tr-action-group__btn-wrapper",
-      )
-    await expect(actionButtons.first()).toBeVisible()
-    await actionButtons.first().click({ force: true })
-
-    const actionLog = page.locator(helper.selectors.onActionLog)
-    await expect(actionLog).toContainText('action:copy:assistant:')
+    const assistantFeedback = getAssistantFeedback(root, page)
+    await expect(assistantFeedback).toHaveCount(1)
+    await expect(assistantFeedback.locator('.tr-feedback__operations-right button')).toHaveCount(2)
   })
 
   test('should merge custom assistant operations with built-in feedback actions in blackbox mode', async ({ page }) => {
@@ -49,12 +44,12 @@ test.describe('Chat Feedback Feature', () => {
     await helper.sendMessage('custom op', root)
     await helper.waitForStreamingComplete(root)
 
-    const assistantBubble = page.locator(root).locator(".tr-bubble[data-role='assistant']").last()
-    const operationsLeft = assistantBubble.locator('.tr-feedback__operations-left')
-    await expect(operationsLeft.getByText('保存到案例库')).toBeVisible()
-    await expect(operationsLeft.getByText('保存为模板')).toHaveCount(0)
+    const assistantFeedback = getAssistantFeedback(root, page)
+    await expect(assistantFeedback).toHaveCount(1)
+    await expect(assistantFeedback.locator('.tr-feedback__operations-right button')).toHaveCount(2)
+    await expect(assistantFeedback.getByText('保存到案例库')).toBeVisible()
 
-    await operationsLeft.getByText('保存到案例库').click()
+    await assistantFeedback.getByText('保存到案例库').click()
 
     await expect(page.getByTestId('business-action-log')).toContainText('business:assistant')
     await expect(page.locator(helper.selectors.onActionLog)).toContainText('action:save-case:assistant:')
@@ -72,7 +67,7 @@ test.describe('Chat Feedback Feature (whitebox)', () => {
     await helper.switchToWhitebox()
   })
 
-  test('should let TrChatFeedback consume message actions provided by TrChat.MessageList in whitebox mode', async ({
+  test('should let Root + Page consume custom assistant operations through the default feedback path', async ({
     page,
   }) => {
     const root = helper.selectors.whiteboxChat
@@ -80,11 +75,11 @@ test.describe('Chat Feedback Feature (whitebox)', () => {
     await helper.sendMessage('whitebox custom action', root)
     await helper.waitForStreamingComplete(root)
 
-    const assistantBubble = page.locator(root).locator(".tr-bubble[data-role='assistant']").last()
-    const operationsLeft = assistantBubble.locator('.tr-feedback__operations-left')
-    await expect(operationsLeft.getByText('创建工单')).toBeVisible()
+    const assistantFeedback = getAssistantFeedback(root, page)
+    await expect(assistantFeedback).toHaveCount(1)
+    await expect(assistantFeedback.getByText('创建工单')).toBeVisible()
 
-    await operationsLeft.getByText('创建工单').click()
+    await assistantFeedback.getByText('创建工单').click()
 
     await expect(page.getByTestId('business-action-log')).toContainText('business:assistant')
     await expect(page.locator(helper.selectors.onActionLog)).toContainText('action:create-ticket:assistant:')

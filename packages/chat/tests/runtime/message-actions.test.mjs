@@ -1,9 +1,7 @@
 ﻿import {
   assert,
-  createChatAdapterFromConfig,
+  createRuntimeFromConfig,
   createMemoryStorage,
-  createPresetChatProps,
-  createPresetChatSlices,
   createStreamingProvider,
   ensureRuntimeMessageId,
   useChatFeedback,
@@ -338,7 +336,7 @@ await runTest('useRuntimeFeedbackEnabled prefers explicit enablement and otherwi
   assert.equal(fallbackDefault.value, true)
 })
 
-await runTest('createPresetChatSlices projects message action settings through the message list slice', async () => {
+await runTest('createRuntimeFromConfig keeps message action settings on the runtime-owned message config', async () => {
   const actionDefinitions = [
     {
       id: 'save-case',
@@ -348,28 +346,25 @@ await runTest('createPresetChatSlices projects message action settings through t
     },
   ]
 
-  const adapter = createChatAdapterFromConfig({
-    models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
-    providers: {
-      openai: {
+  const { runtime } = createRuntimeFromConfig({
+    request: {
+      models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
+      transport: {
         type: 'openai-compatible',
         endpoint: '/api/chat',
       },
     },
-    features: {
-      feedback: true,
+    messages: {
+      feedback: {
+        enabled: true,
+      },
+      actions: actionDefinitions,
+      actionMode: 'replace',
     },
   })
 
-  const presetProps = createPresetChatProps(adapter, {
-    showFeedback: true,
-    messageActions: actionDefinitions,
-    messageActionsMode: 'replace',
-  })
-  const slices = createPresetChatSlices(presetProps)
-
-  assert.equal(slices.messageList.showFeedback, true)
-  assert.equal(slices.messageList.messageActions, actionDefinitions)
-  assert.equal(slices.messageList.messageActionsMode, 'replace')
+  assert.equal(runtime.message?.config?.feedback?.enabled, true)
+  assert.equal(runtime.message?.getActions('assistant-message-id'), actionDefinitions)
+  assert.equal(runtime.message?.config?.actionMode, 'replace')
 })
 

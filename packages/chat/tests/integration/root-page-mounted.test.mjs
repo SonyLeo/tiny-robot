@@ -45,7 +45,6 @@ try {
     { default: ChatFooter },
     { default: ChatSender },
     { default: ChatAttachments },
-    { default: ChatHistorySurface },
     { useMcpManager },
     { CHAT_KIT_KEY, CHAT_RUNTIME_KEY, CHAT_UI_KEY, MCP_MANAGER_KEY, createChatUiContext },
   ] =
@@ -62,7 +61,6 @@ try {
       vite.ssrLoadModule('/src/components/core/ChatFooter.vue'),
       vite.ssrLoadModule('/src/components/core/ChatSender.vue'),
       vite.ssrLoadModule('/src/components/attachments/ChatAttachments.vue'),
-      vite.ssrLoadModule('/src/components/history/ChatHistorySurface.vue'),
       vite.ssrLoadModule('/src/components/mcp/useMcpManager.ts'),
       vite.ssrLoadModule('/src/shared/context/index.ts'),
     ])
@@ -106,6 +104,11 @@ try {
           enabled: true,
           tooltip: 'Mounted root page voice',
           autoInsert: false,
+        },
+      },
+      messages: {
+        feedback: {
+          enabled: true,
         },
       },
     })
@@ -374,7 +377,6 @@ try {
                 sidebarTitle: ui.brand?.title,
               },
               {
-                left: () => h(ChatHistorySurface),
                 right: () =>
                   h('aside', { 'data-testid': 'granular-right-panel' }, [
                     h('p', { 'data-testid': 'granular-right-eyebrow' }, 'Public composition'),
@@ -533,6 +535,7 @@ try {
     assert.equal(html.includes('data-max-length="512"'), true)
     assert.equal(html.includes('data-show-word-limit="true"'), true)
     assert.equal(html.includes('data-testid="chat-sender-action-voice"'), true)
+    assert.equal(html.includes('data-testid="chat-feedback"'), true)
   })
 
   await runTest('TrChat.Root + TrChat.Page mounted proof keeps ui.welcome.prompts on the default page path', async () => {

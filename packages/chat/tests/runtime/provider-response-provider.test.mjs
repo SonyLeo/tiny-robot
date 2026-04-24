@@ -5,22 +5,7 @@ import {
   getProviderChatKitResolution,
   resolveProviderChatKit,
   runTest,
-  useChatKit,
 } from '../_helpers.mjs'
-
-await runTest('getProviderChatKitResolution returns the provided chatKit when present', async () => {
-  const providedChatKit = useChatKit({
-    responseProvider: createStreamingProvider(),
-    storage: createMemoryStorage(),
-  })
-
-  const resolution = getProviderChatKitResolution('TrChatProvider', {
-    chatKit: providedChatKit,
-  })
-
-  assert.equal(resolution.providedChatKit, providedChatKit)
-  assert.equal(resolution.chatKitOptions, undefined)
-})
 
 await runTest(
   'getProviderChatKitResolution derives useChatKit options from provider props when responseProvider is present',
@@ -45,7 +30,6 @@ await runTest(
       onError,
     })
 
-    assert.equal(resolution.providedChatKit, undefined)
     assert.equal(resolution.chatKitOptions?.responseProvider, responseProvider)
     assert.equal(resolution.chatKitOptions?.storage, storage)
     assert.equal(resolution.chatKitOptions?.messageTransforms, messageTransforms)
@@ -55,10 +39,10 @@ await runTest(
   },
 )
 
-await runTest('resolveProviderChatKit throws a component-scoped error when neither chatKit nor responseProvider is provided', async () => {
+await runTest('resolveProviderChatKit throws a component-scoped error when responseProvider is missing', async () => {
   assert.throws(
     () => resolveProviderChatKit('TrChatProvider', {}),
-    /\[TrChatProvider\] Either chatKit or responseProvider must be provided/,
+    /\[TrChatProvider\] responseProvider must be provided/,
   )
 })
 

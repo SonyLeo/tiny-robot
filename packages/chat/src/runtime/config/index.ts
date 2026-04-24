@@ -1,6 +1,4 @@
-export { loadChatConfig } from './configLoader'
 export { createRuntimeFromConfig } from './createRuntimeFromConfig'
-export { createChatAdapterFromConfig, createPresetChatProps, createPresetChatSlices } from './configProjection'
 export { CHAT_FEATURE_REGISTRY, isChatFeatureExplicitlyDisabled, resolveChatFeatures } from './registry'
 export type {
   ChatAttachmentsFeatureConfig,
@@ -23,28 +21,3 @@ export type {
   ChatWelcomePromptsFeatureResolution,
   ResolvedChatFeatures,
 } from './featureTypes'
-
-export type {
-  ChatAdapter,
-  ChatPresetAppearanceSlice,
-  ChatConfig,
-  ChatConfigDefaults,
-  ChatConfigIntegrations,
-  ChatLayoutConfig,
-  ChatLayoutPlacementsConfig,
-  ChatConfigModel,
-  ChatConfigProvider,
-  ChatConfigUI,
-  ChatPresetProps,
-  ChatPresetHeaderSlice,
-  ChatPresetHistorySlice,
-  ChatPresetLayoutSlice,
-  ChatPresetMessageListSlice,
-  ChatPresetModelSelectorSlice,
-  ChatPresetProviderSlice,
-  ChatPresetShellSlice,
-  ChatPresetSenderSlice,
-  ChatPresetSlices,
-  ChatPresetWelcomeSlice,
-  OpenAICompatibleProviderConfig,
-} from './types'

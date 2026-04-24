@@ -42,11 +42,7 @@ export const unwrapChatRenderMessages = chatRenderMessagesModule.unwrapChatRende
 export const useMcpManager = mcpManagerModule.useMcpManager
 export const useModelSelector = modelSelectorModule.useModelSelector
 
-export const loadChatConfig = adapterModule.loadChatConfig
 export const createRuntimeFromConfig = adapterModule.createRuntimeFromConfig
-export const createChatAdapterFromConfig = adapterModule.createChatAdapterFromConfig
-export const createPresetChatProps = adapterModule.createPresetChatProps
-export const createPresetChatSlices = adapterModule.createPresetChatSlices
 export const resolveChatFeatures = adapterModule.resolveChatFeatures
 
 export const CHAT_MESSAGES = messagesModule.CHAT_MESSAGES

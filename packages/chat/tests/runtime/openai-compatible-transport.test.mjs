@@ -1,7 +1,6 @@
-﻿import {
+import {
   assert,
   ChatProviderError,
-  createChatAdapterFromConfig,
   createOpenAICompatibleResponseProvider,
   expectThrowsAsync,
   runTest,
@@ -106,64 +105,6 @@ await runTest(
   },
 )
 
-await runTest('createChatAdapterFromConfig creates response providers from providerId-mapped models', async () => {
-  const originalFetch = globalThis.fetch
-  const requests = []
-
-  globalThis.fetch = async (input, init) => {
-    requests.push({ input, init })
-
-    return {
-      ok: false,
-      status: 500,
-      headers: {
-        get() {
-          return null
-        },
-      },
-      async text() {
-        return 'adapter failure'
-      },
-    }
-  }
-
-  try {
-    const adapter = createChatAdapterFromConfig({
-      models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
-      providers: {
-        openai: {
-          endpoint: '/api/chat',
-        },
-      },
-      defaults: {
-        model: 'gpt-4o-mini',
-      },
-    })
-
-    const provider = adapter.createResponseProvider()
-
-    const error = await expectThrowsAsync(
-      async () => {
-        for await (const _chunk of provider({
-          messages: [{ role: 'user', content: 'ping' }],
-        })) {
-          // no-op
-        }
-      },
-      /openai API error 500: adapter failure/,
-    )
-
-    assert.equal(error.httpStatus, 500)
-    assert.equal(error.providerId, 'openai')
-
-    const parsedBody = JSON.parse(requests[0].init?.body)
-    assert.equal(parsedBody.model, 'gpt-4o-mini')
-    assert.equal(requests[0].input, '/api/chat')
-  } finally {
-    globalThis.fetch = originalFetch
-  }
-})
-
 await runTest(
   'createOpenAICompatibleResponseProvider surfaces http status, code, and providerId metadata from JSON error payloads',
   async () => {
@@ -217,4 +158,3 @@ await runTest(
     }
   },
 )
-

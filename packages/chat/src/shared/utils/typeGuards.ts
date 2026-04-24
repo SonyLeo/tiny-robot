@@ -25,9 +25,9 @@ export function extractProp<T extends Record<string, any>, K extends keyof T>(
  * 用于 Union type 中的条件属性访问
  *
  * @example
- * // 对于 Union type: { chatKit: ChatKit } | { responseProvider: Provider }
- * const chatKit = conditionalProp(props, 'chatKit')
+ * // 对于 Union type: { responseProvider: Provider } | { responseProvider: Provider, storage: Storage }
  * const provider = conditionalProp(props, 'responseProvider')
+ * const storage = conditionalProp(props, 'storage')
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function conditionalProp<T extends Record<string, any>, K extends keyof T>(obj: T, key: K): T[K] | undefined {

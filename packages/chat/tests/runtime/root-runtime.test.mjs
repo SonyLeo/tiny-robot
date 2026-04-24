@@ -324,3 +324,176 @@ await runTest('createRuntimeFromConfig keeps messageTransforms active on the Roo
     }
   }
 })
+
+await runTest('createRuntimeFromConfig updates the active request provider after runtime model switches', async () => {
+  const originalFetchDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'fetch')
+  const requests = []
+  const encoder = new TextEncoder()
+
+  Object.defineProperty(globalThis, 'fetch', {
+    configurable: true,
+    value: async (_input, init) => {
+      const requestBody = JSON.parse(String(init?.body ?? '{}'))
+      requests.push(requestBody)
+
+      const reply = `[${requestBody.model}] ${requestBody.messages?.[requestBody.messages.length - 1]?.content ?? ''}`
+      const chunks = [
+        `data: ${JSON.stringify({
+          id: 'mock-model-switch',
+          object: 'chat.completion.chunk',
+          created: 0,
+          model: requestBody.model,
+          choices: [{ index: 0, delta: { role: 'assistant', content: reply }, finish_reason: null }],
+        })}\n\n`,
+        `data: ${JSON.stringify({
+          id: 'mock-model-switch',
+          object: 'chat.completion.chunk',
+          created: 0,
+          model: requestBody.model,
+          choices: [{ index: 0, delta: {}, finish_reason: 'stop' }],
+        })}\n\n`,
+        'data: [DONE]\n\n',
+      ]
+
+      return new Response(
+        new ReadableStream({
+          start(controller) {
+            chunks.forEach((chunk) => controller.enqueue(encoder.encode(chunk)))
+            controller.close()
+          },
+        }),
+        {
+          status: 200,
+          headers: {
+            'content-type': 'text/event-stream',
+          },
+        },
+      )
+    },
+  })
+
+  try {
+    const { runtime } = createRuntimeFromConfig({
+      request: {
+        models: [
+          { id: 'openai-test', providerId: 'openai' },
+          { id: 'deepseek-test', providerId: 'deepseek' },
+        ],
+        defaultModelId: 'openai-test',
+        transport: {
+          type: 'openai-compatible',
+          endpoint: '/api/openai',
+        },
+      },
+    })
+
+    await runtime.sender.send({ text: 'model-a' })
+    await waitFor(() => {
+      assert.equal(runtime.conversation.status.value, 'ready')
+      assert.equal(requests.length, 1)
+    })
+
+    assert.equal(requests[0]?.model, 'openai-test')
+
+    assert.equal(await Promise.resolve(runtime.models?.selectModel('deepseek-test')), true)
+    await runtime.sender.send({ text: 'model-b' })
+    await waitFor(() => {
+      assert.equal(runtime.conversation.status.value, 'ready')
+      assert.equal(requests.length, 2)
+    })
+
+    assert.equal(runtime.models?.currentModelId.value, 'deepseek-test')
+    assert.equal(requests[1]?.model, 'deepseek-test')
+    assert.equal(runtime.conversation.messages.value.at(-1)?.parts[0]?.text, '[deepseek-test] model-b')
+  } finally {
+    if (originalFetchDescriptor) {
+      Object.defineProperty(globalThis, 'fetch', originalFetchDescriptor)
+    } else {
+      Reflect.deleteProperty(globalThis, 'fetch')
+    }
+  }
+})
+
+await runTest('createRuntimeFromConfig uses the newly selected provider when the first send creates a conversation', async () => {
+  const originalFetchDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'fetch')
+  const requests = []
+  const encoder = new TextEncoder()
+
+  Object.defineProperty(globalThis, 'fetch', {
+    configurable: true,
+    value: async (_input, init) => {
+      const requestBody = JSON.parse(String(init?.body ?? '{}'))
+      requests.push(requestBody)
+
+      const reply = `[${requestBody.model}] ${requestBody.messages?.[requestBody.messages.length - 1]?.content ?? ''}`
+      const chunks = [
+        `data: ${JSON.stringify({
+          id: 'mock-first-send-model-switch',
+          object: 'chat.completion.chunk',
+          created: 0,
+          model: requestBody.model,
+          choices: [{ index: 0, delta: { role: 'assistant', content: reply }, finish_reason: null }],
+        })}\n\n`,
+        `data: ${JSON.stringify({
+          id: 'mock-first-send-model-switch',
+          object: 'chat.completion.chunk',
+          created: 0,
+          model: requestBody.model,
+          choices: [{ index: 0, delta: {}, finish_reason: 'stop' }],
+        })}\n\n`,
+        'data: [DONE]\n\n',
+      ]
+
+      return new Response(
+        new ReadableStream({
+          start(controller) {
+            chunks.forEach((chunk) => controller.enqueue(encoder.encode(chunk)))
+            controller.close()
+          },
+        }),
+        {
+          status: 200,
+          headers: {
+            'content-type': 'text/event-stream',
+          },
+        },
+      )
+    },
+  })
+
+  try {
+    const { runtime } = createRuntimeFromConfig({
+      request: {
+        models: [
+          { id: 'openai-test', providerId: 'openai' },
+          { id: 'deepseek-test', providerId: 'deepseek' },
+        ],
+        defaultModelId: 'openai-test',
+        transport: {
+          type: 'openai-compatible',
+          endpoint: '/api/openai',
+        },
+      },
+    })
+
+    assert.equal(runtime.history?.activeConversationId.value ?? null, null)
+    assert.equal(await Promise.resolve(runtime.models?.selectModel('deepseek-test')), true)
+
+    await runtime.sender.send({ text: 'first-model-switch' })
+    await waitFor(() => {
+      assert.equal(runtime.conversation.status.value, 'ready')
+      assert.equal(requests.length, 1)
+    })
+
+    assert.equal(runtime.models?.currentModelId.value, 'deepseek-test')
+    assert.equal(Boolean(runtime.history?.activeConversationId.value), true)
+    assert.equal(requests[0]?.model, 'deepseek-test')
+    assert.equal(runtime.conversation.messages.value.at(-1)?.parts[0]?.text, '[deepseek-test] first-model-switch')
+  } finally {
+    if (originalFetchDescriptor) {
+      Object.defineProperty(globalThis, 'fetch', originalFetchDescriptor)
+    } else {
+      Reflect.deleteProperty(globalThis, 'fetch')
+    }
+  }
+})

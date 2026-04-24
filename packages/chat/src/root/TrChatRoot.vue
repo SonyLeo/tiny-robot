@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, provide } from 'vue'
-import ChatProvider from '@/components/core/ChatProvider.vue'
 import { CHAT_PAGE_INPUTS_KEY, CHAT_RUNTIME_KEY } from '@/shared/context'
 import { createRootBootstrapState } from '@/root/createRootBootstrapState'
+import RootBootstrapProvider from '@/root/RootBootstrapProvider.vue'
 import { normalizeChatRuntime } from '@/runtime/core/normalizeRuntime'
 import type { TrChatRootProps } from '@/types/root'
 
@@ -21,7 +21,7 @@ provide(CHAT_RUNTIME_KEY, normalizedRuntime.value)
 </script>
 
 <template>
-  <ChatProvider
+  <RootBootstrapProvider
     :chat-kit="bootstrap.chatKit.value"
     :attachments-manager="bootstrap.attachmentsManager.value"
     :attachments-feature="bootstrap.attachmentsFeature.value"
@@ -29,5 +29,5 @@ provide(CHAT_RUNTIME_KEY, normalizedRuntime.value)
     :shell="bootstrap.shell.value"
   >
     <slot />
-  </ChatProvider>
+  </RootBootstrapProvider>
 </template>

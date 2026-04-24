@@ -163,11 +163,22 @@ export function useChatConversation(options: UseChatConversationOptions): Pick<
     storage,
   })
 
+  function resolveConversationMessageOptions(
+    useMessageOptions?: Partial<UseMessageOptions>,
+    fallbackInitialMessages: ChatMessage[] = [],
+  ): Partial<UseMessageOptions> {
+    return {
+      responseProvider: responseProviderRef.value as UseMessageOptions['responseProvider'],
+      ...useMessageOptions,
+      initialMessages: useMessageOptions?.initialMessages ?? fallbackInitialMessages,
+    }
+  }
+
   function createConversation(params?: Parameters<UseConversationReturn['createConversation']>[0]) {
     return conversation.createConversation({
       ...params,
       useMessageOptions: {
-        ...params?.useMessageOptions,
+        ...resolveConversationMessageOptions(params?.useMessageOptions, []),
         initialMessages: [],
       },
     })
@@ -176,14 +187,17 @@ export function useChatConversation(options: UseChatConversationOptions): Pick<
   function sendMessage(content: string): void {
     if (!content.trim()) return
 
-    if (!conversation.activeConversationId.value) {
-      conversation.createConversation({
+    let engine = conversation.activeConversation.value?.engine
+
+    if (!engine) {
+      const createdConversation = conversation.createConversation({
         title: content.slice(0, 20),
-        useMessageOptions: { initialMessages: [...initialMessages] },
+        useMessageOptions: resolveConversationMessageOptions(undefined, [...initialMessages]),
       })
+
+      engine = createdConversation?.engine ?? conversation.activeConversation.value?.engine
     }
 
-    const engine = conversation.activeConversation.value?.engine
     if (!engine) {
       console.warn('[useChatConversation] sendMessage: no active engine after createConversation')
       return

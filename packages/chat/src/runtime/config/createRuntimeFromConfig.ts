@@ -210,7 +210,27 @@ function createHistoryRuntimeFromChatKit(chatKit: ReturnType<typeof useChatKit>)
   }
 }
 
-function createModelsRuntimeFromConfig(config: TrChatConfig): ChatModelRuntime {
+function createResponseProviderForModel(config: TrChatConfig, model: TrChatRequestModel) {
+  return createOpenAICompatibleResponseProvider({
+    providerId: model.providerId,
+    model: model.id,
+    endpoint: config.request.transport.endpoint,
+    baseURL: config.request.transport.baseURL,
+    apiPath: config.request.transport.apiPath,
+    systemPrompt: config.request.transport.systemPrompt ?? config.request.systemPrompt,
+    temperature: config.request.transport.temperature,
+    maxTokens: config.request.transport.maxTokens,
+    headers: config.request.transport.headers,
+    credentials: config.request.transport.credentials,
+  })
+}
+
+function createModelsRuntimeFromConfig(
+  config: TrChatConfig,
+  options?: {
+    onSelectModel?: (model: TrChatRequestModel) => void
+  },
+): ChatModelRuntime {
   const models = computed(() => config.request.models.map(toModelOption))
   const currentModelId = ref(config.request.defaultModelId ?? config.request.models[0]?.id ?? null)
 
@@ -221,6 +241,10 @@ function createModelsRuntimeFromConfig(config: TrChatConfig): ChatModelRuntime {
     }
 
     currentModelId.value = target.value
+    const resolvedModel = config.request.models.find((model) => model.id === target.value)
+    if (resolvedModel) {
+      options?.onSelectModel?.(resolvedModel)
+    }
     return true
   }
 
@@ -471,18 +495,7 @@ export function createRuntimeFromConfig(config: TrChatConfig): CreateRuntimeFrom
       throw new Error('[createRuntimeFromConfig] request.models must declare at least one model')
     }
 
-    const responseProvider = createOpenAICompatibleResponseProvider({
-      providerId: model.providerId,
-      model: model.id,
-      endpoint: config.request.transport.endpoint,
-      baseURL: config.request.transport.baseURL,
-      apiPath: config.request.transport.apiPath,
-      systemPrompt: config.request.transport.systemPrompt ?? config.request.systemPrompt,
-      temperature: config.request.transport.temperature,
-      maxTokens: config.request.transport.maxTokens,
-      headers: config.request.transport.headers,
-      credentials: config.request.transport.credentials,
-    })
+    const responseProvider = createResponseProviderForModel(config, model)
 
     const chatKit = useChatKit({
       responseProvider,
@@ -494,6 +507,11 @@ export function createRuntimeFromConfig(config: TrChatConfig): CreateRuntimeFrom
       },
       onError: (error) => {
         config.lifecycle?.error?.(error)
+      },
+    })
+    const models = createModelsRuntimeFromConfig(config, {
+      onSelectModel(selectedModel) {
+        chatKit.updateResponseProvider(createResponseProviderForModel(config, selectedModel))
       },
     })
     if (config.conversation?.initialMessages?.length && !chatKit.activeConversationId.value) {
@@ -512,7 +530,6 @@ export function createRuntimeFromConfig(config: TrChatConfig): CreateRuntimeFrom
     }
     const attachmentsManager = useChatAttachments()
     const conversation = createConversationRuntimeFromChatKit(chatKit)
-    const models = createModelsRuntimeFromConfig(config)
     const sender = createSenderRuntimeFromChatKit(
       chatKit,
       config,

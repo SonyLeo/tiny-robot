@@ -22,7 +22,7 @@ It does not try to explain everything in one file. Its job is to route people an
   `overview.md`, `api-runtime.md`, `execution.md`
 - `refactor/process/`
   Active process docs:
-  `review-scheme.md`, `alignment-tracker.md`, `test-boundary-baseline.md`, `legacy-surface-inventory.md`, `legacy-retirement-roadmap.md`, `provider-helper-decision-baseline.md`, `full-cutover-closure-checklist.md`
+  `review-scheme.md`, `alignment-tracker.md`, `test-boundary-baseline.md`, `legacy-surface-inventory.md`, `legacy-retirement-roadmap.md`, `provider-helper-decision-baseline.md`, `full-cutover-closure-checklist.md`, `core-flow-stabilization-baseline.md`
 - `refactor/reviews/`
   Meeting-specific review materials
 - `refactor/archive/`
@@ -55,7 +55,8 @@ If you are doing refactor design or review:
 7. `refactor/process/legacy-retirement-roadmap.md`
 8. `refactor/process/provider-helper-decision-baseline.md`
 9. `refactor/process/full-cutover-closure-checklist.md`
-10. `refactor/knowledge/PLAYBOOK.md`
+10. `refactor/process/core-flow-stabilization-baseline.md`
+11. `refactor/knowledge/PLAYBOOK.md`
 
 If you are implementing the current phase:
 
@@ -69,8 +70,9 @@ If you are implementing the current phase:
 8. `refactor/process/legacy-retirement-roadmap.md`
 9. `refactor/process/provider-helper-decision-baseline.md`
 10. `refactor/process/full-cutover-closure-checklist.md`
-11. the active execution slice under `exec-plans/active/`
-12. `refactor/knowledge/PLAYBOOK.md`
+11. `refactor/process/core-flow-stabilization-baseline.md`
+12. the active execution slice under `exec-plans/active/`
+13. `refactor/knowledge/PLAYBOOK.md`
 
 ## Maintenance Rule
 

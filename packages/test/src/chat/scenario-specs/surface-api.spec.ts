@@ -54,48 +54,32 @@ test.describe('Chat Surface API', () => {
     await expect(root.getByTestId('surface-message-list-slot')).toContainText('messages:3', { timeout: 10000 })
   })
 
-  test('TrChat.Provider should preserve an injected chatKit responseProvider', async ({ page }) => {
-    const root = '[data-testid="chat-surface-provider-chat-kit"] .tr-chat'
-
-    await helper.sendMessage('runtime-chat-kit-path', root)
-    await helper.waitForStreamingComplete(root)
-
-    const contents = page.locator(root).locator(helper.selectors.bubbleContent)
-    await expect(contents.last()).toContainText('[runtime-chat-kit:runtime-chat-kit-model]')
-  })
-
-  test('surface runtime bridge should expose raw request state and bridge helpers without leaving the chat surface', async ({
+  test('surface runtime diagnostics should expose official runtime state and allow a manual reset through history runtime', async ({
     page,
   }) => {
-    const sceneRoot = page.locator('[data-testid="chat-surface-runtime-bridge"]')
-    const chatRoot = '[data-testid="chat-surface-runtime-bridge"] .tr-chat'
+    const sceneRoot = page.locator('[data-testid="chat-surface-runtime-diagnostics"]')
+    const chatRoot = '[data-testid="chat-surface-runtime-diagnostics"] .tr-chat'
 
-    await expect(sceneRoot.getByTestId('surface-runtime-bridge-request-state')).toContainText('request:idle')
-    await expect(sceneRoot.getByTestId('surface-runtime-bridge-processing-state')).toContainText('processing:none')
-    await expect(sceneRoot.getByTestId('surface-runtime-bridge-is-processing')).toContainText('active:false')
-    await expect(sceneRoot.getByTestId('surface-runtime-bridge-message-count')).toContainText('messages:0')
+    await expect(sceneRoot.getByTestId('surface-runtime-diagnostics-status')).toContainText('status:ready')
+    await expect(sceneRoot.getByTestId('surface-runtime-diagnostics-message-count')).toContainText('messages:0')
+    await expect(sceneRoot.getByTestId('surface-runtime-diagnostics-model')).toContainText('model:openai-test')
 
-    await sceneRoot.getByTestId('surface-runtime-bridge-send').click()
+    await sceneRoot.getByTestId('surface-runtime-diagnostics-send').click()
 
-    await expect(sceneRoot.getByTestId('surface-runtime-bridge-request-state')).toContainText('request:processing')
-    await expect(sceneRoot.getByTestId('surface-runtime-bridge-is-processing')).toContainText('active:true')
-
+    await expect(sceneRoot.getByTestId('surface-runtime-diagnostics-status')).toContainText(
+      /status:(submitted|streaming)/,
+    )
     await helper.waitForStreamingComplete(chatRoot)
 
-    await expect(sceneRoot.getByTestId('surface-runtime-bridge-request-state')).toContainText('request:completed')
-    await expect(sceneRoot.getByTestId('surface-runtime-bridge-processing-state')).toContainText('processing:none')
-    await expect(sceneRoot.getByTestId('surface-runtime-bridge-is-processing')).toContainText('active:false')
-    await expect(sceneRoot.getByTestId('surface-runtime-bridge-message-count')).toContainText('messages:2')
+    await expect(sceneRoot.getByTestId('surface-runtime-diagnostics-status')).toContainText('status:ready')
+    await expect(sceneRoot.getByTestId('surface-runtime-diagnostics-message-count')).toContainText('messages:2')
 
     const contents = page.locator(chatRoot).locator(helper.selectors.bubbleContent)
-    await expect(contents.last()).toContainText('[runtime-bridge:runtime-bridge-model]')
+    await expect(contents.last()).toContainText('[openai:openai-test] runtime-diagnostics-path')
 
-    await sceneRoot.getByTestId('surface-runtime-bridge-save').click()
-    await expect(sceneRoot.getByTestId('surface-runtime-bridge-save-count')).not.toContainText('saves:0')
-
-    await sceneRoot.getByTestId('surface-runtime-bridge-clear').click()
-    await expect(sceneRoot.getByTestId('surface-runtime-bridge-request-state')).toContainText('request:idle')
-    await expect(sceneRoot.getByTestId('surface-runtime-bridge-message-count')).toContainText('messages:0')
+    await sceneRoot.getByTestId('surface-runtime-diagnostics-reset').click()
+    await expect(sceneRoot.getByTestId('surface-runtime-diagnostics-status')).toContainText('status:ready')
+    await expect(sceneRoot.getByTestId('surface-runtime-diagnostics-message-count')).toContainText('messages:0')
   })
 
   test('Root + primitives should expose live model runtime for manual composition and keep the send chain working after a model switch', async ({
@@ -156,10 +140,10 @@ test.describe('Chat Surface API', () => {
     await expect(sceneRoot).toHaveCount(0)
   })
 
-  test('HistorySurface should render independent history UI and support filtering', async ({ page }) => {
-    const root = page.locator('[data-testid="chat-surface-history-surface"]')
+  test('workspace layout default left owner path should render history UI and support filtering', async ({ page }) => {
+    const root = page.locator('[data-testid="chat-surface-workspace-history"]')
 
-    await root.getByTestId('history-surface-seed').click()
+    await root.getByTestId('workspace-history-seed').click()
 
     const items = root.locator(helper.selectors.historyItem)
     await expect(items).toHaveCount(2)

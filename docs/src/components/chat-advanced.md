@@ -30,7 +30,7 @@ outline: [2, 3]
 | :-- | :-- | :-- |
 | 自己创建 runtime，但还想复用官方页面 | `TrChat.Root + TrChat.Page` | 最稳的白盒页面路径 |
 | 自己摆 `Header / MessageList / Footer / History / Workspace` | `TrChat.Root + primitives` | 页面结构完全由你掌控 |
-| 已有 `chatKit` 或想自己控制 provider 级对象 | `TrChat.Provider` | 叶子级白盒装配入口 |
+| 想自己控制 `responseProvider` 或 provider 级对象 | `TrChat.Provider` | 叶子级白盒装配入口 |
 
 ## `Root + Page`
 
@@ -104,23 +104,9 @@ const { runtime, ui } = createRuntimeFromConfig(config)
 
 ## `TrChat.Provider`
 
-当你已经有 `chatKit`，或者要自己控制 provider 级对象时，用 `TrChat.Provider`。
+当你要自己控制 provider 级对象，但又不想直接掉到更底层内部装配时，用 `TrChat.Provider`。
 
-最常见的两种用法：
-
-### 直接传 `chatKit`
-
-```vue
-<TrChat.Provider :chat-kit="chatKit">
-  <TrChat.Layout>
-    <TrChat.Header title="Provider Chat" />
-    <TrChat.MessageList auto-scroll />
-    <TrChat.Footer>
-      <TrChat.Sender />
-    </TrChat.Footer>
-  </TrChat.Layout>
-</TrChat.Provider>
-```
+当前保留的正式用法只有一种：
 
 ### 传 `responseProvider`
 
@@ -136,6 +122,7 @@ const { runtime, ui } = createRuntimeFromConfig(config)
 ```
 
 `Provider` 现在仍然是正式 helper surface，但它是白盒入口，不是黑盒 `TrChat` 的补充参数。
+直接传 `chatKit` 已经不再属于支持中的 package story。
 
 ## message actions / renderers / transforms 现在写在哪里
 
@@ -195,16 +182,18 @@ MCP 不再是黑盒 `TrChat` 的顶层 helper 参数。
 
 下面这些 helper 仍然公开，但它们不再是默认文档主线：
 
-- `createChatAdapterFromConfig`
-- `createPresetChatProps`
-- `createPresetChatSlices`
-- `useChatKit`
 - `useMcpManager`
+- `useChatAttachments`
 
 现在更准确的理解是：
 
-- 这些是白盒或对比迁移 helper
+- 这些是白盒或 owner-domain helper
 - 不是 `TrChat` 黑盒入口的默认配套参数
+
+补一句边界：
+
+- `createChatAdapterFromConfig`、`createPresetChatProps`、`createPresetChatSlices` 已经退休，不再属于支持中的 package story
+- 旧的 `useChatKit` 对外 helper 心智也已经退休；后续更推荐迁到 `createRuntimeFromConfig(config)`、`TrChat.Root + TrChat.Page` 或 `TrChat.Root + primitives`
 
 ## 下一步看哪里
 

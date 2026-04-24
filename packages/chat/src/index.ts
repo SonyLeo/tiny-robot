@@ -19,7 +19,7 @@ import {
 } from './components/workspace'
 import { ChatAttachments as TrChatAttachments } from './components/attachments'
 import { ChatFeedback as TrChatFeedback } from './components/feedback'
-import { ChatHistory as TrChatHistory, ChatHistorySurface as TrChatHistorySurface } from './components/history'
+import { ChatHistory as TrChatHistory } from './components/history'
 import { ChatMcpPanel as TrChatMcpPanel, McpTrigger as TrMcpTrigger } from './components/mcp'
 import { ModelSelector as TrModelSelector } from './components/model-selector'
 
@@ -36,7 +36,6 @@ type TrChatWithSubComponents = typeof TrChat & {
   Attachments: typeof TrChatAttachments
   Sender: typeof TrChatSender
   History: typeof TrChatHistory
-  HistorySurface: typeof TrChatHistorySurface
   WorkspaceShell: typeof TrChatWorkspaceShell
   WorkspaceRightSheet: typeof TrChatWorkspaceRightSheet
 }
@@ -54,14 +53,12 @@ TrChatFull.Footer = TrChatFooter
 TrChatFull.Attachments = TrChatAttachments
 TrChatFull.Sender = TrChatSender
 TrChatFull.History = TrChatHistory
-TrChatFull.HistorySurface = TrChatHistorySurface
 TrChatFull.WorkspaceShell = TrChatWorkspaceShell
 TrChatFull.WorkspaceRightSheet = TrChatWorkspaceRightSheet
 
 export { TrChatFull as TrChat }
 export { TrChatRoot, TrChatPage }
 
-export { useChatKit } from './runtime/chat-kit/useChatKit'
 export { useChatAttachments } from './components/attachments/useChatAttachments'
 export { useDefaultBubbleConfig } from './components/core/useDefaultBubbleConfig'
 export { useMcpManager } from './components/mcp/useMcpManager'
@@ -90,20 +87,11 @@ export {
   TrChatLayout,
   TrChatWorkspaceLayout,
   TrChatAttachments,
-  TrChatHistorySurface,
   TrChatWorkspaceShell,
   TrChatWorkspaceRightSheet,
 }
 
-export {
-  createRuntimeFromConfig,
-  loadChatConfig,
-  createChatAdapterFromConfig,
-  createPresetChatProps,
-  createPresetChatSlices,
-  CHAT_FEATURE_REGISTRY,
-  resolveChatFeatures,
-} from './runtime/config'
+export { createRuntimeFromConfig, CHAT_FEATURE_REGISTRY, resolveChatFeatures } from './runtime/config'
 export { CHAT_MESSAGES, resolveChatMessages } from './shared/messages'
 
 export type {
@@ -146,15 +134,11 @@ export type {
   ChatMessageTransformFinishContext,
   ChatMessageTransforms,
   ChatListVariant,
-  UseChatKitOptions,
-  UseChatKitRuntimeBridge,
-  UseChatKitReturn,
   TrChatProps,
   TrChatProviderProps,
   TrChatHeaderProps,
   TrChatWelcomeProps,
   TrChatMessageListProps,
-  TrChatHistorySurfaceProps,
   TrChatPresetOverrides,
   TrChatSenderProps,
   TrChatProviderSharedProps,
@@ -200,28 +184,6 @@ export type { UseMcpManagerBridge, UseMcpManagerOptions, UseMcpManagerReturn } f
 export type { UseModelSelectorOptions } from './components/model-selector/useModelSelector'
 export type { UseChatAttachmentsReturn } from './components/attachments/useChatAttachments'
 export type {
-  ChatAdapter,
-  ChatPresetAppearanceSlice,
-  ChatConfig,
-  ChatConfigDefaults,
-  ChatConfigIntegrations,
-  ChatLayoutConfig,
-  ChatLayoutPlacementsConfig,
-  ChatConfigModel,
-  ChatConfigProvider,
-  ChatConfigUI,
-  ChatPresetProps,
-  ChatPresetHeaderSlice,
-  ChatPresetHistorySlice,
-  ChatPresetLayoutSlice,
-  ChatPresetMessageListSlice,
-  ChatPresetModelSelectorSlice,
-  ChatPresetProviderSlice,
-  ChatPresetShellSlice,
-  ChatPresetSenderSlice,
-  ChatPresetSlices,
-  ChatPresetWelcomeSlice,
-  OpenAICompatibleProviderConfig,
   ChatAttachmentsFeatureConfig,
   ChatAttachmentsFeatureResolution,
   BuiltInChatFeatureKey,

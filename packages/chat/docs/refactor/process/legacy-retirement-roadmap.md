@@ -1,6 +1,6 @@
 # Legacy Retirement Roadmap
 
-Status: active post-closure cleanup roadmap with the root-bridge-retirement stage landed.
+Status: closure-complete roadmap for public cutover; while `core-flow-stabilization-baseline.md` is red, use that stabilization slice before resuming any optional private-runtime or retirement follow-up.
 
 This file defines the ordered path from the current `closure-ready` refactor state to a stricter end-state where old usage patterns, compatibility-only helper paths, and their related files are retired.
 
@@ -40,14 +40,15 @@ Read this together with:
 
 - `./legacy-surface-inventory.md`
 - `./test-boundary-baseline.md`
+- `./core-flow-stabilization-baseline.md`
 
 At the current point in cleanup, the remaining non-closed surfaces are:
 
 | Area | Current state | Why it still exists |
 | --- | --- | --- |
-| provider/comparison helper surfaces | `delete-later` | still public or still tested, but no longer part of the main refactor contract |
-| mixed e2e `adapt` group | `delete-later` | still useful coverage, but not yet clean official-path gate |
-| secondary package-local legacy sentinels | `delete-later` | still attached to helper/config projection surfaces that have not yet been removed |
+| provider/comparison helper surfaces | `settled` | the public package story is settled; what remains is only the optional question of whether the private runtime chat-kit chain should be rewritten later |
+| mixed e2e `adapt` group | `settled` | the retained Playwright set is now promoted into the official gate, so there is no remaining mixed `adapt` bucket for the supported package story |
+| secondary package-local legacy sentinels | `settled` | only private runtime-chain proof remains, and it is no longer part of the public helper story or the full-cutover bar |
 
 ## Guardrails
 
@@ -143,7 +144,7 @@ Exit criteria:
 
 Status:
 
-- active next slice
+- provider-helper branch completed; config-projection retirement landed; public `useChatKit` retirement landed as well
 
 Goal:
 
@@ -164,8 +165,8 @@ Work:
 Likely files involved:
 
 - provider/comparison helper source
-- `tests/runtime/provider-chat-kit.test.mjs`
-- `tests/config/*` files that only exist for old projection/helper paths
+- `tests/runtime/provider-response-provider.test.mjs`
+- current runtime/contracts handoff files that replaced the old config-only sentinel bucket
 - `provider-helper-decision-baseline.md`
 
 Exit criteria:
@@ -173,6 +174,10 @@ Exit criteria:
 - helper surfaces are no longer “temporary but public”
 
 ### Stage 4: Retire Obsolete Test Fixtures And Scenes
+
+Status:
+
+- completed
 
 Goal:
 
@@ -198,6 +203,10 @@ Exit criteria:
 
 ### Stage 5: Final Surface Cleanup
 
+Status:
+
+- completed
+
 Goal:
 
 - align source, docs, demos, and tests around the same final package story
@@ -218,14 +227,13 @@ Exit criteria:
 
 ## Suggested Slice Backlog
 
-If this roadmap is executed as slices, the clean sequence is:
+The planned cleanup slices have now landed in order:
 
-1. `post-closure-provider-helper-decision`
+1. `post-closure-comparison-helper-retirement`
 2. `post-closure-legacy-test-retirement`
 3. `post-closure-final-surface-cleanup`
 
-These should be opened one at a time.
-Do not reopen the old post-closure slices once a new one starts.
+No new legacy-retirement slice is required to describe the supported package story as fully cut over.
 
 ## What Does Not Belong In This Roadmap
 
@@ -241,11 +249,11 @@ Use this before claiming full retirement:
 
 - [x] `rootBridge.ts` is gone
 - [x] no `src/legacy/*` file remains
-- [ ] helper surfaces are explicitly either supported or deleted
-- [ ] package-local legacy-only tests are removed
-- [ ] legacy-only e2e scenes/specs are removed or retired
-- [ ] official-path gate is green
-- [ ] package README, docs pages, demo routes, and tests agree on the final usage model
+- [x] helper surfaces are explicitly either supported or deleted
+- [x] package-local legacy-only tests are removed
+- [x] legacy-only e2e scenes/specs are removed or retired
+- [x] official-path gate is green
+- [x] package README, docs pages, demo routes, and tests agree on the final usage model
 - [ ] final retirement history has been written
 
 For the live progress bar against those remaining items, use:

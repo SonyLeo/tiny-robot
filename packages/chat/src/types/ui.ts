@@ -21,7 +21,6 @@ import type {
   ChatMessageActionsMode,
   ChatMessageActionPayload,
   UseChatKitOptions,
-  UseChatKitReturn,
 } from './core'
 import type { ModelOption } from './model'
 import type { ChatWorkspaceShellConfig } from './workspace'
@@ -229,11 +228,6 @@ export interface TrChatMessageListProps {
   messageActionsMode?: ChatMessageActionsMode
   onActionClick?: (payload: ChatMessageActionPayload) => void
   groupStrategy?: BubbleListProps['groupStrategy']
-}
-
-export interface TrChatHistorySurfaceProps {
-  chatKit?: UseChatKitReturn
-  messages?: ChatMessagesOverrides
 }
 
 export interface TrChatSenderProps {

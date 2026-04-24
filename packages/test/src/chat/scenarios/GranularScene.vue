@@ -5,10 +5,6 @@
         :appearance="granularResolution.ui.appearance"
         :sidebar-title="granularResolution.ui.brand?.title"
       >
-        <template #left>
-          <TrChat.HistorySurface />
-        </template>
-
         <template #right>
           <aside class="granular-panel" data-testid="granular-panel">
             <strong>Root + primitives</strong>

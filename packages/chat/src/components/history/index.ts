@@ -1,5 +1,4 @@
 export { default as ChatHistory } from './ChatHistory.vue'
-export { default as ChatHistorySurface } from './ChatHistorySurface.vue'
 export { default as ChatHistoryContent } from './ChatHistoryContent.vue'
 export { default as ChatHistoryNewSession } from './ChatHistoryNewSession.vue'
 export { default as ChatHistoryManageButton } from './ChatHistoryManageButton.vue'

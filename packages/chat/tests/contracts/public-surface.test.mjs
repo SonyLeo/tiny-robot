@@ -7,6 +7,7 @@ const chatIndexSource = readFileSync(fileURLToPath(new URL('../../src/index.ts',
 const chatComponentsIndexSource = readFileSync(fileURLToPath(new URL('../../src/components/core/index.ts', import.meta.url)), 'utf8')
 const chatTypesIndexSource = readFileSync(fileURLToPath(new URL('../../src/types/index.ts', import.meta.url)), 'utf8')
 const chatCoreTypesSource = readFileSync(fileURLToPath(new URL('../../src/types/core.ts', import.meta.url)), 'utf8')
+const chatUiTypesSource = readFileSync(fileURLToPath(new URL('../../src/types/ui.ts', import.meta.url)), 'utf8')
 const chatSource = readFileSync(fileURLToPath(new URL('../../src/components/core/Chat.vue', import.meta.url)), 'utf8')
 const blackboxEntrySource = readFileSync(
   fileURLToPath(new URL('../../src/runtime/config/blackboxEntry.ts', import.meta.url)),
@@ -14,6 +15,10 @@ const blackboxEntrySource = readFileSync(
 )
 const chatPageSource = readFileSync(fileURLToPath(new URL('../../src/page/TrChatPage.vue', import.meta.url)), 'utf8')
 const chatRootSource = readFileSync(fileURLToPath(new URL('../../src/root/TrChatRoot.vue', import.meta.url)), 'utf8')
+const rootBootstrapProviderSource = readFileSync(
+  fileURLToPath(new URL('../../src/root/RootBootstrapProvider.vue', import.meta.url)),
+  'utf8',
+)
 const internalSource = readFileSync(fileURLToPath(new URL('../../src/internal.ts', import.meta.url)), 'utf8')
 const sharedContextSource = readFileSync(fileURLToPath(new URL('../../src/shared/context/index.ts', import.meta.url)), 'utf8')
 const chatKitSource = readFileSync(fileURLToPath(new URL('../../src/runtime/chat-kit/useChatKit.ts', import.meta.url)), 'utf8')
@@ -45,10 +50,6 @@ const modelSelectorSource = readFileSync(
   'utf8',
 )
 const registrySource = readFileSync(fileURLToPath(new URL('../../src/runtime/config/registry.ts', import.meta.url)), 'utf8')
-const configProjectionSource = readFileSync(
-  fileURLToPath(new URL('../../src/runtime/config/configProjection.ts', import.meta.url)),
-  'utf8',
-)
 const editInputRendererSource = readFileSync(
   fileURLToPath(new URL('../../src/components/renderers/EditInputRenderer.vue', import.meta.url)),
   'utf8',
@@ -87,6 +88,10 @@ const chatMessageListSource = readFileSync(
   'utf8',
 )
 const chatHistorySource = readFileSync(fileURLToPath(new URL('../../src/components/history/ChatHistory.vue', import.meta.url)), 'utf8')
+const providerResolutionSource = readFileSync(
+  fileURLToPath(new URL('../../src/runtime/provider/resolveProviderChatKit.ts', import.meta.url)),
+  'utf8',
+)
 
 await runTest('TrChat compound source keeps the retained subcomponents', async () => {
   const retainedAssignments = [
@@ -101,7 +106,6 @@ await runTest('TrChat compound source keeps the retained subcomponents', async (
     'TrChatFull.Attachments = TrChatAttachments',
     'TrChatFull.Sender = TrChatSender',
     'TrChatFull.History = TrChatHistory',
-    'TrChatFull.HistorySurface = TrChatHistorySurface',
   ]
 
   retainedAssignments.forEach((assignment) => {
@@ -155,7 +159,6 @@ await runTest('named exports still advertise the retained scaffold and helper su
     'TrChatLayout',
     'TrChatWorkspaceLayout',
     'TrChatAttachments',
-    'TrChatHistorySurface',
     'TrChatWorkspaceShell',
     'TrChatWorkspaceRightSheet',
     'TrChatProvider',
@@ -166,6 +169,11 @@ await runTest('named exports still advertise the retained scaffold and helper su
   })
 
   assert.equal(chatIndexSource.includes('createRuntimeFromConfig'), true)
+  assert.equal(chatIndexSource.includes('useChatKit'), false)
+  assert.equal(chatIndexSource.includes('loadChatConfig'), false)
+  assert.equal(chatIndexSource.includes('createChatAdapterFromConfig'), false)
+  assert.equal(chatIndexSource.includes('createPresetChatProps'), false)
+  assert.equal(chatIndexSource.includes('createPresetChatSlices'), false)
 })
 
 await runTest('official page surface is exported as a dedicated TrChat.Page wrapper', async () => {
@@ -250,6 +258,19 @@ await runTest('chat provider source no longer reads scaffold shell directly once
   assert.equal(chatProviderSource.includes('const shell = computed(() => props.shell)'), true)
 })
 
+await runTest('public provider source is narrowed to responseProvider while root keeps private chatKit bootstrap wiring internal', async () => {
+  assert.equal(chatUiTypesSource.includes('type TrChatProviderPropsB'), false)
+  assert.equal(chatUiTypesSource.includes('export type TrChatProviderProps = TrChatProviderSharedProps & {'), true)
+  assert.equal(chatUiTypesSource.includes("responseProvider: UseChatKitOptions['responseProvider']"), true)
+  assert.equal(providerResolutionSource.includes('const responseProvider = props.responseProvider'), true)
+  assert.equal(providerResolutionSource.includes("conditionalProp(props, 'chatKit')"), false)
+  assert.equal(providerResolutionSource.includes('providedChatKit'), false)
+  assert.equal(providerResolutionSource.includes('responseProvider must be provided'), true)
+  assert.equal(chatRootSource.includes('RootBootstrapProvider'), true)
+  assert.equal(chatRootSource.includes('<ChatProvider'), false)
+  assert.equal(rootBootstrapProviderSource.includes('provide(CHAT_KIT_KEY, props.chatKit)'), true)
+})
+
 await runTest('workspace layout source keeps mobile shell fallback on page or runtime owner inputs instead of raw scaffold presets', async () => {
   assert.equal(workspaceLayoutSource.includes('CHAT_RUNTIME_KEY'), true)
   assert.equal(workspaceLayoutSource.includes('const resolvedShell = computed(() => props.shell ?? runtimeShell.value)'), true)
@@ -284,9 +305,7 @@ await runTest('public source advertises chat message action contracts for extens
 await runTest('renamed provider-facing type exports stay visible through the public entrypoints', async () => {
   const topLevelTypeExports = [
     'ChatRuntimeInput',
-    'ChatConfigIntegrations',
     'TrChatConfig',
-    'ChatPresetProviderSlice',
     'TrChatRootProps',
     'TrChatProviderProps',
   ]
@@ -306,6 +325,14 @@ await runTest('renamed provider-facing type exports stay visible through the pub
   chatTypesExports.forEach((token) => {
     assert.equal(chatTypesIndexSource.includes(token), true)
   })
+
+  assert.equal(chatIndexSource.includes('ChatConfigIntegrations'), false)
+  assert.equal(chatIndexSource.includes('ChatPresetProviderSlice'), false)
+  assert.equal(chatIndexSource.includes('ChatAdapter'), false)
+  assert.equal(chatIndexSource.includes('ChatConfigDefaults'), false)
+  assert.equal(chatIndexSource.includes('UseChatKitOptions'), false)
+  assert.equal(chatIndexSource.includes('UseChatKitRuntimeBridge'), false)
+  assert.equal(chatIndexSource.includes('UseChatKitReturn'), false)
 })
 
 await runTest('public runtime sendMessage surface stays single-argument while structuredData remains sender-local', async () => {
@@ -411,8 +438,6 @@ await runTest('workspace-facing source reads default copy from chat messages ins
 
   assert.equal(registrySource.includes('上传附件'), false)
   assert.equal(registrySource.includes('语音输入'), false)
-  assert.equal(configProjectionSource.includes("railLabel: 'History'"), false)
-  assert.equal(configProjectionSource.includes("railLabel: 'Preview'"), false)
 })
 
 await runTest('message renderer source prefers runtime messageId hooks before legacy index fallback', async () => {

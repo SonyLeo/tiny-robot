@@ -1,7 +1,7 @@
-﻿import assert from 'node:assert/strict'
+import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import { createChatAdapterFromConfig, createPresetChatProps, createPresetChatSlices, runTest } from '../_helpers.mjs'
+import { createRuntimeFromConfig, runTest } from '../_helpers.mjs'
 
 const defaultBubbleConfigSource = readFileSync(
   fileURLToPath(new URL('../../src/components/core/useDefaultBubbleConfig.ts', import.meta.url)),
@@ -27,7 +27,7 @@ await runTest('ChatLayout source treats explicit bubbleRenderers as authoritativ
   assert.equal(chatLayoutSource.includes('...(layoutInput.value?.bubbleRenderers?.boxMatches ?? [])'), false)
 })
 
-await runTest('createPresetChatSlices projects bubble renderers through the layout slice', async () => {
+await runTest('createRuntimeFromConfig keeps bubble renderers on the runtime-owned message config', async () => {
   const customContentMatch = {
     find: (_message, content) => content?.type === 'text' && content.text?.startsWith('[card]'),
     renderer: { name: 'ProjectedContentRenderer' },
@@ -46,25 +46,22 @@ await runTest('createPresetChatSlices projects bubble renderers through the layo
     },
   }
 
-  const adapter = createChatAdapterFromConfig({
-    models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
-    providers: {
-      openai: {
+  const { runtime } = createRuntimeFromConfig({
+    request: {
+      models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
+      transport: {
         type: 'openai-compatible',
         endpoint: '/api/chat',
       },
     },
-  })
-
-  const presetProps = createPresetChatProps(adapter, {
-    bubbleRenderers: {
-      contentMatches: [customContentMatch],
-      boxMatches: [customBoxMatch],
+    messages: {
+      renderers: {
+        contentMatches: [customContentMatch],
+        boxMatches: [customBoxMatch],
+      },
     },
   })
-  const slices = createPresetChatSlices(presetProps)
 
-  assert.equal(slices.layout.bubbleRenderers?.contentMatches?.[0], customContentMatch)
-  assert.equal(slices.layout.bubbleRenderers?.boxMatches?.[0], customBoxMatch)
+  assert.equal(runtime.message?.config?.renderers?.contentMatches?.[0], customContentMatch)
+  assert.equal(runtime.message?.config?.renderers?.boxMatches?.[0], customBoxMatch)
 })
-

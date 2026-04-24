@@ -72,6 +72,8 @@ If the task includes implementation files, then also inspect the nearest relevan
   Concrete keep/delete recommendation baseline for provider/comparison helper surfaces before helper-retirement slices start deleting code.
 - `packages/chat/docs/refactor/process/full-cutover-closure-checklist.md`
   Final end-state checklist and progress model for the remaining legacy-retirement work.
+- `packages/chat/docs/refactor/process/core-flow-stabilization-baseline.md`
+  Temporary stabilization gate for recovering official-path regressions before more retirement work resumes.
 - `packages/chat/docs/refactor/knowledge/EXPERIENCE_LOG.md`
   Candidate and promoted recurring lessons gathered during implementation.
 - `packages/chat/docs/refactor/CODE_MAP.md`

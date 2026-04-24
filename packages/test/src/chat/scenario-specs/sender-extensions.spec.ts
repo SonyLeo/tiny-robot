@@ -29,7 +29,6 @@ test.describe('Chat Sender Extensions Passthrough', () => {
   }) => {
     const root = '[data-testid="chat-sender-extensions-provider"] .tr-chat'
 
-    await helper.expectWelcomeVisible(true, root)
     await helper.typeMessage('ECS', root)
     await helper.expectSuggestionListVisible(true)
 

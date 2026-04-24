@@ -7,6 +7,8 @@
       >
       <span data-testid="on-finish-log">{{ finishLog }}</span>
       <span data-testid="on-error-log">{{ errorLog }}</span>
+      <span data-testid="business-action-log">{{ businessActionLog }}</span>
+      <span data-testid="on-action-log">{{ actionLog }}</span>
     </div>
 
     <TrChat.Root :runtime="whiteboxResolution.runtime" :ui="whiteboxResolution.ui">
@@ -16,12 +18,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, shallowRef, watch } from 'vue'
 import { TrChat, createRuntimeFromConfig, type TrChatConfig } from '@opentiny/tiny-robot-chat'
 import { createOfficialSceneConfig } from './officialSceneConfig'
 
 const finishLog = ref('finish:pending')
 const errorLog = ref('error:none')
+const businessActionLog = ref('business:none')
+const actionLog = ref('action:none')
 
 const whiteboxConfig = computed<TrChatConfig>(() => ({
   ...createOfficialSceneConfig({
@@ -30,6 +34,29 @@ const whiteboxConfig = computed<TrChatConfig>(() => ({
     welcomeDescription:
       'Use createRuntimeFromConfig(config) when you want to own runtime creation but keep the official page composition.',
     workspace: true,
+    models: [
+      { id: 'openai-test', label: 'OpenAI Test', providerId: 'openai' },
+      { id: 'deepseek-test', label: 'DeepSeek Test', providerId: 'deepseek' },
+    ],
+    defaultModelId: 'openai-test',
+    messages: {
+      actions: [
+        {
+          id: 'create-ticket',
+          label: '创建工单',
+          placement: 'operations',
+          roles: ['assistant'],
+          order: 10,
+          onClick(context) {
+            businessActionLog.value = `business:${context.role ?? 'unknown'}`
+            actionLog.value = `action:create-ticket:${context.role ?? 'unknown'}:${context.messageId ?? 'none'}`
+          },
+        },
+      ],
+      feedback: {
+        enabled: true,
+      },
+    },
   }),
   lifecycle: {
     afterReceive(message) {
@@ -43,7 +70,14 @@ const whiteboxConfig = computed<TrChatConfig>(() => ({
   },
 }))
 
-const whiteboxResolution = computed(() => createRuntimeFromConfig(whiteboxConfig.value))
+const whiteboxResolution = shallowRef(createRuntimeFromConfig(whiteboxConfig.value))
+
+watch(
+  () => whiteboxConfig.value,
+  (nextConfig) => {
+    whiteboxResolution.value = createRuntimeFromConfig(nextConfig)
+  },
+)
 </script>
 
 <style scoped>

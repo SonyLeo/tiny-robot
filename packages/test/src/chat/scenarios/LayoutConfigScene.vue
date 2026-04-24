@@ -29,7 +29,7 @@
             :prompts="centeredGranularResolution.ui.welcome?.prompts"
             @prompt-click="centeredGranularResolution.runtime.conversation.send({ text: $event })"
           />
-          <TrChat.MessageList v-else :compatibility-relay="false" variant="stacked" />
+          <TrChat.MessageList v-else :compatibility-relay="false" variant="bubble" />
           <TrChat.Footer>
             <TrChat.Sender />
           </TrChat.Footer>

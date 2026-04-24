@@ -162,22 +162,25 @@ Historical rationale and freeze context live in:
 - Later cleanup should not silently widen old `ChatConfig` fallback or feature-first ownership on already-closed runtime, page, sender, attachments, and workspace paths.
 - package-level validation is green again after exporting the missing sibling `tiny-robot-svgs` icons and rebuilding its dist artifacts; the remaining hardening question is whether to clean up the non-blocking runtime warning separately from refactor closure.
 - Post-closure cleanup in this development branch should optimize for preserving official-path functionality, not for keeping legacy compatibility code alive by default.
-- `packages/test/src/chat` is still a mixed e2e suite; retained official-path scenarios need a keep/adapt/retire pass before the whole folder can become a hard legacy-pruning gate.
-- the first retained Playwright gate batch is now adapted around the official entry ladder (`index.spec.ts`, `history.spec.ts`, `request-lifecycle.spec.ts`, `workspace-slots.spec.ts`, `renderer-registry.spec.ts`), and the scaffold-surface-removal closure batch is now green for `layout-config`, `welcome-prompts`, `sender-actions`, `surface-api`, `sender-extensions`, `mcp-feature`, and `message-transforms`; the rest of `packages/test/src/chat` still needs the same keep/adapt/retire tightening before it can gate broad legacy deletion.
+- `packages/test/src/chat` no longer has an unresolved retained `adapt` bucket for the supported package story; the official-path and bounded advanced-provider Playwright set is now promoted into the retained gate.
 - compatibility-only `senderActions.upload = false` no longer acts as a supported retained boundary when an attachments owner is still present; that expectation is now an explicit contract drop instead of a cleanup blocker.
 - the roadmap's first cleanup slice has now landed: the remaining `edge-overrides` holdouts (`wordCount = false`, `voice = false`, and explicit close composition) were handed off to official-path proofs, and the edge scene/spec pair has retired.
 - post-closure cleanup has now removed the remaining `TrChat` scaffold fallback and explicit scaffold helper surface, retired the internal scaffold provision plus runtime bridge hints, removed the official-path scaffold-context readers, and deleted `src/legacy/rootBridge.ts`; the surviving bootstrap behavior now lives in `src/root/createRootBootstrapState.ts` instead of any `src/legacy/*` file.
-- the remaining post-closure legacy surface is explicitly inventoried in `legacy-surface-inventory.md`; the unresolved items are now limited to a small `delete-later` set of provider/comparison helpers, mixed `adapt` e2e scenes, and package-local legacy sentinels.
+- the remaining post-closure legacy surface is explicitly inventoried in `legacy-surface-inventory.md`; for the supported package story, that inventory is now settled and no longer waiting on another public legacy-retirement slice.
 - the ordered path from current post-closure cleanup to full legacy retirement now lives in `legacy-retirement-roadmap.md`; use it instead of inventing ad-hoc cleanup sequencing from the tracker.
 - the concrete keep/delete baseline for provider/comparison helper surfaces now lives in `provider-helper-decision-baseline.md`; use that document before opening the next helper-retirement implementation batch.
+- the first provider-helper retirement batch has now landed: public `TrChat.Provider` accepts only the `responseProvider` branch, the injected-`chatKit` branch is gone, provider-side comparison scenes have been handed off to `responseProvider` or `Root`-based diagnostics, and the old `runtime/provider-chat-kit.test.mjs` sentinel has been replaced by `runtime/provider-response-provider.test.mjs`.
+- `TrChatHistorySurface` has now retired after its last surviving history proof moved onto the official `WorkspaceLayout` default-left owner path; Part 1 is no longer waiting on a history-surface decision.
+- the config-projection helper family has now retired as well: `loadChatConfig`, `createChatAdapterFromConfig`, `createPresetChatProps`, `createPresetChatSlices`, and `tests/config/*` are gone, and the surviving transport/message/renderer/copy proof has been handed off to current runtime/contract tests.
+- public `useChatKit` has now retired from the package surface and docs story as well; the remaining `useChatKit` implementation and package-local runtime tests are now treated as private runtime-chain proof instead of a supported helper surface.
 - the final “can we call this fully cut over?” bar now lives in `full-cutover-closure-checklist.md`; use that checklist plus the active closure plan for future progress reporting.
+
+- `post-closure full cutover closure` is now paused while `post-closure core-flow stabilization` restores the regressed official-path model-switch and sender-submit flows.
+- `core-flow-stabilization-baseline.md` is now the temporary execution gate for this branch; no new helper-retirement slice should start until that baseline is green again.
 
 ## Next Actions
 
-1. Treat the root-bridge-retirement slice as closed: the last `src/legacy/*` implementation file is gone, the hard gate is green, and the remaining cleanup surface is explicitly limited to helper/test retirement work.
-2. If later cleanup continues, drive progress from `full-cutover-closure-checklist.md` plus the active full-cutover plan, and implement the remaining parts in order:
-   - provider helper retirement
-   - legacy test retirement
-   - final surface cleanup
+1. Treat `post-closure core-flow stabilization` as the active slice until the model-switch prompt path, model-switch sender-submit path, and retained Playwright gate are green again.
+2. Resume `post-closure full cutover closure` only after `core-flow-stabilization-baseline.md` is green.
 3. Keep any future contract changes in `design/api-runtime.md` and `design/execution.md` first, then backwrite the tracker.
-4. Treat deferred standalone `footer` publishing semantics as a separate contract task, not as a blocker for later cleanup.
+4. Treat deferred standalone `footer` publishing semantics as a separate contract task, not as a blocker for public cutover closure.
