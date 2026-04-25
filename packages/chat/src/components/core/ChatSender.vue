@@ -2,11 +2,19 @@
 import { inject, ref, computed, useSlots, useAttrs } from 'vue'
 import type { PropType, Slot } from 'vue'
 import { TrSender, UploadButton, VoiceButton } from '@opentiny/tiny-robot'
-import type { StructuredData } from '@opentiny/tiny-robot'
+import type { SenderProps, StructuredData } from '@opentiny/tiny-robot'
 import { CHAT_ATTACHMENTS_KEY, CHAT_KIT_KEY, CHAT_RUNTIME_KEY, CHAT_SENDER_ACTIONS_KEY } from '@/shared/context'
 import { useResolvedChatMessages } from '@/shared/messages'
+import type { TrChatSenderForwardedProps, TrChatSenderSlots } from '@/types'
 
 defineOptions({ name: 'TrChatSender', inheritAttrs: false })
+defineSlots<TrChatSenderSlots>()
+
+const DOM_ATTR_NAMES = new Set(['class', 'style', 'id', 'role', 'title', 'tabindex'])
+
+function isDomAttr(name: string) {
+  return DOM_ATTR_NAMES.has(name) || name.startsWith('data-') || name.startsWith('aria-')
+}
 
 const props = defineProps({
   mode: {
@@ -18,6 +26,8 @@ const props = defineProps({
   maxLength: {
     type: Number,
   },
+  extensions: null as unknown as PropType<SenderProps['extensions']>,
+  senderProps: Object as PropType<Partial<TrChatSenderForwardedProps> | undefined>,
 })
 
 const chatKit = inject(CHAT_KIT_KEY)!
@@ -49,6 +59,7 @@ const isLoading = computed(() => {
   return status === 'submitted' || status === 'streaming'
 })
 const senderActionsFeature = computed(() => senderActionsContext?.feature)
+const senderDefaultActions = computed(() => senderActionsFeature.value?.defaultActions)
 const senderWordCount = computed(() => senderDefaults.value?.wordCount ?? senderActionsFeature.value?.wordCount)
 const runtimeUploadConfig = computed(() => chatRuntime?.attachments?.uploadConfig?.value)
 const hasAttachmentOwner = computed(() => Boolean(chatRuntime?.attachments || attachmentsContext))
@@ -95,11 +106,11 @@ const senderPlaceholder = computed(
   () => props.placeholder ?? senderDefaults.value?.placeholder ?? chatMessages.value.sender.placeholder,
 )
 const senderMaxLength = computed(() => props.maxLength ?? senderDefaults.value?.maxLength)
-const mergedSenderAttrs = computed(() => ({
-  showWordLimit: senderWordCount.value,
-  defaultActions: senderActionsFeature.value?.defaultActions,
-  maxLength: senderMaxLength.value,
-  ...attrs,
+const senderForwardedProps = computed(() => props.senderProps ?? {})
+const senderDomAttrs = computed(() => Object.fromEntries(Object.entries(attrs).filter(([name]) => isDomAttr(name))))
+const forwardedSenderBindings = computed(() => ({
+  ...senderDomAttrs.value,
+  ...senderForwardedProps.value,
 }))
 
 async function handleSend(content: string, data?: StructuredData) {
@@ -156,11 +167,15 @@ const forwardedSlots = computed<Partial<Record<string, Slot>>>(() =>
 
 <template>
   <TrSender
+    v-bind="forwardedSenderBindings"
     v-model="inputValue"
     :loading="isLoading"
     :mode="senderMode"
     :placeholder="senderPlaceholder"
-    v-bind="mergedSenderAttrs"
+    :max-length="senderMaxLength"
+    :show-word-limit="senderWordCount"
+    :default-actions="senderDefaultActions"
+    :extensions="props.extensions"
     @submit="handleSend"
     @cancel="handleAbort"
   >

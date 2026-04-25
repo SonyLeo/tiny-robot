@@ -325,6 +325,195 @@ await runTest('createRuntimeFromConfig keeps messageTransforms active on the Roo
   }
 })
 
+await runTest('createRuntimeFromConfig beforeSend only receives text and can rewrite the outbound text', async () => {
+  const originalFetchDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'fetch')
+  const encoder = new TextEncoder()
+  const requests = []
+  const beforeSendInputs = []
+
+  Object.defineProperty(globalThis, 'fetch', {
+    configurable: true,
+    value: async (_input, init) => {
+      const requestBody = JSON.parse(String(init?.body ?? '{}'))
+      requests.push(requestBody)
+      const lastMessage = requestBody.messages?.[requestBody.messages.length - 1]?.content ?? ''
+      const reply = `reply:${lastMessage}`
+      const chunks = [
+        `data: ${JSON.stringify({
+          id: 'mock-before-send',
+          object: 'chat.completion.chunk',
+          created: 0,
+          model: requestBody.model,
+          choices: [{ index: 0, delta: { role: 'assistant', content: reply }, finish_reason: null }],
+        })}\n\n`,
+        `data: ${JSON.stringify({
+          id: 'mock-before-send',
+          object: 'chat.completion.chunk',
+          created: 0,
+          model: requestBody.model,
+          choices: [{ index: 0, delta: {}, finish_reason: 'stop' }],
+        })}\n\n`,
+        'data: [DONE]\n\n',
+      ]
+
+      return new Response(
+        new ReadableStream({
+          start(controller) {
+            chunks.forEach((chunk) => controller.enqueue(encoder.encode(chunk)))
+            controller.close()
+          },
+        }),
+        {
+          status: 200,
+          headers: {
+            'content-type': 'text/event-stream',
+          },
+        },
+      )
+    },
+  })
+
+  try {
+    const { runtime } = createRuntimeFromConfig({
+      request: {
+        models: [{ id: 'gpt-4.1-mini', providerId: 'openai' }],
+        defaultModelId: 'gpt-4.1-mini',
+        transport: {
+          type: 'openai-compatible',
+          endpoint: '/api/chat/completions',
+        },
+      },
+      lifecycle: {
+        beforeSend(input) {
+          beforeSendInputs.push(structuredClone(input))
+          return {
+            text: `rewritten:${input.text}`,
+          }
+        },
+      },
+    })
+
+    await runtime.sender.send({
+      text: 'original-before-send',
+      attachments: [{ name: 'ignored.txt', size: 1 }],
+      modelId: 'ignored-model',
+    })
+
+    await waitFor(() => {
+      assert.equal(runtime.conversation.status.value, 'ready')
+      assert.equal(requests.length, 1)
+      assert.equal(runtime.conversation.messages.value.at(-1)?.parts[0]?.text, 'reply:rewritten:original-before-send')
+    })
+
+    assert.deepEqual(beforeSendInputs, [{ text: 'original-before-send' }])
+    assert.equal(requests[0]?.messages?.at(-1)?.content, 'rewritten:original-before-send')
+  } finally {
+    if (originalFetchDescriptor) {
+      Object.defineProperty(globalThis, 'fetch', originalFetchDescriptor)
+    } else {
+      Reflect.deleteProperty(globalThis, 'fetch')
+    }
+  }
+})
+
+await runTest('createRuntimeFromConfig conversation.retry(messageId) only retries the targeted failed turn', async () => {
+  const originalFetchDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'fetch')
+  const encoder = new TextEncoder()
+  let failureCount = 0
+  const requests = []
+
+  Object.defineProperty(globalThis, 'fetch', {
+    configurable: true,
+    value: async (_input, init) => {
+      const requestBody = JSON.parse(String(init?.body ?? '{}'))
+      requests.push(requestBody)
+      const lastMessage = requestBody.messages?.[requestBody.messages.length - 1]?.content ?? ''
+
+      if (lastMessage === 'retry-target' && failureCount === 0) {
+        failureCount += 1
+        return new Response(JSON.stringify({ error: { message: 'temporary retryable failure' } }), {
+          status: 502,
+          headers: {
+            'content-type': 'application/json',
+          },
+        })
+      }
+
+      const reply = `reply:${lastMessage}`
+      const chunks = [
+        `data: ${JSON.stringify({
+          id: 'mock-retry-target',
+          object: 'chat.completion.chunk',
+          created: 0,
+          model: requestBody.model,
+          choices: [{ index: 0, delta: { role: 'assistant', content: reply }, finish_reason: null }],
+        })}\n\n`,
+        `data: ${JSON.stringify({
+          id: 'mock-retry-target',
+          object: 'chat.completion.chunk',
+          created: 0,
+          model: requestBody.model,
+          choices: [{ index: 0, delta: {}, finish_reason: 'stop' }],
+        })}\n\n`,
+        'data: [DONE]\n\n',
+      ]
+
+      return new Response(
+        new ReadableStream({
+          start(controller) {
+            chunks.forEach((chunk) => controller.enqueue(encoder.encode(chunk)))
+            controller.close()
+          },
+        }),
+        {
+          status: 200,
+          headers: {
+            'content-type': 'text/event-stream',
+          },
+        },
+      )
+    },
+  })
+
+  try {
+    const { runtime } = createRuntimeFromConfig({
+      request: {
+        models: [{ id: 'gpt-4.1-mini', providerId: 'openai' }],
+        defaultModelId: 'gpt-4.1-mini',
+        transport: {
+          type: 'openai-compatible',
+          endpoint: '/api/chat/completions',
+        },
+      },
+    })
+
+    await runtime.sender.send({ text: 'retry-target' })
+
+    await waitFor(() => {
+      assert.equal(runtime.conversation.status.value, 'error')
+      assert.equal(runtime.conversation.messages.value.length, 2)
+    })
+
+    const failedAssistantId = runtime.conversation.messages.value[1]?.id
+
+    assert.equal(await Promise.resolve(runtime.conversation.retry('missing-message-id')), false)
+    assert.equal(await Promise.resolve(runtime.conversation.retry(failedAssistantId)), true)
+
+    await waitFor(() => {
+      assert.equal(runtime.conversation.status.value, 'ready')
+      assert.equal(runtime.conversation.messages.value.length, 2)
+      assert.equal(runtime.conversation.messages.value[1]?.parts[0]?.text, 'reply:retry-target')
+      assert.equal(requests.length, 2)
+    })
+  } finally {
+    if (originalFetchDescriptor) {
+      Object.defineProperty(globalThis, 'fetch', originalFetchDescriptor)
+    } else {
+      Reflect.deleteProperty(globalThis, 'fetch')
+    }
+  }
+})
+
 await runTest('createRuntimeFromConfig updates the active request provider after runtime model switches', async () => {
   const originalFetchDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'fetch')
   const requests = []

@@ -1,18 +1,13 @@
 <script setup lang="ts">
 import { ThemeProvider } from '@opentiny/tiny-robot'
-import { computed, getCurrentInstance, type PropType } from 'vue'
+import { computed, getCurrentInstance } from 'vue'
 import { CHAT_UI_KEY, useChatPageInputs, useRequiredInject } from '@/shared/context'
-import type { ChatAppearanceConfig } from '@/types'
-import { triStateBooleanProp } from '@/shared/utils'
+import type { TrChatHistoryProps } from '@/types'
 import ChatHistoryContent from './ChatHistoryContent.vue'
 
 defineOptions({ name: 'TrChatHistory' })
 
-const props = defineProps({
-  compatibilityRelay: triStateBooleanProp,
-  enabled: triStateBooleanProp,
-  appearance: Object as PropType<ChatAppearanceConfig | undefined>,
-})
+const props = defineProps<TrChatHistoryProps>()
 
 const pageInputs = useChatPageInputs()
 const chatUi = useRequiredInject(CHAT_UI_KEY, 'chat ui')

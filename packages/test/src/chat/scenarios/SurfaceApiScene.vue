@@ -97,14 +97,13 @@
 
           <TrChat.Welcome
             v-if="showRuntimeDiagnosticsWelcome"
-            :compatibility-relay="false"
             :title="runtimeDiagnosticsResolution.ui.welcome?.title"
             :description="runtimeDiagnosticsResolution.ui.welcome?.description"
             :prompts="runtimeDiagnosticsResolution.ui.welcome?.prompts"
             @prompt-click="runtimeDiagnosticsResolution.runtime.conversation.send({ text: $event })"
           />
 
-          <TrChat.MessageList v-else :compatibility-relay="false" auto-scroll />
+          <TrChat.MessageList v-else auto-scroll />
 
           <TrChat.Footer>
             <TrChat.Sender />
@@ -138,14 +137,13 @@
 
           <TrChat.Welcome
             v-if="showGranularModelWelcome"
-            :compatibility-relay="false"
             :title="granularModelResolution.ui.welcome?.title"
             :description="granularModelResolution.ui.welcome?.description"
             :prompts="granularModelResolution.ui.welcome?.prompts"
             @prompt-click="granularModelResolution.runtime.conversation.send({ text: $event })"
           />
 
-          <TrChat.MessageList v-else :compatibility-relay="false" />
+          <TrChat.MessageList v-else />
 
           <TrChat.Footer>
             <TrChat.Sender />
@@ -155,7 +153,7 @@
     </div>
 
     <div data-testid="chat-surface-provider-branch" class="chat-wrapper">
-      <TrChat.Provider :response-provider="providerBranchResponseProvider">
+      <TrChat.Provider :transport-adapter="providerBranchResponseProvider">
         <TrChat.Layout :appearance="{ mode: 'dark' }">
           <TrChat.Header :show-new-chat="false">
             <template #title>
@@ -185,14 +183,13 @@
 
           <TrChat.Welcome
             v-if="showGranularFooterRightWelcome"
-            :compatibility-relay="false"
             :title="granularFooterRightResolution.ui.welcome?.title"
             :description="granularFooterRightResolution.ui.welcome?.description"
             :prompts="granularFooterRightResolution.ui.welcome?.prompts"
             @prompt-click="granularFooterRightResolution.runtime.conversation.send({ text: $event })"
           />
 
-          <TrChat.MessageList v-else :compatibility-relay="false" />
+          <TrChat.MessageList v-else />
 
           <TrChat.Footer>
             <TrChat.Sender>
@@ -215,14 +212,13 @@
 
           <TrChat.Welcome
             v-if="showGranularSenderConfigWelcome"
-            :compatibility-relay="false"
             :title="granularSenderConfigResolution.ui.welcome?.title"
             :description="granularSenderConfigResolution.ui.welcome?.description"
             :prompts="granularSenderConfigResolution.ui.welcome?.prompts"
             @prompt-click="granularSenderConfigResolution.runtime.conversation.send({ text: $event })"
           />
 
-          <TrChat.MessageList v-else :compatibility-relay="false" />
+          <TrChat.MessageList v-else />
 
           <TrChat.Footer>
             <TrChat.Sender />
@@ -247,14 +243,13 @@
 
           <TrChat.Welcome
             v-if="showGranularCloseWelcome"
-            :compatibility-relay="false"
             :title="granularCloseResolution.ui.welcome?.title"
             :description="granularCloseResolution.ui.welcome?.description"
             :prompts="granularCloseResolution.ui.welcome?.prompts"
             @prompt-click="granularCloseResolution.runtime.conversation.send({ text: $event })"
           />
 
-          <TrChat.MessageList v-else :compatibility-relay="false" />
+          <TrChat.MessageList v-else />
 
           <TrChat.Footer>
             <TrChat.Sender />
@@ -286,11 +281,10 @@
             <TrChat.Header :title="workspaceHistoryResolution.ui.brand?.title" :show-history="false" />
             <TrChat.Welcome
               v-if="showWorkspaceHistoryWelcome"
-              :compatibility-relay="false"
               :title="workspaceHistoryResolution.ui.welcome?.title"
               :description="workspaceHistoryResolution.ui.welcome?.description"
             />
-            <TrChat.MessageList v-else :compatibility-relay="false" auto-scroll />
+            <TrChat.MessageList v-else auto-scroll />
             <TrChat.Footer>
               <TrChat.Sender />
             </TrChat.Footer>

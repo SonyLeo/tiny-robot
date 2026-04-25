@@ -148,24 +148,30 @@ await runTest('public source keeps removed legacy branches absent while retainin
   assert.equal(chatTypesIndexSource.includes("from './workspace'"), true)
 })
 
-await runTest('named exports still advertise the retained scaffold and helper surface', async () => {
+await runTest('named exports keep the retained standalone advanced surface while pruning duplicate flat aliases', async () => {
   const retainedExports = [
-    'TrChatRoot',
-    'TrChatPage',
     'TrMcpTrigger',
-    'TrModelSelector',
     'TrChatFeedback',
-    'TrChatMcpPanel',
-    'TrChatLayout',
-    'TrChatWorkspaceLayout',
-    'TrChatAttachments',
-    'TrChatWorkspaceShell',
-    'TrChatWorkspaceRightSheet',
-    'TrChatProvider',
   ]
 
   retainedExports.forEach((token) => {
     assert.equal(chatIndexSource.includes(token), true)
+  })
+
+  const removedDuplicateAliases = [
+    'export { TrChatRoot, TrChatPage }',
+    '\n  TrChatProvider,\n',
+    '\n  TrChatLayout,\n',
+    '\n  TrChatWorkspaceLayout,\n',
+    '\n  TrChatAttachments,\n',
+    '\n  TrChatWorkspaceShell,\n',
+    '\n  TrChatWorkspaceRightSheet,\n',
+    'TrModelSelector',
+    'TrChatMcpPanel',
+  ]
+
+  removedDuplicateAliases.forEach((token) => {
+    assert.equal(chatIndexSource.includes(token), false)
   })
 
   assert.equal(chatIndexSource.includes('createRuntimeFromConfig'), true)
@@ -176,16 +182,98 @@ await runTest('named exports still advertise the retained scaffold and helper su
   assert.equal(chatIndexSource.includes('createPresetChatSlices'), false)
 })
 
+await runTest('package root prunes low-level helper, renderer, and registry exports from the promoted surface', async () => {
+  const removedRootExports = [
+    'useChatAttachments',
+    'useDefaultBubbleConfig',
+    'useModelSelector',
+    'useChatFeedback',
+    'useFloatingDropdown',
+    'useKeyboardNavigation',
+    'useHistoryState',
+    'useSlotFilter',
+    'MarkStreamRenderer',
+    'ErrorRenderer',
+    'EditInputRenderer',
+    'ToolCallsRenderer',
+    'ToolCallRenderer',
+    'AttachmentsRenderer',
+    'CHAT_FEATURE_REGISTRY',
+    'resolveChatFeatures',
+    'KNOWN_PROVIDERS',
+  ]
+
+  removedRootExports.forEach((token) => {
+    assert.equal(chatIndexSource.includes(token), false)
+  })
+
+  const removedRootTypeExports = [
+    'UseDefaultBubbleConfigOptions',
+    'UseModelSelectorOptions',
+    'UseChatAttachmentsReturn',
+    'UseChatAttachmentsOptions',
+    'ChatAttachmentsFeatureConfig',
+    'ChatAttachmentsFeatureResolution',
+    'BuiltInChatFeatureKey',
+    'ChatFeatureConfigMap',
+    'ChatFeatureInput',
+    'ChatMcpFeatureConfig',
+    'ChatMcpFeatureResolution',
+    'ChatFeaturePresetProps',
+    'ChatFeedbackFeatureConfig',
+    'ChatFeedbackFeatureResolution',
+    'ChatHistoryFeatureConfig',
+    'ChatHistoryFeatureOptions',
+    'ChatHistoryFeatureResolution',
+    'ChatSenderActionsFeatureConfig',
+    'ChatSenderActionsFeatureResolution',
+    'ChatWelcomePromptsFeatureConfig',
+    'ChatWelcomePromptsFeatureOptions',
+    'ChatWelcomePromptsFeatureResolution',
+    'ResolvedChatFeatures',
+    'KnownProvider',
+  ]
+
+  removedRootTypeExports.forEach((token) => {
+    assert.equal(chatIndexSource.includes(token), false)
+  })
+})
+
 await runTest('official page surface is exported as a dedicated TrChat.Page wrapper', async () => {
   assert.equal(chatIndexSource.includes('Page: typeof TrChatPage'), true)
-  assert.equal(chatIndexSource.includes('export { TrChatRoot, TrChatPage }'), true)
+  assert.equal(chatIndexSource.includes('export { TrChatRoot, TrChatPage }'), false)
+  assert.equal(chatUiTypesSource.includes('export interface TrChatPageProps {'), true)
+  assert.equal(chatUiTypesSource.includes('messageListVariant?: ChatListVariant'), true)
+  assert.equal(chatUiTypesSource.includes("export interface TrChatPageEmits {"), true)
+  assert.equal(chatUiTypesSource.includes('export interface TrChatPageSlots {'), true)
+  assert.match(chatUiTypesSource, /'message-list'\?:\s*\(props: TrChatPageMessageListSlotProps\) => unknown/)
+  assert.match(chatUiTypesSource, /sender\?:\s*\(props: TrChatPageSenderSlotProps\) => unknown/)
+  assert.equal(chatUiTypesSource.includes("'header-extra'?: () => unknown"), true)
+  assert.equal(chatUiTypesSource.includes("'footer-extra'?: () => unknown"), true)
+  assert.equal(chatUiTypesSource.includes("'left-rail'?: () => unknown"), true)
+  assert.equal(chatUiTypesSource.includes("'mobile-left'?: () => unknown"), true)
+  assert.equal(chatUiTypesSource.includes("'mobile-right'?: () => unknown"), true)
+  assert.equal(chatUiTypesSource.includes("export interface TrChatPageMessageListSlotProps {"), true)
+  assert.equal(chatUiTypesSource.includes('messages: ReadonlyRef<ChatMessage[]>'), true)
+  assert.equal(chatUiTypesSource.includes("export interface TrChatPageSenderSlotProps {"), true)
+  assert.equal(chatUiTypesSource.includes('send: (content: string) => void'), true)
+  assert.equal(chatUiTypesSource.includes('abort: () => Promise<void>'), true)
+  assert.equal(chatUiTypesSource.includes('status: ReadonlyRef<ChatStatus>'), true)
+  assert.equal(chatUiTypesSource.includes('lastError: ReadonlyRef<ChatErrorInfo | null>'), true)
+  assert.equal(chatUiTypesSource.includes('retry: () => Promise<boolean>'), true)
+  assert.equal(chatPageSource.includes('const props = defineProps<TrChatPageProps>()'), true)
+  assert.equal(chatPageSource.includes('const emit = defineEmits<TrChatPageEmits>()'), true)
+  assert.equal(chatPageSource.includes('defineSlots<TrChatPageSlots>()'), true)
+  assert.equal(chatPageSource.includes('useAttrs()'), false)
+  assert.equal(chatPageSource.includes('attrs[\'message-list-variant\']'), false)
+  assert.equal(chatPageSource.includes('props.messageListVariant'), true)
   assert.equal(chatPageSource.includes('<ChatDefaultHeaderRegion'), true)
   assert.equal(chatPageSource.includes('<ChatDefaultBodyRegion'), true)
   assert.equal(chatPageSource.includes('<ChatDefaultFooterRegion'), true)
   assert.equal(chatPageSource.includes('<ChatWorkspaceLayout'), true)
   assert.equal(chatPageSource.includes('v-if="isWorkspaceShell"'), true)
   assert.equal(
-    chatPageSource.includes('<ChatHistory :compatibility-relay="false" :enabled="historyInput?.enabled" :appearance="appearanceInput" />'),
+    chatPageSource.includes('<ChatHistory :enabled="historyInput?.enabled" :appearance="appearanceInput" />'),
     true,
   )
   assert.equal(defaultRendererSource.includes('<TrChatPage'), true)
@@ -196,6 +284,11 @@ await runTest('TrChat source keeps Root + Page explicit for target TrChatConfig 
   assert.equal(chatSource.includes('useTrChatConfigRuntimeResolution(() => props.config)'), true)
   assert.equal(chatSource.includes('<TrChatRoot :runtime="runtimeResolution.runtime" :ui="runtimeResolution.ui">'), true)
   assert.equal(chatSource.includes('<TrChatPage>'), true)
+  assert.equal(chatUiTypesSource.includes('export type TrChatConfigEntryInput = TrChatConfig | string'), true)
+  assert.equal(chatUiTypesSource.includes('config: TrChatConfigEntryInput'), true)
+  assert.equal(chatUiTypesSource.includes('config: unknown'), false)
+  assert.equal(chatIndexSource.includes('TrChatConfigEntryInput'), true)
+  assert.equal(chatTypesIndexSource.includes('TrChatConfigEntryInput'), true)
   assert.equal(chatSource.includes('<ChatScaffold'), false)
   assert.equal(chatSource.includes('v-else'), false)
   assert.equal(trChatConfigEntrySource.includes('JSON.parse(value)'), true)
@@ -234,10 +327,10 @@ await runTest('default page path passes explicit primitive inputs instead of rel
   assert.equal(chatPageSource.includes(':show="layoutInput?.show"'), true)
   assert.equal(chatPageSource.includes(':appearance="appearanceInput"'), true)
   assert.equal(chatPageSource.includes(':enabled="historyInput?.enabled"'), true)
-  assert.equal(chatPageSource.includes(':compatibility-relay="false" :enabled="historyInput?.enabled"'), true)
+  assert.equal(chatPageSource.includes(':compatibility-relay="false"'), false)
   assert.equal(chatPageSource.includes(':model-selector-input="modelSelectorInput"'), true)
-  assert.equal(defaultHeaderRegionSource.includes(':compatibility-relay="false"'), true)
-  assert.equal(defaultBodyRegionSource.includes(':compatibility-relay="false"'), true)
+  assert.equal(defaultHeaderRegionSource.includes(':compatibility-relay="false"'), false)
+  assert.equal(defaultBodyRegionSource.includes(':compatibility-relay="false"'), false)
   assert.equal(defaultHeaderRegionSource.includes(':title="headerInput?.title"'), true)
   assert.equal(defaultHeaderRegionSource.includes(':shell="shell"'), true)
   assert.equal(chatHeaderSource.includes('useChatPageInputs'), true)
@@ -254,6 +347,64 @@ await runTest('default page path passes explicit primitive inputs instead of rel
   assert.equal(chatHistorySource.includes('const historyInput = computed(() => pageInputs?.value.history)'), true)
 })
 
+await runTest('leaf primitive prop types stay aligned with the currently supported explicit surface', async () => {
+  assert.equal(chatUiTypesSource.includes('showClose?: boolean'), true)
+  assert.equal(chatUiTypesSource.includes('shell?: ChatWorkspaceShellConfig'), true)
+  assert.equal(chatUiTypesSource.includes("roleConfigs?: BubbleListProps['roleConfigs']"), true)
+  assert.equal(chatUiTypesSource.includes('export type TrChatMessageListForwardedProps = Omit<'), true)
+  assert.equal(chatUiTypesSource.includes('export type TrChatMessageListSlots = BubbleListSlots'), true)
+  assert.equal(chatUiTypesSource.includes('bubbleListProps?: Partial<TrChatMessageListForwardedProps>'), true)
+  assert.equal(chatUiTypesSource.includes("extensions?: SenderProps['extensions']"), true)
+  assert.equal(chatUiTypesSource.includes('export type TrChatSenderForwardedProps = Omit<'), true)
+  assert.equal(chatUiTypesSource.includes('senderProps?: Partial<TrChatSenderForwardedProps>'), true)
+  assert.equal(chatUiTypesSource.includes('export interface TrChatHeaderEmits {'), true)
+  assert.equal(chatUiTypesSource.includes("export interface TrChatHeaderSlots {"), true)
+  assert.equal(chatUiTypesSource.includes('export interface TrChatHistoryProps {'), true)
+  assert.equal(chatUiTypesSource.includes("title?: () => unknown"), true)
+  assert.equal(chatUiTypesSource.includes("extra?: () => unknown"), true)
+  assert.equal(chatUiTypesSource.includes('export interface TrChatWelcomeEmits {'), true)
+  assert.equal(chatUiTypesSource.includes("export interface TrChatSenderSlots {"), true)
+  assert.equal(chatUiTypesSource.includes("'footer-right'?: (props?: TrChatSenderFooterRightSlotProps) => unknown"), true)
+
+  assert.equal(chatHeaderSource.includes('showClose: triStateBooleanProp'), true)
+  assert.equal(chatHeaderSource.includes('shell: Object as PropType<ChatWorkspaceShellConfig | undefined>'), true)
+  assert.equal(chatHeaderSource.includes('defineEmits<TrChatHeaderEmits>()'), true)
+  assert.equal(chatHeaderSource.includes('defineSlots<TrChatHeaderSlots>()'), true)
+  assert.equal(chatWelcomeSource.includes('const props = defineProps<TrChatWelcomeProps>()'), true)
+  assert.equal(chatWelcomeSource.includes('const emit = defineEmits<TrChatWelcomeEmits>()'), true)
+  assert.equal(chatHistorySource.includes('const props = defineProps<TrChatHistoryProps>()'), true)
+
+  assert.equal(chatMessageListSource.includes("roleConfigs: null as unknown as PropType<BubbleListProps['roleConfigs']>"), true)
+  assert.equal(chatMessageListSource.includes('defineSlots<TrChatMessageListSlots>()'), true)
+  assert.equal(
+    chatMessageListSource.includes(
+      'bubbleListProps: Object as PropType<Partial<TrChatMessageListForwardedProps> | undefined>',
+    ),
+    true,
+  )
+  assert.equal(chatMessageListSource.includes('const bubbleListForwardedProps = computed(() => props.bubbleListProps ?? {})'), true)
+  assert.equal(chatMessageListSource.includes('const bubbleListDomAttrs = computed(() =>'), true)
+  assert.equal(chatMessageListSource.includes('const mergedBubbleListBindings = computed(() => ({'), true)
+  assert.equal(chatMessageListSource.includes('Object.entries(attrs).filter(([name]) => isDomAttr(name))'), true)
+  assert.equal(chatMessageListSource.includes('...attrs'), false)
+  assert.equal(chatMessageListSource.includes('props.roleConfigs ?? bubbleConfig?.roleConfigs.value'), true)
+
+  assert.equal(chatSenderSource.includes("extensions: null as unknown as PropType<SenderProps['extensions']>"), true)
+  assert.equal(
+    chatSenderSource.includes('senderProps: Object as PropType<Partial<TrChatSenderForwardedProps> | undefined>'),
+    true,
+  )
+  assert.equal(chatSenderSource.includes('const senderForwardedProps = computed(() => props.senderProps ?? {})'), true)
+  assert.equal(chatSenderSource.includes('const senderDomAttrs = computed(() =>'), true)
+  assert.equal(chatSenderSource.includes('const forwardedSenderBindings = computed(() => ({'), true)
+  assert.equal(chatSenderSource.includes('Object.entries(attrs).filter(([name]) => isDomAttr(name))'), true)
+  assert.equal(chatSenderSource.includes('...attrs'), false)
+  assert.equal(chatSenderSource.includes(':default-actions="senderDefaultActions"'), true)
+  assert.equal(chatSenderSource.includes(':show-word-limit="senderWordCount"'), true)
+  assert.equal(chatSenderSource.includes(':extensions="props.extensions"'), true)
+  assert.equal(chatSenderSource.includes('defineSlots<TrChatSenderSlots>()'), true)
+})
+
 await runTest('chat provider source no longer reads scaffold shell directly once callers pass shell explicitly', async () => {
   assert.equal(chatProviderSource.includes('useChatScaffoldContext'), false)
   assert.equal(chatProviderSource.includes('const shell = computed(() => props.shell)'), true)
@@ -261,14 +412,19 @@ await runTest('chat provider source no longer reads scaffold shell directly once
 
 await runTest('public provider source is narrowed to responseProvider while root keeps private chatKit bootstrap wiring internal', async () => {
   assert.equal(chatUiTypesSource.includes('type TrChatProviderPropsB'), false)
-  assert.equal(chatCoreTypesSource.includes('export interface TrChatProviderRuntimeOptions {'), true)
+  assert.equal(chatCoreTypesSource.includes('type TrChatProviderTransportSource ='), true)
+  assert.equal(chatCoreTypesSource.includes('export type TrChatProviderRuntimeOptions = TrChatProviderTransportSource & TrChatProviderRuntimeOptionsBase'), true)
   assert.equal(chatUiTypesSource.includes('export type TrChatProviderProps = TrChatProviderSharedProps & TrChatProviderRuntimeOptions'), true)
+  assert.equal(chatCoreTypesSource.includes('export type ChatTransportAdapter = ResponseProvider'), true)
   assert.equal(chatUiTypesSource.includes('UseChatKitOptions'), false)
-  assert.equal(providerResolutionSource.includes('const responseProvider = props.responseProvider'), true)
+  assert.equal(providerResolutionSource.includes('const hasTransportAdapter ='), true)
+  assert.equal(providerResolutionSource.includes('const hasResponseProvider ='), true)
+  assert.equal(providerResolutionSource.includes('transportAdapter and responseProvider cannot be provided together'), true)
+  assert.equal(providerResolutionSource.includes('const responseProvider = props.transportAdapter ?? props.responseProvider'), true)
   assert.equal(providerResolutionSource.includes("conditionalProp(props, 'chatKit')"), false)
   assert.equal(providerResolutionSource.includes('providedChatKit'), false)
   assert.equal(providerResolutionSource.includes('providerRuntimeOptions'), true)
-  assert.equal(providerResolutionSource.includes('responseProvider must be provided'), true)
+  assert.equal(providerResolutionSource.includes('transportAdapter or responseProvider must be provided'), true)
   assert.equal(chatProviderSource.includes('resolveProviderRuntime'), true)
   assert.equal(chatProviderSource.includes('resolveProviderChatKit'), false)
   assert.equal(chatRootSource.includes('RootBootstrapProvider'), true)
@@ -287,16 +443,15 @@ await runTest('workspace layout source keeps mobile shell fallback on page or ru
 
 await runTest('public source advertises chat message action contracts for extension work', async () => {
   const retainedTypeExports = [
+    'ChatBeforeSendInput',
     'ChatMessageActionContext',
     'ChatMessageActionDefinition',
-    'ChatMessageActionPlacement',
     'ChatMessageActionsInput',
     'ChatMessageActionsMode',
-    'ChatMessageActionRole',
+    'ChatMessageActionPayload',
     'ChatMessageTransformChunkContext',
     'ChatMessageTransformFinishContext',
     'ChatMessageTransforms',
-    'ChatBubbleRenderers',
   ]
 
   retainedTypeExports.forEach((token) => {
@@ -304,6 +459,8 @@ await runTest('public source advertises chat message action contracts for extens
     assert.equal(chatTypesIndexSource.includes(token), true)
   })
 
+  assert.equal(chatIndexSource.includes('ChatBeforeSendInput'), true)
+  assert.equal(chatTypesIndexSource.includes('ChatBeforeSendInput'), true)
   assert.equal(chatIndexSource.includes('ChatMessageActionFallbackRuntime'), false)
   assert.equal(chatTypesIndexSource.includes('ChatMessageActionFallbackRuntime'), false)
   assert.equal(chatCoreTypesSource.includes('export interface ChatMessageActionFallbackRuntime {'), false)
@@ -348,6 +505,104 @@ await runTest('renamed provider-facing type exports stay visible through the pub
   assert.equal(chatTypesIndexSource.includes('UseChatKitOptions'), false)
   assert.equal(chatTypesIndexSource.includes('UseChatKitRuntimeBridge'), false)
   assert.equal(chatTypesIndexSource.includes('UseChatKitReturn'), false)
+})
+
+await runTest('package root no longer promotes supporting helper types that lack public-consumer evidence', async () => {
+  const removedRootTypeExports = [
+    'ChatUIMessageMeta',
+    'ChatUIMessagePart',
+    'ChatUIMessageRole',
+    'TrChatMessageListForwardedProps',
+    'TrChatMessageListSlots',
+    'TrChatPageBubbleSlotProps',
+    'TrChatSenderFooterRightSlotProps',
+    'TrChatSenderForwardedProps',
+    'TrChatProviderSharedProps',
+    'UseMessageResponseProvider',
+    'ReadonlyRef',
+  ]
+
+  removedRootTypeExports.forEach((token) => {
+    assert.equal(chatIndexSource.includes(token), false)
+  })
+})
+
+await runTest('package root no longer promotes nested config and feature preset helper types as first-class imports', async () => {
+  const removedConfigHelperTypeExports = [
+    'TrChatPresetOverrides',
+    'ChatAttachmentsFeaturePreset',
+    'ChatAttachmentsListConfig',
+    'ChatAttachmentsUploadConfig',
+    'ChatSenderActionsFeaturePreset',
+    'ChatSenderActionUploadConfig',
+    'ChatSenderActionVoiceConfig',
+    'WelcomeConfig',
+    'ChatMessagesOverrides',
+    'TrChatAttachmentsConfig',
+    'TrChatConversationConfig',
+    'TrChatHistoryConfig',
+    'TrChatLifecycleConfig',
+    'TrChatMessagesConfig',
+    'TrChatRequestConfig',
+    'TrChatRequestModel',
+    'TrChatSenderConfig',
+    'TrChatTransportConfig',
+    'TrChatUiConfig',
+    'TrChatWorkspaceConfig',
+  ]
+
+  removedConfigHelperTypeExports.forEach((token) => {
+    assert.equal(chatIndexSource.includes(token), false)
+  })
+
+  assert.equal(chatIndexSource.includes('ChatMessagesOverrides'), false)
+  assert.equal(chatIndexSource.includes('CHAT_MESSAGES'), false)
+  assert.equal(chatIndexSource.includes('resolveChatMessages'), false)
+})
+
+await runTest('package root no longer promotes supporting runtime and status types as first-class imports', async () => {
+  const removedSupportingRuntimeTypeEntries = [
+    '\n  BrandConfig,\n',
+    '\n  ChatAttachmentsRuntime,\n',
+    '\n  ChatConversationCreateInput,\n',
+    '\n  ChatConversationRuntime,\n',
+    '\n  ChatConversationSummary,\n',
+    '\n  ChatErrorHandler,\n',
+    '\n  ChatHistoryRuntime,\n',
+    '\n  ChatMcpRuntime,\n',
+    '\n  ChatMessageRuntime,\n',
+    '\n  ChatMessageViewState,\n',
+    '\n  ChatModelRuntime,\n',
+    '\n  ChatRuntime,\n',
+    '\n  ChatSenderRuntime,\n',
+    '\n  ChatWorkspaceRegionRuntime,\n',
+    '\n  ChatAppearanceConfig,\n',
+    '\n  ChatAppearanceMode,\n',
+    '\n  ChatMessageActionPlacement,\n',
+    '\n  ChatStatus,\n',
+    '\n  ChatErrorType,\n',
+    '\n  ChatErrorInfo,\n',
+    '\n  ChatMessageActionRole,\n',
+    '\n  ChatBubbleRenderers,\n',
+    '\n  ChatShellVariant,\n',
+    '\n  ChatWorkspaceRegionCollapseMode,\n',
+    '\n  ChatWorkspaceRegionConfig,\n',
+    '\n  ChatWorkspaceRegionWidth,\n',
+    '\n  ChatWorkspaceShellConfig,\n',
+    '\n  ChatWorkspaceViewStateConfig,\n',
+  ]
+
+  removedSupportingRuntimeTypeEntries.forEach((token) => {
+    assert.equal(chatIndexSource.includes(token), false)
+  })
+})
+
+await runTest('package root no longer promotes helper-specific manager types without public-consumer evidence', async () => {
+  const removedHelperManagerTypeExports = ['UseMcpManagerBridge', 'UseMcpManagerOptions', 'UseMcpManagerReturn']
+
+  removedHelperManagerTypeExports.forEach((token) => {
+    assert.equal(chatIndexSource.includes(token), false)
+  })
 })
 
 await runTest('public runtime sendMessage surface stays single-argument while structuredData remains sender-local', async () => {

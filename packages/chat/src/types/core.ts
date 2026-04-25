@@ -21,6 +21,8 @@ export type ResponseProvider = (
   abortSignal: AbortSignal,
 ) => Promise<ChatCompletion> | AsyncGenerator<ChatCompletion> | Promise<AsyncGenerator<ChatCompletion>>
 
+export type ChatTransportAdapter = ResponseProvider
+
 export type UseMessageResponseProvider = UseMessageOptions['responseProvider']
 
 export type ChatStatus = 'ready' | 'submitted' | 'streaming' | 'error'
@@ -106,8 +108,7 @@ export interface ChatAppearanceConfig {
   mode?: ChatAppearanceMode
 }
 
-export interface TrChatProviderRuntimeOptions {
-  responseProvider: ResponseProvider
+export interface TrChatProviderRuntimeOptionsBase {
   plugins?: UseMessagePlugin[]
   storage?: ConversationStorageStrategy
   initialMessages?: ChatMessage[]
@@ -116,7 +117,20 @@ export interface TrChatProviderRuntimeOptions {
   onError?: (error: Error) => void
 }
 
-export interface UseChatKitOptions extends TrChatProviderRuntimeOptions {
+type TrChatProviderTransportSource =
+  | {
+      responseProvider: ResponseProvider
+      transportAdapter?: never
+    }
+  | {
+      transportAdapter: ChatTransportAdapter
+      responseProvider?: never
+    }
+
+export type TrChatProviderRuntimeOptions = TrChatProviderTransportSource & TrChatProviderRuntimeOptionsBase
+
+export interface UseChatKitOptions extends TrChatProviderRuntimeOptionsBase {
+  responseProvider: ResponseProvider
   onAfterReceive?: (message: ChatMessage) => void
 }
 

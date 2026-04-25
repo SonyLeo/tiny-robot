@@ -295,6 +295,36 @@ await runTest('useChatFeedback falls back to runtime-owned action definitions an
   assert.equal(feedback.actionContext.value.messageId, assistantMessageId)
 })
 
+await runTest('useChatFeedback keeps messageIndex aligned with the primary message when grouped source messages are provided', async () => {
+  const userMessage = {
+    role: 'user',
+    content: 'grouped-user',
+    state: {},
+  }
+  const assistantMessage = {
+    role: 'assistant',
+    content: 'grouped-assistant',
+    state: {},
+  }
+
+  const userMessageId = ensureRuntimeMessageId(userMessage)
+  const assistantMessageId = ensureRuntimeMessageId(assistantMessage)
+
+  const feedback = runWithAppContext(() =>
+    useChatFeedback({
+      messages: [userMessage, assistantMessage],
+      messageIndexes: [4, 5],
+      role: 'assistant',
+    }),
+  )
+
+  assert.equal(feedback.actionContext.value.message, assistantMessage)
+  assert.equal(feedback.actionContext.value.messageId, assistantMessageId)
+  assert.equal(feedback.actionContext.value.messageIndex, 5)
+  assert.deepEqual(feedback.actionContext.value.messageIds, [userMessageId, assistantMessageId])
+  assert.deepEqual(feedback.actionContext.value.messageIndexes, [4, 5])
+})
+
 await runTest('useRuntimeFeedbackEnabled prefers explicit enablement and otherwise falls back to runtime-owned feedback config', async () => {
   const runtimeEnabled = {
     message: {

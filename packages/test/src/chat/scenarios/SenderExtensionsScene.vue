@@ -10,12 +10,11 @@
 
           <TrChat.Welcome
             v-if="showSenderExtensionsGranularWelcome"
-            :compatibility-relay="false"
             :title="granularResolution.ui.welcome?.title"
             :description="granularResolution.ui.welcome?.description"
           />
 
-          <TrChat.MessageList v-else :compatibility-relay="false" auto-scroll />
+          <TrChat.MessageList v-else auto-scroll />
 
           <TrChat.Footer>
             <TrChat.Sender :extensions="senderSuggestionExtensions" placeholder="Type ECS to trigger suggestions..." />

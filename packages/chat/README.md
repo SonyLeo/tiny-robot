@@ -19,7 +19,14 @@ Use the package through one of these three official entry levels:
 If you need explicit runtime injection, provider wiring, or granular composition, upgrade to `TrChat.Root + TrChat.Page`, `TrChat.Root + primitives`, or `TrChat.Provider` directly.
 
 `TrChat.Provider` is the bounded advanced helper surface.
-It now accepts a `responseProvider`-based setup only; direct `chatKit` passthrough is no longer part of the supported package story.
+It now accepts a transport-style setup:
+
+- preferred:
+  `transportAdapter`
+- supported compatibility alias:
+  `responseProvider`
+
+Direct `chatKit` passthrough is no longer part of the supported package story.
 
 ## Three-Layer Product Model
 
@@ -33,29 +40,32 @@ The entry surfaces map to those layers like this:
 
 - `TrChat`
   package-owned UI, package-owned orchestration runtime, package-owned transport bridge through `TrChatConfig`
-- `TrChat.Provider(responseProvider)`
-  package-owned UI, package-owned orchestration runtime, user-owned transport / data-access through `responseProvider`
+- `TrChat.Provider(transportAdapter)`
+  package-owned UI, package-owned orchestration runtime, user-owned transport / data-access through `transportAdapter`
 - `TrChat.Root + TrChat.Page`
   package-owned UI, user-owned runtime, user-owned transport as part of that runtime
 - `TrChat.Root + primitives`
   package-owned primitives, user-owned runtime, user-owned transport as part of that runtime
 
 Use `TrChat` by default.
-Use `TrChat.Provider(responseProvider)` when teams want our UI and chat behavior but need their own data-access layer.
+Use `TrChat.Provider(transportAdapter)` when teams want our UI and chat behavior but need their own transport adapter or data-access edge.
+`responseProvider` remains supported as a compatibility alias for the same advanced path.
 
 ## Official Bridge Helper
 
 - `createRuntimeFromConfig(config)`
-  The official `config -> { runtime, ui }` bridge helper for moving from target `TrChatConfig` into `TrChat.Root`.
+  The official advanced `config -> { runtime, ui }` bridge helper for moving from target `TrChatConfig` into `TrChat.Root`.
+  This is a whitebox upgrade helper, not the normal `TrChat` entry.
 
-## Domain Helpers
+## Advanced Standalone Surface
 
-These helpers remain public only where they still map cleanly onto a current owner domain:
+These standalone exports remain public only where they still map cleanly onto a current advanced owner-domain or adjunct surface:
 
-- `useChatAttachments`
 - `useMcpManager`
+- `TrMcpTrigger`
+- `TrChatFeedback`
 
-If you are teaching or documenting the package, prefer the three official entry levels first and introduce these helpers only when the task truly depends on explicit owner-domain composition.
+If you are teaching or documenting the package, prefer the three official entry levels first and introduce these surfaces only when the task truly depends on explicit advanced composition.
 
 The current keep/delete decision baseline for these helper surfaces lives in:
 

@@ -32,6 +32,9 @@ Read these by default:
 - `process/test-gap-backlog.md`
 - `process/legacy-retirement-roadmap.md`
 - `process/provider-helper-decision-baseline.md`
+- `process/public-api-review-baseline.md`
+- `process/public-api-adjudication-baseline.md`
+- `process/package-root-export-adjudication.md`
 - `process/full-cutover-closure-checklist.md`
 
 ## Supporting Guides

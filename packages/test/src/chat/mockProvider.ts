@@ -1,4 +1,4 @@
-import type { ResponseProvider } from '@opentiny/tiny-robot-chat'
+import type { ChatTransportAdapter } from '@opentiny/tiny-robot-chat'
 import type { ChatCompletion } from '../../../kit/src/vue/message/types'
 
 export interface MockProviderOptions {
@@ -6,7 +6,7 @@ export interface MockProviderOptions {
   model?: string
 }
 
-export function createMockProvider(options: MockProviderOptions = {}): ResponseProvider {
+export function createMockProvider(options: MockProviderOptions = {}): ChatTransportAdapter {
   const provider = options.provider ?? 'mock-provider'
   const model = options.model ?? 'mock-model'
   const failureCount = new Map<string, number>()
@@ -77,7 +77,7 @@ export function createMockProvider(options: MockProviderOptions = {}): ResponseP
   }
 }
 
-export function createErrorProvider(): ResponseProvider {
+export function createErrorProvider(): ChatTransportAdapter {
   return async function* () {
     throw new Error('Mock API Error: provider execution failed')
   }

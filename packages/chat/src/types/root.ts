@@ -80,14 +80,18 @@ export interface ChatSendInput {
   modelId?: string | null
 }
 
+export interface ChatBeforeSendInput {
+  text: string
+}
+
 export type ChatBeforeSendHandler = (
-  input: ChatSendInput,
+  input: ChatBeforeSendInput,
 ) =>
-  | ChatSendInput
-  | Partial<ChatSendInput>
+  | ChatBeforeSendInput
+  | Partial<ChatBeforeSendInput>
   | false
   | void
-  | Promise<ChatSendInput | Partial<ChatSendInput> | false | void>
+  | Promise<ChatBeforeSendInput | Partial<ChatBeforeSendInput> | false | void>
 
 export type ChatErrorHandler = (error: ChatErrorInfo | Error) => void
 
@@ -329,6 +333,8 @@ export interface TrChatConfig {
   messages?: TrChatMessagesConfig
   lifecycle?: TrChatLifecycleConfig
 }
+
+export type TrChatConfigEntryInput = TrChatConfig | string
 
 export interface CreateRuntimeFromConfigResult {
   runtime: ChatRuntimeInput

@@ -39,10 +39,39 @@ await runTest(
   },
 )
 
-await runTest('resolveProviderRuntime throws a component-scoped error when responseProvider is missing', async () => {
+await runTest(
+  'getProviderRuntimeResolution also accepts transportAdapter as the transport-oriented alias',
+  async () => {
+    const transportAdapter = createStreamingProvider()
+    const resolution = getProviderRuntimeResolution('TrChatProvider', {
+      transportAdapter,
+    })
+
+    assert.equal(resolution.providerRuntimeOptions?.responseProvider, transportAdapter)
+  },
+)
+
+await runTest(
+  'getProviderRuntimeResolution rejects ambiguous provider props when transportAdapter and responseProvider are both present',
+  async () => {
+    const transportAdapter = createStreamingProvider()
+    const responseProvider = createStreamingProvider()
+
+    assert.throws(
+      () =>
+        getProviderRuntimeResolution('TrChatProvider', {
+          transportAdapter,
+          responseProvider,
+        }),
+      /\[TrChatProvider\] transportAdapter and responseProvider cannot be provided together/,
+    )
+  },
+)
+
+await runTest('resolveProviderRuntime throws a component-scoped error when transportAdapter and responseProvider are both missing', async () => {
   assert.throws(
     () => resolveProviderRuntime('TrChatProvider', {}),
-    /\[TrChatProvider\] responseProvider must be provided/,
+    /\[TrChatProvider\] transportAdapter or responseProvider must be provided/,
   )
 })
 

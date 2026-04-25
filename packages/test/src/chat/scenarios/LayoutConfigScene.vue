@@ -23,13 +23,12 @@
           <TrChat.Header :title="centeredGranularResolution.ui.brand?.title" />
           <TrChat.Welcome
             v-if="showCenteredGranularWelcome"
-            :compatibility-relay="false"
             :title="centeredGranularResolution.ui.welcome?.title"
             :description="centeredGranularResolution.ui.welcome?.description"
             :prompts="centeredGranularResolution.ui.welcome?.prompts"
             @prompt-click="centeredGranularResolution.runtime.conversation.send({ text: $event })"
           />
-          <TrChat.MessageList v-else :compatibility-relay="false" variant="bubble" />
+          <TrChat.MessageList v-else variant="bubble" />
           <TrChat.Footer>
             <TrChat.Sender />
           </TrChat.Footer>

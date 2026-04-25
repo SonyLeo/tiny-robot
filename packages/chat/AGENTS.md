@@ -78,6 +78,12 @@ If the task includes implementation files, then also inspect the nearest relevan
   Ordered path from current post-closure cleanup to full legacy retirement, including delete sequencing, gate rules, and end-state checklist.
 - `packages/chat/docs/refactor/process/provider-helper-decision-baseline.md`
   Concrete keep/delete recommendation baseline for provider/comparison helper surfaces before helper-retirement slices start deleting code.
+- `packages/chat/docs/refactor/process/public-api-review-baseline.md`
+  Current-user-side API review baseline for discussing public props, emits, slots, exports, and support-tier boundaries before rewriting docs or tightening contracts.
+- `packages/chat/docs/refactor/process/public-api-adjudication-baseline.md`
+  Code-first public API adjudication record for what is currently kept, re-expressed, or no longer treated as frozen public contract.
+- `packages/chat/docs/refactor/process/package-root-export-adjudication.md`
+  Symbol-level package-root export and top-level type adjudication record for the current cleanup batches.
 - `packages/chat/docs/refactor/process/full-cutover-closure-checklist.md`
   Final end-state checklist and progress model for the remaining legacy-retirement work.
 - `packages/chat/docs/refactor/process/core-flow-stabilization-baseline.md`

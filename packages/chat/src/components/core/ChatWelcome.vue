@@ -1,24 +1,14 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { TrWelcome, TrPrompts } from '@opentiny/tiny-robot'
-import type { Component, VNode } from 'vue'
-import type { PromptProps } from '@opentiny/tiny-robot'
+import type { VNode } from 'vue'
 import { useChatPageInputs } from '@/shared/context'
+import type { TrChatWelcomeEmits, TrChatWelcomeProps } from '@/types'
 
 defineOptions({ name: 'TrChatWelcome' })
 
-interface Props {
-  compatibilityRelay?: boolean
-  title?: string
-  description?: string
-  icon?: VNode | Component
-  prompts?: PromptProps[]
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  compatibilityRelay: true,
-})
-const emit = defineEmits<{ 'prompt-click': [description: string] }>()
+const props = defineProps<TrChatWelcomeProps>()
+const emit = defineEmits<TrChatWelcomeEmits>()
 const pageInputs = useChatPageInputs()
 const welcomeInput = computed(() => pageInputs?.value.welcome)
 

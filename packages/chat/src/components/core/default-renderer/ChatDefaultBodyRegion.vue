@@ -44,7 +44,6 @@ const resolvedShowFeedback = computed(
       <slot v-if="$slots.welcome" name="welcome" />
       <ChatWelcome
         v-else-if="props.welcomeInput"
-        :compatibility-relay="false"
         :title="props.welcomeInput.title"
         :description="props.welcomeInput.description"
         :icon="props.welcomeInput.icon"
@@ -56,7 +55,6 @@ const resolvedShowFeedback = computed(
 
     <ChatMessageList
       v-else
-      :compatibility-relay="false"
       :auto-scroll="props.messageListInput?.autoScroll"
       :variant="props.variant"
       :message-actions="props.messageListInput?.messageActions"

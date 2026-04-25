@@ -395,7 +395,6 @@ try {
                         h(
                           ChatHeader,
                           {
-                            compatibilityRelay: false,
                             showHistory: true,
                           },
                           {
@@ -404,14 +403,25 @@ try {
                         ),
                         hasMessages
                           ? h(ChatMessageList, {
-                              compatibilityRelay: false,
                               variant: 'workspace',
+                              bubbleListProps: {
+                                dividerRole: 'assistant',
+                                contentRenderMode: 'split',
+                              },
                             })
                           : h(ChatWelcome, {
-                              compatibilityRelay: false,
                             }),
                         h(ChatFooter, null, {
-                          default: () => [h(ChatAttachments), h(ChatSender)],
+                          default: () => [
+                            h(ChatAttachments),
+                            h(ChatSender, {
+                              senderProps: {
+                                size: 'small',
+                                submitType: 'ctrlEnter',
+                                autofocus: true,
+                              },
+                            }),
+                          ],
                         }),
                       ],
                     },
@@ -625,6 +635,9 @@ try {
     assert.equal(html.includes('data-stub="TrHistory"'), true)
     assert.equal(html.includes('placeholder="Granular sender placeholder"'), true)
     assert.equal(html.includes('data-mode="multiple"'), true)
+    assert.equal(html.includes('data-size="small"'), true)
+    assert.equal(html.includes('data-submit-type="ctrlEnter"'), true)
+    assert.equal(html.includes('data-autofocus="true"'), true)
     assert.equal(html.includes('data-show-word-limit="true"'), true)
     assert.equal(html.includes('data-chat-content-layout="wide"'), true)
   })
@@ -639,6 +652,8 @@ try {
     assert.equal(html.includes('Official Root + primitives entry'), false)
     assert.equal(html.includes('data-testid="chat-attachments-area"'), true)
     assert.equal(html.includes('granular-proof.txt'), true)
+    assert.equal(html.includes('data-divider-role="assistant"'), true)
+    assert.equal(html.includes('data-content-render-mode="split"'), true)
     assert.equal(html.includes('data-stub="TrSender"'), true)
     assert.equal(html.includes('data-count="1"'), true)
     assert.equal(html.includes('data-history-id='), true)

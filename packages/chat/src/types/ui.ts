@@ -1,29 +1,36 @@
-import type { Component, VNode } from 'vue'
+import type { Component, Ref, VNode } from 'vue'
 import type {
   Attachment,
   AttachmentListProps,
   BubbleBoxRendererMatch,
   BubbleContentRendererMatch,
   BubbleListProps,
+  BubbleListSlots,
   PromptProps,
   SenderProps,
   UploadButtonProps,
   VoiceButtonProps,
 } from '@opentiny/tiny-robot'
+import type { ChatMessage } from '@opentiny/tiny-robot-kit'
 import type { UseMcpManagerReturn } from '../components/mcp/useMcpManager'
 import type { UseChatAttachmentsReturn } from '../components/attachments/useChatAttachments'
 import type {
   BrandConfig,
   ChatAppearanceConfig,
   ChatContentLayout,
+  ChatErrorInfo,
   ChatListVariant,
   ChatMessageActionsInput,
   ChatMessageActionsMode,
   ChatMessageActionPayload,
+  ChatStatus,
   TrChatProviderRuntimeOptions,
 } from './core'
 import type { ModelOption } from './model'
+import type { TrChatConfig } from './root'
 import type { ChatWorkspaceShellConfig } from './workspace'
+
+type ReadonlyRef<T> = Readonly<Ref<T>>
 
 export interface WelcomeConfig {
   title: string
@@ -182,8 +189,10 @@ export interface TrChatPresetOverrides {
   onModelChange?: (model: ModelOption) => void
 }
 
+export type TrChatConfigEntryInput = TrChatConfig | string
+
 export interface TrChatProps {
-  config: unknown
+  config: TrChatConfigEntryInput
 }
 
 export type TrChatProviderSharedProps = {
@@ -198,32 +207,126 @@ export type TrChatProviderSharedProps = {
 export type TrChatProviderProps = TrChatProviderSharedProps & TrChatProviderRuntimeOptions
 
 export interface TrChatHeaderProps {
-  compatibilityRelay?: boolean
   showHistory?: boolean
   showNewChat?: boolean
+  showClose?: boolean
   title?: string
+  shell?: ChatWorkspaceShellConfig
+}
+
+export interface TrChatHeaderEmits {
+  (e: 'close'): void
+}
+
+export interface TrChatHeaderSlots {
+  title?: () => unknown
+  extra?: () => unknown
 }
 
 export interface TrChatWelcomeProps {
-  compatibilityRelay?: boolean
   title?: string
   description?: string
   icon?: VNode | Component
   prompts?: PromptProps[]
 }
 
+export interface TrChatWelcomeEmits {
+  (e: 'prompt-click', description: string): void
+}
+
+export interface TrChatHistoryProps {
+  enabled?: boolean
+  appearance?: ChatAppearanceConfig
+}
+
 export interface TrChatMessageListProps {
-  compatibilityRelay?: boolean
   autoScroll?: boolean
   variant?: ChatListVariant
   messageActions?: ChatMessageActionsInput
   messageActionsMode?: ChatMessageActionsMode
   onActionClick?: (payload: ChatMessageActionPayload) => void
   groupStrategy?: BubbleListProps['groupStrategy']
+  roleConfigs?: BubbleListProps['roleConfigs']
+  bubbleListProps?: Partial<TrChatMessageListForwardedProps>
 }
 
 export interface TrChatSenderProps {
   mode?: 'single' | 'multiple'
   placeholder?: string
   maxLength?: number
+  extensions?: SenderProps['extensions']
+  senderProps?: Partial<TrChatSenderForwardedProps>
 }
+
+export interface TrChatSenderFooterRightSlotProps {
+  [key: string]: unknown
+}
+
+export interface TrChatSenderSlots {
+  'footer-right'?: (props?: TrChatSenderFooterRightSlotProps) => unknown
+  [name: string]: ((props?: TrChatSenderFooterRightSlotProps) => unknown) | undefined
+}
+
+export type TrChatSenderForwardedProps = Omit<
+  SenderProps,
+  | 'modelValue'
+  | 'defaultValue'
+  | 'loading'
+  | 'mode'
+  | 'placeholder'
+  | 'maxLength'
+  | 'extensions'
+  | 'defaultActions'
+  | 'showWordLimit'
+>
+
+export interface TrChatPageProps {
+  messageListVariant?: ChatListVariant
+}
+
+export interface TrChatPageEmits {
+  (e: 'update:show', value: boolean): void
+  (e: 'update:model', value: string): void
+}
+
+export interface TrChatPageMessageListSlotProps {
+  messages: ReadonlyRef<ChatMessage[]>
+}
+
+export interface TrChatPageSenderSlotProps {
+  send: (content: string) => void
+  abort: () => Promise<void>
+  status: ReadonlyRef<ChatStatus>
+  lastError: ReadonlyRef<ChatErrorInfo | null>
+  retry: () => Promise<boolean>
+}
+
+export interface TrChatPageBubbleSlotProps {
+  [key: string]: unknown
+}
+
+export interface TrChatPageSlots {
+  left?: () => unknown
+  'left-rail'?: () => unknown
+  right?: () => unknown
+  'mobile-left'?: () => unknown
+  'mobile-right'?: () => unknown
+  header?: () => unknown
+  'header-extra'?: () => unknown
+  'message-list'?: (props: TrChatPageMessageListSlotProps) => unknown
+  welcome?: () => unknown
+  empty?: () => unknown
+  prefix?: (props: TrChatPageBubbleSlotProps) => unknown
+  suffix?: (props: TrChatPageBubbleSlotProps) => unknown
+  after?: (props: TrChatPageBubbleSlotProps) => unknown
+  'content-footer'?: (props: TrChatPageBubbleSlotProps) => unknown
+  sender?: (props: TrChatPageSenderSlotProps) => unknown
+  'footer-extra'?: () => unknown
+}
+
+export type TrChatMessageListForwardedProps = Omit<
+  BubbleListProps,
+  'messages' | 'autoScroll' | 'groupStrategy' | 'roleConfigs'
+>
+
+export type TrChatMessageListSlots = BubbleListSlots

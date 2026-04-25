@@ -4,13 +4,13 @@ import { TrIconButton } from '@opentiny/tiny-robot'
 import { IconClose, IconHistory, IconMenuOpen, IconMenu2, IconNewSession } from '@opentiny/tiny-robot-svgs'
 import { CHAT_ATTACHMENTS_KEY, CHAT_KIT_KEY, CHAT_UI_KEY, useChatPageInputs, useRequiredInject } from '@/shared/context'
 import { useResolvedChatMessages } from '@/shared/messages'
+import type { TrChatHeaderEmits, TrChatHeaderSlots } from '@/types'
 import type { ChatWorkspaceShellConfig } from '@/types/workspace'
 import { triStateBooleanProp } from '@/shared/utils'
 
 defineOptions({ name: 'TrChatHeader' })
 
 const props = defineProps({
-  compatibilityRelay: triStateBooleanProp,
   showHistory: triStateBooleanProp,
   showNewChat: triStateBooleanProp,
   showClose: triStateBooleanProp,
@@ -21,9 +21,8 @@ const pageInputs = useChatPageInputs()
 const headerInput = computed(() => pageInputs?.value.header)
 const shellConfig = computed(() => props.shell ?? pageInputs?.value.shell)
 
-const emit = defineEmits<{
-  (e: 'close'): void
-}>()
+const emit = defineEmits<TrChatHeaderEmits>()
+defineSlots<TrChatHeaderSlots>()
 
 const chatKit = useRequiredInject(CHAT_KIT_KEY, 'chat kit')
 const attachmentsContext = inject(CHAT_ATTACHMENTS_KEY, null)

@@ -162,7 +162,29 @@ function createConversationRuntimeFromChatKit(chatKit: ReturnType<typeof useChat
     abort() {
       return chatKit.abort()
     },
-    retry() {
+    retry(messageId) {
+      if (!messageId) {
+        return chatKit.retry()
+      }
+
+      const target = findMessageById(chatKit.messages.value, messageId)
+      if (!target) {
+        return false
+      }
+
+      const targetTurnId = getChatMessageTurnId(target)
+      if (!targetTurnId) {
+        return false
+      }
+
+      const isRetryableTurn = chatKit.messages.value.some(
+        (message) => getChatMessageTurnId(message) === targetTurnId && getChatMessageError(message)?.retryable,
+      )
+
+      if (!isRetryableTurn) {
+        return false
+      }
+
       return chatKit.retry()
     },
     regenerate(messageId) {
@@ -438,22 +460,19 @@ function createSenderRuntimeFromChatKit(
       draft.value = value
     },
     async send(input = {}) {
-      let payload = {
+      const payload = {
         text: input.text ?? draft.value,
         attachments: input.attachments ?? attachmentsManager.items.value,
         modelId: input.modelId ?? resolveModelId(),
       }
 
       if (config.lifecycle?.beforeSend) {
-        const result = await config.lifecycle.beforeSend(payload)
+        const result = await config.lifecycle.beforeSend({ text: payload.text })
         if (result === false) {
           return
         }
 
-        payload = {
-          ...payload,
-          ...(result ?? {}),
-        }
+        payload.text = result?.text ?? payload.text
       }
 
       if (!payload.text.trim()) {

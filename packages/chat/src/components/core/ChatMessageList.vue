@@ -13,19 +13,32 @@ import {
 } from '@/shared/context'
 import { normalizeChatRenderMessages } from '@/runtime/chat-kit/chatRenderMessages'
 import { useSlotFilter } from './useSlotFilter'
-import type { ChatListVariant, TrChatMessageListProps } from '@/types'
+import type {
+  ChatListVariant,
+  TrChatMessageListForwardedProps,
+  TrChatMessageListProps,
+  TrChatMessageListSlots,
+} from '@/types'
 import { triStateBooleanProp } from '@/shared/utils'
 
 defineOptions({ name: 'TrChatMessageList', inheritAttrs: false })
+defineSlots<TrChatMessageListSlots>()
+
+const DOM_ATTR_NAMES = new Set(['class', 'style', 'id', 'role', 'title', 'tabindex'])
+
+function isDomAttr(name: string) {
+  return DOM_ATTR_NAMES.has(name) || name.startsWith('data-') || name.startsWith('aria-')
+}
 
 const props = defineProps({
-  compatibilityRelay: triStateBooleanProp,
   autoScroll: triStateBooleanProp,
   variant: String as PropType<ChatListVariant>,
   messageActions: null as unknown as PropType<TrChatMessageListProps['messageActions']>,
   messageActionsMode: String as PropType<TrChatMessageListProps['messageActionsMode']>,
   onActionClick: Function as PropType<TrChatMessageListProps['onActionClick']>,
   groupStrategy: null as unknown as PropType<BubbleListProps['groupStrategy']>,
+  roleConfigs: null as unknown as PropType<BubbleListProps['roleConfigs']>,
+  bubbleListProps: Object as PropType<Partial<TrChatMessageListForwardedProps> | undefined>,
 })
 const pageInputs = useChatPageInputs()
 const messageListInput = computed(() => pageInputs?.value.messageList)
@@ -53,6 +66,11 @@ provide(MESSAGE_ACTIONS_KEY, {
 
 const messages = computed(() => normalizeChatRenderMessages(chatKit.messages.value))
 const filteredSlots = useSlotFilter(slots, BUBBLE_LIST_SLOTS)
+const filteredSlotNames = computed<(typeof BUBBLE_LIST_SLOTS)[number][]>(
+  () => Object.keys(filteredSlots.value) as (typeof BUBBLE_LIST_SLOTS)[number][],
+)
+const bubbleListForwardedProps = computed(() => props.bubbleListProps ?? {})
+const bubbleListDomAttrs = computed(() => Object.fromEntries(Object.entries(attrs).filter(([name]) => isDomAttr(name))))
 
 function createVariantRoleConfigs(
   baseRoleConfigs: BubbleListProps['roleConfigs'] | undefined,
@@ -83,14 +101,14 @@ function createVariantRoleConfigs(
 }
 
 const roleConfigs = computed(() => {
-  const baseRoleConfigs =
-    (attrs.roleConfigs as BubbleListProps['roleConfigs'] | undefined) ?? bubbleConfig?.roleConfigs.value
+  const baseRoleConfigs = props.roleConfigs ?? bubbleConfig?.roleConfigs.value
 
   return createVariantRoleConfigs(baseRoleConfigs, resolvedVariant.value)
 })
 
-const bubbleListProps = computed(() => ({
-  ...attrs,
+const mergedBubbleListBindings = computed(() => ({
+  ...bubbleListDomAttrs.value,
+  ...bubbleListForwardedProps.value,
   autoScroll: resolvedAutoScroll.value,
   groupStrategy: resolvedGroupStrategy.value,
   roleConfigs: roleConfigs.value,
@@ -100,8 +118,8 @@ const bubbleListProps = computed(() => ({
 
 <template>
   <div class="tr-chat__body" :class="`tr-chat__body--${resolvedVariant}`" :data-variant="resolvedVariant">
-    <TrBubbleList class="tr-chat__bubble-list" :messages="messages" v-bind="bubbleListProps">
-      <template v-for="(_, name) in filteredSlots" #[name]="slotProps" :key="name">
+    <TrBubbleList class="tr-chat__bubble-list" :messages="messages" v-bind="mergedBubbleListBindings">
+      <template v-for="name in filteredSlotNames" #[name]="slotProps" :key="name">
         <slot :name="name" v-bind="slotProps ?? {}" />
       </template>
     </TrBubbleList>

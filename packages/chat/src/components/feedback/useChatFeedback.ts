@@ -109,7 +109,7 @@ function createChatFeedbackState(options: UseChatFeedbackWithFallbackRuntimeOpti
   )
 
   const actionContext = computed<ChatMessageActionContext>(() => {
-    const primaryMessageIndex = messageIndexes[0]
+    const primaryMessageIndex = messageIndexes[messageIndexes.length - 1]
 
     return {
       role,

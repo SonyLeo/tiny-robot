@@ -47,6 +47,12 @@ These files define how the refactor is reviewed and where the current process st
   ordered path from post-closure cleanup to full legacy retirement, delete sequencing, and completion criteria
 - `packages/chat/docs/refactor/process/provider-helper-decision-baseline.md`
   concrete keep/delete recommendation baseline for remaining provider/comparison helper surfaces
+- `packages/chat/docs/refactor/process/public-api-review-baseline.md`
+  discussion baseline for evaluating current public API rationality before contract cleanup or user-doc rewrites
+- `packages/chat/docs/refactor/process/public-api-adjudication-baseline.md`
+  code-first adjudication record for which public surfaces should stay, be re-expressed, or stop being treated as frozen API
+- `packages/chat/docs/refactor/process/package-root-export-adjudication.md`
+  symbol-level package-root export and top-level type adjudication record
 - `packages/chat/docs/refactor/process/full-cutover-closure-checklist.md`
   final end-state checklist for calling the package fully cut over after helper/test retirement
 
@@ -143,6 +149,12 @@ Try to keep each task to one primary source doc plus, when necessary, one status
   update `refactor/process/legacy-retirement-roadmap.md`
 - provider/comparison helper keep/delete recommendations changed:
   update `refactor/process/provider-helper-decision-baseline.md`
+- public API review framing or current-user-side surface assessment changed:
+  update `refactor/process/public-api-review-baseline.md`
+- code-first API adjudication status or bucket decisions changed:
+  update `refactor/process/public-api-adjudication-baseline.md`
+- package-root export or top-level type tiering changed:
+  update `refactor/process/package-root-export-adjudication.md`
 - full remaining-cutover completion bar or progress model changed:
   update `refactor/process/full-cutover-closure-checklist.md`
 - preparing a specific review:

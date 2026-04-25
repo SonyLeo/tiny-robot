@@ -22,7 +22,6 @@ const emit = defineEmits<{
   </template>
   <ChatHeader
     v-else
-    :compatibility-relay="false"
     :title="headerInput?.title"
     :show-history="headerInput?.showHistory"
     :show-close="headerInput?.showClose"

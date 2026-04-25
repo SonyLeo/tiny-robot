@@ -17,7 +17,7 @@
           :content-layout="granularResolution.ui.contentLayout"
         >
           <TrChat.Header :title="granularResolution.ui.brand?.title" />
-          <TrChat.MessageList :compatibility-relay="false" variant="bubble" />
+          <TrChat.MessageList variant="bubble" />
           <TrChat.Footer>
             <TrChat.Sender />
           </TrChat.Footer>

@@ -20,8 +20,7 @@ import {
 import { ChatAttachments as TrChatAttachments } from './components/attachments'
 import { ChatFeedback as TrChatFeedback } from './components/feedback'
 import { ChatHistory as TrChatHistory } from './components/history'
-import { ChatMcpPanel as TrChatMcpPanel, McpTrigger as TrMcpTrigger } from './components/mcp'
-import { ModelSelector as TrModelSelector } from './components/model-selector'
+import { McpTrigger as TrMcpTrigger } from './components/mcp'
 
 type TrChatWithSubComponents = typeof TrChat & {
   Root: typeof TrChatRoot
@@ -57,78 +56,26 @@ TrChatFull.WorkspaceShell = TrChatWorkspaceShell
 TrChatFull.WorkspaceRightSheet = TrChatWorkspaceRightSheet
 
 export { TrChatFull as TrChat }
-export { TrChatRoot, TrChatPage }
 
-export { useChatAttachments } from './components/attachments/useChatAttachments'
-export { useDefaultBubbleConfig } from './components/core/useDefaultBubbleConfig'
 export { useMcpManager } from './components/mcp/useMcpManager'
-export { useModelSelector } from './components/model-selector/useModelSelector'
-export { useChatFeedback } from './components/feedback/useChatFeedback'
-export { useFloatingDropdown } from './components/model-selector/useFloatingDropdown'
-export { useKeyboardNavigation } from './components/model-selector/useKeyboardNavigation'
-export { useHistoryState } from './components/history/useHistoryState'
-export { useSlotFilter } from './components/core/useSlotFilter'
 
-export {
-  MarkStreamRenderer,
-  ErrorRenderer,
-  EditInputRenderer,
-  ToolCallsRenderer,
-  ToolCallRenderer,
-  AttachmentsRenderer,
-} from './components/renderers'
+export { TrMcpTrigger, TrChatFeedback }
 
-export {
-  TrMcpTrigger,
-  TrModelSelector,
-  TrChatProvider,
-  TrChatFeedback,
-  TrChatMcpPanel,
-  TrChatLayout,
-  TrChatWorkspaceLayout,
-  TrChatAttachments,
-  TrChatWorkspaceShell,
-  TrChatWorkspaceRightSheet,
-}
-
-export { createRuntimeFromConfig, CHAT_FEATURE_REGISTRY, resolveChatFeatures } from './runtime/config'
-export { CHAT_MESSAGES, resolveChatMessages } from './shared/messages'
+export { createRuntimeFromConfig } from './runtime/config'
 
 export type {
-  BrandConfig,
-  ChatAttachmentsRuntime,
+  ChatBeforeSendInput,
   ChatBeforeSendHandler,
-  ChatConversationCreateInput,
-  ChatConversationRuntime,
-  ChatConversationSummary,
-  ChatErrorHandler,
-  ChatHistoryRuntime,
-  ChatMcpRuntime,
-  ChatMessageRuntime,
-  ChatMessageViewState,
-  ChatModelRuntime,
-  ChatRuntime,
   ChatRuntimeInput,
-  ChatSenderRuntime,
   ChatSendInput,
   ChatUIMessage,
-  ChatUIMessageMeta,
-  ChatUIMessagePart,
-  ChatUIMessageRole,
-  ChatWorkspaceRegionRuntime,
-  ChatAppearanceConfig,
   ChatContentLayout,
-  ChatAppearanceMode,
+  ChatTransportAdapter,
   ChatMessageActionContext,
   ChatMessageActionDefinition,
-  ChatMessageActionPlacement,
   ResponseProvider,
-  ChatStatus,
-  ChatErrorType,
-  ChatErrorInfo,
   ChatMessageActionsInput,
   ChatMessageActionsMode,
-  ChatMessageActionRole,
   ChatMessageActionPayload,
   ChatMessageTransformChunkContext,
   ChatMessageTransformFinishContext,
@@ -138,72 +85,24 @@ export type {
   TrChatProps,
   TrChatProviderProps,
   TrChatHeaderProps,
+  TrChatHeaderEmits,
+  TrChatHeaderSlots,
+  TrChatHistoryProps,
   TrChatWelcomeProps,
+  TrChatWelcomeEmits,
   TrChatMessageListProps,
-  TrChatPresetOverrides,
+  TrChatPageEmits,
+  TrChatPageMessageListSlotProps,
+  TrChatPageProps,
+  TrChatPageSenderSlotProps,
+  TrChatPageSlots,
   TrChatSenderProps,
-  TrChatProviderSharedProps,
-  ChatBubbleRenderers,
-  ChatAttachmentsFeaturePreset,
-  ChatAttachmentsListConfig,
-  ChatAttachmentsUploadConfig,
-  ChatSenderActionsFeaturePreset,
-  ChatSenderActionUploadConfig,
-  ChatSenderActionVoiceConfig,
-  UseChatAttachmentsOptions,
-  WelcomeConfig,
-  ChatMessages,
-  ChatMessagesOverrides,
-  UseMessageResponseProvider,
+  TrChatSenderSlots,
   ModelOption,
   CreateRuntimeFromConfigResult,
-  ReadonlyRef,
-  TrChatAttachmentsConfig,
   TrChatConfig,
-  TrChatConversationConfig,
-  TrChatHistoryConfig,
-  TrChatLifecycleConfig,
-  TrChatMessagesConfig,
-  TrChatRequestConfig,
-  TrChatRequestModel,
+  TrChatConfigEntryInput,
   TrChatRootProps,
   TrChatRootUiConfig,
-  TrChatSenderConfig,
-  TrChatTransportConfig,
-  TrChatUiConfig,
-  TrChatWorkspaceConfig,
-  ChatShellVariant,
-  ChatWorkspaceRegionCollapseMode,
-  ChatWorkspaceRegionConfig,
-  ChatWorkspaceRegionWidth,
-  ChatWorkspaceShellConfig,
-  ChatWorkspaceViewStateConfig,
   TrChatWorkspaceShellProps,
 } from './types'
-export type { UseDefaultBubbleConfigOptions } from './components/core/useDefaultBubbleConfig'
-export type { UseMcpManagerBridge, UseMcpManagerOptions, UseMcpManagerReturn } from './components/mcp/useMcpManager'
-export type { UseModelSelectorOptions } from './components/model-selector/useModelSelector'
-export type { UseChatAttachmentsReturn } from './components/attachments/useChatAttachments'
-export type {
-  ChatAttachmentsFeatureConfig,
-  ChatAttachmentsFeatureResolution,
-  BuiltInChatFeatureKey,
-  ChatFeatureConfigMap,
-  ChatFeatureInput,
-  ChatMcpFeatureConfig,
-  ChatMcpFeatureResolution,
-  ChatFeaturePresetProps,
-  ChatFeedbackFeatureConfig,
-  ChatFeedbackFeatureResolution,
-  ChatHistoryFeatureConfig,
-  ChatHistoryFeatureOptions,
-  ChatHistoryFeatureResolution,
-  ChatSenderActionsFeatureConfig,
-  ChatSenderActionsFeatureResolution,
-  ChatWelcomePromptsFeatureConfig,
-  ChatWelcomePromptsFeatureOptions,
-  ChatWelcomePromptsFeatureResolution,
-  ResolvedChatFeatures,
-} from './runtime/config'
-
-export { KNOWN_PROVIDERS, type KnownProvider } from './shared/utils/iconMap'

@@ -20,13 +20,12 @@
 
           <TrChat.Welcome
             v-if="showWelcome"
-            :compatibility-relay="false"
             :title="granularResolution.ui.welcome?.title"
             :description="granularResolution.ui.welcome?.description"
             :prompts="granularResolution.ui.welcome?.prompts"
             @prompt-click="granularResolution.runtime.conversation.send({ text: $event })"
           />
-          <TrChat.MessageList v-else :compatibility-relay="false" variant="workspace">
+          <TrChat.MessageList v-else variant="workspace">
             <template #after="slotProps">
               <TrChatFeedback v-bind="slotProps" />
             </template>

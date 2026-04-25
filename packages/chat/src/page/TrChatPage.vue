@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { computed, inject, useAttrs, useSlots, type Slot } from 'vue'
+import { computed, inject, useSlots, type Slot } from 'vue'
 import { BUBBLE_LIST_SLOTS, CHAT_KIT_KEY, MCP_MANAGER_KEY, useChatPageInputs } from '@/shared/context'
 import { useSlotFilter } from '@/components/core/useSlotFilter'
-import type { ChatListVariant, ModelOption } from '@/types'
+import type { ChatListVariant, ModelOption, TrChatPageEmits, TrChatPageProps, TrChatPageSlots } from '@/types'
 import ChatDefaultBodyRegion from '@/components/core/default-renderer/ChatDefaultBodyRegion.vue'
 import ChatDefaultFooterRegion from '@/components/core/default-renderer/ChatDefaultFooterRegion.vue'
 import ChatDefaultHeaderRegion from '@/components/core/default-renderer/ChatDefaultHeaderRegion.vue'
@@ -12,18 +12,18 @@ import { ChatHistory } from '@/components/history'
 
 defineOptions({ name: 'TrChatPage', inheritAttrs: false })
 
-const emit = defineEmits<{
-  (e: 'update:show', value: boolean): void
-  (e: 'update:model', value: string): void
-}>()
+const props = defineProps<TrChatPageProps>()
+const emit = defineEmits<TrChatPageEmits>()
+defineSlots<TrChatPageSlots>()
 
-const attrs = useAttrs()
 const slots = useSlots() as Record<string, Slot | undefined>
 const bubbleSlots = useSlotFilter(slots, BUBBLE_LIST_SLOTS)
 const chatKit = inject(CHAT_KIT_KEY)!
 const mcpManager = inject(MCP_MANAGER_KEY, null)
 const pageInputs = useChatPageInputs()
-const bubbleSlotNames = computed(() => Object.keys(bubbleSlots.value))
+const bubbleSlotNames = computed<(typeof BUBBLE_LIST_SLOTS)[number][]>(
+  () => Object.keys(bubbleSlots.value) as (typeof BUBBLE_LIST_SLOTS)[number][],
+)
 
 const headerInput = computed(() => pageInputs?.value.header)
 const layoutInput = computed(() => pageInputs?.value.layout)
@@ -34,8 +34,7 @@ const historyInput = computed(() => pageInputs?.value.history)
 const appearanceInput = computed(() => pageInputs?.value.appearance)
 const modelSelectorInput = computed(() => pageInputs?.value.modelSelector)
 const resolvedVariant = computed<ChatListVariant>(() => {
-  const attrVariant = attrs['message-list-variant'] ?? attrs.messageListVariant
-  const variant = typeof attrVariant === 'string' ? attrVariant : messageListInput.value?.variant
+  const variant = props.messageListVariant ?? messageListInput.value?.variant
 
   if (variant === 'docs' || variant === 'workspace') {
     return variant
@@ -187,6 +186,6 @@ function handleModelChange(model: ModelOption) {
       </template>
     </ChatDefaultFooterRegion>
 
-    <ChatHistory :compatibility-relay="false" :enabled="historyInput?.enabled" :appearance="appearanceInput" />
+    <ChatHistory :enabled="historyInput?.enabled" :appearance="appearanceInput" />
   </ChatLayout>
 </template>

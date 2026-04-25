@@ -148,12 +148,26 @@ export const TrBubbleList = defineComponent({
       type: Array,
       default: () => [],
     },
+    dividerRole: String,
+    fallbackRole: String,
+    contentRenderMode: String,
+    autoScroll: {
+      type: Boolean,
+      default: undefined,
+    },
   },
   setup(props, { attrs, slots }) {
     return () =>
       h(
         'div',
-        { ...attrs, 'data-testid': 'stub-bubble-list' },
+        {
+          ...attrs,
+          'data-testid': 'stub-bubble-list',
+          'data-divider-role': props.dividerRole ?? '',
+          'data-fallback-role': props.fallbackRole ?? '',
+          'data-content-render-mode': props.contentRenderMode ?? '',
+          'data-auto-scroll': props.autoScroll === undefined ? '' : String(props.autoScroll),
+        },
         props.messages.map((message, index) =>
           h('article', { class: 'stub-bubble', 'data-index': index, 'data-role': message?.role ?? '' }, [
             h('div', { class: 'stub-bubble__text' }, extractMessageText(message)),
@@ -176,6 +190,11 @@ export const TrSender = defineComponent({
     mode: String,
     placeholder: String,
     maxLength: Number,
+    size: String,
+    disabled: Boolean,
+    autofocus: Boolean,
+    clearable: Boolean,
+    submitType: String,
     showWordLimit: {
       type: Boolean,
       default: undefined,
@@ -191,6 +210,11 @@ export const TrSender = defineComponent({
           'data-loading': String(Boolean(props.loading)),
           'data-mode': props.mode ?? '',
           'data-max-length': props.maxLength ?? '',
+          'data-size': props.size ?? '',
+          'data-disabled': String(Boolean(props.disabled)),
+          'data-autofocus': String(Boolean(props.autofocus)),
+          'data-clearable': String(Boolean(props.clearable)),
+          'data-submit-type': props.submitType ?? '',
           'data-show-word-limit': props.showWordLimit === undefined ? '' : String(props.showWordLimit),
         },
         [

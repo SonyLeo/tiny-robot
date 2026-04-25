@@ -22,7 +22,7 @@ It does not try to explain everything in one file. Its job is to route people an
   `overview.md`, `api-runtime.md`, `execution.md`, `ui-runtime-transport-layering.md`
 - `refactor/process/`
   Active process docs:
-  `review-scheme.md`, `alignment-tracker.md`, `test-governance-standard.md`, `test-boundary-baseline.md`, `test-suite-audit-baseline.md`, `test-gap-backlog.md`, `legacy-surface-inventory.md`, `legacy-retirement-roadmap.md`, `provider-helper-decision-baseline.md`, `full-cutover-closure-checklist.md`, `core-flow-stabilization-baseline.md`
+  `review-scheme.md`, `alignment-tracker.md`, `test-governance-standard.md`, `test-boundary-baseline.md`, `test-suite-audit-baseline.md`, `test-gap-backlog.md`, `legacy-surface-inventory.md`, `legacy-retirement-roadmap.md`, `provider-helper-decision-baseline.md`, `public-api-review-baseline.md`, `public-api-adjudication-baseline.md`, `package-root-export-adjudication.md`, `full-cutover-closure-checklist.md`, `core-flow-stabilization-baseline.md`
 - `refactor/reviews/`
   Meeting-specific review materials
 - `refactor/archive/`
@@ -58,9 +58,12 @@ If you are doing refactor design or review:
 10. `refactor/process/test-gap-backlog.md`
 11. `refactor/process/legacy-retirement-roadmap.md`
 12. `refactor/process/provider-helper-decision-baseline.md`
-13. `refactor/process/full-cutover-closure-checklist.md`
-14. `refactor/process/core-flow-stabilization-baseline.md`
-15. `refactor/knowledge/PLAYBOOK.md`
+13. `refactor/process/public-api-review-baseline.md`
+14. `refactor/process/public-api-adjudication-baseline.md`
+15. `refactor/process/package-root-export-adjudication.md`
+16. `refactor/process/full-cutover-closure-checklist.md`
+17. `refactor/process/core-flow-stabilization-baseline.md`
+18. `refactor/knowledge/PLAYBOOK.md`
 
 If you are implementing the current phase:
 
@@ -77,10 +80,13 @@ If you are implementing the current phase:
 11. `refactor/process/legacy-surface-inventory.md`
 12. `refactor/process/legacy-retirement-roadmap.md`
 13. `refactor/process/provider-helper-decision-baseline.md`
-14. `refactor/process/full-cutover-closure-checklist.md`
-15. `refactor/process/core-flow-stabilization-baseline.md`
-16. the active execution slice under `exec-plans/active/`
-17. `refactor/knowledge/PLAYBOOK.md`
+14. `refactor/process/public-api-review-baseline.md`
+15. `refactor/process/public-api-adjudication-baseline.md`
+16. `refactor/process/package-root-export-adjudication.md`
+17. `refactor/process/full-cutover-closure-checklist.md`
+18. `refactor/process/core-flow-stabilization-baseline.md`
+19. the active execution slice under `exec-plans/active/`
+20. `refactor/knowledge/PLAYBOOK.md`
 
 ## Maintenance Rule
 

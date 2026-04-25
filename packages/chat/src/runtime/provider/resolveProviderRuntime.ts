@@ -1,19 +1,30 @@
 import { useChatKit } from '@/runtime/chat-kit/useChatKit'
 import type { TrChatProviderProps } from '@/types'
-import type { TrChatProviderRuntimeOptions, UseChatKitReturn } from '@/types/core'
+import type { ResponseProvider, TrChatProviderRuntimeOptions, UseChatKitReturn } from '@/types/core'
 
 interface ProviderRuntimeResolution {
-  providerRuntimeOptions: TrChatProviderRuntimeOptions
+  providerRuntimeOptions: Omit<TrChatProviderRuntimeOptions, 'transportAdapter'> & {
+    responseProvider: ResponseProvider
+  }
 }
+
+type ResolvedProviderRuntimeOptions = ProviderRuntimeResolution['providerRuntimeOptions']
 
 export function getProviderRuntimeResolution(
   componentName: string,
   props: TrChatProviderProps,
 ): ProviderRuntimeResolution {
-  const responseProvider = props.responseProvider
+  const hasTransportAdapter = 'transportAdapter' in props && Boolean(props.transportAdapter)
+  const hasResponseProvider = 'responseProvider' in props && Boolean(props.responseProvider)
+
+  if (hasTransportAdapter && hasResponseProvider) {
+    throw new Error(`[${componentName}] transportAdapter and responseProvider cannot be provided together`)
+  }
+
+  const responseProvider = props.transportAdapter ?? props.responseProvider
 
   if (!responseProvider) {
-    throw new Error(`[${componentName}] responseProvider must be provided`)
+    throw new Error(`[${componentName}] transportAdapter or responseProvider must be provided`)
   }
 
   return {
@@ -32,7 +43,7 @@ export function getProviderRuntimeResolution(
 export function resolveProviderRuntime(
   componentName: string,
   props: TrChatProviderProps,
-  createChatKit: (options: TrChatProviderRuntimeOptions) => UseChatKitReturn = useChatKit,
+  createChatKit: (options: ResolvedProviderRuntimeOptions) => UseChatKitReturn = useChatKit,
 ): UseChatKitReturn {
   const resolution = getProviderRuntimeResolution(componentName, props)
   return createChatKit(resolution.providerRuntimeOptions)
