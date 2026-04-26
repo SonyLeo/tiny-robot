@@ -42,6 +42,18 @@ display.value = mobile ? 'drawer' : 'drawer'
 
 Vue 的 template 中同名 slot 后者覆盖前者，所以用户的 `#after` slot 会被内置的 feedback 覆盖。用户无法同时使用 `#after` slot 和内置 feedback。
 
+### B4. ChatSender 的 slot 透传不完整
+
+`ChatSender.vue` 对底层 `TrSender` 的 slot 透传存在两个问题：
+
+1. `footer-right` 被显式处理，但 `footer` slot 没有被显式处理。`TrSender` 的 `footer` slot（多行模式下的底部左侧区域）通过 `forwardedSlots` 的 `v-for` 隐式透传，但 `forwardedSlots` 的过滤逻辑只排除了 `footer-right`，没有对 `footer` 做任何特殊处理。这意味着 `footer` slot 可以工作，但它的行为是隐式的，不在 `TrChatSenderSlots` 类型定义中。
+
+2. `TrChatSenderSlots` 类型只声明了 `footer-right`，没有声明 `footer`。文档中已经把 `footer` 列为公开 slot，但类型合同没有跟上。
+
+需要：
+- 在 `TrChatSenderSlots` 中补充 `footer` slot 的类型声明
+- 确认 `footer` slot 的透传路径是否需要显式处理（和 `footer-right` 一样）
+
 ---
 
 ## 二、内存与生命周期问题
@@ -327,27 +339,50 @@ await page.locator('nav').getByRole('link').nth(2).click()
 
 ---
 
-## 九、按优先级排序
+## 九、文档问题
+
+### D1. chat.md 有重复文字
+
+第 72 行和第 82 行附近各有一处"适合适合"的重复。
+
+### D2. chat-features.md 的 ui 配置域名称需要和代码对齐
+
+文档中使用 `ui.labels` 作为文案覆盖的正式命名，但代码中 `TrChatRootUiConfig` 的字段名是 `copy`。需要将代码中的 `copy` 改为 `labels` 以和文档对齐（`ui.labels` 是正式命名）。
+
+涉及文件：
+- `packages/chat/src/types/root.ts` — `TrChatRootUiConfig.copy` → `labels`
+- `packages/chat/src/root/createRootBootstrapState.ts` — `uiRef.value?.copy` → `labels`
+- `packages/chat/src/runtime/config/createRuntimeFromConfig.ts` — `config.ui?.copy` → `labels`
+- `packages/chat/src/index.ts` — 导出类型中的 `copy` 引用
+- 相关测试文件中的 `copy` 引用
+
+---
+
+## 十、按优先级排序
 
 ### 必须修复
 
 1. **B1** sender.send 不传 attachments — 功能性 bug
 2. **M1** effectScope 泄漏 — 内存泄漏
 3. **B3** after slot 和 feedback 冲突 — 用户无法同时使用
+4. **B4** ChatSender 的 footer slot 类型声明缺失 — 公开合同不完整
 
 ### 应该修复
 
-4. **B2** chatUiContext display 重复赋值 — 疑似 bug
-5. **A2+A3** 模板重复（TrChatPage + ThemeProvider 模式） — 维护负担
-6. **I4+I5+I6+I7** 硬编码文案未走 chatMessages — 国际化缺陷
-7. **T3** Provider 路径 SSR 下 localStorage 崩溃 — 环境兼容性
-8. **T8** 关键场景测试缺失 — 覆盖率缺口
+5. **D2** ui.copy → ui.labels 命名对齐 — 文档和代码不一致
+6. **B2** chatUiContext display 重复赋值 — 疑似 bug
+7. **A2+A3** 模板重复（TrChatPage + ThemeProvider 模式） — 维护负担
+8. **I4+I5+I6+I7** 硬编码文案未走 chatMessages — 国际化缺陷
+9. **T3** Provider 路径 SSR 下 localStorage 崩溃 — 环境兼容性
+10. **T8** 关键场景测试缺失 — 覆盖率缺口
 
 ### 建议改进
 
-9. **A1** 双轨运行时统一 — 降低架构复杂度
-10. **T4+T5** 源码字符串匹配测试 — 降低维护成本
-11. **T7** fetch mock 统一封装 — 降低测试维护成本
-12. **E2** E2E 选择器从中文 title 迁移到 data-testid — 提高稳定性
-13. **Q2** 批量删除串行改并行 — 用户体验
-14. **I2** 默认 message runtime 空实现加警告 — 开发体验
+11. **A1** 双轨运行时统一 — 降低架构复杂度
+12. **T4+T5** 源码字符串匹配测试 — 降低维护成本
+13. **T7** fetch mock 统一封装 — 降低测试维护成本
+14. **E2** E2E 选择器从中文 title 迁移到 data-testid — 提高稳定性
+15. **Q2** 批量删除串行改并行 — 用户体验
+16. **I2** 默认 message runtime 空实现加警告 — 开发体验
+17. **D1** chat.md 重复文字修复 — 文案质量
+

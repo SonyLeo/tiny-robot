@@ -43,7 +43,7 @@ const vite = await createServer({
 })
 
 try {
-  const [{ default: TrChat }] = await Promise.all([vite.ssrLoadModule('/src/components/core/Chat.vue')])
+  const [{ default: TrChat }] = await Promise.all([vite.ssrLoadModule('/src/entry/TrChat.vue')])
 
   async function renderTrChatEntry(config) {
     const app = createSSRApp({

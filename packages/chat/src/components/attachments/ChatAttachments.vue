@@ -2,7 +2,7 @@
 import { inject, computed } from 'vue'
 import { TrAttachments } from '@opentiny/tiny-robot'
 import { CHAT_ATTACHMENTS_KEY, CHAT_RUNTIME_KEY } from '@/shared/context'
-import type { ChatRuntime } from '@/types/root'
+import type { ChatRuntime } from '@/types'
 
 defineOptions({ name: 'TrChatAttachments' })
 

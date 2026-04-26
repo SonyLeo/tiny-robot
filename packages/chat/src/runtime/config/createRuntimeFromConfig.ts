@@ -3,17 +3,17 @@ import type { Attachment } from '@opentiny/tiny-robot'
 import type { ChatMessage, ConversationStorageStrategy } from '@opentiny/tiny-robot-kit'
 import { useChatAttachments } from '@/components/attachments/useChatAttachments'
 import { createChatUiContext } from '@/shared/context'
-import { createOpenAICompatibleResponseProvider } from './openaiCompatibleTransport'
-import { useChatKit } from '@/runtime/chat-kit/useChatKit'
+import { createOpenAICompatibleResponseProvider } from '../transport/openaiCompatibleTransport'
+import { useChatKit } from '@/runtime/engine/useChatKit'
 import {
   getChatMessageError,
   getChatMessageTurnId,
   isChatMessageEditing,
   isChatMessageOptimistic,
-} from '@/runtime/chat-kit/chatMessageState'
+} from '@/runtime/engine/chatMessageState'
 import { ensureRuntimeMessageId } from '@/runtime/core/messageIdentity'
 import { extractMessageText } from '@/runtime/core/normalizeRuntime'
-import { cloneMessages } from '@/runtime/chat-kit/useChatMessages'
+import { cloneMessages } from '@/runtime/engine/useChatMessages'
 import type {
   ChatConversationCreateInput,
   ChatConversationSummary,
@@ -30,9 +30,10 @@ import type {
   CreateRuntimeFromConfigResult,
   TrChatConfig,
   TrChatRequestModel,
-} from '@/types/root'
-import type { ChatWorkspaceRegionConfig, ChatWorkspaceShellConfig } from '@/types/workspace'
-import type { ModelOption } from '@/types/model'
+  ChatWorkspaceRegionConfig,
+  ChatWorkspaceShellConfig,
+  ModelOption,
+} from '@/types'
 
 function createNullStorage(): ConversationStorageStrategy {
   return {
@@ -479,7 +480,12 @@ function createSenderRuntimeFromChatKit(
         return
       }
 
-      chatKit.sendMessage(payload.text)
+      if (payload.attachments.length > 0) {
+        chatKit.sendMessage(payload.text, { attachments: payload.attachments })
+      } else {
+        chatKit.sendMessage(payload.text)
+      }
+
       draft.value = ''
       attachmentsManager.clear()
     },
@@ -592,5 +598,8 @@ export function createRuntimeFromConfig(config: TrChatConfig): CreateRuntimeFrom
     throw new Error('[createRuntimeFromConfig] Failed to initialize runtime scope')
   }
 
-  return result
+  return {
+    ...result,
+    dispose: () => scope.stop(),
+  }
 }

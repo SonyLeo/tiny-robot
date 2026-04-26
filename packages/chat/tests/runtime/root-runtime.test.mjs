@@ -11,7 +11,7 @@ const jiti = createJiti(import.meta.url, {
 })
 
 const { createRuntimeFromConfig } = await jiti.import('../../src/runtime/config/createRuntimeFromConfig.ts')
-const { createRootBootstrapState } = await jiti.import('../../src/root/createRootBootstrapState.ts')
+const { createRootBootstrapState } = await jiti.import('../../src/entry/createRootBootstrapState.ts')
 const { computed } = await jiti.import('vue')
 
 await runTest('createRuntimeFromConfig returns a Phase 1A Root baseline with runtime and ui outputs', async () => {

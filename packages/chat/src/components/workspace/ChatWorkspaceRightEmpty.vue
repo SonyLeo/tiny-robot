@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { IconFileFolder } from '@opentiny/tiny-robot-svgs'
+import { useResolvedChatMessages } from '@/shared/messages'
 
 defineOptions({ name: 'TrChatWorkspaceRightEmpty' })
+
+const chatMessages = useResolvedChatMessages()
 </script>
 
 <template>
@@ -9,8 +12,8 @@ defineOptions({ name: 'TrChatWorkspaceRightEmpty' })
     <span class="tr-chat-workspace-right-empty__icon">
       <IconFileFolder />
     </span>
-    <strong>暂无扩展内容</strong>
-    <span>后续可在此查看文件、链接或扩展结果。</span>
+    <strong>{{ chatMessages.sidebar.emptyTitle }}</strong>
+    <span>{{ chatMessages.sidebar.emptyDescription }}</span>
   </div>
 </template>
 

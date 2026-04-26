@@ -4,31 +4,33 @@ import { fileURLToPath } from 'node:url'
 import { runTest } from '../_harness.mjs'
 
 const chatIndexSource = readFileSync(fileURLToPath(new URL('../../src/index.ts', import.meta.url)), 'utf8')
-const chatComponentsIndexSource = readFileSync(fileURLToPath(new URL('../../src/components/core/index.ts', import.meta.url)), 'utf8')
+const chatComponentsIndexSource = readFileSync(fileURLToPath(new URL('../../src/components/index.ts', import.meta.url)), 'utf8')
 const chatTypesIndexSource = readFileSync(fileURLToPath(new URL('../../src/types/index.ts', import.meta.url)), 'utf8')
 const chatCoreTypesSource = readFileSync(fileURLToPath(new URL('../../src/types/core.ts', import.meta.url)), 'utf8')
-const chatUiTypesSource = readFileSync(fileURLToPath(new URL('../../src/types/ui.ts', import.meta.url)), 'utf8')
-const chatSource = readFileSync(fileURLToPath(new URL('../../src/components/core/Chat.vue', import.meta.url)), 'utf8')
+const chatUiTypesSource = readFileSync(fileURLToPath(new URL('../../src/types/component.ts', import.meta.url)), 'utf8')
+const chatRootTypesSource = readFileSync(fileURLToPath(new URL('../../src/types/config.ts', import.meta.url)), 'utf8')
+const chatSource = readFileSync(fileURLToPath(new URL('../../src/entry/TrChat.vue', import.meta.url)), 'utf8')
 const trChatConfigEntrySource = readFileSync(
   fileURLToPath(new URL('../../src/runtime/config/trchatConfigEntry.ts', import.meta.url)),
   'utf8',
 )
-const chatPageSource = readFileSync(fileURLToPath(new URL('../../src/page/TrChatPage.vue', import.meta.url)), 'utf8')
-const chatRootSource = readFileSync(fileURLToPath(new URL('../../src/root/TrChatRoot.vue', import.meta.url)), 'utf8')
+const chatPageSource = readFileSync(fileURLToPath(new URL('../../src/entry/TrChatPage.vue', import.meta.url)), 'utf8')
+const chatPageContentSource = readFileSync(fileURLToPath(new URL('../../src/components/page-regions/ChatPageContent.vue', import.meta.url)), 'utf8')
+const chatRootSource = readFileSync(fileURLToPath(new URL('../../src/entry/TrChatRoot.vue', import.meta.url)), 'utf8')
 const rootBootstrapProviderSource = readFileSync(
-  fileURLToPath(new URL('../../src/root/RootBootstrapProvider.vue', import.meta.url)),
+  fileURLToPath(new URL('../../src/entry/RootBootstrapProvider.vue', import.meta.url)),
   'utf8',
 )
 const internalSource = readFileSync(fileURLToPath(new URL('../../src/internal.ts', import.meta.url)), 'utf8')
 const sharedContextSource = readFileSync(fileURLToPath(new URL('../../src/shared/context/index.ts', import.meta.url)), 'utf8')
-const chatKitSource = readFileSync(fileURLToPath(new URL('../../src/runtime/chat-kit/useChatKit.ts', import.meta.url)), 'utf8')
-const chatSenderSource = readFileSync(fileURLToPath(new URL('../../src/components/core/ChatSender.vue', import.meta.url)), 'utf8')
+const chatKitSource = readFileSync(fileURLToPath(new URL('../../src/runtime/engine/useChatKit.ts', import.meta.url)), 'utf8')
+const chatSenderSource = readFileSync(fileURLToPath(new URL('../../src/components/ChatSender.vue', import.meta.url)), 'utf8')
 const chatAttachmentsSource = readFileSync(
   fileURLToPath(new URL('../../src/components/attachments/ChatAttachments.vue', import.meta.url)),
   'utf8',
 )
-const chatLayoutSource = readFileSync(fileURLToPath(new URL('../../src/components/core/ChatLayout.vue', import.meta.url)), 'utf8')
-const chatHeaderSource = readFileSync(fileURLToPath(new URL('../../src/components/core/ChatHeader.vue', import.meta.url)), 'utf8')
+const chatLayoutSource = readFileSync(fileURLToPath(new URL('../../src/components/ChatLayout.vue', import.meta.url)), 'utf8')
+const chatHeaderSource = readFileSync(fileURLToPath(new URL('../../src/components/ChatHeader.vue', import.meta.url)), 'utf8')
 const workspaceShellSource = readFileSync(
   fileURLToPath(new URL('../../src/components/workspace/WorkspaceShell.vue', import.meta.url)),
   'utf8',
@@ -49,7 +51,7 @@ const modelSelectorSource = readFileSync(
   fileURLToPath(new URL('../../src/components/model-selector/ModelSelector.vue', import.meta.url)),
   'utf8',
 )
-const registrySource = readFileSync(fileURLToPath(new URL('../../src/runtime/config/registry.ts', import.meta.url)), 'utf8')
+const registrySource = readFileSync(fileURLToPath(new URL('../../src/runtime/features/registry.ts', import.meta.url)), 'utf8')
 const editInputRendererSource = readFileSync(
   fileURLToPath(new URL('../../src/components/renderers/EditInputRenderer.vue', import.meta.url)),
   'utf8',
@@ -58,16 +60,12 @@ const errorRendererSource = readFileSync(
   fileURLToPath(new URL('../../src/components/renderers/ErrorRenderer.vue', import.meta.url)),
   'utf8',
 )
-const defaultRendererSource = readFileSync(
-  fileURLToPath(new URL('../../src/components/core/default-renderer/ChatDefaultRenderer.vue', import.meta.url)),
-  'utf8',
-)
 const defaultHeaderRegionSource = readFileSync(
-  fileURLToPath(new URL('../../src/components/core/default-renderer/ChatDefaultHeaderRegion.vue', import.meta.url)),
+  fileURLToPath(new URL('../../src/components/page-regions/ChatDefaultHeaderRegion.vue', import.meta.url)),
   'utf8',
 )
 const defaultBodyRegionSource = readFileSync(
-  fileURLToPath(new URL('../../src/components/core/default-renderer/ChatDefaultBodyRegion.vue', import.meta.url)),
+  fileURLToPath(new URL('../../src/components/page-regions/ChatDefaultBodyRegion.vue', import.meta.url)),
   'utf8',
 )
 const chatFeedbackSource = readFileSync(
@@ -75,21 +73,21 @@ const chatFeedbackSource = readFileSync(
   'utf8',
 )
 const defaultFooterRegionSource = readFileSync(
-  fileURLToPath(new URL('../../src/components/core/default-renderer/ChatDefaultFooterRegion.vue', import.meta.url)),
+  fileURLToPath(new URL('../../src/components/page-regions/ChatDefaultFooterRegion.vue', import.meta.url)),
   'utf8',
 )
 const chatProviderSource = readFileSync(
-  fileURLToPath(new URL('../../src/components/core/ChatProvider.vue', import.meta.url)),
+  fileURLToPath(new URL('../../src/entry/TrChatProvider.vue', import.meta.url)),
   'utf8',
 )
-const chatWelcomeSource = readFileSync(fileURLToPath(new URL('../../src/components/core/ChatWelcome.vue', import.meta.url)), 'utf8')
+const chatWelcomeSource = readFileSync(fileURLToPath(new URL('../../src/components/ChatWelcome.vue', import.meta.url)), 'utf8')
 const chatMessageListSource = readFileSync(
-  fileURLToPath(new URL('../../src/components/core/ChatMessageList.vue', import.meta.url)),
+  fileURLToPath(new URL('../../src/components/ChatMessageList.vue', import.meta.url)),
   'utf8',
 )
 const chatHistorySource = readFileSync(fileURLToPath(new URL('../../src/components/history/ChatHistory.vue', import.meta.url)), 'utf8')
 const providerResolutionSource = readFileSync(
-  fileURLToPath(new URL('../../src/runtime/provider/resolveProviderRuntime.ts', import.meta.url)),
+  fileURLToPath(new URL('../../src/runtime/config/resolveProviderRuntime.ts', import.meta.url)),
   'utf8',
 )
 
@@ -267,24 +265,22 @@ await runTest('official page surface is exported as a dedicated TrChat.Page wrap
   assert.equal(chatPageSource.includes('useAttrs()'), false)
   assert.equal(chatPageSource.includes('attrs[\'message-list-variant\']'), false)
   assert.equal(chatPageSource.includes('props.messageListVariant'), true)
-  assert.equal(chatPageSource.includes('<ChatDefaultHeaderRegion'), true)
-  assert.equal(chatPageSource.includes('<ChatDefaultBodyRegion'), true)
-  assert.equal(chatPageSource.includes('<ChatDefaultFooterRegion'), true)
+  assert.equal(chatPageSource.includes('<ChatPageContent'), true)
   assert.equal(chatPageSource.includes('<ChatWorkspaceLayout'), true)
   assert.equal(chatPageSource.includes('v-if="isWorkspaceShell"'), true)
   assert.equal(
     chatPageSource.includes('<ChatHistory :enabled="historyInput?.enabled" :appearance="appearanceInput" />'),
     true,
   )
-  assert.equal(defaultRendererSource.includes('<TrChatPage'), true)
-  assert.equal(defaultRendererSource.includes('<slot :name="name" v-bind="slotProps ?? {}" />'), true)
+  assert.equal(chatSource.includes('<TrChatPage'), true)
+  assert.equal(chatSource.includes('<slot :name="name" v-bind="slotProps ?? {}" />'), true)
 })
 
 await runTest('TrChat source keeps Root + Page explicit for target TrChatConfig while classifying compatibility callbacks as either supported lifecycle hooks or scaffold fallback', async () => {
   assert.equal(chatSource.includes('useTrChatConfigRuntimeResolution(() => props.config)'), true)
   assert.equal(chatSource.includes('<TrChatRoot :runtime="runtimeResolution.runtime" :ui="runtimeResolution.ui">'), true)
   assert.equal(chatSource.includes('<TrChatPage>'), true)
-  assert.equal(chatUiTypesSource.includes('export type TrChatConfigEntryInput = TrChatConfig | string'), true)
+  assert.equal(chatRootTypesSource.includes('export type TrChatConfigEntryInput = TrChatConfig | string'), true)
   assert.equal(chatUiTypesSource.includes('config: TrChatConfigEntryInput'), true)
   assert.equal(chatUiTypesSource.includes('config: unknown'), false)
   assert.equal(chatIndexSource.includes('TrChatConfigEntryInput'), true)
@@ -324,7 +320,7 @@ await runTest('official page source consumes the narrow page-input boundary inst
 
 await runTest('default page path passes explicit primitive inputs instead of relying on scaffold lookups near the page owner', async () => {
   assert.equal(chatPageSource.includes(':header-input="headerInput"'), true)
-  assert.equal(chatPageSource.includes(':show="layoutInput?.show"'), true)
+  assert.equal(chatPageContentSource.includes(':show="layoutInput?.show"'), true)
   assert.equal(chatPageSource.includes(':appearance="appearanceInput"'), true)
   assert.equal(chatPageSource.includes(':enabled="historyInput?.enabled"'), true)
   assert.equal(chatPageSource.includes(':compatibility-relay="false"'), false)
@@ -605,10 +601,12 @@ await runTest('package root no longer promotes helper-specific manager types wit
   })
 })
 
-await runTest('public runtime sendMessage surface stays single-argument while structuredData remains sender-local', async () => {
-  assert.equal(chatCoreTypesSource.includes('sendMessage: (content: string) => void'), true)
+await runTest('public runtime sendMessage surface accepts optional attachments while structuredData remains sender-local', async () => {
+  assert.equal(chatCoreTypesSource.includes('sendMessage: (content: string, options?: { attachments?: unknown[] }) => void'), true)
+  assert.equal(chatCoreTypesSource.includes('sendMessageWithAttachments'), false)
   assert.equal(chatCoreTypesSource.includes('data?: StructuredData'), false)
-  assert.equal(chatKitSource.includes('function sendMessage(content: string): void {'), true)
+  assert.equal(chatKitSource.includes('function sendMessage(content: string, options?: { attachments?: unknown[] }): void {'), true)
+  assert.equal(chatKitSource.includes('sendMessageWithAttachments'), false)
   assert.equal(chatKitSource.includes('_data?: StructuredData'), false)
   assert.equal(chatSenderSource.includes('structuredData: data,'), true)
   assert.equal(chatSenderSource.includes('chatKit.sendMessage(payload.text)'), true)
@@ -648,7 +646,7 @@ await runTest('chat attachments source can fall back to runtime-owned pending at
 })
 
 await runTest('chat feedback source can fall back to runtime-owned message actions when no explicit action config is passed', async () => {
-  assert.equal(chatPageSource.includes('ChatDefaultBodyRegion'), true)
+  assert.equal(chatPageContentSource.includes('ChatDefaultBodyRegion'), true)
   const feedbackSource = readFileSync(
     fileURLToPath(new URL('../../src/components/feedback/useChatFeedback.ts', import.meta.url)),
     'utf8',
@@ -720,7 +718,7 @@ await runTest('message renderer source prefers runtime messageId hooks before le
 await runTest('default page footer source keeps footer-extra as the only page-level footer slot', async () => {
   assert.equal(chatPageSource.includes("$slots['footer-extra']"), true)
   assert.equal(chatPageSource.includes('$slots.footer'), false)
-  assert.equal(defaultRendererSource.includes('<TrChatPage'), true)
+  assert.equal(chatSource.includes('<TrChatPage'), true)
   assert.equal(defaultFooterRegionSource.includes('<slot name="footer-extra" />'), true)
   assert.equal(defaultFooterRegionSource.includes('<slot name="footer"'), false)
   assert.equal(defaultFooterRegionSource.includes('<ChatFooter v-else>'), true)

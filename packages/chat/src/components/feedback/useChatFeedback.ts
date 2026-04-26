@@ -4,7 +4,7 @@ import { IconEditPen } from '@opentiny/tiny-robot-svgs'
 import type { BubbleMessage, FeedbackProps } from '@opentiny/tiny-robot'
 import type { ChatMessage } from '@opentiny/tiny-robot-kit'
 import { useResolvedChatMessages } from '@/shared/messages'
-import { getChatRenderSourceMessage, unwrapChatRenderMessages } from '@/runtime/chat-kit/chatRenderMessages'
+import { getChatRenderSourceMessage, unwrapChatRenderMessages } from '@/runtime/engine/chatRenderMessages'
 import { ensureRuntimeMessageId } from '@/runtime/core/messageIdentity'
 import type {
   ChatErrorInfo,

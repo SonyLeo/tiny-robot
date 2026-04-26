@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 import { MCP_MANAGER_KEY } from '@/shared/context'
+import { useResolvedChatMessages } from '@/shared/messages'
 import type { PluginInfo } from '@opentiny/tiny-robot'
 import { TrMcpAddForm, TrMcpServerPicker } from '@opentiny/tiny-robot'
 import { IconClose, IconPlus } from '@opentiny/tiny-robot-svgs'
@@ -23,6 +24,8 @@ if (!mcpManager) {
 
 const { installedPlugins, handlePluginToggle, handleToolToggle, handlePluginCreate, handlePluginDelete, activeCount } =
   mcpManager
+
+const chatMessages = useResolvedChatMessages()
 
 const anchorElement = ref<HTMLElement | null>(null)
 const panelHostElement = ref<HTMLElement | null>(null)
@@ -108,7 +111,7 @@ const handlePluginCreateEvent = async (type: 'form' | 'code', data: unknown) => 
         <template #header-actions>
           <button class="mcp-panel-add-trigger" type="button" @click="openAddForm">
             <IconPlus class="mcp-panel-add-trigger__icon" />
-            <span>添加新插件</span>
+            <span>{{ chatMessages.mcp.addPlugin }}</span>
           </button>
         </template>
       </TrMcpServerPicker>
@@ -120,7 +123,7 @@ const handlePluginCreateEvent = async (type: 'form' | 'code', data: unknown) => 
       <Transition name="mcp-add-form-shell">
         <div v-if="showAddForm" class="mcp-add-form-shell">
           <div class="mcp-add-form-shell__header">
-            <h3 class="mcp-add-form-shell__title">安装更多插件</h3>
+            <h3 class="mcp-add-form-shell__title">{{ chatMessages.mcp.installPlugin }}</h3>
             <IconClose class="mcp-add-form-shell__close" @click="closeAddForm" />
           </div>
 

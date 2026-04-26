@@ -2,6 +2,7 @@
 import { computed, inject, ref } from 'vue'
 import { IconPlugin } from '@opentiny/tiny-robot-svgs'
 import { MCP_MANAGER_KEY } from '@/shared/context'
+import { useResolvedChatMessages } from '@/shared/messages'
 import ChatMcpPanel from './ChatMcpPanel.vue'
 
 defineOptions({ name: 'TrMcpTrigger' })
@@ -12,7 +13,6 @@ const props = withDefaults(
     showCount?: boolean
   }>(),
   {
-    label: '扩展',
     showCount: true,
   },
 )
@@ -20,6 +20,7 @@ const props = withDefaults(
 const visibleModel = defineModel<boolean>('visible')
 const internalVisible = ref(false)
 const mcpManager = inject(MCP_MANAGER_KEY, null)
+const chatMessages = useResolvedChatMessages()
 
 if (!mcpManager) {
   throw new Error('mcpManager not provided')
@@ -35,8 +36,11 @@ const isVisible = computed({
 
 const activeCount = computed(() => mcpManager.activeCount.value)
 const isActive = computed(() => activeCount.value > 0)
+const resolvedLabel = computed(() => props.label ?? chatMessages.value.mcp.triggerLabel)
 const triggerTitle = computed(() =>
-  isActive.value ? `${props.label}，已激活 ${activeCount.value} 个插件` : `${props.label}，当前没有激活插件`,
+  isActive.value
+    ? chatMessages.value.mcp.triggerActiveTitle.replace('{count}', String(activeCount.value))
+    : chatMessages.value.mcp.triggerInactiveTitle,
 )
 
 function openPanel() {
@@ -57,7 +61,7 @@ function openPanel() {
       @click="openPanel"
     >
       <IconPlugin class="tr-mcp-trigger__icon" />
-      <span class="tr-mcp-trigger__label" data-testid="chat-mcp-trigger-label">{{ label }}</span>
+      <span class="tr-mcp-trigger__label" data-testid="chat-mcp-trigger-label">{{ resolvedLabel }}</span>
       <span
         v-if="showCount && activeCount"
         class="tr-mcp-trigger__count"

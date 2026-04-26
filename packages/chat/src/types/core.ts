@@ -14,7 +14,7 @@ import type {
   UseMessagePlugin,
 } from '@opentiny/tiny-robot-kit'
 import type { FeedbackProps } from '@opentiny/tiny-robot'
-import type { ChatRuntime } from './root'
+import type { ChatRuntime } from './runtime'
 
 export type ResponseProvider = (
   requestBody: MessageRequestBody,
@@ -157,7 +157,7 @@ export interface UseChatKitReturn extends Pick<
   messages: ComputedRef<ChatMessage[]>
   status: ComputedRef<ChatStatus>
   lastError: ComputedRef<ChatErrorInfo | null>
-  sendMessage: (content: string) => void
+  sendMessage: (content: string, options?: { attachments?: unknown[] }) => void
   startEditMessage: (messageIndex: number) => void
   cancelEditMessage: (messageIndex: number) => void
   isMessageEditing: (messageIndex: number) => boolean

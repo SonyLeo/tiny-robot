@@ -1,17 +1,14 @@
 import './styles/index.css'
 
 import {
-  Chat as TrChat,
-  ChatProvider as TrChatProvider,
   ChatLayout as TrChatLayout,
   ChatHeader as TrChatHeader,
   ChatWelcome as TrChatWelcome,
   ChatMessageList as TrChatMessageList,
   ChatFooter as TrChatFooter,
   ChatSender as TrChatSender,
-} from './components/core'
-import { TrChatRoot } from './root'
-import { TrChatPage } from './page'
+} from './components'
+import { TrChat, TrChatRoot, TrChatPage, TrChatProvider } from './entry'
 import {
   ChatWorkspaceLayout as TrChatWorkspaceLayout,
   WorkspaceShell as TrChatWorkspaceShell,

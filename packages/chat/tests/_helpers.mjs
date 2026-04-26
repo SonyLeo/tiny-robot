@@ -11,19 +11,19 @@ const jiti = createJiti(import.meta.url, {
   },
 })
 
-const chatConversationModule = await jiti.import('../src/runtime/chat-kit/useChatConversation.ts')
-const chatMessagesModule = await jiti.import('../src/runtime/chat-kit/useChatMessages.ts')
-const chatRequestModule = await jiti.import('../src/runtime/chat-kit/useChatRequest.ts')
+const chatConversationModule = await jiti.import('../src/runtime/engine/useChatConversation.ts')
+const chatMessagesModule = await jiti.import('../src/runtime/engine/useChatMessages.ts')
+const chatRequestModule = await jiti.import('../src/runtime/engine/useChatRequest.ts')
 const chatAttachmentsModule = await jiti.import('../src/components/attachments/useChatAttachments.ts')
-const chatKitModule = await jiti.import('../src/runtime/chat-kit/useChatKit.ts')
+const chatKitModule = await jiti.import('../src/runtime/engine/useChatKit.ts')
 const chatFeedbackModule = await jiti.import('../src/components/feedback/useChatFeedback.ts')
-const chatRenderMessagesModule = await jiti.import('../src/runtime/chat-kit/chatRenderMessages.ts')
+const chatRenderMessagesModule = await jiti.import('../src/runtime/engine/chatRenderMessages.ts')
 const mcpManagerModule = await jiti.import('../src/components/mcp/useMcpManager.ts')
 const modelSelectorModule = await jiti.import('../src/components/model-selector/useModelSelector.ts')
 const adapterModule = await jiti.import('../src/runtime/config/index.ts')
-const transportModule = await jiti.import('../src/runtime/config/openaiCompatibleTransport.ts')
+const transportModule = await jiti.import('../src/runtime/transport/openaiCompatibleTransport.ts')
 const messagesModule = await jiti.import('../src/shared/messages/index.ts')
-const providerRuntimeModule = await jiti.import('../src/runtime/provider/resolveProviderRuntime.ts')
+const providerRuntimeModule = await jiti.import('../src/runtime/config/resolveProviderRuntime.ts')
 const messageIdentityModule = await jiti.import('../src/runtime/core/messageIdentity.ts')
 
 export { assert, computed, nextTick, ref, shallowRef }

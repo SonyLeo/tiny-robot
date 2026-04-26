@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { ThemeProvider } from '@opentiny/tiny-robot'
-import { computed, getCurrentInstance, inject, onBeforeUnmount, onMounted, ref, useSlots } from 'vue'
+import { computed, inject, onBeforeUnmount, onMounted, ref, useSlots } from 'vue'
 import { CHAT_UI_KEY } from '@/shared/context'
 import { useResolvedChatMessages } from '@/shared/messages'
-import type { TrChatWorkspaceShellProps } from '@/types/workspace'
+import type { TrChatWorkspaceShellProps } from '@/types'
 import { useWorkspaceRegion } from './useWorkspaceRegion'
+import ConditionalThemeProvider from '@/components/shared/ConditionalThemeProvider.vue'
 
 defineOptions({ name: 'TrChatWorkspaceShell' })
 
@@ -30,24 +30,6 @@ const slots = useSlots()
 const chatUi = inject(CHAT_UI_KEY, null)
 const chatMessages = useResolvedChatMessages()
 const shellElement = ref<HTMLElement | null>(null)
-const themeScopeId = `tr-workspace-theme-scope-${getCurrentInstance()?.uid ?? 'fallback'}`
-const scopedThemeTargetElement = `#${themeScopeId}`
-
-const scopedColorMode = computed(() => {
-  const mode = props.appearance?.mode
-
-  if (mode === 'light' || mode === 'dark') {
-    return mode
-  }
-
-  if (mode === 'system') {
-    return 'auto'
-  }
-
-  return undefined
-})
-
-const useScopedThemeProvider = computed(() => Boolean(scopedColorMode.value))
 const leftRegion = computed(() => props.leftRegion)
 const rightRegion = computed(() => props.rightRegion)
 
@@ -97,167 +79,88 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <ThemeProvider v-if="useScopedThemeProvider" :target-element="scopedThemeTargetElement" :color-mode="scopedColorMode">
-    <div
-      :id="themeScopeId"
-      ref="shellElement"
-      class="tr-workspace-shell"
-      :data-tr-appearance-mode="props.appearance?.mode"
-      :data-tr-color-mode="scopedColorMode"
-    >
-      <aside
-        v-if="showLeftRegion"
-        class="tr-workspace-shell__region tr-workspace-shell__region--left"
-        :class="{
-          'is-collapsed': left.collapsedState.value,
-          'is-hidden': hideLeftRegion,
-        }"
-        :style="{ '--workspace-region-width': left.regionWidth.value }"
-      >
-        <button
-          v-if="showLeftRail"
-          type="button"
-          class="tr-workspace-shell__rail"
-          :aria-label="leftRailLabel"
-          @click="left.updateCollapsed(false)"
-        >
-          <slot name="left-rail" :expand="() => left.updateCollapsed(false)" />
-        </button>
-
-        <div
-          class="tr-workspace-shell__region-content"
-          :class="{ 'is-hidden': left.collapsedState.value && showLeftRail }"
-        >
-          <slot
-            name="left"
-            :collapsed="left.collapsedState.value"
-            :toggle="left.toggleRegion"
-            :collapse="() => left.updateCollapsed(true)"
-            :expand="() => left.updateCollapsed(false)"
-          />
-        </div>
-      </aside>
-
-      <section class="tr-workspace-shell__center">
-        <div class="tr-workspace-shell__center-content">
-          <slot />
-        </div>
-      </section>
-
-      <aside
-        v-if="showRightRegion"
-        class="tr-workspace-shell__region tr-workspace-shell__region--right"
-        :class="{
-          'is-collapsed': right.collapsedState.value,
-          'is-hidden': hideRightRegion,
-        }"
-        :style="{ '--workspace-region-width': right.regionWidth.value }"
-      >
-        <button
-          v-if="showRightRail"
-          type="button"
-          class="tr-workspace-shell__rail"
-          :aria-label="rightRailLabel"
-          @click="right.updateCollapsed(false)"
-        >
-          <slot name="right-rail" :expand="() => right.updateCollapsed(false)" />
-        </button>
-
-        <div
-          class="tr-workspace-shell__region-content"
-          :class="{ 'is-hidden': right.collapsedState.value && showRightRail }"
-        >
-          <slot
-            name="right"
-            :collapsed="right.collapsedState.value"
-            :toggle="right.toggleRegion"
-            :collapse="() => right.updateCollapsed(true)"
-            :expand="() => right.updateCollapsed(false)"
-          />
-        </div>
-      </aside>
-    </div>
-  </ThemeProvider>
-
-  <div
-    v-else
-    :id="themeScopeId"
-    ref="shellElement"
-    class="tr-workspace-shell"
-    :data-tr-appearance-mode="props.appearance?.mode"
-  >
-    <aside
-      v-if="showLeftRegion"
-      class="tr-workspace-shell__region tr-workspace-shell__region--left"
-      :class="{
-        'is-collapsed': left.collapsedState.value,
-        'is-hidden': hideLeftRegion,
-      }"
-      :style="{ '--workspace-region-width': left.regionWidth.value }"
-    >
-      <button
-        v-if="showLeftRail"
-        type="button"
-        class="tr-workspace-shell__rail"
-        :aria-label="leftRailLabel"
-        @click="left.updateCollapsed(false)"
-      >
-        <slot name="left-rail" :expand="() => left.updateCollapsed(false)" />
-      </button>
-
+  <ConditionalThemeProvider :appearance="props.appearance" scope-id-prefix="tr-workspace-theme-scope">
+    <template #default="{ themeScopeId }">
       <div
-        class="tr-workspace-shell__region-content"
-        :class="{ 'is-hidden': left.collapsedState.value && showLeftRail }"
+        :id="themeScopeId"
+        ref="shellElement"
+        class="tr-workspace-shell"
+        :data-tr-appearance-mode="props.appearance?.mode"
       >
-        <slot
-          name="left"
-          :collapsed="left.collapsedState.value"
-          :toggle="left.toggleRegion"
-          :collapse="() => left.updateCollapsed(true)"
-          :expand="() => left.updateCollapsed(false)"
-        />
-      </div>
-    </aside>
+        <aside
+          v-if="showLeftRegion"
+          class="tr-workspace-shell__region tr-workspace-shell__region--left"
+          :class="{
+            'is-collapsed': left.collapsedState.value,
+            'is-hidden': hideLeftRegion,
+          }"
+          :style="{ '--workspace-region-width': left.regionWidth.value }"
+        >
+          <button
+            v-if="showLeftRail"
+            type="button"
+            class="tr-workspace-shell__rail"
+            :aria-label="leftRailLabel"
+            @click="left.updateCollapsed(false)"
+          >
+            <slot name="left-rail" :expand="() => left.updateCollapsed(false)" />
+          </button>
 
-    <section class="tr-workspace-shell__center">
-      <div class="tr-workspace-shell__center-content">
-        <slot />
-      </div>
-    </section>
+          <div
+            class="tr-workspace-shell__region-content"
+            :class="{ 'is-hidden': left.collapsedState.value && showLeftRail }"
+          >
+            <slot
+              name="left"
+              :collapsed="left.collapsedState.value"
+              :toggle="left.toggleRegion"
+              :collapse="() => left.updateCollapsed(true)"
+              :expand="() => left.updateCollapsed(false)"
+            />
+          </div>
+        </aside>
 
-    <aside
-      v-if="showRightRegion"
-      class="tr-workspace-shell__region tr-workspace-shell__region--right"
-      :class="{
-        'is-collapsed': right.collapsedState.value,
-        'is-hidden': hideRightRegion,
-      }"
-      :style="{ '--workspace-region-width': right.regionWidth.value }"
-    >
-      <button
-        v-if="showRightRail"
-        type="button"
-        class="tr-workspace-shell__rail"
-        :aria-label="rightRailLabel"
-        @click="right.updateCollapsed(false)"
-      >
-        <slot name="right-rail" :expand="() => right.updateCollapsed(false)" />
-      </button>
+        <section class="tr-workspace-shell__center">
+          <div class="tr-workspace-shell__center-content">
+            <slot />
+          </div>
+        </section>
 
-      <div
-        class="tr-workspace-shell__region-content"
-        :class="{ 'is-hidden': right.collapsedState.value && showRightRail }"
-      >
-        <slot
-          name="right"
-          :collapsed="right.collapsedState.value"
-          :toggle="right.toggleRegion"
-          :collapse="() => right.updateCollapsed(true)"
-          :expand="() => right.updateCollapsed(false)"
-        />
+        <aside
+          v-if="showRightRegion"
+          class="tr-workspace-shell__region tr-workspace-shell__region--right"
+          :class="{
+            'is-collapsed': right.collapsedState.value,
+            'is-hidden': hideRightRegion,
+          }"
+          :style="{ '--workspace-region-width': right.regionWidth.value }"
+        >
+          <button
+            v-if="showRightRail"
+            type="button"
+            class="tr-workspace-shell__rail"
+            :aria-label="rightRailLabel"
+            @click="right.updateCollapsed(false)"
+          >
+            <slot name="right-rail" :expand="() => right.updateCollapsed(false)" />
+          </button>
+
+          <div
+            class="tr-workspace-shell__region-content"
+            :class="{ 'is-hidden': right.collapsedState.value && showRightRail }"
+          >
+            <slot
+              name="right"
+              :collapsed="right.collapsedState.value"
+              :toggle="right.toggleRegion"
+              :collapse="() => right.updateCollapsed(true)"
+              :expand="() => right.updateCollapsed(false)"
+            />
+          </div>
+        </aside>
       </div>
-    </aside>
-  </div>
+    </template>
+  </ConditionalThemeProvider>
 </template>
 
 <style scoped lang="less">

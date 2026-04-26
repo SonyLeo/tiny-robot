@@ -1,6 +1,6 @@
 import { computed, ref, watch, type ComputedRef } from 'vue'
-import type { ChatWorkspaceRegionConfig } from '@/types/workspace'
-import { resolveWorkspaceCollapsedState, resolveWorkspaceRegionWidth } from './runtime'
+import type { ChatWorkspaceRegionConfig } from '@/types'
+import { resolveWorkspaceCollapsedState, resolveWorkspaceRegionWidth } from './workspaceUtils'
 
 interface UseWorkspaceRegionOptions {
   side: 'left' | 'right'

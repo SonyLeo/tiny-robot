@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useBubbleContentRenderer, type BubbleContentRendererProps } from '@opentiny/tiny-robot'
 import { computed, inject } from 'vue'
-import { getChatMessageError, getChatMessageState } from '@/runtime/chat-kit/chatMessageState'
+import { getChatMessageError, getChatMessageState } from '@/runtime/engine/chatMessageState'
 import { getRuntimeMessageId } from '@/runtime/core/messageIdentity'
 import { CHAT_KIT_KEY, CHAT_RUNTIME_KEY } from '@/shared/context'
 import { useResolvedChatMessages } from '@/shared/messages'

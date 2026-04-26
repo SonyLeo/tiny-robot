@@ -86,7 +86,7 @@ outline: [2, 3]
 - 你想把聊天页包在业务容器里
 - 你仍然想继续用官方页面结构
 
-适合适合需要自行管理状态、但希望保留官方页面结构的场景。查看完整示例：[Chat Runtime + Slots](/examples/chat-runtime-and-slots)
+适合需要自行管理状态、但希望保留官方页面结构的场景。查看完整示例：[Chat Runtime + Slots](/examples/chat-runtime-and-slots)
 
 ## 什么时候升级到 `Root + primitives`
 
@@ -96,7 +96,7 @@ outline: [2, 3]
 - 你要在页面里插入自定义区域
 - 你要单独使用 `TrChat.Sender`、`TrChat.MessageList`、`TrMcpTrigger` 等叶子组件
 
-适合适合需要完全控制页面组合的场景。查看完整示例：[Chat Workspace 布局](/examples/chat-workspace-layout)
+适合需要完全控制页面组合的场景。查看完整示例：[Chat Workspace 布局](/examples/chat-workspace-layout)
 
 ## 下一步看哪里
 

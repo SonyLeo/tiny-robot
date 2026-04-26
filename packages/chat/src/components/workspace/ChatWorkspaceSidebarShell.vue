@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { IconAi, IconPanelLeftClose } from '@opentiny/tiny-robot-svgs'
 import { CHAT_UI_KEY, useRequiredInject } from '@/shared/context'
+import { useResolvedChatMessages } from '@/shared/messages'
 
 defineOptions({ name: 'TrChatWorkspaceSidebarShell' })
 
@@ -22,7 +23,10 @@ defineSlots<{
 }>()
 
 const chatUi = useRequiredInject(CHAT_UI_KEY, 'chat ui')
-const actionLabel = computed(() => (props.mobile ? 'Close sidebar' : 'Collapse sidebar'))
+const chatMessages = useResolvedChatMessages()
+const actionLabel = computed(() =>
+  props.mobile ? chatMessages.value.sidebar.close : chatMessages.value.sidebar.collapse,
+)
 
 function handleAction() {
   if (props.mobile) {

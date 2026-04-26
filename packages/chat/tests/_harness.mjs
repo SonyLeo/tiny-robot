@@ -3,6 +3,20 @@ import { readdir } from 'node:fs/promises'
 import { dirname, join, relative } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
+// Provide a minimal localStorage shim for Node.js test environment
+// to suppress "加载会话失败: ReferenceError: localStorage is not defined" noise
+if (typeof globalThis.localStorage === 'undefined') {
+  const store = new Map()
+  globalThis.localStorage = {
+    getItem: (key) => store.get(key) ?? null,
+    setItem: (key, value) => store.set(key, String(value)),
+    removeItem: (key) => store.delete(key),
+    clear: () => store.clear(),
+    get length() { return store.size },
+    key: (index) => [...store.keys()][index] ?? null,
+  }
+}
+
 const TEST_FILE_SUFFIX = '.test.mjs'
 const TEST_FILE_IGNORE_PREFIX = '_'
 

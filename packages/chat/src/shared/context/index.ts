@@ -8,26 +8,28 @@ import type {
   ChatMessageActionPayload,
   ChatMessages,
   ChatSenderActionsFeaturePreset,
+  BrandConfig,
+  ChatAppearanceConfig,
+  ChatListVariant,
+  ChatRuntime,
+  ModelOption,
+  WelcomeConfig,
+  ChatWorkspaceShellConfig,
 } from '@/types'
 import type { UseMcpManagerReturn } from '@/components/mcp/useMcpManager'
 import type { UseChatAttachmentsReturn } from '@/components/attachments/useChatAttachments'
 import type { BubbleListProps, PromptProps } from '@opentiny/tiny-robot'
-import type { ChatUiContextValue } from '@/components/workspace/chatUiContext'
+import type { ChatUiContextValue } from '@/shared/context/chatUiContext'
 import type { UseChatKitReturn } from '@/types/core'
-import type { ChatRuntime } from '@/types/root'
-import type { BrandConfig, ChatAppearanceConfig, ChatListVariant } from '@/types/core'
-import type { ModelOption } from '@/types/model'
-import type { WelcomeConfig } from '@/types/ui'
-import type { ChatWorkspaceShellConfig } from '@/types/workspace'
 
-export { createChatUiContext } from '@/components/workspace/chatUiContext'
+export { createChatUiContext } from '@/shared/context/chatUiContext'
 export type {
   ChatHistoryDisplayMode,
   ChatUiContextValue,
   ChatWorkspaceRegionState,
   ChatWorkspaceState,
   CreateChatUiContextOptions,
-} from '@/components/workspace/chatUiContext'
+} from '@/shared/context/chatUiContext'
 
 export const CHAT_KIT_KEY: InjectionKey<UseChatKitReturn> = Symbol('chatKit')
 

@@ -1,7 +1,7 @@
 import { computed, shallowRef, watch, type WatchSource } from 'vue'
 import { createRuntimeFromConfig } from './createRuntimeFromConfig'
 import { resolveTrChatConfigEntryInput } from './trchatConfigEntry'
-import type { CreateRuntimeFromConfigResult, TrChatConfigEntryInput } from '@/types/root'
+import type { CreateRuntimeFromConfigResult, TrChatConfigEntryInput } from '@/types'
 
 const TR_CHAT_CONFIG_ENTRY_ERROR =
   '[TrChat] The TrChat config entry accepts only target TrChatConfig or serialized target TrChatConfig. Use TrChat.Root + TrChat.Page or TrChat.Root + primitives for composed integration.'
@@ -33,9 +33,11 @@ export function useTrChatConfigRuntimeResolution(
         return
       }
 
+      const previousResolution = runtimeResolutionRef.value
       activeConfigKey.value = resolved.key
       runtimeResolutionError.value = null
       runtimeResolutionRef.value = createRuntime(resolved.config)
+      previousResolution?.dispose?.()
     },
     { immediate: true },
   )

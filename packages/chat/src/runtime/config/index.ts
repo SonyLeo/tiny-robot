@@ -1,23 +1,2 @@
 export { createRuntimeFromConfig } from './createRuntimeFromConfig'
-export { CHAT_FEATURE_REGISTRY, isChatFeatureExplicitlyDisabled, resolveChatFeatures } from './registry'
-export type {
-  ChatAttachmentsFeatureConfig,
-  ChatAttachmentsFeatureResolution,
-  BuiltInChatFeatureKey,
-  ChatFeatureConfigMap,
-  ChatFeatureInput,
-  ChatMcpFeatureConfig,
-  ChatMcpFeatureResolution,
-  ChatFeaturePresetProps,
-  ChatFeedbackFeatureConfig,
-  ChatFeedbackFeatureResolution,
-  ChatHistoryFeatureConfig,
-  ChatHistoryFeatureOptions,
-  ChatHistoryFeatureResolution,
-  ChatSenderActionsFeatureConfig,
-  ChatSenderActionsFeatureResolution,
-  ChatWelcomePromptsFeatureConfig,
-  ChatWelcomePromptsFeatureOptions,
-  ChatWelcomePromptsFeatureResolution,
-  ResolvedChatFeatures,
-} from './featureTypes'
+export { getProviderRuntimeResolution, resolveProviderRuntime } from './resolveProviderRuntime'

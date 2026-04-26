@@ -4,10 +4,10 @@ import { fileURLToPath } from 'node:url'
 import { createRuntimeFromConfig, runTest } from '../_helpers.mjs'
 
 const defaultBubbleConfigSource = readFileSync(
-  fileURLToPath(new URL('../../src/components/core/useDefaultBubbleConfig.ts', import.meta.url)),
+  fileURLToPath(new URL('../../src/components/useDefaultBubbleConfig.ts', import.meta.url)),
   'utf8',
 )
-const chatLayoutSource = readFileSync(fileURLToPath(new URL('../../src/components/core/ChatLayout.vue', import.meta.url)), 'utf8')
+const chatLayoutSource = readFileSync(fileURLToPath(new URL('../../src/components/ChatLayout.vue', import.meta.url)), 'utf8')
 
 await runTest('renderer registry source contract keeps bubble renderer extension hooks in the chat layout chain', async () => {
   assert.equal(defaultBubbleConfigSource.includes('extraContentMatches'), true)

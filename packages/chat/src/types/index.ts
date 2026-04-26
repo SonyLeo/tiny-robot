@@ -58,7 +58,7 @@ export type {
   TrChatWelcomeEmits,
   UseChatAttachmentsOptions,
   WelcomeConfig,
-} from './ui'
+} from './component'
 
 export type { ModelOption } from './model'
 export type {
@@ -71,45 +71,54 @@ export type {
   TrChatWorkspaceShellProps,
 } from './workspace'
 
+// message types
 export type {
-  ChatAfterReceiveHandler,
-  ChatAttachmentsRuntime,
+  ReadonlyRef,
+  ChatUIMessageRole,
+  ChatUIMessagePart,
+  ChatUIMessageMeta,
+  ChatUIMessage,
+  ChatMessageViewState,
+  ChatSendInput,
   ChatBeforeSendInput,
   ChatBeforeSendHandler,
-  ChatConversationCreateInput,
-  ChatConversationRuntime,
-  ChatConversationSummary,
   ChatErrorHandler,
-  ChatHistoryRuntime,
-  ChatMcpRuntime,
-  ChatMessageRuntime,
-  ChatMessageViewState,
-  ChatModelRuntime,
-  ChatRuntime,
-  ChatRuntimeInput,
+  ChatAfterReceiveHandler,
+  ChatConversationSummary,
+  ChatConversationCreateInput,
+} from './message'
+
+// runtime types
+export type {
+  ChatConversationRuntime,
   ChatSenderRuntime,
-  ChatSendInput,
-  ChatUIMessage,
-  ChatUIMessageMeta,
-  ChatUIMessagePart,
-  ChatUIMessageRole,
+  ChatMessageRuntime,
+  ChatAttachmentsRuntime,
+  ChatHistoryRuntime,
+  ChatModelRuntime,
   ChatWorkspaceRegionRuntime,
   ChatWorkspaceRuntime,
-  CreateRuntimeFromConfigResult,
-  ReadonlyRef,
-  TrChatAttachmentsConfig,
-  TrChatConfig,
-  TrChatConversationConfig,
-  TrChatConfigEntryInput,
-  TrChatHistoryConfig,
-  TrChatLifecycleConfig,
-  TrChatMessagesConfig,
-  TrChatRequestConfig,
-  TrChatRequestModel,
-  TrChatRootProps,
+  ChatMcpRuntime,
+  ChatRuntimeInput,
+  ChatRuntime,
+} from './runtime'
+
+// config types
+export type {
   TrChatRootUiConfig,
-  TrChatSenderConfig,
+  TrChatRootProps,
+  TrChatRequestModel,
   TrChatTransportConfig,
+  TrChatRequestConfig,
+  TrChatConversationConfig,
   TrChatUiConfig,
+  TrChatSenderConfig,
+  TrChatAttachmentsConfig,
+  TrChatHistoryConfig,
   TrChatWorkspaceConfig,
-} from './root'
+  TrChatMessagesConfig,
+  TrChatLifecycleConfig,
+  TrChatConfig,
+  TrChatConfigEntryInput,
+  CreateRuntimeFromConfigResult,
+} from './config'

@@ -9,7 +9,7 @@ const jiti = createJiti(import.meta.url, {
   },
 })
 
-const { createChatUiContext } = await jiti.import('../../src/components/workspace/chatUiContext.ts')
+const { createChatUiContext } = await jiti.import('../../src/shared/context/chatUiContext.ts')
 
 await runTest('createChatUiContext treats a narrow workspace host as mobile even on desktop viewport', async () => {
   const previousWindow = globalThis.window

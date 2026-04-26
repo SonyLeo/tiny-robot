@@ -1,6 +1,6 @@
 import { computed, ref } from 'vue'
 import type { Attachment } from '@opentiny/tiny-robot'
-import { getChatMessageError, isChatMessageEditing, isChatMessageOptimistic } from '@/runtime/chat-kit/chatMessageState'
+import { getChatMessageError, isChatMessageEditing, isChatMessageOptimistic } from '@/runtime/engine/chatMessageState'
 import type {
   ChatMessageRuntime,
   ChatRuntime,
@@ -8,7 +8,7 @@ import type {
   ChatSendInput,
   ChatSenderRuntime,
   ChatUIMessage,
-} from '@/types/root'
+} from '@/types'
 
 function extractText(message: ChatUIMessage): string {
   return message.parts

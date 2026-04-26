@@ -66,6 +66,19 @@ export const CHAT_MESSAGES: ChatMessages = {
     defaultMessage: '发生错误',
     retry: '重试',
   },
+  mcp: {
+    triggerLabel: '扩展',
+    triggerActiveTitle: '已激活 {count} 个插件',
+    triggerInactiveTitle: '当前没有激活插件',
+    addPlugin: '添加新插件',
+    installPlugin: '安装更多插件',
+  },
+  sidebar: {
+    collapse: '折叠侧边栏',
+    close: '关闭侧边栏',
+    emptyTitle: '暂无扩展内容',
+    emptyDescription: '后续可在此查看文件、链接或扩展结果。',
+  },
 }
 
 export function resolveChatMessages(overrides?: ChatMessagesOverrides): ChatMessages {
@@ -85,6 +98,8 @@ export function resolveChatMessages(overrides?: ChatMessagesOverrides): ChatMess
     editMessage: { ...CHAT_MESSAGES.editMessage, ...overrides.editMessage },
     toolCall: { ...CHAT_MESSAGES.toolCall, ...overrides.toolCall },
     error: { ...CHAT_MESSAGES.error, ...overrides.error },
+    mcp: { ...CHAT_MESSAGES.mcp, ...overrides.mcp },
+    sidebar: { ...CHAT_MESSAGES.sidebar, ...overrides.sidebar },
   }
 }
 
