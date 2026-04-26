@@ -221,27 +221,26 @@ e2e 测试需要先启动 dev server（`pnpm -F tiny-robot-test dev`），再在
 
 ---
 
-## 阶段 5：测试改进
+## 阶段 5：Unit 测试基础设施重构
 
-目标：补充关键测试覆盖，改善测试基础设施。
+目标：统一测试工具函数，消除重复 mock 代码，降低后续测试的编写成本。
 
 ### 5.1 统一 fetch mock 封装（T7）
 
-- [ ] 在 `tests/_helpers.mjs` 中创建 `createMockFetch` 工具函数
+- [ ] 在 `tests/_helpers.mjs` 中创建 `createMockFetch` 工具函数，封装 `Object.defineProperty(globalThis, 'fetch', ...)` + 自动 cleanup
 - [ ] 重构 `root-runtime.test.mjs` 中 6 个测试的 fetch mock，使用统一封装
 - [ ] `pnpm -F @opentiny/tiny-robot-chat test`
 
-### 5.2 补充关键场景测试（T8 部分）
+### 5.2 抽取 createMockRuntime 工厂（T9）
 
-- [ ] 补充测试：`beforeSend` 返回 `false` 取消发送
-- [ ] 补充测试：`afterReceive` 在 `createRuntimeFromConfig` 路径的执行时机
-- [ ] 补充测试：`ChatProvider` 同时传 `transportAdapter` 和 `responseProvider` 的错误处理
+- [ ] 在 `tests/_helpers.mjs` 中创建 `createMockRuntime` 工厂函数，支持按需覆盖 conversation/sender/message/history 等子 runtime
+- [ ] 重构 `message-actions.test.mjs` 中 3 处手工 runtime mock（~40 行/处），使用统一工厂
 - [ ] `pnpm -F @opentiny/tiny-robot-chat test`
 
-### 5.3 抽取 createMockRuntime 工厂（T9）
+### 5.3 抽取 navigator.clipboard mock
 
-- [ ] 在 `tests/_helpers.mjs` 中创建 `createMockRuntime` 工厂函数
-- [ ] 重构 `message-actions.test.mjs` 中的手工 runtime mock
+- [ ] 在 `tests/_helpers.mjs` 中创建 `createMockClipboard` 工具函数
+- [ ] 重构 `message-runtime.test.mjs` 中的 clipboard mock
 - [ ] `pnpm -F @opentiny/tiny-robot-chat test`
 
 **阶段 5 完整验证：**
@@ -251,37 +250,214 @@ e2e 测试需要先启动 dev server（`pnpm -F tiny-robot-test dev`），再在
 
 ---
 
-## 阶段 6：代码质量改进
+## 阶段 6：Unit 测试覆盖补全
+
+目标：补充当前缺失的关键 unit 测试场景，确保核心运行时逻辑全覆盖。
+
+### 6.1 sendMessage 带 attachments 的 optimistic turn 标记
+
+- [ ] 补充测试：`useChatKit.sendMessage('content', { attachments: [...] })` 正确走 `markOptimisticTurn` 路径
+- [ ] 验证带附件发送的消息 `state.optimistic` 标记与无附件发送行为一致
+- [ ] `pnpm -F @opentiny/tiny-robot-chat test`
+
+### 6.2 beforeSend 返回 false 取消发送（T8）
+
+- [ ] 补充测试：`createRuntimeFromConfig` 路径下 `lifecycle.beforeSend` 返回 `false` 时，消息不发送、输入框不清空
+- [ ] 补充测试：`beforeSend` 返回 `{ text: 'rewritten' }` 时，发送的是重写后的文本
+- [ ] `pnpm -F @opentiny/tiny-robot-chat test`
+
+### 6.3 afterReceive 在 createRuntimeFromConfig 路径的执行时机（T8）
+
+- [ ] 补充测试：`lifecycle.afterReceive` 在 assistant 消息完成后被调用，且接收到正确的 ChatMessage
+- [ ] 补充测试：`lifecycle.error` 在请求失败时被调用
+- [ ] `pnpm -F @opentiny/tiny-robot-chat test`
+
+### 6.4 dispose() 后 effectScope 确实停止
+
+- [ ] 补充测试：调用 `createRuntimeFromConfig` 返回的 `dispose()` 后，内部 computed/watch 不再响应
+- [ ] 补充测试：`useTrChatConfigRuntimeResolution` 在 config 变化时，旧 runtime 的 dispose 被调用
+- [ ] `pnpm -F @opentiny/tiny-robot-chat test`
+
+### 6.5 ChatProvider 同时传 transportAdapter 和 responseProvider 的错误处理（T8）
+
+- [ ] 补充测试：`getProviderRuntimeResolution` 在两者同时存在时抛出明确错误
+- [ ] 补充测试：两者都不存在时抛出明确错误
+- [ ] `pnpm -F @opentiny/tiny-robot-chat test`
+
+### 6.6 conversation.regenerate 边界场景
+
+- [ ] 补充测试：`regenerate()` 无参数时重新生成最后一条 assistant 消息
+- [ ] 补充测试：`regenerate(messageIndex)` 指定非 assistant 消息时返回 false
+- [ ] 补充测试：空消息列表时 `regenerate()` 返回 false
+- [ ] `pnpm -F @opentiny/tiny-robot-chat test`
+
+### 6.7 createRootBootstrapState 的 fallback chatKit 行为
+
+- [ ] 补充测试：`createRootBootstrapState` 生成的 fallback chatKit 的 `sendMessage` 正确代理到 `runtime.sender.send`
+- [ ] 补充测试：fallback chatKit 的 `retry`/`regenerate` 正确代理到 `runtime.conversation`
+- [ ] 补充测试：fallback chatKit 的 `startEditMessage`/`cancelEditMessage` 正确代理到 `runtime.message`
+- [ ] `pnpm -F @opentiny/tiny-robot-chat test`
+
+### 6.8 chatUiContext workspace 区域状态管理
+
+- [ ] 补充测试：`createChatUiContext` 在 workspace 模式下，left/right region 的 open/close/toggle/collapse/expand 行为
+- [ ] 补充测试：`setResponsiveHost` 传入窄容器后 `isMobile` 变为 true
+- [ ] 补充测试：shell config 的 `collapseMode` 变化时，region 状态正确同步
+- [ ] `pnpm -F @opentiny/tiny-robot-chat test`
+
+### 6.9 resolveChatMessages 的 i18n 覆盖
+
+- [ ] 补充测试：`resolveChatMessages` 对新增的 `mcp` 和 `sidebar` 分组的部分覆盖合并
+- [ ] 补充测试：覆盖单个字段时不影响同分组的其他字段
+- [ ] `pnpm -F @opentiny/tiny-robot-chat test`
+
+**阶段 6 完整验证：**
+- [ ] `pnpm -F @opentiny/tiny-robot-chat type-check`
+- [ ] `pnpm -F @opentiny/tiny-robot-chat test`
+- [ ] `pnpm -F @opentiny/tiny-robot-chat build`
+
+---
+
+## 阶段 7：E2E 测试覆盖补全
+
+目标：按三条用户集成路径（黑盒 TrChat / 白盒 Root+Page / 细粒度 Root+primitives）系统性覆盖 props、slots 和交互流程。
+
+### 7.1 E2E 选择器迁移到 data-testid（E2）
+
+前置工作：消除 E2E 对 i18n 文案和 CSS 类名的依赖。
+
+- [ ] 为 `ChatHeader` 的历史按钮添加 `data-testid="chat-header-history-btn"`
+- [ ] 为 `ChatHeader` 的新建对话按钮添加 `data-testid="chat-header-new-chat-btn"`
+- [ ] 为 `ChatHeader` 的关闭按钮添加 `data-testid="chat-header-close-btn"`
+- [ ] 更新 `selectors.ts` 中的 `historyBtn`、`newChatBtn` 选择器
+- [ ] 更新 `testHelper.ts` 中受影响的方法
+- [ ] `pnpm -F tiny-robot-test test:chat:smoke`
+- [ ] `pnpm -F tiny-robot-test test:chat:scenario`
+
+### 7.2 白盒路径 slot 透传（新增 whitebox-slots.spec.ts）
+
+当前 WhiteboxScene 只用了 `TrChat.Root + TrChat.Page` 的最简形式，没有传任何 slot。
+
+- [ ] 新增 `WhiteboxSlotsScene.vue`，在 `TrChat.Page` 上传入 `#header-extra`、`#footer-extra`、`#sender`、`#message-list`、`#welcome` slot
+- [ ] 新增 `whitebox-slots.spec.ts`
+- [ ] 测试：`#header-extra` slot 内容在 Root+Page 路径下可见
+- [ ] 测试：`#footer-extra` slot 内容在 Root+Page 路径下可见
+- [ ] 测试：`#sender` slot 接收到 `send`/`status`/`lastError`/`retry` slot props 且可交互
+- [ ] 测试：`#message-list` slot 接收到 `messages` ref 且消息数量正确
+- [ ] 测试：`#welcome` slot 替换默认欢迎页
+- [ ] 测试：`TrChat.Page` 的 `messageListVariant` prop 生效（验证 DOM 属性）
+- [ ] `pnpm -F tiny-robot-test test:chat:scenario`
+
+### 7.3 error → retry 完整用户流程（新增 error-retry.spec.ts）
+
+当前 retry/regenerate 只有 unit 测试，缺少用户在界面上看到错误后点击重试的 E2E 验证。
+
+- [ ] 新增 `ErrorRetryScene.vue`，配置一个会在特定消息时返回 502 的 mock provider
+- [ ] 新增 `error-retry.spec.ts`
+- [ ] 测试：发送失败后，assistant 气泡显示错误状态
+- [ ] 测试：点击重试按钮后，错误消息被替换为正常回复
+- [ ] 测试：regenerate 按钮点击后，assistant 回复被重新生成
+- [ ] `pnpm -F tiny-robot-test test:chat:scenario`
+
+### 7.4 消息编辑完整用户流程（新增 message-edit.spec.ts）
+
+消息编辑是用户可见的交互流程，当前只有 unit 测试。
+
+- [ ] 新增 `MessageEditScene.vue`（或复用已有 scene）
+- [ ] 新增 `message-edit.spec.ts`
+- [ ] 测试：点击用户消息的编辑按钮，进入编辑模式
+- [ ] 测试：修改内容后保存，触发重新发送，assistant 回复更新
+- [ ] 测试：取消编辑后，消息恢复原始内容
+- [ ] `pnpm -F tiny-robot-test test:chat:scenario`
+
+### 7.5 appearance 模式切换（扩展 layout-config.spec.ts）
+
+ConditionalThemeProvider 的行为只有 contract 测试（字符串匹配），没有验证 DOM 属性变化。
+
+- [ ] 在 `LayoutConfigScene.vue` 中新增 `appearance.mode: 'system'` 的变体
+- [ ] 测试：`mode: 'dark'` 时 `.tr-chat` 的 `data-tr-color-mode` 为 `dark`（已有）
+- [ ] 测试：`mode: 'light'` 时 `data-tr-color-mode` 为 `light`
+- [ ] 测试：`mode: 'system'` 时 `data-tr-color-mode` 为 `auto`
+- [ ] 测试：不设置 mode 时不渲染 ThemeProvider（无 `data-tr-color-mode` 属性）
+- [ ] `pnpm -F tiny-robot-test test:chat:scenario`
+
+### 7.6 MessageList props 覆盖（新增 message-list-config.spec.ts）
+
+`role-configs` 和 `group-strategy` 是用户常用的定制点，当前无 E2E 覆盖。
+
+- [ ] 新增 `MessageListConfigScene.vue`，在细粒度路径下传入自定义 `role-configs`（自定义头像/名称）和 `group-strategy`
+- [ ] 新增 `message-list-config.spec.ts`
+- [ ] 测试：自定义 `role-configs` 的头像/名称在气泡中正确渲染
+- [ ] 测试：`group-strategy` 生效后，连续同角色消息被分组
+- [ ] 测试：`auto-scroll` 为 true 时，新消息到达后列表自动滚动到底部
+- [ ] `pnpm -F tiny-robot-test test:chat:scenario`
+
+### 7.7 Provider props 覆盖（扩展 surface-api.spec.ts）
+
+`TrChat.Provider` 是白盒集成的核心入口，当前只测了 `transport-adapter`。
+
+- [ ] 在 `SurfaceApiScene.vue` 中新增 `response-provider` prop 的变体（区别于 `transport-adapter`）
+- [ ] 在 `SurfaceApiScene.vue` 中新增 `shell` prop 的变体（Provider 级别的 workspace 配置）
+- [ ] 测试：`response-provider` prop 的发送链路正常工作
+- [ ] 测试：Provider 级别的 `shell` 配置生效（workspace 布局可见）
+- [ ] `pnpm -F tiny-robot-test test:chat:scenario`
+
+### 7.8 feedback actionMode 覆盖（扩展 feedback.spec.ts）
+
+当前只测了 `append` 模式，缺少 `replace` 模式的 E2E 验证。
+
+- [ ] 在 scene 中新增 `messages.actionMode: 'replace'` 的配置变体
+- [ ] 测试：`replace` 模式下，内置的 copy/refresh 按钮不显示，只显示自定义 action
+- [ ] `pnpm -F tiny-robot-test test:chat:scenario`
+
+### 7.9 TrChat.Page emit 覆盖
+
+- [ ] 在 `WhiteboxSlotsScene.vue` 中监听 `TrChat.Page` 的 `update:show` 和 `update:model` emit
+- [ ] 测试：点击 Header 关闭按钮触发 `update:show` 为 false
+- [ ] 测试：切换模型触发 `update:model` 且值正确
+- [ ] `pnpm -F tiny-robot-test test:chat:scenario`
+
+### 7.10 workspace 区域交互覆盖（扩展 workspace-slots.spec.ts）
+
+- [ ] 测试：desktop 下 left region collapse/expand 切换正常
+- [ ] 测试：desktop 下 right region 通过 header 按钮 toggle 正常
+- [ ] 测试：mobile 下 left drawer 打开后点击 overlay 关闭
+- [ ] 测试：mobile 下 right sheet 打开后点击 overlay 关闭
+- [ ] 测试：`left-rail` slot 在 collapsed 状态下可见
+- [ ] `pnpm -F tiny-robot-test test:chat:scenario`
+
+**阶段 7 完整验证：**
+- [ ] `pnpm -F @opentiny/tiny-robot-chat type-check`
+- [ ] `pnpm -F @opentiny/tiny-robot-chat test`
+- [ ] `pnpm -F @opentiny/tiny-robot-chat build`
+- [ ] `pnpm -F tiny-robot-test test:chat:smoke`
+- [ ] `pnpm -F tiny-robot-test test:chat:scenario`
+
+---
+
+## 阶段 8：代码质量改进
 
 目标：修复剩余的代码质量问题。
 
-### 6.1 改善默认 message runtime 空实现（I2）
+### 8.1 改善默认 message runtime 空实现（I2）
 
 - [ ] 在 `normalizeRuntime.ts` 的 `createDefaultMessageRuntime` 中，为 `startEdit`、`cancelEdit`、`commitEdit` 添加 `console.warn` 提示
 - [ ] `pnpm -F @opentiny/tiny-robot-chat type-check`
 - [ ] `pnpm -F @opentiny/tiny-robot-chat test`
 
-### 6.2 批量删除改并行（Q2）
+### 8.2 批量删除改并行（Q2）
 
 - [ ] 修改 `ChatHistoryPanel.vue` 的 `handleBatchDelete`，使用 `Promise.all` 并行删除
 - [ ] `pnpm -F @opentiny/tiny-robot-chat type-check`
 - [ ] `pnpm -F @opentiny/tiny-robot-chat test`
 
-### 6.3 useDefaultBubbleConfig VNode 缓存（Q1）
+### 8.3 useDefaultBubbleConfig VNode 缓存（Q1）
 
 - [ ] 对 `roles` 中的 avatar VNode 使用 `markRaw` 包裹
 - [ ] `pnpm -F @opentiny/tiny-robot-chat type-check`
 - [ ] `pnpm -F @opentiny/tiny-robot-chat test`
 
-### 6.4 E2E 选择器迁移到 data-testid（E2 部分）
-
-- [ ] 为 `ChatHeader` 的历史按钮和新建对话按钮添加 `data-testid`
-- [ ] 更新 `selectors.ts` 中的 `historyBtn` 和 `newChatBtn` 选择器
-- [ ] 更新 `testHelper.ts` 中受影响的方法
-- [ ] `pnpm -F tiny-robot-test test:chat:smoke`（history 相关用例）
-- [ ] `pnpm -F tiny-robot-test test:chat:scenario`
-
-**阶段 6 完整验证：**
+**阶段 8 完整验证：**
 - [ ] `pnpm -F @opentiny/tiny-robot-chat type-check`
 - [ ] `pnpm -F @opentiny/tiny-robot-chat test`
 - [ ] `pnpm -F @opentiny/tiny-robot-chat build`
