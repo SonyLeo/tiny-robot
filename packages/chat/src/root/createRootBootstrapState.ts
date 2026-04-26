@@ -284,7 +284,7 @@ export function createRootBootstrapState(
 
   return {
     chatKit: computed<UseChatKitReturn>(() => fallbackChatKit),
-    messages: computed<ChatMessagesOverrides | undefined>(() => uiRef.value?.copy),
+    messages: computed<ChatMessagesOverrides | undefined>(() => uiRef.value?.labels),
     shell: computed(() => createWorkspaceShellConfig(runtimeRef.value)),
     pageInputs: createPageInputs(uiRef, runtimeRef),
     attachmentsManager,

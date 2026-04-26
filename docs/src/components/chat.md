@@ -2,149 +2,103 @@
 outline: [2, 3]
 ---
 
-# Chat 接入与入口
+# Chat 快速开始
 
-`@opentiny/tiny-robot-chat` 现在只对外强调一条官方入口梯子：
+`@opentiny/tiny-robot-chat` 提供三种官方接入方式：
 
 1. `TrChat`
 2. `TrChat.Root + TrChat.Page`
 3. `TrChat.Root + primitives`
 
-如果你只是想先把聊天页跑起来，优先从 `TrChat` 开始。
+如果只需要快速启动一个聊天页，优先从 `TrChat` 开始。
 
 ## 什么时候看这一页
 
 适合：
 
 - 第一次接入 `@opentiny/tiny-robot-chat`
-- 想先跑通一个完整聊天页
-- 想先分清黑盒、白盒页面、细粒度白盒这三条入口
+- 快速搭建一个完整聊天页
+- 想先知道应该选哪条接入路径
 
 如果你更关心：
 
-- 每个配置字段写在哪里
-- sender / attachments / messages / workspace 这些功能域分别归谁
+- `TrChat` 能配置什么
+- `TrChatConfig` 每个字段负责什么
 
 继续看：
 
-- [Chat 配置与能力](./chat-features.md)
+- [Chat 配置](./chat-features.md)
 
 如果你更关心：
 
-- 如何自己装配页面
-- 如何用 `Provider`
-- 如何把 message transforms、MCP、sender extensions 这类能力接到白盒路径上
+- 想自己创建 runtime
+- 自定义页面结构
+- 想保留我们的 UI 和聊天行为，但自己接 transport
 
 继续看：
 
-- [Chat 定制与进阶](./chat-advanced.md)
+- [Chat 自定义](./chat-advanced.md)
 
-## 官方入口梯子
+## 如何选择入口
 
-| 目标 | 推荐入口 | 什么时候升级 |
+| 你的目标 | 推荐入口 | 什么时候升级 |
 | :-- | :-- | :-- |
-| 直接跑起完整聊天页 | `TrChat` | 默认页面结构不够用 |
-| 自己创建 runtime，但保留官方页面组合 | `TrChat.Root + TrChat.Page` | 需要自己排页面结构 |
-| 自己拼页面和叶子组件 | `TrChat.Root + primitives` | 需要更细粒度的 UI / runtime owner 控制 |
+| 快速启动完整聊天页 | `TrChat` | 默认页面结构不够用 |
+| 自己创建 runtime，但继续用官方页面 | `TrChat.Root + TrChat.Page` | 自定义页面结构结构 |
+| 自定义页面结构和叶子组件 | `TrChat.Root + primitives` | 已经是最细粒度路径 |
 
-## `TrChat` 现在只接受什么
+如果你想保留我们的 UI 和聊天行为，但需要自己接 transport / data-access，请看 [Chat 自定义](./chat-advanced.md) 里的 `TrChat.Provider(transportAdapter)`。
 
-黑盒 `TrChat` 现在只接受两种 `config` 形态：
+## `TrChat` 最小示例
 
-- target `TrChatConfig` 对象
-- target `TrChatConfig` 的序列化 JSON 字符串
+<demo vue="../../demos/chat/basic.vue" :vueFiles="['../../demos/chat/basic.vue']" title="默认接入" description="使用 TrChatConfig 直接跑起完整聊天页。" />
 
-不再属于黑盒官方合同的有：
+## `TrChat` 接受什么输入
 
-- 顶层 `runtime`
-- 顶层 `callbacks`
-- 顶层 `presetOverrides`
-- `TrChat.Scaffold` / `TrChatScaffold`
+`TrChat` 现在只接受两种 `config` 形态：
 
-如果你需要这些级别的控制，直接升级到：
+- `TrChatConfig` 对象
+- `TrChatConfig` 的序列化 JSON 字符串
 
-- `TrChat.Root + TrChat.Page`
-- `TrChat.Root + primitives`
-- 或 `TrChat.Provider`
+如果需要自行创建 runtime、自定义页面结构或对接 transport，不建议在 `TrChat` 上添加更多顶层参数，请直接升级到以下路径。
 
-## 黑盒最小示例
+## 最常改的配置
 
-<demo vue="../../demos/chat/blackbox.vue" :vueFiles="['../../demos/chat/blackbox.vue']" title="默认接入" description="使用 target TrChatConfig 直接跑起完整聊天页。" />
+大多数场景里，最常修改的配置域：
 
-这一层你最常写的是：
+- [`request`](./chat-features.md#request) — 模型、transport
+- [`conversation`](./chat-features.md#conversation) — 初始消息、持久化
+- [`ui`](./chat-features.md#ui) — 品牌、欢迎区、主题、文案
+- [`sender`](./chat-features.md#sender) — 输入区行为
+- [`attachments`](./chat-features.md#attachments) — 附件上传
+- [`history`](./chat-features.md#history) — 历史会话
+- [`workspace`](./chat-features.md#workspace) — 左右分栏布局
+- [`messages`](./chat-features.md#messages) — 消息动作、渲染、反馈
+- [`lifecycle`](./chat-features.md#lifecycle) — 发送前后钩子
 
-- `request`
-- `ui`
-- `sender`
-- `attachments`
-- `history`
-- `workspace`
-- `messages`
-- `lifecycle`
-
-## 黑盒 `TrChat` 的最小心智模型
-
-可以把它理解成：
-
-- `config` 只负责稳定默认值
-- `TrChat` 负责把 target `TrChatConfig` 变成官方 `Root + Page` 主路径
-
-也就是：
-
-`TrChat(config) -> createRuntimeFromConfig(config) -> TrChat.Root + TrChat.Page`
+完整字段参考见 [Chat 配置](./chat-features.md)。
 
 ## 什么时候升级到 `Root + Page`
 
-当你已经接受 target `TrChatConfig`，但还想：
+适合这些情况：
 
-- 自己决定 runtime 创建时机
-- 在页面外层再包一层业务容器
-- 把 `TrChat.Page` 当成官方页面组件使用
+- 你想自己决定 runtime 的创建时机
+- 你想把聊天页包在业务容器里
+- 你仍然想继续用官方页面结构
 
-最小示例：
-
-```vue
-<script setup lang="ts">
-import { TrChat, createRuntimeFromConfig } from '@opentiny/tiny-robot-chat'
-
-const config = {
-  request: {
-    models: [{ id: 'gpt-4.1-mini', providerId: 'openai', label: 'GPT-4.1 Mini' }],
-    defaultModelId: 'gpt-4.1-mini',
-    transport: {
-      type: 'openai-compatible',
-      endpoint: '/api/chat/completions',
-    },
-  },
-  ui: {
-    brand: { title: 'Internal Chat' },
-  },
-}
-
-const { runtime, ui } = createRuntimeFromConfig(config)
-</script>
-
-<template>
-  <TrChat.Root :runtime="runtime" :ui="ui">
-    <TrChat.Page />
-  </TrChat.Root>
-</template>
-```
+适合适合需要自行管理状态、但希望保留官方页面结构的场景。查看完整示例：[Chat Runtime + Slots](/examples/chat-runtime-and-slots)
 
 ## 什么时候升级到 `Root + primitives`
 
-当你需要：
+适合这些情况：
 
-- 自己排 `Header / MessageList / Footer / History / Workspace`
-- 在页面壳层里接自定义区域
-- 把 `TrChat.Sender`、`TrChat.MessageList`、`TrMcpTrigger` 这些叶子组件单独摆放
+- 你要自己排 `Header / MessageList / Footer / History / Workspace`
+- 你要在页面里插入自定义区域
+- 你要单独使用 `TrChat.Sender`、`TrChat.MessageList`、`TrMcpTrigger` 等叶子组件
 
-这条路径的核心约束是：
-
-- `Root` 提供 runtime 和 display-only `ui`
-- 叶子组件优先消费 owner-aligned runtime，而不是旧的 scaffold helper surface
+适合适合需要完全控制页面组合的场景。查看完整示例：[Chat Workspace 布局](/examples/chat-workspace-layout)
 
 ## 下一步看哪里
 
-- 查配置字段：看 [Chat 配置与能力](./chat-features.md)
-- 查白盒页面与 provider：看 [Chat 定制与进阶](./chat-advanced.md)
+- 想继续用 `TrChat`，先看 [Chat 配置](./chat-features.md)
+- 想升级到 `Root + Page`、`Root + primitives` 或 `Provider`，看 [Chat 自定义](./chat-advanced.md)

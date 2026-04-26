@@ -17,19 +17,17 @@ const chatConfig = {
     transport: {
       type: 'openai-compatible' as const,
       endpoint: '/api/chat/completions',
-      systemPrompt: 'You are a helpful assistant for the TinyRobot docs.',
+      systemPrompt: 'You are a helpful assistant.',
     },
   },
   ui: {
-    brand: {
-      title: 'TinyRobot Chat',
-    },
+    brand: { title: 'TinyRobot Chat' },
     welcome: {
       title: '欢迎使用 Chat 套件',
-      description: '这个示例直接使用 target TrChatConfig 走官方黑盒入口。',
+      description: '试试用 TrChatConfig 配置一个完整的聊天页。',
       prompts: [
         { label: '快速上手', description: '如何引入并配置 TrChat 组件？' },
-        { label: '流式响应', description: '演示一下打字机效果。' },
+        { label: '升级路径', description: '什么时候该用 Root + Page 或 Root + primitives？' },
       ],
     },
     contentLayout: 'centered' as const,
@@ -40,10 +38,7 @@ const chatConfig = {
     maxLength: 200,
     wordCount: true,
   },
-  history: {
-    enabled: true,
-    defaultOpen: false,
-  },
+  history: { enabled: true, defaultOpen: false },
 }
 </script>
 

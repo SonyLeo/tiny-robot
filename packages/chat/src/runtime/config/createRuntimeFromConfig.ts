@@ -583,7 +583,7 @@ export function createRuntimeFromConfig(config: TrChatConfig): CreateRuntimeFrom
         welcome: config.ui?.welcome,
         appearance: config.ui?.appearance,
         contentLayout: config.ui?.contentLayout,
-        copy: config.ui?.copy,
+        labels: config.ui?.labels,
       },
     }
   })

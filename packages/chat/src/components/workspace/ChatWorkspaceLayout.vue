@@ -11,6 +11,7 @@ import ChatWorkspaceRightPanel from './ChatWorkspaceRightPanel.vue'
 import ChatWorkspaceRightSheet from './ChatWorkspaceRightSheet.vue'
 import ChatWorkspaceSidebar from './ChatWorkspaceSidebar.vue'
 import ChatWorkspaceSidebarRail from './ChatWorkspaceSidebarRail.vue'
+import ChatWorkspaceSidebarShell from './ChatWorkspaceSidebarShell.vue'
 
 defineOptions({ name: 'TrChatWorkspaceLayout' })
 
@@ -79,23 +80,26 @@ function handleRightCollapsedChange(value: boolean) {
       @update:right-collapsed="handleRightCollapsedChange"
     >
       <template #left>
-        <slot name="left">
-          <ChatWorkspaceSidebar :mobile="false" :title="props.sidebarTitle" />
-        </slot>
+        <ChatWorkspaceSidebarShell v-if="$slots.left" :mobile="false" :title="props.sidebarTitle">
+          <slot name="left" />
+        </ChatWorkspaceSidebarShell>
+        <ChatWorkspaceSidebar v-else :mobile="false" :title="props.sidebarTitle" />
       </template>
 
       <template #left-rail>
-        <slot name="left-rail">
-          <ChatWorkspaceSidebarRail />
-        </slot>
+        <ChatWorkspaceSidebarRail v-if="$slots['left-rail']">
+          <slot name="left-rail" />
+        </ChatWorkspaceSidebarRail>
+        <ChatWorkspaceSidebarRail v-else />
       </template>
 
       <slot />
 
       <template #right>
-        <slot name="right">
-          <ChatWorkspaceRightPanel :mobile="false" />
-        </slot>
+        <ChatWorkspaceRightPanel v-if="$slots.right" :mobile="false">
+          <slot name="right" />
+        </ChatWorkspaceRightPanel>
+        <ChatWorkspaceRightPanel v-else :mobile="false" />
       </template>
     </WorkspaceShell>
 

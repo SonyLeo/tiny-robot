@@ -238,7 +238,7 @@ export interface TrChatRootUiConfig {
   welcome?: WelcomeConfig
   appearance?: ChatAppearanceConfig
   contentLayout?: ChatContentLayout
-  copy?: ChatMessagesOverrides
+  labels?: ChatMessagesOverrides
 }
 
 export interface TrChatRootProps {

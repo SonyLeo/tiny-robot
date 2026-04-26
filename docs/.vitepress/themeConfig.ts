@@ -40,12 +40,12 @@ const sharedSidebarItems = [
     ],
   },
   {
-    text: 'Chat Suite',
+    text: 'Chat 套件',
     base: '/components/',
     items: [
-      { text: 'Chat 接入与入口', link: 'chat' },
-      { text: 'Chat 配置与能力', link: 'chat-features' },
-      { text: 'Chat 定制与进阶', link: 'chat-advanced' },
+      { text: 'Chat 快速开始', link: 'chat' },
+      { text: 'Chat 配置', link: 'chat-features' },
+      { text: 'Chat 自定义', link: 'chat-advanced' },
     ],
   },
 ]
@@ -64,7 +64,12 @@ const sidebar = {
     {
       text: '演示',
       base: '/examples/',
-      items: [{ text: '综合示例', link: 'assistant' }],
+      items: [
+        { text: '综合示例', link: 'assistant' },
+        { text: 'Chat 基础', link: 'chat-basic' },
+        { text: 'Chat Runtime + Slots', link: 'chat-runtime-and-slots' },
+        { text: 'Chat Workspace 布局', link: 'chat-workspace-layout' },
+      ],
     },
   ],
   '/migration/': [

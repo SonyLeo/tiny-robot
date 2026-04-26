@@ -38,6 +38,7 @@ function handleCreateConversation() {
     >
       <IconNewSession />
     </button>
+    <slot />
   </div>
 </template>
 
