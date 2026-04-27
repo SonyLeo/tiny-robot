@@ -4,6 +4,11 @@
     <div data-testid="chat-feedback-replace" class="chat-wrapper">
       <TrChat :config="replaceModeConfig" />
     </div>
+
+    <!-- usage panel: assistant messages with usage metadata show the info icon -->
+    <div data-testid="chat-feedback-usage" class="chat-wrapper">
+      <TrChat :config="usagePanelConfig" />
+    </div>
   </div>
 </template>
 
@@ -30,6 +35,19 @@ const replaceModeConfig = computed(() =>
         },
       ],
       actionMode: 'replace',
+    },
+  }),
+)
+
+const usagePanelConfig = computed(() =>
+  createOfficialSceneConfig({
+    brandTitle: 'Usage Panel',
+    welcomeTitle: 'Usage Panel Test',
+    welcomeDescription: 'Send "usage-test" to get a reply with usage metadata.',
+    messages: {
+      feedback: {
+        enabled: true,
+      },
     },
   }),
 )

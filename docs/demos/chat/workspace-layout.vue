@@ -30,7 +30,11 @@
             @prompt-click="resolution.runtime.conversation.send({ text: $event })"
           />
 
-          <TrChat.MessageList v-else variant="workspace" />
+          <TrChat.MessageList v-else variant="workspace">
+            <template #after="slotProps">
+              <TrChatFeedback v-bind="slotProps" />
+            </template>
+          </TrChat.MessageList>
 
           <TrChat.Footer>
             <TrChat.Sender>
@@ -47,7 +51,7 @@
 
 <script setup lang="ts">
 import { computed, provide } from 'vue'
-import { TrChat, TrMcpTrigger, useMcpManager, createRuntimeFromConfig } from '@opentiny/tiny-robot-chat'
+import { TrChat, TrMcpTrigger, TrChatFeedback, useMcpManager, createRuntimeFromConfig } from '@opentiny/tiny-robot-chat'
 import { MCP_MANAGER_KEY } from '@opentiny/tiny-robot-chat/internal'
 import FullscreenToggle from './FullscreenToggle.vue'
 import WorkspaceLeftPanel from './WorkspaceLeftPanel.vue'

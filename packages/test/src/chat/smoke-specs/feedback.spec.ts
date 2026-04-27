@@ -131,3 +131,109 @@ test.describe('Chat Feedback Feature (replace mode)', () => {
     await expect(operationBtns.first()).toContainText('自定义操作')
   })
 })
+
+// Usage panel tests
+test.describe('Chat Feedback — Usage Panel', () => {
+  let helper: ReturnType<typeof createChatTestHelper>
+
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/?chatMode=feedback')
+    await page.locator('nav').getByRole('link').nth(2).click()
+    await expect(page.locator('h2')).toContainText('Chat')
+    helper = createChatTestHelper(page)
+    await page.locator('[data-testid="chat-feedback-usage"]').waitFor()
+  })
+
+  const root = '[data-testid="chat-feedback-usage"] .tr-chat'
+
+  function getUsageTrigger(page: Page) {
+    return page
+      .locator(`${root} .tr-bubble[data-role="assistant"]`)
+      .getByTestId('chat-feedback')
+      .locator('.tr-chat-usage__trigger')
+  }
+
+  test('usage icon is absent when the reply carries no usage metadata', async ({ page }) => {
+    // "no-usage" does not trigger the usage branch in the mock server
+    await helper.sendMessage('no-usage', root)
+    await helper.waitForStreamingComplete(root)
+
+    const trigger = getUsageTrigger(page)
+    await expect(trigger).toHaveCount(0)
+  })
+
+  test('usage icon appears after a reply that includes usage metadata', async ({ page }) => {
+    await helper.sendMessage('usage-test', root)
+    await helper.waitForStreamingComplete(root)
+
+    const trigger = getUsageTrigger(page)
+    await expect(trigger).toHaveCount(1)
+    await expect(trigger).toBeVisible()
+  })
+
+  test('hovering the usage icon reveals the panel with token counts', async ({ page }) => {
+    await helper.sendMessage('usage-test', root)
+    await helper.waitForStreamingComplete(root)
+
+    const trigger = getUsageTrigger(page)
+    await trigger.hover()
+
+    const panel = page
+      .locator(`${root} .tr-bubble[data-role="assistant"]`)
+      .getByTestId('chat-feedback')
+      .locator('.tr-chat-usage__panel')
+
+    await expect(panel).toBeVisible()
+    await expect(panel).toContainText('输入 Token')
+    await expect(panel).toContainText('42')
+    await expect(panel).toContainText('输出 Token')
+    await expect(panel).toContainText('88')
+    await expect(panel).toContainText('总计 Token')
+    await expect(panel).toContainText('130')
+  })
+
+  test('panel disappears when the cursor leaves the usage icon', async ({ page }) => {
+    await helper.sendMessage('usage-test', root)
+    await helper.waitForStreamingComplete(root)
+
+    const trigger = getUsageTrigger(page)
+    await trigger.hover()
+
+    const panel = page
+      .locator(`${root} .tr-bubble[data-role="assistant"]`)
+      .getByTestId('chat-feedback')
+      .locator('.tr-chat-usage__panel')
+
+    await expect(panel).toBeVisible()
+
+    // Move cursor away
+    await page.mouse.move(0, 0)
+    await expect(panel).not.toBeVisible()
+  })
+
+  test('usage icon is not shown on user messages', async ({ page }) => {
+    await helper.sendMessage('usage-test', root)
+    await helper.waitForStreamingComplete(root)
+
+    const userUsageTrigger = page
+      .locator(`${root} .tr-bubble[data-role="user"]`)
+      .getByTestId('chat-feedback')
+      .locator('.tr-chat-usage__trigger')
+
+    await expect(userUsageTrigger).toHaveCount(0)
+  })
+
+  test('usage icon is not shown while the assistant is still streaming', async ({ page }) => {
+    // Start a message but don't wait for completion
+    await helper.typeMessage('usage-test', root)
+    await helper.clickSend(root)
+
+    // During streaming the feedback area itself is hidden, so usage icon must not exist
+    const trigger = getUsageTrigger(page)
+    await expect(trigger).toHaveCount(0)
+
+    // Confirm it appears after streaming finishes
+    await helper.waitForStreamingComplete(root)
+    await expect(trigger).toHaveCount(1)
+  })
+})

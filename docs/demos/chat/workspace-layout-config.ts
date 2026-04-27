@@ -37,7 +37,18 @@ export const chatConfig: TrChatConfig = {
       },
       {
         role: 'assistant',
-        content: '使用 TrChat.WorkspaceLayout 的 #left 和 #right slots 替换默认侧边栏，中间放 TrChat.Layout 即可。',
+        content:
+          '使用 TrChat.WorkspaceLayout 的 #left 和 #right slots 替换默认侧边栏，中间放 TrChat.Layout 即可。将鼠标悬停在下方反馈栏的 ℹ 图标上，可以查看本条回复的用量信息。',
+        metadata: {
+          model: 'gpt-4.1-mini',
+          usage: {
+            prompt_tokens: 128,
+            completion_tokens: 56,
+            total_tokens: 184,
+          },
+          choices: [{ finish_reason: 'stop' }],
+          createdAt: Math.floor(Date.now() / 1000),
+        },
       },
     ],
   },

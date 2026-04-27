@@ -510,8 +510,37 @@ messages: {
 | `actions` | `ChatMessageActionDefinition[]` | 自定义消息动作按钮列表 |
 | `actionMode` | `'append' \| 'replace'` | 动作模式。`append` 在默认动作后追加，`replace` 完全替换 |
 | `renderers` | `ChatBubbleRenderers` | 自定义消息渲染器 |
-| `feedback` | `{ enabled?: boolean }` | 消息反馈配置（复制、编辑、重新生成等） |
+| `feedback` | `{ enabled?: boolean }` | 消息反馈配置（复制、编辑、重新生成、用量面板） |
 | `transforms` | `ChatMessageTransforms` | 消息变换钩子 |
+
+#### `messages.feedback`
+
+| 字段 | 类型 | 默认值 | 说明 |
+|---|---|---|---|
+| `enabled` | `boolean` | `true` | 是否显示消息反馈区（复制、编辑、重新生成按钮） |
+
+feedback 区域包含以下内置能力：
+
+- **复制**：复制消息内容到剪贴板
+- **编辑**（user 消息）：进入消息编辑模式
+- **重新生成**（assistant 消息）：重新触发本轮回复
+- **用量面板**（assistant 消息）：悬浮在 ℹ 图标上，展示本条回复的模型名称、结束原因、时间、输入 / 输出 / 总计 Token
+
+用量面板是**自动行为**，不需要额外配置。只要后端响应的 `ChatCompletion` 对象里包含 `usage` 字段，面板就会自动出现：
+
+```json
+{
+  "model": "gpt-4.1-mini",
+  "choices": [{ "finish_reason": "stop", ... }],
+  "usage": {
+    "prompt_tokens": 128,
+    "completion_tokens": 56,
+    "total_tokens": 184
+  }
+}
+```
+
+大多数兼容 OpenAI 格式的接口默认会返回 `usage`，无需任何额外处理。
 
 #### `messages.actions[]`
 

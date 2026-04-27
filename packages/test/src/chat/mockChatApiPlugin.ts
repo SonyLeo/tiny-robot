@@ -132,14 +132,21 @@ async function streamMockChatResponse(
     return
   }
 
-  writeSseEvent(
-    res,
-    createChunk({
-      content: undefined,
-      finishReason: 'stop',
-      model,
-    }),
-  )
+  const finalChunk: ReturnType<typeof createChunk> & { usage?: unknown } = createChunk({
+    content: undefined,
+    finishReason: 'stop',
+    model,
+  })
+
+  if (userMessage.includes('usage-test')) {
+    finalChunk.usage = {
+      prompt_tokens: 42,
+      completion_tokens: 88,
+      total_tokens: 130,
+    }
+  }
+
+  writeSseEvent(res, finalChunk)
   res.write('data: [DONE]\n\n')
   res.end()
 }
