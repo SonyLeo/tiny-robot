@@ -20,7 +20,7 @@
     </div>
 
     <div class="stage">
-      <tr-bubble-provider :box-renderer-matches="boxRendererMatches">
+      <tr-bubble-provider :box-attributes="boxAttributes">
         <tr-bubble-list ref="bubbleListRef" class="conversation-list" :messages="messages" :role-configs="roles" />
       </tr-bubble-provider>
 
@@ -46,8 +46,7 @@ import {
   TrBubbleList,
   TrBubbleProvider,
   TrContentNav,
-  BubbleRenderers,
-  type BubbleBoxRendererMatch,
+  type BubbleBoxAttributesConfig,
   type BubbleMessage,
   type BubbleRoleConfig,
 } from '@opentiny/tiny-robot'
@@ -110,24 +109,17 @@ const contentNavItems = userMessages.map((message) => {
   }
 })
 
-const boxRendererMatches = [
-  {
-    find: (groupedMessages) => groupedMessages[0]?.role === 'user',
-    renderer: BubbleRenderers.Box,
-    priority: 999,
-    attributes: (groupedMessages) => {
-      const firstMessage = groupedMessages[0]
-      if (typeof firstMessage?.id !== 'string') {
-        return undefined
-      }
+const boxAttributes: BubbleBoxAttributesConfig = (groupedMessages) => {
+  const firstMessage = groupedMessages[0]
+  if (firstMessage?.role !== 'user' || typeof firstMessage.id !== 'string') {
+    return undefined
+  }
 
-      return {
-        class: styles.userBubbleTarget,
-        'data-content-nav-id': firstMessage.id,
-      }
-    },
-  },
-] satisfies BubbleBoxRendererMatch[]
+  return {
+    class: styles.userBubbleTarget,
+    'data-content-nav-id': firstMessage.id,
+  }
+}
 </script>
 
 <style module lang="less">
