@@ -3,6 +3,7 @@ import createJiti from 'jiti'
 import {
   assert,
   createMemoryStorage,
+  createMockClipboard,
   createRetryableProvider,
   createStreamingProvider,
   ensureRuntimeMessageId,
@@ -110,18 +111,7 @@ await runTest('createMessageRuntimeFromChatKit exposes canonical view-state and 
     },
   })
 
-  const originalNavigatorDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'navigator')
-  const copied = []
-  Object.defineProperty(globalThis, 'navigator', {
-    configurable: true,
-    value: {
-      clipboard: {
-        writeText: async (value) => {
-          copied.push(value)
-        },
-      },
-    },
-  })
+  const { copied, restore: restoreClipboard } = createMockClipboard()
 
   try {
     chatKit.sendMessage('hello')
@@ -170,10 +160,6 @@ await runTest('createMessageRuntimeFromChatKit exposes canonical view-state and 
       assert.equal(viewState?.capabilities?.feedbackable, true)
     })
   } finally {
-    if (originalNavigatorDescriptor) {
-      Object.defineProperty(globalThis, 'navigator', originalNavigatorDescriptor)
-    } else {
-      Reflect.deleteProperty(globalThis, 'navigator')
-    }
+    restoreClipboard()
   }
 })

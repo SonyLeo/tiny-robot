@@ -84,3 +84,28 @@ test.describe('Chat Layout Config', () => {
     )
   })
 })
+
+// 7.5: appearance mode variants
+test.describe('Chat Appearance Mode', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/?chatMode=layout-config')
+    await page.locator('nav').getByRole('link').nth(2).click()
+    await expect(page.locator('h2')).toContainText('Chat')
+    await page.locator('[data-testid="chat-layout-appearance-light"]').waitFor()
+  })
+
+  test('mode: light sets data-tr-color-mode to light', async ({ page }) => {
+    const root = '[data-testid="chat-layout-appearance-light"] .tr-chat'
+    await expect(page.locator(root)).toHaveAttribute('data-tr-color-mode', 'light')
+  })
+
+  test('mode: system sets data-tr-appearance-mode to system', async ({ page }) => {
+    const root = '[data-testid="chat-layout-appearance-system"] .tr-chat'
+    await expect(page.locator(root)).toHaveAttribute('data-tr-appearance-mode', 'system')
+  })
+
+  test('no appearance mode means no data-tr-color-mode attribute', async ({ page }) => {
+    const root = '[data-testid="chat-layout-appearance-none"] .tr-chat'
+    await expect(page.locator(root)).not.toHaveAttribute('data-tr-color-mode')
+  })
+})

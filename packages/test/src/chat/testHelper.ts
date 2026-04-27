@@ -236,6 +236,13 @@ export function createChatTestHelper(page: Page, options: ChatTestHelperOptions 
     await btn.click()
   }
 
+  /** 点击关闭按钮 */
+  const clickCloseBtn = async (root: string = selectors.trChatChat) => {
+    const btn = page.locator(root).locator(selectors.closeBtn)
+    await btn.waitFor({ state: 'visible', timeout: defaultTimeout })
+    await btn.click()
+  }
+
   /** 检查历史条目数量 */
   const expectHistoryItemCount = async (count: number, root: string = selectors.trChatChat) => {
     await clickHistoryBtn(root)
@@ -389,6 +396,7 @@ export function createChatTestHelper(page: Page, options: ChatTestHelperOptions 
     expectDrawerOpen,
     clickOverlayToClose,
     clickNewChat,
+    clickCloseBtn,
     expectHistoryItemCount,
     clickHistoryItem,
 

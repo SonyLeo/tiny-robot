@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { fileURLToPath } from 'node:url'
 import createJiti from 'jiti'
 import { runTest } from '../_harness.mjs'
-import { waitFor } from '../_helpers.mjs'
+import { createMockFetch, waitFor } from '../_helpers.mjs'
 
 const jiti = createJiti(import.meta.url, {
   alias: {
@@ -240,49 +240,7 @@ await runTest('Phase 1B root baseline exposes history models workspace runtime a
 })
 
 await runTest('createRuntimeFromConfig keeps messageTransforms active on the Root runtime send path', async () => {
-  const originalFetchDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'fetch')
-  const encoder = new TextEncoder()
-
-  Object.defineProperty(globalThis, 'fetch', {
-    configurable: true,
-    value: async (_input, init) => {
-      const requestBody = JSON.parse(String(init?.body ?? '{}'))
-      const lastMessage = requestBody.messages?.[requestBody.messages.length - 1]?.content ?? ''
-      const reply = `reply:${lastMessage}`
-      const chunks = [
-        `data: ${JSON.stringify({
-          id: 'mock-transform',
-          object: 'chat.completion.chunk',
-          created: 0,
-          model: 'mock-model',
-          choices: [{ index: 0, delta: { role: 'assistant', content: reply }, finish_reason: null }],
-        })}\n\n`,
-        `data: ${JSON.stringify({
-          id: 'mock-transform',
-          object: 'chat.completion.chunk',
-          created: 0,
-          model: 'mock-model',
-          choices: [{ index: 0, delta: {}, finish_reason: 'stop' }],
-        })}\n\n`,
-        'data: [DONE]\n\n',
-      ]
-
-      return new Response(
-        new ReadableStream({
-          start(controller) {
-            chunks.forEach((chunk) => controller.enqueue(encoder.encode(chunk)))
-            controller.close()
-          },
-        }),
-        {
-          status: 200,
-          headers: {
-            'content-type': 'text/event-stream',
-          },
-        },
-      )
-    },
-  })
+  const { restore } = createMockFetch()
 
   try {
     const { runtime } = createRuntimeFromConfig({
@@ -317,61 +275,13 @@ await runTest('createRuntimeFromConfig keeps messageTransforms active on the Roo
       assert.equal(runtime.conversation.messages.value[1]?.raw?.metadata?.transformedBy, 'createRuntimeFromConfig')
     })
   } finally {
-    if (originalFetchDescriptor) {
-      Object.defineProperty(globalThis, 'fetch', originalFetchDescriptor)
-    } else {
-      Reflect.deleteProperty(globalThis, 'fetch')
-    }
+    restore()
   }
 })
 
 await runTest('createRuntimeFromConfig beforeSend only receives text and can rewrite the outbound text', async () => {
-  const originalFetchDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'fetch')
-  const encoder = new TextEncoder()
-  const requests = []
   const beforeSendInputs = []
-
-  Object.defineProperty(globalThis, 'fetch', {
-    configurable: true,
-    value: async (_input, init) => {
-      const requestBody = JSON.parse(String(init?.body ?? '{}'))
-      requests.push(requestBody)
-      const lastMessage = requestBody.messages?.[requestBody.messages.length - 1]?.content ?? ''
-      const reply = `reply:${lastMessage}`
-      const chunks = [
-        `data: ${JSON.stringify({
-          id: 'mock-before-send',
-          object: 'chat.completion.chunk',
-          created: 0,
-          model: requestBody.model,
-          choices: [{ index: 0, delta: { role: 'assistant', content: reply }, finish_reason: null }],
-        })}\n\n`,
-        `data: ${JSON.stringify({
-          id: 'mock-before-send',
-          object: 'chat.completion.chunk',
-          created: 0,
-          model: requestBody.model,
-          choices: [{ index: 0, delta: {}, finish_reason: 'stop' }],
-        })}\n\n`,
-        'data: [DONE]\n\n',
-      ]
-
-      return new Response(
-        new ReadableStream({
-          start(controller) {
-            chunks.forEach((chunk) => controller.enqueue(encoder.encode(chunk)))
-            controller.close()
-          },
-        }),
-        {
-          status: 200,
-          headers: {
-            'content-type': 'text/event-stream',
-          },
-        },
-      )
-    },
-  })
+  const { requests, restore } = createMockFetch()
 
   try {
     const { runtime } = createRuntimeFromConfig({
@@ -408,70 +318,23 @@ await runTest('createRuntimeFromConfig beforeSend only receives text and can rew
     assert.deepEqual(beforeSendInputs, [{ text: 'original-before-send' }])
     assert.equal(requests[0]?.messages?.at(-1)?.content, 'rewritten:original-before-send')
   } finally {
-    if (originalFetchDescriptor) {
-      Object.defineProperty(globalThis, 'fetch', originalFetchDescriptor)
-    } else {
-      Reflect.deleteProperty(globalThis, 'fetch')
-    }
+    restore()
   }
 })
 
 await runTest('createRuntimeFromConfig conversation.retry(messageId) only retries the targeted failed turn', async () => {
-  const originalFetchDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'fetch')
-  const encoder = new TextEncoder()
   let failureCount = 0
-  const requests = []
-
-  Object.defineProperty(globalThis, 'fetch', {
-    configurable: true,
-    value: async (_input, init) => {
-      const requestBody = JSON.parse(String(init?.body ?? '{}'))
-      requests.push(requestBody)
+  const { requests, restore } = createMockFetch({
+    handler: (requestBody) => {
       const lastMessage = requestBody.messages?.[requestBody.messages.length - 1]?.content ?? ''
-
       if (lastMessage === 'retry-target' && failureCount === 0) {
         failureCount += 1
         return new Response(JSON.stringify({ error: { message: 'temporary retryable failure' } }), {
           status: 502,
-          headers: {
-            'content-type': 'application/json',
-          },
+          headers: { 'content-type': 'application/json' },
         })
       }
-
-      const reply = `reply:${lastMessage}`
-      const chunks = [
-        `data: ${JSON.stringify({
-          id: 'mock-retry-target',
-          object: 'chat.completion.chunk',
-          created: 0,
-          model: requestBody.model,
-          choices: [{ index: 0, delta: { role: 'assistant', content: reply }, finish_reason: null }],
-        })}\n\n`,
-        `data: ${JSON.stringify({
-          id: 'mock-retry-target',
-          object: 'chat.completion.chunk',
-          created: 0,
-          model: requestBody.model,
-          choices: [{ index: 0, delta: {}, finish_reason: 'stop' }],
-        })}\n\n`,
-        'data: [DONE]\n\n',
-      ]
-
-      return new Response(
-        new ReadableStream({
-          start(controller) {
-            chunks.forEach((chunk) => controller.enqueue(encoder.encode(chunk)))
-            controller.close()
-          },
-        }),
-        {
-          status: 200,
-          headers: {
-            'content-type': 'text/event-stream',
-          },
-        },
-      )
+      return undefined // fall through to default SSE reply
     },
   })
 
@@ -506,26 +369,16 @@ await runTest('createRuntimeFromConfig conversation.retry(messageId) only retrie
       assert.equal(requests.length, 2)
     })
   } finally {
-    if (originalFetchDescriptor) {
-      Object.defineProperty(globalThis, 'fetch', originalFetchDescriptor)
-    } else {
-      Reflect.deleteProperty(globalThis, 'fetch')
-    }
+    restore()
   }
 })
 
 await runTest('createRuntimeFromConfig updates the active request provider after runtime model switches', async () => {
-  const originalFetchDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'fetch')
-  const requests = []
-  const encoder = new TextEncoder()
-
-  Object.defineProperty(globalThis, 'fetch', {
-    configurable: true,
-    value: async (_input, init) => {
-      const requestBody = JSON.parse(String(init?.body ?? '{}'))
-      requests.push(requestBody)
-
-      const reply = `[${requestBody.model}] ${requestBody.messages?.[requestBody.messages.length - 1]?.content ?? ''}`
+  const { requests, restore } = createMockFetch({
+    handler: (requestBody) => {
+      const lastMessage = requestBody.messages?.[requestBody.messages.length - 1]?.content ?? ''
+      const reply = `[${requestBody.model}] ${lastMessage}`
+      const encoder = new TextEncoder()
       const chunks = [
         `data: ${JSON.stringify({
           id: 'mock-model-switch',
@@ -543,7 +396,6 @@ await runTest('createRuntimeFromConfig updates the active request provider after
         })}\n\n`,
         'data: [DONE]\n\n',
       ]
-
       return new Response(
         new ReadableStream({
           start(controller) {
@@ -551,12 +403,7 @@ await runTest('createRuntimeFromConfig updates the active request provider after
             controller.close()
           },
         }),
-        {
-          status: 200,
-          headers: {
-            'content-type': 'text/event-stream',
-          },
-        },
+        { status: 200, headers: { 'content-type': 'text/event-stream' } },
       )
     },
   })
@@ -595,26 +442,16 @@ await runTest('createRuntimeFromConfig updates the active request provider after
     assert.equal(requests[1]?.model, 'deepseek-test')
     assert.equal(runtime.conversation.messages.value.at(-1)?.parts[0]?.text, '[deepseek-test] model-b')
   } finally {
-    if (originalFetchDescriptor) {
-      Object.defineProperty(globalThis, 'fetch', originalFetchDescriptor)
-    } else {
-      Reflect.deleteProperty(globalThis, 'fetch')
-    }
+    restore()
   }
 })
 
 await runTest('createRuntimeFromConfig uses the newly selected provider when the first send creates a conversation', async () => {
-  const originalFetchDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'fetch')
-  const requests = []
-  const encoder = new TextEncoder()
-
-  Object.defineProperty(globalThis, 'fetch', {
-    configurable: true,
-    value: async (_input, init) => {
-      const requestBody = JSON.parse(String(init?.body ?? '{}'))
-      requests.push(requestBody)
-
-      const reply = `[${requestBody.model}] ${requestBody.messages?.[requestBody.messages.length - 1]?.content ?? ''}`
+  const { requests, restore } = createMockFetch({
+    handler: (requestBody) => {
+      const lastMessage = requestBody.messages?.[requestBody.messages.length - 1]?.content ?? ''
+      const reply = `[${requestBody.model}] ${lastMessage}`
+      const encoder = new TextEncoder()
       const chunks = [
         `data: ${JSON.stringify({
           id: 'mock-first-send-model-switch',
@@ -632,7 +469,6 @@ await runTest('createRuntimeFromConfig uses the newly selected provider when the
         })}\n\n`,
         'data: [DONE]\n\n',
       ]
-
       return new Response(
         new ReadableStream({
           start(controller) {
@@ -640,12 +476,7 @@ await runTest('createRuntimeFromConfig uses the newly selected provider when the
             controller.close()
           },
         }),
-        {
-          status: 200,
-          headers: {
-            'content-type': 'text/event-stream',
-          },
-        },
+        { status: 200, headers: { 'content-type': 'text/event-stream' } },
       )
     },
   })
@@ -679,10 +510,6 @@ await runTest('createRuntimeFromConfig uses the newly selected provider when the
     assert.equal(requests[0]?.model, 'deepseek-test')
     assert.equal(runtime.conversation.messages.value.at(-1)?.parts[0]?.text, '[deepseek-test] first-model-switch')
   } finally {
-    if (originalFetchDescriptor) {
-      Object.defineProperty(globalThis, 'fetch', originalFetchDescriptor)
-    } else {
-      Reflect.deleteProperty(globalThis, 'fetch')
-    }
+    restore()
   }
 })

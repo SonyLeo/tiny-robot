@@ -2,8 +2,8 @@ import { expect, test, type Page } from '@playwright/test'
 import { createChatTestHelper } from '../testHelper'
 import { openChatSmokeScene } from './openChatSmokeScene'
 
-const SAVE_CASE_LABEL = '\u4fdd\u5b58\u5230\u6848\u4f8b\u5e93'
-const CREATE_TICKET_LABEL = '\u521b\u5efa\u5de5\u5355'
+const SAVE_CASE_LABEL = '保存到案例库'
+const CREATE_TICKET_LABEL = '创建工单'
 
 function getAssistantFeedback(root: string, page: Page) {
   return page.locator(`${root} .tr-bubble[data-role="assistant"]`).getByTestId('chat-feedback')
@@ -99,5 +99,35 @@ test.describe('Chat Feedback Feature (granular)', () => {
     await expect(assistantFeedback).toHaveCount(1)
     await expect(assistantFeedback).toBeVisible()
     await expect(assistantFeedback.locator('.tr-feedback__operations-right button')).toHaveCount(2)
+  })
+})
+
+// 7.8: feedback actionMode replace
+test.describe('Chat Feedback Feature (replace mode)', () => {
+  let helper: ReturnType<typeof createChatTestHelper>
+
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/?chatMode=feedback')
+    await page.locator('nav').getByRole('link').nth(2).click()
+    await expect(page.locator('h2')).toContainText('Chat')
+    helper = createChatTestHelper(page)
+    await page.locator('[data-testid="chat-feedback-replace"]').waitFor()
+  })
+
+  test('replace mode suppresses built-in copy and refresh buttons and shows only custom actions', async ({ page }) => {
+    const root = '[data-testid="chat-feedback-replace"] .tr-chat'
+
+    await helper.sendMessage('replace-mode-test', root)
+    await helper.waitForStreamingComplete(root)
+
+    const assistantFeedback = page.locator(`${root} .tr-bubble[data-role="assistant"]`).getByTestId('chat-feedback')
+    await expect(assistantFeedback).toHaveCount(1)
+    await expect(assistantFeedback).toBeVisible()
+
+    // In replace mode, built-in copy/refresh should not appear
+    // Only the custom action should be present
+    const operationBtns = assistantFeedback.locator('.tr-feedback__operations-left button')
+    await expect(operationBtns).toHaveCount(1)
+    await expect(operationBtns.first()).toContainText('自定义操作')
   })
 })

@@ -49,12 +49,14 @@ The promoted official-path Playwright gate now includes:
   - demo entry and `chatMode` router only
 - `scenarios/`
   - scene components and shared demo fixtures
+- `smoke-specs/`
+  - smoke-level Playwright specs (entry, history, lifecycle, attachments, feedback, model-switch)
 - `scenario-specs/`
-  - all Playwright specs, including smoke and feature-specific scenarios
+  - feature-specific Playwright specs
 - `testHelper.ts`
   - shared chat interaction helpers
 - `scenario-specs/openChatSmokeScene.ts`
-  - shared smoke-only chat-entry and mode-open helper for both `demo-nav` and `component-test` entry variants
+  - shared smoke-only chat-entry and mode-open helper for both `demo-nav` and `component-test` entry variants (now in `smoke-specs/`)
 - `selectors.ts`
   - stable selectors reused across specs
 - `scenarios/useStableSceneRuntime.ts`

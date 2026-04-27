@@ -2,222 +2,191 @@
 
 Status: active working inventory.
 
-This file is the file-level audit of the current chat test suites.
+这个文件是当前 chat 测试套件的文件级清单。
 
-Use it together with:
+配合以下文档使用：
 
-- `./test-governance-standard.md`
-  for the lasting design rules
-- `./test-boundary-baseline.md`
-  for the current gate policy and boundary handoff matrix
-- `./test-gap-backlog.md`
-  for the concrete missing-coverage and suite-normalization queue derived from this audit
+- `./test-governance-standard.md` — 持久设计规则
+- `./test-boundary-baseline.md` — 当前 gate 策略和 boundary handoff 矩阵
 
-This file answers one narrower question:
+## `packages/chat/tests` 目录结构
 
-- where does every current test or test-support file belong right now?
+```
+tests/
+  runtime/           # runtime 语义、请求行为、会话状态
+  contracts/         # 公开 contract 证明、source-of-truth 断言
+  integration/       # 挂载 owner-path 证明
+  _harness.mjs       # 最小 runner/harness
+  _helpers.mjs       # 共享 import/helper（含 createMockFetch / createMockRuntime / createMockClipboard）
+  _stubs/            # SSR/import 隔离 stub
+  css-loader.mjs     # 挂载测试的样式 loader
+  run-all.mjs        # package-local 测试 runner
+```
 
-It is intentionally more detailed and more inventory-like than `test-boundary-baseline.md`.
-
-## Audit Fields
-
-Each file is tagged with:
-
-- `layer`
-  runtime / contracts / integration / smoke / scenario / support
-- `status`
-  keep / adapt / retire / support
-- `gate`
-  hard / smoke / scenario / secondary / none
-- `path`
-  which official or retained advanced path it primarily protects
-
-## `packages/chat/tests` Audit
+## `packages/chat/tests` 文件清单
 
 ### Runtime
 
-| File | Layer | Status | Gate | Path | Notes |
-| --- | --- | --- | --- | --- | --- |
-| `runtime/trchat-config-entry.test.mjs` | runtime | keep | hard | `TrChat` | `TrChat` config-entry classification and target-config contract |
-| `runtime/composables.test.mjs` | runtime | keep | hard | runtime-owned conversation/request/sender | core runtime flow proof, including first-send conversation creation and provider continuity |
-| `runtime/message-actions.test.mjs` | runtime | keep | hard | runtime message extensions | built-in/custom message action ownership |
-| `runtime/message-runtime.test.mjs` | runtime | keep | hard | runtime message identity | `messageId` view-state, edit, copy, retry bridge |
-| `runtime/message-transforms.test.mjs` | runtime | keep | hard | runtime transforms | chunk/final transform semantics |
-| `runtime/openai-compatible-transport.test.mjs` | runtime | keep | hard | transport factory | supported request transport and error surface |
-| `runtime/provider-response-provider.test.mjs` | runtime | keep | hard | retained advanced `TrChat.Provider` | supported `responseProvider` branch only |
-| `runtime/render-message-normalization.test.mjs` | runtime | keep | hard | runtime render messages | normalized render-message/source-message mapping |
-| `runtime/root-runtime.test.mjs` | runtime | keep | hard | `Root + Page`, `Root + primitives` | root bootstrap, sender/history/model/runtime ownership |
-| `runtime/trchat-config-runtime-resolution.test.mjs` | runtime | keep | hard | `TrChat` | same-config runtime continuity guard for the `TrChat` config entry |
+| 文件 | Status | Gate | 保护路径 | 说明 |
+| --- | --- | --- | --- | --- |
+| `runtime/trchat-config-entry.test.mjs` | keep | hard | `TrChat` | config-entry 分类和 target-config contract |
+| `runtime/trchat-config-runtime-resolution.test.mjs` | keep | hard | `TrChat` | 同 config 下 runtime 连续性守卫 |
+| `runtime/root-runtime.test.mjs` | keep | hard | `Root + Page`, `Root + primitives` | root bootstrap、sender/history/model/runtime 所有权 |
+| `runtime/composables.test.mjs` | keep | hard | runtime-owned conversation/request/sender | 核心 runtime 流程证明 |
+| `runtime/message-actions.test.mjs` | keep | hard | runtime message extensions | 内置/自定义 message action 所有权 |
+| `runtime/message-runtime.test.mjs` | keep | hard | runtime message identity | messageId view-state、edit、copy、retry bridge |
+| `runtime/message-transforms.test.mjs` | keep | hard | runtime transforms | chunk/final transform 语义 |
+| `runtime/openai-compatible-transport.test.mjs` | keep | hard | transport factory | 支持的请求 transport 和错误面 |
+| `runtime/provider-response-provider.test.mjs` | keep | hard | 保留高级 `TrChat.Provider` | 支持的 responseProvider 分支 |
+| `runtime/render-message-normalization.test.mjs` | keep | hard | runtime render messages | 规范化 render-message/source-message 映射 |
+| `runtime/chatkit-coverage.test.mjs` | keep | hard | useChatKit | sendMessage attachments optimistic turn、regenerate 边界 |
+| `runtime/lifecycle-coverage.test.mjs` | keep | hard | createRuntimeFromConfig lifecycle | beforeSend/afterReceive/error 时机、dispose effectScope |
+| `runtime/root-bootstrap-coverage.test.mjs` | keep | hard | createRootBootstrapState | fallback chatKit 代理行为 |
 
 ### Contracts
 
-| File | Layer | Status | Gate | Path | Notes |
-| --- | --- | --- | --- | --- | --- |
-| `contracts/appearance-runtime.test.mjs` | contracts | keep | hard | official display config | appearance/runtime contract alignment |
-| `contracts/chat-messages.test.mjs` | contracts | keep | hard | shared copy contract | centralized text/messages contract |
-| `contracts/chat-ui-context.test.mjs` | contracts | keep | hard | workspace UI context contract | narrow responsive-host/mobile shell behavior and reactive shell-sync proof for the official workspace path |
-| `contracts/mcp-panel-positioning.test.mjs` | contracts | keep | hard | MCP UI contract | panel positioning and MCP-facing affordances |
-| `contracts/public-surface.test.mjs` | contracts | keep | hard | public package surface | export contract and retired-surface proof |
-| `contracts/renderer-registry.test.mjs` | contracts | keep | hard | renderer contract | runtime-owned renderer registry proof |
-| `contracts/theme-token-contract.test.mjs` | contracts | keep | hard | appearance/theming | theme token contract |
-| `contracts/workspace-slot-contract.test.mjs` | contracts | keep | hard | workspace slot contract | desktop/mobile slot rules and owner region inputs |
+| 文件 | Status | Gate | 保护路径 | 说明 |
+| --- | --- | --- | --- | --- |
+| `contracts/public-surface.test.mjs` | keep | hard | public package surface | 导出 contract 和已退役面证明 |
+| `contracts/renderer-registry.test.mjs` | keep | hard | renderer contract | runtime-owned renderer registry 证明 |
+| `contracts/chat-messages.test.mjs` | keep | hard | shared copy contract | 集中文案 contract |
+| `contracts/chat-ui-context.test.mjs` | keep | hard | workspace UI context contract | 响应式 host/mobile shell 行为 |
+| `contracts/chat-ui-context-coverage.test.mjs` | keep | hard | workspace UI context | workspace region open/close/toggle/collapse/expand |
+| `contracts/chat-messages-coverage.test.mjs` | keep | hard | shared copy contract | mcp/sidebar 分组的部分覆盖合并 |
+| `contracts/mcp-panel-positioning.test.mjs` | keep | hard | MCP UI contract | panel 定位和 MCP affordances |
+| `contracts/workspace-slot-contract.test.mjs` | keep | hard | workspace slot contract | 桌面/移动端 slot 规则和 owner region inputs |
+| `contracts/appearance-runtime.test.mjs` | keep | hard | official display config | appearance/runtime contract 对齐 |
+| `contracts/theme-token-contract.test.mjs` | keep | hard | appearance/theming | theme token contract |
 
 ### Integration
 
-| File | Layer | Status | Gate | Path | Notes |
-| --- | --- | --- | --- | --- | --- |
-| `integration/root-page-mounted.test.mjs` | integration | keep | hard | `Root + Page`, `Root + primitives`, retained advanced provider | mounted owner-path, granular composition, and retained `TrChat.Provider(responseProvider)` leaf-composition proof |
-| `integration/trchat-entry-root-page.test.mjs` | integration | keep | hard | `TrChat` | `TrChat`-to-Root+Page handoff proof |
+| 文件 | Status | Gate | 保护路径 | 说明 |
+| --- | --- | --- | --- | --- |
+| `integration/root-page-mounted.test.mjs` | keep | hard | `Root + Page`, `Root + primitives`, 保留高级 provider | 挂载 owner-path、granular 组合、保留 `TrChat.Provider(responseProvider)` 叶组合证明 |
+| `integration/trchat-entry-root-page.test.mjs` | keep | hard | `TrChat` | `TrChat` 到 Root+Page 的 handoff 证明 |
 
 ### Support Files
 
-| File | Layer | Status | Gate | Path | Notes |
-| --- | --- | --- | --- | --- | --- |
-| `run-all.mjs` | support | support | none | n/a | package-local test runner |
-| `_harness.mjs` | support | support | none | n/a | minimal runner/harness |
-| `_helpers.mjs` | support | support | none | n/a | shared imports/helpers for package tests |
-| `css-loader.mjs` | support | support | none | n/a | loader helper for style-bearing mounted tests |
-| `_stubs/empty-module.mjs` | support | support | none | n/a | SSR/import stub |
-| `_stubs/markstream-vue.mjs` | support | support | none | n/a | SSR/import stub |
-| `_stubs/tiny-robot.mjs` | support | support | none | mounted contract proof | component stub used by package-local mounted tests |
+| 文件 | Status | 说明 |
+| --- | --- | --- |
+| `run-all.mjs` | support | package-local 测试 runner |
+| `_harness.mjs` | support | 最小 runner/harness |
+| `_helpers.mjs` | support | 共享 import/helper，含 `createMockFetch` / `createMockRuntime` / `createMockClipboard` |
+| `css-loader.mjs` | support | 挂载测试的样式 loader |
+| `_stubs/empty-module.mjs` | support | SSR/import stub |
+| `_stubs/markstream-vue.mjs` | support | SSR/import stub |
+| `_stubs/tiny-robot.mjs` | support | 挂载 contract 测试用的组件 stub |
 
-## `packages/test/src/chat` Audit
+---
 
-### Smoke Specs
+## `packages/test/src/chat` 目录结构
 
-| File | Layer | Status | Gate | Path | Notes |
-| --- | --- | --- | --- | --- | --- |
-| `scenario-specs/index.spec.ts` | smoke | keep | smoke | entry ladder | top-level scene switching and official entry visibility |
-| `scenario-specs/history.spec.ts` | smoke | keep | smoke | `TrChat` / Root + Page / granular | history, reset, mobile drawer, retained conversation flow |
-| `scenario-specs/request-lifecycle.spec.ts` | smoke | keep | smoke | `TrChat` / Root + Page / granular | send, abort, retry, optimistic state, lifecycle logs, including retained granular request proof |
-| `scenario-specs/attachments.spec.ts` | smoke | keep | smoke | `TrChat` / granular | upload, pending list, send/reset clearing on retained `TrChat` and granular paths |
-| `scenario-specs/feedback.spec.ts` | smoke | keep | smoke | `TrChat` / Root + Page / granular | assistant feedback visibility and custom operations, including retained granular feedback proof |
-| `scenario-specs/model-switch.spec.ts` | smoke | keep | smoke | `TrChat` / Root + Page | dropdown behavior, model switch continuity, provider alignment |
+```
+src/chat/
+  smoke-specs/       # smoke 级别 Playwright spec（入口、历史、生命周期、附件、feedback、模型切换）
+  scenario-specs/    # feature 级别 Playwright spec
+  scenarios/         # Vue scene 组件和共享 demo fixture
+  index.vue          # demo 入口和 chatMode 路由
+  mockChatApiPlugin.ts
+  mockProvider.ts
+  selectors.ts
+  testHelper.ts
+  README.md
+```
 
-### Extended Flow Specs
+## `packages/test/src/chat` 文件清单
 
-| File | Layer | Status | Gate | Path | Notes |
-| --- | --- | --- | --- | --- | --- |
-| `scenario-specs/sender-actions.spec.ts` | scenario | keep | scenario | `TrChat` / Root + Page / granular | sender config and retained sender affordance proof |
+### Smoke Specs（`smoke-specs/`）
 
-### Scenario Specs
+| 文件 | Status | Gate | 保护路径 | 说明 |
+| --- | --- | --- | --- | --- |
+| `smoke-specs/index.spec.ts` | keep | smoke | entry ladder | 顶层场景切换和官方入口可见性 |
+| `smoke-specs/history.spec.ts` | keep | smoke | `TrChat` / Root+Page / granular | history、reset、mobile drawer、会话流程 |
+| `smoke-specs/request-lifecycle.spec.ts` | keep | smoke | `TrChat` / Root+Page / granular | send、abort、retry、optimistic state、lifecycle logs |
+| `smoke-specs/attachments.spec.ts` | keep | smoke | `TrChat` / granular | upload、pending list、send/reset 清空 |
+| `smoke-specs/feedback.spec.ts` | keep | smoke | `TrChat` / Root+Page / granular | assistant feedback 可见性和自定义操作 |
+| `smoke-specs/model-switch.spec.ts` | keep | smoke | `TrChat` / Root+Page | 下拉行为、模型切换连续性、provider 对齐 |
+| `smoke-specs/openChatSmokeScene.ts` | support | none | smoke chat-entry bootstrap | 共享 smoke-only chat-entry 和 mode-switch helper |
 
-| File | Layer | Status | Gate | Path | Notes |
-| --- | --- | --- | --- | --- | --- |
-| `scenario-specs/layout-config.spec.ts` | scenario | keep | scenario | `TrChat` / Root + Page / granular | current display/layout contract only; old layout.variant/placements semantics already dropped |
-| `scenario-specs/mcp-feature.spec.ts` | scenario | keep | scenario | retained advanced + granular | MCP trigger and panel behavior |
-| `scenario-specs/message-transforms.spec.ts` | scenario | keep | scenario | `TrChat` / Root + Page / granular | visible transform behavior on official paths |
-| `scenario-specs/renderer-registry.spec.ts` | scenario | keep | scenario | `TrChat` / Root + Page / granular | renderer registry in real browser flows |
-| `scenario-specs/sender-extensions.spec.ts` | scenario | keep | scenario | granular + retained advanced provider | sender suggestion/extensibility flows |
-| `scenario-specs/surface-api.spec.ts` | scenario | keep | scenario | official ladder + retained advanced provider | slots, provider branch, granular composition, runtime diagnostics |
-| `scenario-specs/welcome-prompts.spec.ts` | scenario | keep | scenario | `TrChat` / Root + Page | prompt rendering, prompt send, welcome slot boundary |
-| `scenario-specs/workspace-slots.spec.ts` | scenario | keep | scenario | `TrChat` workspace | slot/fallback behavior for desktop and mobile workspace regions |
+### Scenario Specs（`scenario-specs/`）
 
-### Support Specs / App Entrypoint
-
-| File | Layer | Status | Gate | Path | Notes |
-| --- | --- | --- | --- | --- | --- |
-| `index.vue` | support | support | none | test app router | top-level demo/test-app entry, should stay thin |
+| 文件 | Status | Gate | 保护路径 | 说明 |
+| --- | --- | --- | --- | --- |
+| `scenario-specs/sender-actions.spec.ts` | keep | scenario | `TrChat` / Root+Page / granular | sender config 和 sender affordance 证明 |
+| `scenario-specs/layout-config.spec.ts` | keep | scenario | `TrChat` / Root+Page / granular | display/layout contract；含 light/dark/system/no-mode appearance 变体 |
+| `scenario-specs/mcp-feature.spec.ts` | keep | scenario | 保留高级 + granular | MCP trigger 和 panel 行为 |
+| `scenario-specs/message-transforms.spec.ts` | keep | scenario | `TrChat` / Root+Page / granular | 官方路径上的可见 transform 行为 |
+| `scenario-specs/renderer-registry.spec.ts` | keep | scenario | `TrChat` / Root+Page / granular | 真实浏览器中的 renderer registry |
+| `scenario-specs/sender-extensions.spec.ts` | keep | scenario | granular + 保留高级 provider | sender suggestion/extensibility 流程 |
+| `scenario-specs/surface-api.spec.ts` | keep | scenario | 官方 ladder + 保留高级 provider | slots、provider branch、granular 组合、runtime diagnostics |
+| `scenario-specs/welcome-prompts.spec.ts` | keep | scenario | `TrChat` / Root+Page | prompt 渲染、prompt send、welcome slot 边界 |
+| `scenario-specs/workspace-slots.spec.ts` | keep | scenario | `TrChat` workspace | 桌面和移动端 workspace region 的 slot/fallback 行为；含 7.10 region 交互覆盖 |
+| `scenario-specs/whitebox-slots.spec.ts` | keep | scenario | `Root + Page` | TrChat.Page slot 透传：header-extra、footer-extra、sender、message-list、welcome、variant、emit |
+| `scenario-specs/error-retry.spec.ts` | keep | scenario | `TrChat` | error 状态显示、retry 替换错误消息、regenerate 重新生成 |
+| `scenario-specs/message-edit.spec.ts` | keep | scenario | `TrChat` | 进入编辑模式、保存触发重发、取消恢复原内容 |
+| `scenario-specs/message-list-config.spec.ts` | keep | scenario | `Root + primitives` | 自定义 role-configs avatar、group-strategy 分组、auto-scroll |
 
 ### Shared Fixtures And Helpers
 
-| File | Layer | Status | Gate | Path | Notes |
-| --- | --- | --- | --- | --- | --- |
-| `mockChatApiPlugin.ts` | support | support | none | request mocking | app-level transport stub for browser tests |
-| `mockProvider.ts` | support | support | none | retained advanced provider | provider fixture for provider-branch scenes |
-| `selectors.ts` | support | keep | none | shared locator contract | now narrowed to selectors used by the retained smoke/scenario gate; old workspace-shell-only selectors, the unused top-level surface-api switch selector, and zero-call convenience selectors have retired |
-| `testHelper.ts` | support | keep | none | shared actions/waits | stays action-focused for the retained gate; old workspace-shell-only helpers, the unused top-level surface-api switch helper, and zero-call convenience assertions have retired |
-| `scenario-specs/openChatSmokeScene.ts` | support | keep | none | smoke chat-entry bootstrap | shared smoke-only chat-entry and mode-switch helper for `TrChat` / `Root + Page` / `Root + primitives`, including both `demo-nav` and `component-test` entry variants |
-| `README.md` | support | keep | none | suite guidance | suite-specific usage and routing |
-| `scenarios/useStableSceneRuntime.ts` | support | keep | none | scene runtime bootstrap | shared stable runtime-resolution helper for scene-local `createRuntimeFromConfig(config)` usage |
-| `scenarios/useSceneWelcomeState.ts` | support | keep | none | scene welcome visibility | shared welcome-state helper for retained scenes that gate between welcome and message-list regions |
+| 文件 | Status | 说明 |
+| --- | --- | --- |
+| `index.vue` | support | demo/test-app 入口，保持精简 |
+| `mockChatApiPlugin.ts` | support | 浏览器测试的 app 级 transport stub |
+| `mockProvider.ts` | support | 保留高级 provider 的 provider fixture |
+| `selectors.ts` | keep | 共享 locator contract |
+| `testHelper.ts` | keep | 共享 actions/waits，含 `clickCloseBtn` |
+| `README.md` | keep | 套件使用指南 |
 
-### Scene Fixtures
+### Scene Fixtures（`scenarios/`）
 
-| File | Layer | Status | Gate | Path | Notes |
-| --- | --- | --- | --- | --- | --- |
-| `scenarios/officialSceneConfig.ts` | support | keep | none | shared official config | canonical scene config defaults |
-| `scenarios/TrChatScene.vue` | support | keep | none | `TrChat` | official `TrChat` scene root |
-| `scenarios/WhiteboxScene.vue` | support | keep | none | `Root + Page` | official whitebox scene root |
-| `scenarios/GranularScene.vue` | support | keep | none | `Root + primitives` | official granular scene root |
-| `scenarios/LayoutConfigScene.vue` | support | keep | none | feature scene | layout/display scene fixture |
-| `scenarios/McpFeatureScene.vue` | support | keep | none | feature scene | MCP scene fixture |
-| `scenarios/MessageTransformsScene.vue` | support | keep | none | feature scene | transform scene fixture |
-| `scenarios/RendererRegistryScene.vue` | support | keep | none | feature scene | renderer scene fixture |
-| `scenarios/SenderExtensionsScene.vue` | support | keep | none | feature scene | sender extension scene fixture |
-| `scenarios/SurfaceApiScene.vue` | support | keep | none | feature + retained advanced scene | slot/provider/runtime diagnostics scene fixture |
-| `scenarios/WelcomePromptsScene.vue` | support | keep | none | feature scene | welcome prompts fixture |
-| `scenarios/WorkspaceSlotsScene.vue` | support | keep | none | feature scene | workspace slot fixture |
-
-### Scene Ownership And Reuse Map
-
-Use this map before touching `scenarios/*.vue`.
-Its goal is to make the current reuse pattern explicit so future cleanup does not guess which scene is safe to merge or retire.
-
-| Scene | Consuming specs | Role now | Retirement note |
+| 文件 | Status | 消费 spec | 说明 |
 | --- | --- | --- | --- |
-| `TrChatScene.vue` | `scenario-specs/index.spec.ts`, `scenario-specs/history.spec.ts`, `scenario-specs/request-lifecycle.spec.ts`, `scenario-specs/attachments.spec.ts`, `scenario-specs/feedback.spec.ts`, `scenario-specs/model-switch.spec.ts`, `scenario-specs/sender-actions.spec.ts` | shared official `TrChat` root scene | do not retire or merge while the smoke gate still switches through the top-level router |
-| `WhiteboxScene.vue` | `scenario-specs/index.spec.ts`, `scenario-specs/history.spec.ts`, `scenario-specs/request-lifecycle.spec.ts`, `scenario-specs/feedback.spec.ts`, `scenario-specs/model-switch.spec.ts`, `scenario-specs/sender-actions.spec.ts` | shared official `Root + Page` root scene | do not retire or merge while smoke specs still prove the whitebox ladder |
-| `GranularScene.vue` | `scenario-specs/index.spec.ts`, `scenario-specs/history.spec.ts` | shared official `Root + primitives` root scene | keep as the shared granular root until a dedicated smoke replacement exists |
-| `LayoutConfigScene.vue` | `scenario-specs/layout-config.spec.ts` | dedicated feature fixture | one-to-one with its scenario spec; eligible only if that spec retires or is absorbed elsewhere |
-| `McpFeatureScene.vue` | `scenario-specs/mcp-feature.spec.ts` | dedicated feature fixture | one-to-one with its scenario spec; keep while MCP remains in the retained scenario gate |
-| `MessageTransformsScene.vue` | `scenario-specs/message-transforms.spec.ts` | dedicated feature fixture | one-to-one with its scenario spec |
-| `RendererRegistryScene.vue` | `scenario-specs/renderer-registry.spec.ts` | dedicated feature fixture | one-to-one with its scenario spec |
-| `SenderExtensionsScene.vue` | `scenario-specs/sender-extensions.spec.ts` | dedicated feature fixture | one-to-one with its scenario spec |
-| `SurfaceApiScene.vue` | `scenario-specs/surface-api.spec.ts`, `scenario-specs/sender-actions.spec.ts` | shared advanced/leaf-composition fixture | not an orphan; keep while both the surface-api gate and granular sender-config proof rely on it |
-| `WelcomePromptsScene.vue` | `scenario-specs/welcome-prompts.spec.ts` | dedicated feature fixture | one-to-one with its scenario spec |
-| `WorkspaceSlotsScene.vue` | `scenario-specs/workspace-slots.spec.ts` | dedicated feature fixture | one-to-one with its scenario spec |
+| `scenarios/officialSceneConfig.ts` | keep | 所有 scene | 规范 scene config 默认值 |
+| `scenarios/useStableSceneRuntime.ts` | keep | 多个 scene | 共享稳定 runtime-resolution helper |
+| `scenarios/useSceneWelcomeState.ts` | keep | 多个 scene | 共享 welcome/message-list 切换 helper |
+| `scenarios/TrChatScene.vue` | keep | smoke-specs/index, history, request-lifecycle, attachments, feedback, model-switch, sender-actions | 官方 `TrChat` 根场景 |
+| `scenarios/WhiteboxScene.vue` | keep | smoke-specs/index, history, request-lifecycle, feedback, model-switch, sender-actions | 官方 `Root + Page` 根场景 |
+| `scenarios/GranularScene.vue` | keep | smoke-specs/index, history | 官方 `Root + primitives` 根场景 |
+| `scenarios/LayoutConfigScene.vue` | keep | scenario-specs/layout-config | layout/display 场景 fixture；含 light/system/no-mode 变体 |
+| `scenarios/McpFeatureScene.vue` | keep | scenario-specs/mcp-feature | MCP 场景 fixture |
+| `scenarios/MessageTransformsScene.vue` | keep | scenario-specs/message-transforms | transform 场景 fixture |
+| `scenarios/RendererRegistryScene.vue` | keep | scenario-specs/renderer-registry | renderer 场景 fixture |
+| `scenarios/SenderExtensionsScene.vue` | keep | scenario-specs/sender-extensions | sender extension 场景 fixture |
+| `scenarios/SurfaceApiScene.vue` | keep | scenario-specs/surface-api, sender-actions | 共享高级/叶组合 fixture |
+| `scenarios/WelcomePromptsScene.vue` | keep | scenario-specs/welcome-prompts | welcome prompts fixture |
+| `scenarios/WorkspaceSlotsScene.vue` | keep | scenario-specs/workspace-slots | workspace slot fixture（含 mobile-override 变体） |
+| `scenarios/WhiteboxSlotsScene.vue` | keep | scenario-specs/whitebox-slots | TrChat.Page slot 透传 fixture；含 close emit 变体 |
+| `scenarios/ErrorRetryScene.vue` | keep | scenario-specs/error-retry | error/retry/regenerate 场景 fixture |
+| `scenarios/MessageEditScene.vue` | keep | scenario-specs/message-edit | 消息编辑场景 fixture；预置 initialMessages |
+| `scenarios/MessageListConfigScene.vue` | keep | scenario-specs/message-list-config | role-configs/group-strategy/auto-scroll 场景 fixture |
+| `scenarios/FeedbackScene.vue` | keep | smoke-specs/feedback | feedback replace mode 场景 fixture |
+| `scenarios/WorkspaceInteractionScene.vue` | keep | scenario-specs/workspace-slots | 单实例全宽 workspace 交互场景（避免 grid 布局导致 isMobile=true） |
 
-Current conclusion:
+## 当前清理建议
 
-- there is no orphan `scenarios/*.vue` file in the retained gate
-- the next safe scene cleanup slice should target duplication inside a concrete scene pair, not broad scene deletion
+### 冻结的 Gate 命令
 
-## Current Cleanup Recommendations
+```bash
+# smoke
+pnpm -F tiny-robot-test test:chat:smoke
+pnpm -F tiny-robot-test test:chat:smoke:full
 
-### Frozen Gate Commands
+# scenario
+pnpm -F tiny-robot-test test:chat:scenario
+pnpm -F tiny-robot-test test:chat:scenario:full
+```
 
-The retained Playwright gate is now frozen into named package scripts:
+两个命令现在分别指向 `src/chat/smoke-specs` 和 `src/chat/scenario-specs` 目录，不再逐个列出文件。
 
-- smoke:
-  `pnpm.cmd -F tiny-robot-test test:chat:smoke:full`
-- smoke stable fallback:
-  `pnpm.cmd -F tiny-robot-test test:chat:smoke`
-- scenario:
-  `pnpm.cmd -F tiny-robot-test test:chat:scenario:full`
-- scenario stable fallback:
-  `pnpm.cmd -F tiny-robot-test test:chat:scenario`
+### 安全保留
 
-### Safe To Keep As-Is
+- 所有当前 hard-gate package tests
+- 当前 smoke gate
+- 当前 scenario gate
+- 官方 scene fixture 和 support helper
 
-- all current hard-gate package tests
-- the current smoke gate
-- the current scenario gate
-- official scene fixtures and support helpers
+### 暂不退役
 
-### Support Surface Already Trimmed
-
-- `packages/chat/tests/_stubs/chat-scaffold.mjs` has retired
-- `packages/test/src/chat/selectors.ts` no longer carries the old workspace-shell-only selector branch
-- `packages/test/src/chat/testHelper.ts` no longer exports the old workspace-shell-only action/assertion branch
-- the top-level `surface-api` demo mode still exists in `index.vue`, but it is no longer mirrored as a shared switch helper because retained specs route to that scene directly
-- zero-call convenience assertions such as prompt-layout, avatar, unused accessibility checks, and unused message-count helpers have also retired from `testHelper.ts`
-- retained `scenarios/*.vue` files that own `createRuntimeFromConfig(config)` now share `scenarios/useStableSceneRuntime.ts` instead of mixing `computed(runtime)` and scene-local watcher variants
-- retained scenes that switch between welcome and message-list regions now share `scenarios/useSceneWelcomeState.ts` instead of repeating the same message-count computed branch
-- retained smoke specs now share `scenario-specs/openChatSmokeScene.ts` instead of repeating the same chat-entry and mode-open boilerplate
-
-### Adapt Next
-
-- no unresolved file-level `adapt` item remains inside `packages/chat/tests`
-
-### Do Not Retire Yet
-
-- any scene or helper that is still required by a retained smoke/spec file
-- `mockProvider.ts` while `surface-api.spec.ts`, `sender-extensions.spec.ts`, or `mcp-feature.spec.ts` still prove retained advanced-provider behavior
-- the remaining package-local `_stubs/*` files, because they still back SSR/import isolation in mounted integration tests
-
-## Recommended Next Sequence
-
-1. keep the retained Playwright smoke/scenario gates green while test expansion and suite normalization proceeds
-2. use this audit together with `test-gap-backlog.md` to decide where missing coverage should land before opening another broad feature-scene retirement batch
-3. only after that, open the next legacy-test or helper-retirement slice
+- 任何仍被保留 smoke/spec 文件依赖的 scene 或 helper
+- `mockProvider.ts`（`surface-api.spec.ts`、`sender-extensions.spec.ts`、`mcp-feature.spec.ts` 仍依赖）
+- 剩余 `_stubs/*` 文件（挂载集成测试仍需要）

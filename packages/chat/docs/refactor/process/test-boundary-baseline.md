@@ -2,238 +2,123 @@
 
 Status: active post-closure process baseline.
 
-This file fixes which tests protect the official chat package paths during post-closure cleanup.
+这个文件固定了哪些测试在 post-closure cleanup 期间保护官方 chat package 路径。
 
-It exists so legacy pruning can start from a stable baseline instead of rediscovering test scope on every slice.
+配合以下文档使用：
 
-For the lasting layer model, smoke/scenario split, selector rules, and keep/adapt/retire standard, also see:
-
-- `./test-governance-standard.md`
-
-For the current file-level inventory of every chat package test, e2e spec, scene fixture, and helper, also see:
-
-- `./test-suite-audit-baseline.md`
-
-For the concrete missing-coverage and suite-normalization queue, also see:
-
-- `./test-gap-backlog.md`
-
-Temporary override:
-
-- while `core-flow-stabilization-baseline.md` is red, this file still defines the retained gate, but the active priority is to restore those retained flows before deleting more legacy/helper surface
-
-For the remaining implementation-side inventory after the first delete-now batches, also see:
-
-- `./legacy-surface-inventory.md`
+- `./test-governance-standard.md` — 持久层模型、smoke/scenario 分割、selector/helper/scene 规则
+- `./test-suite-audit-baseline.md` — 每个测试文件的详细清单
 
 ## Role
 
-Use this file to answer:
+用这个文件回答：
 
-- which tests are the hard gate before deleting compatibility code
-- which tests are still useful but are not the primary deletion gate
-- which e2e cases must be adapted before they can guard the official path
-- which e2e cases only preserve legacy compatibility and should retire from the primary gate
-
-This file does not define runtime, slot, or page contract.
-Those still belong to:
-
-- `../design/api-runtime.md`
-- `../design/execution.md`
+- 哪些测试是删除兼容代码前的硬门禁
+- 哪些 e2e 用例必须在官方路径上保持绿色
 
 ## Official Gate Surfaces
 
-The post-closure cleanup gate is built around the same three official entry levels as `packages/chat/README.md`:
+post-closure cleanup gate 围绕三个官方入口层级：
 
 1. `TrChat`
 2. `TrChat.Root + TrChat.Page`
 3. `TrChat.Root + primitives`
 
-If a test does not help prove one of these three official paths, it should not block legacy deletion by default.
-
-Outdated tests may be deleted, but only after one of these is true:
-
-1. the same functional boundary is already proved through an official-path test
-2. the boundary is explicitly removed from the supported contract
-
 ## Layer Split
 
 ### `packages/chat/tests`
 
-This is the primary pre-delete gate.
+这是主要的 pre-delete gate，用于：
 
-Use it for:
-
-- fast runtime and contract feedback
-- mounted owner-path proof
-- `TrChat` config-entry classification proof
-- source-contract proof at the nearest owner boundary
-
-Every legacy-pruning slice should keep this layer green.
+- 快速 runtime 和 contract 反馈
+- 挂载 owner-path 证明
+- `TrChat` config-entry 分类证明
+- 最近 owner 边界的 source-contract 证明
 
 ### `packages/test/src/chat`
 
-This is the slower user-path gate.
+这是较慢的 user-path gate，用于：
 
-Use it for:
+- 用户可见的端到端行为
+- `TrChat` 和 whitebox scene 接线
+- 完整页面交互流程
+- 删除批次后的回归证明
 
-- user-visible end-to-end behavior
-- `TrChat` and whitebox scene wiring
-- full-page interaction flows
-- regression proof after a deletion batch changes entry wiring or visible behavior
+## `packages/chat/tests` Hard Gate
 
-Current reality:
-
-- this suite is still mixed with official-path coverage and legacy-oriented scenes
-- it should not be treated as one undifferentiated hard gate
-- retained official-path scenarios should be adapted first, then promoted into the cleanup gate
-
-## Current `packages/chat/tests` Classification
-
-### Hard Gate Now
-
-These files directly protect the official owner-aligned paths and should stay green before deleting compatibility code:
-
-| Area | Files | Why they stay hard-gate |
+| 区域 | 文件 | 说明 |
 | --- | --- | --- |
-| runtime entry and owner proof | `runtime/trchat-config-entry.test.mjs`, `runtime/trchat-config-runtime-resolution.test.mjs`, `runtime/root-runtime.test.mjs`, `runtime/composables.test.mjs`, `runtime/provider-response-provider.test.mjs`, `runtime/openai-compatible-transport.test.mjs` | prove the tightened `TrChat` config-entry contract (`target TrChatConfig` plus serialized target config only), the same-config runtime continuity guard at the `TrChat` entry owner, the absence of runtime legacy hints on the active bootstrap path, the supported `TrChat.Provider` response-provider branch, the surviving transport factory, and runtime-owned request, conversation, sender, and workspace behavior |
-| message extension proof | `runtime/message-actions.test.mjs`, `runtime/message-runtime.test.mjs`, `runtime/message-transforms.test.mjs`, `runtime/render-message-normalization.test.mjs` | prove message id, actions, renderer, transform, and normalized render behavior on the official runtime path |
-| source contracts | `contracts/public-surface.test.mjs`, `contracts/renderer-registry.test.mjs`, `contracts/chat-messages.test.mjs`, `contracts/chat-ui-context.test.mjs`, `contracts/workspace-slot-contract.test.mjs`, `contracts/appearance-runtime.test.mjs`, `contracts/mcp-panel-positioning.test.mjs`, `contracts/theme-token-contract.test.mjs` | pin the public owner surface, workspace UI context contract, region wiring, renderer ownership, shared copy contract, theme tokens, MCP-facing affordances, and the absence of internal scaffold-context exports on the official bootstrap path |
-| mounted owner-path proof | `integration/trchat-entry-root-page.test.mjs`, `integration/root-page-mounted.test.mjs` | prove `TrChat`, `Root + Page`, mounted owner regions on the official path, and the retained advanced `TrChat.Provider(responseProvider)` leaf-composition contract instead of only through documentation; post-closure cleanup now uses this layer to prove the config-only `TrChat` entry path, the surviving owner-aligned whitebox paths, page-input-backed defaults on the granular `Root + primitives` route, and the nearest-owner mounted provider surface |
+| runtime entry | `runtime/trchat-config-entry.test.mjs`, `runtime/trchat-config-runtime-resolution.test.mjs`, `runtime/root-runtime.test.mjs`, `runtime/composables.test.mjs`, `runtime/provider-response-provider.test.mjs`, `runtime/openai-compatible-transport.test.mjs` | TrChat config-entry contract、runtime 连续性守卫、transport factory |
+| message extension | `runtime/message-actions.test.mjs`, `runtime/message-runtime.test.mjs`, `runtime/message-transforms.test.mjs`, `runtime/render-message-normalization.test.mjs` | message id、actions、renderer、transform、normalized render |
+| coverage | `runtime/chatkit-coverage.test.mjs`, `runtime/lifecycle-coverage.test.mjs`, `runtime/root-bootstrap-coverage.test.mjs` | attachments optimistic turn、lifecycle hooks、dispose、fallback chatKit |
+| source contracts | `contracts/public-surface.test.mjs`, `contracts/renderer-registry.test.mjs`, `contracts/chat-messages.test.mjs`, `contracts/chat-ui-context.test.mjs`, `contracts/chat-ui-context-coverage.test.mjs`, `contracts/chat-messages-coverage.test.mjs`, `contracts/workspace-slot-contract.test.mjs`, `contracts/appearance-runtime.test.mjs`, `contracts/mcp-panel-positioning.test.mjs`, `contracts/theme-token-contract.test.mjs` | 公开面、workspace UI context、region 接线、renderer 所有权、共享文案、theme tokens、MCP affordances |
+| mounted proof | `integration/trchat-entry-root-page.test.mjs`, `integration/root-page-mounted.test.mjs` | TrChat、Root+Page、Root+primitives、保留高级 provider 的挂载证明 |
 
-### Secondary Or Temporary Coverage
+## `packages/test/src/chat` Gate
 
-There is currently no unresolved secondary file inside `packages/chat/tests`.
-The former `ui/chat-ui-context.test.mjs` sentinel has been re-homed into `contracts/chat-ui-context.test.mjs` because its responsive-host and reactive shell-sync proof still protects the official workspace path.
+### Smoke Gate（`smoke-specs/`）
 
-The old `tests/config/*` bucket has now retired with the config-projection helper family.
-Do not recreate a dedicated legacy-config sentinel folder once the target helper surface is gone.
+| 文件 | 保护路径 |
+| --- | --- |
+| `smoke-specs/index.spec.ts` | entry ladder |
+| `smoke-specs/history.spec.ts` | `TrChat` / Root+Page / granular |
+| `smoke-specs/request-lifecycle.spec.ts` | `TrChat` / Root+Page / granular |
+| `smoke-specs/attachments.spec.ts` | `TrChat` / granular |
+| `smoke-specs/feedback.spec.ts` | `TrChat` / Root+Page / granular |
+| `smoke-specs/model-switch.spec.ts` | `TrChat` / Root+Page |
 
-The concrete helper-side keep/delete recommendation now lives in:
+### Scenario Gate（`scenario-specs/`）
 
-- `./provider-helper-decision-baseline.md`
+| 文件 | 保护路径 |
+| --- | --- |
+| `scenario-specs/sender-actions.spec.ts` | `TrChat` / Root+Page / granular |
+| `scenario-specs/layout-config.spec.ts` | `TrChat` / Root+Page / granular |
+| `scenario-specs/mcp-feature.spec.ts` | 保留高级 + granular |
+| `scenario-specs/message-transforms.spec.ts` | `TrChat` / Root+Page / granular |
+| `scenario-specs/renderer-registry.spec.ts` | `TrChat` / Root+Page / granular |
+| `scenario-specs/sender-extensions.spec.ts` | granular + 保留高级 provider |
+| `scenario-specs/surface-api.spec.ts` | 官方 ladder + 保留高级 provider |
+| `scenario-specs/welcome-prompts.spec.ts` | `TrChat` / Root+Page |
+| `scenario-specs/workspace-slots.spec.ts` | `TrChat` workspace |
+| `scenario-specs/whitebox-slots.spec.ts` | `Root + Page` |
+| `scenario-specs/error-retry.spec.ts` | `TrChat` |
+| `scenario-specs/message-edit.spec.ts` | `TrChat` |
+| `scenario-specs/message-list-config.spec.ts` | `Root + primitives` |
 
-## Current `packages/test/src/chat` Classification
+## Validation Baseline
 
-### Retained Official-Path Gate Now
+### 删除前必须运行
 
-These specs now follow the official entry ladder closely enough to act as the first promoted Playwright gate during post-closure cleanup:
+```bash
+pnpm -F @opentiny/tiny-robot-chat type-check
+pnpm -F @opentiny/tiny-robot-chat test
+```
 
-| Status | Files | Why they now stay in the gate |
-| --- | --- | --- |
-| `gate` | `scenario-specs/index.spec.ts`, `scenario-specs/history.spec.ts`, `scenario-specs/request-lifecycle.spec.ts` | these now exercise `TrChat`, `Root + Page`, and `Root + primitives` directly instead of treating helper-heavy `TrChat`/whitebox scenes as the default story |
-| `gate` | `scenario-specs/workspace-slots.spec.ts`, `scenario-specs/renderer-registry.spec.ts` | these now verify official workspace-slot and renderer-registry behavior through target-config scenes instead of preset-slice or provider-heavy fixtures |
+### 触及 demo 级别或用户可见流程时
 
-### Extended Official-Path Gate
+```bash
+# smoke
+pnpm -F tiny-robot-test test:chat:smoke
+pnpm -F tiny-robot-test test:chat:smoke:full
 
-These specs are now green on the official entry ladder or the bounded advanced-provider path, so they can also block deletion work:
+# scenario
+pnpm -F tiny-robot-test test:chat:scenario
+pnpm -F tiny-robot-test test:chat:scenario:full
+```
 
-| Status | Files | Why they now stay in the gate |
-| --- | --- | --- |
-| `gate` | `scenario-specs/attachments.spec.ts`, `scenario-specs/feedback.spec.ts`, `scenario-specs/model-switch.spec.ts`, `scenario-specs/sender-actions.spec.ts` | these now prove `TrChat`, `Root + Page`, and the retained sender-config boundaries without relying on retired helper surfaces; `scenario-specs/attachments.spec.ts`, `scenario-specs/feedback.spec.ts`, and `scenario-specs/request-lifecycle.spec.ts` now also include retained granular browser proof on `Root + primitives` |
-| `gate` | `scenario-specs/layout-config.spec.ts`, `scenario-specs/welcome-prompts.spec.ts`, `scenario-specs/mcp-feature.spec.ts`, `scenario-specs/message-transforms.spec.ts`, `scenario-specs/sender-extensions.spec.ts`, `scenario-specs/surface-api.spec.ts` | these now prove official `TrChat`, `Root + Page`, `Root + primitives`, or bounded `responseProvider` advanced behavior without depending on retired provider `chatKit`, `HistorySurface`, or config-projection helpers |
-
-### Retire From The Primary Gate
-
-There are currently no unresolved files in the primary `retire` bucket.
-There is also no remaining unresolved `adapt` bucket for the retained Playwright set.
-The old `edge-overrides.spec.ts` and `BlackboxEdgeScene.vue` pair is now fully retired after the last remaining boundaries were handed off.
-
-Retired e2e should be removed from the default test app once no retained spec or helper still depends on their scene.
-Retiring a test file is not enough by itself; every retired file should first be mapped to either:
-
-- an official-path successor proof
-- an explicit contract drop
-
-## Boundary Handoff Matrix For Legacy-Oriented Specs
-
-Use this matrix before deleting a legacy-oriented spec or scene.
-
-| Legacy-oriented file | Boundary | Handoff status |
-| --- | --- | --- |
-| `scenario-specs/layout-config.spec.ts` | official content-layout and appearance-mode rendering | handed off to the same file after adapting it to `TrChat`, `Root + Page`, and `Root + primitives` with `ui.contentLayout` |
-| `scenario-specs/layout-config.spec.ts` | old `layout.variant / placements` semantics | explicit contract drop; these remain fallback-only and are not part of the official gate |
-| `scenario-specs/welcome-prompts.spec.ts` | official welcome prompt rendering, empty prompt state, prompt click transition, and `#welcome` slot replacement | handed off to the same file after adapting it to target `ui.welcome.prompts` on `TrChat` and `Root + Page` |
-| `scenario-specs/welcome-prompts.spec.ts` | legacy `ui.prompts` replacement semantics | explicit contract drop; `ui.prompts` is no longer part of the official owner-path contract |
-| `edge-overrides.spec.ts` | sender `maxLength` disable-without-truncation behavior | handed off to `scenario-specs/sender-actions.spec.ts` on the official `TrChat` path and deleted from the edge scene/spec |
-| `scenario-specs/sender-actions.spec.ts` | official sender `maxLength`, `wordCount`, default upload action, and default voice action behavior | handed off to the same file after adapting it to `TrChat` and `Root + Page` |
-| `scenario-specs/sender-actions.spec.ts` | sender config semantics for `wordCount = false` and `voice.enabled = false` on the official granular path | handed off to the same file through the official `Root + primitives` sender-config scene |
-| `scenario-specs/sender-actions.spec.ts` | compatibility `senderActions.upload = false` while an attachments owner is still present | explicit contract drop; runtime-first sender + attachments ownership now leaves upload visibility with the attachments owner instead of the old senderActions compatibility branch |
-| `scenario-specs/sender-actions.spec.ts` | custom `footer-right` suppression of default sender actions | handed off to `scenario-specs/surface-api.spec.ts` on an official `Root + primitives` granular footer-right surface |
-| `edge-overrides.spec.ts` | header extra / footer extra slot rendering | already covered by `scenario-specs/surface-api.spec.ts` and deleted from the edge scene/spec |
-| `edge-overrides.spec.ts` | edge-only role-placement overrides | explicit contract drop; old placement override semantics are no longer part of the official contract and no longer block cleanup |
-| `edge-overrides.spec.ts` | explicit close-button composition | handed off to `scenario-specs/surface-api.spec.ts` on an official leaf-composition granular close scene |
+两个命令分别指向 `src/chat/smoke-specs/` 和 `src/chat/scenario-specs/` 目录。
 
 ## Immediate Gate Policy
 
-1. every cleanup slice must keep the hard-gate subset in `packages/chat/tests` green
-2. any slice that changes visible user behavior should rerun the nearest retained Playwright scenario before deleting the next layer
-3. legacy-only Playwright coverage should not veto deletion by itself
-4. after stabilization closure, keep using this retained gate while test expansion and later cleanup continues
-5. use `test-gap-backlog.md` as the ordered landing queue before opening another broad helper or scene retirement batch
-
-Package-local note:
-
-- `contracts/chat-ui-context.test.mjs` is now part of the hard gate and should stay green whenever workspace shell responsiveness or `createChatUiContext` wiring changes
-
-## Current Validation Baseline
-
-### Required Before Deletion
-
-- `pnpm.cmd -F @opentiny/tiny-robot-chat type-check`
-- `node packages/chat/tests/run-all.mjs packages/chat/tests/runtime`
-- `node packages/chat/tests/run-all.mjs packages/chat/tests/contracts`
-- `node packages/chat/tests/run-all.mjs packages/chat/tests/integration`
-
-### Required When A Slice Touches Demo-Level Or User-Visible Flow
-
-Run the nearest retained Playwright scenario on the official ladder.
-
-Frozen retained Playwright commands:
-
-- smoke full:
-  `pnpm.cmd -F tiny-robot-test test:chat:smoke:full`
-- smoke:
-  `pnpm.cmd -F tiny-robot-test test:chat:smoke`
-- scenario full:
-  `pnpm.cmd -F tiny-robot-test test:chat:scenario:full`
-- scenario:
-  `pnpm.cmd -F tiny-robot-test test:chat:scenario`
-
-Current smoke command contents:
-
-- `src/chat/scenario-specs/index.spec.ts`
-- `src/chat/scenario-specs/history.spec.ts`
-- `src/chat/scenario-specs/request-lifecycle.spec.ts`
-- `src/chat/scenario-specs/attachments.spec.ts`
-- `src/chat/scenario-specs/feedback.spec.ts`
-- `src/chat/scenario-specs/model-switch.spec.ts`
-
-Current scenario command contents:
-
-- `src/chat/scenario-specs/sender-actions.spec.ts`
-- `src/chat/scenario-specs/layout-config.spec.ts`
-- `src/chat/scenario-specs/mcp-feature.spec.ts`
-- `src/chat/scenario-specs/message-transforms.spec.ts`
-- `src/chat/scenario-specs/renderer-registry.spec.ts`
-- `src/chat/scenario-specs/sender-extensions.spec.ts`
-- `src/chat/scenario-specs/surface-api.spec.ts`
-- `src/chat/scenario-specs/welcome-prompts.spec.ts`
-- `src/chat/scenario-specs/workspace-slots.spec.ts`
-
-These files now form the retained Playwright gate and should be rerun first through the named smoke/scenario scripts when a deletion slice changes entry wiring or visible behavior.
-
-When a cleanup slice touches scaffold/helper entry wiring, slot passthrough, or advanced-provider scenes, rerun the full retained gate:
-
-- `pnpm.cmd -F tiny-robot-test test:chat:smoke:full`
-- `pnpm.cmd -F tiny-robot-test test:chat:scenario:full`
-- `pnpm.cmd -F tiny-robot-test test:chat:smoke`
-- `pnpm.cmd -F tiny-robot-test test:chat:scenario`
+1. 每个 cleanup slice 必须保持 `packages/chat/tests` hard-gate 绿色
+2. 任何改变用户可见行为的 slice 应在删除下一层前重跑最近的保留 Playwright scenario
+3. legacy-only Playwright 覆盖不应单独阻止删除
+4. 使用 `test-suite-audit-baseline.md` 作为有序的 landing queue
 
 ## Change Rule
 
-If a cleanup slice changes this classification:
+如果 cleanup slice 改变了这个分类：
 
-1. update this file first
-2. update `packages/test/src/chat/README.md`
-3. update the active cleanup plan if the gate commands or promotion order changed
+1. 先更新这个文件
+2. 更新 `packages/test/src/chat/README.md`
+3. 如果 gate 命令或推进顺序改变，更新活跃的 cleanup 计划

@@ -7,101 +7,83 @@
 ## Sources
 
 - `packages/chat/docs/refactor/design/api-runtime.md`
-  Sections:
-  `5 TrChat.Root 合同`
-  `6.5E TrChat.Page slot-provider contract`
-  `6.7 ChatRuntime`
-  `9 primitives 读取边界`
-  `10 slots 与扩展路径`
-  `12 workspace 与 history contract`
-- `packages/chat/docs/refactor/archive/phase-0_5-freeze-record.md`
-  Sections:
-  `2.7 TrChat.Page 不允许透传 whole runtime`
-  `6.1 TrChat.Page 只负责组合`
-  `6.3 slot props contract`
-  `6.4 slot catalog`
+- `packages/chat/src/entry/TrChatPage.vue`
+- `packages/chat/src/components/page-regions/ChatPageContent.vue`
+- `packages/chat/src/components/page-regions/ChatDefaultHeaderRegion.vue`
+- `packages/chat/src/components/page-regions/ChatDefaultBodyRegion.vue`
+- `packages/chat/src/components/page-regions/ChatDefaultFooterRegion.vue`
 
 ## Composition-only Rules
 
-`TrChat.Page` remains composition-only.
+`TrChat.Page` 是纯组合层：
 
-`TrChat.Page` should:
-
-- own official page structure and default composition
-- own slot anchors and slot-provider wiring
-- consume resolved `ui` defaults for display
-- consume a narrow page-input boundary for default page concerns such as `welcome`, `messageList`, `appearance`, `shell`, `modelSelector`, and `updateModel`
-- pass those defaults into the nearest default page primitives before letting them fall back to compatibility relay
-- once those explicit defaults reach the nearest primitive, treat them as authoritative instead of silently merging raw scaffold buckets back in
-- if the default page path already provides all required owner inputs, compatibility relay should be explicitly disabled instead of remaining silently active
-- this now applies to the default header/history path and the default welcome/message-list path as well as layout/workspace owner inputs
-- default header tools should consume explicit `headerInput + shell` from `Page`, and default footer tools should consume explicit `modelSelectorInput` plus explicit MCP visibility from the nearest owner region
-- keep the default workspace owner chain on explicit owner inputs too, including sidebar and mobile-sheet display defaults
-- delegate deeper custom composition to `Root + primitives`
-
-`TrChat.Page` should not:
-
-- become a whole-runtime relay
-- expose `runtime` as a slot prop
-- re-parse raw `config`
-- manufacture no-op runtimes just to satisfy slot props
-- read generic scaffold preset buckets directly when a narrower page-input boundary can be provided
+- 负责官方默认页面结构和 slot contract
+- 通过 `pageInputs` 消费窄化的页面输入边界（`welcome / messageList / appearance / shell / modelSelector / updateModel`）
+- 将这些默认值传入最近的 primitive，而不是直接读取 whole runtime
+- 不透传 whole runtime 作为 slot prop
+- 不重新解析 raw config
+- 将更深层的定制委托给 `Root + primitives`
 
 ## Region Composition
 
-| Region component | Default responsibility | Slots owned by the region |
-| --- | --- | --- |
-| `TrChatPageHeaderRegion` | header-level affordances, history/model entry points, brand-facing header structure | `header`, `header-before`, `header-after` |
-| `TrChatPageBodyRegion` | welcome + message list composition | `welcome`, `message-before`, `message-list`, `message-after` |
-| `TrChatPageFooterRegion` | sender area plus lightweight footer companion region | `sender-before`, `sender`, `sender-after`, `footer-extra` |
-| `TrChatWorkspaceShell` | workspace shell composition and responsive side regions | `left`, `left-rail`, `right`, `mobile-left`, `mobile-right` |
+| Region component | 实际文件 | Default responsibility | Slots owned |
+| --- | --- | --- | --- |
+| `ChatDefaultHeaderRegion` | `components/page-regions/ChatDefaultHeaderRegion.vue` | header 级别的 affordances，history/model 入口，品牌 header 结构 | `header`, `header-extra` |
+| `ChatDefaultBodyRegion` | `components/page-regions/ChatDefaultBodyRegion.vue` | welcome + message list 组合 | `welcome`, `message-list`, `after` (bubble slot) |
+| `ChatDefaultFooterRegion` | `components/page-regions/ChatDefaultFooterRegion.vue` | sender 区域 + 轻量 footer companion region | `sender`, `footer-extra` |
+| `ChatWorkspaceLayout` | `components/workspace/ChatWorkspaceLayout.vue` | workspace shell 组合和响应式侧边区域 | `left`, `left-rail`, `right`, `mobile-left`, `mobile-right` |
+| `ChatPageContent` | `components/page-regions/ChatPageContent.vue` | 三个 region 的公共模板，被 TrChatPage 复用 | 所有 page slots |
 
-## Region Read-boundary Freeze
+## Region Read-boundary
 
 | Region component | Allowed runtime reads |
 | --- | --- |
-| `TrChatPageHeaderRegion` | `conversation + history + models + workspace + ui` |
-| `TrChatPageBodyRegion` | `conversation + message + ui` |
-| `TrChatPageFooterRegion` | `sender + attachments + mcp + ui` |
-| `TrChatWorkspaceShell` | `workspace + history + models + mcp + ui` |
+| `ChatDefaultHeaderRegion` | `conversation + history + models + workspace + ui` |
+| `ChatDefaultBodyRegion` | `conversation + message + ui` |
+| `ChatDefaultFooterRegion` | `sender + attachments + mcp + ui` |
+| `ChatWorkspaceLayout` | `workspace + history + models + mcp + ui` |
 
-Reminder:
+## TrChatPage Props
 
-- slot props may expose a region's minimal required modules
-- that does not mean `Page` itself reads the whole runtime
+| Prop | Type | Purpose |
+| --- | --- | --- |
+| `messageListVariant` | `'bubble' \| 'workspace' \| 'docs'` | 覆盖默认消息列表变体 |
+
+## TrChatPage Emits
+
+| Emit | Payload | Purpose |
+| --- | --- | --- |
+| `update:show` | `boolean` | Header 关闭按钮触发 |
+| `update:model` | `string` | 模型切换触发 |
 
 ## Footer Semantics
 
-- `Footer` is currently frozen as a lightweight companion region inside the default page.
-- `footer-extra` is the only footer-related slot frozen in the current minimum contract.
-- a standalone `footer` replace slot remains deferred until page baseline implementation proves that contract is stable.
-- Phase 1A / 1B contract tests now treat this as the default page-source rule: `TrChat.Page` may expose `footer-extra`, and `ChatDefaultRenderer` must stay a compatibility delegate rather than growing a standalone page-level `footer` slot.
+- `Footer` 当前冻结为轻量 companion region。
+- `footer-extra` 是唯一冻结的 footer 级 augment slot。
+- standalone `footer` replace slot 暂缓，等 page baseline 稳定后再冻结。
 
 ## Degrade Rules
 
 | Missing module | Expected degrade behavior |
 | --- | --- |
-| `workspace` | render stacked main view only; do not render `left`, `left-rail`, `right`, `mobile-left`, `mobile-right` |
-| `history` | hide history affordance; slot props that would include `history` omit it |
-| `models` | hide model affordance; `header-after`, `right`, `mobile-right` slot props omit `models` |
-| `mcp` | hide MCP affordance; `sender-after`, `footer-extra`, `right`, `mobile-right` slot props omit `mcp` |
-| `attachments` | sender still works for plain text; related slot props omit `attachments` |
+| `workspace` | 只渲染 stacked 主视图；不渲染 `left / left-rail / right / mobile-left / mobile-right` |
+| `history` | 隐藏 history affordance |
+| `models` | 隐藏 model selector |
+| `mcp` | 隐藏 MCP affordance |
+| `attachments` | sender 仍支持纯文本发送；相关 slot props 省略 `attachments` |
 
 ## Workspace Placement Rules
 
-- public config stays centered on `left`, `right`, and `defaultView`
-- `left-rail`, `mobile-left`, and `mobile-right` are resolved placement targets inside `workspace runtime` and `TrChat.Page`
-- `mobile-left` falls back to `left`
-- `mobile-right` falls back to `right`
-- on the default owner path, the nearest workspace layout should read explicit page `shell` input first and only fall back to runtime-derived workspace shell state, not raw scaffold preset buckets
-- `history runtime` owns conversation list data; `workspace runtime` owns panel visibility
+- `mobile-left` fallback 到 `left`（未单独提供时）
+- `mobile-right` fallback 到 `right`（未单独提供时）
+- `history runtime` 拥有会话列表数据；`workspace runtime` 拥有面板可见性
 
 ## Escalation Rule
 
-If a customization needs:
+如果定制需要：
 
-- modules outside the slot props contract
-- cross-region re-layout
-- direct control over message, sender, or workspace orchestration
+- slot props contract 之外的 runtime 模块
+- 跨区域重排结构
+- 直接控制消息、发送或 workspace 编排
 
-then it should move from `TrChat.Page` slots to `TrChat.Root + primitives`.
+则应从 `TrChat.Page` slots 升级到 `TrChat.Root + primitives`。

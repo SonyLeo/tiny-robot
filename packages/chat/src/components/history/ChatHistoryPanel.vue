@@ -19,9 +19,7 @@ async function handleBatchDelete() {
     return
   }
 
-  for (const itemId of historyState.selectedItems.value) {
-    await chatKit.deleteConversation(itemId)
-  }
+  await Promise.all(historyState.selectedItems.value.map((itemId) => chatKit.deleteConversation(itemId)))
   historyState.clearSelection()
 }
 

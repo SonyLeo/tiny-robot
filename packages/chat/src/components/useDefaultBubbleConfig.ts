@@ -69,12 +69,12 @@ export function useDefaultBubbleConfig(options?: UseDefaultBubbleConfigOptions) 
   const roles: Record<string, BubbleRoleConfig> = {
     assistant: {
       placement: 'start',
-      avatar: h(IconAi, { style: { fontSize: '32px' } }),
+      avatar: markRaw(h(IconAi, { style: { fontSize: '32px' } })),
       fallbackContentRenderer: MarkStreamRenderer,
     },
     user: {
       placement: 'end',
-      avatar: h(IconUser, { style: { fontSize: '32px' } }),
+      avatar: markRaw(h(IconUser, { style: { fontSize: '32px' } })),
     },
     system: {
       hidden: true,

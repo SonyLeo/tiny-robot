@@ -7,87 +7,67 @@
 ## Sources
 
 - `packages/chat/docs/refactor/design/api-runtime.md`
-  Sections:
-  `6.5D minimum slot catalog`
-  `6.5E TrChat.Page slot-provider contract`
-  `10 slots 与扩展路径`
-- `packages/chat/docs/refactor/archive/phase-0_5-freeze-record.md`
-  Sections:
-  `6.3 slot props contract`
-  `6.4 slot catalog`
-- `packages/chat/docs/refactor/process/review-scheme.md`
-  Sections:
-  `Review A`
-  `Review B`
+- `packages/chat/src/entry/TrChatPage.vue`
+- `packages/chat/src/components/page-regions/ChatPageContent.vue`
+- `packages/chat/src/components/workspace/ChatWorkspaceLayout.vue`
 
 ## Slot Catalog Freeze Notes
 
-- page 区域使用无前缀直白命名，不并行维护 `page-*` 双体系。
+- page 区域使用无前缀直白命名。
 - slot props 只暴露最小命名模块，不暴露 whole runtime。
 - 超出 slot props contract 的定制，应升级到 `Root + primitives`。
-- `Footer` 当前只冻结为轻量 companion region。
-- Phase 0.5 只冻结 `footer-extra` augment slot，不冻结 `footer` replace slot。
+- `footer-extra` 是当前唯一冻结的 footer 级 augment slot。
 
-## Page Replace Slots
+## TrChat.Page Replace Slots
 
-| Slot | Layer | Kind | Purpose | Minimum slot props | Current freeze status |
-| --- | --- | --- | --- | --- | --- |
-| `header` | page | replace | replace the full default header region | `ui`, `workspace`, `history`, `models`, `conversation` | frozen |
-| `welcome` | page | replace | replace the default welcome region | `ui`, `conversation` | frozen |
-| `message-list` | page | replace | replace the default message list region | `ui`, `conversation`, `message` | frozen |
-| `sender` | page | replace | replace the default sender region | `ui`, `sender`, `attachments`, `mcp` | frozen |
+| Slot | Kind | Purpose | Notes |
+| --- | --- | --- | --- |
+| `header` | replace | 替换整个默认 header 区域 | 替换后默认 header 不渲染 |
+| `welcome` | replace | 替换默认欢迎区域 | 替换后默认 welcome 不渲染 |
+| `message-list` | replace | 替换默认消息列表区域 | slot props: `{ messages }` |
+| `sender` | replace | 替换默认 sender 区域 | slot props: `{ send, status, lastError, retry }` |
+| `empty` | replace | 替换空消息状态区域 | 无消息且无 welcome 时显示 |
 
-## Page Augment Slots
+## TrChat.Page Augment Slots
 
-| Slot | Layer | Kind | Purpose | Minimum slot props | Current freeze status |
-| --- | --- | --- | --- | --- | --- |
-| `header-before` | page | augment | inject before the default header block | `ui`, `workspace` | frozen |
-| `header-after` | page | augment | inject after the default header block | `ui`, `workspace`, `models` | frozen |
-| `message-before` | page | augment | inject before the default message region | `ui`, `conversation` | frozen |
-| `message-after` | page | augment | inject after the default message region | `ui`, `conversation` | frozen |
-| `sender-before` | page | augment | inject before the default sender region | `ui`, `sender`, `attachments` | frozen |
-| `sender-after` | page | augment | inject after the default sender region | `ui`, `sender`, `attachments`, `mcp` | frozen |
-| `footer-extra` | page | augment | inject extra footer companion content | `ui`, `sender`, `attachments`, `mcp` | frozen in Phase 0.5 |
+| Slot | Kind | Purpose | Notes |
+| --- | --- | --- | --- |
+| `header-extra` | augment | 在 header 右侧注入额外内容 | 不替换默认 header |
+| `footer-extra` | augment | 在 footer 区域注入额外内容 | 轻量 companion region |
 
-## Workspace Slots
+## TrChat.Page Bubble Slots（透传到 BubbleList）
 
-| Slot | Layer | Kind | Purpose | Minimum slot props | Current freeze status |
-| --- | --- | --- | --- | --- | --- |
-| `left` | workspace shell | replace | replace the desktop left panel | `ui`, `workspace`, `history` | frozen |
-| `left-rail` | workspace shell | replace | replace the desktop left rail | `ui`, `workspace`, `history` | frozen |
-| `right` | workspace shell | replace | replace the desktop right panel | `ui`, `workspace`, `models`, `mcp` | frozen |
-| `mobile-left` | workspace shell | replace | replace the mobile left sheet | `ui`, `workspace`, `history` | frozen |
-| `mobile-right` | workspace shell | replace | replace the mobile right sheet | `ui`, `workspace`, `models`, `mcp` | frozen |
+| Slot | Kind | Purpose | Notes |
+| --- | --- | --- | --- |
+| `prefix` | augment | 气泡前置内容 | slot props: `{ messages, role, messageIndexes }` |
+| `suffix` | augment | 气泡后置内容 | slot props: `{ messages, role, messageIndexes }` |
+| `content-footer` | augment | 气泡内容底部 | slot props: `{ messages, role, messageIndexes }` |
+| `after` | augment | 气泡整体后置（feedback 区域） | slot props: `{ messages, role, messageIndexes }` |
+
+## TrChat Workspace Slots（黑盒路径透传）
+
+| Slot | Kind | Purpose | Notes |
+| --- | --- | --- | --- |
+| `left` | replace | 替换桌面左侧面板 | desktop only |
+| `left-rail` | replace | 替换桌面左侧 rail | collapsed 状态下可见 |
+| `right` | replace | 替换桌面右侧面板 | desktop only |
+| `mobile-left` | replace | 替换移动端左侧 sheet | 未提供时 fallback 到 `left` |
+| `mobile-right` | replace | 替换移动端右侧 sheet | 未提供时 fallback 到 `right` |
 
 ## Precedence And Escalation Rules
 
 ### Precedence
 
-1. replace slot disables the default structure for that region.
-2. augment slot does not disable the default structure.
-3. if a replace slot still needs default capability, it must consume it explicitly through slot props.
-4. `mobile-left` falls back to `left` when not separately provided.
-5. `mobile-right` falls back to `right` when not separately provided.
-6. page slots belong to `TrChat.Page`; primitives do not mirror these page slot names.
+1. replace slot 禁用该区域的默认结构。
+2. augment slot 不禁用默认结构。
+3. `mobile-left` 未提供时 fallback 到 `left`。
+4. `mobile-right` 未提供时 fallback 到 `right`。
+5. page slots 属于 `TrChat.Page`；primitives 不镜像这些 page slot 名称。
 
 ### Escalation
 
-Use a slot when:
-
-- 你只改某个默认区域的局部 UI
-- 所需数据已经在该 slot props contract 内
-- 你仍接受官方页面结构和生命周期
-
-Upgrade to `Root + primitives` when:
+升级到 `Root + primitives` 的时机：
 
 - 需要跨多个区域重排结构
-- 需要消费不在该 slot props contract 内的 runtime 模块
+- 需要消费不在 slot props contract 内的 runtime 模块
 - 需要自己决定消息链路、发送链路或 workspace 联动
-
-## Deferred Items
-
-这些内容当前不是最小冻结集的一部分：
-
-- standalone `footer` replace slot
-- 完整 slot parity 的最终细粒度命名
-- 超出当前 phase 的 slot consumption 扩展面

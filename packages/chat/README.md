@@ -1,98 +1,200 @@
-# `@opentiny/tiny-robot-chat`
+# @opentiny/tiny-robot-chat
 
-## Official Entry Surfaces
+`@opentiny/tiny-robot-chat` 是 TinyRobot 提供的高级聊天 UI 包，基于 `@opentiny/tiny-robot`（基础组件库）和 `@opentiny/tiny-robot-kit`（数据层工具包）构建。
+它提供开箱即用的完整聊天页面，也支持逐步深入的白盒定制。
 
-Use the package through one of these three official entry levels:
+## 安装
 
-1. `TrChat`
-   The `TrChat` config entry. Pass a target `TrChatConfig` directly.
-2. `TrChat.Root + TrChat.Page`
-   The official whitebox page path. Use this when you want to own runtime creation but keep the official page composition.
-3. `TrChat.Root + primitives`
-   The granular whitebox path. Use this when you want to compose the page yourself from the public building blocks.
+```bash
+pnpm add @opentiny/tiny-robot-chat
+```
 
-`TrChat` now accepts only:
+需要同时安装 peer dependencies：
 
-- a target `TrChatConfig` object
-- a serialized target `TrChatConfig` JSON string
+```bash
+pnpm add @opentiny/tiny-robot @opentiny/tiny-robot-kit vue markstream-vue
+```
 
-If you need explicit runtime injection, provider wiring, or granular composition, upgrade to `TrChat.Root + TrChat.Page`, `TrChat.Root + primitives`, or `TrChat.Provider` directly.
+## 基本用法
 
-`TrChat.Provider` is the bounded advanced helper surface.
-It now accepts a transport-style setup:
+### 引入样式
 
-- preferred:
-  `transportAdapter`
-- supported compatibility alias:
-  `responseProvider`
+```ts
+import '@opentiny/tiny-robot-chat/style'
+```
 
-Direct `chatKit` passthrough is no longer part of the supported package story.
+### 开箱即用（TrChat）
 
-## Three-Layer Product Model
+传入一个 `TrChatConfig` 配置对象，即可渲染完整聊天页面：
 
-The supported package story is intentionally three-layered, not just "UI vs data":
+```vue
+<template>
+  <TrChat :config="chatConfig" />
+</template>
 
-- UI / page composition
-- orchestration runtime
-- transport / data-access
+<script setup lang="ts">
+import { TrChat, type TrChatConfig } from '@opentiny/tiny-robot-chat'
 
-The entry surfaces map to those layers like this:
+const chatConfig: TrChatConfig = {
+  request: {
+    models: [{ id: 'gpt-4o-mini', label: 'GPT-4o Mini', providerId: 'openai' }],
+    transport: {
+      type: 'openai-compatible',
+      endpoint: '/api/chat/completions',
+    },
+  },
+  ui: {
+    brand: { title: '我的助手' },
+    welcome: { title: '你好！有什么可以帮你的？' },
+  },
+}
+</script>
+```
 
-- `TrChat`
-  package-owned UI, package-owned orchestration runtime, package-owned transport bridge through `TrChatConfig`
-- `TrChat.Provider(transportAdapter)`
-  package-owned UI, package-owned orchestration runtime, user-owned transport / data-access through `transportAdapter`
-- `TrChat.Root + TrChat.Page`
-  package-owned UI, user-owned runtime, user-owned transport as part of that runtime
-- `TrChat.Root + primitives`
-  package-owned primitives, user-owned runtime, user-owned transport as part of that runtime
+## 三层入口
 
-Use `TrChat` by default.
-Use `TrChat.Provider(transportAdapter)` when teams want our UI and chat behavior but need their own transport adapter or data-access edge.
-`responseProvider` remains supported as a compatibility alias for the same advanced path.
+包提供三个官方入口层级，按定制深度递进：
 
-## Official Bridge Helper
+### 1. TrChat — 黑盒入口
 
-- `createRuntimeFromConfig(config)`
-  The official advanced `config -> { runtime, ui }` bridge helper for moving from target `TrChatConfig` into `TrChat.Root`.
-  This is a whitebox upgrade helper, not the normal `TrChat` entry.
+适合快速接入，传入 `TrChatConfig` 即可。
 
-## Advanced Standalone Surface
+```vue
+<TrChat :config="config" />
+```
 
-These standalone exports remain public only where they still map cleanly onto a current advanced owner-domain or adjunct surface:
+### 2. TrChat.Root + TrChat.Page — 白盒页面
 
-- `useMcpManager`
-- `TrMcpTrigger`
-- `TrChatFeedback`
+适合需要自己创建 runtime 但保留官方页面组合的场景。
 
-If you are teaching or documenting the package, prefer the three official entry levels first and introduce these surfaces only when the task truly depends on explicit advanced composition.
+```vue
+<TrChat.Root :runtime="runtime" :ui="ui">
+  <TrChat.Page />
+</TrChat.Root>
+```
 
-The current keep/delete decision baseline for these helper surfaces lives in:
+使用 `createRuntimeFromConfig(config)` 从配置创建 runtime：
 
-- `docs/refactor/process/provider-helper-decision-baseline.md`
+```ts
+import { createRuntimeFromConfig } from '@opentiny/tiny-robot-chat'
 
-## Internal Surface
+const { runtime, ui, dispose } = createRuntimeFromConfig(config)
+```
 
-- `@opentiny/tiny-robot-chat/internal`
+### 3. TrChat.Root + primitives — 细粒度组合
 
-Treat this as internal-only. It exists for package internals and targeted tests, not as a normal application entry point.
+适合需要完全控制页面结构的场景，使用公开的 primitive 组件自由拼装。
 
-## Demo Routes
+```vue
+<TrChat.Root :runtime="runtime" :ui="ui">
+  <TrChat.Layout>
+    <TrChat.Header title="我的助手" />
+    <TrChat.MessageList />
+    <TrChat.Footer>
+      <TrChat.Attachments />
+      <TrChat.Sender />
+    </TrChat.Footer>
+  </TrChat.Layout>
+</TrChat.Root>
+```
 
-The demo app mirrors the official entry ladder:
+### 高级：TrChat.Provider — 自定义 transport
 
-- `#/trchat`
-  `TrChat`
-- `#/whitebox`
-  `TrChat.Root + TrChat.Page`
-- `#/granular`
-  `TrChat.Root + primitives`
+适合需要使用包的 UI 和聊天编排能力，但自带 transport / 数据层的团队。
 
-## Validation Shortcuts
+```vue
+<TrChat.Provider :transport-adapter="myAdapter">
+  <TrChat.Layout>
+    <TrChat.Header />
+    <TrChat.MessageList />
+    <TrChat.Footer>
+      <TrChat.Sender />
+    </TrChat.Footer>
+  </TrChat.Layout>
+</TrChat.Provider>
+```
 
-- `pnpm -F @opentiny/tiny-robot-chat test:coverage`
-  formal package-local coverage reporting for `packages/chat/tests` (`runtime`, `contracts`, `integration`) against `packages/chat/src`; Playwright e2e remains the separate retained gate under `packages/test/src/chat`
-- `pnpm -F @opentiny/tiny-robot-chat check:demo`
-- `pnpm -F @opentiny/tiny-robot-chat check:phase-4`
+## 配置域
 
-Use `check:phase-4` when you need the current full package closure baseline for docs, tests, demos, and refactor doc governance.
+`TrChatConfig` 按功能域组织：
+
+| 配置域 | 职责 |
+| --- | --- |
+| `request` | 模型列表、默认模型、transport 配置 |
+| `conversation` | 初始消息、持久化策略 |
+| `ui` | 品牌、欢迎区、外观、内容布局、i18n 文案 |
+| `sender` | 输入框占位符、模式、字数限制、语音 |
+| `attachments` | 附件上传、列表配置 |
+| `messages` | 消息操作、feedback、渲染器、transform |
+| `history` | 历史记录启用、默认展开 |
+| `workspace` | 工作区视图、左右区域配置 |
+| `lifecycle` | `beforeSend` / `afterReceive` / `error` 钩子 |
+
+## 公开组件
+
+| 组件 | 说明 |
+| --- | --- |
+| `TrChat` | 黑盒入口（含 `.Root` / `.Page` / `.Provider` 等子组件） |
+| `TrChat.Layout` | 聊天布局容器 |
+| `TrChat.WorkspaceLayout` | 工作区布局（含侧边栏） |
+| `TrChat.Header` | 聊天头部 |
+| `TrChat.Welcome` | 欢迎区 |
+| `TrChat.MessageList` | 消息列表 |
+| `TrChat.Footer` | 底部区域 |
+| `TrChat.Sender` | 输入框 |
+| `TrChat.Attachments` | 附件区 |
+| `TrChat.History` | 历史记录 |
+| `TrChatFeedback` | 消息反馈（独立导出） |
+| `TrMcpTrigger` | MCP 触发器（独立导出） |
+
+## 验证命令
+
+```bash
+# 类型检查
+pnpm -F @opentiny/tiny-robot-chat type-check
+
+# 单元测试
+pnpm -F @opentiny/tiny-robot-chat test
+
+# 构建
+pnpm -F @opentiny/tiny-robot-chat build
+
+# E2E smoke 测试（需先启动 dev server）
+pnpm -F tiny-robot-test test:chat:smoke
+
+# E2E scenario 测试
+pnpm -F tiny-robot-test test:chat:scenario
+```
+
+## 目录结构
+
+```
+src/
+  entry/              # 入口组件（TrChat、TrChatRoot、TrChatPage、TrChatProvider）
+  components/         # UI 组件
+    page-regions/     # 默认页面区域（Header/Body/Footer Region、ChatPageContent）
+    workspace/        # 工作区布局（WorkspaceShell、LeftSheet、RightSheet 等）
+    attachments/      # 附件
+    feedback/         # 消息反馈
+    history/          # 历史记录
+    mcp/              # MCP 触发器和面板
+    model-selector/   # 模型选择器
+    renderers/        # 消息渲染器（Error、Edit、ToolCalls、Markdown 等）
+    shared/           # 共享组件（ConditionalThemeProvider）
+  runtime/
+    config/           # createRuntimeFromConfig、config entry、provider resolution
+    core/             # normalizeRuntime、messageIdentity
+    engine/           # useChatKit、useChatConversation、useChatMessages、useChatRequest
+    transport/        # openaiCompatibleTransport
+    features/         # feature registry
+  shared/
+    context/          # chatUiContext、injection keys
+    messages/         # i18n 文案（CHAT_MESSAGES）
+    utils/            # 工具函数
+  types/              # 类型定义（component、config、runtime、message、workspace 等）
+  styles/             # CSS 样式
+tests/
+  runtime/            # runtime 语义测试
+  contracts/          # 公开 contract 测试
+  integration/        # 挂载集成测试
+```

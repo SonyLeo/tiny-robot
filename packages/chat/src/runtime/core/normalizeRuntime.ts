@@ -100,12 +100,19 @@ function createDefaultMessageRuntime(runtimeInput: ChatRuntimeInput): ChatMessag
       }
     },
     startEdit() {
-      // The bootstrap slice still relies on legacy edit flows when available.
+      console.warn(
+        '[TrChat] message.startEdit() called on the default message runtime. Provide a full ChatMessageRuntime to enable editing.',
+      )
     },
     cancelEdit() {
-      // The bootstrap slice still relies on legacy edit flows when available.
+      console.warn(
+        '[TrChat] message.cancelEdit() called on the default message runtime. Provide a full ChatMessageRuntime to enable editing.',
+      )
     },
     async commitEdit() {
+      console.warn(
+        '[TrChat] message.commitEdit() called on the default message runtime. Provide a full ChatMessageRuntime to enable editing.',
+      )
       return false
     },
     async copy(messageId) {

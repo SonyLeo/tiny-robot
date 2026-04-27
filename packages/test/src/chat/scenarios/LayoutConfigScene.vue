@@ -35,6 +35,21 @@
         </TrChat.Layout>
       </TrChat.Root>
     </div>
+
+    <!-- 7.5: light mode -->
+    <div data-testid="chat-layout-appearance-light" class="chat-wrapper">
+      <TrChat :config="lightTrChatConfig" />
+    </div>
+
+    <!-- 7.5: system mode -->
+    <div data-testid="chat-layout-appearance-system" class="chat-wrapper">
+      <TrChat :config="systemTrChatConfig" />
+    </div>
+
+    <!-- 7.5: no appearance mode (no ThemeProvider) -->
+    <div data-testid="chat-layout-appearance-none" class="chat-wrapper">
+      <TrChat :config="noAppearanceTrChatConfig" />
+    </div>
   </div>
 </template>
 
@@ -86,6 +101,32 @@ const centeredGranularConfig = computed(() =>
 const wideWhiteboxResolution = useStableSceneRuntime(wideWhiteboxConfig)
 const centeredGranularResolution = useStableSceneRuntime(centeredGranularConfig)
 const showCenteredGranularWelcome = useSceneWelcomeState(centeredGranularResolution)
+
+const lightTrChatConfig = computed(() =>
+  createOfficialSceneConfig({
+    brandTitle: 'Layout Light TrChat',
+    welcomeTitle: 'Layout Light TrChat',
+    welcomeDescription: 'Official TrChat path should honor explicit light appearance mode.',
+    appearanceMode: 'light',
+  }),
+)
+
+const systemTrChatConfig = computed(() =>
+  createOfficialSceneConfig({
+    brandTitle: 'Layout System TrChat',
+    welcomeTitle: 'Layout System TrChat',
+    welcomeDescription: 'Official TrChat path should honor system appearance mode (auto).',
+    appearanceMode: 'system',
+  }),
+)
+
+const noAppearanceTrChatConfig = computed(() =>
+  createOfficialSceneConfig({
+    brandTitle: 'Layout No Appearance TrChat',
+    welcomeTitle: 'Layout No Appearance TrChat',
+    welcomeDescription: 'Without an appearance mode, no ThemeProvider should be rendered.',
+  }),
+)
 </script>
 
 <style scoped>

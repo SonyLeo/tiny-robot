@@ -21,8 +21,12 @@
 <script setup lang="ts">
 import { computed, ref, type Component } from 'vue'
 import GranularScene from './scenarios/GranularScene.vue'
+import ErrorRetryScene from './scenarios/ErrorRetryScene.vue'
+import FeedbackScene from './scenarios/FeedbackScene.vue'
 import LayoutConfigScene from './scenarios/LayoutConfigScene.vue'
 import McpFeatureScene from './scenarios/McpFeatureScene.vue'
+import MessageEditScene from './scenarios/MessageEditScene.vue'
+import MessageListConfigScene from './scenarios/MessageListConfigScene.vue'
 import MessageTransformsScene from './scenarios/MessageTransformsScene.vue'
 import RendererRegistryScene from './scenarios/RendererRegistryScene.vue'
 import SenderExtensionsScene from './scenarios/SenderExtensionsScene.vue'
@@ -30,6 +34,8 @@ import SurfaceApiScene from './scenarios/SurfaceApiScene.vue'
 import TrChatScene from './scenarios/TrChatScene.vue'
 import WelcomePromptsScene from './scenarios/WelcomePromptsScene.vue'
 import WhiteboxScene from './scenarios/WhiteboxScene.vue'
+import WhiteboxSlotsScene from './scenarios/WhiteboxSlotsScene.vue'
+import WorkspaceInteractionScene from './scenarios/WorkspaceInteractionScene.vue'
 import WorkspaceSlotsScene from './scenarios/WorkspaceSlotsScene.vue'
 
 type ChatMode =
@@ -44,6 +50,12 @@ type ChatMode =
   | 'renderer-registry'
   | 'surface-api'
   | 'workspace-slots'
+  | 'workspace-interaction'
+  | 'whitebox-slots'
+  | 'error-retry'
+  | 'message-edit'
+  | 'message-list-config'
+  | 'feedback'
 
 const modeOptions: ReadonlyArray<{ value: ChatMode; label: string; testId: string }> = [
   { value: 'trchat', label: 'TrChat 入口', testId: 'switch-trchat' },
@@ -57,6 +69,12 @@ const modeOptions: ReadonlyArray<{ value: ChatMode; label: string; testId: strin
   { value: 'renderer-registry', label: 'Renderer Registry', testId: 'switch-renderer-registry' },
   { value: 'surface-api', label: 'Surface API', testId: 'switch-surface-api' },
   { value: 'workspace-slots', label: 'Workspace Slots', testId: 'switch-workspace-slots' },
+  { value: 'workspace-interaction', label: 'Workspace Interaction', testId: 'switch-workspace-interaction' },
+  { value: 'whitebox-slots', label: 'Whitebox Slots', testId: 'switch-whitebox-slots' },
+  { value: 'error-retry', label: 'Error Retry', testId: 'switch-error-retry' },
+  { value: 'message-edit', label: 'Message Edit', testId: 'switch-message-edit' },
+  { value: 'message-list-config', label: 'MessageList Config', testId: 'switch-message-list-config' },
+  { value: 'feedback', label: 'Feedback', testId: 'switch-feedback' },
 ]
 
 const sceneByMode: Record<ChatMode, Component> = {
@@ -71,6 +89,12 @@ const sceneByMode: Record<ChatMode, Component> = {
   'renderer-registry': RendererRegistryScene,
   'surface-api': SurfaceApiScene,
   'workspace-slots': WorkspaceSlotsScene,
+  'workspace-interaction': WorkspaceInteractionScene,
+  'whitebox-slots': WhiteboxSlotsScene,
+  'error-retry': ErrorRetryScene,
+  'message-edit': MessageEditScene,
+  'message-list-config': MessageListConfigScene,
+  feedback: FeedbackScene,
 }
 
 function isChatMode(value: string | null): value is ChatMode {

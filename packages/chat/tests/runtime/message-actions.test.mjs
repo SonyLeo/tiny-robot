@@ -1,5 +1,6 @@
 ﻿import {
   assert,
+  createMockRuntime,
   createRuntimeFromConfig,
   createMemoryStorage,
   createStreamingProvider,
@@ -125,12 +126,8 @@ await runTest('useChatFeedback built-in actions prefer runtime messageId paths w
   const userMessageId = ensureRuntimeMessageId(userMessage)
   const calls = []
 
-  const runtime = {
+  const runtime = createMockRuntime({
     conversation: {
-      messages: { value: [] },
-      status: { value: 'ready' },
-      send: () => undefined,
-      abort: () => undefined,
       retry: async (messageId) => {
         calls.push(['retry', messageId])
         return true
@@ -139,17 +136,6 @@ await runTest('useChatFeedback built-in actions prefer runtime messageId paths w
         calls.push(['regenerate', messageId])
         return true
       },
-    },
-    sender: {
-      draft: { value: '' },
-      pendingAttachments: { value: [] },
-      canSend: { value: true },
-      setDraft: () => undefined,
-      send: () => undefined,
-      addPendingAttachments: () => undefined,
-      setPendingAttachments: () => undefined,
-      removePendingAttachment: () => undefined,
-      clearPendingAttachments: () => undefined,
     },
     message: {
       getViewState: (messageId) => ({
@@ -171,7 +157,7 @@ await runTest('useChatFeedback built-in actions prefer runtime messageId paths w
         calls.push(['copy', messageId])
       },
     },
-  }
+  })
 
   const userFeedback = runWithAppContext(() =>
     useChatFeedback({
@@ -228,26 +214,7 @@ await runTest('useChatFeedback falls back to runtime-owned action definitions an
   const assistantMessageId = ensureRuntimeMessageId(assistantMessage)
   let customActionLog = ''
 
-  const runtime = {
-    conversation: {
-      messages: { value: [] },
-      status: { value: 'ready' },
-      send: () => undefined,
-      abort: () => undefined,
-      retry: async () => true,
-      regenerate: async () => true,
-    },
-    sender: {
-      draft: { value: '' },
-      pendingAttachments: { value: [] },
-      canSend: { value: true },
-      setDraft: () => undefined,
-      send: () => undefined,
-      addPendingAttachments: () => undefined,
-      setPendingAttachments: () => undefined,
-      removePendingAttachment: () => undefined,
-      clearPendingAttachments: () => undefined,
-    },
+  const runtime = createMockRuntime({
     message: {
       getViewState: () => ({
         status: 'done',
@@ -273,7 +240,7 @@ await runTest('useChatFeedback falls back to runtime-owned action definitions an
         actionMode: 'replace',
       },
     },
-  }
+  })
 
   const feedback = runWithAppContext(() =>
     useChatFeedback({

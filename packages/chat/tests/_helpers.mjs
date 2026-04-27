@@ -189,3 +189,149 @@ export async function waitFor(assertion, { timeout = 1500, interval = 20 } = {})
   return assertion()
 }
 
+
+/**
+ * Creates a mock fetch that simulates an OpenAI-compatible SSE streaming endpoint.
+ *
+ * Returns { fetch, requests, restore } where:
+ * - fetch: the mock function (also installed on globalThis.fetch)
+ * - requests: array collecting every parsed request body
+ * - restore: call this in `finally` to restore the original fetch
+ *
+ * Options:
+ * - handler(requestBody): optional custom handler; return a Response to override
+ *   the default streaming behavior. If it returns undefined the default SSE
+ *   reply is used.
+ */
+export function createMockFetch({ handler } = {}) {
+  const originalDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'fetch')
+  const requests = []
+  const encoder = new TextEncoder()
+
+  const mockFetch = async (_input, init) => {
+    const requestBody = JSON.parse(String(init?.body ?? '{}'))
+    requests.push(requestBody)
+
+    if (handler) {
+      const custom = await handler(requestBody)
+      if (custom) return custom
+    }
+
+    const lastMessage = requestBody.messages?.[requestBody.messages.length - 1]?.content ?? ''
+    const reply = `reply:${lastMessage}`
+    const chunks = [
+      `data: ${JSON.stringify({
+        id: `mock-${Date.now()}`,
+        object: 'chat.completion.chunk',
+        created: 0,
+        model: requestBody.model ?? 'mock-model',
+        choices: [{ index: 0, delta: { role: 'assistant', content: reply }, finish_reason: null }],
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: `mock-${Date.now()}`,
+        object: 'chat.completion.chunk',
+        created: 0,
+        model: requestBody.model ?? 'mock-model',
+        choices: [{ index: 0, delta: {}, finish_reason: 'stop' }],
+      })}\n\n`,
+      'data: [DONE]\n\n',
+    ]
+
+    return new Response(
+      new ReadableStream({
+        start(controller) {
+          chunks.forEach((chunk) => controller.enqueue(encoder.encode(chunk)))
+          controller.close()
+        },
+      }),
+      { status: 200, headers: { 'content-type': 'text/event-stream' } },
+    )
+  }
+
+  Object.defineProperty(globalThis, 'fetch', { configurable: true, value: mockFetch })
+
+  function restore() {
+    if (originalDescriptor) {
+      Object.defineProperty(globalThis, 'fetch', originalDescriptor)
+    } else {
+      Reflect.deleteProperty(globalThis, 'fetch')
+    }
+  }
+
+  return { fetch: mockFetch, requests, restore }
+}
+
+/**
+ * Creates a mock runtime object suitable for useChatFeedback and similar
+ * consumers that expect { conversation, sender, message } sub-runtimes.
+ *
+ * Every method is a no-op by default. Pass partial overrides to customise
+ * individual sub-runtimes or methods.
+ */
+export function createMockRuntime(overrides = {}) {
+  const { conversation = {}, sender = {}, message = {} } = overrides
+
+  return {
+    conversation: {
+      messages: { value: [] },
+      status: { value: 'ready' },
+      send: () => undefined,
+      abort: () => undefined,
+      retry: async () => true,
+      regenerate: async () => true,
+      ...conversation,
+    },
+    sender: {
+      draft: { value: '' },
+      pendingAttachments: { value: [] },
+      canSend: { value: true },
+      setDraft: () => undefined,
+      send: () => undefined,
+      addPendingAttachments: () => undefined,
+      setPendingAttachments: () => undefined,
+      removePendingAttachment: () => undefined,
+      clearPendingAttachments: () => undefined,
+      ...sender,
+    },
+    message: {
+      getViewState: () => ({ status: 'done', editing: false, optimistic: false }),
+      getActions: () => [],
+      startEdit: () => undefined,
+      cancelEdit: () => undefined,
+      commitEdit: () => true,
+      copy: async () => undefined,
+      ...message,
+    },
+  }
+}
+
+/**
+ * Installs a mock navigator.clipboard on globalThis and returns
+ * { copied, restore } where `copied` is an array collecting every
+ * writeText call.
+ */
+export function createMockClipboard() {
+  const originalDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'navigator')
+  const copied = []
+
+  Object.defineProperty(globalThis, 'navigator', {
+    configurable: true,
+    value: {
+      clipboard: {
+        writeText: async (value) => {
+          copied.push(value)
+        },
+      },
+    },
+  })
+
+  function restore() {
+    if (originalDescriptor) {
+      Object.defineProperty(globalThis, 'navigator', originalDescriptor)
+    } else {
+      Reflect.deleteProperty(globalThis, 'navigator')
+    }
+  }
+
+  return { copied, restore }
+}

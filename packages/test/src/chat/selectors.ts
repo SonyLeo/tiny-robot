@@ -26,10 +26,10 @@ export const CHAT_SELECTORS = {
   senderVoiceActionBtn: '[data-testid="chat-sender-action-voice"] .tr-action-button',
   senderWordCounter: '.tr-sender-word-counter',
 
-  // === Header 按钮（UI-H1/H2：改为 title 属性选择器，不依赖实现细节类名）===
-  // historyBtn 选取两种状态：打开/关闭均可找到
+  // === Header 按钮（title 属性选择器，稳定且 accessible）===
   historyBtn: '[title="打开历史"], [title="关闭历史"]',
   newChatBtn: '[title="新建对话"]',
+  closeBtn: '[title="关闭"]',
 
   // === Header 品牌（UI-B1）===
   headerBrand: '.tr-chat__header-brand',
