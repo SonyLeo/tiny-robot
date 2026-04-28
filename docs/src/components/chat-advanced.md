@@ -46,12 +46,14 @@ import { TrChat, createRuntimeFromConfig } from '@opentiny/tiny-robot-chat'
 
 const config = {
   request: {
+    providers: {
+      openai: {
+        type: 'openai-compatible',
+        endpoint: '/api/chat/completions',
+      },
+    },
     models: [{ id: 'gpt-4.1-mini', providerId: 'openai', label: 'GPT-4.1 Mini' }],
     defaultModelId: 'gpt-4.1-mini',
-    transport: {
-      type: 'openai-compatible',
-      endpoint: '/api/chat/completions',
-    },
   },
   ui: {
     brand: { title: 'Internal Chat' },
@@ -74,7 +76,7 @@ const { runtime, ui } = createRuntimeFromConfig(config)
 
 - 需要自行组合 `Header / MessageList / Footer / History / Workspace`
 - 需要在页面中插入自定义区域
-- 需要单独使用 `TrChat.Sender`、`TrChat.MessageList`、`TrMcpTrigger`
+- 需要单独使用 `TrChat.Sender`、`TrChat.MessageList`、`TrChat.McpTrigger`
 
 这是完全自定义页面组合的路径。查看完整示例：[Chat Workspace 布局](/examples/chat-workspace-layout)
 
@@ -86,9 +88,14 @@ import { TrChat, createRuntimeFromConfig } from '@opentiny/tiny-robot-chat'
 
 const { runtime, ui } = createRuntimeFromConfig({
   request: {
+    providers: {
+      openai: {
+        type: 'openai-compatible',
+        endpoint: '/api/chat/completions',
+      },
+    },
     models: [{ id: 'gpt-4.1-mini', providerId: 'openai', label: 'GPT-4.1 Mini' }],
     defaultModelId: 'gpt-4.1-mini',
-    transport: { type: 'openai-compatible', endpoint: '/api/chat/completions' },
   },
   ui: { brand: { title: 'My Chat' } },
 })
@@ -314,7 +321,7 @@ const transportAdapter = async (requestBody, abortSignal) => {
 ```vue
 <TrChat.Sender>
   <template #footer>
-    <TrMcpTrigger label="MCP 工具" />
+    <TrChat.McpTrigger label="MCP 工具" />
   </template>
   <template #footer-right>
     <button @click="handleCustomAction">自定义</button>
@@ -367,7 +374,7 @@ const transportAdapter = async (requestBody, abortSignal) => {
 - 在 `TrChat.Provider` 上显式传入 `mcpManager`
 - 或在 `TrChat.Root` 的 runtime 里提供 `mcp`
 
-如果只需在 sender footer 区域放置触发器，可以配合 `TrMcpTrigger`。
+如果只需在 sender footer 区域放置触发器，可以配合 `TrChat.McpTrigger`。
 
 ### Sender extensions
 
@@ -383,8 +390,8 @@ const transportAdapter = async (requestBody, abortSignal) => {
 这些能力仍然适合放在高级路径里介绍：
 
 - `useMcpManager`
-- `TrMcpTrigger`
-- `TrChatFeedback`
+- `TrChat.McpTrigger`
+- `TrChat.Feedback`
 
 ## 下一步看哪里
 

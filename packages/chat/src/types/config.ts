@@ -56,9 +56,9 @@ export interface TrChatTransportConfig {
 }
 
 export interface TrChatRequestConfig {
+  providers: Record<string, TrChatTransportConfig>
   models: TrChatRequestModel[]
   defaultModelId?: string | null
-  transport: TrChatTransportConfig
   systemPrompt?: string
 }
 

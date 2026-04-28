@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, inject, provide } from 'vue'
+import { toolPlugin } from '@opentiny/tiny-robot-kit'
 import { useChatAttachments } from '@/components/attachments/useChatAttachments'
 import { useHistoryState } from '@/components/history/useHistoryState'
 import {
@@ -22,7 +23,20 @@ defineOptions({ name: 'TrChatProvider' })
 const props = defineProps<TrChatProviderProps>()
 const runtime = inject(CHAT_RUNTIME_KEY, null)
 
-const providerRuntime = resolveProviderRuntime('TrChatProvider', props)
+const providerRuntime = resolveProviderRuntime('TrChatProvider', {
+  ...props,
+  plugins: [
+    ...(props.plugins ?? []),
+    ...(props.mcpManager
+      ? [
+          toolPlugin({
+            getTools: () => props.mcpManager!.getTools(),
+            callTool: (toolCall) => props.mcpManager!.callTool(toolCall),
+          }),
+        ]
+      : []),
+  ],
+})
 const shell = computed(() => props.shell)
 const chatUi = createChatUiContext({ historyDisplay: 'drawer', shell, workspaceRuntime: runtime?.workspace })
 const chatMessages = computed(() => resolveChatMessages(props.messages))

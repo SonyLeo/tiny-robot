@@ -3,6 +3,8 @@ import { computed, inject, provide, useAttrs, useSlots } from 'vue'
 import type { PropType, Slot } from 'vue'
 import { TrBubbleList } from '@opentiny/tiny-robot'
 import type { BubbleListProps, BubbleRoleConfig } from '@opentiny/tiny-robot'
+import type { ChatMessageContentItem } from '@opentiny/tiny-robot'
+import type { BubbleMessage } from '@opentiny/tiny-robot'
 import {
   BUBBLE_CONFIG_KEY,
   BUBBLE_LIST_SLOTS,
@@ -106,12 +108,46 @@ const roleConfigs = computed(() => {
   return createVariantRoleConfigs(baseRoleConfigs, resolvedVariant.value)
 })
 
+interface MessageWithAttachments {
+  content?: unknown
+  attachments?: Array<{ url?: string; fileType?: string; name?: string; rawFile?: File }>
+}
+
+function chatContentResolver(message: BubbleMessage) {
+  const msg = message as unknown as MessageWithAttachments
+  const attachments = msg.attachments
+  if (!Array.isArray(attachments) || attachments.length === 0) {
+    return message.content
+  }
+
+  const imageAttachments = attachments.filter((a) => {
+    if (a.fileType === 'image') return true
+    if (a.rawFile?.type.startsWith('image/')) return true
+    if (typeof a.name === 'string') return /\.(jpe?g|png|gif|webp|bmp|tiff?|heic|svg)$/i.test(a.name)
+    return false
+  })
+
+  if (imageAttachments.length === 0) return message.content
+
+  const parts: ChatMessageContentItem[] = []
+  if (message.content) {
+    parts.push({ type: 'text', text: message.content as string })
+  }
+  for (const img of imageAttachments) {
+    if (img.url) {
+      parts.push({ type: 'image_url', image_url: { url: img.url } })
+    }
+  }
+  return parts
+}
+
 const mergedBubbleListBindings = computed(() => ({
   ...bubbleListDomAttrs.value,
   ...bubbleListForwardedProps.value,
   autoScroll: resolvedAutoScroll.value,
   groupStrategy: resolvedGroupStrategy.value,
   roleConfigs: roleConfigs.value,
+  contentResolver: chatContentResolver,
   'data-variant': resolvedVariant.value,
 }))
 </script>

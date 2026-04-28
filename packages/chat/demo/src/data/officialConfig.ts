@@ -1,4 +1,4 @@
-import type { TrChatConfig } from '@opentiny/tiny-robot-chat'
+import type { TrChatConfig, TrChatTransportConfig } from '@opentiny/tiny-robot-chat'
 import { localStorageStrategyFactory } from '@opentiny/tiny-robot-kit'
 import { BRAND_CONFIG, WELCOME_CONFIG } from '../constants'
 
@@ -14,9 +14,9 @@ export interface OfficialDemoConfigOptions {
 }
 
 interface RequestPreset {
+  providers: Record<string, TrChatTransportConfig>
   models: TrChatConfig['request']['models']
   defaultModelId: string
-  transport: TrChatConfig['request']['transport']
   availabilityNote?: string
 }
 
@@ -29,71 +29,88 @@ const openaiModel = import.meta.env.VITE_OPENAI_MODEL || 'gpt-4o-mini'
 
 function resolveRequestPreset(): RequestPreset {
   if (bailianApiKey) {
-    return {
-      models: [
-        { id: 'qwen-plus', label: 'Qwen Plus', providerId: 'bailian' },
-        { id: 'qwen-turbo', label: 'Qwen Turbo', providerId: 'bailian' },
-        { id: 'qwen-max', label: 'Qwen Max', providerId: 'bailian' },
-      ],
-      defaultModelId: bailianModel,
-      transport: {
+    const providers: Record<string, TrChatTransportConfig> = {
+      bailian: {
         type: 'openai-compatible',
         baseURL: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
         apiPath: '/chat/completions',
         systemPrompt: 'You are a helpful assistant.',
-        headers: {
-          Authorization: `Bearer ${bailianApiKey}`,
-        },
+        headers: { Authorization: `Bearer ${bailianApiKey}` },
       },
     }
+
+    const models: RequestPreset['models'] = [
+      { id: 'qwen-plus', label: 'Qwen Plus', providerId: 'bailian' },
+      { id: 'qwen-turbo', label: 'Qwen Turbo', providerId: 'bailian' },
+      { id: 'qwen-max', label: 'Qwen Max', providerId: 'bailian' },
+      { id: 'qwen-vl-plus', label: 'Qwen VL Plus（视觉）', providerId: 'bailian' },
+    ]
+
+    if (deepseekApiKey) {
+      providers.deepseek = {
+        type: 'openai-compatible',
+        baseURL: 'https://api.deepseek.com/v1',
+        apiPath: '/chat/completions',
+        systemPrompt: 'You are a helpful assistant.',
+        headers: { Authorization: `Bearer ${deepseekApiKey}` },
+      }
+      models.push(
+        { id: 'deepseek-chat', label: 'DeepSeek Chat', providerId: 'deepseek' },
+        { id: 'deepseek-reasoner', label: 'DeepSeek Reasoner', providerId: 'deepseek' },
+      )
+    }
+
+    return { providers, models, defaultModelId: bailianModel }
   }
 
   if (deepseekApiKey) {
     return {
+      providers: {
+        deepseek: {
+          type: 'openai-compatible',
+          baseURL: 'https://api.deepseek.com/v1',
+          apiPath: '/chat/completions',
+          systemPrompt: 'You are a helpful assistant.',
+          headers: { Authorization: `Bearer ${deepseekApiKey}` },
+        },
+      },
       models: [
         { id: 'deepseek-chat', label: 'DeepSeek Chat', providerId: 'deepseek' },
         { id: 'deepseek-reasoner', label: 'DeepSeek Reasoner', providerId: 'deepseek' },
       ],
       defaultModelId: deepseekModel,
-      transport: {
-        type: 'openai-compatible',
-        baseURL: 'https://api.deepseek.com/v1',
-        apiPath: '/chat/completions',
-        systemPrompt: 'You are a helpful assistant.',
-        headers: {
-          Authorization: `Bearer ${deepseekApiKey}`,
-        },
-      },
     }
   }
 
   if (openaiApiKey) {
     return {
+      providers: {
+        openai: {
+          type: 'openai-compatible',
+          baseURL: 'https://api.openai.com/v1',
+          apiPath: '/chat/completions',
+          systemPrompt: 'You are a helpful assistant.',
+          headers: { Authorization: `Bearer ${openaiApiKey}` },
+        },
+      },
       models: [
         { id: 'gpt-4o-mini', label: 'GPT-4o Mini', providerId: 'openai' },
         { id: 'gpt-4o', label: 'GPT-4o', providerId: 'openai' },
       ],
       defaultModelId: openaiModel,
-      transport: {
-        type: 'openai-compatible',
-        baseURL: 'https://api.openai.com/v1',
-        apiPath: '/chat/completions',
-        systemPrompt: 'You are a helpful assistant.',
-        headers: {
-          Authorization: `Bearer ${openaiApiKey}`,
-        },
-      },
     }
   }
 
   return {
+    providers: {
+      demo: {
+        type: 'openai-compatible',
+        endpoint: '/api/chat/completions',
+        systemPrompt: 'You are a helpful assistant.',
+      },
+    },
     models: [{ id: 'demo-model', label: 'Demo Model', providerId: 'demo' }],
     defaultModelId: 'demo-model',
-    transport: {
-      type: 'openai-compatible',
-      endpoint: '/api/chat/completions',
-      systemPrompt: 'You are a helpful assistant.',
-    },
     availabilityNote:
       '请在 .env 中配置 VITE_BAILIAN_API_KEY（百炼）、VITE_DEEPSEEK_API_KEY 或 VITE_OPENAI_API_KEY 以启用真实回复。',
   }
@@ -105,9 +122,9 @@ export function createOfficialDemoConfig(options: OfficialDemoConfigOptions): Tr
 
   return {
     request: {
+      providers: preset.providers,
       models: preset.models,
       defaultModelId: preset.defaultModelId,
-      transport: preset.transport,
     },
     conversation: {
       initialMessages: options.initialMessages,

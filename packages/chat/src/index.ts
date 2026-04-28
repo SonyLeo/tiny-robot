@@ -32,6 +32,7 @@ type TrChatWithSubComponents = typeof TrChat & {
   Footer: typeof TrChatFooter
   Attachments: typeof TrChatAttachments
   Sender: typeof TrChatSender
+  Feedback: typeof TrChatFeedback
   History: typeof TrChatHistory
   ModelSelector: typeof TrModelSelector
   McpTrigger: typeof TrMcpTrigger
@@ -51,6 +52,7 @@ TrChatFull.MessageList = TrChatMessageList
 TrChatFull.Footer = TrChatFooter
 TrChatFull.Attachments = TrChatAttachments
 TrChatFull.Sender = TrChatSender
+TrChatFull.Feedback = TrChatFeedback
 TrChatFull.History = TrChatHistory
 TrChatFull.ModelSelector = TrModelSelector
 TrChatFull.McpTrigger = TrMcpTrigger
@@ -104,6 +106,7 @@ export type {
   CreateRuntimeFromConfigResult,
   TrChatConfig,
   TrChatConfigEntryInput,
+  TrChatTransportConfig,
   TrChatRootProps,
   TrChatRootUiConfig,
   TrChatWorkspaceShellProps,

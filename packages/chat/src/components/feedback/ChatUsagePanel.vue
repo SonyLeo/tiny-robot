@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, nextTick } from 'vue'
+import { useDateFormat } from '@vueuse/core'
 import { computePosition, flip, offset, shift } from '@floating-ui/dom'
 import { TrIconButton } from '@opentiny/tiny-robot'
 import { IconInfo } from '@opentiny/tiny-robot-svgs'
@@ -42,7 +43,7 @@ function hide() {
 
 function formatTime(ts?: number) {
   if (!ts) return '-'
-  return new Date(ts * 1000).toLocaleString()
+  return useDateFormat(ts * 1000, 'YYYY-MM-DD HH:mm:ss').value
 }
 </script>
 
@@ -82,9 +83,10 @@ function formatTime(ts?: number) {
     z-index: var(--tr-z-index-dropdown, 1000);
     min-width: 200px;
     padding: 10px 12px;
-    background: var(--tr-bg-overlay, #fff);
+    background: var(--chat-surface-bg, #fff);
+    border: 1px solid var(--chat-surface-border, rgba(0, 0, 0, 0.08));
     border-radius: 10px;
-    box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.1);
+    box-shadow: var(--chat-shadow-sm, 0 4px 16px 0 rgba(0, 0, 0, 0.1));
     white-space: nowrap;
   }
 
@@ -99,12 +101,12 @@ function formatTime(ts?: number) {
   }
 
   .tr-chat-usage__label {
-    color: var(--tr-text-secondary, rgb(128, 128, 128));
+    color: var(--chat-text-secondary, rgb(128, 128, 128));
     flex-shrink: 0;
   }
 
   .tr-chat-usage__value {
-    color: var(--tr-text-primary, rgb(25, 25, 25));
+    color: var(--chat-text-primary, rgb(25, 25, 25));
     font-variant-numeric: tabular-nums;
   }
 }

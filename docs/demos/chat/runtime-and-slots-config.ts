@@ -7,10 +7,12 @@ export const chatConfig: TrChatConfig = {
       { id: 'gpt-4.1-mini', providerId: 'openai', label: 'GPT-4.1 Mini' },
     ],
     defaultModelId: 'gpt-4.1-mini',
-    transport: {
-      type: 'openai-compatible',
-      endpoint: '/api/chat/completions',
-      systemPrompt: 'You are a helpful assistant.',
+    providers: {
+      openai: {
+        type: 'openai-compatible',
+        endpoint: '/api/chat/completions',
+        systemPrompt: 'You are a helpful assistant.',
+      },
     },
   },
   ui: {

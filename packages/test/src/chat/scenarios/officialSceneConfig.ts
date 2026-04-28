@@ -44,10 +44,12 @@ export function createOfficialSceneConfig(options: OfficialSceneConfigOptions): 
     request: {
       models: requestModels,
       defaultModelId: options.defaultModelId ?? requestModels[0]?.id ?? null,
-      transport: {
-        type: 'openai-compatible',
-        endpoint: '/api/openai',
-        systemPrompt: 'You are a helpful assistant.',
+      providers: {
+        openai: {
+          type: 'openai-compatible',
+          endpoint: '/api/openai',
+          systemPrompt: 'You are a helpful assistant.',
+        },
       },
     },
     conversation: {

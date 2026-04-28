@@ -94,7 +94,7 @@ outline: [2, 3]
 
 - 你要自己排 `Header / MessageList / Footer / History / Workspace`
 - 你要在页面里插入自定义区域
-- 你要单独使用 `TrChat.Sender`、`TrChat.MessageList`、`TrMcpTrigger` 等叶子组件
+- 你要单独使用 `TrChat.Sender`、`TrChat.MessageList`、`TrChat.McpTrigger` 等叶子组件
 
 适合需要完全控制页面组合的场景。查看完整示例：[Chat Workspace 布局](/examples/chat-workspace-layout)
 
