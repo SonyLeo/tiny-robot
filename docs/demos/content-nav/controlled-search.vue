@@ -78,12 +78,8 @@ const roles = {
 const userMessages = messages.filter(isUserMessage)
 const messageById = new Map(messages.map((message) => [String(message.id), message]))
 
-type BubbleListExpose = {
-  rootEl: HTMLDivElement | null
-}
-
-const bubbleListRef = ref<BubbleListExpose | null>(null)
-const scrollContainerRef = computed(() => bubbleListRef.value?.rootEl ?? null)
+const bubbleListRef = ref<InstanceType<typeof TrBubbleList> | null>(null)
+const scrollContainerRef = computed(() => bubbleListRef.value?.$el ?? null)
 const placement = ref<'left' | 'right'>('right')
 const activeId = ref(userMessages[0]?.id ?? '')
 const searchQuery = ref('')
