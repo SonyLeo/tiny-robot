@@ -19,6 +19,7 @@ import type {
 import type { ChatShellVariant, ChatWorkspaceRegionConfig } from './workspace'
 import type { ChatBeforeSendHandler, ChatAfterReceiveHandler, ChatErrorHandler } from './message'
 import type { ChatRuntimeInput } from './runtime'
+import type { UseMcpManagerReturn } from '../components/mcp/useMcpManager'
 
 export interface TrChatRootUiConfig {
   brand?: BrandConfig
@@ -31,6 +32,7 @@ export interface TrChatRootUiConfig {
 export interface TrChatRootProps {
   runtime: ChatRuntimeInput
   ui?: TrChatRootUiConfig
+  mcpManager?: UseMcpManagerReturn
 }
 
 export interface TrChatRequestModel {

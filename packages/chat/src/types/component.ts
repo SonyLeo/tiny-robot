@@ -204,6 +204,7 @@ export interface TrChatPresetOverrides {
 
 export interface TrChatProps {
   config: TrChatConfigEntryInput
+  mcpManager?: UseMcpManagerReturn
 }
 
 export type TrChatProviderSharedProps = {

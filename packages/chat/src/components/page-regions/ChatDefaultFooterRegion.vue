@@ -44,8 +44,10 @@ function handleModelChange(model: ModelOption) {
       <slot name="footer-extra" />
     </template>
     <div class="tr-chat-footer-content">
-      <ChatAttachments />
       <ChatSender>
+        <template #header>
+          <ChatAttachments />
+        </template>
         <template v-if="props.showFooterTools" #footer>
           <div class="tr-chat-footer-tools">
             <ModelSelector
@@ -63,12 +65,6 @@ function handleModelChange(model: ModelOption) {
 </template>
 
 <style scoped>
-.tr-chat-footer-content {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
 .tr-chat-footer-tools {
   display: flex;
   flex-wrap: wrap;

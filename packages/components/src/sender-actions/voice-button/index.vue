@@ -6,6 +6,8 @@ import ActionButton from '../action-button/index.vue'
 import { IconVoice, IconRecordingWave } from '@opentiny/tiny-robot-svgs'
 import type { VoiceButtonProps, VoiceButtonEmits } from './index.type'
 
+defineOptions({ inheritAttrs: false })
+
 const props = withDefaults(defineProps<VoiceButtonProps>(), {
   tooltipPlacement: 'top',
   autoInsert: true,

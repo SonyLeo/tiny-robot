@@ -93,6 +93,33 @@ For quick lookup tables:
 - `packages/chat/docs/generated/runtime-owner-table.md` — runtime module ownership
 - `packages/chat/docs/generated/page-region-contract.md` — page region read boundaries
 
+For docs-site examples (blackbox/whitebox/workspace integration demos):
+
+- `docs/src/examples/assistant.md` — assistant-style integration example
+- `docs/src/examples/chat-basic.md` — basic chat usage example
+- `docs/src/examples/chat-runtime-and-slots.md` — runtime creation and slot customization example
+- `docs/src/examples/chat-workspace-layout.md` — workspace layout example
+
+For docs-site component and feature guides:
+
+- `docs/src/components/chat.md` — TrChat component documentation
+- `docs/src/components/chat-advanced.md` — advanced chat configuration and usage
+- `docs/src/components/chat-features.md` — chat feature flags and capabilities
+
+For demo source files (Vue examples referenced by docs):
+
+- `docs/demos/chat/basic.vue` — basic TrChat blackbox entry demo
+- `docs/demos/chat/runtime-and-slots.vue` — whitebox runtime + slot customization demo
+- `docs/demos/chat/runtime-and-slots-config.ts` — config for the runtime-and-slots demo
+- `docs/demos/chat/workspace-layout.vue` — workspace shell layout demo
+- `docs/demos/chat/workspace-layout-config.ts` — config for the workspace layout demo
+- `docs/demos/examples/Assistant.vue` — assistant-style full integration demo
+- `docs/demos/examples/responseProvider.ts` — mock response provider used by examples
+- `docs/demos/attachments/basic.vue` — basic attachments demo
+- `docs/demos/tools/message/Basic.vue` — useMessage basic usage demo
+- `docs/demos/tools/message/MockStream.ts` — mock streaming response provider
+- `docs/demos/tools/conversation/Basic.vue` — useConversation basic usage demo
+
 ## Validation Commands
 
 ```bash

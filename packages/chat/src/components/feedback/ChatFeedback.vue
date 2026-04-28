@@ -64,6 +64,7 @@ const resolvedFeedbackActions = computed<FeedbackProps['actions']>(() => {
     ...(feedbackActions.value ?? []),
     {
       name: '__usage__',
+      label: '',
       icon: h(ChatUsagePanel, { usage: usageInfo.value }),
     },
   ]

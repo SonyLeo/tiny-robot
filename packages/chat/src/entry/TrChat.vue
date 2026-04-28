@@ -12,7 +12,7 @@ const runtimeResolution = useTrChatConfigRuntimeResolution(() => props.config)
 </script>
 
 <template>
-  <TrChatRoot :runtime="runtimeResolution.runtime" :ui="runtimeResolution.ui">
+  <TrChatRoot :runtime="runtimeResolution.runtime" :ui="runtimeResolution.ui" :mcp-manager="props.mcpManager">
     <TrChatPage>
       <template v-for="(_, name) in slots" #[name]="slotProps" :key="name">
         <slot :name="name" v-bind="slotProps ?? {}" />

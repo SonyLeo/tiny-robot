@@ -1,12 +1,11 @@
-import type { ChatContentLayout, TrChatConfig } from '@opentiny/tiny-robot-chat'
+import type { TrChatConfig } from '@opentiny/tiny-robot-chat'
 import { localStorageStrategyFactory } from '@opentiny/tiny-robot-kit'
 import { BRAND_CONFIG, WELCOME_CONFIG } from '../constants'
 
 type DemoInitialMessages = NonNullable<TrChatConfig['conversation']>['initialMessages']
 
-interface OfficialDemoConfigOptions {
+export interface OfficialDemoConfigOptions {
   storageKey: string
-  contentLayout: ChatContentLayout
   brandTitle: string
   welcomeTitle: string
   welcomeDescription: string
@@ -14,23 +13,48 @@ interface OfficialDemoConfigOptions {
   initialMessages?: DemoInitialMessages
 }
 
-interface OfficialRequestPreset {
-  modelId: string
-  modelLabel: string
-  providerId: string
+interface RequestPreset {
+  models: TrChatConfig['request']['models']
+  defaultModelId: string
   transport: TrChatConfig['request']['transport']
   availabilityNote?: string
 }
 
+const bailianApiKey = import.meta.env.VITE_BAILIAN_API_KEY || ''
+const bailianModel = import.meta.env.VITE_BAILIAN_MODEL || 'qwen-plus'
 const deepseekApiKey = import.meta.env.VITE_DEEPSEEK_API_KEY || ''
+const deepseekModel = import.meta.env.VITE_DEEPSEEK_MODEL || 'deepseek-chat'
 const openaiApiKey = import.meta.env.VITE_OPENAI_API_KEY || ''
+const openaiModel = import.meta.env.VITE_OPENAI_MODEL || 'gpt-4o-mini'
 
-function resolveOfficialRequestPreset(): OfficialRequestPreset {
+function resolveRequestPreset(): RequestPreset {
+  if (bailianApiKey) {
+    return {
+      models: [
+        { id: 'qwen-plus', label: 'Qwen Plus', providerId: 'bailian' },
+        { id: 'qwen-turbo', label: 'Qwen Turbo', providerId: 'bailian' },
+        { id: 'qwen-max', label: 'Qwen Max', providerId: 'bailian' },
+      ],
+      defaultModelId: bailianModel,
+      transport: {
+        type: 'openai-compatible',
+        baseURL: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
+        apiPath: '/chat/completions',
+        systemPrompt: 'You are a helpful assistant.',
+        headers: {
+          Authorization: `Bearer ${bailianApiKey}`,
+        },
+      },
+    }
+  }
+
   if (deepseekApiKey) {
     return {
-      modelId: 'deepseek-chat',
-      modelLabel: 'DeepSeek Chat',
-      providerId: 'deepseek',
+      models: [
+        { id: 'deepseek-chat', label: 'DeepSeek Chat', providerId: 'deepseek' },
+        { id: 'deepseek-reasoner', label: 'DeepSeek Reasoner', providerId: 'deepseek' },
+      ],
+      defaultModelId: deepseekModel,
       transport: {
         type: 'openai-compatible',
         baseURL: 'https://api.deepseek.com/v1',
@@ -45,9 +69,11 @@ function resolveOfficialRequestPreset(): OfficialRequestPreset {
 
   if (openaiApiKey) {
     return {
-      modelId: 'gpt-4o-mini',
-      modelLabel: 'GPT-4o Mini',
-      providerId: 'openai',
+      models: [
+        { id: 'gpt-4o-mini', label: 'GPT-4o Mini', providerId: 'openai' },
+        { id: 'gpt-4o', label: 'GPT-4o', providerId: 'openai' },
+      ],
+      defaultModelId: openaiModel,
       transport: {
         type: 'openai-compatible',
         baseURL: 'https://api.openai.com/v1',
@@ -61,39 +87,31 @@ function resolveOfficialRequestPreset(): OfficialRequestPreset {
   }
 
   return {
-    modelId: 'demo-model',
-    modelLabel: 'Demo Model',
-    providerId: 'demo',
+    models: [{ id: 'demo-model', label: 'Demo Model', providerId: 'demo' }],
+    defaultModelId: 'demo-model',
     transport: {
       type: 'openai-compatible',
       endpoint: '/api/chat/completions',
       systemPrompt: 'You are a helpful assistant.',
     },
-    availabilityNote: 'Set VITE_DEEPSEEK_API_KEY or VITE_OPENAI_API_KEY to enable live replies.',
+    availabilityNote:
+      '请在 .env 中配置 VITE_BAILIAN_API_KEY（百炼）、VITE_DEEPSEEK_API_KEY 或 VITE_OPENAI_API_KEY 以启用真实回复。',
   }
 }
 
 export function createOfficialDemoConfig(options: OfficialDemoConfigOptions): TrChatConfig {
-  const requestPreset = resolveOfficialRequestPreset()
-  const welcomeDescription = [options.welcomeDescription, requestPreset.availabilityNote].filter(Boolean).join(' ')
+  const preset = resolveRequestPreset()
+  const welcomeDescription = [options.welcomeDescription, preset.availabilityNote].filter(Boolean).join(' ')
 
   return {
     request: {
-      models: [
-        {
-          id: requestPreset.modelId,
-          label: requestPreset.modelLabel,
-          providerId: requestPreset.providerId,
-        },
-      ],
-      defaultModelId: requestPreset.modelId,
-      transport: requestPreset.transport,
+      models: preset.models,
+      defaultModelId: preset.defaultModelId,
+      transport: preset.transport,
     },
     conversation: {
       initialMessages: options.initialMessages,
-      persistence: localStorageStrategyFactory({
-        key: options.storageKey,
-      }),
+      persistence: localStorageStrategyFactory({ key: options.storageKey }),
     },
     ui: {
       brand: {
@@ -105,15 +123,14 @@ export function createOfficialDemoConfig(options: OfficialDemoConfigOptions): Tr
         title: options.welcomeTitle,
         description: welcomeDescription,
       },
-      contentLayout: options.contentLayout,
     },
     sender: {
-      placeholder: 'Ask TinyRobot anything',
+      placeholder: '向 TinyRobot 提问…',
       mode: 'multiple',
       wordCount: true,
       voice: {
         enabled: true,
-        tooltip: 'Voice input',
+        tooltip: '语音输入',
         autoInsert: false,
       },
     },
@@ -127,12 +144,7 @@ export function createOfficialDemoConfig(options: OfficialDemoConfigOptions): Tr
         wrap: true,
       },
     },
-    history: options.workspace
-      ? {
-          enabled: true,
-          defaultOpen: true,
-        }
-      : undefined,
+    history: options.workspace ? { enabled: true, defaultOpen: true } : undefined,
     workspace: options.workspace
       ? {
           enabled: true,
@@ -143,7 +155,7 @@ export function createOfficialDemoConfig(options: OfficialDemoConfigOptions): Tr
             collapsible: true,
             defaultOpen: true,
             collapseMode: 'rail',
-            railLabel: 'History',
+            railLabel: '历史记录',
           },
           right: {
             enabled: true,
@@ -151,14 +163,12 @@ export function createOfficialDemoConfig(options: OfficialDemoConfigOptions): Tr
             collapsible: true,
             defaultOpen: false,
             collapseMode: 'hidden',
-            railLabel: 'Notes',
+            railLabel: '备注',
           },
         }
       : undefined,
     messages: {
-      feedback: {
-        enabled: true,
-      },
+      feedback: { enabled: true },
     },
   }
 }

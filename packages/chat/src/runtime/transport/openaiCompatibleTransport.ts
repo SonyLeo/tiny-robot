@@ -62,14 +62,63 @@ function resolveEndpoint(options: OpenAICompatibleResponseProviderOptions): stri
   return `${baseURL}${normalizedApiPath}`
 }
 
+interface MessageAttachment {
+  url?: string
+  rawFile?: File
+  name?: string
+  fileType?: string
+}
+
+function isImageAttachment(attachment: MessageAttachment): boolean {
+  if (attachment.fileType === 'image') return true
+  if (attachment.rawFile?.type.startsWith('image/')) return true
+  if (typeof attachment.name === 'string') {
+    return /\.(jpe?g|png|gif|webp|bmp|tiff?|heic|svg)$/i.test(attachment.name)
+  }
+  return false
+}
+
+function toMultimodalContent(message: Partial<Record<string, unknown>>): string | Array<Record<string, unknown>> {
+  const attachments = message.attachments as MessageAttachment[] | undefined
+  if (!Array.isArray(attachments) || attachments.length === 0) {
+    return (message.content as string) ?? ''
+  }
+
+  const parts: Array<Record<string, unknown>> = [{ type: 'text', text: (message.content as string) ?? '' }]
+
+  for (const attachment of attachments) {
+    const url = attachment.url
+    if (!url) continue
+
+    if (isImageAttachment(attachment)) {
+      parts.push({ type: 'image_url', image_url: { url } })
+    }
+    // Future: video_url, file, etc.
+  }
+
+  return parts
+}
+
 function buildOpenAICompatibleRequestBody(
   options: OpenAICompatibleResponseProviderOptions,
   requestBody: MessageRequestBody,
 ) {
   const { messages: requestMessages, ...extraRequestFields } = requestBody
+
+  const serializedMessages = requestMessages.map((msg) => {
+    const hasAttachments =
+      Array.isArray((msg as Record<string, unknown>).attachments) &&
+      ((msg as Record<string, unknown>).attachments as unknown[]).length > 0
+
+    if (!hasAttachments) return msg
+
+    const { attachments: _, ...rest } = msg as Record<string, unknown>
+    return { ...rest, content: toMultimodalContent(msg as Record<string, unknown>) }
+  })
+
   const messages = options.systemPrompt
-    ? [{ role: 'system', content: options.systemPrompt }, ...requestMessages]
-    : requestMessages
+    ? [{ role: 'system', content: options.systemPrompt }, ...serializedMessages]
+    : serializedMessages
 
   const body: Record<string, unknown> = {
     ...extraRequestFields,

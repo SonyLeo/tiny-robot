@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, provide } from 'vue'
-import { CHAT_PAGE_INPUTS_KEY, CHAT_RUNTIME_KEY } from '@/shared/context'
+import { CHAT_PAGE_INPUTS_KEY, CHAT_RUNTIME_KEY, MCP_MANAGER_KEY } from '@/shared/context'
 import { createRootBootstrapState } from '@/entry/createRootBootstrapState'
 import RootBootstrapProvider from '@/entry/RootBootstrapProvider.vue'
 import { normalizeChatRuntime } from '@/runtime/core/normalizeRuntime'
@@ -18,6 +18,9 @@ const bootstrap = createRootBootstrapState(
 
 provide(CHAT_PAGE_INPUTS_KEY, bootstrap.pageInputs)
 provide(CHAT_RUNTIME_KEY, normalizedRuntime.value)
+if (props.mcpManager) {
+  provide(MCP_MANAGER_KEY, props.mcpManager)
+}
 </script>
 
 <template>

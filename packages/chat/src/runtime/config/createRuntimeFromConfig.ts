@@ -46,16 +46,25 @@ function createNullStorage(): ConversationStorageStrategy {
 }
 
 function createTextParts(message: ChatMessage) {
-  if (typeof message.content === 'string') {
-    return [{ type: 'text' as const, text: message.content }]
+  const parts: ChatUIMessage['parts'] = []
+
+  if (typeof message.content === 'string' && message.content) {
+    parts.push({ type: 'text' as const, text: message.content })
   }
 
   const attachments = (message as unknown as { attachments?: Attachment[] }).attachments
   if (Array.isArray(attachments)) {
-    return attachments.map((attachment) => ({
-      type: 'attachment' as const,
-      attachment,
-    }))
+    for (const attachment of attachments) {
+      parts.push({ type: 'attachment' as const, attachment })
+    }
+  }
+
+  if (parts.length > 0) {
+    return parts
+  }
+
+  if (typeof message.content === 'string') {
+    return [{ type: 'text' as const, text: message.content }]
   }
 
   return [{ type: 'unknown' as const, value: message.content }]
@@ -441,6 +450,35 @@ function normalizeAttachment(file: File): Attachment {
   }
 }
 
+function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result as string)
+    reader.onerror = () => reject(new Error(`Failed to read file: ${file.name}`))
+    reader.readAsDataURL(file)
+  })
+}
+
+async function resolveAttachmentUrls(attachments: Attachment[]): Promise<Attachment[]> {
+  return Promise.all(
+    attachments.map(async (attachment) => {
+      const url = attachment.url
+      // Already a usable URL (data: or https:)
+      if (typeof url === 'string' && !url.startsWith('blob:')) {
+        return attachment
+      }
+
+      // Convert from rawFile if available
+      if (attachment.rawFile) {
+        const dataUrl = await fileToDataUrl(attachment.rawFile)
+        return { ...attachment, url: dataUrl }
+      }
+
+      return attachment
+    }),
+  )
+}
+
 function createSenderRuntimeFromChatKit(
   chatKit: ReturnType<typeof useChatKit>,
   config: TrChatConfig,
@@ -468,12 +506,15 @@ function createSenderRuntimeFromChatKit(
       }
 
       if (config.lifecycle?.beforeSend) {
-        const result = await config.lifecycle.beforeSend({ text: payload.text })
+        const result = await config.lifecycle.beforeSend({ text: payload.text, attachments: payload.attachments })
         if (result === false) {
           return
         }
 
         payload.text = result?.text ?? payload.text
+        if (result && 'attachments' in result && result.attachments) {
+          payload.attachments = result.attachments
+        }
       }
 
       if (!payload.text.trim()) {
@@ -481,7 +522,8 @@ function createSenderRuntimeFromChatKit(
       }
 
       if (payload.attachments.length > 0) {
-        chatKit.sendMessage(payload.text, { attachments: payload.attachments })
+        const resolved = await resolveAttachmentUrls(payload.attachments)
+        chatKit.sendMessage(payload.text, { attachments: resolved })
       } else {
         chatKit.sendMessage(payload.text)
       }

@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { TrChat } from '@opentiny/tiny-robot-chat'
+import { TrChat, useMcpManager } from '@opentiny/tiny-robot-chat'
 import type { ChatContentLayout, TrChatConfig } from '@opentiny/tiny-robot-chat'
 import type { ColorMode } from '@opentiny/tiny-robot'
 import { createOfficialDemoConfig } from '../data/officialConfig'
 import DemoHeaderActions from './DemoHeaderActions.vue'
+import { MOCK_PLUGINS } from '../data/mockMcp'
 
 const props = defineProps<{
   colorMode: ColorMode
@@ -16,19 +17,20 @@ const emit = defineEmits<{
   (e: 'update:contentLayout', value: ChatContentLayout): void
 }>()
 
-const trChatConfig = computed<TrChatConfig>(() =>
+const mcpManager = useMcpManager({ initialPlugins: MOCK_PLUGINS })
+
+const config = computed<TrChatConfig>(() =>
   createOfficialDemoConfig({
     storageKey: 'tiny-robot-chat-demo-trchat',
-    contentLayout: props.contentLayout,
-    brandTitle: 'TrChat',
-    welcomeTitle: 'Official TrChat entry',
-    welcomeDescription: 'Pass a target TrChatConfig directly into TrChat.',
+    brandTitle: 'TrChat（路径 1）',
+    welcomeTitle: '黑盒入口 · TrChat',
+    welcomeDescription: '直接传入 TrChatConfig，附件和 MCP 均通过 prop / config 配置。',
   }),
 )
 </script>
 
 <template>
-  <TrChat :config="trChatConfig">
+  <TrChat :config="config" :mcp-manager="mcpManager">
     <template #header-extra>
       <DemoHeaderActions
         :color-mode="props.colorMode"

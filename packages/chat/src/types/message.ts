@@ -49,6 +49,7 @@ export interface ChatSendInput {
 
 export interface ChatBeforeSendInput {
   text: string
+  attachments?: Attachment[]
 }
 
 export type ChatBeforeSendHandler = (

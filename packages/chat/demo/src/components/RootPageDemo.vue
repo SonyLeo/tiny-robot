@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { TrChat, createRuntimeFromConfig } from '@opentiny/tiny-robot-chat'
-import type { ChatContentLayout, TrChatConfig } from '@opentiny/tiny-robot-chat'
+import { computed, onBeforeUnmount } from 'vue'
+import { TrChat, createRuntimeFromConfig, useMcpManager } from '@opentiny/tiny-robot-chat'
+import type { ChatContentLayout, TrChatRootUiConfig } from '@opentiny/tiny-robot-chat'
 import type { ColorMode } from '@opentiny/tiny-robot'
 import { createOfficialDemoConfig } from '../data/officialConfig'
 import DemoHeaderActions from './DemoHeaderActions.vue'
+import { MOCK_PLUGINS } from '../data/mockMcp'
 
 const props = defineProps<{
   colorMode: ColorMode
@@ -16,29 +17,34 @@ const emit = defineEmits<{
   (e: 'update:contentLayout', value: ChatContentLayout): void
 }>()
 
-const whiteboxConfig = computed<TrChatConfig>(() =>
+const mcpManager = useMcpManager({ initialPlugins: MOCK_PLUGINS })
+
+const resolution = createRuntimeFromConfig(
   createOfficialDemoConfig({
     storageKey: 'tiny-robot-chat-demo-root-page',
-    contentLayout: props.contentLayout,
-    brandTitle: 'Root + Page',
-    welcomeTitle: 'Official Root + Page entry',
-    welcomeDescription:
-      'Use createRuntimeFromConfig(config) when you want to own runtime creation but keep the official page composition.',
+    brandTitle: 'Root + Page（路径 2）',
+    welcomeTitle: '白盒页面路径 · Root + Page',
+    welcomeDescription: '显式创建 runtime，页面结构由 TrChat.Page 负责。',
     workspace: true,
     initialMessages: [
       {
         role: 'assistant',
-        content: 'Root + Page keeps the official composition layer while letting you own runtime creation explicitly.',
+        content: '路径 2：你拥有 runtime，TrChat.Page 负责页面编排。MCP 和附件均已接入。',
       },
     ],
   }),
 )
 
-const whiteboxResolution = computed(() => createRuntimeFromConfig(whiteboxConfig.value))
+onBeforeUnmount(() => resolution.dispose())
+
+const ui = computed<TrChatRootUiConfig>(() => ({
+  ...resolution.ui,
+  contentLayout: props.contentLayout,
+}))
 </script>
 
 <template>
-  <TrChat.Root :runtime="whiteboxResolution.runtime" :ui="whiteboxResolution.ui">
+  <TrChat.Root :runtime="resolution.runtime" :ui="ui" :mcp-manager="mcpManager">
     <TrChat.Page>
       <template #header-extra>
         <DemoHeaderActions

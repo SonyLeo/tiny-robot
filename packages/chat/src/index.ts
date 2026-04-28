@@ -18,6 +18,7 @@ import { ChatAttachments as TrChatAttachments } from './components/attachments'
 import { ChatFeedback as TrChatFeedback } from './components/feedback'
 import { ChatHistory as TrChatHistory } from './components/history'
 import { McpTrigger as TrMcpTrigger } from './components/mcp'
+import { ModelSelector as TrModelSelector } from './components/model-selector'
 
 type TrChatWithSubComponents = typeof TrChat & {
   Root: typeof TrChatRoot
@@ -32,6 +33,8 @@ type TrChatWithSubComponents = typeof TrChat & {
   Attachments: typeof TrChatAttachments
   Sender: typeof TrChatSender
   History: typeof TrChatHistory
+  ModelSelector: typeof TrModelSelector
+  McpTrigger: typeof TrMcpTrigger
   WorkspaceShell: typeof TrChatWorkspaceShell
   WorkspaceRightSheet: typeof TrChatWorkspaceRightSheet
 }
@@ -49,6 +52,8 @@ TrChatFull.Footer = TrChatFooter
 TrChatFull.Attachments = TrChatAttachments
 TrChatFull.Sender = TrChatSender
 TrChatFull.History = TrChatHistory
+TrChatFull.ModelSelector = TrModelSelector
+TrChatFull.McpTrigger = TrMcpTrigger
 TrChatFull.WorkspaceShell = TrChatWorkspaceShell
 TrChatFull.WorkspaceRightSheet = TrChatWorkspaceRightSheet
 
