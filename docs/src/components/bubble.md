@@ -330,10 +330,9 @@ defineProps<BubbleBoxRendererProps>()
 
 - 使用 `markRaw` 包装渲染器组件，避免 Vue 的响应式处理
 - 为了不修改源数据内部内容和结构，UI 相关的数据应放在消息的 `state` 属性中
-- Box 渲染器的 `find` 函数签名：`(messages, content, contentIndex) => boolean`。当当前 bubble 只包含 1 条消息时，`content` 会是经 `contentResolver` 统一化后的当前内容项；`split` 模式下 `contentIndex` 为实际索引，非 `split` 模式下固定为 `0`
+- Box 渲染器的 `find` 函数签名：`(messages, content, contentIndex) => boolean`，其中 `content` 仅在 split 模式有值
 - Content 渲染器的 `find` 函数签名：`(message, content, contentIndex) => boolean`，`content` 为统一化后的 `ChatMessageContentItem`
 - 在 Content 渲染器中可使用 `useMessageContent(props)` 获取当前 `content` 和 `contentText`，以正确处理 `contentIndex` 与数组内容
-- Box 渲染器上的 `attributes` 会直接附加到 Box renderer 根节点上；默认内置 `Box` 的根节点是 `.tr-bubble__box`
 - 多根节点或复合渲染器应使用 `inheritAttrs: false`，并显式决定 `$attrs` 绑定到哪个节点；不要把同一份 attributes 复制到多个兄弟节点上，避免重复 `id`、ARIA 或测试选择器
 
 ### 状态管理
@@ -512,13 +511,8 @@ type BubbleBoxRendererMatch = {
 }
 ```
 
-- `content`: 当当前 bubble 只包含 1 条消息时传入，为当前消息经 `contentResolver` 解析并统一化后的内容项；若解析结果为数组，则取 `contentIndex` 对应项；若为字符串，则转为 `{ type: 'text', text: string }`。当 bubble 包含多条消息时为 `undefined`
-- `contentIndex`: 当当前 bubble 只包含 1 条消息时：
-  - `split` 模式下为实际内容索引
-  - 非 `split` 模式下为 `0`
-  当 bubble 包含多条消息时为 `undefined`
-- `attributes`: 可传静态对象，也可传函数型 resolver；函数参数与 `find` 一致，适合根据当前 bubble 动态生成 `data-*` 标记
-- `attributes` 最终会落在 Box renderer 根节点上；使用默认 `Box` 时，对应节点是 `.tr-bubble__box`
+- `content`: 仅在 `split` 模式（`contentIndex` 为数字）时传入，为当前消息经 `contentResolver` 解析后对应索引的内容项；`contentIndex` 为 `undefined` 时 `content` 也为 `undefined`
+- `contentIndex`: 仅在 split 模式下传入，此时 `messages` 长度为 1
 
 **BubbleContentRendererMatch** - 内容渲染器匹配规则
 
