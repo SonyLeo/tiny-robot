@@ -96,7 +96,6 @@ const items = sections.map((section) => ({
 .demo {
   --anchor-demo-gap: 14px;
   --anchor-demo-controls-gap: 10px 12px;
-  --anchor-demo-stage-height: 480px;
 }
 
 .tip {
