@@ -4,6 +4,10 @@ import { nextTick, ref, watch, watchEffect } from 'vue'
 import { useBubbleContentRenderer, useBubbleStateChangeFn, useOmitMessageFields } from '../composables'
 import { BubbleContentRendererProps, ChatMessageContent } from '../index.type'
 
+defineOptions({
+  inheritAttrs: false,
+})
+
 const props = defineProps<
   BubbleContentRendererProps<
     ChatMessageContent,
@@ -18,10 +22,11 @@ const { restMessage, restProps } = useOmitMessageFields(props, ['reasoning_conte
 
 const renderer = useBubbleContentRenderer(restMessage, props.contentIndex)
 
-const open = ref(false)
+const open = ref(true)
 
 watchEffect(() => {
-  open.value = props.message.state?.open ?? false
+  // 思考过程默认展开
+  open.value = props.message.state?.open ?? true
 })
 
 const handleStateChange = useBubbleStateChangeFn()
@@ -51,7 +56,7 @@ watch(
 </script>
 
 <template>
-  <div class="tr-bubble__reasoning" data-type="reasoning">
+  <div class="tr-bubble__reasoning" data-type="reasoning" v-bind="$attrs">
     <div class="header" @click="handleClick">
       <div class="icon-and-text" :class="{ thinking: props.message.state?.thinking }">
         <IconAtom />
@@ -69,7 +74,7 @@ watch(
       <p class="detail-content" ref="detailRef">{{ props.message.reasoning_content }}</p>
     </div>
   </div>
-  <component :is="renderer" v-bind="restProps" />
+  <component :is="renderer.renderer" v-bind="{ ...renderer.attributes, ...restProps }" />
 </template>
 
 <style lang="less" scoped>
@@ -164,8 +169,8 @@ watch(
 
     .border-line {
       flex: 1;
-      width: 1.5px;
-      background-color: var(--tr-border-color-disabled);
+      width: var(--tr-bubble-reasoning-side-border-width, 1.5px);
+      background-color: var(--tr-bubble-reasoning-side-border-color, var(--tr-border-color-disabled));
       border-radius: 1px;
     }
   }

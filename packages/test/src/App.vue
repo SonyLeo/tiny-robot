@@ -4,7 +4,9 @@
     <nav>
       <ul>
         <li><a href="/" @click.prevent="currentComponent = 'Home'">首页</a></li>
+        <li><a href="/attachments" @click.prevent="currentComponent = 'Attachments'">Attachments 组件</a></li>
         <li><a href="/container" @click.prevent="currentComponent = 'Container'">Container 组件</a></li>
+        <li><a href="/sender" @click.prevent="currentComponent = 'Sender'">Sender 组件</a></li>
         <li><a href="/chat" @click.prevent="currentComponent = 'Chat'">Chat 组件</a></li>
       </ul>
     </nav>
@@ -16,28 +18,27 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed, ref } from 'vue'
 import type { Component } from 'vue'
 import Home from './home/index.vue'
+import AttachmentsDemo from './attachments/index.vue'
 import ContainerDemo from './container/index.vue'
+import SenderDemo from './sender/index.vue'
 import ChatDemo from './chat/index.vue'
 
-// 定义组件名称类型
-type ComponentName = 'Home' | 'Container' | 'Chat'
+type ComponentName = 'Home' | 'Attachments' | 'Container' | 'Sender' | 'Chat'
 
 const currentComponent = ref<ComponentName>('Home')
 
-// 定义组件映射对象
 const components: Record<ComponentName, Component> = {
   Home,
+  Attachments: AttachmentsDemo,
   Container: ContainerDemo,
+  Sender: SenderDemo,
   Chat: ChatDemo,
 }
 
-// 计算属性确保类型安全
-const currentComponentInstance = computed(() => {
-  return components[currentComponent.value]
-})
+const currentComponentInstance = computed(() => components[currentComponent.value])
 </script>
 
 <style>
