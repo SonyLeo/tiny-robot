@@ -1,21 +1,16 @@
 <template>
   <div class="demo-container">
+    <!-- 工具栏：展示 runtime 的外部控制能力 -->
     <div class="demo-toolbar">
-      <span class="toolbar-status"> 消息数：{{ messageCount }} · 状态：{{ conversationStatus }} </span>
+      <span class="toolbar-status">消息数：{{ messageCount }} · 状态：{{ conversationStatus }}</span>
       <button class="toolbar-btn" @click="sendFromOutside">从外部发送消息</button>
     </div>
+
     <div class="demo-chat">
-      <TrChat.Root :runtime="resolution.runtime" :ui="resolution.ui">
+      <TrChat.Root :runtime="resolution.runtime" :ui="resolution.ui" :mcp-manager="mcpManager">
         <TrChat.Page>
           <template #header-extra>
-            <span class="slot-badge">header-extra</span>
             <FullscreenToggle />
-          </template>
-          <template #footer-extra>
-            <div class="footer-extra-bar">
-              <span class="slot-badge">footer-extra</span>
-              <span class="footer-extra-hint">这里可以放模型选择器、工具栏等</span>
-            </div>
           </template>
         </TrChat.Page>
       </TrChat.Root>
@@ -24,12 +19,31 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { TrChat, createRuntimeFromConfig } from '@opentiny/tiny-robot-chat'
+import { computed, onBeforeUnmount } from 'vue'
+import { TrChat, createRuntimeFromConfig, useMcpManager } from '@opentiny/tiny-robot-chat'
 import FullscreenToggle from './FullscreenToggle.vue'
-import { chatConfig } from './runtime-and-slots-config'
+import { createDemoConfig } from './config'
+import { MOCK_PLUGINS, MOCK_BRIDGE } from './mockMcp'
 
-const resolution = createRuntimeFromConfig(chatConfig)
+const mcpManager = useMcpManager({ initialPlugins: MOCK_PLUGINS, bridge: MOCK_BRIDGE })
+
+const resolution = createRuntimeFromConfig(
+  createDemoConfig({
+    storageKey: 'docs-demo-root-page',
+    welcomeTitle: 'Root + Page',
+    welcomeDescription: '显式创建 runtime，页面结构由 TrChat.Page 负责。可从外部直接调用 runtime 发送消息。',
+    workspace: true,
+    initialMessages: [
+      {
+        role: 'assistant',
+        content: '你拥有 runtime，TrChat.Page 负责页面编排。试试点击上方"从外部发送消息"按钮。',
+      },
+    ],
+  }),
+)
+
+onBeforeUnmount(() => resolution.dispose())
+
 const messageCount = computed(() => resolution.runtime.conversation.messages.value.length)
 const conversationStatus = computed(() => resolution.runtime.conversation.status.value)
 
@@ -55,14 +69,14 @@ function sendFromOutside() {
   justify-content: space-between;
   gap: 12px;
   padding: 10px 16px;
-  background: #f8fafc;
-  border-bottom: 1px solid #e2e8f0;
+  background: var(--vp-c-bg-soft, #f8fafc);
+  border-bottom: 1px solid var(--tr-border-color-default, #e5e6eb);
   flex-shrink: 0;
 }
 
 .toolbar-status {
   font-size: 13px;
-  color: #64748b;
+  color: var(--vp-c-text-2, #64748b);
 }
 
 .toolbar-btn {
@@ -74,6 +88,7 @@ function sendFromOutside() {
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
+  transition: background 0.15s;
 }
 
 .toolbar-btn:hover {
@@ -90,29 +105,5 @@ function sendFromOutside() {
 :deep(.tr-workspace-shell) {
   height: 100%;
   min-height: 0;
-}
-
-.slot-badge {
-  display: inline-flex;
-  align-items: center;
-  min-height: 24px;
-  padding: 0 10px;
-  border-radius: 999px;
-  background: rgba(37, 99, 235, 0.1);
-  color: #2563eb;
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.footer-extra-bar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 0 4px;
-}
-
-.footer-extra-hint {
-  font-size: 12px;
-  color: #94a3b8;
 }
 </style>

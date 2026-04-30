@@ -42,7 +42,7 @@ const sharedSidebarItems = [
     ],
   },
   {
-    text: 'Chat 套件',
+    text: '套件',
     base: '/components/',
     items: [
       { text: 'Chat 快速开始', link: 'chat' },
@@ -68,9 +68,10 @@ const sidebar = {
       base: '/examples/',
       items: [
         { text: '综合示例', link: 'assistant' },
-        { text: 'Chat 基础', link: 'chat-basic' },
-        { text: 'Chat Runtime + Slots', link: 'chat-runtime-and-slots' },
-        { text: 'Chat Workspace 布局', link: 'chat-workspace-layout' },
+        { text: 'Chat · 全量用法', link: 'chat-trchat' },
+        { text: 'Chat · 页面编排', link: 'chat-root-page' },
+        { text: 'Chat · 手动组合', link: 'chat-root-primitives' },
+        { text: 'Chat · 自定义布局', link: 'chat-custom-layout' },
       ],
     },
   ],

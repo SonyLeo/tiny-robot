@@ -41,11 +41,11 @@ outline: [2, 3]
 
 ## 如何选择入口
 
-| 你的目标 | 推荐入口 | 什么时候升级 |
+| 你的目标 | 推荐入口 | 示例 |
 | :-- | :-- | :-- |
-| 快速启动完整聊天页 | `TrChat` | 默认页面结构不够用 |
-| 自己创建 runtime，但继续用官方页面 | `TrChat.Root + TrChat.Page` | 自定义页面结构结构 |
-| 自定义页面结构和叶子组件 | `TrChat.Root + primitives` | 已经是最细粒度路径 |
+| 快速启动完整聊天页 | `TrChat` | [基础示例](#trchat-最小示例) · [全量用法](/examples/chat-trchat) |
+| 自己创建 runtime，继续用官方页面 | `TrChat.Root + TrChat.Page` | [Root + Page 示例](/examples/chat-root-page) |
+| 完全控制页面结构 | `TrChat.Root + primitives` | [手动组合示例](/examples/chat-root-primitives) |
 
 如果你想保留我们的 UI 和聊天行为，但需要自己接 transport / data-access，请看 [Chat 自定义](./chat-advanced.md) 里的 `TrChat.Provider(transportAdapter)`。
 
@@ -86,7 +86,9 @@ outline: [2, 3]
 - 你想把聊天页包在业务容器里
 - 你仍然想继续用官方页面结构
 
-适合需要自行管理状态、但希望保留官方页面结构的场景。查看完整示例：[Chat Runtime + Slots](/examples/chat-runtime-and-slots)
+适合需要自行管理状态、但希望保留官方页面结构的场景。查看完整示例：[Root + Page 示例](/examples/chat-root-page)
+
+如果还需要自定义 workspace 的左右侧边栏内容，`TrChat.Page` 在 workspace 模式下支持 `#left`、`#right`、`#left-rail` slots，直接替换即可。查看示例：[自定义布局示例](/examples/chat-custom-layout)
 
 ## 什么时候升级到 `Root + primitives`
 
@@ -96,7 +98,7 @@ outline: [2, 3]
 - 你要在页面里插入自定义区域
 - 你要单独使用 `TrChat.Sender`、`TrChat.MessageList`、`TrChat.McpTrigger` 等叶子组件
 
-适合需要完全控制页面组合的场景。查看完整示例：[Chat Workspace 布局](/examples/chat-workspace-layout)
+适合需要完全控制页面组合的场景。查看完整示例：[手动组合示例](/examples/chat-root-primitives)
 
 ## 下一步看哪里
 

@@ -1,4 +1,8 @@
 <template>
+  <!--
+    文档示例辅助组件，仅用于在嵌入式文档页面中提供全屏预览能力。
+    不是 @opentiny/tiny-robot-chat 的内置组件，业务项目中无需引入。
+  -->
   <button ref="btnRef" class="fullscreen-toggle" :title="isFullscreen ? '退出全屏' : '全屏预览'" @click="toggle">
     <svg
       v-if="!isFullscreen"
