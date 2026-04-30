@@ -14,10 +14,12 @@ const chatConfig = {
       { id: 'gpt-4.1-mini', providerId: 'openai', label: 'GPT-4.1 Mini' },
     ],
     defaultModelId: 'gpt-4o-mini',
-    transport: {
-      type: 'openai-compatible' as const,
-      endpoint: '/api/chat/completions',
-      systemPrompt: 'You are a helpful assistant.',
+    providers: {
+      openai: {
+        type: 'openai-compatible' as const,
+        endpoint: '/api/chat/completions',
+        systemPrompt: 'You are a helpful assistant.',
+      },
     },
   },
   ui: {

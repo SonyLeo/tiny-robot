@@ -1,6 +1,6 @@
 import { computed, effectScope, ref } from 'vue'
 import type { Attachment } from '@opentiny/tiny-robot'
-import type { ChatMessage, ConversationStorageStrategy } from '@opentiny/tiny-robot-kit'
+import type { ChatMessage, ConversationStorageStrategy, UseMessagePlugin } from '@opentiny/tiny-robot-kit'
 import { useChatAttachments } from '@/components/attachments/useChatAttachments'
 import { createChatUiContext } from '@/shared/context'
 import { createOpenAICompatibleResponseProvider } from '../transport/openaiCompatibleTransport'
@@ -243,17 +243,24 @@ function createHistoryRuntimeFromChatKit(chatKit: ReturnType<typeof useChatKit>)
 }
 
 function createResponseProviderForModel(config: TrChatConfig, model: TrChatRequestModel) {
+  const transport = config.request.providers[model.providerId]
+  if (!transport) {
+    throw new Error(
+      `[createRuntimeFromConfig] No provider configured for providerId "${model.providerId}". ` +
+        `Available providers: ${Object.keys(config.request.providers).join(', ')}`,
+    )
+  }
   return createOpenAICompatibleResponseProvider({
     providerId: model.providerId,
     model: model.id,
-    endpoint: config.request.transport.endpoint,
-    baseURL: config.request.transport.baseURL,
-    apiPath: config.request.transport.apiPath,
-    systemPrompt: config.request.transport.systemPrompt ?? config.request.systemPrompt,
-    temperature: config.request.transport.temperature,
-    maxTokens: config.request.transport.maxTokens,
-    headers: config.request.transport.headers,
-    credentials: config.request.transport.credentials,
+    endpoint: transport.endpoint,
+    baseURL: transport.baseURL,
+    apiPath: transport.apiPath,
+    systemPrompt: transport.systemPrompt ?? config.request.systemPrompt,
+    temperature: transport.temperature,
+    maxTokens: transport.maxTokens,
+    headers: transport.headers,
+    credentials: transport.credentials,
   })
 }
 
@@ -553,7 +560,10 @@ function createSenderRuntimeFromChatKit(
   }
 }
 
-export function createRuntimeFromConfig(config: TrChatConfig): CreateRuntimeFromConfigResult {
+export function createRuntimeFromConfig(
+  config: TrChatConfig,
+  options: { plugins?: UseMessagePlugin[] } = {},
+): CreateRuntimeFromConfigResult {
   const scope = effectScope(true)
   const result = scope.run(() => {
     const defaultModelId = config.request.defaultModelId ?? config.request.models[0]?.id
@@ -566,6 +576,7 @@ export function createRuntimeFromConfig(config: TrChatConfig): CreateRuntimeFrom
 
     const chatKit = useChatKit({
       responseProvider,
+      plugins: options.plugins,
       storage: config.conversation?.persistence ?? createNullStorage(),
       initialMessages: config.conversation?.initialMessages,
       messageTransforms: config.messages?.transforms,

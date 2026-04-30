@@ -32,14 +32,14 @@
 
           <TrChat.MessageList v-else variant="workspace">
             <template #after="slotProps">
-              <TrChatFeedback v-bind="slotProps" />
+              <TrChat.Feedback v-bind="slotProps" />
             </template>
           </TrChat.MessageList>
 
           <TrChat.Footer>
             <TrChat.Sender>
               <template #footer>
-                <TrMcpTrigger label="MCP 工具" />
+                <TrChat.McpTrigger label="MCP 工具" />
               </template>
             </TrChat.Sender>
           </TrChat.Footer>
@@ -51,7 +51,7 @@
 
 <script setup lang="ts">
 import { computed, provide } from 'vue'
-import { TrChat, TrMcpTrigger, TrChatFeedback, useMcpManager, createRuntimeFromConfig } from '@opentiny/tiny-robot-chat'
+import { TrChat, useMcpManager, createRuntimeFromConfig } from '@opentiny/tiny-robot-chat'
 import { MCP_MANAGER_KEY } from '@opentiny/tiny-robot-chat/internal'
 import FullscreenToggle from './FullscreenToggle.vue'
 import WorkspaceLeftPanel from './WorkspaceLeftPanel.vue'

@@ -1,5 +1,5 @@
 import { sseStreamToGenerator } from '@opentiny/tiny-robot-kit'
-import type { MessageRequestBody } from '@opentiny/tiny-robot-kit'
+import type { ChatCompletion, MessageRequestBody } from '@opentiny/tiny-robot-kit'
 import type { ResponseProvider } from '@/types'
 
 export interface ChatProviderErrorOptions {
@@ -125,6 +125,7 @@ function buildOpenAICompatibleRequestBody(
     model: options.model,
     messages,
     stream: true,
+    stream_options: { include_usage: true },
   }
 
   if (options.temperature !== undefined) {
@@ -220,6 +221,22 @@ export function createOpenAICompatibleResponseProvider(
       })
     }
 
-    yield* sseStreamToGenerator(response, { signal: abortSignal })
+    let pendingChunk: ChatCompletion | undefined
+
+    for await (const chunk of sseStreamToGenerator<ChatCompletion>(response, { signal: abortSignal })) {
+      const hasChoices = Array.isArray(chunk.choices) && chunk.choices.length > 0
+
+      if (!hasChoices && chunk.usage != null) {
+        // usage-only chunk (DashScope stream_options pattern):
+        // merge usage into the buffered previous chunk and yield together
+        yield pendingChunk != null ? { ...pendingChunk, usage: chunk.usage } : chunk
+        pendingChunk = undefined
+      } else {
+        if (pendingChunk) yield pendingChunk
+        pendingChunk = chunk
+      }
+    }
+
+    if (pendingChunk) yield pendingChunk
   }
 }

@@ -29,7 +29,7 @@ outline: [2, 3]
 
 | 字段 | 负责什么 | 常见内容 |
 | :-- | :-- | :-- |
-| `request` | 模型、默认模型、transport | `models`、`defaultModelId`、`transport` |
+| `request` | 模型、默认模型、transport | `providers`、`models`、`defaultModelId` |
 | `conversation` | 初始消息和持久化恢复 | `initialMessages`、`persistence` |
 | `ui` | 展示层默认配置 | `brand`、`welcome`、`appearance`、`contentLayout`、`labels` |
 | `sender` | 输入区默认行为 | `placeholder`、`mode`、`maxLength`、`wordCount`、`voice` |
@@ -44,15 +44,17 @@ outline: [2, 3]
 ```ts
 const config = {
   request: {
+    providers: {
+      openai: {
+        type: 'openai-compatible',
+        endpoint: '/api/chat/completions',
+        systemPrompt: 'You are a helpful assistant.',
+      },
+    },
     models: [
       { id: 'gpt-4.1-mini', providerId: 'openai', label: 'GPT-4.1 Mini' },
     ],
     defaultModelId: 'gpt-4.1-mini',
-    transport: {
-      type: 'openai-compatible',
-      endpoint: '/api/chat/completions',
-      systemPrompt: 'You are a helpful assistant.',
-    },
   },
   ui: {
     brand: { title: 'Internal Chat' },
@@ -112,31 +114,51 @@ const config = {
 
 ```ts
 request: {
+  providers: {
+    openai: {
+      type: 'openai-compatible',
+      endpoint: '/api/chat/completions',
+      systemPrompt: 'You are a helpful assistant.',
+    },
+  },
   models: [
     { id: 'gpt-4.1-mini', providerId: 'openai', label: 'GPT-4.1 Mini' },
   ],
   defaultModelId: 'gpt-4.1-mini',
-  transport: {
-    type: 'openai-compatible',
-    endpoint: '/api/chat/completions',
-  },
 }
 ```
 
 
-#### 完整字段参考 {#request-ref}
+##### `request.providers`
 
-##### `request.models[]`
+`providers` 是一个以 `providerId` 为 key 的 transport 配置注册表。每个模型通过 `providerId` 引用对应的 provider，切换模型时自动使用该 provider 的连接配置。
 
-| 字段 | 类型 | 必填 | 说明 |
-|---|---|---|---|
-| `id` | `string` | ✅ | 模型唯一标识 |
-| `providerId` | `string` | ✅ | 模型提供商标识 |
-| `label` | `string` | — | 显示名称 |
-| `icon` | `Component` | — | 模型图标组件 |
-| `disabled` | `boolean` | — | 是否禁用 |
+多 provider 示例：
 
-##### `request.transport`
+```ts
+request: {
+  providers: {
+    bailian: {
+      type: 'openai-compatible',
+      baseURL: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
+      headers: { Authorization: 'Bearer <bailian-key>' },
+    },
+    deepseek: {
+      type: 'openai-compatible',
+      baseURL: 'https://api.deepseek.com/v1',
+      headers: { Authorization: 'Bearer <deepseek-key>' },
+    },
+  },
+  models: [
+    { id: 'qwen-plus', providerId: 'bailian', label: 'Qwen Plus' },
+    { id: 'qwen-max', providerId: 'bailian', label: 'Qwen Max' },
+    { id: 'deepseek-chat', providerId: 'deepseek', label: 'DeepSeek Chat' },
+  ],
+  defaultModelId: 'qwen-plus',
+}
+```
+
+每个 provider 的配置字段：
 
 | 字段 | 类型 | 默认值 | 说明 |
 |---|---|---|---|
@@ -150,12 +172,22 @@ request: {
 | `headers` | `Record<string, string>` | — | 自定义请求头 |
 | `credentials` | `RequestCredentials` | — | 请求凭证模式（`'omit'` / `'same-origin'` / `'include'`） |
 
+##### `request.models[]`
+
+| 字段 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| `id` | `string` | ✅ | 模型唯一标识 |
+| `providerId` | `string` | ✅ | 对应 `providers` 中的 key |
+| `label` | `string` | — | 显示名称 |
+| `icon` | `Component` | — | 模型图标组件 |
+| `disabled` | `boolean` | — | 是否禁用 |
+
 ##### 其他字段
 
 | 字段 | 类型 | 说明 |
 |---|---|---|
 | `defaultModelId` | `string \| null` | 默认选中的模型 ID |
-| `systemPrompt` | `string` | 顶层系统提示词（优先级低于 `transport.systemPrompt`） |
+| `systemPrompt` | `string` | 顶层系统提示词（优先级低于 `providers[providerId].systemPrompt`） |
 
 
 ## `conversation`

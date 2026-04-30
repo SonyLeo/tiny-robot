@@ -39,7 +39,7 @@ export function isTargetTrChatConfig(value: unknown): value is TrChatConfig {
     return false
   }
 
-  return Array.isArray(parsedValue.request.models) && isRecord(parsedValue.request.transport)
+  return Array.isArray(parsedValue.request.models) && isRecord(parsedValue.request.providers)
 }
 
 function resolveParsedTargetTrChatConfig(config: unknown): TrChatConfig | null {

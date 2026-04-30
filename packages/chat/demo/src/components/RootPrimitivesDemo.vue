@@ -5,7 +5,7 @@ import type { ChatContentLayout } from '@opentiny/tiny-robot-chat'
 import type { ColorMode } from '@opentiny/tiny-robot'
 import { createOfficialDemoConfig } from '../data/officialConfig'
 import DemoHeaderActions from './DemoHeaderActions.vue'
-import { MOCK_PLUGINS } from '../data/mockMcp'
+import { MOCK_PLUGINS, MOCK_BRIDGE } from '../data/mockMcp'
 
 const props = defineProps<{
   colorMode: ColorMode
@@ -17,7 +17,7 @@ const emit = defineEmits<{
   (e: 'update:contentLayout', value: ChatContentLayout): void
 }>()
 
-const mcpManager = useMcpManager({ initialPlugins: MOCK_PLUGINS })
+const mcpManager = useMcpManager({ initialPlugins: MOCK_PLUGINS, bridge: MOCK_BRIDGE })
 
 const resolution = createRuntimeFromConfig(
   createOfficialDemoConfig({
@@ -71,7 +71,11 @@ const hasPendingAttachments = computed(() => (resolution.runtime.sender?.pending
         </TrChat.Header>
 
         <TrChat.Welcome v-if="!hasMessages" />
-        <TrChat.MessageList v-else />
+        <TrChat.MessageList v-else>
+          <template #after="slotProps">
+            <TrChat.Feedback v-bind="slotProps" />
+          </template>
+        </TrChat.MessageList>
 
         <TrChat.Footer>
           <TrChat.Sender>
