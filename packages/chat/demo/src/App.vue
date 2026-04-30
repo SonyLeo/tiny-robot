@@ -58,22 +58,8 @@ onBeforeUnmount(() => window.removeEventListener('hashchange', syncActiveCaseFro
       </nav>
 
       <main class="demo-app__stage">
-        <BlackboxDemo
-          v-if="activeCaseId === 'trchat'"
-          :color-mode="colorMode"
-          :content-layout="contentLayout"
-          @update:color-mode="colorMode = $event"
-          @update:content-layout="contentLayout = $event"
-        />
-        <RootPageDemo
-          v-else-if="activeCaseId === 'whitebox'"
-          :color-mode="colorMode"
-          :content-layout="contentLayout"
-          @update:color-mode="colorMode = $event"
-          @update:content-layout="contentLayout = $event"
-        />
-        <RootPrimitivesDemo
-          v-else-if="activeCaseId === 'granular'"
+        <component
+          :is="demoCases.find((c) => c.id === activeCaseId)!.component"
           :color-mode="colorMode"
           :content-layout="contentLayout"
           @update:color-mode="colorMode = $event"

@@ -59,7 +59,7 @@ export const MOCK_BRIDGE = {
   async getTools() {
     return [
       {
-        type: 'function',
+        type: 'function' as const,
         function: {
           name: 'utility__get_current_time',
           description: '获取当前时间和日期，可指定时区',
@@ -81,7 +81,7 @@ export const MOCK_BRIDGE = {
         },
       },
       {
-        type: 'function',
+        type: 'function' as const,
         function: {
           name: 'utility__calculate',
           description: '执行数学表达式计算，支持加减乘除、幂运算、括号等',
@@ -98,7 +98,7 @@ export const MOCK_BRIDGE = {
         },
       },
       {
-        type: 'function',
+        type: 'function' as const,
         function: {
           name: 'utility__word_count',
           description: '统计文本的字数、字符数、行数等信息',
@@ -115,7 +115,7 @@ export const MOCK_BRIDGE = {
         },
       },
       {
-        type: 'function',
+        type: 'function' as const,
         function: {
           name: 'weather__get_weather',
           description: '查询指定城市的当前天气信息（模拟数据）',
@@ -162,7 +162,7 @@ export const MOCK_BRIDGE = {
         if (!/^[\d\s+\-*/().^%]+$/.test(expr)) {
           return JSON.stringify({ error: '表达式包含非法字符，只支持数字和基本运算符' })
         }
-         
+
         const result = Function(`"use strict"; return (${expr.replace(/\^/g, '**')})`)()
         return JSON.stringify({ expression: expr, result, formatted: String(result) })
       } catch {

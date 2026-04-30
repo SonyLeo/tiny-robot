@@ -24,8 +24,6 @@ const bailianApiKey = import.meta.env.VITE_BAILIAN_API_KEY || ''
 const bailianModel = import.meta.env.VITE_BAILIAN_MODEL || 'qwen-plus'
 const deepseekApiKey = import.meta.env.VITE_DEEPSEEK_API_KEY || ''
 const deepseekModel = import.meta.env.VITE_DEEPSEEK_MODEL || 'deepseek-chat'
-const openaiApiKey = import.meta.env.VITE_OPENAI_API_KEY || ''
-const openaiModel = import.meta.env.VITE_OPENAI_MODEL || 'gpt-4o-mini'
 
 function resolveRequestPreset(): RequestPreset {
   if (bailianApiKey) {
@@ -40,10 +38,9 @@ function resolveRequestPreset(): RequestPreset {
     }
 
     const models: RequestPreset['models'] = [
-      { id: 'qwen-plus', label: 'Qwen Plus', providerId: 'bailian' },
-      { id: 'qwen-turbo', label: 'Qwen Turbo', providerId: 'bailian' },
-      { id: 'qwen-max', label: 'Qwen Max', providerId: 'bailian' },
+      { id: 'qwen3.6-plus', label: 'Qwen Plus(全模态)', providerId: 'bailian' },
       { id: 'qwen-vl-plus', label: 'Qwen VL Plus（视觉）', providerId: 'bailian' },
+      { id: 'qwen3.5-omni-plus', label: 'Qwen Omini Plus(全模态)', providerId: 'bailian' },
     ]
 
     if (deepseekApiKey) {
@@ -55,8 +52,8 @@ function resolveRequestPreset(): RequestPreset {
         headers: { Authorization: `Bearer ${deepseekApiKey}` },
       }
       models.push(
-        { id: 'deepseek-chat', label: 'DeepSeek Chat', providerId: 'deepseek' },
-        { id: 'deepseek-reasoner', label: 'DeepSeek Reasoner', providerId: 'deepseek' },
+        { id: 'deepseek-v4-flash', label: 'DeepSeek V4 Flash', providerId: 'deepseek' },
+        { id: 'deepseek-v4-pro', label: 'DeepSeek V4 Pro', providerId: 'deepseek' },
       )
     }
 
@@ -82,25 +79,6 @@ function resolveRequestPreset(): RequestPreset {
     }
   }
 
-  if (openaiApiKey) {
-    return {
-      providers: {
-        openai: {
-          type: 'openai-compatible',
-          baseURL: 'https://api.openai.com/v1',
-          apiPath: '/chat/completions',
-          systemPrompt: 'You are a helpful assistant.',
-          headers: { Authorization: `Bearer ${openaiApiKey}` },
-        },
-      },
-      models: [
-        { id: 'gpt-4o-mini', label: 'GPT-4o Mini', providerId: 'openai' },
-        { id: 'gpt-4o', label: 'GPT-4o', providerId: 'openai' },
-      ],
-      defaultModelId: openaiModel,
-    }
-  }
-
   return {
     providers: {
       demo: {
@@ -111,8 +89,7 @@ function resolveRequestPreset(): RequestPreset {
     },
     models: [{ id: 'demo-model', label: 'Demo Model', providerId: 'demo' }],
     defaultModelId: 'demo-model',
-    availabilityNote:
-      '请在 .env 中配置 VITE_BAILIAN_API_KEY（百炼）、VITE_DEEPSEEK_API_KEY 或 VITE_OPENAI_API_KEY 以启用真实回复。',
+    availabilityNote: '请在 .env 中配置 VITE_BAILIAN_API_KEY（百炼）或 VITE_DEEPSEEK_API_KEY 以启用真实回复。',
   }
 }
 

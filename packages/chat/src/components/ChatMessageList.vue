@@ -15,6 +15,7 @@ import {
 } from '@/shared/context'
 import { normalizeChatRenderMessages } from '@/runtime/engine/chatRenderMessages'
 import { useSlotFilter } from './useSlotFilter'
+import { isImageAttachment } from '@/shared/attachments'
 import type {
   ChatListVariant,
   TrChatMessageListForwardedProps,
@@ -120,12 +121,7 @@ function chatContentResolver(message: BubbleMessage) {
     return message.content
   }
 
-  const imageAttachments = attachments.filter((a) => {
-    if (a.fileType === 'image') return true
-    if (a.rawFile?.type.startsWith('image/')) return true
-    if (typeof a.name === 'string') return /\.(jpe?g|png|gif|webp|bmp|tiff?|heic|svg)$/i.test(a.name)
-    return false
-  })
+  const imageAttachments = attachments.filter((a) => isImageAttachment(a))
 
   if (imageAttachments.length === 0) return message.content
 

@@ -1,5 +1,6 @@
 import { sseStreamToGenerator } from '@opentiny/tiny-robot-kit'
 import type { ChatCompletion, MessageRequestBody } from '@opentiny/tiny-robot-kit'
+import { isImageAttachment, type AttachmentLike } from '@/shared/attachments'
 import type { ResponseProvider } from '@/types'
 
 export interface ChatProviderErrorOptions {
@@ -62,24 +63,8 @@ function resolveEndpoint(options: OpenAICompatibleResponseProviderOptions): stri
   return `${baseURL}${normalizedApiPath}`
 }
 
-interface MessageAttachment {
-  url?: string
-  rawFile?: File
-  name?: string
-  fileType?: string
-}
-
-function isImageAttachment(attachment: MessageAttachment): boolean {
-  if (attachment.fileType === 'image') return true
-  if (attachment.rawFile?.type.startsWith('image/')) return true
-  if (typeof attachment.name === 'string') {
-    return /\.(jpe?g|png|gif|webp|bmp|tiff?|heic|svg)$/i.test(attachment.name)
-  }
-  return false
-}
-
 function toMultimodalContent(message: Partial<Record<string, unknown>>): string | Array<Record<string, unknown>> {
-  const attachments = message.attachments as MessageAttachment[] | undefined
+  const attachments = message.attachments as AttachmentLike[] | undefined
   if (!Array.isArray(attachments) || attachments.length === 0) {
     return (message.content as string) ?? ''
   }

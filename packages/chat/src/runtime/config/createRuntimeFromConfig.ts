@@ -2,6 +2,7 @@ import { computed, effectScope, ref } from 'vue'
 import type { Attachment } from '@opentiny/tiny-robot'
 import type { ChatMessage, ConversationStorageStrategy, UseMessagePlugin } from '@opentiny/tiny-robot-kit'
 import { useChatAttachments } from '@/components/attachments/useChatAttachments'
+import { detectFileType } from '@/shared/attachments'
 import { createChatUiContext } from '@/shared/context'
 import { createOpenAICompatibleResponseProvider } from '../transport/openaiCompatibleTransport'
 import { useChatKit } from '@/runtime/engine/useChatKit'
@@ -453,6 +454,7 @@ function normalizeAttachment(file: File): Attachment {
     url: URL.createObjectURL(file),
     name: file.name,
     size: file.size,
+    fileType: detectFileType(file),
     status: 'success',
   }
 }
@@ -475,10 +477,12 @@ async function resolveAttachmentUrls(attachments: Attachment[]): Promise<Attachm
         return attachment
       }
 
-      // Convert from rawFile if available
+      // Convert rawFile to data URL, then drop rawFile so it survives JSON serialization
       if (attachment.rawFile) {
         const dataUrl = await fileToDataUrl(attachment.rawFile)
-        return { ...attachment, url: dataUrl }
+         
+        const { rawFile: _, ...rest } = attachment as unknown as Record<string, unknown>
+        return { ...rest, url: dataUrl } as Attachment
       }
 
       return attachment

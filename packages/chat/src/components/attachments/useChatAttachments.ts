@@ -1,5 +1,6 @@
 import { getCurrentScope, onScopeDispose, ref, type Ref } from 'vue'
 import type { Attachment } from '@opentiny/tiny-robot'
+import { detectFileType } from '@/shared/attachments'
 import type { UseChatAttachmentsOptions } from '@/types'
 
 function normalizeAttachment(file: File): Attachment {
@@ -8,6 +9,7 @@ function normalizeAttachment(file: File): Attachment {
     url: URL.createObjectURL(file),
     name: file.name,
     size: file.size,
+    fileType: detectFileType(file),
     status: 'success',
   }
 }
