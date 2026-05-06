@@ -38,7 +38,7 @@ outline: [2, 3]
 - 仍希望使用官方页面结构
 - 需要将聊天页嵌入业务容器
 
-这是最平滑的升级路径。查看完整示例：[Chat Runtime + Slots](/examples/chat-runtime-and-slots)
+这是最平滑的升级路径。查看完整示例：[Chat Runtime + Slots](/examples/chat-root-page)
 
 ```vue
 <script setup lang="ts">
@@ -78,7 +78,7 @@ const { runtime, ui } = createRuntimeFromConfig(config)
 - 需要在页面中插入自定义区域
 - 需要单独使用 `TrChat.Sender`、`TrChat.MessageList`、`TrChat.McpTrigger`
 
-这是完全自定义页面组合的路径。查看完整示例：[Chat Workspace 布局](/examples/chat-workspace-layout)
+这是完全自定义页面组合的路径。查看完整示例：[Chat Workspace 布局](/examples/chat-root-primitives)
 
 ### 最小示例
 

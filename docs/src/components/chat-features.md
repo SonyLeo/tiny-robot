@@ -133,6 +133,10 @@ request: {
 
 `providers` 是一个以 `providerId` 为 key 的 transport 配置注册表。每个模型通过 `providerId` 引用对应的 provider，切换模型时自动使用该 provider 的连接配置。
 
+- providers 是以 providerId 为 key 的 transport 配置注册表
+- 每个模型通过 providerId 引用对应的 provider
+- 切换模型时自动使用该 provider 的连接配置
+
 多 provider 示例：
 
 ```ts
@@ -181,6 +185,12 @@ request: {
 | `label` | `string` | — | 显示名称 |
 | `icon` | `Component` | — | 模型图标组件 |
 | `disabled` | `boolean` | — | 是否禁用 |
+
+###### 内置 provider 图标
+
+* 不填 `icon` 时，系统根据 `providerId` 自动匹配内置图标
+- 优先级：手动 `model.icon` > 自动匹配
+- 8 个内置 id（大小写不敏感）：`openai`、`claude`、`deepseek`、`gemini`、`bailian`、`modelscope`、`openrouter`、`ollama`
 
 ##### 其他字段
 
