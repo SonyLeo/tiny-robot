@@ -39,7 +39,6 @@ function resolveRequestPreset(): RequestPreset {
 
     const models: RequestPreset['models'] = [
       { id: 'qwen3.6-plus', label: 'Qwen Plus(全模态)', providerId: 'bailian' },
-      { id: 'qwen-vl-plus', label: 'Qwen VL Plus（视觉）', providerId: 'bailian' },
       { id: 'qwen3.5-omni-plus', label: 'Qwen Omini Plus(全模态)', providerId: 'bailian' },
     ]
 
