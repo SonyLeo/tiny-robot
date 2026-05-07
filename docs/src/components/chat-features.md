@@ -549,7 +549,7 @@ messages: {
 
 | 字段 | 类型 | 说明 |
 |---|---|---|
-| `actions` | `ChatMessageActionDefinition[]` | 自定义消息动作按钮列表 |
+| `actions` | `ChatMessageActionsInput` | 自定义消息动作定义，支持静态数组或基于 context 的函数 |
 | `actionMode` | `'append' \| 'replace'` | 动作模式。`append` 在默认动作后追加，`replace` 完全替换 |
 | `renderers` | `ChatBubbleRenderers` | 自定义消息渲染器 |
 | `feedback` | `{ enabled?: boolean }` | 消息反馈配置（复制、编辑、重新生成、用量面板） |
@@ -584,7 +584,16 @@ feedback 区域包含以下内置能力：
 
 大多数兼容 OpenAI 格式的接口默认会返回 `usage`，无需任何额外处理。
 
-#### `messages.actions[]`
+#### `messages.actions`
+
+`messages.actions` 支持两种写法：
+
+- `ChatMessageActionDefinition[]`
+- `(context: ChatMessageActionContext) => ChatMessageActionDefinition[]`
+
+当动作需要根据当前消息的 `role`、`messageId`、`messageIndexes` 或 `conversationId` 动态变化时，推荐使用函数写法。
+
+无论使用静态数组，还是函数返回数组，单个 action definition 的字段都如下：
 
 | 字段 | 类型 | 必填 | 说明 |
 |---|---|---|---|

@@ -32,7 +32,7 @@
 | `ui.labels` | resolved `ui` | `supported` | i18n copy overrides; resolved once by Root |
 | `sender.*` | `sender runtime` | `supported` | runtime-owned sender defaults: `placeholder / mode / maxLength / wordCount / voice` |
 | `attachments.*` | `attachments runtime` + sender handoff | `supported` | supports `prepare -> addPendingAttachments` path |
-| `messages.actions` | `message runtime` extension path | `supported` | custom action definitions |
+| `messages.actions` | `message runtime` extension path | `supported` | custom action definitions; static or context-driven |
 | `messages.actionMode` | `message runtime` extension path | `supported` | `append` or `replace` mode |
 | `messages.renderers` | `message runtime` extension path | `supported` | custom content/box renderer chains |
 | `messages.feedback` | `message runtime` extension path | `supported` | feedback enablement |

@@ -328,7 +328,7 @@ Public boundary note:
 
 ```ts
 type ChatMessagesConfig = {
-  actions?: ChatMessageActionDefinition[]
+  actions?: ChatMessageActionsInput
   actionMode?: 'append' | 'replace'
   renderers?: ChatMessageRendererRegistry
   feedback?: ChatFeedbackConfig
@@ -612,7 +612,7 @@ type ChatConversationRuntime = {
 ```ts
 type ChatMessageRuntime = {
   getViewState(messageId: string): ChatMessageViewState
-  getActions(messageId: string): ChatResolvedMessageAction[]
+  getActions(context: ChatMessageActionContext): ChatResolvedMessageAction[]
   startEdit(messageId: string): void
   cancelEdit(messageId: string): void
   commitEdit(messageId: string, draft: ChatMessageEditInput): Promise<boolean> | boolean
@@ -626,7 +626,7 @@ type ChatMessageRuntime = {
 
 - `message runtime` 拥有编辑中的草稿、action capability、inline error / busy 显示等派生 view state
 - 它不拥有会话级消息列表
-- `message runtime.getActions(messageId)` is the default owner path for message-action definitions once a runtime exists
+- `message runtime.getActions(context)` is the default owner path for message-action definitions once a runtime exists
 - message-extension UI should fall back to `message runtime` actions and action mode before expecting higher-level prop relay
 - message-extension UI should also fall back to `message runtime` feedback enablement before assuming page-input or scaffold relay has already projected it
 - nearest renderer UI should also fall back to `message runtime.config.renderers` before assuming page-input or scaffold relay already projected renderer config

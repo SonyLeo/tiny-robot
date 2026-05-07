@@ -19,8 +19,8 @@
 | Draft text | `sender runtime` | current draft input | sender input + send clear policy | `Sender`, `Footer`, sender slots | source of truth before submit |
 | Pending attachments before submit | `sender runtime` | pending attachments queue | sender add/remove/clear | `Sender`, `Attachments`, sender/footer slots | attachments prepare capability is separate |
 | Attachment prepare / preview / upload capability | `attachments runtime` | attachment capability layer | upload/prepare hooks only | `Sender`, `Attachments`, sender/footer slots | cannot directly mutate sender-owned pending attachments |
-| Message-level edit / error / capability view state | `message runtime` | per-message transient view state | edit lifecycle + derived state updates | `Message`, `MessageList`, message slots | actions locate by `messageId`, not index |
-| Message action definitions and mode | `message runtime` | `config.actions` + `config.actionMode` | set at runtime creation | `ChatFeedback`, message slots | `append` or `replace` mode |
+| Message-level edit / error / capability view state | `message runtime` | per-message transient view state | edit lifecycle + derived state updates | `Message`, `MessageList`, message slots | actions resolve from message context, not index |
+| Message action definitions and mode | `message runtime` | `config.actions` + `config.actionMode` | set at runtime creation | `ChatFeedback`, message slots | `append` or `replace` mode; actions may be static or context-driven |
 | Message renderer config | `message runtime` | `config.renderers` | set at runtime creation | `ChatLayout`, `ChatMessageList` | content/box renderer chains |
 | Message transform pipeline | `message runtime` | `config.transforms` | set at runtime creation | conversation engine | `onChunk` and `onFinish` hooks |
 | Conversation list and active conversation selection | `history runtime` | history data + management state | create/switch/delete/rename/manage | `History`, `Header`, workspace-left slots | history visibility is not owned here |

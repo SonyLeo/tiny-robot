@@ -652,8 +652,8 @@ await runTest('chat feedback source can fall back to runtime-owned message actio
     'utf8',
   )
   assert.equal(feedbackSource.includes('runtime?.message.config?.actionMode'), true)
-  assert.equal(feedbackSource.includes('runtime?.message.getActions && primaryMessageId.value'), true)
-  assert.equal(feedbackSource.includes('return runtime.message.getActions(primaryMessageId.value) ?? []'), true)
+  assert.equal(feedbackSource.includes('if (runtime?.message.getActions) {'), true)
+  assert.equal(feedbackSource.includes('return runtime.message.getActions(actionContext.value) ?? []'), true)
 })
 
 await runTest('feedback owner-path source can fall back to runtime-owned feedback enablement without relying on page-input relay', async () => {

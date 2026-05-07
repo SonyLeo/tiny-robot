@@ -111,7 +111,7 @@ await runTest('useChatFeedback replace mode keeps only custom actions', async ()
   )
 })
 
-await runTest('useChatFeedback built-in actions prefer runtime messageId paths when runtime is available', async () => {
+await runTest('useChatFeedback built-in actions prefer runtime-owned message action paths when runtime is available', async () => {
   const assistantMessage = {
     role: 'assistant',
     content: 'runtime-assisted',
@@ -221,14 +221,14 @@ await runTest('useChatFeedback falls back to runtime-owned action definitions an
         editing: false,
         optimistic: false,
       }),
-      getActions: (messageId) => [
+      getActions: (context) => [
         {
           id: 'save-case',
           label: 'Save Case',
           placement: 'operations',
           roles: ['assistant'],
           onClick: () => {
-            customActionLog = messageId
+            customActionLog = context.messageId ?? ''
           },
         },
       ],
@@ -260,6 +260,7 @@ await runTest('useChatFeedback falls back to runtime-owned action definitions an
   await feedback.getActionDefinition('save-case')?.onClick?.(feedback.actionContext.value)
   assert.equal(customActionLog, assistantMessageId)
   assert.equal(feedback.actionContext.value.messageId, assistantMessageId)
+  assert.equal(feedback.actionContext.value.conversationId, undefined)
 })
 
 await runTest('useChatFeedback keeps messageIndex aligned with the primary message when grouped source messages are provided', async () => {
@@ -362,7 +363,62 @@ await runTest('createRuntimeFromConfig keeps message action settings on the runt
   })
 
   assert.equal(runtime.message?.config?.feedback?.enabled, true)
-  assert.equal(runtime.message?.getActions('assistant-message-id'), actionDefinitions)
+  assert.equal(
+    runtime.message?.getActions({
+      role: 'assistant',
+      messages: [],
+      messageIds: ['assistant-message-id'],
+      messageIndexes: [0],
+      messageId: 'assistant-message-id',
+    }),
+    actionDefinitions,
+  )
   assert.equal(runtime.message?.config?.actionMode, 'replace')
+})
+
+await runTest('createRuntimeFromConfig supports context-based message action definitions', async () => {
+  const receivedContexts = []
+
+  const { runtime } = createRuntimeFromConfig({
+    request: {
+      models: [{ id: 'gpt-4o-mini', providerId: 'openai' }],
+      transport: {
+        type: 'openai-compatible',
+        endpoint: '/api/chat',
+      },
+    },
+    messages: {
+      actions: (context) => {
+        receivedContexts.push(context)
+        return [
+          {
+            id: `context-${context.messageId ?? 'none'}`,
+            label: context.role === 'assistant' ? 'Assistant Context' : 'Context Action',
+            placement: 'operations',
+          },
+        ]
+      },
+    },
+  })
+
+  const resolvedActions = runtime.message?.getActions({
+    role: 'assistant',
+    messages: [],
+    messageIds: ['assistant-message-id'],
+    messageIndexes: [1],
+    messageId: 'assistant-message-id',
+    conversationId: 'conversation-1',
+  })
+
+  assert.deepEqual(resolvedActions, [
+    {
+      id: 'context-assistant-message-id',
+      label: 'Assistant Context',
+      placement: 'operations',
+    },
+  ])
+  assert.equal(receivedContexts.length, 1)
+  assert.equal(receivedContexts[0]?.conversationId, 'conversation-1')
+  assert.equal(receivedContexts[0]?.messageId, 'assistant-message-id')
 })
 
