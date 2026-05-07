@@ -19,6 +19,9 @@ import type {
   ChatConversationCreateInput,
   ChatConversationSummary,
   ChatConversationRuntime,
+  ChatMessageActionContext,
+  ChatMessageActionDefinition,
+  ChatMessageActionsInput,
   ChatHistoryRuntime,
   ChatMessageViewState,
   ChatMessageRuntime,
@@ -382,6 +385,17 @@ function resolveMessageViewState(message: ChatMessage, config: Pick<TrChatConfig
   }
 }
 
+function resolveConfiguredMessageActions(
+  actions: ChatMessageActionsInput | undefined,
+  context: ChatMessageActionContext,
+): ChatMessageActionDefinition[] {
+  if (!actions) {
+    return []
+  }
+
+  return typeof actions === 'function' ? actions(context) : actions
+}
+
 export function createMessageRuntimeFromChatKit(
   chatKit: ReturnType<typeof useChatKit>,
   config: Pick<TrChatConfig, 'messages'>,
@@ -399,8 +413,8 @@ export function createMessageRuntimeFromChatKit(
 
       return resolveMessageViewState(resolved.raw, config)
     },
-    getActions() {
-      return config.messages?.actions ?? []
+    getActions(context) {
+      return resolveConfiguredMessageActions(config.messages?.actions, context)
     },
     startEdit(messageId) {
       const resolved = resolveMessage(messageId)
@@ -480,7 +494,7 @@ async function resolveAttachmentUrls(attachments: Attachment[]): Promise<Attachm
       // Convert rawFile to data URL, then drop rawFile so it survives JSON serialization
       if (attachment.rawFile) {
         const dataUrl = await fileToDataUrl(attachment.rawFile)
-         
+
         const { rawFile: _, ...rest } = attachment as unknown as Record<string, unknown>
         return { ...rest, url: dataUrl } as Attachment
       }
