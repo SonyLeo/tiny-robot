@@ -12,6 +12,28 @@ outline: [2, 3]
 
 如果只需要快速启动一个聊天页，优先从 `TrChat` 开始。
 
+## 安装
+
+首次接入时，请同时安装以下依赖：
+
+```bash
+pnpm add @opentiny/tiny-robot-chat @opentiny/tiny-robot @opentiny/tiny-robot-kit vue markstream-vue
+```
+
+如果项目里已经安装了其中一部分，可以跳过重复安装；  
+仅安装 `@opentiny/tiny-robot-chat` 不足以运行最小示例。
+
+## 样式引入
+
+在应用入口文件（如 `main.ts` / `main.js`）中引入以下样式：
+
+```ts
+import '@opentiny/tiny-robot/dist/style.css'
+import '@opentiny/tiny-robot-chat/style'
+```
+
+如果已经全局引入过 `@opentiny/tiny-robot/dist/style.css`，补充 `@opentiny/tiny-robot-chat/style` 即可。
+
 ## 什么时候看这一页
 
 适合：
