@@ -3,17 +3,17 @@ import { usePanelToggle } from '@/composables/usePanelToggle'
 import type { ChatPanelToggleProps, ChatPanelToggleSlots } from '@/types/layout'
 
 defineOptions({
-  name: 'ChatRightPanelToggle',
+  name: 'ChatLeftSidebarToggle',
 })
 
 defineSlots<ChatPanelToggleSlots>()
 
 const props = withDefaults(defineProps<ChatPanelToggleProps>(), {
-  ariaLabel: '切换右侧面板',
+  ariaLabel: '切换左侧面板',
 })
 
 const { expanded, slotProps, handleClick } = usePanelToggle({
-  side: 'right',
+  side: 'left',
 })
 </script>
 
@@ -26,7 +26,7 @@ const { expanded, slotProps, handleClick } = usePanelToggle({
     @click="handleClick"
   >
     <slot v-bind="slotProps">
-      {{ expanded ? '关闭扩展区' : '打开扩展区' }}
+      {{ expanded ? '收起导航' : '展开导航' }}
     </slot>
   </button>
 </template>

@@ -4,9 +4,9 @@ import { computed, toRef, useSlots } from 'vue'
 import { provideChatLayoutConfig, useChatLayoutStoreContext } from '@/context/layoutContext'
 import {
   DEFAULT_CONTENT_MAX_WIDTH,
-  DEFAULT_LEFT_PANEL_WIDTH,
+  DEFAULT_LEFT_SIDEBAR_WIDTH,
   DEFAULT_LEFT_RAIL_WIDTH,
-  DEFAULT_MOBILE_LEFT_PANEL_WIDTH,
+  DEFAULT_MOBILE_LEFT_SIDEBAR_WIDTH,
   DEFAULT_MOBILE_RIGHT_PANEL_WIDTH,
   DEFAULT_RIGHT_PANEL_WIDTH,
   DEFAULT_TRANSITION_DURATION,
@@ -19,35 +19,37 @@ defineOptions({
 })
 
 const props = withDefaults(defineProps<ChatLayoutProps>(), {
-  leftPanelWidth: DEFAULT_LEFT_PANEL_WIDTH,
+  leftSidebarWidth: DEFAULT_LEFT_SIDEBAR_WIDTH,
   leftRailWidth: DEFAULT_LEFT_RAIL_WIDTH,
   rightPanelWidth: DEFAULT_RIGHT_PANEL_WIDTH,
-  mobileLeftPanelWidth: DEFAULT_MOBILE_LEFT_PANEL_WIDTH,
+  mobileLeftSidebarWidth: DEFAULT_MOBILE_LEFT_SIDEBAR_WIDTH,
   mobileRightPanelWidth: DEFAULT_MOBILE_RIGHT_PANEL_WIDTH,
   contentMaxWidth: DEFAULT_CONTENT_MAX_WIDTH,
   transitionDuration: DEFAULT_TRANSITION_DURATION,
 })
 
 const slots = useSlots()
-const { closeOverlayPanels, isMobile, leftDrawerOpen, leftPanelOpen, rightPanelOpen } = useChatLayoutStoreContext()
+const { closeOverlayPanels, isMobile, leftDrawerOpen, leftSidebarOpen, rightPanelOpen } = useChatLayoutStoreContext()
 
 const leftRailWidth = computed(() => clampNonNegative(props.leftRailWidth))
 provideChatLayoutConfig({
   leftRailWidth,
 })
 
-const hasLeftPanel = computed(() => hasSlotContent(slots['left-panel']))
+const hasLeftSidebar = computed(() => hasSlotContent(slots['left-sidebar']))
 const hasHeader = computed(() => hasSlotContent(slots.header))
 const hasMain = computed(() => hasSlotContent(slots.main))
 const hasFooter = computed(() => hasSlotContent(slots.footer))
 const hasRightPanel = computed(() => hasSlotContent(slots['right-panel']))
 
 const desktopLeftWidth = computed(() => {
-  if (isMobile.value || !hasLeftPanel.value) {
+  if (isMobile.value || !hasLeftSidebar.value) {
     return '0px'
   }
 
-  return leftPanelOpen.value ? toCssLength(clampNonNegative(props.leftPanelWidth)) : toCssLength(leftRailWidth.value)
+  return leftSidebarOpen.value
+    ? toCssLength(clampNonNegative(props.leftSidebarWidth))
+    : toCssLength(leftRailWidth.value)
 })
 
 const desktopRightWidth = computed(() => {
@@ -59,19 +61,19 @@ const desktopRightWidth = computed(() => {
 })
 
 const contentMaxWidth = computed(() => toCssLength(props.contentMaxWidth))
-const mobileLeftPanelWidth = computed(() => toCssLength(props.mobileLeftPanelWidth))
+const mobileLeftSidebarWidth = computed(() => toCssLength(props.mobileLeftSidebarWidth))
 const mobileRightPanelWidth = computed(() => toCssLength(props.mobileRightPanelWidth))
 const transitionDuration = toRef(props, 'transitionDuration')
 
-const shouldRenderDesktopLeftPanel = computed(
-  () => !isMobile.value && hasLeftPanel.value && (leftPanelOpen.value || leftRailWidth.value > 0),
+const shouldRenderDesktopLeftSidebar = computed(
+  () => !isMobile.value && hasLeftSidebar.value && (leftSidebarOpen.value || leftRailWidth.value > 0),
 )
 const shouldRenderDesktopRightShell = computed(() => !isMobile.value && hasRightPanel.value)
 const shouldRenderDesktopRightPanel = computed(() => shouldRenderDesktopRightShell.value && rightPanelOpen.value)
-const shouldRenderMobileLeftPanel = computed(() => isMobile.value && hasLeftPanel.value && leftDrawerOpen.value)
+const shouldRenderMobileLeftSidebar = computed(() => isMobile.value && hasLeftSidebar.value && leftDrawerOpen.value)
 const shouldRenderMobileRightPanel = computed(() => isMobile.value && hasRightPanel.value && rightPanelOpen.value)
 const shouldRenderOverlayBackdrop = computed(
-  () => shouldRenderMobileLeftPanel.value || shouldRenderMobileRightPanel.value,
+  () => shouldRenderMobileLeftSidebar.value || shouldRenderMobileRightPanel.value,
 )
 
 const cssVars = computed(() => ({
@@ -79,11 +81,13 @@ const cssVars = computed(() => ({
   '--tr-chat-layout-right-width': desktopRightWidth.value,
   '--tr-chat-layout-content-max-width': contentMaxWidth.value,
   '--tr-chat-layout-transition-duration': transitionDuration.value,
-  '--tr-chat-layout-mobile-left-width': mobileLeftPanelWidth.value,
+  '--tr-chat-layout-mobile-left-width': mobileLeftSidebarWidth.value,
   '--tr-chat-layout-mobile-right-width': mobileRightPanelWidth.value,
 }))
 
-useEventListener(window, 'keydown', (event) => {
+const keyboardTarget = typeof window === 'undefined' ? undefined : window
+
+useEventListener(keyboardTarget, 'keydown', (event: KeyboardEvent) => {
   if (event.key !== 'Escape' || !shouldRenderOverlayBackdrop.value) {
     return
   }
@@ -94,8 +98,8 @@ useEventListener(window, 'keydown', (event) => {
 
 <template>
   <div class="tr-chat-layout" :class="{ 'tr-chat-layout--mobile': isMobile }" :style="cssVars">
-    <div v-if="shouldRenderDesktopLeftPanel" class="tr-chat-layout__left-shell">
-      <slot name="left-panel" />
+    <div v-if="shouldRenderDesktopLeftSidebar" class="tr-chat-layout__left-shell">
+      <slot name="left-sidebar" />
     </div>
 
     <div v-if="hasHeader" class="tr-chat-layout__header-shell">
@@ -136,14 +140,14 @@ useEventListener(window, 'keydown', (event) => {
 
     <Transition name="tr-chat-mobile-panel-left">
       <div
-        v-if="shouldRenderMobileLeftPanel"
+        v-if="shouldRenderMobileLeftSidebar"
         class="tr-chat-layout__mobile-panel tr-chat-layout__mobile-panel--left"
         role="dialog"
         aria-modal="true"
         aria-label="左侧面板"
       >
-        <div class="tr-chat-layout__mobile-panel-surface" :style="{ width: mobileLeftPanelWidth }">
-          <slot name="left-panel" />
+        <div class="tr-chat-layout__mobile-panel-surface" :style="{ width: mobileLeftSidebarWidth }">
+          <slot name="left-sidebar" />
         </div>
       </div>
     </Transition>

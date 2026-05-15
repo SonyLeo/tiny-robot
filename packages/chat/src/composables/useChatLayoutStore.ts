@@ -5,37 +5,35 @@ import { useChatBreakpoint } from '@/composables/useChatBreakpoint'
 
 export interface UseChatLayoutStoreOptions {
   mobileBreakpoint?: MaybeRefOrGetter<number>
-  defaultLeftPanelOpen?: boolean
+  defaultLeftSidebarOpen?: boolean
   defaultRightPanelOpen?: boolean
 }
 
 export function useChatLayoutStore(options: UseChatLayoutStoreOptions = {}): ChatLayoutStore {
-  const leftPanelOpen = shallowRef(options.defaultLeftPanelOpen ?? true)
+  const leftSidebarOpen = shallowRef(options.defaultLeftSidebarOpen ?? true)
   const leftDrawerOpen = shallowRef(false)
-  const rightPanelOpen = shallowRef(options.defaultRightPanelOpen ?? false)
+  const rightPanelDesktopOpen = shallowRef(options.defaultRightPanelOpen ?? false)
+  const rightPanelMobileOpen = shallowRef(false)
 
   const breakpointSource = computed(() => Number(toValue(options.mobileBreakpoint ?? DEFAULT_MOBILE_BREAKPOINT)))
   const { isMobile, mobileBreakpoint } = useChatBreakpoint({ mobileBreakpoint: breakpointSource })
 
-  if (isMobile.value) {
-    rightPanelOpen.value = false
+  const leftSidebarVisible = computed(() => (isMobile.value ? leftDrawerOpen.value : leftSidebarOpen.value))
+  const rightPanelOpen = computed(() => (isMobile.value ? rightPanelMobileOpen.value : rightPanelDesktopOpen.value))
+
+  function setLeftSidebarOpen(value: boolean): void {
+    leftSidebarOpen.value = value
   }
 
-  const leftPanelVisible = computed(() => (isMobile.value ? leftDrawerOpen.value : leftPanelOpen.value))
-
-  function setLeftPanelOpen(value: boolean): void {
-    leftPanelOpen.value = value
-  }
-
-  function toggleLeftPanel(): void {
-    leftPanelOpen.value = !leftPanelOpen.value
+  function toggleLeftSidebar(): void {
+    leftSidebarOpen.value = !leftSidebarOpen.value
   }
 
   function setLeftDrawerOpen(value: boolean): void {
     leftDrawerOpen.value = value
 
     if (value) {
-      rightPanelOpen.value = false
+      rightPanelMobileOpen.value = false
     }
   }
 
@@ -44,11 +42,17 @@ export function useChatLayoutStore(options: UseChatLayoutStoreOptions = {}): Cha
   }
 
   function setRightPanelOpen(value: boolean): void {
-    rightPanelOpen.value = value
+    if (isMobile.value) {
+      rightPanelMobileOpen.value = value
 
-    if (value && isMobile.value) {
-      leftDrawerOpen.value = false
+      if (value) {
+        leftDrawerOpen.value = false
+      }
+
+      return
     }
+
+    rightPanelDesktopOpen.value = value
   }
 
   function toggleRightPanel(): void {
@@ -59,30 +63,31 @@ export function useChatLayoutStore(options: UseChatLayoutStoreOptions = {}): Cha
     leftDrawerOpen.value = false
 
     if (isMobile.value) {
-      rightPanelOpen.value = false
+      rightPanelMobileOpen.value = false
     }
   }
 
   watch(isMobile, (nextIsMobile, prevIsMobile) => {
     if (!nextIsMobile) {
       leftDrawerOpen.value = false
+      rightPanelMobileOpen.value = false
       return
     }
 
     if (prevIsMobile !== undefined) {
-      rightPanelOpen.value = false
+      rightPanelMobileOpen.value = false
     }
   })
 
   return {
-    leftPanelOpen: readonly(leftPanelOpen),
+    leftSidebarOpen: readonly(leftSidebarOpen),
     leftDrawerOpen: readonly(leftDrawerOpen),
-    leftPanelVisible,
+    leftSidebarVisible,
     rightPanelOpen: readonly(rightPanelOpen),
     isMobile,
     mobileBreakpoint,
-    setLeftPanelOpen,
-    toggleLeftPanel,
+    setLeftSidebarOpen,
+    toggleLeftSidebar,
     setLeftDrawerOpen,
     toggleLeftDrawer,
     setRightPanelOpen,

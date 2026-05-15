@@ -11,13 +11,13 @@ defineOptions({
 
 const props = withDefaults(defineProps<ChatRootProps>(), {
   mobileBreakpoint: DEFAULT_MOBILE_BREAKPOINT,
-  defaultLeftPanelOpen: true,
+  defaultLeftSidebarOpen: true,
   defaultRightPanelOpen: false,
 })
 
 const layoutStore = useChatLayoutStore({
   mobileBreakpoint: toRef(props, 'mobileBreakpoint'),
-  defaultLeftPanelOpen: props.defaultLeftPanelOpen,
+  defaultLeftSidebarOpen: props.defaultLeftSidebarOpen,
   defaultRightPanelOpen: props.defaultRightPanelOpen,
 })
 

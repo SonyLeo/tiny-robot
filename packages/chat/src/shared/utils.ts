@@ -1,4 +1,4 @@
-import type { Slot } from 'vue'
+import { Comment, Fragment, Text, type Slot, type VNode } from 'vue'
 
 export function toFiniteNumber(value: number | string): number {
   const normalized = typeof value === 'number' ? value : Number(value)
@@ -15,9 +15,37 @@ export function clampNonNegative(value: number | string): number {
 }
 
 export function toCssLength(value: number | string): string {
-  return typeof value === 'number' ? `${value}px` : value
+  if (typeof value === 'number') {
+    return `${value}px`
+  }
+
+  const normalized = value.trim()
+
+  if (normalized && Number.isFinite(Number(normalized))) {
+    return `${Number(normalized)}px`
+  }
+
+  return value
 }
 
 export function hasSlotContent(slot?: Slot): boolean {
-  return Boolean(slot && slot().length > 0)
+  return Boolean(slot && hasRenderableNodes(slot()))
+}
+
+function hasRenderableNodes(nodes: VNode[]): boolean {
+  return nodes.some((node) => {
+    if (node.type === Comment) {
+      return false
+    }
+
+    if (node.type === Text) {
+      return typeof node.children === 'string' && node.children.trim().length > 0
+    }
+
+    if (node.type === Fragment) {
+      return Array.isArray(node.children) && hasRenderableNodes(node.children as VNode[])
+    }
+
+    return true
+  })
 }

@@ -2,15 +2,15 @@ import type { Ref, VNode } from 'vue'
 
 export interface ChatRootProps {
   mobileBreakpoint?: number
-  defaultLeftPanelOpen?: boolean
+  defaultLeftSidebarOpen?: boolean
   defaultRightPanelOpen?: boolean
 }
 
 export interface ChatLayoutProps {
-  leftPanelWidth?: number
+  leftSidebarWidth?: number
   leftRailWidth?: number
   rightPanelWidth?: number
-  mobileLeftPanelWidth?: number | string
+  mobileLeftSidebarWidth?: number | string
   mobileRightPanelWidth?: number | string
   contentMaxWidth?: number | string
   transitionDuration?: string
@@ -20,19 +20,43 @@ export interface ChatPanelToggleProps {
   ariaLabel?: string
 }
 
-export interface ChatLeftPanelSlotProps {
+export type ChatPanelSide = 'left' | 'right'
+export type ChatLeftSidebarMode = 'open' | 'rail' | 'drawer'
+export type ChatRightPanelMode = 'panel' | 'drawer'
+
+export interface ChatPanelToggleSlotProps {
+  expanded: boolean
+  isMobile: boolean
+  side: ChatPanelSide
+}
+
+export interface ChatPanelToggleSlots {
+  default?(slotProps: ChatPanelToggleSlotProps): VNode[]
+}
+
+export interface ChatLeftSidebarSlotProps {
   isMobile: boolean
   open: boolean
   collapsed: boolean
+  mode: ChatLeftSidebarMode
+}
+
+export interface ChatLeftSidebarSlots {
+  default?(slotProps: ChatLeftSidebarSlotProps): VNode[]
 }
 
 export interface ChatRightPanelSlotProps {
   isMobile: boolean
   open: boolean
+  mode: ChatRightPanelMode
+}
+
+export interface ChatRightPanelSlots {
+  default?(slotProps: ChatRightPanelSlotProps): VNode[]
 }
 
 export interface ChatLayoutSlots {
-  'left-panel'?: () => VNode[]
+  'left-sidebar'?: () => VNode[]
   header?: () => VNode[]
   main?: () => VNode[]
   footer?: () => VNode[]
@@ -40,14 +64,14 @@ export interface ChatLayoutSlots {
 }
 
 export interface ChatLayoutStore {
-  leftPanelOpen: Readonly<Ref<boolean>>
+  leftSidebarOpen: Readonly<Ref<boolean>>
   leftDrawerOpen: Readonly<Ref<boolean>>
-  leftPanelVisible: Readonly<Ref<boolean>>
+  leftSidebarVisible: Readonly<Ref<boolean>>
   rightPanelOpen: Readonly<Ref<boolean>>
   isMobile: Readonly<Ref<boolean>>
   mobileBreakpoint: Readonly<Ref<number>>
-  setLeftPanelOpen: (value: boolean) => void
-  toggleLeftPanel: () => void
+  setLeftSidebarOpen: (value: boolean) => void
+  toggleLeftSidebar: () => void
   setLeftDrawerOpen: (value: boolean) => void
   toggleLeftDrawer: () => void
   setRightPanelOpen: (value: boolean) => void

@@ -52,8 +52,8 @@
 - `ChatHeader`
 - `ChatMain`
 - `ChatFooter`
-- `ChatLeftPanel`
-- `ChatLeftPanelToggle`
+- `ChatLeftSidebar`
+- `ChatLeftSidebarToggle`
 - `ChatRightPanel`
 - `ChatRightPanelToggle`
 
@@ -168,7 +168,7 @@ packages/chat/
 
 - `docs/` 继续承载阶段设计文档。
 - `demo/` 只放本地运行入口、示例页面和调试资源。
-- demo 通过 Node API 脚本调用 Vite，避免单独维护一份 demo 配置文件。
+- demo 与库构建共用同一份 `vite.config.ts`，通过 `root` 指向 `demo/`。
 - `src/` 只放最终要参与库构建的源码。
 
 ### 8.3 推荐整体结构
@@ -181,21 +181,12 @@ packages/chat/
     phase-3-chat-app.md
   demo/
     index.html
-    build.mjs
-    dev.mjs
-    preview.mjs
-    viteOptions.mjs
-    public/
     src/
       main.ts
       App.vue
-      examples/
-        layout-only/
-        chat-ui-only/
-      chat-app/
-      shared/
-        icons/
-        mocks/
+      components/
+      composables/
+      styles/
   src/
     index.ts
     namespace.ts
@@ -223,8 +214,8 @@ packages/chat/
       ChatHeader.vue
       ChatMain.vue
       ChatFooter.vue
-      ChatLeftPanel.vue
-      ChatLeftPanelToggle.vue
+      ChatLeftSidebar.vue
+      ChatLeftSidebarToggle.vue
       ChatRightPanel.vue
       ChatRightPanelToggle.vue
     panels/
@@ -261,7 +252,7 @@ packages/chat/
 - 组件文件统一使用 PascalCase：
   - `ChatRoot.vue`
   - `ChatLayout.vue`
-  - `ChatLeftPanel.vue`
+  - `ChatLeftSidebar.vue`
 - 组件按分层放入对应目录，不再给每个组件单独创建目录。
 - composable 统一使用 `useXxx.ts`。
 - 公共类型统一放到 `src/types/`，而不是分散在每个组件目录里。
@@ -278,3 +269,95 @@ packages/chat/
 - demo 自用图标、mock 数据、临时样式不进入库源码。
 - 当前 `src/App.vue`、`src/main.ts`、`src/icons/` 更适合迁移到 `demo/src/` 下。
 - 只有真正属于库对外能力的资源，才保留在 `src/` 中。
+
+## 9. 借鉴 `demo/chat-suit` 的设计结论
+
+参考对象：`demo/chat-suit`
+
+这里的“借鉴”主要指设计思想和实现取向，不是原样复制旧组件架构。
+
+### 9.1 核查结论
+
+- `ChatSidebarSwitch` 的价值，更准确地说是“行为封装、视觉外置”，而不是严格意义上的“配置驱动 UI”。
+- 旧版 `ChatSidebarSwitch` 内部只关心切换侧边栏状态，图标、文案、按钮长相由调用方通过 slot 决定。
+- 旧版 `ChatSidebarSwitch` 的 `position` prop 在当时实现中并没有真正参与逻辑，这个点不属于值得继承的部分。
+- 左侧 `panel / rail` 的切换，不是单纯依赖元素隐藏，而是“容器宽度变化 + 内容显隐切换”的组合。
+- 旧版 rail 效果是在同一个左侧语义区域内部完成的，而不是额外再建一套完全平行的侧边栏系统。
+
+### 9.2 值得借鉴的设计思想
+
+- 行为组件只管行为，不抢视觉决定权。
+- 布局组件只提供结构和布局状态，不负责具体业务内容。
+- 布局状态通过 slot props 暴露给内容层，让内容层自己决定 open / rail / compact 时的具体呈现。
+- rail 应该被理解为左侧区域的一种收起态表达，而不是另一套平行的区域组件。
+- 能在同一棵内容树内完成的 open / rail 切换，尽量不要过早拆成两套完全不连续的内容结构。
+- 尺寸、过渡时长等布局参数适合经由 CSS 变量进入样式层，而不是写死在内容组件内部。
+
+### 9.3 不建议直接继承的部分
+
+- 不继承 vnode 扫描 + 按组件名自动分发区域的实现方式。
+- 不把 `opacity: 0` 这类 demo 式 `hidden` 策略直接当作正式 rail 解决方案。
+- 不继承“声明了 prop 但实际不参与逻辑”的模式。
+- 不因为旧基座较轻就回退当前已经明确的 mobile / right-panel / overlay 状态模型。
+
+## 10. 基于借鉴结论的当前优化清单
+
+这一节不是新架构，而是在当前 `packages/chat` 已确认方向上的可执行优化。
+
+### 10.1 阶段一可以继续微调的项
+
+- `ChatLeftSidebarToggle` 和 `ChatRightPanelToggle` 继续保持“行为组件”定位。
+- toggle 组件的 slot 后续可以考虑暴露更多状态，例如：`expanded`、`isMobile`、`side`。
+- `ChatLeftSidebar` 已经通过 `mode: 'open' | 'rail' | 'drawer'` 暴露状态，后续重点是保持内容层围绕这套状态表达实现，而不是重新拆出第二棵 rail 组件树。
+- 左右两侧 panel 的 slot props 语义可以继续对齐，避免后续面板组件在使用上出现左右不对称的感受。
+
+### 10.2 更适合阶段二吸收的点
+
+- `HistoryPanel` 这类真实内容组件，可以更多采用“同一内容树 + 局部显隐”的方式处理 open / rail 切换。
+- `Topbar`、`HistoryPanel`、`ComposerPanel` 等组件延续“行为内聚、视觉外置”的设计原则。
+- 阶段二组件尽量直接消费布局层状态，不重复发明另一套 panel open / collapse / drawer 状态。
+
+### 10.3 当前路线的总体判断
+
+- 当前 `packages/chat` 的阶段一架构已经比旧基座更完整，不应回退到旧基座的组件划分方式。
+- 旧基座最值得吸收的是设计原则，不是原样的 API 或 DOM 组织方式。
+- 当前方向应该继续保持：显式 slots、清晰的 layout store、左右语义区域分离、mobile / desktop 状态分离。
+
+## 11. 当前实现快照
+
+当前仓库里的阶段一实现已经对齐到下面这套 API：
+
+- `Chat.Root`
+  - `mobileBreakpoint`
+  - `defaultLeftSidebarOpen`
+  - `defaultRightPanelOpen`
+- `Chat.Layout`
+  - `leftSidebarWidth`
+  - `leftRailWidth`
+  - `rightPanelWidth`
+  - `mobileLeftSidebarWidth`
+  - `mobileRightPanelWidth`
+  - `contentMaxWidth`
+  - `transitionDuration`
+- `Chat.Layout` 使用显式 named slots：
+  - `left-sidebar`
+  - `header`
+  - `main`
+  - `footer`
+  - `right-panel`
+- `ChatLeftSidebar`
+  - 只保留一个默认 slot
+  - 通过 `mode: 'open' | 'rail' | 'drawer'`、`open`、`collapsed` 向内容层暴露状态
+- `ChatLeftSidebarToggle`
+  - desktop 下控制 `leftSidebarOpen`
+  - mobile 下控制 `leftDrawerOpen`
+- `ChatMain`
+  - 作为唯一主滚动根
+
+当前本地开发与校验脚本也已经收敛为：
+
+- `pnpm -F @tiny-robot/chat dev`
+- `pnpm -F @tiny-robot/chat build`
+- `pnpm -F @tiny-robot/chat lint`
+- `pnpm -F @tiny-robot/chat type-check`
+- `pnpm -F @tiny-robot/chat check`
