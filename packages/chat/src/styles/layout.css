@@ -13,7 +13,9 @@
   overflow: hidden;
   background: var(--tr-chat-layout-bg);
   color: var(--tr-chat-layout-text-primary);
-  transition: grid-template-columns var(--tr-chat-layout-transition-duration, 200ms) ease;
+  transition:
+    grid-template-columns var(--tr-chat-layout-transition-duration, 200ms)
+      var(--tr-chat-layout-transition-easing, cubic-bezier(0.2, 0, 0, 1));
 }
 
 .tr-chat-layout--mobile {
@@ -38,7 +40,10 @@
   overflow: hidden;
   background: var(--tr-chat-layout-left-bg);
   border-inline-end: 1px solid var(--tr-chat-layout-divider-color);
-  transition: width var(--tr-chat-layout-transition-duration, 200ms) ease;
+  transition:
+    width var(--tr-chat-layout-transition-duration, 200ms)
+      var(--tr-chat-layout-transition-easing, cubic-bezier(0.2, 0, 0, 1)),
+    border-inline-end-color 160ms ease;
 }
 
 .tr-chat-layout__right-shell {
@@ -46,10 +51,16 @@
   overflow: hidden;
   background: var(--tr-chat-layout-right-bg);
   border-inline-start: 1px solid var(--tr-chat-layout-divider-color);
+  transition: border-inline-start-color 160ms ease;
 }
 
 .tr-chat-layout__right-shell--closed {
   border-inline-start-color: transparent;
+}
+
+.tr-chat-layout__right-panel-desktop {
+  height: 100%;
+  will-change: transform;
 }
 
 .tr-chat-layout__header-shell {
@@ -181,13 +192,15 @@
   color: var(--tr-chat-layout-text-primary);
   cursor: pointer;
   transition:
-    background-color var(--tr-chat-layout-transition-duration, 200ms) ease,
-    border-color var(--tr-chat-layout-transition-duration, 200ms) ease;
+    background-color var(--tr-chat-layout-transition-duration, 200ms)
+      var(--tr-chat-layout-transition-easing, cubic-bezier(0.2, 0, 0, 1)),
+    border-color var(--tr-chat-layout-transition-duration, 200ms)
+      var(--tr-chat-layout-transition-easing, cubic-bezier(0.2, 0, 0, 1));
 }
 
 .tr-chat-backdrop-enter-active,
 .tr-chat-backdrop-leave-active {
-  transition: opacity var(--tr-chat-layout-transition-duration, 200ms) ease;
+  transition: opacity 160ms ease;
 }
 
 .tr-chat-backdrop-enter-from,
@@ -195,23 +208,49 @@
   opacity: 0;
 }
 
+.tr-chat-desktop-panel-right-enter-active,
+.tr-chat-desktop-panel-right-leave-active {
+  transition: transform var(--tr-chat-layout-transition-duration, 200ms)
+    var(--tr-chat-layout-transition-easing, cubic-bezier(0.2, 0, 0, 1));
+}
+
+.tr-chat-desktop-panel-right-enter-from,
+.tr-chat-desktop-panel-right-leave-to {
+  transform: translateX(100%);
+}
+
 .tr-chat-mobile-panel-left-enter-active .tr-chat-layout__mobile-panel-surface,
 .tr-chat-mobile-panel-left-leave-active .tr-chat-layout__mobile-panel-surface,
 .tr-chat-mobile-panel-right-enter-active .tr-chat-layout__mobile-panel-surface,
 .tr-chat-mobile-panel-right-leave-active .tr-chat-layout__mobile-panel-surface {
-  transition:
-    transform var(--tr-chat-layout-transition-duration, 200ms) ease,
-    opacity var(--tr-chat-layout-transition-duration, 200ms) ease;
+  transition: transform var(--tr-chat-layout-transition-duration, 200ms)
+    var(--tr-chat-layout-transition-easing, cubic-bezier(0.2, 0, 0, 1));
 }
 
 .tr-chat-mobile-panel-left-enter-from .tr-chat-layout__mobile-panel-surface,
 .tr-chat-mobile-panel-left-leave-to .tr-chat-layout__mobile-panel-surface {
-  transform: translateX(-24px);
-  opacity: 0;
+  transform: translateX(-100%);
 }
 
 .tr-chat-mobile-panel-right-enter-from .tr-chat-layout__mobile-panel-surface,
 .tr-chat-mobile-panel-right-leave-to .tr-chat-layout__mobile-panel-surface {
-  transform: translateX(24px);
-  opacity: 0;
+  transform: translateX(100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tr-chat-layout,
+  .tr-chat-layout__left-shell,
+  .tr-chat-layout__right-shell,
+  .tr-chat-layout__right-panel-desktop,
+  .tr-chat-desktop-panel-right-enter-active,
+  .tr-chat-desktop-panel-right-leave-active,
+  .tr-chat-panel-toggle,
+  .tr-chat-backdrop-enter-active,
+  .tr-chat-backdrop-leave-active,
+  .tr-chat-mobile-panel-left-enter-active .tr-chat-layout__mobile-panel-surface,
+  .tr-chat-mobile-panel-left-leave-active .tr-chat-layout__mobile-panel-surface,
+  .tr-chat-mobile-panel-right-enter-active .tr-chat-layout__mobile-panel-surface,
+  .tr-chat-mobile-panel-right-leave-active .tr-chat-layout__mobile-panel-surface {
+    transition: none !important;
+  }
 }

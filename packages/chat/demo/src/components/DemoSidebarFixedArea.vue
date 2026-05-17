@@ -18,71 +18,151 @@ defineProps<{
 
 <template>
   <div class="demo-sidebar-fixed-area" :class="{ 'demo-sidebar-fixed-area--collapsed': collapsed }">
-    <DemoSidebarBrand class="demo-sidebar-fixed-area__brand" :collapsed="collapsed" />
-
-    <Chat.LeftSidebarToggle
-      v-if="showToggle"
-      class="demo-icon-button demo-sidebar-fixed-area__toggle"
-      aria-label="切换左侧面板"
-      v-slot="{ expanded }"
+    <div
+      class="demo-sidebar-fixed-area__state demo-sidebar-fixed-area__state--open"
+      :class="{ 'is-hidden': collapsed }"
     >
-      <component
-        :is="
-          isMobile ? (expanded ? IconMenuCollapse : IconMenuExpand) : expanded ? IconCollapseRight : IconCollapseLeft
-        "
-        class="demo-icon-glyph"
-      />
-    </Chat.LeftSidebarToggle>
+      <div class="demo-sidebar-fixed-area__header-row">
+        <DemoSidebarBrand class="demo-sidebar-fixed-area__brand" :collapsed="false" />
 
-    <button
-      class="demo-sidebar-fixed-area__primary"
-      :class="{
-        'demo-icon-button': collapsed,
-        'demo-sidebar-fixed-area__primary--collapsed': collapsed,
-      }"
-      type="button"
-      :aria-label="collapsed ? '新建会话' : undefined"
-      :title="collapsed ? '新建会话' : undefined"
+        <Chat.LeftSidebarToggle
+          v-if="showToggle"
+          class="demo-icon-button demo-sidebar-fixed-area__toggle"
+          aria-label="切换左侧面板"
+          :aria-hidden="collapsed"
+          :tabindex="collapsed ? -1 : 0"
+          v-slot="{ expanded }"
+        >
+          <component
+            :is="
+              isMobile
+                ? expanded
+                  ? IconMenuCollapse
+                  : IconMenuExpand
+                : expanded
+                  ? IconCollapseRight
+                  : IconCollapseLeft
+            "
+            class="demo-icon-glyph"
+          />
+        </Chat.LeftSidebarToggle>
+      </div>
+
+      <button
+        class="demo-sidebar-fixed-area__primary-open"
+        type="button"
+        :aria-hidden="collapsed"
+        :tabindex="collapsed ? -1 : 0"
+      >
+        <IconNewSession class="demo-sidebar-fixed-area__icon" />
+        <span>新建会话</span>
+      </button>
+    </div>
+
+    <div
+      class="demo-sidebar-fixed-area__state demo-sidebar-fixed-area__state--rail"
+      :class="{ 'is-hidden': !collapsed }"
     >
-      <IconNewSession class="demo-sidebar-fixed-area__icon" />
-      <span class="demo-sidebar-fixed-area__label" :class="{ 'demo-sidebar-fixed-area__label--hidden': collapsed }">
-        新建会话
-      </span>
-    </button>
+      <DemoSidebarBrand class="demo-sidebar-fixed-area__brand demo-sidebar-fixed-area__brand--rail" :collapsed="true" />
+
+      <Chat.LeftSidebarToggle
+        v-if="showToggle"
+        class="demo-icon-button demo-sidebar-fixed-area__toggle-rail"
+        aria-label="切换左侧面板"
+        :aria-hidden="!collapsed"
+        :tabindex="collapsed ? 0 : -1"
+        v-slot="{ expanded }"
+      >
+        <component
+          :is="
+            isMobile ? (expanded ? IconMenuCollapse : IconMenuExpand) : expanded ? IconCollapseRight : IconCollapseLeft
+          "
+          class="demo-icon-glyph"
+        />
+      </Chat.LeftSidebarToggle>
+
+      <button
+        class="demo-icon-button demo-sidebar-fixed-area__primary-rail"
+        type="button"
+        aria-label="新建会话"
+        title="新建会话"
+        :aria-hidden="!collapsed"
+        :tabindex="collapsed ? 0 : -1"
+      >
+        <IconNewSession class="demo-sidebar-fixed-area__icon" />
+      </button>
+    </div>
   </div>
 </template>
 
 <style scoped>
 .demo-sidebar-fixed-area {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-areas:
-    'brand toggle'
-    'primary primary';
-  align-items: center;
-  gap: 16px 12px;
+  position: relative;
+  width: 100%;
+  min-height: 94px;
+  transition: min-height 220ms cubic-bezier(0.2, 0, 0, 1);
 }
 
 .demo-sidebar-fixed-area--collapsed {
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-areas:
-    'brand'
-    'toggle'
-    'primary';
+  min-height: 126px;
+}
+
+.demo-sidebar-fixed-area--collapsed .demo-sidebar-fixed-area__state--open {
+  position: absolute;
+  inset: 0;
+}
+
+.demo-sidebar-fixed-area__state {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  transition:
+    opacity 160ms ease,
+    transform 220ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.demo-sidebar-fixed-area__state.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.demo-sidebar-fixed-area__state--open.is-hidden {
+  transform: translateX(-8px);
+}
+
+.demo-sidebar-fixed-area__state--rail {
+  position: absolute;
+  inset: 0;
   justify-items: center;
 }
 
+.demo-sidebar-fixed-area__state--rail.is-hidden {
+  transform: translateY(-6px) scale(0.98);
+}
+
+.demo-sidebar-fixed-area__header-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+}
+
 .demo-sidebar-fixed-area__brand {
-  grid-area: brand;
-  width: 100%;
+  min-width: 0;
 }
 
-.demo-sidebar-fixed-area__toggle {
-  grid-area: toggle;
+.demo-sidebar-fixed-area__brand--rail {
+  width: 36px;
+  min-width: 36px;
+  justify-self: center;
 }
 
-.demo-sidebar-fixed-area__primary {
-  grid-area: primary;
+.demo-sidebar-fixed-area__toggle-rail,
+.demo-sidebar-fixed-area__primary-rail {
+  justify-self: center;
+}
+
+.demo-sidebar-fixed-area__primary-open {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -95,41 +175,24 @@ defineProps<{
   color: #111827;
   cursor: pointer;
   transition:
-    width 200ms ease,
-    min-height 200ms ease,
-    padding 200ms ease,
     border-color 200ms ease,
     background-color 200ms ease;
 }
 
-.demo-sidebar-fixed-area__primary--collapsed {
+.demo-sidebar-fixed-area__primary-open:hover {
+  background: #f8fbff;
+  border-color: #c7d7f7;
+}
+
+.demo-sidebar-fixed-area__primary-rail {
   width: 36px;
   min-width: 36px;
+  height: 36px;
   min-height: 36px;
-  gap: 0;
-  padding: 0;
-  border-color: transparent;
-  border-radius: 12px;
-  background: transparent;
 }
 
 .demo-sidebar-fixed-area__icon {
   flex: none;
   font-size: 16px;
-}
-
-.demo-sidebar-fixed-area__label {
-  overflow: hidden;
-  white-space: nowrap;
-  max-width: 120px;
-  opacity: 1;
-  transition:
-    max-width 200ms ease,
-    opacity 200ms ease;
-}
-
-.demo-sidebar-fixed-area__label--hidden {
-  max-width: 0;
-  opacity: 0;
 }
 </style>

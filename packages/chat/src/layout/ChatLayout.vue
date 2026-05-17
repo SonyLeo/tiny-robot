@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useEventListener } from '@vueuse/core'
-import { computed, toRef, useSlots } from 'vue'
+import { computed, shallowRef, toRef, useSlots, watch } from 'vue'
 import { provideChatLayoutConfig, useChatLayoutStoreContext } from '@/context/layoutContext'
 import {
   DEFAULT_CONTENT_MAX_WIDTH,
@@ -59,7 +59,7 @@ const desktopLeftWidth = computed(() => {
 })
 
 const desktopRightWidth = computed(() => {
-  if (isMobile.value || !hasRightPanel.value || !rightPanelOpen.value) {
+  if (isMobile.value || !hasRightPanel.value || !desktopRightColumnVisible.value) {
     return '0px'
   }
 
@@ -70,12 +70,35 @@ const contentMaxWidth = computed(() => toCssLength(props.contentMaxWidth))
 const mobileLeftSidebarWidth = computed(() => toCssLength(props.mobileLeftSidebarWidth))
 const mobileRightPanelWidth = computed(() => toCssLength(props.mobileRightPanelWidth))
 const transitionDuration = toRef(props, 'transitionDuration')
+const desktopRightColumnVisible = shallowRef(false)
+
+watch(
+  [isMobile, hasRightPanel, rightPanelOpen],
+  ([mobile, hasPanel, open]) => {
+    if (mobile || !hasPanel) {
+      desktopRightColumnVisible.value = false
+      return
+    }
+
+    if (open) {
+      desktopRightColumnVisible.value = true
+    }
+  },
+  { immediate: true },
+)
+
+function handleDesktopRightAfterLeave(): void {
+  if (!isMobile.value && hasRightPanel.value && !rightPanelOpen.value) {
+    desktopRightColumnVisible.value = false
+  }
+}
 
 const shouldRenderDesktopLeftSidebar = computed(
   () => !isMobile.value && hasLeftSidebar.value && (leftSidebarOpen.value || leftRailWidth.value > 0),
 )
-const shouldRenderDesktopRightShell = computed(() => !isMobile.value && hasRightPanel.value)
-const shouldRenderDesktopRightPanel = computed(() => shouldRenderDesktopRightShell.value && rightPanelOpen.value)
+const shouldRenderDesktopRightShell = computed(
+  () => !isMobile.value && hasRightPanel.value && desktopRightColumnVisible.value,
+)
 const shouldRenderMobileLeftSidebar = computed(() => isMobile.value && hasLeftSidebar.value && leftDrawerOpen.value)
 const shouldRenderMobileRightPanel = computed(() => isMobile.value && hasRightPanel.value && rightPanelOpen.value)
 const shouldRenderOverlayBackdrop = computed(
@@ -84,7 +107,8 @@ const shouldRenderOverlayBackdrop = computed(
 
 const cssVars = computed(() => ({
   '--tr-chat-layout-left-width': desktopLeftWidth.value,
-  '--tr-chat-layout-right-width': desktopRightWidth.value,
+  '--tr-chat-layout-right-width':
+    !isMobile.value && hasRightPanel.value && desktopRightColumnVisible.value ? desktopRightWidth.value : '0px',
   '--tr-chat-layout-content-max-width': contentMaxWidth.value,
   '--tr-chat-layout-transition-duration': transitionDuration.value,
   '--tr-chat-layout-mobile-left-width': mobileLeftSidebarWidth.value,
@@ -131,7 +155,11 @@ useEventListener(keyboardTarget, 'keydown', (event: KeyboardEvent) => {
       class="tr-chat-layout__right-shell"
       :class="{ 'tr-chat-layout__right-shell--closed': !rightPanelOpen }"
     >
-      <slot v-if="shouldRenderDesktopRightPanel" name="right-panel" />
+      <Transition name="tr-chat-desktop-panel-right" @after-leave="handleDesktopRightAfterLeave">
+        <div v-if="rightPanelOpen" class="tr-chat-layout__right-panel-desktop">
+          <slot name="right-panel" />
+        </div>
+      </Transition>
     </div>
 
     <Transition name="tr-chat-backdrop">

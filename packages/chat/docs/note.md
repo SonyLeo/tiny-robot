@@ -72,7 +72,7 @@
 - `ChatSidebarPanel`
 - `ChatHistoryList`
 - `ChatConversationPanel`
-- `ChatComposerPanel`
+- `ChatSenderPanel`
 - `ChatWelcomePanel`
 - `ChatUiShell`
 
@@ -137,13 +137,13 @@
 
 ### 6.4 示例产物
 
-- layout-only 示例
-- chat-ui-only 示例
+- chat-ui-core 示例
+- chat-ui-enhanced 示例
 - chat-app 示例
 
 ## 7. 后续讨论重点
 
-- 阶段二左侧区域骨架、动效基线与内容适配层的边界。
+- 阶段二左右 panel 的 shell 动效基线、左侧区域骨架与内容适配层的边界。
 - 阶段二增强输入能力的透传边界。
 - 阶段三 `ChatApp` 的顶层 props 与 slots 收敛。
 
@@ -197,9 +197,10 @@ packages/chat/
       index.css
       tokens.css
       layout.css
+      ui.css
     types/
       layout.ts
-      panels.ts
+      ui.ts
       app.ts
     context/
       layoutContext.ts
@@ -221,12 +222,12 @@ packages/chat/
       ChatLeftSidebarToggle.vue
       ChatRightPanel.vue
       ChatRightPanelToggle.vue
-    panels/
+    ui/
       index.ts
       ChatSidebarPanel.vue
       ChatHistoryList.vue
       ChatConversationPanel.vue
-      ChatComposerPanel.vue
+      ChatSenderPanel.vue
       ChatTopbar.vue
       ChatWelcomePanel.vue
     app/
@@ -237,9 +238,9 @@ packages/chat/
 说明：
 
 - `layout/` 对应阶段一。
-- `panels/` 对应阶段二。
+- `ui/` 对应阶段二的 AI UI 组合与基础适配层。
 - `app/` 对应阶段三。
-- 阶段一实现时不要求一次性把 `panels/`、`app/` 全建出来，但整体分层方向先固定。
+- 阶段一实现时不要求一次性把 `ui/`、`app/` 全建出来，但整体分层方向先固定。
 
 ### 8.4 根入口建议
 
@@ -317,8 +318,8 @@ packages/chat/
 
 ### 10.2 更适合阶段二吸收的点
 
-- `HistoryPanel` 这类真实内容组件，可以更多采用“同一内容树 + 局部显隐”的方式处理 open / rail 切换。
-- `Topbar`、`HistoryPanel`、`ComposerPanel` 等组件延续“行为内聚、视觉外置”的设计原则。
+- `ChatHistoryList` 这类真实内容组件，可以更多采用“同一内容树 + 局部显隐”的方式处理 open / rail 切换。
+- `ChatTopbar`、`ChatSidebarPanel`、`ChatSenderPanel` 等组件延续“行为内聚、视觉外置”的设计原则。
 - 阶段二组件尽量直接消费布局层状态，不重复发明另一套 panel open / collapse / drawer 状态。
 
 ### 10.3 当前路线的总体判断

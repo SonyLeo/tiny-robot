@@ -334,13 +334,11 @@ props：
   - 主区组合
 - `DemoRightPanel`
   - 右侧示例区域
-- `useDemoLayoutControls`
-  - 布局参数控制
 
 当前 demo 也是阶段二的预备壳：
 
 - 左侧固定区和内容区已经拆开
-- 主区参数面板和预览区已经拆开
+- 主区已经可以替换为真实对话预览
 - 后续可以逐块替换成真实 `History / Bubble / Sender`
 
 ## 9. 目录与脚本现状

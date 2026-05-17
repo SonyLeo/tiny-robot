@@ -14,4 +14,5 @@
   --tr-chat-layout-panel-shadow: 0 20px 48px rgba(15, 23, 42, 0.18);
   --tr-chat-layout-overlay-bg: rgba(15, 23, 42, 0.42);
   --tr-chat-layout-z-index-overlay: var(--tr-z-index-drawer, 1000);
+  --tr-chat-layout-transition-easing: cubic-bezier(0.2, 0, 0, 1);
 }
