@@ -141,6 +141,9 @@ props：
 - `mobileRightPanelWidth?: number | string`
 - `contentMaxWidth?: number | string`
 - `transitionDuration?: string`
+- `overlayBackdropAriaLabel?: string`
+- `mobileLeftSidebarAriaLabel?: string`
+- `mobileRightPanelAriaLabel?: string`
 
 slots：
 
@@ -157,6 +160,9 @@ slots：
 - `rightPanelWidth = 320`
 - `mobileLeftSidebarWidth = '66.67vw'`
 - `mobileRightPanelWidth = '100vw'`
+- `overlayBackdropAriaLabel = '关闭面板'`
+- `mobileLeftSidebarAriaLabel = '左侧面板'`
+- `mobileRightPanelAriaLabel = '右侧面板'`
 
 ### 4.3 `Chat.LeftSidebar`
 
@@ -301,9 +307,9 @@ props：
 
 阶段一当前只做到基础语义：
 
-- `Esc` 关闭 overlay
+- `Esc` 关闭 overlay，若子交互已 `preventDefault` 则不再关闭
 - backdrop click 关闭
-- `aria-label`
+- overlay 相关 `aria-label` 可通过 `Chat.Layout` 配置
 - `aria-expanded`
 - mobile overlay 提供 dialog 语义
 

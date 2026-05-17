@@ -8,6 +8,9 @@ import {
   DEFAULT_LEFT_RAIL_WIDTH,
   DEFAULT_MOBILE_LEFT_SIDEBAR_WIDTH,
   DEFAULT_MOBILE_RIGHT_PANEL_WIDTH,
+  DEFAULT_MOBILE_LEFT_SIDEBAR_ARIA_LABEL,
+  DEFAULT_MOBILE_RIGHT_PANEL_ARIA_LABEL,
+  DEFAULT_OVERLAY_BACKDROP_ARIA_LABEL,
   DEFAULT_RIGHT_PANEL_WIDTH,
   DEFAULT_TRANSITION_DURATION,
 } from '@/shared/constants'
@@ -26,6 +29,9 @@ const props = withDefaults(defineProps<ChatLayoutProps>(), {
   mobileRightPanelWidth: DEFAULT_MOBILE_RIGHT_PANEL_WIDTH,
   contentMaxWidth: DEFAULT_CONTENT_MAX_WIDTH,
   transitionDuration: DEFAULT_TRANSITION_DURATION,
+  overlayBackdropAriaLabel: DEFAULT_OVERLAY_BACKDROP_ARIA_LABEL,
+  mobileLeftSidebarAriaLabel: DEFAULT_MOBILE_LEFT_SIDEBAR_ARIA_LABEL,
+  mobileRightPanelAriaLabel: DEFAULT_MOBILE_RIGHT_PANEL_ARIA_LABEL,
 })
 
 const slots = useSlots()
@@ -88,7 +94,7 @@ const cssVars = computed(() => ({
 const keyboardTarget = typeof window === 'undefined' ? undefined : window
 
 useEventListener(keyboardTarget, 'keydown', (event: KeyboardEvent) => {
-  if (event.key !== 'Escape' || !shouldRenderOverlayBackdrop.value) {
+  if (event.defaultPrevented || event.key !== 'Escape' || !shouldRenderOverlayBackdrop.value) {
     return
   }
 
@@ -133,7 +139,7 @@ useEventListener(keyboardTarget, 'keydown', (event: KeyboardEvent) => {
         v-if="shouldRenderOverlayBackdrop"
         class="tr-chat-layout__backdrop"
         type="button"
-        aria-label="关闭面板"
+        :aria-label="props.overlayBackdropAriaLabel"
         @click="closeOverlayPanels"
       />
     </Transition>
@@ -144,7 +150,7 @@ useEventListener(keyboardTarget, 'keydown', (event: KeyboardEvent) => {
         class="tr-chat-layout__mobile-panel tr-chat-layout__mobile-panel--left"
         role="dialog"
         aria-modal="true"
-        aria-label="左侧面板"
+        :aria-label="props.mobileLeftSidebarAriaLabel"
       >
         <div class="tr-chat-layout__mobile-panel-surface" :style="{ width: mobileLeftSidebarWidth }">
           <slot name="left-sidebar" />
@@ -158,7 +164,7 @@ useEventListener(keyboardTarget, 'keydown', (event: KeyboardEvent) => {
         class="tr-chat-layout__mobile-panel tr-chat-layout__mobile-panel--right"
         role="dialog"
         aria-modal="true"
-        aria-label="右侧面板"
+        :aria-label="props.mobileRightPanelAriaLabel"
       >
         <div class="tr-chat-layout__mobile-panel-surface" :style="{ width: mobileRightPanelWidth }">
           <slot name="right-panel" />

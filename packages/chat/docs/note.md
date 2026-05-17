@@ -2,7 +2,8 @@
 
 ## 1. 基本原则
 
-- UI 和业务逻辑分离。修改业务 state 的逻辑不进入 `packages/chat`。
+- UI 和业务逻辑分离。修改业务真值或业务 state 的逻辑不进入 `packages/chat`。
+- 布局开关、抽屉显隐、面板展开、断点结果等纯 UI state 可以留在 `Root` 提供的 UI store 中。
 - UI 只映射属性和事件。
 - 逻辑分离后在 `Root` 作用域都可以用。
 - `Root` 作为顶层提供 store 的地方，所有配置在此注入。
@@ -68,7 +69,8 @@
 建议组件：
 
 - `ChatTopbar`
-- `ChatHistoryPanel`
+- `ChatSidebarPanel`
+- `ChatHistoryList`
 - `ChatConversationPanel`
 - `ChatComposerPanel`
 - `ChatWelcomePanel`
@@ -110,8 +112,9 @@
 ## 5. 文档索引
 
 - 阶段一布局专项设计：`docs/phase-1-layout.md`
+- 阶段二 AI UI 组合层规划：`docs/phase-2-ai-ui.md`
 - 本文件保留总体设计、关键决策和分层总览。
-- 后续如果阶段二、阶段三继续细化，再分别拆出专项文档。
+- 后续如果阶段三继续细化，再拆出专项文档。
 
 ## 6. 当前产物规划
 
@@ -140,8 +143,8 @@
 
 ## 7. 后续讨论重点
 
-- 阶段二各面板组件的最小 props 面。
-- `TrHistory`、`TrSender`、`TrBubbleList` 的透传边界。
+- 阶段二左侧区域骨架、动效基线与内容适配层的边界。
+- 阶段二增强输入能力的透传边界。
 - 阶段三 `ChatApp` 的顶层 props 与 slots 收敛。
 
 ## 8. 目录与文件组织建议
@@ -220,7 +223,8 @@ packages/chat/
       ChatRightPanelToggle.vue
     panels/
       index.ts
-      ChatHistoryPanel.vue
+      ChatSidebarPanel.vue
+      ChatHistoryList.vue
       ChatConversationPanel.vue
       ChatComposerPanel.vue
       ChatTopbar.vue
@@ -339,6 +343,9 @@ packages/chat/
   - `mobileRightPanelWidth`
   - `contentMaxWidth`
   - `transitionDuration`
+  - `overlayBackdropAriaLabel`
+  - `mobileLeftSidebarAriaLabel`
+  - `mobileRightPanelAriaLabel`
 - `Chat.Layout` 使用显式 named slots：
   - `left-sidebar`
   - `header`

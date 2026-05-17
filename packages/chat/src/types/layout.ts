@@ -14,6 +14,9 @@ export interface ChatLayoutProps {
   mobileRightPanelWidth?: number | string
   contentMaxWidth?: number | string
   transitionDuration?: string
+  overlayBackdropAriaLabel?: string
+  mobileLeftSidebarAriaLabel?: string
+  mobileRightPanelAriaLabel?: string
 }
 
 export interface ChatPanelToggleProps {
