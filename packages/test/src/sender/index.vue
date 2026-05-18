@@ -28,6 +28,7 @@ const maxLength = ref(100)
 const placeholder = ref('请输入内容...')
 
 const enableMention = ref(false)
+const blockMentionDefaultInsert = ref(false)
 const enableTemplate = ref(false)
 const enableSuggestion = ref(false)
 const templateData = ref<TemplateItem[]>([])
@@ -36,7 +37,7 @@ const mode = computed(() => (isMultipleMode.value ? 'multiple' : 'single'))
 const size = computed(() => (isSmallSize.value ? 'small' : 'normal'))
 
 const componentKey = computed(() => {
-  return `${enableMention.value}-${enableTemplate.value}-${enableSuggestion.value}`
+  return `${enableMention.value}-${blockMentionDefaultInsert.value}-${enableTemplate.value}-${enableSuggestion.value}`
 })
 
 const handleModeChange = () => {
@@ -156,7 +157,18 @@ const suggestions = ref<SenderSuggestionItem[]>([
 const extensions = computed(() => {
   const exts = []
   if (enableMention.value) {
-    exts.push(Sender.mention(mentions))
+    exts.push(
+      Sender.Mention.configure({
+        items: mentions,
+        onSelect: (item) => {
+          if (blockMentionDefaultInsert.value) {
+            result.value = `mention blocked: ${item.label}`
+            return false
+          }
+          result.value = `mention selected: ${item.label}`
+        },
+      }),
+    )
   }
   if (enableTemplate.value) {
     exts.push(Sender.template(templateData))
@@ -283,6 +295,10 @@ onBeforeUnmount(() => {
           <div class="control-item">
             <label>mention:</label>
             <tiny-switch data-testid="toggle-mention-btn" v-model="enableMention"></tiny-switch>
+          </div>
+          <div class="control-item">
+            <label>mention return false:</label>
+            <tiny-switch data-testid="toggle-mention-block-btn" v-model="blockMentionDefaultInsert"></tiny-switch>
           </div>
           <div class="control-item">
             <label>template:</label>

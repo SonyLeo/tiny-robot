@@ -36,6 +36,7 @@ test.describe('Mention 功能 - Atom 节点行为', () => {
     await mentionHelper!.pressKey('Enter')
     await mentionHelper!.expectMentionExists('小小画家')
     await mentionHelper!.expectMentionListVisible(false)
+    await basicHelper!.expectResult('mention selected: 小小画家')
   })
 
   test('TC-10: 鼠标点击选中提及项应该插入 Atom 节点', async () => {
@@ -44,6 +45,7 @@ test.describe('Mention 功能 - Atom 节点行为', () => {
 
     await mentionHelper!.expectMentionExists('代码助手')
     await mentionHelper!.expectMentionListVisible(false)
+    await basicHelper!.expectResult('mention selected: 代码助手')
   })
 
   test('TC-11: Backspace 应该删除整个 Atom 节点', async () => {
@@ -61,5 +63,17 @@ test.describe('Mention 功能 - Atom 节点行为', () => {
 
     await page!.keyboard.type(' 帮我画画')
     await basicHelper!.expectEditorContent('小小画家 帮我画画')
+  })
+
+  test('TC-13: onSelect 返回 false 时不应该插入 Atom 节点', async () => {
+    await basicHelper!.toggleMentionBlockDefaultInsert()
+    await basicHelper!.wait(300)
+
+    await mentionHelper!.typeAtSymbol()
+    await mentionHelper!.clickItem(1)
+
+    await mentionHelper!.expectMentionListVisible(false)
+    await mentionHelper!.expectMentionCount(0)
+    await basicHelper!.expectResult('mention blocked: 代码助手')
   })
 })

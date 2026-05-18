@@ -98,6 +98,14 @@ export interface MentionOptions {
   allowSpaces?: boolean
 
   /**
+   * 选中提及项时的回调
+   *
+   * @param item - 选中的提及项
+   * @returns 返回 false 可阻止默认插入行为
+   */
+  onSelect?: (item: MentionItem) => void | false
+
+  /**
    * HTML 属性
    */
   HTMLAttributes?: Record<string, unknown>

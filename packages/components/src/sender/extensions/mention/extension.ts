@@ -140,6 +140,7 @@ export const Mention = Node.create<MentionOptions>({
         char: this.options.char,
         items: this.options.items,
         allowSpaces: this.options.allowSpaces || false,
+        onSelect: this.options.onSelect,
       }),
     ]
   },
@@ -149,6 +150,9 @@ export const Mention = Node.create<MentionOptions>({
     return {
       items: [],
       char: '@',
+      allowSpaces: false,
+      onSelect: undefined,
+      HTMLAttributes: {},
     }
   },
 

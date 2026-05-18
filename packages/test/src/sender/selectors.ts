@@ -21,6 +21,7 @@ export const SENDER_SELECTORS = {
   submitBtn: '[data-testid="submit-btn"]',
 
   toggleMentionBtn: '[data-testid="toggle-mention-btn"]',
+  toggleMentionBlockBtn: '[data-testid="toggle-mention-block-btn"]',
   toggleTemplateBtn: '[data-testid="toggle-template-btn"]',
   toggleSuggestionBtn: '[data-testid="toggle-suggestion-btn"]',
 

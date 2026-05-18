@@ -64,11 +64,11 @@ Sender 支持单行和多行两种输入模式，通过 `mode` 属性控制。
 
 ## 输入增强
 
-Sender 采用可插拔的扩展架构，通过 `extensions` prop 灵活添加功能。所有扩展都支持响应式数据自动同步。
+Sender 采用可插拔扩展架构，通过 `extensions` 按需开启能力；扩展数据支持响应式同步。
 
 ### 扩展使用
 
-提供两种集成方式：
+常用写法：
 
 ```typescript
 import { TrSender } from '@opentiny/tiny-robot'
@@ -98,7 +98,7 @@ TrSender.Suggestion.configure({ items: suggestions, filterFn: customFilter })
 
 ### 提及功能
 
-使用 `Mention` 扩展实现 @提及功能，输入触发字符（默认 `@`）触发提及选择，快速引用预设的助手或对象，支持键盘导航和搜索过滤。
+使用 `Mention` 扩展实现 @ 提及，支持键盘导航、搜索过滤和 `onSelect` 回调。
 
 :::tip 自定义触发字符
 支持自定义触发字符，例如使用 `#` 代替 `@`。配置 `char: '#'` 后，输入 `#` 即可触发提及列表，选中后显示为 `#标签名` 的格式。
@@ -108,7 +108,7 @@ TrSender.Suggestion.configure({ items: suggestions, filterFn: customFilter })
 按 `Backspace` 删除提及项时会保留触发字符（如 `@` 或 `#`），可继续选择其他项。
 :::
 
-<demo vue="../../demos/sender/mention.vue" title="提及功能" description="输入 @ 触发提及选择，快速引用预设的助手或对象，支持键盘导航和搜索过滤。" />
+<demo vue="../../demos/sender/mention.vue" title="提及功能" description="输入 @ 触发提及选择，示例同时演示 onSelect 回调、键盘导航和搜索过滤。" />
 
 **配置详见**：[扩展属性 - Mention](#mention)  
 **结构化数据**：[submit 事件 - 结构化数据说明](#结构化数据)
@@ -310,7 +310,7 @@ TrSender.Template.configure({ items: templates })
 
 #### Mention
 
-@提及功能扩展，支持快速引用预设的助手或对象，支持自定义触发字符。
+@ 提及功能扩展，支持自定义触发字符和 `onSelect` 回调。
 
 ```typescript
 // 便捷函数（使用默认 '@' 触发）
@@ -319,8 +319,14 @@ TrSender.mention(mentions)
 // 便捷函数（自定义触发字符）
 TrSender.mention(mentions, '#') // 使用 '#' 触发
 
+// 便捷函数（带 onSelect 回调）
+TrSender.mention(mentions, '@', { onSelect: handleMentionSelect })
+
 // 标准配置
 TrSender.Mention.configure({ items: mentions, char: '@', allowSpaces: false })
+
+// 标准配置（带 onSelect 回调）
+TrSender.Mention.configure({ items: mentions, char: '@', allowSpaces: false, onSelect: handleMentionSelect })
 ```
 
 | 配置项        | 类型                                    | 默认值  | 说明                                                |
@@ -328,7 +334,38 @@ TrSender.Mention.configure({ items: mentions, char: '@', allowSpaces: false })
 | `items`       | `MentionItem[]` \| `Ref<MentionItem[]>` | `[]`    | 提及项列表，支持响应式 ref                          |
 | `char`        | `string`                                | `'@'`   | 触发字符，支持任意字符（如 `'@'`、`'#'`、`'!'` 等） |
 | `allowSpaces` | `boolean`                               | `false` | 是否允许在触发字符后输入空格                        |
-| `onSelect`    | `Function`                              | -       | 选中提及项时的回调函数                              |
+| `onSelect`    | `(item: MentionItem) => void \| false`  | -       | 选中回调，返回 `false` 阻止默认插入                 |
+
+**onSelect 回调**：
+
+选中提及项时触发，返回 `false` 可阻止默认插入行为：
+
+```typescript
+// 默认行为：自动插入
+onSelect: (item) => {
+  console.log('Selected mention:', item)
+  // 不返回 false，提及项会自动插入到编辑器
+}
+
+// 阻止默认插入并自定义
+onSelect: (item) => {
+  editor.commands.insertContent(`@${item.label}(${item.value}) `)
+  return false // 阻止默认插入
+}
+
+// 条件性阻止
+onSelect: (item) => {
+  if (item.value.includes('assistant')) {
+    insertAssistantCard(item)
+    return false
+  }
+  // 否则使用默认插入
+}
+```
+
+:::tip 回调参数
+`item` 包含完整的 `MentionItem` 信息（`label`、`value`、`icon`、`id`），可用于业务逻辑处理。
+:::
 
 #### Suggestion
 

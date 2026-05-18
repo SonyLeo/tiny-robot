@@ -29,6 +29,7 @@ interface PluginOptions {
   char: string
   items: MentionItem[] | Ref<MentionItem[]>
   allowSpaces: boolean
+  onSelect?: (item: MentionItem) => void | false
 }
 
 /**
@@ -60,7 +61,7 @@ function filterItems(items: MentionItem[], query: string): MentionItem[] {
  * 创建 Suggestion 插件
  */
 export function createSuggestionPlugin(options: PluginOptions): Plugin {
-  const { editor, char, items, allowSpaces } = options
+  const { editor, char, items, allowSpaces, onSelect } = options
 
   let component: VueRenderer | null = null
   let popup: HTMLElement | null = null
@@ -218,7 +219,7 @@ export function createSuggestionPlugin(options: PluginOptions): Plugin {
           // 如果组件方法不可用，直接选择第一个提及项（fallback）
           if (pluginState.filteredItems.length > 0 && pluginState.range) {
             const firstItem = pluginState.filteredItems[0]
-            insertMention(view, pluginState.range, firstItem)
+            selectMention(view, pluginState.range, firstItem, onSelect)
             return true
           }
 
@@ -247,14 +248,9 @@ export function createSuggestionPlugin(options: PluginOptions): Plugin {
               component = new VueRenderer(MentionList, {
                 props: {
                   items: state.filteredItems,
-                  command: (props: { id: string; label: string; value?: string }) => {
-                    const item: MentionItem = {
-                      id: props.id,
-                      label: props.label,
-                      value: props.value || '',
-                    }
+                  command: (item: MentionItem) => {
                     if (state.range) {
-                      insertMention(view, state.range, item)
+                      selectMention(view, state.range, item, onSelect)
                     }
                   },
                 },
@@ -319,6 +315,28 @@ export function createSuggestionPlugin(options: PluginOptions): Plugin {
 }
 
 /**
+ * 选中 mention 项
+ */
+function selectMention(
+  view: EditorView,
+  range: { from: number; to: number },
+  item: MentionItem,
+  onSelect?: (item: MentionItem) => void | false,
+) {
+  const shouldInsert = onSelect?.(item) !== false
+
+  if (!shouldInsert) {
+    const tr = view.state.tr
+    tr.setMeta(MentionPluginKey, { type: 'close' })
+    view.dispatch(tr)
+    view.focus()
+    return
+  }
+
+  insertMention(view, range, item)
+}
+
+/**
  * 插入 mention
  */
 function insertMention(view: EditorView, range: { from: number; to: number }, item: MentionItem) {
@@ -345,6 +363,7 @@ function insertMention(view: EditorView, range: { from: number; to: number }, it
   // 设置光标到空格之后（mention 节点 + 空格 = +2）
   const cursorPos = range.from + 2
   tr.setSelection(TextSelection.create(tr.doc, cursorPos))
+  tr.setMeta(MentionPluginKey, { type: 'close' })
 
   // 滚动到视图
   tr.scrollIntoView()

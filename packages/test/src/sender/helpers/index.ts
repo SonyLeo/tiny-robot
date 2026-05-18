@@ -81,6 +81,10 @@ export function createSenderTestHelper(page: Page) {
       await page.locator(selectors.toggleMentionBtn).click()
     },
 
+    async toggleMentionBlockDefaultInsert() {
+      await page.locator(selectors.toggleMentionBlockBtn).click()
+    },
+
     async toggleTemplate() {
       await page.locator(selectors.toggleTemplateBtn).click()
     },

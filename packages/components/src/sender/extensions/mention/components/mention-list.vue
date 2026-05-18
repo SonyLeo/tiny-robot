@@ -5,7 +5,7 @@ import type { MentionItem } from '../types'
 
 interface Props {
   items: MentionItem[]
-  command: (props: { id?: string; label: string; value?: string }) => void
+  command: (item: MentionItem) => void
 }
 
 const props = defineProps<Props>()
@@ -62,11 +62,7 @@ function scrollToSelected() {
 function selectItem(index: number) {
   const item = props.items[index]
   if (item) {
-    props.command({
-      id: item.id,
-      label: item.label,
-      value: item.value,
-    })
+    props.command(item)
   }
 }
 

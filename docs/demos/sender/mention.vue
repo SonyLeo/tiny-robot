@@ -5,6 +5,7 @@ import type { MentionItem, StructuredData } from '@opentiny/tiny-robot'
 
 const content = ref('')
 const submittedContent = ref('')
+const selectedMention = ref<MentionItem | null>(null)
 
 const items: MentionItem[] = [
   {
@@ -29,7 +30,17 @@ const items: MentionItem[] = [
   },
 ]
 
-const extensions = [TrSender.mention(items)]
+const handleMentionSelect = (item: MentionItem) => {
+  selectedMention.value = item
+  console.log('🎯 选中 mention：', item)
+}
+
+const extensions = [
+  TrSender.Mention.configure({
+    items,
+    onSelect: handleMentionSelect,
+  }),
+]
 
 const handleSubmit = (text: string, data?: StructuredData) => {
   submittedContent.value = text
@@ -42,7 +53,7 @@ const handleSubmit = (text: string, data?: StructuredData) => {
 <template>
   <div class="mention-demo">
     <div class="demo-tip">
-      <p>💡 输入 <code>@</code> 触发提及选择，支持键盘导航（↑↓）和 Enter/Tab 选择</p>
+      <p>💡 输入 <code>@</code> 触发提及选择，支持键盘导航（↑↓）、Enter/Tab 选择，以及 <code>onSelect</code> 回调</p>
     </div>
 
     <tr-sender
@@ -55,6 +66,12 @@ const handleSubmit = (text: string, data?: StructuredData) => {
       clearable
       @submit="handleSubmit"
     />
+
+    <div v-if="selectedMention" class="result">
+      <div class="result-title">最近一次选中的提及项：</div>
+      <div class="result-content">{{ selectedMention.label }}</div>
+      <div class="result-meta">{{ selectedMention.value }}</div>
+    </div>
 
     <div v-if="submittedContent" class="result">
       <div class="result-title">提交的内容（纯文本）：</div>
@@ -113,6 +130,14 @@ const handleSubmit = (text: string, data?: StructuredData) => {
   color: var(--vp-c-text-2);
   line-height: 1.6;
   white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.result-meta {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--vp-c-text-3);
+  line-height: 1.6;
   word-break: break-word;
 }
 </style>
