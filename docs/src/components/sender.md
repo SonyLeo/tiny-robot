@@ -364,7 +364,7 @@ onSelect: (item) => {
 ```
 
 :::tip 回调参数
-`item` 包含完整的 `MentionItem` 信息（`label`、`value`、`icon`、`id`），可用于业务逻辑处理。
+`item` 包含 `MentionItem` 信息（`label`、`value`），可用于业务逻辑处理。
 :::
 
 #### Suggestion

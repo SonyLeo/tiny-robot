@@ -4,8 +4,6 @@ import { TrSender } from '@opentiny/tiny-robot'
 import type { MentionItem, StructuredData } from '@opentiny/tiny-robot'
 
 const content = ref('')
-const submittedContent = ref('')
-const selectedMention = ref<MentionItem | null>(null)
 
 const items: MentionItem[] = [
   {
@@ -31,7 +29,6 @@ const items: MentionItem[] = [
 ]
 
 const handleMentionSelect = (item: MentionItem) => {
-  selectedMention.value = item
   console.log('🎯 选中 mention：', item)
 }
 
@@ -43,8 +40,6 @@ const extensions = [
 ]
 
 const handleSubmit = (text: string, data?: StructuredData) => {
-  submittedContent.value = text
-
   console.log('📝 提交内容（纯文本）：', text)
   console.log('📋 结构化数据：', data)
 }
@@ -66,17 +61,6 @@ const handleSubmit = (text: string, data?: StructuredData) => {
       clearable
       @submit="handleSubmit"
     />
-
-    <div v-if="selectedMention" class="result">
-      <div class="result-title">最近一次选中的提及项：</div>
-      <div class="result-content">{{ selectedMention.label }}</div>
-      <div class="result-meta">{{ selectedMention.value }}</div>
-    </div>
-
-    <div v-if="submittedContent" class="result">
-      <div class="result-title">提交的内容（纯文本）：</div>
-      <div class="result-content">{{ submittedContent }}</div>
-    </div>
   </div>
 </template>
 
@@ -109,35 +93,5 @@ const handleSubmit = (text: string, data?: StructuredData) => {
   border-radius: 3px;
   font-family: 'Consolas', 'Monaco', monospace;
   font-size: 13px;
-}
-
-.result {
-  padding: 12px;
-  background: var(--vp-c-bg-soft);
-  border-radius: 8px;
-  border: 1px solid var(--vp-c-divider);
-}
-
-.result-title {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--vp-c-text-1);
-  margin-bottom: 8px;
-}
-
-.result-content {
-  font-size: 14px;
-  color: var(--vp-c-text-2);
-  line-height: 1.6;
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
-.result-meta {
-  margin-top: 8px;
-  font-size: 13px;
-  color: var(--vp-c-text-3);
-  line-height: 1.6;
-  word-break: break-word;
 }
 </style>
