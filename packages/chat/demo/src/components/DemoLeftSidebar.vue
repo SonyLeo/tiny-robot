@@ -5,17 +5,15 @@ import DemoSidebarFixedArea from './DemoSidebarFixedArea.vue'
 </script>
 
 <template>
-  <Chat.LeftSidebar>
-    <template #default="{ mode }">
-      <Chat.SidebarPanel :mode="mode">
-        <template #header="{ collapsed, isDrawer }">
-          <DemoSidebarFixedArea :collapsed="collapsed" :is-mobile="isDrawer" :show-toggle="true" />
-        </template>
+  <Chat.Aside side="left" v-slot="{ mode }">
+    <Chat.SidebarPanel :mode="mode">
+      <template #header="{ collapsed, isDrawer }">
+        <DemoSidebarFixedArea :collapsed="collapsed" :is-mobile="isDrawer" :show-toggle="true" />
+      </template>
 
-        <template #default>
-          <DemoSidebarContentArea />
-        </template>
-      </Chat.SidebarPanel>
-    </template>
-  </Chat.LeftSidebar>
+      <template #default>
+        <DemoSidebarContentArea />
+      </template>
+    </Chat.SidebarPanel>
+  </Chat.Aside>
 </template>

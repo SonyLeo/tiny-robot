@@ -11,7 +11,7 @@ import type {
   SenderSlots,
 } from '@opentiny/tiny-robot'
 import type { VNode } from 'vue'
-import type { ChatLeftSidebarMode } from './layout'
+import type { ChatAsideMode } from './layout'
 
 export interface ChatTopbarProps {
   title?: string
@@ -25,11 +25,11 @@ export interface ChatTopbarSlots {
 }
 
 export interface ChatSidebarPanelProps {
-  mode: ChatLeftSidebarMode
+  mode: ChatAsideMode
 }
 
 export interface ChatSidebarPanelSlotProps {
-  mode: ChatLeftSidebarMode
+  mode: ChatAsideMode
   collapsed: boolean
   isRail: boolean
   isDrawer: boolean

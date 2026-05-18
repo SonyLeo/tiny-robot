@@ -4,16 +4,16 @@ import { Chat } from '@/index'
 </script>
 
 <template>
-  <Chat.RightPanel v-slot="{ mode }">
+  <Chat.Aside side="right" v-slot="{ state }">
     <div class="demo-right-panel">
       <div class="demo-right-panel__header">
         <div class="demo-right-panel__title">
           <h3>扩展工作区</h3>
         </div>
 
-        <Chat.RightPanelToggle class="demo-icon-button" aria-label="关闭扩展工作区">
+        <Chat.AsideToggle side="right" class="demo-icon-button" aria-label="关闭扩展工作区">
           <IconClose class="demo-icon-glyph" />
-        </Chat.RightPanelToggle>
+        </Chat.AsideToggle>
       </div>
 
       <div class="demo-empty-state">
@@ -21,10 +21,10 @@ import { Chat } from '@/index'
           <IconFileFolder />
         </div>
         <strong>暂无扩展内容</strong>
-        <p>后续可在此处查看文件、链接或扩展结果。当前模式：{{ mode }}</p>
+        <p>后续可在此处查看文件、链接或扩展结果。当前状态：{{ state }}</p>
       </div>
     </div>
-  </Chat.RightPanel>
+  </Chat.Aside>
 </template>
 
 <style scoped>

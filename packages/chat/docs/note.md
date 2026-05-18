@@ -17,16 +17,15 @@
 - 移动端左侧面板从左向右展开，默认宽度为视口的 `2/3`。
 - 移动端右侧操作面板从右向左展开，默认铺满可视区域。
 - 布局层 API 采用显式 slots / 显式区域组件，不依赖运行时扫描 vnode 自动识别区域。
-- 阶段一左右区域采用两个语义组件，不再保留通用 `ChatSidebar` 抽象。
+- 阶段一左右区域的基础壳层统一收敛为 `Chat.Aside`。
 - 基于 `@opentiny/tiny-robot` 的封装统一采用透传策略，不削减底层组件已有能力。
 - `contentMaxWidth` 覆盖 `header / main / footer` 的内容内层。
 - 左右区域的尺寸参数统一由 `ChatLayout` 管理，不在子区域组件重复声明。
 - 左侧 `desktop collapse` 和移动端 `drawer` 采用“统一入口、分离状态”的实现方式。
 - 左侧 `desktop collapse` 的收起结果由 `leftRailWidth` 决定：`0` 为完全关闭，`> 0` 为 rail。
-- `ChatRightPanel` 名称保留。
 - `ChatHeader` 默认推荐存在，但不是强制；如果缺失，调用方必须自己保证左右区域入口可达。
-- desktop 下 `ChatRightPanel` 作为布局中的固定右列，不采用 overlay。
-- desktop 下 `rightPanelOpen = false` 时，右侧列宽归零且区域内容不渲染，不保留占位。
+- desktop 下右侧 aside 作为布局中的固定右列，不采用 overlay。
+- desktop 下 `right.state = 'hidden'` 时，右侧列宽默认归零，由 CSS 控制显隐，不再依赖 `v-if + Transition`。
 - `leftRailWidth = 0` 时，左侧重新打开入口默认推荐放在 `ChatHeader` 的 leading 区域。
 - 阶段一 a11y 只做到基础语义，不进入 focus trap。
 - `drawer Teleport` 与 `body scroll lock` 暂不纳入阶段一默认能力。
@@ -53,10 +52,8 @@
 - `ChatHeader`
 - `ChatMain`
 - `ChatFooter`
-- `ChatLeftSidebar`
-- `ChatLeftSidebarToggle`
-- `ChatRightPanel`
-- `ChatRightPanelToggle`
+- `ChatAside`
+- `ChatAsideToggle`
 
 ### 3.2 第二层：AI UI 组合层
 
@@ -208,6 +205,7 @@ packages/chat/
     composables/
       useChatBreakpoint.ts
       useChatLayoutStore.ts
+      useAsideToggle.ts
     shared/
       constants.ts
       utils.ts
@@ -215,13 +213,11 @@ packages/chat/
       index.ts
       ChatRoot.vue
       ChatLayout.vue
+      ChatAside.vue
+      ChatAsideToggle.vue
       ChatHeader.vue
       ChatMain.vue
       ChatFooter.vue
-      ChatLeftSidebar.vue
-      ChatLeftSidebarToggle.vue
-      ChatRightPanel.vue
-      ChatRightPanelToggle.vue
     ui/
       index.ts
       ChatSidebarPanel.vue
@@ -257,7 +253,7 @@ packages/chat/
 - 组件文件统一使用 PascalCase：
   - `ChatRoot.vue`
   - `ChatLayout.vue`
-  - `ChatLeftSidebar.vue`
+  - `ChatAside.vue`
 - 组件按分层放入对应目录，不再给每个组件单独创建目录。
 - composable 统一使用 `useXxx.ts`。
 - 公共类型统一放到 `src/types/`，而不是分散在每个组件目录里。
@@ -296,7 +292,7 @@ packages/chat/
 - 布局状态通过 slot props 暴露给内容层，让内容层自己决定 open / rail / compact 时的具体呈现。
 - rail 应该被理解为左侧区域的一种收起态表达，而不是另一套平行的区域组件。
 - 能在同一棵内容树内完成的 open / rail 切换，尽量不要过早拆成两套完全不连续的内容结构。
-- 尺寸、过渡时长等布局参数适合经由 CSS 变量进入样式层，而不是写死在内容组件内部。
+- 尺寸参数适合经由 CSS 变量进入样式层，而不是写死在内容组件内部。
 
 ### 9.3 不建议直接继承的部分
 
@@ -311,10 +307,10 @@ packages/chat/
 
 ### 10.1 阶段一可以继续微调的项
 
-- `ChatLeftSidebarToggle` 和 `ChatRightPanelToggle` 继续保持“行为组件”定位。
-- toggle 组件的 slot 后续可以考虑暴露更多状态，例如：`expanded`、`isMobile`、`side`。
-- `ChatLeftSidebar` 已经通过 `mode: 'open' | 'rail' | 'drawer'` 暴露状态，后续重点是保持内容层围绕这套状态表达实现，而不是重新拆出第二棵 rail 组件树。
-- 左右两侧 panel 的 slot props 语义可以继续对齐，避免后续面板组件在使用上出现左右不对称的感受。
+- `Chat.AsideToggle` 继续保持“行为组件”定位。
+- toggle 组件的 slot 当前已经通过 `isOpen`、`isMobile`、`side` 暴露统一状态。
+- `Chat.Aside` 当前已经通过 `state`、`isOpen`、`mode`、`collapsed` 暴露布局状态。
+- 左右两侧的基础 slot props 语义已经对齐，后续重点是让内容层直接消费这套统一表达。
 
 ### 10.2 更适合阶段二吸收的点
 
@@ -326,7 +322,7 @@ packages/chat/
 
 - 当前 `packages/chat` 的阶段一架构已经比旧基座更完整，不应回退到旧基座的组件划分方式。
 - 旧基座最值得吸收的是设计原则，不是原样的 API 或 DOM 组织方式。
-- 当前方向应该继续保持：显式 slots、清晰的 layout store、左右语义区域分离、mobile / desktop 状态分离。
+- 当前方向应该继续保持：显式 slots、清晰的 layout store、统一 aside 壳层、mobile / desktop 状态分离。
 
 ## 11. 当前实现快照
 
@@ -343,24 +339,23 @@ packages/chat/
   - `mobileLeftSidebarWidth`
   - `mobileRightPanelWidth`
   - `contentMaxWidth`
-  - `transitionDuration`
   - `overlayBackdropAriaLabel`
   - `mobileLeftSidebarAriaLabel`
   - `mobileRightPanelAriaLabel`
+- `Chat.Aside`
+  - `side: 'left' | 'right'`
+  - 通过 `state`、`isOpen`、`mode: 'panel' | 'collapsed' | 'drawer'`、`collapsed` 向内容层暴露状态
+- `Chat.AsideToggle`
+  - `side: 'left' | 'right'`
+  - 通过 `isOpen`、`isMobile`、`side` 向内容层暴露状态
 - `Chat.Layout` 使用显式 named slots：
   - `left-sidebar`
   - `header`
   - `main`
   - `footer`
   - `right-panel`
-- `ChatLeftSidebar`
-  - 只保留一个默认 slot
-  - 通过 `mode: 'open' | 'rail' | 'drawer'`、`open`、`collapsed` 向内容层暴露状态
-- `ChatLeftSidebarToggle`
-  - desktop 下控制 `leftSidebarOpen`
-  - mobile 下控制 `leftDrawerOpen`
-- `ChatMain`
-  - 作为唯一主滚动根
+- `ChatLayout`
+  - `main-shell` 作为布局级主滚动区域
 
 当前本地开发与校验脚本也已经收敛为：
 

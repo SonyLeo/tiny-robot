@@ -1,21 +1,20 @@
 <script setup lang="ts">
 import { useEventListener } from '@vueuse/core'
-import { computed, shallowRef, toRef, useSlots, watch } from 'vue'
-import { provideChatLayoutConfig, useChatLayoutStoreContext } from '@/context/layoutContext'
+import { computed, useSlots } from 'vue'
+import { useChatLayoutStoreContext } from '@/context/layoutContext'
 import {
   DEFAULT_CONTENT_MAX_WIDTH,
-  DEFAULT_LEFT_SIDEBAR_WIDTH,
   DEFAULT_LEFT_RAIL_WIDTH,
-  DEFAULT_MOBILE_LEFT_SIDEBAR_WIDTH,
-  DEFAULT_MOBILE_RIGHT_PANEL_WIDTH,
+  DEFAULT_LEFT_SIDEBAR_WIDTH,
   DEFAULT_MOBILE_LEFT_SIDEBAR_ARIA_LABEL,
+  DEFAULT_MOBILE_LEFT_SIDEBAR_WIDTH,
   DEFAULT_MOBILE_RIGHT_PANEL_ARIA_LABEL,
+  DEFAULT_MOBILE_RIGHT_PANEL_WIDTH,
   DEFAULT_OVERLAY_BACKDROP_ARIA_LABEL,
   DEFAULT_RIGHT_PANEL_WIDTH,
-  DEFAULT_TRANSITION_DURATION,
 } from '@/shared/constants'
-import { clampNonNegative, hasSlotContent, toCssLength } from '@/shared/utils'
-import type { ChatLayoutProps } from '@/types/layout'
+import { clampNonNegative, toCssLength } from '@/shared/utils'
+import type { ChatLayoutProps, ChatLayoutSlots } from '@/types/layout'
 
 defineOptions({
   name: 'ChatLayout',
@@ -28,176 +27,155 @@ const props = withDefaults(defineProps<ChatLayoutProps>(), {
   mobileLeftSidebarWidth: DEFAULT_MOBILE_LEFT_SIDEBAR_WIDTH,
   mobileRightPanelWidth: DEFAULT_MOBILE_RIGHT_PANEL_WIDTH,
   contentMaxWidth: DEFAULT_CONTENT_MAX_WIDTH,
-  transitionDuration: DEFAULT_TRANSITION_DURATION,
   overlayBackdropAriaLabel: DEFAULT_OVERLAY_BACKDROP_ARIA_LABEL,
   mobileLeftSidebarAriaLabel: DEFAULT_MOBILE_LEFT_SIDEBAR_ARIA_LABEL,
   mobileRightPanelAriaLabel: DEFAULT_MOBILE_RIGHT_PANEL_ARIA_LABEL,
 })
 
+defineSlots<ChatLayoutSlots>()
+
 const slots = useSlots()
-const { closeOverlayPanels, isMobile, leftDrawerOpen, leftSidebarOpen, rightPanelOpen } = useChatLayoutStoreContext()
+const store = useChatLayoutStoreContext()
+const { closeOverlays, left, right, viewport } = store
+const { isMobile } = viewport
 
-const leftRailWidth = computed(() => clampNonNegative(props.leftRailWidth))
-provideChatLayoutConfig({
-  leftRailWidth,
-})
+const hasLeftSidebar = computed(() => Boolean(slots['left-sidebar']))
+const hasHeader = computed(() => Boolean(slots.header))
+const hasMain = computed(() => Boolean(slots.main))
+const hasFooter = computed(() => Boolean(slots.footer))
+const hasRightPanel = computed(() => Boolean(slots['right-panel']))
 
-const hasLeftSidebar = computed(() => hasSlotContent(slots['left-sidebar']))
-const hasHeader = computed(() => hasSlotContent(slots.header))
-const hasMain = computed(() => hasSlotContent(slots.main))
-const hasFooter = computed(() => hasSlotContent(slots.footer))
-const hasRightPanel = computed(() => hasSlotContent(slots['right-panel']))
+const leftSidebarWidthValue = computed(() => clampNonNegative(props.leftSidebarWidth))
+const leftRailWidthValue = computed(() => clampNonNegative(props.leftRailWidth))
+const rightPanelWidthValue = computed(() => clampNonNegative(props.rightPanelWidth))
+const leftState = computed(() => left.state.value)
+const rightState = computed(() => right.state.value)
 
-const desktopLeftWidth = computed(() => {
-  if (isMobile.value || !hasLeftSidebar.value) {
+const leftDesktopWidth = computed(() => {
+  if (!hasLeftSidebar.value || isMobile.value) {
     return '0px'
   }
 
-  return leftSidebarOpen.value
-    ? toCssLength(clampNonNegative(props.leftSidebarWidth))
-    : toCssLength(leftRailWidth.value)
+  return toCssLength(leftState.value === 'expanded' ? leftSidebarWidthValue.value : leftRailWidthValue.value)
 })
 
-const desktopRightWidth = computed(() => {
-  if (isMobile.value || !hasRightPanel.value || !desktopRightColumnVisible.value) {
+const rightDesktopWidth = computed(() => {
+  if (!hasRightPanel.value || isMobile.value) {
     return '0px'
   }
 
-  return toCssLength(clampNonNegative(props.rightPanelWidth))
+  return toCssLength(rightState.value === 'expanded' ? rightPanelWidthValue.value : 0)
 })
 
-const contentMaxWidth = computed(() => toCssLength(props.contentMaxWidth))
-const mobileLeftSidebarWidth = computed(() => toCssLength(props.mobileLeftSidebarWidth))
-const mobileRightPanelWidth = computed(() => toCssLength(props.mobileRightPanelWidth))
-const transitionDuration = toRef(props, 'transitionDuration')
-const desktopRightColumnVisible = shallowRef(false)
-
-watch(
-  [isMobile, hasRightPanel, rightPanelOpen],
-  ([mobile, hasPanel, open]) => {
-    if (mobile || !hasPanel) {
-      desktopRightColumnVisible.value = false
-      return
-    }
-
-    if (open) {
-      desktopRightColumnVisible.value = true
-    }
-  },
-  { immediate: true },
+const leftDesktopHidden = computed(
+  () => !isMobile.value && leftState.value === 'collapsed' && leftRailWidthValue.value === 0,
 )
+const rightDesktopHidden = computed(() => !isMobile.value && rightState.value === 'hidden')
 
-function handleDesktopRightAfterLeave(): void {
-  if (!isMobile.value && hasRightPanel.value && !rightPanelOpen.value) {
-    desktopRightColumnVisible.value = false
-  }
-}
-
-const shouldRenderDesktopLeftSidebar = computed(
-  () => !isMobile.value && hasLeftSidebar.value && (leftSidebarOpen.value || leftRailWidth.value > 0),
+const mobileLeftOpen = computed(() => isMobile.value && hasLeftSidebar.value && leftState.value === 'overlay')
+const mobileRightOpen = computed(() => isMobile.value && hasRightPanel.value && rightState.value === 'overlay')
+const overlayVisible = computed(() => mobileLeftOpen.value || mobileRightOpen.value)
+const leftAsideHidden = computed(
+  () => !hasLeftSidebar.value || leftDesktopHidden.value || (isMobile.value && !mobileLeftOpen.value),
 )
-const shouldRenderDesktopRightShell = computed(
-  () => !isMobile.value && hasRightPanel.value && desktopRightColumnVisible.value,
-)
-const shouldRenderMobileLeftSidebar = computed(() => isMobile.value && hasLeftSidebar.value && leftDrawerOpen.value)
-const shouldRenderMobileRightPanel = computed(() => isMobile.value && hasRightPanel.value && rightPanelOpen.value)
-const shouldRenderOverlayBackdrop = computed(
-  () => shouldRenderMobileLeftSidebar.value || shouldRenderMobileRightPanel.value,
+const rightAsideHidden = computed(
+  () => !hasRightPanel.value || rightDesktopHidden.value || (isMobile.value && !mobileRightOpen.value),
 )
 
 const cssVars = computed(() => ({
-  '--tr-chat-layout-left-width': desktopLeftWidth.value,
-  '--tr-chat-layout-right-width':
-    !isMobile.value && hasRightPanel.value && desktopRightColumnVisible.value ? desktopRightWidth.value : '0px',
-  '--tr-chat-layout-content-max-width': contentMaxWidth.value,
-  '--tr-chat-layout-transition-duration': transitionDuration.value,
-  '--tr-chat-layout-mobile-left-width': mobileLeftSidebarWidth.value,
-  '--tr-chat-layout-mobile-right-width': mobileRightPanelWidth.value,
+  '--tr-chat-layout-left-width': leftDesktopWidth.value,
+  '--tr-chat-layout-right-width': rightDesktopWidth.value,
+  '--tr-chat-layout-content-max-width': toCssLength(props.contentMaxWidth),
+  '--tr-chat-layout-mobile-left-width': toCssLength(props.mobileLeftSidebarWidth),
+  '--tr-chat-layout-mobile-right-width': toCssLength(props.mobileRightPanelWidth),
 }))
 
 const keyboardTarget = typeof window === 'undefined' ? undefined : window
 
 useEventListener(keyboardTarget, 'keydown', (event: KeyboardEvent) => {
-  if (event.defaultPrevented || event.key !== 'Escape' || !shouldRenderOverlayBackdrop.value) {
+  if (event.defaultPrevented || event.key !== 'Escape' || !overlayVisible.value) {
     return
   }
 
-  closeOverlayPanels()
+  closeOverlays()
 })
 </script>
 
 <template>
-  <div class="tr-chat-layout" :class="{ 'tr-chat-layout--mobile': isMobile }" :style="cssVars">
-    <div v-if="shouldRenderDesktopLeftSidebar" class="tr-chat-layout__left-shell">
+  <div
+    class="tr-chat-layout"
+    :class="{
+      'tr-chat-layout--mobile': isMobile,
+      'tr-chat-layout--backdrop-visible': overlayVisible,
+    }"
+    :style="cssVars"
+  >
+    <div
+      class="tr-chat-layout__aside tr-chat-layout__aside--left"
+      :class="{
+        'tr-chat-layout__aside--active': hasLeftSidebar,
+        'tr-chat-layout__aside--desktop-hidden': leftDesktopHidden,
+        'tr-chat-layout__aside--mobile-open': mobileLeftOpen,
+      }"
+      :role="mobileLeftOpen ? 'dialog' : undefined"
+      :aria-modal="mobileLeftOpen ? 'true' : undefined"
+      :aria-hidden="leftAsideHidden ? 'true' : undefined"
+      :aria-label="isMobile ? props.mobileLeftSidebarAriaLabel : undefined"
+      :inert="leftAsideHidden"
+    >
       <slot name="left-sidebar" />
     </div>
 
-    <div v-if="hasHeader" class="tr-chat-layout__header-shell">
+    <div
+      class="tr-chat-layout__header-shell"
+      :class="{ 'tr-chat-layout__header-shell--active': hasHeader }"
+      :aria-hidden="hasHeader ? undefined : 'true'"
+    >
       <div class="tr-chat-layout__header-inner">
         <slot name="header" />
       </div>
     </div>
 
-    <div class="tr-chat-layout__main-shell">
+    <div class="tr-chat-layout__main-shell" :aria-hidden="hasMain ? undefined : 'true'">
       <div class="tr-chat-layout__main-inner">
-        <slot v-if="hasMain" name="main" />
+        <slot name="main" />
       </div>
     </div>
 
-    <div v-if="hasFooter" class="tr-chat-layout__footer-shell">
+    <div
+      class="tr-chat-layout__footer-shell"
+      :class="{ 'tr-chat-layout__footer-shell--active': hasFooter }"
+      :aria-hidden="hasFooter ? undefined : 'true'"
+    >
       <div class="tr-chat-layout__footer-inner">
         <slot name="footer" />
       </div>
     </div>
 
     <div
-      v-if="shouldRenderDesktopRightShell"
-      class="tr-chat-layout__right-shell"
-      :class="{ 'tr-chat-layout__right-shell--closed': !rightPanelOpen }"
+      class="tr-chat-layout__aside tr-chat-layout__aside--right"
+      :class="{
+        'tr-chat-layout__aside--active': hasRightPanel,
+        'tr-chat-layout__aside--desktop-hidden': rightDesktopHidden,
+        'tr-chat-layout__aside--mobile-open': mobileRightOpen,
+      }"
+      :role="mobileRightOpen ? 'dialog' : undefined"
+      :aria-modal="mobileRightOpen ? 'true' : undefined"
+      :aria-hidden="rightAsideHidden ? 'true' : undefined"
+      :aria-label="isMobile ? props.mobileRightPanelAriaLabel : undefined"
+      :inert="rightAsideHidden"
     >
-      <Transition name="tr-chat-desktop-panel-right" @after-leave="handleDesktopRightAfterLeave">
-        <div v-if="rightPanelOpen" class="tr-chat-layout__right-panel-desktop">
-          <slot name="right-panel" />
-        </div>
-      </Transition>
+      <slot name="right-panel" />
     </div>
 
-    <Transition name="tr-chat-backdrop">
-      <button
-        v-if="shouldRenderOverlayBackdrop"
-        class="tr-chat-layout__backdrop"
-        type="button"
-        :aria-label="props.overlayBackdropAriaLabel"
-        @click="closeOverlayPanels"
-      />
-    </Transition>
-
-    <Transition name="tr-chat-mobile-panel-left">
-      <div
-        v-if="shouldRenderMobileLeftSidebar"
-        class="tr-chat-layout__mobile-panel tr-chat-layout__mobile-panel--left"
-        role="dialog"
-        aria-modal="true"
-        :aria-label="props.mobileLeftSidebarAriaLabel"
-      >
-        <div class="tr-chat-layout__mobile-panel-surface" :style="{ width: mobileLeftSidebarWidth }">
-          <slot name="left-sidebar" />
-        </div>
-      </div>
-    </Transition>
-
-    <Transition name="tr-chat-mobile-panel-right">
-      <div
-        v-if="shouldRenderMobileRightPanel"
-        class="tr-chat-layout__mobile-panel tr-chat-layout__mobile-panel--right"
-        role="dialog"
-        aria-modal="true"
-        :aria-label="props.mobileRightPanelAriaLabel"
-      >
-        <div class="tr-chat-layout__mobile-panel-surface" :style="{ width: mobileRightPanelWidth }">
-          <slot name="right-panel" />
-        </div>
-      </div>
-    </Transition>
+    <button
+      class="tr-chat-layout__backdrop"
+      :class="{ 'tr-chat-layout__backdrop--active': overlayVisible }"
+      type="button"
+      :tabindex="overlayVisible ? 0 : -1"
+      :aria-hidden="overlayVisible ? undefined : 'true'"
+      :aria-label="props.overlayBackdropAriaLabel"
+      @click="closeOverlays"
+    />
   </div>
 </template>

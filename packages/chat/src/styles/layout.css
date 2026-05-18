@@ -13,9 +13,6 @@
   overflow: hidden;
   background: var(--tr-chat-layout-bg);
   color: var(--tr-chat-layout-text-primary);
-  transition:
-    grid-template-columns var(--tr-chat-layout-transition-duration, 200ms)
-      var(--tr-chat-layout-transition-easing, cubic-bezier(0.2, 0, 0, 1));
 }
 
 .tr-chat-layout--mobile {
@@ -26,8 +23,7 @@
     'footer';
 }
 
-.tr-chat-layout__left-shell,
-.tr-chat-layout__right-shell,
+.tr-chat-layout__aside,
 .tr-chat-layout__header-shell,
 .tr-chat-layout__footer-shell,
 .tr-chat-layout__main-shell {
@@ -35,32 +31,35 @@
   min-height: 0;
 }
 
-.tr-chat-layout__left-shell {
-  grid-area: left;
+.tr-chat-layout__aside {
   overflow: hidden;
+}
+
+.tr-chat-layout__aside--left {
+  grid-area: left;
   background: var(--tr-chat-layout-left-bg);
   border-inline-end: 1px solid var(--tr-chat-layout-divider-color);
-  transition:
-    width var(--tr-chat-layout-transition-duration, 200ms)
-      var(--tr-chat-layout-transition-easing, cubic-bezier(0.2, 0, 0, 1)),
-    border-inline-end-color 160ms ease;
 }
 
-.tr-chat-layout__right-shell {
+.tr-chat-layout__aside--right {
   grid-area: right;
-  overflow: hidden;
   background: var(--tr-chat-layout-right-bg);
   border-inline-start: 1px solid var(--tr-chat-layout-divider-color);
-  transition: border-inline-start-color 160ms ease;
 }
 
-.tr-chat-layout__right-shell--closed {
-  border-inline-start-color: transparent;
+.tr-chat-layout__aside:not(.tr-chat-layout__aside--active),
+.tr-chat-layout__aside--desktop-hidden {
+  border-color: transparent;
 }
 
-.tr-chat-layout__right-panel-desktop {
-  height: 100%;
-  will-change: transform;
+.tr-chat-layout__header-shell,
+.tr-chat-layout__footer-shell {
+  display: none;
+}
+
+.tr-chat-layout__header-shell--active,
+.tr-chat-layout__footer-shell--active {
+  display: block;
 }
 
 .tr-chat-layout__header-shell {
@@ -113,53 +112,58 @@
   z-index: calc(var(--tr-chat-layout-z-index-overlay) - 1);
   border: 0;
   background: var(--tr-chat-layout-overlay-bg);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
   cursor: pointer;
 }
 
-.tr-chat-layout__mobile-panel {
+.tr-chat-layout__backdrop--active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.tr-chat-layout--mobile .tr-chat-layout__aside {
   position: fixed;
   top: 0;
   bottom: 0;
   z-index: var(--tr-chat-layout-z-index-overlay);
-  display: flex;
-  pointer-events: none;
-}
-
-.tr-chat-layout__mobile-panel--left {
-  left: 0;
-  justify-content: flex-start;
-}
-
-.tr-chat-layout__mobile-panel--right {
-  right: 0;
-  justify-content: flex-end;
-}
-
-.tr-chat-layout__mobile-panel-surface {
-  pointer-events: auto;
-  height: 100%;
   max-width: 100vw;
-  background: var(--tr-chat-layout-left-bg);
+  visibility: hidden;
+  pointer-events: none;
   box-shadow: var(--tr-chat-layout-panel-shadow);
-  overflow: hidden;
 }
 
-.tr-chat-layout__mobile-panel--right .tr-chat-layout__mobile-panel-surface {
-  background: var(--tr-chat-layout-right-bg);
+.tr-chat-layout--mobile .tr-chat-layout__aside--left {
+  left: 0;
+  width: var(--tr-chat-layout-mobile-left-width, 66.67vw);
+  transform: translateX(-100%);
+}
+
+.tr-chat-layout--mobile .tr-chat-layout__aside--right {
+  right: 0;
+  width: var(--tr-chat-layout-mobile-right-width, 100vw);
+  transform: translateX(100%);
+}
+
+.tr-chat-layout--mobile .tr-chat-layout__aside--mobile-open {
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateX(0);
 }
 
 .tr-chat-header,
 .tr-chat-main,
 .tr-chat-footer,
-.tr-chat-left-sidebar,
-.tr-chat-right-panel {
+.tr-chat-aside {
   min-width: 0;
+  min-height: 0;
 }
 
 .tr-chat-header,
 .tr-chat-footer,
-.tr-chat-left-sidebar,
-.tr-chat-right-panel {
+.tr-chat-aside {
   display: flex;
   flex-direction: column;
 }
@@ -170,15 +174,10 @@
   min-height: 100%;
 }
 
-.tr-chat-left-sidebar,
-.tr-chat-right-panel {
+.tr-chat-aside {
   height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
-}
-
-.tr-chat-left-sidebar--rail {
-  align-items: stretch;
 }
 
 .tr-chat-panel-toggle {
@@ -191,66 +190,4 @@
   background: transparent;
   color: var(--tr-chat-layout-text-primary);
   cursor: pointer;
-  transition:
-    background-color var(--tr-chat-layout-transition-duration, 200ms)
-      var(--tr-chat-layout-transition-easing, cubic-bezier(0.2, 0, 0, 1)),
-    border-color var(--tr-chat-layout-transition-duration, 200ms)
-      var(--tr-chat-layout-transition-easing, cubic-bezier(0.2, 0, 0, 1));
-}
-
-.tr-chat-backdrop-enter-active,
-.tr-chat-backdrop-leave-active {
-  transition: opacity 160ms ease;
-}
-
-.tr-chat-backdrop-enter-from,
-.tr-chat-backdrop-leave-to {
-  opacity: 0;
-}
-
-.tr-chat-desktop-panel-right-enter-active,
-.tr-chat-desktop-panel-right-leave-active {
-  transition: transform var(--tr-chat-layout-transition-duration, 200ms)
-    var(--tr-chat-layout-transition-easing, cubic-bezier(0.2, 0, 0, 1));
-}
-
-.tr-chat-desktop-panel-right-enter-from,
-.tr-chat-desktop-panel-right-leave-to {
-  transform: translateX(100%);
-}
-
-.tr-chat-mobile-panel-left-enter-active .tr-chat-layout__mobile-panel-surface,
-.tr-chat-mobile-panel-left-leave-active .tr-chat-layout__mobile-panel-surface,
-.tr-chat-mobile-panel-right-enter-active .tr-chat-layout__mobile-panel-surface,
-.tr-chat-mobile-panel-right-leave-active .tr-chat-layout__mobile-panel-surface {
-  transition: transform var(--tr-chat-layout-transition-duration, 200ms)
-    var(--tr-chat-layout-transition-easing, cubic-bezier(0.2, 0, 0, 1));
-}
-
-.tr-chat-mobile-panel-left-enter-from .tr-chat-layout__mobile-panel-surface,
-.tr-chat-mobile-panel-left-leave-to .tr-chat-layout__mobile-panel-surface {
-  transform: translateX(-100%);
-}
-
-.tr-chat-mobile-panel-right-enter-from .tr-chat-layout__mobile-panel-surface,
-.tr-chat-mobile-panel-right-leave-to .tr-chat-layout__mobile-panel-surface {
-  transform: translateX(100%);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .tr-chat-layout,
-  .tr-chat-layout__left-shell,
-  .tr-chat-layout__right-shell,
-  .tr-chat-layout__right-panel-desktop,
-  .tr-chat-desktop-panel-right-enter-active,
-  .tr-chat-desktop-panel-right-leave-active,
-  .tr-chat-panel-toggle,
-  .tr-chat-backdrop-enter-active,
-  .tr-chat-backdrop-leave-active,
-  .tr-chat-mobile-panel-left-enter-active .tr-chat-layout__mobile-panel-surface,
-  .tr-chat-mobile-panel-left-leave-active .tr-chat-layout__mobile-panel-surface,
-  .tr-chat-mobile-panel-right-enter-active .tr-chat-layout__mobile-panel-surface,
-  .tr-chat-mobile-panel-right-leave-active .tr-chat-layout__mobile-panel-surface {
-    transition: none !important;
-  }
 }

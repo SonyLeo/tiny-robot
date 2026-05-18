@@ -14,24 +14,19 @@ import { Chat } from '@/index'
   <Chat.Header>
     <Chat.Topbar title="TrChat">
       <template #leading>
-        <Chat.LeftSidebarToggle
+        <Chat.AsideToggle
+          side="left"
           class="demo-icon-button demo-header__mobile-toggle"
           aria-label="切换左侧面板"
-          v-slot="{ expanded, isMobile }"
+          v-slot="{ isOpen, isMobile }"
         >
           <component
             :is="
-              isMobile
-                ? expanded
-                  ? IconMenuCollapse
-                  : IconMenuExpand
-                : expanded
-                  ? IconCollapseLeft
-                  : IconCollapseRight
+              isMobile ? (isOpen ? IconMenuCollapse : IconMenuExpand) : isOpen ? IconCollapseLeft : IconCollapseRight
             "
             class="demo-icon-glyph"
           />
-        </Chat.LeftSidebarToggle>
+        </Chat.AsideToggle>
       </template>
 
       <template #actions>
@@ -40,9 +35,9 @@ import { Chat } from '@/index'
             <IconNewSession class="demo-icon-glyph" />
           </button>
 
-          <Chat.RightPanelToggle class="demo-icon-button" aria-label="打开扩展工作区">
+          <Chat.AsideToggle side="right" class="demo-icon-button" aria-label="打开扩展工作区">
             <IconMore class="demo-icon-glyph" />
-          </Chat.RightPanelToggle>
+          </Chat.AsideToggle>
         </div>
       </template>
     </Chat.Topbar>

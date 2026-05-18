@@ -9,11 +9,11 @@ defineOptions({
 const props = defineProps<ChatSidebarPanelProps>()
 defineSlots<ChatSidebarPanelSlots>()
 
-const collapsed = computed(() => props.mode === 'rail')
+const collapsed = computed(() => props.mode === 'collapsed')
 const slotProps = computed(() => ({
   mode: props.mode,
   collapsed: collapsed.value,
-  isRail: props.mode === 'rail',
+  isRail: collapsed.value,
   isDrawer: props.mode === 'drawer',
 }))
 </script>

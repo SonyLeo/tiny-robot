@@ -1,14 +1,4 @@
-import {
-  ChatFooter,
-  ChatHeader,
-  ChatLayout,
-  ChatLeftSidebar,
-  ChatLeftSidebarToggle,
-  ChatMain,
-  ChatRightPanel,
-  ChatRightPanelToggle,
-  ChatRoot,
-} from './layout'
+import { ChatAside, ChatAsideToggle, ChatFooter, ChatHeader, ChatLayout, ChatMain, ChatRoot } from './layout'
 import { ChatConversationPanel, ChatHistoryList, ChatSenderPanel, ChatSidebarPanel, ChatTopbar } from './ui'
 
 export const Chat = {
@@ -17,10 +7,8 @@ export const Chat = {
   Header: ChatHeader,
   Main: ChatMain,
   Footer: ChatFooter,
-  LeftSidebar: ChatLeftSidebar,
-  LeftSidebarToggle: ChatLeftSidebarToggle,
-  RightPanel: ChatRightPanel,
-  RightPanelToggle: ChatRightPanelToggle,
+  Aside: ChatAside,
+  AsideToggle: ChatAsideToggle,
   Topbar: ChatTopbar,
   SidebarPanel: ChatSidebarPanel,
   HistoryList: ChatHistoryList,

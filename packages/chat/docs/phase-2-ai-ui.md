@@ -26,7 +26,7 @@
 - `useMessage`、`useConversation`、`toolPlugin` 的内置绑定。
 - 最终开箱即用的 `ChatApp` 高层抽象。
 
-阶段二组件可以读取布局层 UI state，例如 `isMobile`、`leftSidebarOpen`、`rightPanelOpen`，但不维护消息、会话、附件、工具等业务真值。
+阶段二组件可以读取布局层 UI state，例如 `viewport.isMobile`、`left.state`、`right.state`，但不维护消息、会话、附件、工具等业务真值。
 
 ## 3. 实现原则
 
@@ -110,13 +110,13 @@
 - `ChatTopbar`
   - 对应 header 区域。
   - 提供 `leading`、`title`、`actions`、`extra` 等 slots。
-  - 推荐承载 `Chat.LeftSidebarToggle`、`Chat.RightPanelToggle` 的放置位置。
+  - 推荐承载 `Chat.AsideToggle` 的放置位置。
   - 不内置新会话、模型切换等业务行为。
 
 - `ChatSidebarPanel`
   - 对应左侧区域的通用组合骨架，不绑定 `history` 语义。
   - 用于承载品牌区、toggle、主操作按钮和内容区。
-  - 结合 `Chat.LeftSidebar` 暴露的 `mode: 'open' | 'rail' | 'drawer'` 做展示适配。
+  - 结合 `Chat.Aside side="left"` 暴露的 `mode: 'panel' | 'collapsed' | 'drawer'` 做展示适配。
   - 提供 `header`、`primary-action`、`default` 等 slots。
   - 内部可以包含 `ChatSidebarHeader` 一类固定头部结构，但不要求首批作为公共组件导出。
 
@@ -232,7 +232,7 @@
 
 - `ChatMcpPanel`
   - 基于 `TrMcpServerPicker`、`TrMcpAddForm`。
-  - 适合放在右侧 `Chat.RightPanel` 中。
+  - 适合放在右侧 `Chat.Aside side="right"` 中。
   - 只做 MCP 管理 UI。
   - 插件列表、市场列表、启停状态、创建结果由外部管理。
 

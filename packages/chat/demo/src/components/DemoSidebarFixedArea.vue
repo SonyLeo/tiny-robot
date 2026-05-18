@@ -25,27 +25,22 @@ defineProps<{
       <div class="demo-sidebar-fixed-area__header-row">
         <DemoSidebarBrand class="demo-sidebar-fixed-area__brand" :collapsed="false" />
 
-        <Chat.LeftSidebarToggle
+        <Chat.AsideToggle
+          side="left"
           v-if="showToggle"
           class="demo-icon-button demo-sidebar-fixed-area__toggle"
           aria-label="切换左侧面板"
           :aria-hidden="collapsed"
           :tabindex="collapsed ? -1 : 0"
-          v-slot="{ expanded }"
+          v-slot="{ isOpen }"
         >
           <component
             :is="
-              isMobile
-                ? expanded
-                  ? IconMenuCollapse
-                  : IconMenuExpand
-                : expanded
-                  ? IconCollapseRight
-                  : IconCollapseLeft
+              isMobile ? (isOpen ? IconMenuCollapse : IconMenuExpand) : isOpen ? IconCollapseRight : IconCollapseLeft
             "
             class="demo-icon-glyph"
           />
-        </Chat.LeftSidebarToggle>
+        </Chat.AsideToggle>
       </div>
 
       <button
@@ -65,21 +60,20 @@ defineProps<{
     >
       <DemoSidebarBrand class="demo-sidebar-fixed-area__brand demo-sidebar-fixed-area__brand--rail" :collapsed="true" />
 
-      <Chat.LeftSidebarToggle
+      <Chat.AsideToggle
+        side="left"
         v-if="showToggle"
         class="demo-icon-button demo-sidebar-fixed-area__toggle-rail"
         aria-label="切换左侧面板"
         :aria-hidden="!collapsed"
         :tabindex="collapsed ? 0 : -1"
-        v-slot="{ expanded }"
+        v-slot="{ isOpen }"
       >
         <component
-          :is="
-            isMobile ? (expanded ? IconMenuCollapse : IconMenuExpand) : expanded ? IconCollapseRight : IconCollapseLeft
-          "
+          :is="isMobile ? (isOpen ? IconMenuCollapse : IconMenuExpand) : isOpen ? IconCollapseRight : IconCollapseLeft"
           class="demo-icon-glyph"
         />
-      </Chat.LeftSidebarToggle>
+      </Chat.AsideToggle>
 
       <button
         class="demo-icon-button demo-sidebar-fixed-area__primary-rail"

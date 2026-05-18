@@ -1,6 +1,6 @@
 import { computed, readonly, shallowRef, toValue, watch, type MaybeRefOrGetter } from 'vue'
 import { DEFAULT_MOBILE_BREAKPOINT } from '@/shared/constants'
-import type { ChatLayoutStore } from '@/types/layout'
+import type { ChatAsideController, ChatAsideState, ChatLayoutStore } from '@/types/layout'
 import { useChatBreakpoint } from '@/composables/useChatBreakpoint'
 
 export interface UseChatLayoutStoreOptions {
@@ -10,88 +10,126 @@ export interface UseChatLayoutStoreOptions {
 }
 
 export function useChatLayoutStore(options: UseChatLayoutStoreOptions = {}): ChatLayoutStore {
-  const leftSidebarOpen = shallowRef(options.defaultLeftSidebarOpen ?? true)
+  const leftSidebarExpanded = shallowRef(options.defaultLeftSidebarOpen ?? true)
   const leftDrawerOpen = shallowRef(false)
-  const rightPanelDesktopOpen = shallowRef(options.defaultRightPanelOpen ?? false)
-  const rightPanelMobileOpen = shallowRef(false)
+  const rightPanelExpanded = shallowRef(options.defaultRightPanelOpen ?? false)
+  const rightDrawerOpen = shallowRef(false)
 
   const breakpointSource = computed(() => Number(toValue(options.mobileBreakpoint ?? DEFAULT_MOBILE_BREAKPOINT)))
   const { isMobile, mobileBreakpoint } = useChatBreakpoint({ mobileBreakpoint: breakpointSource })
-
-  const leftSidebarVisible = computed(() => (isMobile.value ? leftDrawerOpen.value : leftSidebarOpen.value))
-  const rightPanelOpen = computed(() => (isMobile.value ? rightPanelMobileOpen.value : rightPanelDesktopOpen.value))
-
-  function setLeftSidebarOpen(value: boolean): void {
-    leftSidebarOpen.value = value
-  }
-
-  function toggleLeftSidebar(): void {
-    leftSidebarOpen.value = !leftSidebarOpen.value
-  }
 
   function setLeftDrawerOpen(value: boolean): void {
     leftDrawerOpen.value = value
 
     if (value) {
-      rightPanelMobileOpen.value = false
+      rightDrawerOpen.value = false
     }
   }
 
-  function toggleLeftDrawer(): void {
-    setLeftDrawerOpen(!leftDrawerOpen.value)
+  function setRightDrawerOpen(value: boolean): void {
+    rightDrawerOpen.value = value
+
+    if (value) {
+      leftDrawerOpen.value = false
+    }
   }
 
-  function setRightPanelOpen(value: boolean): void {
-    if (isMobile.value) {
-      rightPanelMobileOpen.value = value
+  function closeOverlays(): void {
+    leftDrawerOpen.value = false
+    rightDrawerOpen.value = false
+  }
 
-      if (value) {
-        leftDrawerOpen.value = false
+  function createAsideController(options: {
+    state: () => ChatAsideState
+    open: () => void
+    close: () => void
+  }): ChatAsideController {
+    const state = computed(options.state)
+    const isOpen = computed(() => state.value === 'expanded' || state.value === 'overlay')
+
+    function toggle(): void {
+      if (isOpen.value) {
+        options.close()
+        return
       }
 
-      return
+      options.open()
     }
 
-    rightPanelDesktopOpen.value = value
-  }
-
-  function toggleRightPanel(): void {
-    setRightPanelOpen(!rightPanelOpen.value)
-  }
-
-  function closeOverlayPanels(): void {
-    leftDrawerOpen.value = false
-
-    if (isMobile.value) {
-      rightPanelMobileOpen.value = false
+    return {
+      state,
+      isOpen,
+      open: options.open,
+      close: options.close,
+      toggle,
     }
   }
 
-  watch(isMobile, (nextIsMobile, prevIsMobile) => {
-    if (!nextIsMobile) {
-      leftDrawerOpen.value = false
-      rightPanelMobileOpen.value = false
-      return
-    }
+  const left = createAsideController({
+    state: () => {
+      if (isMobile.value) {
+        return leftDrawerOpen.value ? 'overlay' : 'hidden'
+      }
 
+      return leftSidebarExpanded.value ? 'expanded' : 'collapsed'
+    },
+    open: () => {
+      if (isMobile.value) {
+        setLeftDrawerOpen(true)
+        return
+      }
+
+      leftSidebarExpanded.value = true
+    },
+    close: () => {
+      if (isMobile.value) {
+        setLeftDrawerOpen(false)
+        return
+      }
+
+      leftSidebarExpanded.value = false
+    },
+  })
+
+  const right = createAsideController({
+    state: () => {
+      if (isMobile.value) {
+        return rightDrawerOpen.value ? 'overlay' : 'hidden'
+      }
+
+      return rightPanelExpanded.value ? 'expanded' : 'hidden'
+    },
+    open: () => {
+      if (isMobile.value) {
+        setRightDrawerOpen(true)
+        return
+      }
+
+      rightPanelExpanded.value = true
+    },
+    close: () => {
+      if (isMobile.value) {
+        setRightDrawerOpen(false)
+        return
+      }
+
+      rightPanelExpanded.value = false
+    },
+  })
+
+  watch(isMobile, (_nextIsMobile, prevIsMobile) => {
     if (prevIsMobile !== undefined) {
-      rightPanelMobileOpen.value = false
+      closeOverlays()
     }
   })
 
   return {
-    leftSidebarOpen: readonly(leftSidebarOpen),
-    leftDrawerOpen: readonly(leftDrawerOpen),
-    leftSidebarVisible,
-    rightPanelOpen: readonly(rightPanelOpen),
-    isMobile,
-    mobileBreakpoint,
-    setLeftSidebarOpen,
-    toggleLeftSidebar,
-    setLeftDrawerOpen,
-    toggleLeftDrawer,
-    setRightPanelOpen,
-    toggleRightPanel,
-    closeOverlayPanels,
+    viewport: {
+      isMobile: readonly(isMobile),
+      mobileBreakpoint: readonly(mobileBreakpoint),
+    },
+    left,
+    right,
+    closeOverlays,
   }
 }
