@@ -1,42 +1,30 @@
-import type { ComputedRef, Ref, VNode } from 'vue'
+// State
+export type ChatAsideSide = 'left' | 'right'
+export type ChatAsideState = 'hidden' | 'collapsed' | 'expanded' | 'overlay'
+export type ChatDesktopAsideState = Exclude<ChatAsideState, 'overlay'>
+export type ChatAsideRestingState = Extract<ChatDesktopAsideState, 'collapsed' | 'hidden'>
 
-export interface ChatRootProps {
-  mobileBreakpoint?: number
-  defaultLeftSidebarOpen?: boolean
-  defaultRightPanelOpen?: boolean
+// Props
+export interface ChatAsideConfig {
+  defaultState?: ChatDesktopAsideState
+  restingState?: ChatAsideRestingState
+}
+
+export interface ChatLayoutA11yProps {
+  backdropLabel?: string
+  leftPanelLabel?: string
+  rightPanelLabel?: string
 }
 
 export interface ChatLayoutProps {
-  leftSidebarWidth?: number
-  leftRailWidth?: number
-  rightPanelWidth?: number
-  mobileLeftSidebarWidth?: number | string
-  mobileRightPanelWidth?: number | string
-  contentMaxWidth?: number | string
-  overlayBackdropAriaLabel?: string
-  mobileLeftSidebarAriaLabel?: string
-  mobileRightPanelAriaLabel?: string
+  mobileBreakpoint?: number
+  left?: ChatAsideConfig
+  right?: ChatAsideConfig
+  a11y?: ChatLayoutA11yProps
 }
-
-export type ChatAsideSide = 'left' | 'right'
-export type ChatAsideState = 'hidden' | 'collapsed' | 'expanded' | 'overlay'
-export type ChatAsideMode = 'panel' | 'collapsed' | 'drawer'
 
 export interface ChatAsideProps {
   side: ChatAsideSide
-}
-
-export interface ChatAsideSlotProps {
-  side: ChatAsideSide
-  state: ChatAsideState
-  isMobile: boolean
-  isOpen: boolean
-  collapsed: boolean
-  mode: ChatAsideMode
-}
-
-export interface ChatAsideSlots {
-  default?(slotProps: ChatAsideSlotProps): VNode[]
 }
 
 export interface ChatAsideToggleProps {
@@ -44,40 +32,13 @@ export interface ChatAsideToggleProps {
   ariaLabel?: string
 }
 
+// Slot props
+export interface ChatAsideSlotProps {
+  state: ChatAsideState
+  isMobile: boolean
+  isOpen: boolean
+}
+
 export interface ChatAsideToggleSlotProps {
   isOpen: boolean
-  isMobile: boolean
-  side: ChatAsideSide
-}
-
-export interface ChatAsideToggleSlots {
-  default?(slotProps: ChatAsideToggleSlotProps): VNode[]
-}
-
-export interface ChatLayoutSlots {
-  'left-sidebar'?: () => VNode[]
-  header?: () => VNode[]
-  main?: () => VNode[]
-  footer?: () => VNode[]
-  'right-panel'?: () => VNode[]
-}
-
-export interface ChatLayoutViewport {
-  isMobile: Readonly<Ref<boolean>>
-  mobileBreakpoint: Readonly<Ref<number>>
-}
-
-export interface ChatAsideController {
-  state: Readonly<ComputedRef<ChatAsideState>>
-  isOpen: Readonly<ComputedRef<boolean>>
-  open: () => void
-  close: () => void
-  toggle: () => void
-}
-
-export interface ChatLayoutStore {
-  viewport: ChatLayoutViewport
-  left: ChatAsideController
-  right: ChatAsideController
-  closeOverlays: () => void
 }

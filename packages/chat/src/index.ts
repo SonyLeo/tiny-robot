@@ -1,7 +1,6 @@
 import './styles/index.css'
 
+export { useChatLayout } from './composables/useChatLayout'
 export * from './layout'
-export * from './ui'
 export * from './types/layout'
-export * from './types/ui'
 export { Chat } from './namespace'

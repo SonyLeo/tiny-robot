@@ -1,43 +1,41 @@
 <script setup lang="ts">
 import { useEventListener } from '@vueuse/core'
 import { computed, useSlots } from 'vue'
-import { useChatLayoutStoreContext } from '@/context/layoutContext'
-import {
-  DEFAULT_CONTENT_MAX_WIDTH,
-  DEFAULT_LEFT_RAIL_WIDTH,
-  DEFAULT_LEFT_SIDEBAR_WIDTH,
-  DEFAULT_MOBILE_LEFT_SIDEBAR_ARIA_LABEL,
-  DEFAULT_MOBILE_LEFT_SIDEBAR_WIDTH,
-  DEFAULT_MOBILE_RIGHT_PANEL_ARIA_LABEL,
-  DEFAULT_MOBILE_RIGHT_PANEL_WIDTH,
-  DEFAULT_OVERLAY_BACKDROP_ARIA_LABEL,
-  DEFAULT_RIGHT_PANEL_WIDTH,
-} from '@/shared/constants'
-import { clampNonNegative, toCssLength } from '@/shared/utils'
-import type { ChatLayoutProps, ChatLayoutSlots } from '@/types/layout'
+import { createChatLayoutStore } from '@/composables/createChatLayoutStore'
+import { provideChatLayoutStore } from '@/composables/useChatLayout'
+import type { ChatLayoutProps } from '@/types/layout'
+import type { ChatLayoutSlots } from '@/types/layout.internal'
 
 defineOptions({
   name: 'ChatLayout',
 })
 
 const props = withDefaults(defineProps<ChatLayoutProps>(), {
-  leftSidebarWidth: DEFAULT_LEFT_SIDEBAR_WIDTH,
-  leftRailWidth: DEFAULT_LEFT_RAIL_WIDTH,
-  rightPanelWidth: DEFAULT_RIGHT_PANEL_WIDTH,
-  mobileLeftSidebarWidth: DEFAULT_MOBILE_LEFT_SIDEBAR_WIDTH,
-  mobileRightPanelWidth: DEFAULT_MOBILE_RIGHT_PANEL_WIDTH,
-  contentMaxWidth: DEFAULT_CONTENT_MAX_WIDTH,
-  overlayBackdropAriaLabel: DEFAULT_OVERLAY_BACKDROP_ARIA_LABEL,
-  mobileLeftSidebarAriaLabel: DEFAULT_MOBILE_LEFT_SIDEBAR_ARIA_LABEL,
-  mobileRightPanelAriaLabel: DEFAULT_MOBILE_RIGHT_PANEL_ARIA_LABEL,
+  mobileBreakpoint: 959,
 })
 
 defineSlots<ChatLayoutSlots>()
 
+const layoutStore = createChatLayoutStore({
+  mobileBreakpoint: computed(() => props.mobileBreakpoint),
+  left: {
+    defaultState: computed(() => props.left?.defaultState ?? 'expanded'),
+    restingState: computed(() => props.left?.restingState),
+  },
+  right: {
+    defaultState: computed(() => props.right?.defaultState ?? 'hidden'),
+    restingState: computed(() => props.right?.restingState),
+  },
+})
+
+provideChatLayoutStore(layoutStore)
+
 const slots = useSlots()
-const store = useChatLayoutStoreContext()
-const { closeOverlays, left, right, viewport } = store
-const { isMobile } = viewport
+const { closeOverlays, left, right, isMobile } = layoutStore
+
+const overlayBackdropAriaLabel = computed(() => props.a11y?.backdropLabel ?? '关闭面板')
+const mobileLeftSidebarAriaLabel = computed(() => props.a11y?.leftPanelLabel ?? '左侧面板')
+const mobileRightPanelAriaLabel = computed(() => props.a11y?.rightPanelLabel ?? '右侧面板')
 
 const hasLeftSidebar = computed(() => Boolean(slots['left-sidebar']))
 const hasHeader = computed(() => Boolean(slots.header))
@@ -45,31 +43,10 @@ const hasMain = computed(() => Boolean(slots.main))
 const hasFooter = computed(() => Boolean(slots.footer))
 const hasRightPanel = computed(() => Boolean(slots['right-panel']))
 
-const leftSidebarWidthValue = computed(() => clampNonNegative(props.leftSidebarWidth))
-const leftRailWidthValue = computed(() => clampNonNegative(props.leftRailWidth))
-const rightPanelWidthValue = computed(() => clampNonNegative(props.rightPanelWidth))
 const leftState = computed(() => left.state.value)
 const rightState = computed(() => right.state.value)
 
-const leftDesktopWidth = computed(() => {
-  if (!hasLeftSidebar.value || isMobile.value) {
-    return '0px'
-  }
-
-  return toCssLength(leftState.value === 'expanded' ? leftSidebarWidthValue.value : leftRailWidthValue.value)
-})
-
-const rightDesktopWidth = computed(() => {
-  if (!hasRightPanel.value || isMobile.value) {
-    return '0px'
-  }
-
-  return toCssLength(rightState.value === 'expanded' ? rightPanelWidthValue.value : 0)
-})
-
-const leftDesktopHidden = computed(
-  () => !isMobile.value && leftState.value === 'collapsed' && leftRailWidthValue.value === 0,
-)
+const leftDesktopHidden = computed(() => !isMobile.value && leftState.value === 'hidden')
 const rightDesktopHidden = computed(() => !isMobile.value && rightState.value === 'hidden')
 
 const mobileLeftOpen = computed(() => isMobile.value && hasLeftSidebar.value && leftState.value === 'overlay')
@@ -81,14 +58,6 @@ const leftAsideHidden = computed(
 const rightAsideHidden = computed(
   () => !hasRightPanel.value || rightDesktopHidden.value || (isMobile.value && !mobileRightOpen.value),
 )
-
-const cssVars = computed(() => ({
-  '--tr-chat-layout-left-width': leftDesktopWidth.value,
-  '--tr-chat-layout-right-width': rightDesktopWidth.value,
-  '--tr-chat-layout-content-max-width': toCssLength(props.contentMaxWidth),
-  '--tr-chat-layout-mobile-left-width': toCssLength(props.mobileLeftSidebarWidth),
-  '--tr-chat-layout-mobile-right-width': toCssLength(props.mobileRightPanelWidth),
-}))
 
 const keyboardTarget = typeof window === 'undefined' ? undefined : window
 
@@ -107,8 +76,11 @@ useEventListener(keyboardTarget, 'keydown', (event: KeyboardEvent) => {
     :class="{
       'tr-chat-layout--mobile': isMobile,
       'tr-chat-layout--backdrop-visible': overlayVisible,
+      'tr-chat-layout--left-expanded': !isMobile && hasLeftSidebar && leftState === 'expanded',
+      'tr-chat-layout--left-collapsed': !isMobile && hasLeftSidebar && leftState === 'collapsed',
+      'tr-chat-layout--right-expanded': !isMobile && hasRightPanel && rightState === 'expanded',
+      'tr-chat-layout--right-collapsed': !isMobile && hasRightPanel && rightState === 'collapsed',
     }"
-    :style="cssVars"
   >
     <div
       class="tr-chat-layout__aside tr-chat-layout__aside--left"
@@ -120,7 +92,7 @@ useEventListener(keyboardTarget, 'keydown', (event: KeyboardEvent) => {
       :role="mobileLeftOpen ? 'dialog' : undefined"
       :aria-modal="mobileLeftOpen ? 'true' : undefined"
       :aria-hidden="leftAsideHidden ? 'true' : undefined"
-      :aria-label="isMobile ? props.mobileLeftSidebarAriaLabel : undefined"
+      :aria-label="isMobile ? mobileLeftSidebarAriaLabel : undefined"
       :inert="leftAsideHidden"
     >
       <slot name="left-sidebar" />
@@ -162,7 +134,7 @@ useEventListener(keyboardTarget, 'keydown', (event: KeyboardEvent) => {
       :role="mobileRightOpen ? 'dialog' : undefined"
       :aria-modal="mobileRightOpen ? 'true' : undefined"
       :aria-hidden="rightAsideHidden ? 'true' : undefined"
-      :aria-label="isMobile ? props.mobileRightPanelAriaLabel : undefined"
+      :aria-label="isMobile ? mobileRightPanelAriaLabel : undefined"
       :inert="rightAsideHidden"
     >
       <slot name="right-panel" />
@@ -174,7 +146,7 @@ useEventListener(keyboardTarget, 'keydown', (event: KeyboardEvent) => {
       type="button"
       :tabindex="overlayVisible ? 0 : -1"
       :aria-hidden="overlayVisible ? undefined : 'true'"
-      :aria-label="props.overlayBackdropAriaLabel"
+      :aria-label="overlayBackdropAriaLabel"
       @click="closeOverlays"
     />
   </div>

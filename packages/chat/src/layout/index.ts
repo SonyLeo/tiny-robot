@@ -1,4 +1,3 @@
-export { default as ChatRoot } from './ChatRoot.vue'
 export { default as ChatLayout } from './ChatLayout.vue'
 export { default as ChatHeader } from './ChatHeader.vue'
 export { default as ChatMain } from './ChatMain.vue'

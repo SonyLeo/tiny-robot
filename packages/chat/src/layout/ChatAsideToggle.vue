@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useAsideToggle } from '@/composables/useAsideToggle'
-import type { ChatAsideToggleProps, ChatAsideToggleSlots } from '@/types/layout'
+import { useChatAside } from '@/composables/useChatAside'
+import type { ChatAsideToggleProps, ChatAsideToggleSlotProps } from '@/types/layout'
+import type { ChatAsideToggleSlots } from '@/types/layout.internal'
 
 defineOptions({
   name: 'ChatAsideToggle',
@@ -11,35 +12,38 @@ defineSlots<ChatAsideToggleSlots>()
 
 const props = defineProps<ChatAsideToggleProps>()
 
-const { isOpen, slotProps, handleClick } = useAsideToggle({
-  side: props.side,
-})
+const { isOpen, toggle } = useChatAside(() => props.side)
 
-const ariaLabel = computed(() => {
-  if (props.ariaLabel) {
-    return props.ariaLabel
-  }
+const slotProps = computed<ChatAsideToggleSlotProps>(() => ({
+  isOpen: isOpen.value,
+}))
 
-  return props.side === 'left' ? '切换左侧面板' : '切换右侧面板'
-})
+const defaultAriaLabels = {
+  left: '切换左侧面板',
+  right: '切换右侧面板',
+} as const
+
+const fallbackTexts = {
+  left: {
+    open: '收起导航',
+    closed: '展开导航',
+  },
+  right: {
+    open: '关闭扩展区',
+    closed: '打开扩展区',
+  },
+} as const
+
+const ariaLabel = computed(() => props.ariaLabel ?? defaultAriaLabels[props.side])
 
 const fallbackText = computed(() => {
-  if (props.side === 'left') {
-    return isOpen.value ? '收起导航' : '展开导航'
-  }
-
-  return isOpen.value ? '关闭扩展区' : '打开扩展区'
+  const text = fallbackTexts[props.side]
+  return isOpen.value ? text.open : text.closed
 })
 </script>
 
 <template>
-  <button
-    class="tr-chat-panel-toggle"
-    type="button"
-    :aria-expanded="isOpen"
-    :aria-label="ariaLabel"
-    @click="handleClick"
-  >
+  <button class="tr-chat-panel-toggle" type="button" :aria-expanded="isOpen" :aria-label="ariaLabel" @click="toggle">
     <slot v-bind="slotProps">
       {{ fallbackText }}
     </slot>

@@ -1,22 +1,44 @@
+import { useMediaQuery } from '@vueuse/core'
 import { computed, readonly, shallowRef, toValue, watch, type MaybeRefOrGetter } from 'vue'
-import { DEFAULT_MOBILE_BREAKPOINT } from '@/shared/constants'
-import type { ChatAsideController, ChatAsideState, ChatLayoutStore } from '@/types/layout'
-import { useChatBreakpoint } from '@/composables/useChatBreakpoint'
+import type { ChatAsideConfig, ChatAsideRestingState, ChatAsideState, ChatDesktopAsideState } from '@/types/layout'
+import type { ChatLayoutPanelApi, ChatLayoutStore } from '@/types/layout.internal'
 
-export interface UseChatLayoutStoreOptions {
-  mobileBreakpoint?: MaybeRefOrGetter<number>
-  defaultLeftSidebarOpen?: boolean
-  defaultRightPanelOpen?: boolean
+type MaybeRefChatAsideConfig = {
+  defaultState?: MaybeRefOrGetter<ChatAsideConfig['defaultState'] | undefined>
+  restingState?: MaybeRefOrGetter<ChatAsideConfig['restingState'] | undefined>
 }
 
-export function useChatLayoutStore(options: UseChatLayoutStoreOptions = {}): ChatLayoutStore {
-  const leftSidebarExpanded = shallowRef(options.defaultLeftSidebarOpen ?? true)
+export interface CreateChatLayoutStoreOptions {
+  mobileBreakpoint?: MaybeRefOrGetter<number>
+  left?: MaybeRefChatAsideConfig
+  right?: MaybeRefChatAsideConfig
+}
+
+export function createChatLayoutStore(options: CreateChatLayoutStoreOptions = {}): ChatLayoutStore {
+  const initialLeftState = toValue(options.left?.defaultState ?? 'expanded') as ChatDesktopAsideState
+  const initialRightState = toValue(options.right?.defaultState ?? 'hidden') as ChatDesktopAsideState
+  const defaultLeftRestingState: ChatAsideRestingState =
+    initialLeftState === 'expanded' ? 'collapsed' : initialLeftState
+  const defaultRightRestingState: ChatAsideRestingState =
+    initialRightState === 'expanded' ? 'hidden' : initialRightState
+
+  const leftSidebarExpanded = shallowRef(initialLeftState === 'expanded')
   const leftDrawerOpen = shallowRef(false)
-  const rightPanelExpanded = shallowRef(options.defaultRightPanelOpen ?? false)
+  const rightPanelExpanded = shallowRef(initialRightState === 'expanded')
   const rightDrawerOpen = shallowRef(false)
 
-  const breakpointSource = computed(() => Number(toValue(options.mobileBreakpoint ?? DEFAULT_MOBILE_BREAKPOINT)))
-  const { isMobile, mobileBreakpoint } = useChatBreakpoint({ mobileBreakpoint: breakpointSource })
+  const leftRestingState = computed<ChatAsideRestingState>(() => {
+    const restingState = toValue(options.left?.restingState)
+    return restingState ?? defaultLeftRestingState
+  })
+
+  const rightRestingState = computed<ChatAsideRestingState>(() => {
+    const restingState = toValue(options.right?.restingState)
+    return restingState ?? defaultRightRestingState
+  })
+
+  const breakpointSource = computed(() => Number(toValue(options.mobileBreakpoint ?? 959)))
+  const isMobile = useMediaQuery(() => `(max-width: ${breakpointSource.value}px)`)
 
   function setLeftDrawerOpen(value: boolean): void {
     leftDrawerOpen.value = value
@@ -43,7 +65,7 @@ export function useChatLayoutStore(options: UseChatLayoutStoreOptions = {}): Cha
     state: () => ChatAsideState
     open: () => void
     close: () => void
-  }): ChatAsideController {
+  }): ChatLayoutPanelApi {
     const state = computed(options.state)
     const isOpen = computed(() => state.value === 'expanded' || state.value === 'overlay')
 
@@ -71,7 +93,11 @@ export function useChatLayoutStore(options: UseChatLayoutStoreOptions = {}): Cha
         return leftDrawerOpen.value ? 'overlay' : 'hidden'
       }
 
-      return leftSidebarExpanded.value ? 'expanded' : 'collapsed'
+      if (leftSidebarExpanded.value) {
+        return 'expanded'
+      }
+
+      return leftRestingState.value
     },
     open: () => {
       if (isMobile.value) {
@@ -97,7 +123,7 @@ export function useChatLayoutStore(options: UseChatLayoutStoreOptions = {}): Cha
         return rightDrawerOpen.value ? 'overlay' : 'hidden'
       }
 
-      return rightPanelExpanded.value ? 'expanded' : 'hidden'
+      return rightPanelExpanded.value ? 'expanded' : rightRestingState.value
     },
     open: () => {
       if (isMobile.value) {
@@ -124,10 +150,7 @@ export function useChatLayoutStore(options: UseChatLayoutStoreOptions = {}): Cha
   })
 
   return {
-    viewport: {
-      isMobile: readonly(isMobile),
-      mobileBreakpoint: readonly(mobileBreakpoint),
-    },
+    isMobile: readonly(isMobile),
     left,
     right,
     closeOverlays,
