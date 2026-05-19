@@ -149,5 +149,7 @@ useEventListener(keyboardTarget, 'keydown', (event: KeyboardEvent) => {
       :aria-label="overlayBackdropAriaLabel"
       @click="closeOverlays"
     />
+
+    <slot name="page-layer" />
   </div>
 </template>

@@ -20,39 +20,3 @@ body {
 * {
   box-sizing: border-box;
 }
-
-.demo-icon-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  min-width: 36px;
-  height: 36px;
-  min-height: 36px;
-  padding: 0;
-  border: 0;
-  border-radius: 12px;
-  background: transparent;
-  color: #111827;
-  cursor: pointer;
-  transition: background-color 200ms ease;
-  appearance: none;
-}
-
-.demo-icon-button:hover {
-  background: #f8fafc;
-}
-
-.demo-icon-button:focus-visible {
-  outline: 2px solid rgba(37, 99, 235, 0.28);
-  outline-offset: 2px;
-}
-
-.demo-icon-button--rounded {
-  border-radius: 999px;
-}
-
-.demo-icon-glyph {
-  flex: none;
-  font-size: 18px;
-}

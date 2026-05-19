@@ -1,6 +1,6 @@
 # packages/chat Stage 1 Overview
 
-这个分支只保留阶段一布局层实现，不再承载组合 UI 层和更高层 `ChatApp` 规划。
+这个分支当前只保留阶段一布局层实现，不再承载组合 UI 层和更高层 `ChatApp` 规划。
 
 ## 当前范围
 
@@ -45,7 +45,7 @@
 
 - 详细设计文档：[phase-1-layout.md](</e:/LS_WorkSpace/web/tiny-robot/packages/chat/docs/phase-1-layout.md:1>)
 - 类型定义：[src/types/layout.ts](</e:/LS_WorkSpace/web/tiny-robot/packages/chat/src/types/layout.ts:1>)
-- 内部 slot 类型：[src/types/layout.internal.ts](</e:/LS_WorkSpace/web/tiny-robot/packages/chat/src/types/layout.internal.ts:1>)
+- 内部 slot / store 类型：[src/types/layout.internal.ts](</e:/LS_WorkSpace/web/tiny-robot/packages/chat/src/types/layout.internal.ts:1>)
 - 布局 store：[src/composables/createChatLayoutStore.ts](</e:/LS_WorkSpace/web/tiny-robot/packages/chat/src/composables/createChatLayoutStore.ts:1>)
 - 布局骨架：[src/layout/ChatLayout.vue](</e:/LS_WorkSpace/web/tiny-robot/packages/chat/src/layout/ChatLayout.vue:1>)
 - aside 契约：[src/layout/ChatAside.vue](</e:/LS_WorkSpace/web/tiny-robot/packages/chat/src/layout/ChatAside.vue:1>)
@@ -53,20 +53,23 @@
 - 样式入口：[src/styles/layout.css](</e:/LS_WorkSpace/web/tiny-robot/packages/chat/src/styles/layout.css:1>)
 - 默认变量：[src/styles/tokens.css](</e:/LS_WorkSpace/web/tiny-robot/packages/chat/src/styles/tokens.css:1>)
 
-## 当前 demo
+## 当前 demo 状态
 
-当前 demo 使用两套布局示例验证组件能力：
+源码里已经有两套基于 `Chat.Layout` 的 Vue 布局案例：
 
 - `DeepSeek Layout`
 - `ChatGPT Layout`
 
-重点对比：
+当前 `packages/chat/demo/src/App.vue` 入口已经直接按路由挂载这两个 Vue 案例：
 
-- 左侧历史区与导航区
-- 右侧 desktop 固定列
-- 主回答区与底部输入区的组合
-- mobile overlay
-- 通过 CSS variable 做区域级限宽和尺寸覆写
+- `/chatgpt`
+- `/deepseek`
+
+移动端 overlay 默认语义也已经固定下来：
+
+- `left` 默认是 drawer 式抽屉，宽度由 `--tr-chat-layout-mobile-left-width` 控制，默认值 `66.67vw`
+- `right` 默认是 full-screen takeover overlay，宽度由 `--tr-chat-layout-mobile-right-width` 控制，默认值 `100vw`
+- 如果某个产品真的要把右侧改成半屏抽屉，应当在业务侧覆盖 CSS 变量，而不是回改 layout 默认值
 
 ## 当前遗留点
 

@@ -16,6 +16,7 @@ export interface ChatLayoutSlots {
   main?: () => VNode[]
   footer?: () => VNode[]
   'right-panel'?: () => VNode[]
+  'page-layer'?: () => VNode[]
 }
 
 // Runtime store types

@@ -85,13 +85,11 @@
 .tr-chat-layout__header-shell {
   grid-area: header;
   background: var(--tr-chat-layout-header-bg);
-  border-bottom: 1px solid var(--tr-chat-layout-divider-color);
 }
 
 .tr-chat-layout__footer-shell {
   grid-area: footer;
   background: var(--tr-chat-layout-footer-bg);
-  border-top: 1px solid var(--tr-chat-layout-divider-color);
 }
 
 .tr-chat-layout__main-shell {
