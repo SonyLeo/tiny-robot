@@ -147,6 +147,8 @@ slot props：
 
 - `Chat.Layout` 的 props 只负责状态和行为
 - 宽度、限宽、padding、对齐方式通过 CSS variables 覆盖
+- 优先使用原生 CSS + CSS variables；当前不引入 `less`，避免把编译时变量和运行时布局变量混在一起
+- demo 和业务侧更推荐通过组件类名 + 本地 `<style>` 覆盖变量，而不是在模板里堆长串内联 `style`
 - `header / main / footer` 的可配宽度作用在各自的 `*-inner` 内容容器上，不会改变左右 aside 所在的 grid 列结构
 
 ### 5.1 Aside 宽度与区域背景
@@ -217,39 +219,22 @@ slot props：
 | `--tr-chat-layout-overlay-bg` | backdrop | 控制遮罩层背景色 |
 | `--tr-chat-layout-z-index-overlay` | mobile overlay / backdrop | 控制 overlay 层级 |
 
-### 5.5 示例
+### 5.5 Desktop Aside Motion Contract
 
-```vue
-<Chat.Layout
-  :left="{ defaultState: 'expanded', restingState: 'collapsed' }"
-  :right="{ defaultState: 'expanded', restingState: 'collapsed' }"
-  style="
-    --tr-chat-layout-left-sidebar-width: 256px;
-    --tr-chat-layout-left-rail-width: 52px;
-    --tr-chat-layout-right-panel-width: 364px;
-    --tr-chat-layout-right-rail-width: 48px;
+desktop aside 的结构性动效现在由 layout 统一提供，目标是避免 panel 在开合时被挤压，而是以整块 panel 的方式进出。
 
-    --tr-chat-layout-header-max-width: 1120px;
-    --tr-chat-layout-main-max-width: 920px;
-    --tr-chat-layout-footer-max-width: 820px;
+可覆写变量：
 
-    --tr-chat-layout-header-padding-inline: 24px;
-    --tr-chat-layout-main-padding-inline: 24px;
-    --tr-chat-layout-footer-padding-inline: 0px;
+| 变量 | 生效范围 | 作用 |
+| --- | --- | --- |
+| `--tr-chat-layout-transition-duration` | desktop layout / aside 过渡 | 控制 layout 默认过渡时长 |
+| `--tr-chat-layout-transition-easing` | desktop layout / aside 过渡 | 控制 layout 默认过渡曲线 |
 
-    --tr-chat-layout-main-margin-inline-start: 0;
-    --tr-chat-layout-main-margin-inline-end: auto;
-  "
->
-```
+默认行为：
 
-这个例子表示：
-
-- 左右 aside 都有独立的 expanded / collapsed 宽度
-- header 比 main 更宽
-- footer 比 main 更窄
-- main 内容左对齐
-- footer 内容去掉了默认水平 padding
+- `tr-chat-layout` 会对 `grid-template-columns` 做基础过渡
+- desktop 下 `aside > .tr-chat-aside` 会固定到 panel / rail 宽度，再通过 `transform + opacity` 切换 hidden 状态
+- 产品如果要更慢、更快或不同 easing，应当在业务侧覆写变量，而不是重复声明这套 aside 结构性补丁
 
 ## 6. 布局行为
 

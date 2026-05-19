@@ -45,15 +45,8 @@ import Sidebar from './chatgpt/components/Sidebar.vue'
   --tr-chat-layout-content-max-width: 1040px;
   --tr-chat-layout-left-bg: #fbfbf8;
   --tr-chat-layout-divider-color: #ece9e3;
-  --tr-chat-layout-header-padding-inline: 24px;
-  --tr-chat-layout-main-padding-inline: 24px;
-  --tr-chat-layout-footer-padding-inline: 24px;
-  --chatgpt-sidebar-motion-duration: 240ms;
-  --chatgpt-sidebar-motion-easing: cubic-bezier(0, 0, 0.2, 1);
-}
-
-.chatgpt-layout-demo :deep(.tr-chat-layout) {
-  transition: grid-template-columns var(--chatgpt-sidebar-motion-duration, 280ms)
-    var(--chatgpt-sidebar-motion-easing, cubic-bezier(0.4, 0, 0.2, 1));
+  --tr-chat-layout-inner-padding-inline: 24px;
+  --tr-chat-layout-transition-duration: 240ms;
+  --tr-chat-layout-transition-easing: cubic-bezier(0, 0, 0.2, 1);
 }
 </style>

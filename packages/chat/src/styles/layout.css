@@ -15,6 +15,9 @@
   overflow: hidden;
   background: var(--tr-chat-layout-bg);
   color: var(--tr-chat-layout-text-primary);
+  transition:
+    grid-template-columns var(--tr-chat-layout-transition-duration, 220ms)
+    var(--tr-chat-layout-transition-easing, ease);
 }
 
 .tr-chat-layout--mobile {
@@ -53,6 +56,50 @@
 
 .tr-chat-layout__aside {
   overflow: hidden;
+}
+
+.tr-chat-layout:not(.tr-chat-layout--mobile) .tr-chat-layout__aside {
+  position: relative;
+  z-index: 1;
+  overflow: visible;
+}
+
+.tr-chat-layout:not(.tr-chat-layout--mobile) .tr-chat-layout__aside > .tr-chat-aside {
+  width: 100%;
+  transition:
+    transform var(--tr-chat-layout-transition-duration, 220ms) var(--tr-chat-layout-transition-easing, ease),
+    opacity var(--tr-chat-layout-transition-duration, 220ms) var(--tr-chat-layout-transition-easing, ease);
+  will-change: transform, opacity;
+}
+
+.tr-chat-layout:not(.tr-chat-layout--mobile) .tr-chat-layout__aside--desktop-hidden > .tr-chat-aside {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tr-chat-layout:not(.tr-chat-layout--mobile) .tr-chat-layout__aside--left > .tr-chat-aside {
+  width: var(--tr-chat-layout-left-sidebar-width);
+}
+
+.tr-chat-layout:not(.tr-chat-layout--mobile) .tr-chat-layout__aside--left > .tr-chat-aside.tr-chat-aside--collapsed {
+  width: var(--tr-chat-layout-left-rail-width);
+}
+
+.tr-chat-layout:not(.tr-chat-layout--mobile) .tr-chat-layout__aside--right > .tr-chat-aside {
+  width: var(--tr-chat-layout-right-panel-width);
+  margin-inline-start: auto;
+}
+
+.tr-chat-layout:not(.tr-chat-layout--mobile) .tr-chat-layout__aside--right > .tr-chat-aside.tr-chat-aside--collapsed {
+  width: var(--tr-chat-layout-right-rail-width);
+}
+
+.tr-chat-layout:not(.tr-chat-layout--mobile) .tr-chat-layout__aside--left.tr-chat-layout__aside--desktop-hidden > .tr-chat-aside {
+  transform: translateX(calc(-100% - 12px));
+}
+
+.tr-chat-layout:not(.tr-chat-layout--mobile) .tr-chat-layout__aside--right.tr-chat-layout__aside--desktop-hidden > .tr-chat-aside {
+  transform: translateX(calc(100% + 12px));
 }
 
 .tr-chat-layout__aside--left {
@@ -166,6 +213,7 @@
   bottom: 0;
   z-index: var(--tr-chat-layout-z-index-overlay);
   max-width: 100vw;
+  overflow: hidden;
   visibility: hidden;
   pointer-events: none;
   box-shadow: var(--tr-chat-layout-panel-shadow);
