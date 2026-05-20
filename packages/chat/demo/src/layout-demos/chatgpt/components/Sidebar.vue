@@ -1,17 +1,9 @@
 <script setup lang="ts">
 import { Chat } from '@/index'
-import {
-  IconAi,
-  IconEdit,
-  IconFileFolder,
-  IconMenuCollapse,
-  IconMenuExpand,
-  IconMore,
-  IconSearch,
-  IconSparkles,
-  IconUser,
-} from '@opentiny/tiny-robot-svgs'
-import { chatGptRecentChats } from '../data'
+import { IconAi, IconMenuCollapse, IconMenuExpand, IconUser } from '@opentiny/tiny-robot-svgs'
+import { chatGptNavItems, chatGptRecentChats } from '../data'
+
+const [newChatItem, ...quickActionItems] = chatGptNavItems
 </script>
 
 <template>
@@ -63,46 +55,25 @@ import { chatGptRecentChats } from '../data'
             v-if="state === 'collapsed'"
             class="chatgpt-sidebar__compact-button"
             type="button"
-            aria-label="新聊天"
+            :aria-label="newChatItem.label"
           >
-            <IconEdit />
+            <component :is="newChatItem.icon" />
           </button>
 
           <button v-else class="chatgpt-sidebar__new-chat-button" type="button">
             <span class="chatgpt-sidebar__new-chat-icon" aria-hidden="true">
-              <IconEdit />
+              <component :is="newChatItem.icon" />
             </span>
-            <span class="chatgpt-sidebar__new-chat-text">新聊天</span>
+            <span class="chatgpt-sidebar__new-chat-text">{{ newChatItem.label }}</span>
           </button>
         </div>
 
         <div class="chatgpt-sidebar__quick-actions">
-          <button class="chatgpt-sidebar__action" type="button">
+          <button v-for="item in quickActionItems" :key="item.label" class="chatgpt-sidebar__action" type="button">
             <span class="chatgpt-sidebar__action-icon" aria-hidden="true">
-              <IconSearch />
+              <component :is="item.icon" />
             </span>
-            <span class="chatgpt-sidebar__action-content">搜索聊天</span>
-          </button>
-
-          <button class="chatgpt-sidebar__action" type="button">
-            <span class="chatgpt-sidebar__action-icon" aria-hidden="true">
-              <IconFileFolder />
-            </span>
-            <span class="chatgpt-sidebar__action-content">项目</span>
-          </button>
-
-          <button class="chatgpt-sidebar__action" type="button">
-            <span class="chatgpt-sidebar__action-icon" aria-hidden="true">
-              <IconSparkles />
-            </span>
-            <span class="chatgpt-sidebar__action-content">Codex</span>
-          </button>
-
-          <button class="chatgpt-sidebar__action" type="button">
-            <span class="chatgpt-sidebar__action-icon" aria-hidden="true">
-              <IconMore />
-            </span>
-            <span class="chatgpt-sidebar__action-content">更多</span>
+            <span class="chatgpt-sidebar__action-content">{{ item.label }}</span>
           </button>
         </div>
 
