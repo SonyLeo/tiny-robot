@@ -1,22 +1,26 @@
 <script setup lang="ts">
-import { Chat } from '@/index'
-import { useChatAside } from '@/composables/useChatAside'
 import { IconLogo, IconMenuExpand, IconNewSession, IconSearch } from '@opentiny/tiny-robot-svgs'
 
-const { isMobile, state } = useChatAside('left')
+defineProps<{
+  visible: boolean
+}>()
+
+const emit = defineEmits<{
+  open: []
+}>()
 </script>
 
 <template>
   <Transition name="deepseek-launcher-fade">
-    <div v-if="!isMobile && state === 'hidden'" class="deepseek-launcher">
+    <div v-if="visible" class="deepseek-launcher">
       <span class="deepseek-launcher__mark">
         <IconLogo />
       </span>
 
       <div class="deepseek-launcher__actions">
-        <Chat.AsideToggle side="left" class="deepseek-launcher__action" aria-label="Expand sidebar">
+        <button class="deepseek-launcher__action" type="button" aria-label="Expand sidebar" @click="emit('open')">
           <IconMenuExpand />
-        </Chat.AsideToggle>
+        </button>
         <button class="deepseek-launcher__action" type="button">
           <IconSearch />
         </button>

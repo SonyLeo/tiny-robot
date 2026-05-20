@@ -1,15 +1,15 @@
 <script setup lang="ts">
+import { useMediaQuery } from '@vueuse/core'
 import { Chat } from '@/index'
-import { useChatAside } from '@/composables/useChatAside'
 import { IconFileFolder, IconMenuExpand, IconShare } from '@opentiny/tiny-robot-svgs'
 
-const { isMobile } = useChatAside('left')
+const isMobile = useMediaQuery('(max-width: 959px)')
 </script>
 
 <template>
   <div class="chatgpt-header">
     <div v-if="isMobile" class="chatgpt-header__left">
-      <Chat.AsideToggle side="left" class="chatgpt-header__icon-button">
+      <Chat.AsideToggle placement="left" class="chatgpt-header__icon-button">
         <IconMenuExpand class="chatgpt-header__icon" />
       </Chat.AsideToggle>
     </div>
@@ -20,7 +20,7 @@ const { isMobile } = useChatAside('left')
         <span>分享</span>
       </button>
 
-      <Chat.AsideToggle side="right" class="chatgpt-header__icon-button">
+      <Chat.AsideToggle placement="right" class="chatgpt-header__icon-button">
         <IconFileFolder class="chatgpt-header__icon" />
       </Chat.AsideToggle>
     </div>

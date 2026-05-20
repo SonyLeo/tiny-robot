@@ -5,7 +5,7 @@ import { historyGroups } from '../data'
 </script>
 
 <template>
-  <Chat.Aside side="left">
+  <Chat.Aside placement="left">
     <div class="deepseek-sidebar">
       <div class="deepseek-sidebar__brand">
         <div class="deepseek-sidebar__brand-start">
@@ -19,7 +19,7 @@ import { historyGroups } from '../data'
           <button class="deepseek-sidebar__icon-button" type="button">
             <IconSearch />
           </button>
-          <Chat.AsideToggle side="left" class="deepseek-sidebar__icon-button" aria-label="Collapse sidebar">
+          <Chat.AsideToggle placement="left" class="deepseek-sidebar__icon-button" aria-label="Collapse sidebar">
             <IconMenuCollapse />
           </Chat.AsideToggle>
         </div>

@@ -1,44 +1,36 @@
-// State
-export type ChatAsideSide = 'left' | 'right'
-export type ChatAsideState = 'hidden' | 'collapsed' | 'expanded' | 'overlay'
-export type ChatDesktopAsideState = Exclude<ChatAsideState, 'overlay'>
-export type ChatAsideRestingState = Extract<ChatDesktopAsideState, 'collapsed' | 'hidden'>
+export type ChatAsidePlacement = 'left' | 'right'
+export type ChatAsideLayoutMode = 'dock' | 'drawer'
+export type ChatAsideClosedMode = 'rail' | 'hidden'
+
+export interface ChatAsideConfig {
+  layoutMode?: ChatAsideLayoutMode
+  expanded?: boolean
+  closedMode?: ChatAsideClosedMode
+  expandedWidth?: number | string
+  collapsedWidth?: number | string
+}
 
 // Props
-export interface ChatAsideConfig {
-  defaultState?: ChatDesktopAsideState
-  restingState?: ChatAsideRestingState
-}
-
-export interface ChatLayoutA11yProps {
-  backdropLabel?: string
-  leftPanelLabel?: string
-  rightPanelLabel?: string
-}
-
 export interface ChatLayoutProps {
-  mobileBreakpoint?: number
-  left?: ChatAsideConfig
-  right?: ChatAsideConfig
-  a11y?: ChatLayoutA11yProps
+  asideLayoutMode?: ChatAsideLayoutMode
+  leftAside?: ChatAsideConfig
+  rightAside?: ChatAsideConfig
 }
 
 export interface ChatAsideProps {
-  side: ChatAsideSide
+  placement: ChatAsidePlacement
 }
 
 export interface ChatAsideToggleProps {
-  side: ChatAsideSide
+  placement: ChatAsidePlacement
   ariaLabel?: string
 }
 
 // Slot props
 export interface ChatAsideSlotProps {
-  state: ChatAsideState
-  isMobile: boolean
-  isOpen: boolean
+  isExpanded: boolean
 }
 
 export interface ChatAsideToggleSlotProps {
-  isOpen: boolean
+  isExpanded: boolean
 }

@@ -5,7 +5,7 @@ import { IconMenuExpand, IconNewSession } from '@opentiny/tiny-robot-svgs'
 
 <template>
   <div class="deepseek-header">
-    <Chat.AsideToggle side="left" class="deepseek-header__menu-button" aria-label="Open sidebar">
+    <Chat.AsideToggle placement="left" class="deepseek-header__menu-button" aria-label="Open sidebar">
       <IconMenuExpand class="deepseek-header__icon" />
     </Chat.AsideToggle>
 
@@ -18,7 +18,7 @@ import { IconMenuExpand, IconNewSession } from '@opentiny/tiny-robot-svgs'
     </div>
 
     <div class="deepseek-header__right-actions">
-      <Chat.AsideToggle side="right" class="deepseek-header__action-button" aria-label="Open right panel">
+      <Chat.AsideToggle placement="right" class="deepseek-header__action-button" aria-label="Open right panel">
         <IconNewSession class="deepseek-header__icon" />
       </Chat.AsideToggle>
     </div>

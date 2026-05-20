@@ -1,158 +1,174 @@
-import { useMediaQuery } from '@vueuse/core'
-import { computed, readonly, shallowRef, toValue, watch, type MaybeRefOrGetter } from 'vue'
-import type { ChatAsideConfig, ChatAsideRestingState, ChatAsideState, ChatDesktopAsideState } from '@/types/layout'
+import { computed, toValue, type ComputedRef, type MaybeRefOrGetter } from 'vue'
+import type { ChatAsideClosedMode, ChatAsideConfig, ChatAsideLayoutMode, ChatAsidePlacement } from '@/types/layout'
 import type { ChatLayoutPanelApi, ChatLayoutStore } from '@/types/layout.internal'
 
 type MaybeRefChatAsideConfig = {
-  defaultState?: MaybeRefOrGetter<ChatAsideConfig['defaultState'] | undefined>
-  restingState?: MaybeRefOrGetter<ChatAsideConfig['restingState'] | undefined>
+  layoutMode?: MaybeRefOrGetter<ChatAsideConfig['layoutMode'] | undefined>
+  expanded?: MaybeRefOrGetter<ChatAsideConfig['expanded'] | undefined>
+  closedMode?: MaybeRefOrGetter<ChatAsideConfig['closedMode'] | undefined>
+  expandedWidth?: MaybeRefOrGetter<ChatAsideConfig['expandedWidth'] | undefined>
+  collapsedWidth?: MaybeRefOrGetter<ChatAsideConfig['collapsedWidth'] | undefined>
+  onUpdate?: (nextConfig: ChatAsideConfig) => void
 }
 
 export interface CreateChatLayoutStoreOptions {
-  mobileBreakpoint?: MaybeRefOrGetter<number>
+  asideLayoutMode?: MaybeRefOrGetter<ChatAsideLayoutMode | undefined>
   left?: MaybeRefChatAsideConfig
   right?: MaybeRefChatAsideConfig
 }
 
+type ResolvedChatAsideConfig = {
+  layoutMode: ComputedRef<ChatAsideLayoutMode>
+  expanded: ComputedRef<boolean>
+  closedMode: ComputedRef<ChatAsideClosedMode>
+  expandedWidthValue: ComputedRef<ChatAsideConfig['expandedWidth']>
+  collapsedWidthValue: ComputedRef<ChatAsideConfig['collapsedWidth']>
+  expandedWidth: ComputedRef<string>
+  collapsedWidth: ComputedRef<string>
+  onUpdate?: (nextConfig: ChatAsideConfig) => void
+}
+
+function toCssLength(value: number | string | undefined, fallback: string): string {
+  if (typeof value === 'number') {
+    return `${value}px`
+  }
+
+  if (typeof value === 'string' && value.trim()) {
+    return value
+  }
+
+  return fallback
+}
+
 export function createChatLayoutStore(options: CreateChatLayoutStoreOptions = {}): ChatLayoutStore {
-  const initialLeftState = toValue(options.left?.defaultState ?? 'expanded') as ChatDesktopAsideState
-  const initialRightState = toValue(options.right?.defaultState ?? 'hidden') as ChatDesktopAsideState
-  const defaultLeftRestingState: ChatAsideRestingState =
-    initialLeftState === 'expanded' ? 'collapsed' : initialLeftState
-  const defaultRightRestingState: ChatAsideRestingState =
-    initialRightState === 'expanded' ? 'hidden' : initialRightState
+  const fallbackAsideLayoutMode = computed<ChatAsideLayoutMode>(() => toValue(options.asideLayoutMode) ?? 'dock')
 
-  const leftSidebarExpanded = shallowRef(initialLeftState === 'expanded')
-  const leftDrawerOpen = shallowRef(false)
-  const rightPanelExpanded = shallowRef(initialRightState === 'expanded')
-  const rightDrawerOpen = shallowRef(false)
+  function resolveAsideConfig(
+    side: ChatAsidePlacement,
+    config: MaybeRefChatAsideConfig | undefined,
+  ): ResolvedChatAsideConfig {
+    const defaultExpanded = side === 'left'
+    const defaultExpandedWidth = side === 'left' ? '300px' : '320px'
 
-  const leftRestingState = computed<ChatAsideRestingState>(() => {
-    const restingState = toValue(options.left?.restingState)
-    return restingState ?? defaultLeftRestingState
-  })
+    const layoutMode = computed<ChatAsideLayoutMode>(() => toValue(config?.layoutMode) ?? fallbackAsideLayoutMode.value)
+    const expanded = computed<boolean>(() => toValue(config?.expanded) ?? defaultExpanded)
+    const closedMode = computed<ChatAsideClosedMode>(() => toValue(config?.closedMode) ?? 'hidden')
+    const expandedWidthValue = computed<ChatAsideConfig['expandedWidth']>(() => toValue(config?.expandedWidth))
+    const collapsedWidthValue = computed<ChatAsideConfig['collapsedWidth']>(() => toValue(config?.collapsedWidth))
+    const expandedWidth = computed(() => toCssLength(expandedWidthValue.value, defaultExpandedWidth))
+    const collapsedWidth = computed(() => toCssLength(collapsedWidthValue.value, '48px'))
 
-  const rightRestingState = computed<ChatAsideRestingState>(() => {
-    const restingState = toValue(options.right?.restingState)
-    return restingState ?? defaultRightRestingState
-  })
-
-  const breakpointSource = computed(() => Number(toValue(options.mobileBreakpoint ?? 959)))
-  const isMobile = useMediaQuery(() => `(max-width: ${breakpointSource.value}px)`)
-
-  function setLeftDrawerOpen(value: boolean): void {
-    leftDrawerOpen.value = value
-
-    if (value) {
-      rightDrawerOpen.value = false
+    return {
+      layoutMode,
+      expanded,
+      closedMode,
+      expandedWidthValue,
+      collapsedWidthValue,
+      expandedWidth,
+      collapsedWidth,
+      onUpdate: config?.onUpdate,
     }
   }
 
-  function setRightDrawerOpen(value: boolean): void {
-    rightDrawerOpen.value = value
+  const leftConfig = resolveAsideConfig('left', options.left)
+  const rightConfig = resolveAsideConfig('right', options.right)
 
-    if (value) {
-      leftDrawerOpen.value = false
+  function emitAsideUpdate(config: ResolvedChatAsideConfig, patch: Partial<ChatAsideConfig>): void {
+    config.onUpdate?.({
+      layoutMode: config.layoutMode.value,
+      expanded: config.expanded.value,
+      closedMode: config.closedMode.value,
+      expandedWidth: config.expandedWidthValue.value,
+      collapsedWidth: config.collapsedWidthValue.value,
+      ...patch,
+    })
+  }
+
+  function createAsideController(
+    placement: ChatAsidePlacement,
+    config: ResolvedChatAsideConfig,
+    otherConfig: ResolvedChatAsideConfig,
+  ): ChatLayoutPanelApi {
+    const isDock = computed(() => config.layoutMode.value === 'dock')
+    const isDrawer = computed(() => config.layoutMode.value === 'drawer')
+    const isRail = computed(() => isDock.value && !config.expanded.value && config.closedMode.value === 'rail')
+    const isHidden = computed(() => !config.expanded.value && (isDrawer.value || config.closedMode.value === 'hidden'))
+
+    function open(): void {
+      if (isDrawer.value && otherConfig.layoutMode.value === 'drawer' && otherConfig.expanded.value) {
+        emitAsideUpdate(otherConfig, { expanded: false })
+      }
+
+      emitAsideUpdate(config, { expanded: true })
     }
-  }
 
-  function closeOverlays(): void {
-    leftDrawerOpen.value = false
-    rightDrawerOpen.value = false
-  }
-
-  function createAsideController(options: {
-    state: () => ChatAsideState
-    open: () => void
-    close: () => void
-  }): ChatLayoutPanelApi {
-    const state = computed(options.state)
-    const isOpen = computed(() => state.value === 'expanded' || state.value === 'overlay')
+    function close(): void {
+      emitAsideUpdate(config, { expanded: false })
+    }
 
     function toggle(): void {
-      if (isOpen.value) {
-        options.close()
+      if (config.expanded.value) {
+        close()
         return
       }
 
-      options.open()
+      open()
     }
 
     return {
-      state,
-      isOpen,
-      open: options.open,
-      close: options.close,
+      placement,
+      get layoutMode() {
+        return config.layoutMode.value
+      },
+      get closedMode() {
+        return config.closedMode.value
+      },
+      get isExpanded() {
+        return config.expanded.value
+      },
+      get isDock() {
+        return isDock.value
+      },
+      get isDrawer() {
+        return isDrawer.value
+      },
+      get isRail() {
+        return isRail.value
+      },
+      get isHidden() {
+        return isHidden.value
+      },
+      get expandedWidth() {
+        return config.expandedWidth.value
+      },
+      get collapsedWidth() {
+        return config.collapsedWidth.value
+      },
+      open,
+      close,
       toggle,
     }
   }
 
-  const left = createAsideController({
-    state: () => {
-      if (isMobile.value) {
-        return leftDrawerOpen.value ? 'overlay' : 'hidden'
-      }
+  const left = createAsideController('left', leftConfig, rightConfig)
+  const right = createAsideController('right', rightConfig, leftConfig)
 
-      if (leftSidebarExpanded.value) {
-        return 'expanded'
-      }
-
-      return leftRestingState.value
-    },
-    open: () => {
-      if (isMobile.value) {
-        setLeftDrawerOpen(true)
-        return
-      }
-
-      leftSidebarExpanded.value = true
-    },
-    close: () => {
-      if (isMobile.value) {
-        setLeftDrawerOpen(false)
-        return
-      }
-
-      leftSidebarExpanded.value = false
-    },
-  })
-
-  const right = createAsideController({
-    state: () => {
-      if (isMobile.value) {
-        return rightDrawerOpen.value ? 'overlay' : 'hidden'
-      }
-
-      return rightPanelExpanded.value ? 'expanded' : rightRestingState.value
-    },
-    open: () => {
-      if (isMobile.value) {
-        setRightDrawerOpen(true)
-        return
-      }
-
-      rightPanelExpanded.value = true
-    },
-    close: () => {
-      if (isMobile.value) {
-        setRightDrawerOpen(false)
-        return
-      }
-
-      rightPanelExpanded.value = false
-    },
-  })
-
-  watch(isMobile, (_nextIsMobile, prevIsMobile) => {
-    if (prevIsMobile !== undefined) {
-      closeOverlays()
+  function closeDrawers(): void {
+    if (left.layoutMode === 'drawer' && left.isExpanded) {
+      emitAsideUpdate(leftConfig, { expanded: false })
     }
-  })
+
+    if (right.layoutMode === 'drawer' && right.isExpanded) {
+      emitAsideUpdate(rightConfig, { expanded: false })
+    }
+  }
 
   return {
-    isMobile: readonly(isMobile),
     left,
     right,
-    closeOverlays,
+    get isDrawerVisible() {
+      return (left.isDrawer && left.isExpanded) || (right.isDrawer && right.isExpanded)
+    },
+    closeDrawers,
   }
 }

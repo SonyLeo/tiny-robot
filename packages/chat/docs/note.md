@@ -1,6 +1,6 @@
 # packages/chat Stage 1 Overview
 
-这个分支当前只保留阶段一布局层实现，不再承载组合 UI 层和更高层 `ChatApp` 规划。
+当前 `packages/chat` 只保留阶段一布局层实现。
 
 ## 当前范围
 
@@ -11,68 +11,68 @@
 - `Chat.Aside`
 - `Chat.AsideToggle`
 
-当前阶段只解决：
+解决的问题：
 
 - 页面级聊天布局骨架
-- desktop / mobile 响应式结构
-- 左右 aside 的纯 UI 状态
-- overlay、backdrop、基础 a11y 语义
-- 布局层宽度、限宽和区域级 CSS 合同
+- 左右 aside 的 `dock / drawer` 布局模式
+- `rail / hidden` 关闭态
+- dock / drawer 的纯 UI 状态切换
+- 布局级 CSS 变量契约
 
-当前阶段不处理：
+## 当前公共模型
 
-- 会话、消息、模型等业务数据
-- 输入框、历史列表、消息列表等组合 UI
-- `ChatApp` 高层封装
-- `Teleport`
-- `body scroll lock`
-- focus trap
+```ts
+type ChatAsidePlacement = 'left' | 'right'
+type ChatAsideLayoutMode = 'dock' | 'drawer'
+type ChatAsideClosedMode = 'rail' | 'hidden'
 
-## 关键设计
+interface ChatAsideConfig {
+  layoutMode?: ChatAsideLayoutMode
+  expanded?: boolean
+  closedMode?: ChatAsideClosedMode
+  expandedWidth?: number | string
+  collapsedWidth?: number | string
+}
 
-- `Chat.Layout` 是唯一公共入口，内部负责创建并提供布局 store。
-- 布局 API 直接围绕状态模型设计：
-  - `left.defaultState`
-  - `left.restingState`
-  - `right.defaultState`
-  - `right.restingState`
-- 左右两侧统一收敛到 `Chat.Aside`，开关行为统一收敛到 `Chat.AsideToggle`。
-- 布局 store 采用 `isMobile + left + right` 的结构：
-  - `left` / `right` 暴露 `state`、`isOpen`、`open()`、`close()`、`toggle()`
-- `header / main / footer` 的宽度、内边距和对齐优先通过 CSS 变量覆盖，而不是继续扩 props。
+interface ChatLayoutProps {
+  asideLayoutMode?: ChatAsideLayoutMode
+  leftAside?: ChatAsideConfig
+  rightAside?: ChatAsideConfig
+}
+```
+
+关键语义：
+
+- `dock`：打开时占布局
+- `drawer`：打开时不占布局
+- `expanded`：当前是否打开
+- `closedMode = 'rail' | 'hidden'`：只对 `dock` 生效
+
+## 当前实现结论
+
+- `ChatGPT rail` 已沉淀为 layout 官方能力
+- `collapsedWidth` 只表达 rail 宽度，不再表达 hidden
+- `DeepSeek` 左侧改为 `drawer`
+- `page-layer`、`mobileBreakpoint`、`a11y` 已移除
+- layout 只负责结构和基础动效契约，产品级交互留在案例侧
 
 ## 主要文件
 
-- 详细设计文档：[phase-1-layout.md](</e:/LS_WorkSpace/web/tiny-robot/packages/chat/docs/phase-1-layout.md:1>)
+- 设计文档：[phase-1-layout.md](</e:/LS_WorkSpace/web/tiny-robot/packages/chat/docs/phase-1-layout.md:1>)
 - 类型定义：[src/types/layout.ts](</e:/LS_WorkSpace/web/tiny-robot/packages/chat/src/types/layout.ts:1>)
-- 内部 slot / store 类型：[src/types/layout.internal.ts](</e:/LS_WorkSpace/web/tiny-robot/packages/chat/src/types/layout.internal.ts:1>)
-- 布局 store：[src/composables/createChatLayoutStore.ts](</e:/LS_WorkSpace/web/tiny-robot/packages/chat/src/composables/createChatLayoutStore.ts:1>)
+- 内部类型：[src/types/layout.internal.ts](</e:/LS_WorkSpace/web/tiny-robot/packages/chat/src/types/layout.internal.ts:1>)
+- store：[src/composables/createChatLayoutStore.ts](</e:/LS_WorkSpace/web/tiny-robot/packages/chat/src/composables/createChatLayoutStore.ts:1>)
 - 布局骨架：[src/layout/ChatLayout.vue](</e:/LS_WorkSpace/web/tiny-robot/packages/chat/src/layout/ChatLayout.vue:1>)
-- aside 契约：[src/layout/ChatAside.vue](</e:/LS_WorkSpace/web/tiny-robot/packages/chat/src/layout/ChatAside.vue:1>)
-- toggle 行为：[src/layout/ChatAsideToggle.vue](</e:/LS_WorkSpace/web/tiny-robot/packages/chat/src/layout/ChatAsideToggle.vue:1>)
-- 样式入口：[src/styles/layout.css](</e:/LS_WorkSpace/web/tiny-robot/packages/chat/src/styles/layout.css:1>)
+- aside：[src/layout/ChatAside.vue](</e:/LS_WorkSpace/web/tiny-robot/packages/chat/src/layout/ChatAside.vue:1>)
+- toggle：[src/layout/ChatAsideToggle.vue](</e:/LS_WorkSpace/web/tiny-robot/packages/chat/src/layout/ChatAsideToggle.vue:1>)
+- 样式：[src/styles/layout.css](</e:/LS_WorkSpace/web/tiny-robot/packages/chat/src/styles/layout.css:1>)
 - 默认变量：[src/styles/tokens.css](</e:/LS_WorkSpace/web/tiny-robot/packages/chat/src/styles/tokens.css:1>)
 
-## 当前 demo 状态
+## 当前案例
 
-源码里已经有两套基于 `Chat.Layout` 的 Vue 布局案例：
-
-- `DeepSeek Layout`
-- `ChatGPT Layout`
-
-当前 `packages/chat/demo/src/App.vue` 入口已经直接按路由挂载这两个 Vue 案例：
-
-- `/chatgpt`
-- `/deepseek`
-
-移动端 overlay 默认语义也已经固定下来：
-
-- `left` 默认是 drawer 式抽屉，宽度由 `--tr-chat-layout-mobile-left-width` 控制，默认值 `66.67vw`
-- `right` 默认是 full-screen takeover overlay，宽度由 `--tr-chat-layout-mobile-right-width` 控制，默认值 `100vw`
-- 如果某个产品真的要把右侧改成半屏抽屉，应当在业务侧覆盖 CSS 变量，而不是回改 layout 默认值
-
-## 当前遗留点
-
-- `Chat.Layout` 目前只判断 slot 是否声明，不探测 slot 最终是否真的渲染出内容。
-- 右侧虽然已经支持 collapsed 状态，但具体 rail 里显示什么仍然由业务侧自己决定。
-- 产品级 launcher、浮动按钮、品牌化 toolbar 仍然属于页面层，不属于布局层能力。
+- `DeepSeek`
+  - 左侧 drawer
+  - 右侧 desktop dock / mobile drawer
+- `ChatGPT`
+  - 左侧 dock + rail
+  - 右侧 desktop dock / mobile drawer

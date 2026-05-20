@@ -4,12 +4,12 @@ import { IconClose } from '@opentiny/tiny-robot-svgs'
 </script>
 
 <template>
-  <Chat.Aside side="right">
+  <Chat.Aside placement="right">
     <div class="chatgpt-right-panel">
       <div class="chatgpt-right-panel__header">
         <strong>聊天中的文件</strong>
 
-        <Chat.AsideToggle side="right" class="chatgpt-right-panel__icon-button" aria-label="Close files panel">
+        <Chat.AsideToggle placement="right" class="chatgpt-right-panel__icon-button" aria-label="Close files panel">
           <IconClose class="chatgpt-right-panel__icon" />
         </Chat.AsideToggle>
       </div>

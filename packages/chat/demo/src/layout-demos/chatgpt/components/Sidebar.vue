@@ -1,20 +1,22 @@
 <script setup lang="ts">
+import { useChatAside } from '@/composables/useChatAside'
 import { Chat } from '@/index'
 import { IconAi, IconMenuCollapse, IconMenuExpand, IconUser } from '@opentiny/tiny-robot-svgs'
 import { chatGptNavItems, chatGptRecentChats } from '../data'
 
 const [newChatItem, ...quickActionItems] = chatGptNavItems
+const { isDrawer, isRail } = useChatAside('left')
 </script>
 
 <template>
-  <Chat.Aside side="left" v-slot="{ state, isMobile }">
-    <div class="chatgpt-sidebar" :class="[`is-${state}`, { 'is-mobile': isMobile }]">
+  <Chat.Aside placement="left" v-slot="{ isExpanded }">
+    <div class="chatgpt-sidebar" :class="{ 'is-expanded': isExpanded, 'is-drawer': isDrawer, 'is-rail': isRail }">
       <div class="chatgpt-sidebar__stage">
         <div class="chatgpt-sidebar__brand">
           <div class="chatgpt-sidebar__brand-identity">
             <Chat.AsideToggle
-              v-if="state === 'collapsed'"
-              side="left"
+              v-if="isRail"
+              placement="left"
               class="chatgpt-sidebar__brand-toggle"
               aria-label="Open sidebar"
               title="Open sidebar"
@@ -41,8 +43,8 @@ const [newChatItem, ...quickActionItems] = chatGptNavItems
           </div>
 
           <Chat.AsideToggle
-            v-if="state !== 'collapsed'"
-            side="left"
+            v-if="!isRail"
+            placement="left"
             class="chatgpt-sidebar__icon-button"
             aria-label="Collapse sidebar"
           >
@@ -51,12 +53,7 @@ const [newChatItem, ...quickActionItems] = chatGptNavItems
         </div>
 
         <div class="chatgpt-sidebar__new-chat">
-          <button
-            v-if="state === 'collapsed'"
-            class="chatgpt-sidebar__compact-button"
-            type="button"
-            :aria-label="newChatItem.label"
-          >
+          <button v-if="isRail" class="chatgpt-sidebar__compact-button" type="button" :aria-label="newChatItem.label">
             <component :is="newChatItem.icon" />
           </button>
 
@@ -110,7 +107,7 @@ const [newChatItem, ...quickActionItems] = chatGptNavItems
 .chatgpt-sidebar__stage {
   display: flex;
   flex-direction: column;
-  width: var(--tr-chat-layout-left-sidebar-width, 260px);
+  width: var(--tr-chat-layout-left-expanded-width, 260px);
   height: 100%;
   padding: 10px 8px;
   transition: width var(--chatgpt-sidebar-motion-duration, 280ms)
@@ -350,40 +347,40 @@ const [newChatItem, ...quickActionItems] = chatGptNavItems
   margin-inline: 0;
 }
 
-.chatgpt-sidebar.is-collapsed .chatgpt-sidebar__title,
-.chatgpt-sidebar.is-collapsed .chatgpt-sidebar__action-content,
-.chatgpt-sidebar.is-collapsed .chatgpt-sidebar__recent-content,
-.chatgpt-sidebar.is-collapsed .chatgpt-sidebar__section-label {
+.chatgpt-sidebar.is-rail .chatgpt-sidebar__title,
+.chatgpt-sidebar.is-rail .chatgpt-sidebar__action-content,
+.chatgpt-sidebar.is-rail .chatgpt-sidebar__recent-content,
+.chatgpt-sidebar.is-rail .chatgpt-sidebar__section-label {
   opacity: 0;
   pointer-events: none;
 }
 
-.chatgpt-sidebar.is-collapsed .chatgpt-sidebar__stage {
-  width: var(--tr-chat-layout-left-rail-width, 52px);
+.chatgpt-sidebar.is-rail .chatgpt-sidebar__stage {
+  width: var(--tr-chat-layout-left-collapsed-width, 52px);
 }
 
-.chatgpt-sidebar.is-collapsed:hover .chatgpt-sidebar__brand-toggle-icon--logo,
-.chatgpt-sidebar.is-collapsed:focus-within .chatgpt-sidebar__brand-toggle-icon--logo {
+.chatgpt-sidebar.is-rail:hover .chatgpt-sidebar__brand-toggle-icon--logo,
+.chatgpt-sidebar.is-rail:focus-within .chatgpt-sidebar__brand-toggle-icon--logo {
   opacity: 0;
 }
 
-.chatgpt-sidebar.is-collapsed:hover .chatgpt-sidebar__brand-toggle-icon--expand,
-.chatgpt-sidebar.is-collapsed:focus-within .chatgpt-sidebar__brand-toggle-icon--expand {
+.chatgpt-sidebar.is-rail:hover .chatgpt-sidebar__brand-toggle-icon--expand,
+.chatgpt-sidebar.is-rail:focus-within .chatgpt-sidebar__brand-toggle-icon--expand {
   opacity: 1;
 }
 
-.chatgpt-sidebar.is-collapsed .chatgpt-sidebar__title {
+.chatgpt-sidebar.is-rail .chatgpt-sidebar__title {
   position: absolute;
   width: 1px;
   height: 1px;
   overflow: hidden;
 }
 
-.chatgpt-sidebar.is-collapsed .chatgpt-sidebar__action {
+.chatgpt-sidebar.is-rail .chatgpt-sidebar__action {
   padding-inline-end: 0;
 }
 
-.chatgpt-sidebar.is-collapsed .chatgpt-sidebar__recent {
+.chatgpt-sidebar.is-rail .chatgpt-sidebar__recent {
   max-height: 0;
   margin-top: 0;
   opacity: 0;
@@ -391,13 +388,11 @@ const [newChatItem, ...quickActionItems] = chatGptNavItems
   pointer-events: none;
 }
 
-.chatgpt-sidebar.is-mobile .chatgpt-sidebar__stage,
-.chatgpt-sidebar.is-overlay .chatgpt-sidebar__stage {
+.chatgpt-sidebar.is-drawer .chatgpt-sidebar__stage {
   width: 100%;
 }
 
-.chatgpt-sidebar.is-mobile .chatgpt-sidebar__new-chat-button,
-.chatgpt-sidebar.is-overlay .chatgpt-sidebar__new-chat-button {
+.chatgpt-sidebar.is-drawer .chatgpt-sidebar__new-chat-button {
   width: calc(100% - 8px);
 }
 </style>

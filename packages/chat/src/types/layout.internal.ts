@@ -1,5 +1,11 @@
-import type { Ref, VNode } from 'vue'
-import type { ChatAsideSlotProps, ChatAsideState, ChatAsideToggleSlotProps } from './layout'
+import type { VNode } from 'vue'
+import type {
+  ChatAsideClosedMode,
+  ChatAsideLayoutMode,
+  ChatAsidePlacement,
+  ChatAsideSlotProps,
+  ChatAsideToggleSlotProps,
+} from './layout'
 
 // Slot helpers
 export interface ChatAsideSlots {
@@ -11,26 +17,33 @@ export interface ChatAsideToggleSlots {
 }
 
 export interface ChatLayoutSlots {
-  'left-sidebar'?: () => VNode[]
+  'left-aside'?: () => VNode[]
   header?: () => VNode[]
   main?: () => VNode[]
   footer?: () => VNode[]
-  'right-panel'?: () => VNode[]
-  'page-layer'?: () => VNode[]
+  'right-aside'?: () => VNode[]
 }
 
 // Runtime store types
 export interface ChatLayoutPanelApi {
-  state: Readonly<Ref<ChatAsideState>>
-  isOpen: Readonly<Ref<boolean>>
+  placement: ChatAsidePlacement
+  layoutMode: ChatAsideLayoutMode
+  closedMode: ChatAsideClosedMode
+  isExpanded: boolean
+  isDock: boolean
+  isDrawer: boolean
+  isRail: boolean
+  isHidden: boolean
+  expandedWidth: string
+  collapsedWidth: string
   open: () => void
   close: () => void
   toggle: () => void
 }
 
 export interface ChatLayoutStore {
-  isMobile: Readonly<Ref<boolean>>
   left: ChatLayoutPanelApi
   right: ChatLayoutPanelApi
-  closeOverlays: () => void
+  isDrawerVisible: boolean
+  closeDrawers: () => void
 }

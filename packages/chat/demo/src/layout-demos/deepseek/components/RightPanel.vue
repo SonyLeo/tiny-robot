@@ -1,9 +1,12 @@
 <script setup lang="ts">
+import { useMediaQuery } from '@vueuse/core'
 import { Chat } from '@/index'
+
+const isMobile = useMediaQuery('(max-width: 959px)')
 </script>
 
 <template>
-  <Chat.Aside side="right" v-slot="{ isMobile }">
+  <Chat.Aside placement="right">
     <div class="deepseek-right-panel">
       <div class="deepseek-right-panel__header">
         <div>
@@ -12,7 +15,7 @@ import { Chat } from '@/index'
         </div>
 
         <Chat.AsideToggle
-          side="right"
+          placement="right"
           class="deepseek-right-panel__close"
           :aria-label="isMobile ? 'Close panel' : 'Hide panel'"
         >
@@ -30,10 +33,7 @@ import { Chat } from '@/index'
 
         <section class="deepseek-right-panel__section">
           <h3>Reference</h3>
-          <p>
-            Use this side panel to validate the right overlay flow on mobile and the auxiliary rail/panel capability on
-            desktop.
-          </p>
+          <p>Use this side panel to validate the desktop dock and mobile drawer behavior.</p>
         </section>
       </div>
     </div>

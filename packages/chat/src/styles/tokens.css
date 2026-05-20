@@ -7,12 +7,10 @@
   --tr-chat-layout-footer-bg: var(--tr-container-bg-default, #ffffff);
   --tr-chat-layout-divider-color: var(--tr-border-color-disabled, #e5e7eb);
   --tr-chat-layout-text-primary: var(--tr-text-primary, #111827);
-  --tr-chat-layout-left-sidebar-width: 300px;
-  --tr-chat-layout-left-rail-width: 48px;
-  --tr-chat-layout-right-panel-width: 320px;
-  --tr-chat-layout-right-rail-width: 48px;
-  --tr-chat-layout-mobile-left-width: 66.67vw;
-  --tr-chat-layout-mobile-right-width: 100vw;
+  --tr-chat-layout-left-expanded-width: 300px;
+  --tr-chat-layout-left-collapsed-width: 48px;
+  --tr-chat-layout-right-expanded-width: 320px;
+  --tr-chat-layout-right-collapsed-width: 48px;
   --tr-chat-layout-content-max-width: 960px;
   --tr-chat-layout-inner-padding-inline: 16px;
   --tr-chat-layout-inner-padding-block: 12px;

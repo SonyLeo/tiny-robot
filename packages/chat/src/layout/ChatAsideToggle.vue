@@ -12,10 +12,10 @@ defineSlots<ChatAsideToggleSlots>()
 
 const props = defineProps<ChatAsideToggleProps>()
 
-const { isOpen, toggle } = useChatAside(() => props.side)
+const { isExpanded, toggle } = useChatAside(() => props.placement)
 
 const slotProps = computed<ChatAsideToggleSlotProps>(() => ({
-  isOpen: isOpen.value,
+  isExpanded: isExpanded.value,
 }))
 
 const defaultAriaLabels = {
@@ -25,25 +25,31 @@ const defaultAriaLabels = {
 
 const fallbackTexts = {
   left: {
-    open: '收起导航',
-    closed: '展开导航',
+    expanded: '收起导航',
+    collapsed: '展开导航',
   },
   right: {
-    open: '关闭扩展区',
-    closed: '打开扩展区',
+    expanded: '关闭扩展区',
+    collapsed: '打开扩展区',
   },
 } as const
 
-const ariaLabel = computed(() => props.ariaLabel ?? defaultAriaLabels[props.side])
+const ariaLabel = computed(() => props.ariaLabel ?? defaultAriaLabels[props.placement])
 
 const fallbackText = computed(() => {
-  const text = fallbackTexts[props.side]
-  return isOpen.value ? text.open : text.closed
+  const text = fallbackTexts[props.placement]
+  return isExpanded.value ? text.expanded : text.collapsed
 })
 </script>
 
 <template>
-  <button class="tr-chat-panel-toggle" type="button" :aria-expanded="isOpen" :aria-label="ariaLabel" @click="toggle">
+  <button
+    class="tr-chat-panel-toggle"
+    type="button"
+    :aria-expanded="isExpanded"
+    :aria-label="ariaLabel"
+    @click="toggle"
+  >
     <slot v-bind="slotProps">
       {{ fallbackText }}
     </slot>

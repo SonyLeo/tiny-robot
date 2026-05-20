@@ -1,15 +1,12 @@
 import { computed, toValue, type MaybeRefOrGetter } from 'vue'
 import { useChatLayout } from '@/composables/useChatLayout'
-import type { ChatAsideSide, ChatAsideState } from '@/types/layout'
+import type { ChatAsidePlacement } from '@/types/layout'
 import type { ChatLayoutPanelApi } from '@/types/layout.internal'
 
-export function useChatAside(side: MaybeRefOrGetter<ChatAsideSide>) {
+export function useChatAside(placement: MaybeRefOrGetter<ChatAsidePlacement>) {
   const store = useChatLayout()
-  const resolvedSide = computed(() => toValue(side))
-  const panel = computed<ChatLayoutPanelApi>(() => (resolvedSide.value === 'left' ? store.left : store.right))
-  const state = computed<ChatAsideState>(() => panel.value.state.value)
-  const isOpen = computed(() => panel.value.isOpen.value)
-  const isCollapsed = computed(() => state.value === 'collapsed')
+  const resolvedPlacement = computed(() => toValue(placement))
+  const panel = computed<ChatLayoutPanelApi>(() => (resolvedPlacement.value === 'left' ? store.left : store.right))
 
   function open(): void {
     panel.value.open()
@@ -24,10 +21,13 @@ export function useChatAside(side: MaybeRefOrGetter<ChatAsideSide>) {
   }
 
   return {
-    isMobile: store.isMobile,
-    state,
-    isOpen,
-    isCollapsed,
+    layoutMode: computed(() => panel.value.layoutMode),
+    closedMode: computed(() => panel.value.closedMode),
+    isExpanded: computed(() => panel.value.isExpanded),
+    isDock: computed(() => panel.value.isDock),
+    isDrawer: computed(() => panel.value.isDrawer),
+    isRail: computed(() => panel.value.isRail),
+    isHidden: computed(() => panel.value.isHidden),
     open,
     close,
     toggle,
