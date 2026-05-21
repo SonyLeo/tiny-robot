@@ -3,14 +3,13 @@ import { useEventListener } from '@vueuse/core'
 import { computed, useSlots } from 'vue'
 import { createChatLayoutStore } from '@/composables/createChatLayoutStore'
 import { provideChatLayoutStore } from '@/composables/useChatLayout'
-import type { ChatAsideConfig, ChatLayoutProps } from '@/types/layout'
-import type { ChatLayoutSlots } from '@/types/layout.internal'
+import type { ChatAsideConfig, ChatLayoutProps, ChatLayoutSlots } from '@/types/layout'
 
 defineOptions({
   name: 'ChatLayout',
 })
 
-const props = defineProps<ChatLayoutProps>()
+defineProps<ChatLayoutProps>()
 
 defineSlots<ChatLayoutSlots>()
 
@@ -29,7 +28,6 @@ function updateRightAside(nextConfig: ChatAsideConfig): void {
 }
 
 const layoutStore = createChatLayoutStore({
-  asideLayoutMode: computed(() => props.asideLayoutMode),
   left: {
     layoutMode: computed(() => leftAsideConfig.value.layoutMode),
     expanded: computed(() => leftAsideConfig.value.expanded),

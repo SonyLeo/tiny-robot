@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useChatAside } from '@/composables/useChatAside'
-import type { ChatAsideToggleProps, ChatAsideToggleSlotProps } from '@/types/layout'
-import type { ChatAsideToggleSlots } from '@/types/layout.internal'
+import type { ChatAsideToggleProps, ChatAsideToggleSlots } from '@/types/layout'
 
 defineOptions({
   name: 'ChatAsideToggle',
@@ -14,7 +13,7 @@ const props = defineProps<ChatAsideToggleProps>()
 
 const { isExpanded, toggle } = useChatAside(() => props.placement)
 
-const slotProps = computed<ChatAsideToggleSlotProps>(() => ({
+const slotProps = computed(() => ({
   isExpanded: isExpanded.value,
 }))
 

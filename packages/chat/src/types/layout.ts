@@ -1,6 +1,9 @@
+import type { VNode } from 'vue'
+
 export type ChatAsidePlacement = 'left' | 'right'
 export type ChatAsideLayoutMode = 'dock' | 'drawer'
 export type ChatAsideClosedMode = 'rail' | 'hidden'
+export type ChatAsideCollapseMode = 'overlay' | 'slide'
 
 export interface ChatAsideConfig {
   layoutMode?: ChatAsideLayoutMode
@@ -12,13 +15,13 @@ export interface ChatAsideConfig {
 
 // Props
 export interface ChatLayoutProps {
-  asideLayoutMode?: ChatAsideLayoutMode
   leftAside?: ChatAsideConfig
   rightAside?: ChatAsideConfig
 }
 
 export interface ChatAsideProps {
   placement: ChatAsidePlacement
+  collapseMode?: ChatAsideCollapseMode
 }
 
 export interface ChatAsideToggleProps {
@@ -27,10 +30,18 @@ export interface ChatAsideToggleProps {
 }
 
 // Slot props
-export interface ChatAsideSlotProps {
-  isExpanded: boolean
+export interface ChatAsideSlots {
+  default?(slotProps: { isExpanded: boolean }): VNode[]
 }
 
-export interface ChatAsideToggleSlotProps {
-  isExpanded: boolean
+export interface ChatAsideToggleSlots {
+  default?(slotProps: { isExpanded: boolean }): VNode[]
+}
+
+export interface ChatLayoutSlots {
+  'left-aside'?: () => VNode[]
+  header?: () => VNode[]
+  main?: () => VNode[]
+  footer?: () => VNode[]
+  'right-aside'?: () => VNode[]
 }

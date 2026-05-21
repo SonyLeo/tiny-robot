@@ -60,7 +60,6 @@ interface ChatAsideConfig {
 }
 
 interface ChatLayoutProps {
-  asideLayoutMode?: ChatAsideLayoutMode
   leftAside?: ChatAsideConfig
   rightAside?: ChatAsideConfig
 }
@@ -95,7 +94,6 @@ interface ChatLayoutProps {
 
 props：
 
-- `asideLayoutMode?: 'dock' | 'drawer'`
 - `leftAside?: ChatAsideConfig`
 - `rightAside?: ChatAsideConfig`
 

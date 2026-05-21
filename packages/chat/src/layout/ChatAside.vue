@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useChatAside } from '@/composables/useChatAside'
-import type { ChatAsideProps, ChatAsideSlotProps } from '@/types/layout'
-import type { ChatAsideSlots } from '@/types/layout.internal'
+import type { ChatAsideProps, ChatAsideSlots } from '@/types/layout'
 
 defineOptions({
   name: 'ChatAside',
@@ -14,9 +13,11 @@ defineSlots<ChatAsideSlots>()
 
 const { isExpanded, isDock, isDrawer, isRail, isHidden } = useChatAside(() => props.placement)
 
-const slotProps = computed<ChatAsideSlotProps>(() => ({
+const slotProps = computed(() => ({
   isExpanded: isExpanded.value,
 }))
+
+const collapseMode = computed(() => props.collapseMode ?? 'overlay')
 </script>
 
 <template>
@@ -30,6 +31,8 @@ const slotProps = computed<ChatAsideSlotProps>(() => ({
       'tr-chat-aside--expanded': isExpanded,
       'tr-chat-aside--rail': isRail,
       'tr-chat-aside--hidden': isHidden,
+      'tr-chat-aside--collapse-overlay': collapseMode === 'overlay',
+      'tr-chat-aside--collapse-slide': collapseMode === 'slide',
     }"
   >
     <slot v-bind="slotProps" />

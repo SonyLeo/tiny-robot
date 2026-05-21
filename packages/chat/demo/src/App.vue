@@ -1,9 +1,15 @@
 <script setup lang="ts">
 import { computed, markRaw, shallowRef } from 'vue'
+import ContainerLayoutDemo from './layout-demos/ContainerLayoutDemo.vue'
 import ChatGptLayoutDemo from './layout-demos/ChatGptLayoutDemo.vue'
 import DeepSeekLayoutDemo from './layout-demos/DeepSeekLayoutDemo.vue'
 
 const demos = [
+  {
+    id: 'container',
+    label: 'Container',
+    component: markRaw(ContainerLayoutDemo),
+  },
   {
     id: 'deepseek',
     label: 'DeepSeek',
@@ -20,13 +26,16 @@ type DemoId = (typeof demos)[number]['id']
 
 const activeDemoId = shallowRef<DemoId>('deepseek')
 const activeDemo = computed(() => demos.find((demo) => demo.id === activeDemoId.value) ?? demos[0])
+const dockClass = computed(() => ({
+  'demo-shell__dock--left': activeDemoId.value === 'container',
+}))
 </script>
 
 <template>
   <div class="demo-shell">
     <component :is="activeDemo.component" />
 
-    <aside class="demo-shell__dock">
+    <aside class="demo-shell__dock" :class="dockClass">
       <div class="demo-shell__buttons">
         <button
           v-for="demo in demos"
@@ -65,6 +74,11 @@ const activeDemo = computed(() => demos.find((demo) => demo.id === activeDemoId.
   background: rgba(255, 255, 255, 0.92);
   box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
   backdrop-filter: blur(18px);
+}
+
+.demo-shell__dock--left {
+  right: auto;
+  left: 14px;
 }
 
 .demo-shell__buttons {

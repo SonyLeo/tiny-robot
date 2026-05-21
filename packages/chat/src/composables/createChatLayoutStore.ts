@@ -12,7 +12,6 @@ type MaybeRefChatAsideConfig = {
 }
 
 export interface CreateChatLayoutStoreOptions {
-  asideLayoutMode?: MaybeRefOrGetter<ChatAsideLayoutMode | undefined>
   left?: MaybeRefChatAsideConfig
   right?: MaybeRefChatAsideConfig
 }
@@ -41,8 +40,6 @@ function toCssLength(value: number | string | undefined, fallback: string): stri
 }
 
 export function createChatLayoutStore(options: CreateChatLayoutStoreOptions = {}): ChatLayoutStore {
-  const fallbackAsideLayoutMode = computed<ChatAsideLayoutMode>(() => toValue(options.asideLayoutMode) ?? 'dock')
-
   function resolveAsideConfig(
     side: ChatAsidePlacement,
     config: MaybeRefChatAsideConfig | undefined,
@@ -50,7 +47,7 @@ export function createChatLayoutStore(options: CreateChatLayoutStoreOptions = {}
     const defaultExpanded = side === 'left'
     const defaultExpandedWidth = side === 'left' ? '300px' : '320px'
 
-    const layoutMode = computed<ChatAsideLayoutMode>(() => toValue(config?.layoutMode) ?? fallbackAsideLayoutMode.value)
+    const layoutMode = computed<ChatAsideLayoutMode>(() => toValue(config?.layoutMode) ?? 'dock')
     const expanded = computed<boolean>(() => toValue(config?.expanded) ?? defaultExpanded)
     const closedMode = computed<ChatAsideClosedMode>(() => toValue(config?.closedMode) ?? 'hidden')
     const expandedWidthValue = computed<ChatAsideConfig['expandedWidth']>(() => toValue(config?.expandedWidth))

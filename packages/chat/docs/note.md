@@ -35,7 +35,6 @@ interface ChatAsideConfig {
 }
 
 interface ChatLayoutProps {
-  asideLayoutMode?: ChatAsideLayoutMode
   leftAside?: ChatAsideConfig
   rightAside?: ChatAsideConfig
 }

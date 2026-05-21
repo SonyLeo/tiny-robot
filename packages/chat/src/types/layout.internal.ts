@@ -1,28 +1,4 @@
-import type { VNode } from 'vue'
-import type {
-  ChatAsideClosedMode,
-  ChatAsideLayoutMode,
-  ChatAsidePlacement,
-  ChatAsideSlotProps,
-  ChatAsideToggleSlotProps,
-} from './layout'
-
-// Slot helpers
-export interface ChatAsideSlots {
-  default?(slotProps: ChatAsideSlotProps): VNode[]
-}
-
-export interface ChatAsideToggleSlots {
-  default?(slotProps: ChatAsideToggleSlotProps): VNode[]
-}
-
-export interface ChatLayoutSlots {
-  'left-aside'?: () => VNode[]
-  header?: () => VNode[]
-  main?: () => VNode[]
-  footer?: () => VNode[]
-  'right-aside'?: () => VNode[]
-}
+import type { ChatAsideClosedMode, ChatAsideLayoutMode, ChatAsidePlacement } from './layout'
 
 // Runtime store types
 export interface ChatLayoutPanelApi {
