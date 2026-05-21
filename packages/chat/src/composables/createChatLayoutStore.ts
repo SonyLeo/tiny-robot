@@ -1,11 +1,10 @@
 import { computed, toValue, type ComputedRef, type MaybeRefOrGetter } from 'vue'
-import type { ChatAsideClosedMode, ChatAsideConfig, ChatAsideLayoutMode, ChatAsidePlacement } from '@/types/layout'
+import type { ChatAsideConfig, ChatAsideLayoutMode, ChatAsidePlacement } from '@/types/layout'
 import type { ChatLayoutPanelApi, ChatLayoutStore } from '@/types/layout.internal'
 
 type MaybeRefChatAsideConfig = {
   layoutMode?: MaybeRefOrGetter<ChatAsideConfig['layoutMode'] | undefined>
   expanded?: MaybeRefOrGetter<ChatAsideConfig['expanded'] | undefined>
-  closedMode?: MaybeRefOrGetter<ChatAsideConfig['closedMode'] | undefined>
   expandedWidth?: MaybeRefOrGetter<ChatAsideConfig['expandedWidth'] | undefined>
   collapsedWidth?: MaybeRefOrGetter<ChatAsideConfig['collapsedWidth'] | undefined>
   onUpdate?: (nextConfig: ChatAsideConfig) => void
@@ -19,7 +18,6 @@ export interface CreateChatLayoutStoreOptions {
 type ResolvedChatAsideConfig = {
   layoutMode: ComputedRef<ChatAsideLayoutMode>
   expanded: ComputedRef<boolean>
-  closedMode: ComputedRef<ChatAsideClosedMode>
   expandedWidthValue: ComputedRef<ChatAsideConfig['expandedWidth']>
   collapsedWidthValue: ComputedRef<ChatAsideConfig['collapsedWidth']>
   expandedWidth: ComputedRef<string>
@@ -39,6 +37,24 @@ function toCssLength(value: number | string | undefined, fallback: string): stri
   return fallback
 }
 
+function hasCollapsedRail(value: number | string | undefined): boolean {
+  if (typeof value === 'number') {
+    return value > 0
+  }
+
+  if (typeof value !== 'string') {
+    return false
+  }
+
+  const normalized = value.trim().toLowerCase()
+
+  if (!normalized) {
+    return false
+  }
+
+  return !/^0(?:\.0+)?(?:[a-z%]+)?$/.test(normalized)
+}
+
 export function createChatLayoutStore(options: CreateChatLayoutStoreOptions = {}): ChatLayoutStore {
   function resolveAsideConfig(
     side: ChatAsidePlacement,
@@ -49,16 +65,14 @@ export function createChatLayoutStore(options: CreateChatLayoutStoreOptions = {}
 
     const layoutMode = computed<ChatAsideLayoutMode>(() => toValue(config?.layoutMode) ?? 'dock')
     const expanded = computed<boolean>(() => toValue(config?.expanded) ?? defaultExpanded)
-    const closedMode = computed<ChatAsideClosedMode>(() => toValue(config?.closedMode) ?? 'hidden')
     const expandedWidthValue = computed<ChatAsideConfig['expandedWidth']>(() => toValue(config?.expandedWidth))
     const collapsedWidthValue = computed<ChatAsideConfig['collapsedWidth']>(() => toValue(config?.collapsedWidth))
     const expandedWidth = computed(() => toCssLength(expandedWidthValue.value, defaultExpandedWidth))
-    const collapsedWidth = computed(() => toCssLength(collapsedWidthValue.value, '48px'))
+    const collapsedWidth = computed(() => toCssLength(collapsedWidthValue.value, '0px'))
 
     return {
       layoutMode,
       expanded,
-      closedMode,
       expandedWidthValue,
       collapsedWidthValue,
       expandedWidth,
@@ -74,7 +88,6 @@ export function createChatLayoutStore(options: CreateChatLayoutStoreOptions = {}
     config.onUpdate?.({
       layoutMode: config.layoutMode.value,
       expanded: config.expanded.value,
-      closedMode: config.closedMode.value,
       expandedWidth: config.expandedWidthValue.value,
       collapsedWidth: config.collapsedWidthValue.value,
       ...patch,
@@ -88,8 +101,10 @@ export function createChatLayoutStore(options: CreateChatLayoutStoreOptions = {}
   ): ChatLayoutPanelApi {
     const isDock = computed(() => config.layoutMode.value === 'dock')
     const isDrawer = computed(() => config.layoutMode.value === 'drawer')
-    const isRail = computed(() => isDock.value && !config.expanded.value && config.closedMode.value === 'rail')
-    const isHidden = computed(() => !config.expanded.value && (isDrawer.value || config.closedMode.value === 'hidden'))
+    const isRail = computed(
+      () => isDock.value && !config.expanded.value && hasCollapsedRail(config.collapsedWidthValue.value),
+    )
+    const isHidden = computed(() => !config.expanded.value && (isDrawer.value || !isRail.value))
 
     function open(): void {
       if (isDrawer.value && otherConfig.layoutMode.value === 'drawer' && otherConfig.expanded.value) {
@@ -116,9 +131,6 @@ export function createChatLayoutStore(options: CreateChatLayoutStoreOptions = {}
       placement,
       get layoutMode() {
         return config.layoutMode.value
-      },
-      get closedMode() {
-        return config.closedMode.value
       },
       get isExpanded() {
         return config.expanded.value

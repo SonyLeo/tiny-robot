@@ -20,12 +20,10 @@
 
 ## 2. 当前组件
 
-当前对外保留 6 个布局原语：
+当前对外保留 4 个布局原语：
 
 - `Chat.Layout`
-- `Chat.Header`
 - `Chat.Main`
-- `Chat.Footer`
 - `Chat.Aside`
 - `Chat.AsideToggle`
 
@@ -35,8 +33,8 @@
   - 对外唯一布局入口
   - 内部创建并提供 layout store
   - 负责固定骨架、左右 aside、drawer/backdrop
-- `Chat.Header / Chat.Main / Chat.Footer`
-  - 提供语义化区域容器
+- `Chat.Main`
+  - 提供主内容区域容器
 - `Chat.Aside`
   - 提供统一的左/右侧内容壳
 - `Chat.AsideToggle`
@@ -49,12 +47,10 @@
 ```ts
 type ChatAsidePlacement = 'left' | 'right'
 type ChatAsideLayoutMode = 'dock' | 'drawer'
-type ChatAsideClosedMode = 'rail' | 'hidden'
 
 interface ChatAsideConfig {
   layoutMode?: ChatAsideLayoutMode
   expanded?: boolean
-  closedMode?: ChatAsideClosedMode
   expandedWidth?: number | string
   collapsedWidth?: number | string
 }
@@ -75,16 +71,16 @@ interface ChatLayoutProps {
   - 当前打开
 - `expanded = false`
   - 当前关闭
-- `closedMode = 'rail'`
+- `collapsedWidth > 0`
   - 仅对 `dock` 有意义，关闭后保留 rail
-- `closedMode = 'hidden'`
+- `collapsedWidth = 0` 或未配置
   - 仅对 `dock` 有意义，关闭后完全隐藏
 
 状态映射：
 
 - `dock + expanded = true` => panel
-- `dock + expanded = false + closedMode = 'rail'` => rail
-- `dock + expanded = false + closedMode = 'hidden'` => hidden
+- `dock + expanded = false + collapsedWidth > 0` => rail
+- `dock + expanded = false + collapsedWidth = 0/undefined` => hidden
 - `drawer + expanded = true` => drawer open
 - `drawer + expanded = false` => drawer closed
 
@@ -166,7 +162,7 @@ slot props：
 
 - `expandedWidth / collapsedWidth` 会被 `Chat.Layout` 转成上述变量
 - `drawer` 模式打开时使用 `expandedWidth`
-- `collapsedWidth` 只表达 rail 宽度，不表达 hidden
+- `collapsedWidth` 同时决定 dock 关闭后的 rail / hidden 形态
 
 ### 5.2 Header / Main / Footer
 
@@ -203,18 +199,18 @@ slot props：
 ### DeepSeek
 
 - 左侧：`drawer`
-- 右侧：desktop `dock + hidden`，mobile `drawer`
+- 右侧：desktop `dock + collapsedWidth=0`，mobile `drawer`
 - launcher 已从 layout 公共 slot 中移出，回到 case 自己管理
 
 ### ChatGPT
 
 - 左侧：`dock + rail`
-- 右侧：desktop `dock + hidden`，mobile `drawer`
+- 右侧：desktop `dock + collapsedWidth=0`，mobile `drawer`
 - rail/panel 使用同一套 sidebar DOM
 
 ## 7. 当前结论
 
 - `ChatGPT rail` 已经收敛成 layout 官方能力
-- `collapsedWidth` 不再承担 hidden 语义
+- `collapsedWidth` 统一承担 dock 关闭后的 rail / hidden 语义
 - `DeepSeek` 更适合用 `drawer` 表达，而不是再保留旧 `hidden/overlay` 状态词
 - layout 负责结构契约；具体产品动效和页面层元素继续留在案例侧

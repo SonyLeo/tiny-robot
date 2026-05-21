@@ -31,7 +31,6 @@ const layoutStore = createChatLayoutStore({
   left: {
     layoutMode: computed(() => leftAsideConfig.value.layoutMode),
     expanded: computed(() => leftAsideConfig.value.expanded),
-    closedMode: computed(() => leftAsideConfig.value.closedMode),
     expandedWidth: computed(() => leftAsideConfig.value.expandedWidth),
     collapsedWidth: computed(() => leftAsideConfig.value.collapsedWidth),
     onUpdate: updateLeftAside,
@@ -39,7 +38,6 @@ const layoutStore = createChatLayoutStore({
   right: {
     layoutMode: computed(() => rightAsideConfig.value.layoutMode),
     expanded: computed(() => rightAsideConfig.value.expanded),
-    closedMode: computed(() => rightAsideConfig.value.closedMode),
     expandedWidth: computed(() => rightAsideConfig.value.expandedWidth),
     collapsedWidth: computed(() => rightAsideConfig.value.collapsedWidth),
     onUpdate: updateRightAside,
@@ -125,7 +123,9 @@ useEventListener(keyboardTarget, 'keydown', (event: KeyboardEvent) => {
       :aria-hidden="hasHeader ? undefined : 'true'"
     >
       <div class="tr-chat-layout__header-inner">
-        <slot name="header" />
+        <header class="tr-chat-header">
+          <slot name="header" />
+        </header>
       </div>
     </div>
 
@@ -141,7 +141,9 @@ useEventListener(keyboardTarget, 'keydown', (event: KeyboardEvent) => {
       :aria-hidden="hasFooter ? undefined : 'true'"
     >
       <div class="tr-chat-layout__footer-inner">
-        <slot name="footer" />
+        <footer class="tr-chat-footer">
+          <slot name="footer" />
+        </footer>
       </div>
     </div>
 

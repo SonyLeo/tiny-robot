@@ -5,9 +5,7 @@
 ## 当前范围
 
 - `Chat.Layout`
-- `Chat.Header`
 - `Chat.Main`
-- `Chat.Footer`
 - `Chat.Aside`
 - `Chat.AsideToggle`
 
@@ -24,12 +22,10 @@
 ```ts
 type ChatAsidePlacement = 'left' | 'right'
 type ChatAsideLayoutMode = 'dock' | 'drawer'
-type ChatAsideClosedMode = 'rail' | 'hidden'
 
 interface ChatAsideConfig {
   layoutMode?: ChatAsideLayoutMode
   expanded?: boolean
-  closedMode?: ChatAsideClosedMode
   expandedWidth?: number | string
   collapsedWidth?: number | string
 }
@@ -45,12 +41,13 @@ interface ChatLayoutProps {
 - `dock`：打开时占布局
 - `drawer`：打开时不占布局
 - `expanded`：当前是否打开
-- `closedMode = 'rail' | 'hidden'`：只对 `dock` 生效
+- `collapsedWidth > 0`：只对 `dock` 生效，关闭后保留 rail
+- `collapsedWidth = 0` 或未配置：只对 `dock` 生效，关闭后完全隐藏
 
 ## 当前实现结论
 
 - `ChatGPT rail` 已沉淀为 layout 官方能力
-- `collapsedWidth` 只表达 rail 宽度，不再表达 hidden
+- `collapsedWidth` 统一表达 dock 关闭后的 rail / hidden 形态
 - `DeepSeek` 左侧改为 `drawer`
 - `page-layer`、`mobileBreakpoint`、`a11y` 已移除
 - layout 只负责结构和基础动效契约，产品级交互留在案例侧

@@ -22,7 +22,6 @@ export function useChatAside(placement: MaybeRefOrGetter<ChatAsidePlacement>) {
 
   return {
     layoutMode: computed(() => panel.value.layoutMode),
-    closedMode: computed(() => panel.value.closedMode),
     isExpanded: computed(() => panel.value.isExpanded),
     isDock: computed(() => panel.value.isDock),
     isDrawer: computed(() => panel.value.isDrawer),

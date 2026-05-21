@@ -2,13 +2,11 @@ import type { VNode } from 'vue'
 
 export type ChatAsidePlacement = 'left' | 'right'
 export type ChatAsideLayoutMode = 'dock' | 'drawer'
-export type ChatAsideClosedMode = 'rail' | 'hidden'
-export type ChatAsideCollapseMode = 'overlay' | 'slide'
+export type ChatAsideCollapseEffect = 'overlay' | 'slide'
 
 export interface ChatAsideConfig {
   layoutMode?: ChatAsideLayoutMode
   expanded?: boolean
-  closedMode?: ChatAsideClosedMode
   expandedWidth?: number | string
   collapsedWidth?: number | string
 }
@@ -21,7 +19,7 @@ export interface ChatLayoutProps {
 
 export interface ChatAsideProps {
   placement: ChatAsidePlacement
-  collapseMode?: ChatAsideCollapseMode
+  collapseEffect?: ChatAsideCollapseEffect
 }
 
 export interface ChatAsideToggleProps {

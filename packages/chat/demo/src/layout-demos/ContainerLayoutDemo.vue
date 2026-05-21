@@ -53,15 +53,11 @@ function handleRightAsideUpdate(nextConfig?: ChatAsideConfig): void {
           </template>
 
           <template #header>
-            <Chat.Header>
-              <div class="container-layout-demo__header">
-                <Chat.AsideToggle placement="left" class="container-layout-demo__icon-button"> Left </Chat.AsideToggle>
-                <strong>Container Preview</strong>
-                <Chat.AsideToggle placement="right" class="container-layout-demo__icon-button">
-                  Right
-                </Chat.AsideToggle>
-              </div>
-            </Chat.Header>
+            <div class="container-layout-demo__header">
+              <Chat.AsideToggle placement="left" class="container-layout-demo__icon-button"> Left </Chat.AsideToggle>
+              <strong>Container Preview</strong>
+              <Chat.AsideToggle placement="right" class="container-layout-demo__icon-button"> Right </Chat.AsideToggle>
+            </div>
           </template>
 
           <template #main>
@@ -81,12 +77,10 @@ function handleRightAsideUpdate(nextConfig?: ChatAsideConfig): void {
           </template>
 
           <template #footer>
-            <Chat.Footer>
-              <div class="container-layout-demo__footer">
-                <input type="text" placeholder="请输入您的问题" />
-                <button type="button">发送</button>
-              </div>
-            </Chat.Footer>
+            <div class="container-layout-demo__footer">
+              <input type="text" placeholder="请输入您的问题" />
+              <button type="button">发送</button>
+            </div>
           </template>
 
           <template #right-aside>

@@ -1,10 +1,9 @@
-import type { ChatAsideClosedMode, ChatAsideLayoutMode, ChatAsidePlacement } from './layout'
+import type { ChatAsideLayoutMode, ChatAsidePlacement } from './layout'
 
 // Runtime store types
 export interface ChatLayoutPanelApi {
   placement: ChatAsidePlacement
   layoutMode: ChatAsideLayoutMode
-  closedMode: ChatAsideClosedMode
   isExpanded: boolean
   isDock: boolean
   isDrawer: boolean

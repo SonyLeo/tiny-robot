@@ -26,7 +26,6 @@ watch(
 const leftAside = computed<ChatAsideConfig>(() => ({
   layoutMode: isMobile.value ? 'drawer' : 'dock',
   expanded: leftExpanded.value,
-  closedMode: 'rail',
   expandedWidth: isMobile.value ? 'min(84vw, 320px)' : 260,
   collapsedWidth: 52,
 }))
@@ -34,7 +33,6 @@ const leftAside = computed<ChatAsideConfig>(() => ({
 const rightAside = computed<ChatAsideConfig>(() => ({
   layoutMode: isMobile.value ? 'drawer' : 'dock',
   expanded: rightExpanded.value,
-  closedMode: 'hidden',
   expandedWidth: isMobile.value ? '100vw' : 364,
 }))
 
@@ -60,9 +58,7 @@ function handleRightAsideUpdate(nextConfig?: ChatAsideConfig): void {
     </template>
 
     <template #header>
-      <Chat.Header>
-        <Header />
-      </Chat.Header>
+      <Header />
     </template>
 
     <template #main>
@@ -72,9 +68,7 @@ function handleRightAsideUpdate(nextConfig?: ChatAsideConfig): void {
     </template>
 
     <template #footer>
-      <Chat.Footer>
-        <Composer />
-      </Chat.Footer>
+      <Composer />
     </template>
 
     <template #right-aside>

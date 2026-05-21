@@ -17,7 +17,7 @@ const slotProps = computed(() => ({
   isExpanded: isExpanded.value,
 }))
 
-const collapseMode = computed(() => props.collapseMode ?? 'overlay')
+const collapseEffect = computed(() => props.collapseEffect ?? 'overlay')
 </script>
 
 <template>
@@ -31,8 +31,8 @@ const collapseMode = computed(() => props.collapseMode ?? 'overlay')
       'tr-chat-aside--expanded': isExpanded,
       'tr-chat-aside--rail': isRail,
       'tr-chat-aside--hidden': isHidden,
-      'tr-chat-aside--collapse-overlay': collapseMode === 'overlay',
-      'tr-chat-aside--collapse-slide': collapseMode === 'slide',
+      'tr-chat-aside--effect-overlay': collapseEffect === 'overlay',
+      'tr-chat-aside--effect-slide': collapseEffect === 'slide',
     }"
   >
     <slot v-bind="slotProps" />
