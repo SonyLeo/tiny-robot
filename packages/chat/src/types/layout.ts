@@ -3,6 +3,7 @@ import type { VNode } from 'vue'
 export type ChatAsidePlacement = 'left' | 'right'
 export type ChatAsideLayoutMode = 'dock' | 'drawer'
 export type ChatAsideCollapseEffect = 'overlay' | 'slide'
+export type ChatSurfaceMode = 'fullscreen' | 'floating' | 'edge-right'
 
 export interface ChatAsideConfig {
   layoutMode?: ChatAsideLayoutMode
@@ -19,13 +20,30 @@ export interface ChatAsideResizeEventDetail {
   width: number
 }
 
+export interface ChatSurfaceRect {
+  x?: number
+  y?: number
+  width?: number | string
+  height?: number | string
+}
+
+export interface ChatSurfaceConfig {
+  mode?: ChatSurfaceMode
+  draggable?: boolean
+  floatingRect?: ChatSurfaceRect
+  edgeWidth?: number | string
+  snapThreshold?: number
+}
+
 // Props
 export interface ChatLayoutProps {
+  surface?: ChatSurfaceConfig
   leftAside?: ChatAsideConfig
   rightAside?: ChatAsideConfig
 }
 
 export interface ChatLayoutEmits {
+  'update:surface': [value: ChatSurfaceConfig | undefined]
   'aside-resize-start': [detail: ChatAsideResizeEventDetail]
   'aside-resize': [detail: ChatAsideResizeEventDetail]
   'aside-resize-end': [detail: ChatAsideResizeEventDetail]

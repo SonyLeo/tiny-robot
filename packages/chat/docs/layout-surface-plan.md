@@ -5,24 +5,24 @@
 为 `Chat.Layout` 增加顶层展示形态能力，支持 3 个运行态：
 
 - `fullscreen`：铺满 PC 视口
-- `floating`：固定宽高悬浮窗，顶部拖拽条可拖动
-- `edge-right`：释放到右侧阈值内后吸附到页面右边
+- `floating`：固定宽高悬浮窗，顶部 drag bar 可拖动
+- `edge-right`：释放到右侧阈值内后，吸附到页面右边，顶部 drag bar 也可拖动
 
 本方案只解决：
 
 - 顶层形态切换
-- 浮窗拖拽
+- 悬浮拖拽
 - 右侧吸附
 
 本方案不解决：
 
 - `aside` 改宽
-- 浮窗缩放
+- 悬浮窗缩放
 - 多边吸附
 
 ## 2. 当前结构结论
 
-当前 `Chat.Layout` 只有内部区域配置：
+当前 `Chat.Layout` 只承载内部区域配置：
 
 ```ts
 interface ChatLayoutProps {
@@ -37,24 +37,92 @@ interface ChatLayoutProps {
 - 顶层形态必须是 `Chat.Layout` 自己的新配置
 - 该能力与 `TrContainer` 无直接关系，不复用其 props 语义
 
-## 3. 业界结论
+## 3. 成熟方案对比
 
-业界常见做法一致：
+### 3.1 Dockview
 
-- 浮窗态和边缘吸附态是两个独立状态，不是同一个位置值的变体
-- 拖拽入口放在顶部 header / drag bar，而不是整块内容区域
-- 拖拽过程限制在 viewport 内
-- 吸附采用“阈值判定 + 松手提交”，而不是拖拽中实时强切状态
+结论：
 
-对当前仓库最合适的实现结论：
+- `floating groups` 和 `edge groups` 是两个独立状态
+- 浮窗可以在 viewport 范围内移动
+- 整体状态可序列化
 
-- v1 不新增拖拽库
-- 直接使用已存在依赖 `@vueuse/core` 的 `useDraggable`
-- 右侧吸附逻辑自行实现
+对我们有用的点：
 
-## 4. 最小 props 方案
+- `floating` 和 `edge-right` 必须拆开
+- 需要保存 `lastFloatingRect`
+- 顶层 `surface` 需要可控更新入口
 
-推荐采用单个顶层配置对象：
+参考：
+
+- Floating Groups
+  - https://dockview.dev/docs/core/groups/floatingGroups/
+- Edge Groups
+  - https://dockview.dev/docs/core/groups/edgeGroups/
+
+### 3.2 Golden Layout
+
+结论：
+
+- 顶层窗口状态会被序列化为 config
+- 容器移动后会触发统一状态更新
+
+对我们有用的点：
+
+- `surface` 不应该只是只读 props
+- 必须补 `update:surface`
+
+参考：
+
+- https://golden-layout.com/docs/
+
+### 3.3 VueUse `useDraggable`
+
+结论：
+
+- 已支持 `handle`
+- 已支持 `containerElement`
+- 已支持拖拽生命周期回调
+
+对我们有用的点：
+
+- v1 不需要引入新拖拽库
+- 可以直接用来完成顶部拖拽和边界限制
+
+参考：
+
+- https://vueuse.org/core/usedraggable/
+
+### 3.4 interact.js
+
+结论：
+
+- 适合做 drag + resize + restriction + snap modifiers
+- 对当前需求偏重
+
+对我们有用的点：
+
+- 只有未来要一起做“缩放 + 多边吸附 + 更复杂 snap”时，才值得升级
+
+参考：
+
+- Restriction
+  - https://interactjs.io/docs/restriction/
+- Snapping
+  - https://interactjs.io/docs/snapping/
+
+## 4. 对当前方案的优化结论
+
+基于成熟方案和当前场景，当前方案需要收口 4 个点：
+
+- `surface` 必须是可控状态，而不是单纯配置对象
+- `floating` 和 `edge-right` 必须独立建模
+- 必须保存 `lastFloatingRect`
+- v1 继续使用 `useDraggable`，不引入新库
+
+## 5. 最小 props 方案
+
+推荐继续使用单个顶层配置对象：
 
 ```ts
 export type ChatSurfaceMode = 'fullscreen' | 'floating' | 'edge-right'
@@ -86,19 +154,123 @@ export interface ChatLayoutProps {
 - `mode`
   - 当前顶层形态
 - `draggable`
-  - 是否允许浮窗拖拽
+  - 是否允许悬浮拖拽
 - `floatingRect`
-  - 浮窗的位置和尺寸
+  - 悬浮窗位置和尺寸
 - `edgeWidth`
   - 右侧吸附态宽度
 - `snapThreshold`
   - 距右边缘多少像素内判定为可吸附
 
-这是当前需求的最小闭环。
+## 6. 对外事件与绑定方式
 
-## 5. 两组命名设计
+这一点是对现有方案最重要的优化。
 
-### 5.1 方案 A：推荐
+`surface` 既然会在运行中变化，就必须有对外更新出口。
+
+推荐：
+
+```ts
+export interface ChatLayoutProps {
+  surface?: ChatSurfaceConfig
+  leftAside?: ChatAsideConfig
+  rightAside?: ChatAsideConfig
+}
+```
+
+```ts
+export interface ChatLayoutEmits {
+  'update:surface': [value: ChatSurfaceConfig | undefined]
+}
+```
+
+组件侧建议直接使用：
+
+```ts
+const surfaceState = defineModel<ChatSurfaceConfig>('surface')
+```
+
+结论：
+
+- `surface` 走和 `leftAside / rightAside` 一样的受控模式
+- 不额外发明 `surface-change`
+- 统一使用 `v-model:surface`
+
+## 7. 状态模型
+
+### 7.1 对外状态
+
+对外只保留：
+
+- `mode`
+- `floatingRect`
+- `edgeWidth`
+- `draggable`
+- `snapThreshold`
+
+### 7.2 内部运行时状态
+
+内部额外保存：
+
+- `lastFloatingRect`
+- `isDraggingSurface`
+- `pendingSnapPlacement`
+
+规则：
+
+- `fullscreen -> floating`
+  - 使用 `floatingRect`
+- `floating -> edge-right`
+  - 先保存 `lastFloatingRect`
+- `edge-right -> floating`
+  - 恢复 `lastFloatingRect`
+
+结论：
+
+- `lastFloatingRect` 是运行时必需状态
+- 不建议一开始暴露到 props
+
+## 8. 形态规则
+
+### 8.1 fullscreen
+
+- 铺满视口
+- 不参与拖拽
+
+### 8.2 floating
+
+- 仅顶部 drag bar 可拖
+- 不允许整块内容区域拖动
+- 拖拽时限制在 viewport 内
+- 至少保留 drag bar 可见
+
+### 8.3 edge-right
+
+- 释放时进入右侧阈值范围则吸附
+- 吸附后固定到页面右边
+- 默认只保留 `edgeWidth` 可配置
+- 从 `edge-right` 回到 `floating` 时恢复上次 `floatingRect`
+- 顶部 drag bar 可作为拖拽起点
+- 从 `edge-right` 开始拖拽时，先切回 `floating` 再继续拖动
+
+## 9. 吸附规则
+
+推荐规则：
+
+- 拖拽中只显示预备态，不立刻切到 `edge-right`
+- `pointerup` 时再根据阈值决定是否吸附
+- 默认 `snapThreshold` 建议 `24` 到 `32`
+- v1 只支持右侧吸附
+- 从 `edge-right` 拖离时，继续沿用同一套右侧吸附判定
+
+结论：
+
+- 当前场景没必要做实时强切
+- “预览 + 松手提交”最稳
+
+## 10. 命名方案
+
+### 10.1 推荐
 
 ```ts
 interface ChatLayoutProps {
@@ -114,82 +286,29 @@ interface ChatSurfaceConfig {
 }
 ```
 
-命名特点：
+原因：
 
-- `surface` 和 `leftAside / rightAside` 一样，都是直接对象 props
-- `mode` 延续当前 `layoutMode` 的命名习惯
-- `floatingRect / edgeWidth` 语义直接
+- 贴近当前 `leftAside / rightAside` 风格
+- 层级少
+- 命名直接
 
-### 5.2 方案 B：备选
+### 10.2 不采用
 
 ```ts
-interface ChatLayoutProps {
-  surfaceConfig?: ChatSurfaceConfig
-}
-
-interface ChatSurfaceConfig {
-  type?: 'fullscreen' | 'floating' | 'edge-right'
-  dragEnabled?: boolean
-  floating?: ChatSurfaceRect
-  edge?: {
-    width?: number | string
-    threshold?: number
-  }
-}
+surfaceConfig
+dragEnabled
+edge: { width, threshold }
 ```
 
-命名特点：
+原因：
 
-- 更接近 `popupConfig` 这类统一配置对象风格
-- 嵌套更多，表达更显式
+- 更重
+- 嵌套更深
+- 不如当前 API 风格统一
 
-最终结论：
+## 11. 实现位置
 
-- 采用方案 A
-- 原因是更贴近 `Chat.Layout` 当前 API 风格，且层级更少
-
-## 6. 状态模型
-
-必须保存两组数据：
-
-- `mode`
-- `lastFloatingRect`
-
-规则：
-
-- `fullscreen -> floating`：使用 `floatingRect`
-- `floating -> edge-right`：保留 `lastFloatingRect`
-- `edge-right -> floating`：恢复 `lastFloatingRect`
-
-否则会出现：
-
-- 吸附后再恢复悬浮，位置丢失
-- 每次恢复悬浮都回到默认点位
-
-## 7. 交互规则
-
-### 7.1 fullscreen
-
-- 铺满视口
-- 不参与拖拽
-
-### 7.2 floating
-
-- 仅顶部拖拽条可拖
-- 只有 `draggable === true` 时允许拖拽
-- 拖拽时限制在 viewport 内
-- 至少保留拖拽条可见
-
-### 7.3 edge-right
-
-- 释放时进入右侧阈值范围则吸附
-- 吸附后固定到页面右边
-- 默认只保留 `edgeWidth` 可配置
-- 拖离右侧后恢复到上次 `floatingRect`
-
-## 8. 实现位置
-
-### 8.1 类型层
+### 11.1 类型层
 
 文件：
 
@@ -201,26 +320,29 @@ interface ChatSurfaceConfig {
 - `ChatSurfaceRect`
 - `ChatSurfaceConfig`
 - `surface?: ChatSurfaceConfig`
+- `update:surface`
 
-### 8.2 逻辑层
+### 11.2 逻辑层
 
-建议新增 composable：
+新增 composable：
 
 - `packages/chat/src/composables/useChatSurface.ts`
 
 职责：
 
-- 管理 `mode`
-- 管理 `floatingRect`
-- 管理吸附判定
-- 输出拖拽中的样式状态
+- 读取/写回 `surface`
+- 管理 `lastFloatingRect`
+- 管理 `pendingSnapPlacement`
+- 封装 `useDraggable`
+- 负责 `edge-right -> floating` 的拖拽切换
+- 输出 `surfaceStyle / surfaceClass / dragBarClass`
 
 结论：
 
-- 不建议把顶层拖拽状态直接堆进 `createChatLayoutStore.ts`
-- `surface` 和 `aside` 是两类不同职责
+- `surface` 不进入 `createChatLayoutStore.ts`
+- `surface` 是独立于 `aside` 的另一条顶层能力线
 
-### 8.3 组件层
+### 11.3 组件层
 
 文件：
 
@@ -229,42 +351,29 @@ interface ChatSurfaceConfig {
 
 职责：
 
-- 渲染拖拽条
-- 根据 `mode` 切换 `fullscreen / floating / edge-right` class
-- 绑定 `useDraggable`
+- 渲染 drag bar
+- 切换 `fullscreen / floating / edge-right`
+- 消费 `useChatSurface`
 
-## 9. 拖拽实现方案
+## 12. 拖拽实现方案
 
 v1 采用：
 
 - `@vueuse/core`
 - `useDraggable`
 
-原因：
+使用方式：
 
-- 仓库已存在依赖
-- 已满足顶部拖拽、容器边界限制、位置同步需求
-- 当前不需要为此引入新库
+- 只绑定 drag bar 为 handle
+- `containerElement` 指向 viewport/容器
+- 在 `onEnd` 中提交 snap 判断
 
-不采用新库的结论：
+结论：
 
-- `interact.js` 功能更强，但对当前需求偏重
-- 只有后续确定要一起做拖拽 + 缩放 + 多边吸附时，才值得评估
+- `useDraggable` 足够覆盖 v1
+- 不需要为此引入 `interact.js`
 
-## 10. 吸附规则
-
-建议规则：
-
-- 拖拽中只显示预备态，不立即切到 `edge-right`
-- `pointerup` 时再根据阈值决定是否吸附
-- 默认 `snapThreshold` 建议 `24` 到 `32`
-- v1 只支持右侧吸附
-
-这套规则最稳定，也最容易和滚动、文本选择、iframe 等问题隔离。
-
-## 11. 默认值建议
-
-建议默认值：
+## 13. 默认值建议
 
 ```ts
 surface: {
@@ -279,28 +388,32 @@ surface: {
 }
 ```
 
-## 12. 最终方案
+## 14. 最终方案
 
 最终采用：
 
 - `ChatLayoutProps.surface?: ChatSurfaceConfig`
+- `ChatLayoutEmits['update:surface']`
 - `mode = 'fullscreen' | 'floating' | 'edge-right'`
-- 浮窗拖拽基于 `useDraggable`
+- `surface` 走 `v-model:surface`
+- 顶部 drag bar 拖拽基于 `useDraggable`
 - 只做顶部拖拽
 - 只做右侧吸附
+- `edge-right` 拖离时会切回 `floating`
 - 吸附在 `pointerup` 时提交
-- 保留 `lastFloatingRect`
+- 内部保留 `lastFloatingRect`
 
-## 13. 评审只需确认 6 点
+## 15. 评审只需确认 7 点
 
-- 是否接受顶层能力放在 `surface`，而不是 `aside`
+- 是否接受顶层能力放在 `surface`
+- 是否接受 `surface` 走 `v-model:surface`
 - 是否接受 `fullscreen / floating / edge-right` 三态模型
-- 是否接受方案 A 命名
+- 是否接受 `floating` 和 `edge-right` 独立建模
 - 是否接受 v1 只支持顶部拖拽
 - 是否接受 v1 只支持右侧吸附
-- 是否接受 v1 直接使用 `useDraggable`，不引入新库
+- 是否接受 v1 继续使用 `useDraggable`
 
-## 14. 参考
+## 16. 参考
 
 - VueUse `useDraggable`
   - https://vueuse.org/core/usedraggable/
@@ -308,7 +421,9 @@ surface: {
   - https://dockview.dev/docs/core/groups/floatingGroups/
 - Dockview Edge Groups
   - https://dockview.dev/docs/core/groups/edgeGroups/
+- Golden Layout
+  - https://golden-layout.com/docs/
+- Interact.js Restriction
+  - https://interactjs.io/docs/restriction/
 - Interact.js Snapping
   - https://interactjs.io/docs/snapping/
-- MDN `setPointerCapture()`
-  - https://developer.mozilla.org/en-US/docs/Web/API/Element/setPointerCapture

@@ -3,6 +3,7 @@ import { computed, markRaw, shallowRef } from 'vue'
 import ContainerLayoutDemo from './layout-demos/ContainerLayoutDemo.vue'
 import ChatGptLayoutDemo from './layout-demos/ChatGptLayoutDemo.vue'
 import DeepSeekLayoutDemo from './layout-demos/DeepSeekLayoutDemo.vue'
+import SurfaceLayoutDemo from './layout-demos/SurfaceLayoutDemo.vue'
 
 const demos = [
   {
@@ -20,11 +21,16 @@ const demos = [
     label: 'ChatGPT',
     component: markRaw(ChatGptLayoutDemo),
   },
+  {
+    id: 'surface',
+    label: 'Surface',
+    component: markRaw(SurfaceLayoutDemo),
+  },
 ] as const
 
 type DemoId = (typeof demos)[number]['id']
 
-const activeDemoId = shallowRef<DemoId>('deepseek')
+const activeDemoId = shallowRef<DemoId>('surface')
 const activeDemo = computed(() => demos.find((demo) => demo.id === activeDemoId.value) ?? demos[0])
 const dockClass = computed(() => ({
   'demo-shell__dock--left': activeDemoId.value === 'container',

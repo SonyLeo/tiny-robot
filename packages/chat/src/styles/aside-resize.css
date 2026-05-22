@@ -1,0 +1,74 @@
+.tr-chat-layout__resize-trigger {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: var(--tr-chat-layout-resize-trigger-size);
+  padding: 0;
+  outline: 0;
+  border: 0;
+  background: transparent;
+  touch-action: none;
+  cursor: col-resize;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  isolation: isolate;
+}
+
+.tr-chat-layout__resize-trigger::before {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  left: 50%;
+  width: 1px;
+  background: var(--tr-chat-layout-resize-line-color);
+  transform: translateX(-50%);
+  transition:
+    background-color 180ms ease;
+  z-index: 0;
+}
+
+.tr-chat-layout__resize-trigger--left {
+  right: calc(var(--tr-chat-layout-resize-trigger-size) / -2);
+}
+
+.tr-chat-layout__resize-trigger--right {
+  left: calc(var(--tr-chat-layout-resize-trigger-size) / -2);
+}
+
+.tr-chat-layout__resize-trigger-indicator {
+  position: relative;
+  display: block;
+  width: var(--tr-chat-layout-resize-indicator-width);
+  height: var(--tr-chat-layout-resize-indicator-height);
+  border-radius: 999px;
+  background: var(--tr-chat-layout-resize-indicator-bg);
+  border: 1px solid var(--tr-chat-layout-resize-indicator-border);
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+  z-index: 1;
+}
+
+.tr-chat-layout__resize-trigger:hover::before,
+.tr-chat-layout__resize-trigger[data-dragging]::before,
+.tr-chat-layout[data-dragging='left'] .tr-chat-layout__resize-trigger--left::before,
+.tr-chat-layout[data-dragging='right'] .tr-chat-layout__resize-trigger--right::before {
+  background: var(--tr-chat-layout-resize-line-hover-color);
+}
+
+.tr-chat-layout__resize-trigger[data-dragging]::before,
+.tr-chat-layout[data-dragging='left'] .tr-chat-layout__resize-trigger--left::before,
+.tr-chat-layout[data-dragging='right'] .tr-chat-layout__resize-trigger--right::before {
+  background: var(--tr-chat-layout-resize-line-active-color);
+}
+
+.tr-chat-layout__resize-trigger[data-dragging] .tr-chat-layout__resize-trigger-indicator,
+.tr-chat-layout[data-dragging='left'] .tr-chat-layout__resize-trigger--left .tr-chat-layout__resize-trigger-indicator,
+.tr-chat-layout[data-dragging='right'] .tr-chat-layout__resize-trigger--right .tr-chat-layout__resize-trigger-indicator {
+  background: var(--tr-chat-layout-resize-indicator-active-bg);
+  border-color: var(--tr-chat-layout-resize-indicator-active-border);
+  box-shadow: var(--tr-chat-layout-resize-indicator-active-shadow);
+}

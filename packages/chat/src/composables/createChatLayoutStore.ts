@@ -6,6 +6,7 @@ import type {
   ChatLayoutStore,
   CreateChatLayoutStoreOptions,
 } from '@/types/layout.internal'
+import { resolveCssLengthToPx, toCssLength } from '@/utils/cssLength'
 
 type ResolvedChatAsideConfig = {
   layoutMode: ComputedRef<ChatAsideLayoutMode>
@@ -20,42 +21,6 @@ type ResolvedChatAsideConfig = {
   minExpandedWidth: ComputedRef<string>
   maxExpandedWidth: ComputedRef<string>
   onUpdate?: (nextConfig: ChatAsideConfig) => void
-}
-
-function toCssLength(value: number | string | undefined, fallback: string): string {
-  if (typeof value === 'number') {
-    return `${value}px`
-  }
-
-  if (typeof value === 'string' && value.trim()) {
-    return value
-  }
-
-  return fallback
-}
-
-function resolveCssLengthToPx(value: string): number | null {
-  if (typeof document === 'undefined') {
-    return null
-  }
-
-  const measure = document.createElement('div')
-  measure.style.position = 'absolute'
-  measure.style.visibility = 'hidden'
-  measure.style.pointerEvents = 'none'
-  measure.style.inset = '0 auto auto 0'
-  measure.style.width = ''
-  measure.style.width = value
-
-  if (!measure.style.width) {
-    return null
-  }
-
-  document.body.appendChild(measure)
-  const width = measure.getBoundingClientRect().width
-  document.body.removeChild(measure)
-
-  return Number.isFinite(width) ? width : null
 }
 
 function hasCollapsedRail(value: number | string | undefined): boolean {
@@ -77,8 +42,12 @@ function hasCollapsedRail(value: number | string | undefined): boolean {
     return false
   }
 
-  const measuredWidth = resolveCssLengthToPx(normalized)
-  if (measuredWidth !== null) {
+  const measuredWidth = resolveCssLengthToPx(
+    normalized,
+    typeof document === 'undefined' ? null : document.body,
+    Number.NaN,
+  )
+  if (Number.isFinite(measuredWidth)) {
     return measuredWidth > 0
   }
 

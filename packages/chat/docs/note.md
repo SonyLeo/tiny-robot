@@ -45,6 +45,7 @@ interface ChatLayoutProps {
 - 主区滚动方案：[chat-main-scroll-plan.md](</e:/LS_WorkSpace/web/tiny-robot/packages/chat/docs/chat-main-scroll-plan.md:1>)
 - Aside 拖拽方案：[aside-resize-plan.md](</e:/LS_WorkSpace/web/tiny-robot/packages/chat/docs/aside-resize-plan.md:1>)
 - 顶层形态方案：[layout-surface-plan.md](</e:/LS_WorkSpace/web/tiny-robot/packages/chat/docs/layout-surface-plan.md:1>)
+- 顶层形态 V2 扩展：[layout-surface-v2-plan.md](</e:/LS_WorkSpace/web/tiny-robot/packages/chat/docs/layout-surface-v2-plan.md:1>)
 
 ## 主要文件
 

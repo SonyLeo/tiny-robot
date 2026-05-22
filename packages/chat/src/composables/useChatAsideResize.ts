@@ -2,6 +2,7 @@ import { useEventListener } from '@vueuse/core'
 import { computed, onBeforeUnmount, shallowRef, type Ref } from 'vue'
 import type { ChatAsidePlacement, ChatAsideResizeEventDetail } from '@/types/layout'
 import type { ChatLayoutPanelApi } from '@/types/layout.internal'
+import { resolveCssLengthToPx } from '@/utils/cssLength'
 
 interface UseChatAsideResizeOptions {
   rootRef: Ref<HTMLElement | null>
@@ -32,29 +33,6 @@ interface ResizeState {
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max)
-}
-
-function resolveLengthToPx(value: number | string | undefined, rootEl: HTMLElement, fallback: number): number {
-  if (typeof value === 'number' && Number.isFinite(value)) {
-    return value
-  }
-
-  if (typeof value !== 'string' || !value.trim()) {
-    return fallback
-  }
-
-  const measure = rootEl.ownerDocument.createElement('div')
-  measure.style.position = 'absolute'
-  measure.style.visibility = 'hidden'
-  measure.style.pointerEvents = 'none'
-  measure.style.inset = '0 auto auto 0'
-  measure.style.width = value
-  rootEl.appendChild(measure)
-
-  const width = measure.getBoundingClientRect().width
-  rootEl.removeChild(measure)
-
-  return Number.isFinite(width) ? width : fallback
 }
 
 function getDockedAsideWidth(panel: ChatLayoutPanelApi, asideEl: HTMLElement | null | undefined): number {
@@ -166,9 +144,9 @@ export function useChatAsideResize(options: UseChatAsideResizeOptions) {
     const oppositeAsideEl = panel.placement === 'left' ? options.rightAsideRef.value : options.leftAsideRef.value
     const rootRect = rootEl.getBoundingClientRect()
     const startWidth = asideEl.getBoundingClientRect().width
-    const maxWidth = resolveLengthToPx(panel.maxExpandedWidth, rootEl, startWidth)
-    const minWidth = resolveLengthToPx(panel.minExpandedWidth, rootEl, startWidth)
-    const mainMinWidth = resolveLengthToPx(
+    const maxWidth = resolveCssLengthToPx(panel.maxExpandedWidth, rootEl, startWidth)
+    const minWidth = resolveCssLengthToPx(panel.minExpandedWidth, rootEl, startWidth)
+    const mainMinWidth = resolveCssLengthToPx(
       getComputedStyle(rootEl).getPropertyValue('--tr-chat-layout-main-min-width').trim() || '320px',
       rootEl,
       320,

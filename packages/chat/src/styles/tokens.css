@@ -1,4 +1,20 @@
 :root {
+  --tr-chat-surface-floating-width: 420px;
+  --tr-chat-surface-floating-height: 80vh;
+  --tr-chat-surface-edge-width: 380px;
+  --tr-chat-surface-floating-top: 24px;
+  --tr-chat-surface-floating-gap: 24px;
+  --tr-chat-surface-radius: 24px;
+  --tr-chat-surface-shadow: 0 28px 72px rgba(15, 23, 42, 0.2);
+  --tr-chat-surface-drag-hit-width: 56px;
+  --tr-chat-surface-drag-hit-height: 18px;
+  --tr-chat-surface-drag-pill-width: 40px;
+  --tr-chat-surface-drag-pill-height: 5px;
+  --tr-chat-surface-drag-pill-bg: color-mix(in srgb, var(--tr-text-primary, #111827) 16%, transparent);
+  --tr-chat-surface-drag-pill-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.66);
+  --tr-chat-surface-drag-hover-bg: color-mix(in srgb, var(--tr-container-bg-default, #ffffff) 88%, transparent);
+  --tr-chat-surface-drag-hover-border: color-mix(in srgb, var(--tr-text-primary, #111827) 8%, transparent);
+  --tr-chat-surface-drag-hover-shadow: 0 10px 24px rgba(15, 23, 42, 0.1);
   --tr-chat-layout-bg: var(--tr-container-bg-default, #ffffff);
   --tr-chat-layout-left-bg: var(--tr-container-bg-default, #ffffff);
   --tr-chat-layout-right-bg: var(--tr-container-bg-default, #ffffff);
