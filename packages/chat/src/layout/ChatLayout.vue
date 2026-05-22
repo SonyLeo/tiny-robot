@@ -1,9 +1,12 @@
 <script setup lang="ts">
-import { useEventListener } from '@vueuse/core'
-import { computed, useSlots } from 'vue'
+import { computed, useSlots, useTemplateRef } from 'vue'
 import { createChatLayoutStore } from '@/composables/createChatLayoutStore'
+import { useChatLayoutInteractions } from '@/composables/useChatLayoutInteractions'
 import { provideChatLayoutStore } from '@/composables/useChatLayout'
-import type { ChatAsideConfig, ChatLayoutProps, ChatLayoutSlots } from '@/types/layout'
+import { useChatLayoutViewState } from '@/composables/useChatLayoutViewState'
+import ChatAsideResizeTrigger from './ChatAsideResizeTrigger.vue'
+import { createChatLayoutAsideStoreInput } from './utils'
+import type { ChatAsideConfig, ChatLayoutEmits, ChatLayoutProps, ChatLayoutSlots } from '@/types/layout'
 
 defineOptions({
   name: 'ChatLayout',
@@ -11,37 +14,19 @@ defineOptions({
 
 defineProps<ChatLayoutProps>()
 
+const emit = defineEmits<ChatLayoutEmits>()
+
 defineSlots<ChatLayoutSlots>()
 
 const leftAsideState = defineModel<ChatAsideConfig>('leftAside')
 const rightAsideState = defineModel<ChatAsideConfig>('rightAside')
-const emptyAsideConfig: ChatAsideConfig = {}
-const leftAsideConfig = computed(() => leftAsideState.value ?? emptyAsideConfig)
-const rightAsideConfig = computed(() => rightAsideState.value ?? emptyAsideConfig)
-
-function updateLeftAside(nextConfig: ChatAsideConfig): void {
-  leftAsideState.value = nextConfig
-}
-
-function updateRightAside(nextConfig: ChatAsideConfig): void {
-  rightAsideState.value = nextConfig
-}
+const layoutRootRef = useTemplateRef<HTMLElement>('layoutRootRef')
+const leftAsideRef = useTemplateRef<HTMLElement>('leftAsideRef')
+const rightAsideRef = useTemplateRef<HTMLElement>('rightAsideRef')
 
 const layoutStore = createChatLayoutStore({
-  left: {
-    layoutMode: computed(() => leftAsideConfig.value.layoutMode),
-    expanded: computed(() => leftAsideConfig.value.expanded),
-    expandedWidth: computed(() => leftAsideConfig.value.expandedWidth),
-    collapsedWidth: computed(() => leftAsideConfig.value.collapsedWidth),
-    onUpdate: updateLeftAside,
-  },
-  right: {
-    layoutMode: computed(() => rightAsideConfig.value.layoutMode),
-    expanded: computed(() => rightAsideConfig.value.expanded),
-    expandedWidth: computed(() => rightAsideConfig.value.expandedWidth),
-    collapsedWidth: computed(() => rightAsideConfig.value.collapsedWidth),
-    onUpdate: updateRightAside,
-  },
+  left: createChatLayoutAsideStoreInput(leftAsideState),
+  right: createChatLayoutAsideStoreInput(rightAsideState),
 })
 
 provideChatLayoutStore(layoutStore)
@@ -49,72 +34,66 @@ provideChatLayoutStore(layoutStore)
 const slots = useSlots()
 const { closeDrawers, left, right } = layoutStore
 const isDrawerVisible = computed(() => layoutStore.isDrawerVisible)
+const { isResizing, draggingPlacement, leftHandleProps, rightHandleProps } = useChatLayoutInteractions({
+  rootRef: layoutRootRef,
+  leftAsideRef,
+  rightAsideRef,
+  left,
+  right,
+  isDrawerVisible,
+  closeDrawers,
+  onResizeStart: (detail) => emit('aside-resize-start', detail),
+  onResize: (detail) => emit('aside-resize', detail),
+  onResizeEnd: (detail) => emit('aside-resize-end', detail),
+})
 
-const hasLeftSidebar = computed(() => Boolean(slots['left-aside']))
-const hasHeader = computed(() => Boolean(slots.header))
-const hasMain = computed(() => Boolean(slots.main))
-const hasFooter = computed(() => Boolean(slots.footer))
-const hasRightPanel = computed(() => Boolean(slots['right-aside']))
-const leftAsideHidden = computed(() => !hasLeftSidebar.value || left.isHidden)
-const rightAsideHidden = computed(() => !hasRightPanel.value || right.isHidden)
-
-const layoutStyle = computed(() => ({
-  '--tr-chat-layout-left-expanded-width': left.expandedWidth,
-  '--tr-chat-layout-left-collapsed-width': left.collapsedWidth,
-  '--tr-chat-layout-right-expanded-width': right.expandedWidth,
-  '--tr-chat-layout-right-collapsed-width': right.collapsedWidth,
-}))
-
-const layoutClass = computed(() => ({
-  'tr-chat-layout--left-dock': hasLeftSidebar.value && left.isDock,
-  'tr-chat-layout--left-drawer': hasLeftSidebar.value && left.isDrawer,
-  'tr-chat-layout--left-expanded': hasLeftSidebar.value && left.isExpanded,
-  'tr-chat-layout--left-rail': hasLeftSidebar.value && left.isRail,
-  'tr-chat-layout--right-dock': hasRightPanel.value && right.isDock,
-  'tr-chat-layout--right-drawer': hasRightPanel.value && right.isDrawer,
-  'tr-chat-layout--right-expanded': hasRightPanel.value && right.isExpanded,
-  'tr-chat-layout--right-rail': hasRightPanel.value && right.isRail,
-  'tr-chat-layout--drawer-visible': isDrawerVisible,
-}))
-
-const leftAsideClass = computed(() => ({
-  'tr-chat-layout__aside--active': hasLeftSidebar.value,
-  'tr-chat-layout__aside--dock': left.isDock,
-  'tr-chat-layout__aside--drawer': left.isDrawer,
-  'tr-chat-layout__aside--expanded': left.isExpanded,
-  'tr-chat-layout__aside--rail': left.isRail,
-  'tr-chat-layout__aside--hidden': left.isHidden,
-}))
-
-const rightAsideClass = computed(() => ({
-  'tr-chat-layout__aside--active': hasRightPanel.value,
-  'tr-chat-layout__aside--dock': right.isDock,
-  'tr-chat-layout__aside--drawer': right.isDrawer,
-  'tr-chat-layout__aside--expanded': right.isExpanded,
-  'tr-chat-layout__aside--rail': right.isRail,
-  'tr-chat-layout__aside--hidden': right.isHidden,
-}))
-
-const keyboardTarget = typeof window === 'undefined' ? undefined : window
-
-useEventListener(keyboardTarget, 'keydown', (event: KeyboardEvent) => {
-  if (event.defaultPrevented || event.key !== 'Escape' || !isDrawerVisible.value) {
-    return
-  }
-
-  closeDrawers()
+const {
+  hasHeader,
+  hasMain,
+  hasFooter,
+  leftAsideHidden,
+  rightAsideHidden,
+  leftResizeVisible,
+  rightResizeVisible,
+  layoutStyle,
+  layoutClass,
+  leftAsideClass,
+  rightAsideClass,
+} = useChatLayoutViewState({
+  slots,
+  left,
+  right,
+  isDrawerVisible,
+  isResizing,
 })
 </script>
 
 <template>
-  <div class="tr-chat-layout" :style="layoutStyle" :class="layoutClass">
+  <div
+    ref="layoutRootRef"
+    class="tr-chat-layout"
+    :style="layoutStyle"
+    :class="layoutClass"
+    data-part="root"
+    :data-dragging="draggingPlacement ?? undefined"
+  >
     <div
+      ref="leftAsideRef"
       class="tr-chat-layout__aside tr-chat-layout__aside--left"
       :class="leftAsideClass"
+      data-part="aside"
+      data-placement="left"
+      :data-resizable="leftResizeVisible ? '' : undefined"
       :aria-hidden="leftAsideHidden ? 'true' : undefined"
       :inert="leftAsideHidden"
     >
       <slot name="left-aside" />
+      <ChatAsideResizeTrigger
+        v-if="leftResizeVisible"
+        placement="left"
+        :dragging-placement="draggingPlacement"
+        @pointerdown="leftHandleProps.onPointerdown"
+      />
     </div>
 
     <div
@@ -148,11 +127,21 @@ useEventListener(keyboardTarget, 'keydown', (event: KeyboardEvent) => {
     </div>
 
     <div
+      ref="rightAsideRef"
       class="tr-chat-layout__aside tr-chat-layout__aside--right"
       :class="rightAsideClass"
+      data-part="aside"
+      data-placement="right"
+      :data-resizable="rightResizeVisible ? '' : undefined"
       :aria-hidden="rightAsideHidden ? 'true' : undefined"
       :inert="rightAsideHidden"
     >
+      <ChatAsideResizeTrigger
+        v-if="rightResizeVisible"
+        placement="right"
+        :dragging-placement="draggingPlacement"
+        @pointerdown="rightHandleProps.onPointerdown"
+      />
       <slot name="right-aside" />
     </div>
 

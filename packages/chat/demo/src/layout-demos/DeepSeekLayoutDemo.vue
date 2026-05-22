@@ -14,6 +14,7 @@ const isMobile = useMediaQuery('(max-width: 959px)')
 
 const leftExpanded = shallowRef(false)
 const rightExpanded = shallowRef(false)
+const rightDockWidth = shallowRef<ChatAsideConfig['expandedWidth']>(320)
 
 watch(
   isMobile,
@@ -34,7 +35,10 @@ const leftAside = computed<ChatAsideConfig>(() => ({
 const rightAside = computed<ChatAsideConfig>(() => ({
   layoutMode: isMobile.value ? 'drawer' : 'dock',
   expanded: rightExpanded.value,
-  expandedWidth: isMobile.value ? '100vw' : 320,
+  expandedWidth: isMobile.value ? '100vw' : rightDockWidth.value,
+  resizable: !isMobile.value,
+  minExpandedWidth: 280,
+  maxExpandedWidth: 520,
 }))
 
 function handleLeftAsideUpdate(nextConfig?: ChatAsideConfig): void {
@@ -43,6 +47,10 @@ function handleLeftAsideUpdate(nextConfig?: ChatAsideConfig): void {
 
 function handleRightAsideUpdate(nextConfig?: ChatAsideConfig): void {
   rightExpanded.value = nextConfig?.expanded ?? false
+
+  if (!isMobile.value && nextConfig?.expandedWidth !== undefined) {
+    rightDockWidth.value = nextConfig.expandedWidth
+  }
 }
 </script>
 

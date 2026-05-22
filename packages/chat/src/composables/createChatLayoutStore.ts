@@ -1,27 +1,24 @@
-import { computed, toValue, type ComputedRef, type MaybeRefOrGetter } from 'vue'
+import { computed, toValue, type ComputedRef } from 'vue'
 import type { ChatAsideConfig, ChatAsideLayoutMode, ChatAsidePlacement } from '@/types/layout'
-import type { ChatLayoutPanelApi, ChatLayoutStore } from '@/types/layout.internal'
-
-type MaybeRefChatAsideConfig = {
-  layoutMode?: MaybeRefOrGetter<ChatAsideConfig['layoutMode'] | undefined>
-  expanded?: MaybeRefOrGetter<ChatAsideConfig['expanded'] | undefined>
-  expandedWidth?: MaybeRefOrGetter<ChatAsideConfig['expandedWidth'] | undefined>
-  collapsedWidth?: MaybeRefOrGetter<ChatAsideConfig['collapsedWidth'] | undefined>
-  onUpdate?: (nextConfig: ChatAsideConfig) => void
-}
-
-export interface CreateChatLayoutStoreOptions {
-  left?: MaybeRefChatAsideConfig
-  right?: MaybeRefChatAsideConfig
-}
+import type {
+  ChatLayoutAsideStoreInput,
+  ChatLayoutPanelApi,
+  ChatLayoutStore,
+  CreateChatLayoutStoreOptions,
+} from '@/types/layout.internal'
 
 type ResolvedChatAsideConfig = {
   layoutMode: ComputedRef<ChatAsideLayoutMode>
   expanded: ComputedRef<boolean>
   expandedWidthValue: ComputedRef<ChatAsideConfig['expandedWidth']>
   collapsedWidthValue: ComputedRef<ChatAsideConfig['collapsedWidth']>
+  resizable: ComputedRef<boolean>
+  minExpandedWidthValue: ComputedRef<ChatAsideConfig['minExpandedWidth']>
+  maxExpandedWidthValue: ComputedRef<ChatAsideConfig['maxExpandedWidth']>
   expandedWidth: ComputedRef<string>
   collapsedWidth: ComputedRef<string>
+  minExpandedWidth: ComputedRef<string>
+  maxExpandedWidth: ComputedRef<string>
   onUpdate?: (nextConfig: ChatAsideConfig) => void
 }
 
@@ -35,6 +32,30 @@ function toCssLength(value: number | string | undefined, fallback: string): stri
   }
 
   return fallback
+}
+
+function resolveCssLengthToPx(value: string): number | null {
+  if (typeof document === 'undefined') {
+    return null
+  }
+
+  const measure = document.createElement('div')
+  measure.style.position = 'absolute'
+  measure.style.visibility = 'hidden'
+  measure.style.pointerEvents = 'none'
+  measure.style.inset = '0 auto auto 0'
+  measure.style.width = ''
+  measure.style.width = value
+
+  if (!measure.style.width) {
+    return null
+  }
+
+  document.body.appendChild(measure)
+  const width = measure.getBoundingClientRect().width
+  document.body.removeChild(measure)
+
+  return Number.isFinite(width) ? width : null
 }
 
 function hasCollapsedRail(value: number | string | undefined): boolean {
@@ -52,31 +73,52 @@ function hasCollapsedRail(value: number | string | undefined): boolean {
     return false
   }
 
-  return !/^0(?:\.0+)?(?:[a-z%]+)?$/.test(normalized)
+  if (/^0(?:\.0+)?(?:[a-z%]+)?$/.test(normalized)) {
+    return false
+  }
+
+  const measuredWidth = resolveCssLengthToPx(normalized)
+  if (measuredWidth !== null) {
+    return measuredWidth > 0
+  }
+
+  return true
 }
 
 export function createChatLayoutStore(options: CreateChatLayoutStoreOptions = {}): ChatLayoutStore {
   function resolveAsideConfig(
     side: ChatAsidePlacement,
-    config: MaybeRefChatAsideConfig | undefined,
+    config: ChatLayoutAsideStoreInput | undefined,
   ): ResolvedChatAsideConfig {
     const defaultExpanded = side === 'left'
     const defaultExpandedWidth = side === 'left' ? '300px' : '320px'
+    const defaultMinExpandedWidth = side === 'left' ? '200px' : '240px'
+    const defaultMaxExpandedWidth = side === 'left' ? '560px' : '640px'
 
     const layoutMode = computed<ChatAsideLayoutMode>(() => toValue(config?.layoutMode) ?? 'dock')
     const expanded = computed<boolean>(() => toValue(config?.expanded) ?? defaultExpanded)
     const expandedWidthValue = computed<ChatAsideConfig['expandedWidth']>(() => toValue(config?.expandedWidth))
     const collapsedWidthValue = computed<ChatAsideConfig['collapsedWidth']>(() => toValue(config?.collapsedWidth))
+    const resizable = computed<boolean>(() => toValue(config?.resizable) ?? false)
+    const minExpandedWidthValue = computed<ChatAsideConfig['minExpandedWidth']>(() => toValue(config?.minExpandedWidth))
+    const maxExpandedWidthValue = computed<ChatAsideConfig['maxExpandedWidth']>(() => toValue(config?.maxExpandedWidth))
     const expandedWidth = computed(() => toCssLength(expandedWidthValue.value, defaultExpandedWidth))
     const collapsedWidth = computed(() => toCssLength(collapsedWidthValue.value, '0px'))
+    const minExpandedWidth = computed(() => toCssLength(minExpandedWidthValue.value, defaultMinExpandedWidth))
+    const maxExpandedWidth = computed(() => toCssLength(maxExpandedWidthValue.value, defaultMaxExpandedWidth))
 
     return {
       layoutMode,
       expanded,
       expandedWidthValue,
       collapsedWidthValue,
+      resizable,
+      minExpandedWidthValue,
+      maxExpandedWidthValue,
       expandedWidth,
       collapsedWidth,
+      minExpandedWidth,
+      maxExpandedWidth,
       onUpdate: config?.onUpdate,
     }
   }
@@ -90,6 +132,9 @@ export function createChatLayoutStore(options: CreateChatLayoutStoreOptions = {}
       expanded: config.expanded.value,
       expandedWidth: config.expandedWidthValue.value,
       collapsedWidth: config.collapsedWidthValue.value,
+      resizable: config.resizable.value,
+      minExpandedWidth: config.minExpandedWidthValue.value,
+      maxExpandedWidth: config.maxExpandedWidthValue.value,
       ...patch,
     })
   }
@@ -127,6 +172,10 @@ export function createChatLayoutStore(options: CreateChatLayoutStoreOptions = {}
       open()
     }
 
+    function setExpandedWidth(nextWidth: number): void {
+      emitAsideUpdate(config, { expandedWidth: nextWidth })
+    }
+
     return {
       placement,
       get layoutMode() {
@@ -153,6 +202,16 @@ export function createChatLayoutStore(options: CreateChatLayoutStoreOptions = {}
       get collapsedWidth() {
         return config.collapsedWidth.value
       },
+      get resizable() {
+        return config.resizable.value
+      },
+      get minExpandedWidth() {
+        return config.minExpandedWidth.value
+      },
+      get maxExpandedWidth() {
+        return config.maxExpandedWidth.value
+      },
+      setExpandedWidth,
       open,
       close,
       toggle,

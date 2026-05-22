@@ -11,6 +11,18 @@
   --tr-chat-layout-left-collapsed-width: 48px;
   --tr-chat-layout-right-expanded-width: 320px;
   --tr-chat-layout-right-collapsed-width: 48px;
+  --tr-chat-layout-main-min-width: 320px;
+  --tr-chat-layout-resize-trigger-size: 6px;
+  --tr-chat-layout-resize-line-color: transparent;
+  --tr-chat-layout-resize-line-hover-color: color-mix(in srgb, var(--tr-color-primary, #1476ff) 32%, transparent);
+  --tr-chat-layout-resize-line-active-color: color-mix(in srgb, var(--tr-color-primary, #1476ff) 66%, transparent);
+  --tr-chat-layout-resize-indicator-width: 6px;
+  --tr-chat-layout-resize-indicator-height: 22px;
+  --tr-chat-layout-resize-indicator-bg: #ffffff;
+  --tr-chat-layout-resize-indicator-border: color-mix(in srgb, var(--tr-text-primary, #111827) 10%, transparent);
+  --tr-chat-layout-resize-indicator-active-bg: color-mix(in srgb, var(--tr-color-primary, #1476ff) 72%, #ffffff);
+  --tr-chat-layout-resize-indicator-active-border: color-mix(in srgb, var(--tr-color-primary, #1476ff) 88%, #ffffff);
+  --tr-chat-layout-resize-indicator-active-shadow: 0 0 0 4px color-mix(in srgb, var(--tr-color-primary-light, #deecff) 56%, transparent);
   --tr-chat-layout-content-max-width: 960px;
   --tr-chat-layout-inner-padding-inline: 16px;
   --tr-chat-layout-inner-padding-block: 12px;

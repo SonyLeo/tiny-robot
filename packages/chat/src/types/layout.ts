@@ -9,12 +9,26 @@ export interface ChatAsideConfig {
   expanded?: boolean
   expandedWidth?: number | string
   collapsedWidth?: number | string
+  resizable?: boolean
+  minExpandedWidth?: number | string
+  maxExpandedWidth?: number | string
+}
+
+export interface ChatAsideResizeEventDetail {
+  placement: ChatAsidePlacement
+  width: number
 }
 
 // Props
 export interface ChatLayoutProps {
   leftAside?: ChatAsideConfig
   rightAside?: ChatAsideConfig
+}
+
+export interface ChatLayoutEmits {
+  'aside-resize-start': [detail: ChatAsideResizeEventDetail]
+  'aside-resize': [detail: ChatAsideResizeEventDetail]
+  'aside-resize-end': [detail: ChatAsideResizeEventDetail]
 }
 
 export interface ChatAsideProps {
