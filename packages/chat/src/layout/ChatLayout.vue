@@ -1,31 +1,37 @@
 <script setup lang="ts">
-import { computed, useSlots, useTemplateRef } from 'vue'
+import { computed, toRef, useSlots, useTemplateRef } from 'vue'
 import { createChatLayoutStore } from '@/composables/createChatLayoutStore'
 import { useChatLayoutInteractions } from '@/composables/useChatLayoutInteractions'
 import { provideChatLayoutStore } from '@/composables/useChatLayout'
 import { useChatLayoutViewState } from '@/composables/useChatLayoutViewState'
 import { useChatSurface } from '@/composables/useChatSurface'
 import ChatAsideResizeTrigger from './ChatAsideResizeTrigger.vue'
+import ChatSurfaceResizeTrigger from './ChatSurfaceResizeTrigger.vue'
 import { createChatLayoutAsideStoreInput } from './utils'
 import type {
   ChatAsideConfig,
+  ChatDetachedBounds,
   ChatLayoutEmits,
   ChatLayoutProps,
   ChatLayoutSlots,
-  ChatSurfaceConfig,
+  ChatSurfaceMode,
 } from '@/types/layout'
 
 defineOptions({
   name: 'ChatLayout',
 })
 
-defineProps<ChatLayoutProps>()
+const props =
+  defineProps<
+    Pick<ChatLayoutProps, 'detachedDraggable' | 'detachedResizable' | 'minDetachedWidth' | 'maxDetachedWidth'>
+  >()
 
 const emit = defineEmits<ChatLayoutEmits>()
 
 defineSlots<ChatLayoutSlots>()
 
-const surfaceState = defineModel<ChatSurfaceConfig>('surface')
+const surfaceModeState = defineModel<ChatSurfaceMode>('surfaceMode')
+const detachedBoundsState = defineModel<ChatDetachedBounds>('detachedBounds')
 const leftAsideState = defineModel<ChatAsideConfig>('leftAside')
 const rightAsideState = defineModel<ChatAsideConfig>('rightAside')
 const surfaceHostRef = useTemplateRef<HTMLElement>('surfaceHostRef')
@@ -45,7 +51,12 @@ provideChatLayoutStore(layoutStore)
 const slots = useSlots()
 const { closeDrawers, left, right } = layoutStore
 const isDrawerVisible = computed(() => layoutStore.isDrawerVisible)
-const { isResizing, draggingPlacement, leftHandleProps, rightHandleProps } = useChatLayoutInteractions({
+const {
+  isResizing: isAsideResizing,
+  draggingPlacement,
+  leftHandleProps,
+  rightHandleProps,
+} = useChatLayoutInteractions({
   rootRef: layoutRootRef,
   leftAsideRef,
   rightAsideRef,
@@ -75,14 +86,31 @@ const {
   left,
   right,
   isDrawerVisible,
-  isResizing,
+  isResizing: isAsideResizing,
 })
 
-const { showDragBar, surfaceClass, surfaceStyle, dragBarClass } = useChatSurface({
-  surfaceState,
+const {
+  showDragBar,
+  showResizeHandles,
+  surfaceClass,
+  surfaceStyle,
+  dragBarClass,
+  activeResizeEdge,
+  leftResizeHandleProps,
+  rightResizeHandleProps,
+} = useChatSurface({
+  surfaceModeState,
+  detachedBoundsState,
+  detachedDraggableState: toRef(props, 'detachedDraggable'),
+  detachedResizableState: toRef(props, 'detachedResizable'),
+  minDetachedWidthState: toRef(props, 'minDetachedWidth'),
+  maxDetachedWidthState: toRef(props, 'maxDetachedWidth'),
   hostRef: surfaceHostRef,
   frameRef: surfaceFrameRef,
   dragHandleRef: surfaceDragHandleRef,
+  onDetachedResizeStart: (detail) => emit('detached-resize-start', detail),
+  onDetachedResize: (detail) => emit('detached-resize', detail),
+  onDetachedResizeEnd: (detail) => emit('detached-resize-end', detail),
 })
 
 const layoutRootStyle = computed(() => ({
@@ -99,6 +127,7 @@ const layoutRootStyle = computed(() => ({
       :class="surfaceClass"
       :style="surfaceStyle"
       data-part="surface"
+      :data-resizing-edge="activeResizeEdge ?? undefined"
     >
       <div
         v-if="showDragBar"
@@ -106,6 +135,18 @@ const layoutRootStyle = computed(() => ({
         class="tr-chat-layout-surface__drag-bar"
         :class="dragBarClass"
         data-part="surface-drag-bar"
+      />
+      <ChatSurfaceResizeTrigger
+        v-if="showResizeHandles"
+        edge="left"
+        :active="activeResizeEdge === 'left'"
+        @pointerdown="leftResizeHandleProps.onPointerdown"
+      />
+      <ChatSurfaceResizeTrigger
+        v-if="showResizeHandles"
+        edge="right"
+        :active="activeResizeEdge === 'right'"
+        @pointerdown="rightResizeHandleProps.onPointerdown"
       />
 
       <div

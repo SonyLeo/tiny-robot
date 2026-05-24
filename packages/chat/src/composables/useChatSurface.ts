@@ -1,333 +1,451 @@
-import { useDraggable, useResizeObserver } from '@vueuse/core'
-import { computed, shallowRef, watch, type CSSProperties, type Ref } from 'vue'
-import type { ChatSurfaceConfig, ChatSurfaceMode, ChatSurfaceRect } from '@/types/layout'
+import { useDraggable, useEventListener, useResizeObserver } from '@vueuse/core'
+import { computed, onBeforeUnmount, shallowRef, watch, type CSSProperties, type Ref } from 'vue'
+import type { ChatDetachedBounds, ChatDetachedResizeEventDetail, ChatPlacement, ChatSurfaceMode } from '@/types/layout'
 import { resolveCssLengthToPx, toCssLength } from '@/utils/cssLength'
 
 interface UseChatSurfaceOptions {
-  surfaceState: Ref<ChatSurfaceConfig | undefined>
+  surfaceModeState: Ref<ChatSurfaceMode | undefined>
+  detachedBoundsState: Ref<ChatDetachedBounds | undefined>
+  detachedDraggableState: Ref<boolean | undefined>
+  detachedResizableState: Ref<boolean | undefined>
+  minDetachedWidthState: Ref<number | string | undefined>
+  maxDetachedWidthState: Ref<number | string | undefined>
   hostRef: Ref<HTMLElement | null>
   frameRef: Ref<HTMLElement | null>
   dragHandleRef: Ref<HTMLElement | null>
+  onDetachedResizeStart?: (detail: ChatDetachedResizeEventDetail) => void
+  onDetachedResize?: (detail: ChatDetachedResizeEventDetail) => void
+  onDetachedResizeEnd?: (detail: ChatDetachedResizeEventDetail) => void
 }
 
-const DEFAULT_FLOATING_WIDTH = 420
-const DEFAULT_FLOATING_HEIGHT = '80vh'
-const DEFAULT_EDGE_WIDTH = 380
-const DEFAULT_FLOATING_TOP = 24
-const DEFAULT_FLOATING_GAP = 24
-const DEFAULT_SNAP_THRESHOLD = 28
-const DEFAULT_EDGE_DRAG_OFFSET = 24
+interface ResolvedDetachedBounds {
+  x?: number
+  y?: number
+  width: number | string
+  height: number | string
+}
+
+interface DetachedBoundsSnapshot {
+  raw: ResolvedDetachedBounds
+  rawWidth: number
+  rawHeight: number
+  widthPx: number
+  heightPx: number
+  x: number
+  y: number
+  xMax: number
+  yMax: number
+  minWidth: number
+  maxWidth: number
+}
+
+interface DetachedResizeState {
+  pointerId: number
+  handleEl: HTMLElement
+  edge: ChatPlacement
+  startBounds: DetachedBoundsSnapshot
+  currentWidth: number
+  bodyCursor: string
+  bodyUserSelect: string
+}
+
+const DEFAULT_DETACHED_WIDTH = 420
+const DEFAULT_DETACHED_HEIGHT = '80vh'
+const DEFAULT_DETACHED_TOP = 24
+const DEFAULT_DETACHED_GAP = 24
+const DEFAULT_MIN_DETACHED_WIDTH = 320
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max)
 }
 
-// 基于宿主容器收敛当前 surface 尺寸，并返回本次可移动边界。
-function resolveSurfaceMetrics(
-  hostEl: HTMLElement,
-  rect: Pick<ChatSurfaceRect, 'width' | 'height'>,
-  fallbackWidth: number,
-  fallbackHeight: number,
-) {
-  const hostRect = hostEl.getBoundingClientRect()
-  const maxWidth = Math.max(1, hostRect.width - DEFAULT_FLOATING_GAP * 2)
-  const maxHeight = Math.max(1, hostRect.height - DEFAULT_FLOATING_TOP - DEFAULT_FLOATING_GAP)
-  const rawWidth = resolveCssLengthToPx(rect.width, hostEl, fallbackWidth)
-  const rawHeight = resolveCssLengthToPx(rect.height, hostEl, fallbackHeight, 'height')
-  const widthPx = Math.min(rawWidth, maxWidth)
-  const heightPx = Math.min(rawHeight, maxHeight)
-  const xMax = Math.max(DEFAULT_FLOATING_GAP, hostRect.width - widthPx - DEFAULT_FLOATING_GAP)
-  const yMax = Math.max(DEFAULT_FLOATING_TOP, hostRect.height - heightPx - DEFAULT_FLOATING_GAP)
-
-  return {
-    hostRect,
-    rawWidth,
-    rawHeight,
-    widthPx,
-    heightPx,
-    xMax,
-    yMax,
-  }
+function areDetachedBoundsEqual(left: ChatDetachedBounds | undefined, right: ChatDetachedBounds | undefined): boolean {
+  return left?.x === right?.x && left?.y === right?.y && left?.width === right?.width && left?.height === right?.height
 }
 
 export function useChatSurface(options: UseChatSurfaceOptions) {
-  // 记录最近一次浮窗态的位置和尺寸，供 edge-right 恢复为 floating 时复用。
-  const lastFloatingRect = shallowRef<ChatSurfaceRect | null>(null)
-  // 拖拽中只标记右侧吸附候选，真正模式切换在拖拽结束时提交。
-  const pendingSnapPlacement = shallowRef<ChatSurfaceMode | null>(null)
-  const surfaceMode = computed<ChatSurfaceMode>(() => options.surfaceState.value?.mode ?? 'fullscreen')
-  const isFloating = computed(() => surfaceMode.value === 'floating')
-  const isEdgeRight = computed(() => surfaceMode.value === 'edge-right')
-  const isFullscreen = computed(() => surfaceMode.value === 'fullscreen')
-  const isDraggable = computed(() => options.surfaceState.value?.draggable ?? true)
-  const canDragSurface = computed(() => (isFloating.value || isEdgeRight.value) && isDraggable.value)
-  const snapThreshold = computed(() => {
-    const value = options.surfaceState.value?.snapThreshold
-    return typeof value === 'number' && Number.isFinite(value) ? value : DEFAULT_SNAP_THRESHOLD
-  })
-  const edgeWidth = computed(() => toCssLength(options.surfaceState.value?.edgeWidth, `${DEFAULT_EDGE_WIDTH}px`))
+  const activeResize = shallowRef<DetachedResizeState | null>(null)
+  const pointerTarget = typeof window === 'undefined' ? undefined : window
+  const surfaceMode = computed<ChatSurfaceMode>(() => options.surfaceModeState.value ?? 'embedded')
+  const isDetached = computed(() => surfaceMode.value === 'detached')
+  const isEmbedded = computed(() => surfaceMode.value === 'embedded')
+  const isDetachedDraggable = computed(() => options.detachedDraggableState.value ?? true)
+  const isDetachedResizable = computed(() => options.detachedResizableState.value === true)
+  const isResizing = computed(() => activeResize.value !== null)
+  const activeResizeEdge = computed<ChatPlacement | null>(() => activeResize.value?.edge ?? null)
+  const canDragDetached = computed(() => isDetached.value && isDetachedDraggable.value && !isResizing.value)
 
-  function updateSurface(patch: Partial<ChatSurfaceConfig>): void {
-    options.surfaceState.value = {
-      ...options.surfaceState.value,
-      ...patch,
+  function resolveWidthLimits(hostEl: HTMLElement) {
+    const hostRect = hostEl.getBoundingClientRect()
+    const availableWidth = Math.max(1, hostRect.width - DEFAULT_DETACHED_GAP * 2)
+    const minWidth = clamp(
+      resolveCssLengthToPx(options.minDetachedWidthState.value, hostEl, DEFAULT_MIN_DETACHED_WIDTH),
+      1,
+      availableWidth,
+    )
+    const maxWidth = clamp(
+      resolveCssLengthToPx(options.maxDetachedWidthState.value, hostEl, availableWidth),
+      minWidth,
+      availableWidth,
+    )
+
+    return {
+      hostRect,
+      minWidth,
+      maxWidth,
+      maxHeight: Math.max(1, hostRect.height - DEFAULT_DETACHED_TOP - DEFAULT_DETACHED_GAP),
     }
   }
 
-  // 基于外部配置生成默认浮窗位置，未传 x 时默认水平居中。
-  function resolveDefaultFloatingRect(): ChatSurfaceRect {
+  function resolveDefaultDetachedBounds(source?: ChatDetachedBounds): ChatDetachedBounds {
     const hostEl = options.hostRef.value
-    const currentRect = options.surfaceState.value?.floatingRect
-    const width = currentRect?.width ?? DEFAULT_FLOATING_WIDTH
-    const height = currentRect?.height ?? DEFAULT_FLOATING_HEIGHT
+    const width = source?.width ?? DEFAULT_DETACHED_WIDTH
+    const height = source?.height ?? DEFAULT_DETACHED_HEIGHT
 
     if (!hostEl) {
       return {
-        x: currentRect?.x ?? DEFAULT_FLOATING_GAP,
-        y: currentRect?.y ?? DEFAULT_FLOATING_TOP,
+        x: source?.x ?? DEFAULT_DETACHED_GAP,
+        y: source?.y ?? DEFAULT_DETACHED_TOP,
         width,
         height,
       }
     }
 
-    const { hostRect, widthPx } = resolveSurfaceMetrics(
-      hostEl,
-      { width, height },
-      DEFAULT_FLOATING_WIDTH,
-      resolveCssLengthToPx(height, hostEl, hostEl.getBoundingClientRect().height, 'height'),
-    )
-    const x = currentRect?.x ?? Math.max(DEFAULT_FLOATING_GAP, (hostRect.width - widthPx) / 2)
-    const y = currentRect?.y ?? DEFAULT_FLOATING_TOP
+    const { hostRect, minWidth, maxWidth, maxHeight } = resolveWidthLimits(hostEl)
+    const rawWidth = resolveCssLengthToPx(width, hostEl, DEFAULT_DETACHED_WIDTH)
+    const rawHeight = resolveCssLengthToPx(height, hostEl, hostRect.height, 'height')
+    const widthPx = clamp(rawWidth, minWidth, maxWidth)
+    const heightPx = Math.min(rawHeight, maxHeight)
 
     return {
-      x,
-      y,
+      x: source?.x ?? Math.max(DEFAULT_DETACHED_GAP, (hostRect.width - widthPx) / 2),
+      y: source?.y ?? DEFAULT_DETACHED_TOP,
       width,
-      height,
+      height: heightPx === rawHeight ? height : heightPx,
     }
   }
 
-  function ensureFloatingRect(): ChatSurfaceRect {
-    const nextRect = {
-      ...resolveDefaultFloatingRect(),
-      ...options.surfaceState.value?.floatingRect,
+  function resolveCurrentDetachedBounds(): ChatDetachedBounds {
+    const externalBounds = options.detachedBoundsState.value
+
+    if (!externalBounds) {
+      return resolveDefaultDetachedBounds()
     }
 
-    lastFloatingRect.value = nextRect
-    updateSurface({ floatingRect: nextRect })
-    return nextRect
+    return {
+      ...resolveDefaultDetachedBounds(externalBounds),
+      ...externalBounds,
+    }
   }
 
-  function resolveCurrentFloatingRect(): ChatSurfaceRect {
-    return options.surfaceState.value?.floatingRect ?? lastFloatingRect.value ?? resolveDefaultFloatingRect()
-  }
-
-  // edge-right 开始拖拽前，先推导出一个贴近右边的浮窗 rect，作为拖拽起点。
-  function resolveEdgeFloatingRect(): ChatSurfaceRect {
+  function resolveDetachedSnapshot(bounds = resolveCurrentDetachedBounds()): DetachedBoundsSnapshot {
+    const raw = {
+      x: bounds.x ?? undefined,
+      y: bounds.y ?? undefined,
+      width: bounds.width ?? DEFAULT_DETACHED_WIDTH,
+      height: bounds.height ?? DEFAULT_DETACHED_HEIGHT,
+    }
     const hostEl = options.hostRef.value
-    const frameEl = options.frameRef.value
-    const restoreRect = lastFloatingRect.value ?? options.surfaceState.value?.floatingRect
-    const width = restoreRect?.width ?? options.surfaceState.value?.edgeWidth ?? DEFAULT_FLOATING_WIDTH
-    const height = restoreRect?.height ?? DEFAULT_FLOATING_HEIGHT
 
-    if (!hostEl || !frameEl) {
+    if (!hostEl) {
+      const widthPx = resolveCssLengthToPx(raw.width, null, DEFAULT_DETACHED_WIDTH)
+      const heightPx = resolveCssLengthToPx(raw.height, null, 0, 'height')
+
       return {
-        x: restoreRect?.x ?? DEFAULT_FLOATING_GAP,
-        y: restoreRect?.y ?? DEFAULT_FLOATING_TOP,
-        width,
-        height,
+        raw,
+        rawWidth: widthPx,
+        rawHeight: heightPx,
+        widthPx,
+        heightPx,
+        x: raw.x ?? DEFAULT_DETACHED_GAP,
+        y: raw.y ?? DEFAULT_DETACHED_TOP,
+        xMax: raw.x ?? DEFAULT_DETACHED_GAP,
+        yMax: raw.y ?? DEFAULT_DETACHED_TOP,
+        minWidth: 1,
+        maxWidth: Number.MAX_SAFE_INTEGER,
       }
     }
 
-    const frameRect = frameEl.getBoundingClientRect()
-    const { hostRect, widthPx, yMax } = resolveSurfaceMetrics(
-      hostEl,
-      { width, height },
-      frameRect.width,
-      frameRect.height,
-    )
-    const x = Math.max(DEFAULT_FLOATING_GAP, hostRect.width - widthPx - DEFAULT_EDGE_DRAG_OFFSET)
-    const y = clamp(restoreRect?.y ?? DEFAULT_FLOATING_TOP, DEFAULT_FLOATING_TOP, yMax)
+    const { hostRect, minWidth, maxWidth, maxHeight } = resolveWidthLimits(hostEl)
+    const rawWidth = resolveCssLengthToPx(raw.width, hostEl, DEFAULT_DETACHED_WIDTH)
+    const rawHeight = resolveCssLengthToPx(raw.height, hostEl, hostRect.height, 'height')
+    const widthPx = clamp(rawWidth, minWidth, maxWidth)
+    const heightPx = Math.min(rawHeight, maxHeight)
+    const xMax = Math.max(DEFAULT_DETACHED_GAP, hostRect.width - widthPx - DEFAULT_DETACHED_GAP)
+    const yMax = Math.max(DEFAULT_DETACHED_TOP, hostRect.height - heightPx - DEFAULT_DETACHED_GAP)
+    const defaultX = Math.max(DEFAULT_DETACHED_GAP, (hostRect.width - widthPx) / 2)
 
     return {
-      x,
-      y,
-      width,
-      height,
+      raw,
+      rawWidth,
+      rawHeight,
+      widthPx,
+      heightPx,
+      x: clamp(raw.x ?? defaultX, DEFAULT_DETACHED_GAP, xMax),
+      y: clamp(raw.y ?? DEFAULT_DETACHED_TOP, DEFAULT_DETACHED_TOP, yMax),
+      xMax,
+      yMax,
+      minWidth,
+      maxWidth,
+    }
+  }
+
+  function toCommittedDetachedBounds(snapshot: DetachedBoundsSnapshot): ChatDetachedBounds {
+    return {
+      x: snapshot.x,
+      y: snapshot.y,
+      width: snapshot.widthPx === snapshot.rawWidth ? snapshot.raw.width : snapshot.widthPx,
+      height: snapshot.heightPx === snapshot.rawHeight ? snapshot.raw.height : snapshot.heightPx,
+    }
+  }
+
+  function commitDetachedBounds(nextBounds: ChatDetachedBounds): void {
+    if (areDetachedBoundsEqual(options.detachedBoundsState.value, nextBounds)) {
+      return
+    }
+
+    options.detachedBoundsState.value = nextBounds
+  }
+
+  function ensureDetachedBounds(): ChatDetachedBounds {
+    const nextBounds = toCommittedDetachedBounds(resolveDetachedSnapshot())
+    commitDetachedBounds(nextBounds)
+    return nextBounds
+  }
+
+  function clampDetachedBounds(): void {
+    if (!isDetached.value || isDragging.value || isResizing.value) {
+      return
+    }
+
+    const nextBounds = toCommittedDetachedBounds(resolveDetachedSnapshot())
+    commitDetachedBounds(nextBounds)
+  }
+
+  function resolveDraggedDetachedBounds(nextX: number, nextY: number): ChatDetachedBounds {
+    const currentBounds = resolveCurrentDetachedBounds()
+    const snapshot = resolveDetachedSnapshot(currentBounds)
+
+    return {
+      ...toCommittedDetachedBounds(snapshot),
+      x: clamp(nextX, DEFAULT_DETACHED_GAP, snapshot.xMax),
+      y: clamp(nextY, DEFAULT_DETACHED_TOP, snapshot.yMax),
     }
   }
 
   const { x, y, isDragging } = useDraggable(options.frameRef, {
     handle: options.dragHandleRef,
     containerElement: options.hostRef,
-    initialValue: { x: DEFAULT_FLOATING_GAP, y: DEFAULT_FLOATING_TOP },
+    initialValue: { x: DEFAULT_DETACHED_GAP, y: DEFAULT_DETACHED_TOP },
     preventDefault: true,
     buttons: [0],
-    disabled: computed(() => !canDragSurface.value),
+    disabled: computed(() => !canDragDetached.value),
     onStart: () => {
-      if (!canDragSurface.value) {
+      if (!canDragDetached.value) {
         return false
       }
 
-      const rect = isEdgeRight.value ? resolveEdgeFloatingRect() : resolveCurrentFloatingRect()
-      if (isEdgeRight.value) {
-        lastFloatingRect.value = rect
-        updateSurface({
-          mode: 'floating',
-          floatingRect: rect,
-        })
-      }
-
-      x.value = rect.x ?? DEFAULT_FLOATING_GAP
-      y.value = rect.y ?? DEFAULT_FLOATING_TOP
-      pendingSnapPlacement.value = null
+      const detachedBounds = ensureDetachedBounds()
+      x.value = detachedBounds.x ?? DEFAULT_DETACHED_GAP
+      y.value = detachedBounds.y ?? DEFAULT_DETACHED_TOP
     },
     onMove: (position) => {
-      if (!options.hostRef.value || !options.frameRef.value) {
-        return
-      }
-
-      const hostRect = options.hostRef.value.getBoundingClientRect()
-      const frameRect = options.frameRef.value.getBoundingClientRect()
-      const remainingRight = hostRect.right - frameRect.right
-      pendingSnapPlacement.value = remainingRight <= snapThreshold.value ? 'edge-right' : null
-      x.value = position.x
-      y.value = position.y
+      const nextBounds = resolveDraggedDetachedBounds(position.x, position.y)
+      x.value = nextBounds.x ?? DEFAULT_DETACHED_GAP
+      y.value = nextBounds.y ?? DEFAULT_DETACHED_TOP
+      commitDetachedBounds(nextBounds)
     },
     onEnd: (position) => {
-      const currentRect = resolveCurrentFloatingRect()
-      const nextRect = {
-        ...currentRect,
-        x: position.x,
-        y: position.y,
-      }
-
-      lastFloatingRect.value = nextRect
-
-      if (pendingSnapPlacement.value === 'edge-right') {
-        updateSurface({
-          mode: 'edge-right',
-          floatingRect: nextRect,
-          edgeWidth: currentRect.width ?? edgeWidth.value,
-        })
-      } else {
-        updateSurface({
-          mode: 'floating',
-          floatingRect: nextRect,
-        })
-      }
-
-      pendingSnapPlacement.value = null
+      const nextBounds = resolveDraggedDetachedBounds(position.x, position.y)
+      x.value = nextBounds.x ?? DEFAULT_DETACHED_GAP
+      y.value = nextBounds.y ?? DEFAULT_DETACHED_TOP
+      commitDetachedBounds(nextBounds)
     },
   })
+  const canResizeDetached = computed(() => isDetached.value && isDetachedResizable.value && !isDragging.value)
 
-  function clampFloatingRect(): void {
-    if (!options.hostRef.value || !isFloating.value || isDragging.value) {
+  function stopResize(pointerId?: number): void {
+    const state = activeResize.value
+    if (!state || (pointerId !== undefined && state.pointerId !== pointerId)) {
       return
     }
 
-    // 宿主尺寸变化或外部 rect 变化后，保证浮窗仍被约束在宿主可视范围内。
-    const hostEl = options.hostRef.value
-    const rect = resolveCurrentFloatingRect()
-    const { rawWidth, rawHeight, widthPx, heightPx, xMax, yMax } = resolveSurfaceMetrics(
-      hostEl,
-      rect,
-      DEFAULT_FLOATING_WIDTH,
-      hostEl.getBoundingClientRect().height,
-    )
-    const nextX = clamp(rect.x ?? DEFAULT_FLOATING_GAP, DEFAULT_FLOATING_GAP, xMax)
-    const nextY = clamp(rect.y ?? DEFAULT_FLOATING_TOP, DEFAULT_FLOATING_TOP, yMax)
-    const nextWidth = widthPx === rawWidth ? rect.width : widthPx
-    const nextHeight = heightPx === rawHeight ? rect.height : heightPx
-
-    if (nextX === rect.x && nextY === rect.y && nextWidth === rect.width && nextHeight === rect.height) {
-      return
+    if (state.handleEl.hasPointerCapture(state.pointerId)) {
+      state.handleEl.releasePointerCapture(state.pointerId)
     }
 
-    const nextRect = {
-      ...rect,
-      x: nextX,
-      y: nextY,
-      width: nextWidth,
-      height: nextHeight,
-    }
+    const body = state.handleEl.ownerDocument.body
+    body.style.cursor = state.bodyCursor
+    body.style.userSelect = state.bodyUserSelect
 
-    lastFloatingRect.value = nextRect
-    updateSurface({ floatingRect: nextRect })
+    options.onDetachedResizeEnd?.({
+      edge: state.edge,
+      width: state.currentWidth,
+    })
+
+    activeResize.value = null
   }
+
+  function startResize(edge: ChatPlacement, event: PointerEvent): void {
+    if (activeResize.value || isDragging.value || !event.isPrimary || event.button !== 0 || !canResizeDetached.value) {
+      return
+    }
+
+    const handleEl = event.currentTarget instanceof HTMLElement ? event.currentTarget : null
+    const hostEl = options.hostRef.value
+
+    if (!handleEl || !hostEl) {
+      return
+    }
+
+    const detachedBounds = ensureDetachedBounds()
+    const snapshot = resolveDetachedSnapshot(detachedBounds)
+    const body = hostEl.ownerDocument.body
+
+    event.preventDefault()
+    handleEl.setPointerCapture(event.pointerId)
+
+    activeResize.value = {
+      pointerId: event.pointerId,
+      handleEl,
+      edge,
+      startBounds: snapshot,
+      currentWidth: snapshot.widthPx,
+      bodyCursor: body.style.cursor,
+      bodyUserSelect: body.style.userSelect,
+    }
+
+    body.style.cursor = 'col-resize'
+    body.style.userSelect = 'none'
+
+    options.onDetachedResizeStart?.({
+      edge,
+      width: snapshot.widthPx,
+    })
+  }
+
+  useEventListener(pointerTarget, 'pointermove', (event: PointerEvent) => {
+    const state = activeResize.value
+    const hostEl = options.hostRef.value
+    if (!state || !hostEl || event.pointerId !== state.pointerId) {
+      return
+    }
+
+    const hostRect = hostEl.getBoundingClientRect()
+    const pointerX = event.clientX - hostRect.left
+    const minX = DEFAULT_DETACHED_GAP
+    const maxRight = hostRect.width - DEFAULT_DETACHED_GAP
+    let nextX = state.startBounds.x
+    let nextWidth = state.startBounds.widthPx
+
+    if (state.edge === 'left') {
+      nextX = pointerX
+      nextWidth = clamp(
+        state.startBounds.x + state.startBounds.widthPx - pointerX,
+        state.startBounds.minWidth,
+        state.startBounds.maxWidth,
+      )
+    } else {
+      nextWidth = clamp(pointerX - state.startBounds.x, state.startBounds.minWidth, state.startBounds.maxWidth)
+      nextX = pointerX - nextWidth
+    }
+
+    nextX = clamp(nextX, minX, Math.max(minX, maxRight - nextWidth))
+
+    const nextBounds: ChatDetachedBounds = {
+      ...toCommittedDetachedBounds(state.startBounds),
+      x: nextX,
+      width: nextWidth,
+    }
+
+    state.currentWidth = nextWidth
+    commitDetachedBounds(nextBounds)
+    options.onDetachedResize?.({
+      edge: state.edge,
+      width: nextWidth,
+    })
+  })
+
+  useEventListener(pointerTarget, 'pointerup', (event: PointerEvent) => {
+    stopResize(event.pointerId)
+  })
+
+  useEventListener(pointerTarget, 'pointercancel', (event: PointerEvent) => {
+    stopResize(event.pointerId)
+  })
+
+  onBeforeUnmount(() => {
+    stopResize()
+  })
 
   watch(
     surfaceMode,
-    (mode, previousMode) => {
-      if (mode === 'floating') {
-        const rect =
-          previousMode === 'edge-right' && lastFloatingRect.value ? lastFloatingRect.value : ensureFloatingRect()
-
-        x.value = rect.x ?? DEFAULT_FLOATING_GAP
-        y.value = rect.y ?? DEFAULT_FLOATING_TOP
-        return
+    (variant) => {
+      if (variant === 'detached') {
+        const detachedBounds = ensureDetachedBounds()
+        x.value = detachedBounds.x ?? DEFAULT_DETACHED_GAP
+        y.value = detachedBounds.y ?? DEFAULT_DETACHED_TOP
       }
-
-      if (previousMode === 'floating') {
-        lastFloatingRect.value = {
-          ...resolveCurrentFloatingRect(),
-          x: x.value,
-          y: y.value,
-        }
-      }
-
-      pendingSnapPlacement.value = null
     },
     { immediate: true },
   )
 
+  watch(
+    [surfaceMode, options.detachedBoundsState, options.minDetachedWidthState, options.maxDetachedWidthState],
+    () => {
+      clampDetachedBounds()
+    },
+  )
+
   useResizeObserver(options.hostRef, () => {
-    clampFloatingRect()
+    clampDetachedBounds()
   })
 
-  const floatingRect = computed(() => resolveCurrentFloatingRect())
-  const floatingX = computed(() => (isDragging.value ? x.value : (floatingRect.value.x ?? DEFAULT_FLOATING_GAP)))
-  const floatingY = computed(() => (isDragging.value ? y.value : (floatingRect.value.y ?? DEFAULT_FLOATING_TOP)))
-
+  const detachedBounds = computed(() => toCommittedDetachedBounds(resolveDetachedSnapshot()))
   const surfaceClass = computed(() => ({
-    'tr-chat-layout-surface--fullscreen': isFullscreen.value,
-    'tr-chat-layout-surface--floating': isFloating.value,
-    'tr-chat-layout-surface--edge-right': isEdgeRight.value,
+    'tr-chat-layout-surface--embedded': isEmbedded.value,
+    'tr-chat-layout-surface--detached': isDetached.value,
     'tr-chat-layout-surface--dragging': isDragging.value,
-    'tr-chat-layout-surface--draggable': canDragSurface.value,
-    'tr-chat-layout-surface--snap-pending': pendingSnapPlacement.value === 'edge-right',
+    'tr-chat-layout-surface--draggable': canDragDetached.value,
+    'tr-chat-layout-surface--resizable': isDetached.value && isDetachedResizable.value,
+    'tr-chat-layout-surface--resizing': isResizing.value,
+    'tr-chat-layout-surface--resizing-left': activeResizeEdge.value === 'left',
+    'tr-chat-layout-surface--resizing-right': activeResizeEdge.value === 'right',
   }))
 
   const surfaceStyle = computed<CSSProperties>(() => {
-    if (isFloating.value) {
-      return {
-        left: `${floatingX.value}px`,
-        top: `${floatingY.value}px`,
-        width: toCssLength(floatingRect.value.width, `${DEFAULT_FLOATING_WIDTH}px`),
-        height: toCssLength(floatingRect.value.height, DEFAULT_FLOATING_HEIGHT),
-      }
+    if (!isDetached.value) {
+      return {}
     }
 
-    if (isEdgeRight.value) {
-      return {
-        width: edgeWidth.value,
-      }
+    return {
+      left: `${detachedBounds.value.x ?? DEFAULT_DETACHED_GAP}px`,
+      top: `${detachedBounds.value.y ?? DEFAULT_DETACHED_TOP}px`,
+      width: toCssLength(detachedBounds.value.width, `${DEFAULT_DETACHED_WIDTH}px`),
+      height: toCssLength(detachedBounds.value.height, DEFAULT_DETACHED_HEIGHT),
     }
-
-    return {}
   })
 
   const dragBarClass = computed(() => ({
-    'tr-chat-layout-surface__drag-bar--draggable': canDragSurface.value,
+    'tr-chat-layout-surface__drag-bar--draggable': canDragDetached.value,
   }))
 
   return {
-    isFloating,
-    isEdgeRight,
-    isFullscreen,
-    showDragBar: computed(() => isFloating.value || isEdgeRight.value),
+    isEmbedded,
+    isDetached,
+    isDragging,
+    isResizing,
+    activeResizeEdge,
+    showDragBar: computed(() => isDetached.value),
+    showResizeHandles: computed(() => isDetached.value && isDetachedResizable.value),
     surfaceClass,
     surfaceStyle,
     dragBarClass,
+    leftResizeHandleProps: {
+      onPointerdown: (event: PointerEvent) => startResize('left', event),
+    },
+    rightResizeHandleProps: {
+      onPointerdown: (event: PointerEvent) => startResize('right', event),
+    },
   }
 }

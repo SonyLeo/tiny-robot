@@ -1,9 +1,9 @@
 import { computed, toValue, type MaybeRefOrGetter } from 'vue'
 import { useChatLayout } from '@/composables/useChatLayout'
-import type { ChatAsidePlacement } from '@/types/layout'
+import type { ChatPlacement } from '@/types/layout'
 import type { ChatLayoutPanelApi } from '@/types/layout.internal'
 
-export function useChatAside(placement: MaybeRefOrGetter<ChatAsidePlacement>) {
+export function useChatAside(placement: MaybeRefOrGetter<ChatPlacement>) {
   const store = useChatLayout()
   const resolvedPlacement = computed(() => toValue(placement))
   const panel = computed<ChatLayoutPanelApi>(() => (resolvedPlacement.value === 'left' ? store.left : store.right))

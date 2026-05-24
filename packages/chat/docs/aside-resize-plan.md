@@ -59,7 +59,7 @@ export interface ChatAsideConfig {
 }
 
 export interface ChatAsideResizeEventDetail {
-  placement: ChatAsidePlacement
+  placement: ChatPlacement
   width: number
 }
 

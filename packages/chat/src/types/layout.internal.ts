@@ -1,9 +1,9 @@
 import type { MaybeRefOrGetter } from 'vue'
-import type { ChatAsideConfig, ChatAsideLayoutMode, ChatAsidePlacement } from './layout'
+import type { ChatAsideConfig, ChatAsideLayoutMode, ChatPlacement } from './layout'
 
 // Runtime store types
 export interface ChatLayoutPanelApi {
-  placement: ChatAsidePlacement
+  placement: ChatPlacement
   layoutMode: ChatAsideLayoutMode
   isExpanded: boolean
   isDock: boolean

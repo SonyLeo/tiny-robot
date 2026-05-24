@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { ChatAsidePlacement } from '@/types/layout'
+import type { ChatPlacement } from '@/types/layout'
 
 defineOptions({
   name: 'ChatAsideResizeTrigger',
 })
 
 interface ChatAsideResizeTriggerProps {
-  placement: ChatAsidePlacement
-  draggingPlacement?: ChatAsidePlacement | null
+  placement: ChatPlacement
+  draggingPlacement?: ChatPlacement | null
 }
 
 const props = defineProps<ChatAsideResizeTriggerProps>()

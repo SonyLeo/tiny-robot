@@ -1,55 +1,45 @@
 <script setup lang="ts">
 import { shallowRef } from 'vue'
 import { Chat } from '@/index'
-import type { ChatSurfaceConfig, ChatSurfaceMode } from '@/types/layout'
+import type { ChatDetachedBounds, ChatSurfaceMode } from '@/types/layout'
 
-const surface = shallowRef<ChatSurfaceConfig>({
-  mode: 'floating',
-  floatingRect: {
-    width: 440,
-    height: '78vh',
-  },
-  edgeWidth: 400,
-  snapThreshold: 28,
+const surfaceMode = shallowRef<ChatSurfaceMode>('detached')
+const detachedBounds = shallowRef<ChatDetachedBounds>({
+  width: 440,
+  height: '78vh',
 })
-
-function setSurfaceMode(mode: ChatSurfaceMode): void {
-  surface.value = {
-    ...surface.value,
-    mode,
-  }
-}
 </script>
 
 <template>
   <div class="surface-layout-demo">
-    <Chat.Layout v-model:surface="surface" class="surface-layout-demo__layout">
+    <Chat.Layout
+      v-model:surface-mode="surfaceMode"
+      v-model:detached-bounds="detachedBounds"
+      class="surface-layout-demo__layout"
+      detached-draggable
+      detached-resizable
+      :min-detached-width="320"
+      :max-detached-width="720"
+    >
       <template #header>
         <div class="surface-layout-demo__header">
           <div class="surface-layout-demo__modes">
             <button
               type="button"
-              :class="{ 'is-active': surface?.mode === 'fullscreen' }"
-              @click="setSurfaceMode('fullscreen')"
+              :class="{ 'is-active': surfaceMode === 'embedded' }"
+              @click="surfaceMode = 'embedded'"
             >
-              Fullscreen
+              Embedded
             </button>
             <button
               type="button"
-              :class="{ 'is-active': surface?.mode === 'floating' }"
-              @click="setSurfaceMode('floating')"
+              :class="{ 'is-active': surfaceMode === 'detached' }"
+              @click="surfaceMode = 'detached'"
             >
-              Floating
-            </button>
-            <button
-              type="button"
-              :class="{ 'is-active': surface?.mode === 'edge-right' }"
-              @click="setSurfaceMode('edge-right')"
-            >
-              Edge Right
+              Detached
             </button>
           </div>
-          <span>Surface V1</span>
+          <span>Surface</span>
         </div>
       </template>
 
@@ -58,12 +48,12 @@ function setSurfaceMode(mode: ChatSurfaceMode): void {
           <div class="surface-layout-demo__main">
             <p class="surface-layout-demo__eyebrow">Top-Level Surface</p>
             <h2>TinyRobot</h2>
-            <p>V1 仅支持顶部拖拽和右侧吸附，不包含缩放和 guideline 预览。</p>
+            <p>当前 demo 只保留 Embedded / Detached 两态，聚焦顶层承载方式与 detached 的拖拽改宽交互。</p>
 
             <div class="surface-layout-demo__cards">
               <article v-for="item in 4" :key="item" class="surface-layout-demo__card">
                 <strong>能力 {{ item }}</strong>
-                <p>切换 `fullscreen / floating / edge-right`，观察顶层承载形态变化。</p>
+                <p>切换 `Embedded / Detached`，观察顶层承载形态变化与 detached 交互边界。</p>
               </article>
             </div>
           </div>
@@ -72,7 +62,7 @@ function setSurfaceMode(mode: ChatSurfaceMode): void {
 
       <template #footer>
         <div class="surface-layout-demo__footer">
-          <input type="text" placeholder="输入问题，观察 surface 不同形态下的布局表现" />
+          <input type="text" placeholder="输入问题，观察 Embedded / Detached 下的布局表现" />
           <button type="button">发送</button>
         </div>
       </template>

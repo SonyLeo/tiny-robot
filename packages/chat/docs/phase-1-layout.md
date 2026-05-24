@@ -45,7 +45,7 @@
 ### 3.1 类型
 
 ```ts
-type ChatAsidePlacement = 'left' | 'right'
+type ChatPlacement = 'left' | 'right'
 type ChatAsideLayoutMode = 'dock' | 'drawer'
 
 interface ChatAsideConfig {

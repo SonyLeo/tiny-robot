@@ -1,5 +1,5 @@
 import { computed, toValue, type ComputedRef } from 'vue'
-import type { ChatAsideConfig, ChatAsideLayoutMode, ChatAsidePlacement } from '@/types/layout'
+import type { ChatAsideConfig, ChatAsideLayoutMode, ChatPlacement } from '@/types/layout'
 import type {
   ChatLayoutAsideStoreInput,
   ChatLayoutPanelApi,
@@ -56,7 +56,7 @@ function hasCollapsedRail(value: number | string | undefined): boolean {
 
 export function createChatLayoutStore(options: CreateChatLayoutStoreOptions = {}): ChatLayoutStore {
   function resolveAsideConfig(
-    side: ChatAsidePlacement,
+    side: ChatPlacement,
     config: ChatLayoutAsideStoreInput | undefined,
   ): ResolvedChatAsideConfig {
     const defaultExpanded = side === 'left'
@@ -109,7 +109,7 @@ export function createChatLayoutStore(options: CreateChatLayoutStoreOptions = {}
   }
 
   function createAsideController(
-    placement: ChatAsidePlacement,
+    placement: ChatPlacement,
     config: ResolvedChatAsideConfig,
     otherConfig: ResolvedChatAsideConfig,
   ): ChatLayoutPanelApi {

@@ -12,8 +12,9 @@
 ## 当前公共模型
 
 ```ts
-type ChatAsidePlacement = 'left' | 'right'
+type ChatPlacement = 'left' | 'right'
 type ChatAsideLayoutMode = 'dock' | 'drawer'
+type ChatSurfaceMode = 'embedded' | 'detached'
 
 interface ChatAsideConfig {
   layoutMode?: ChatAsideLayoutMode
@@ -26,10 +27,26 @@ interface ChatAsideConfig {
 }
 
 interface ChatLayoutProps {
+  surfaceMode?: ChatSurfaceMode
+  detachedBounds?: {
+    x?: number
+    y?: number
+    width?: number | string
+    height?: number | string
+  }
+  detachedDraggable?: boolean
+  detachedResizable?: boolean
+  minDetachedWidth?: number | string
+  maxDetachedWidth?: number | string
   leftAside?: ChatAsideConfig
   rightAside?: ChatAsideConfig
 }
 ```
+
+说明：
+
+- 上面这段对应当前主线已落地的公开模型。
+- `Main / BubbleList` 的单一 scroll host 改造和虚拟滚动条实现仍在后续阶段。
 
 ## 当前结论
 
@@ -39,25 +56,31 @@ interface ChatLayoutProps {
 - `collapsedWidth = 0` 或未配置：仅对 `dock` 生效，关闭后完全隐藏
 - aside 改宽能力放在 `ChatLayout` 壳层，不放进 `Chat.Aside`
 
+## 已确认待推进口径
+
+- 不再保留旧三态、侧吸附和对应的专用字段表达。
+- `SurfaceLayoutDemo` 已收口为 `Embedded / Detached` 两种形态。
+- `Main` 只负责高度和裁剪，`BubbleList` 作为唯一真实滚动宿主的方案已经确认，待进入实现阶段。
+
 ## 主要文档
 
-- 设计文档：[phase-1-layout.md](</e:/LS_WorkSpace/web/tiny-robot/packages/chat/docs/phase-1-layout.md:1>)
-- TODO：[todo.md](</e:/LS_WorkSpace/web/tiny-robot/packages/chat/docs/todo.md:1>)
-- 主区滚动方案：[chat-main-scroll-plan.md](</e:/LS_WorkSpace/web/tiny-robot/packages/chat/docs/chat-main-scroll-plan.md:1>)
-- Aside 拖拽方案：[aside-resize-plan.md](</e:/LS_WorkSpace/web/tiny-robot/packages/chat/docs/aside-resize-plan.md:1>)
-- 顶层形态方案：[layout-surface-plan.md](</e:/LS_WorkSpace/web/tiny-robot/packages/chat/docs/layout-surface-plan.md:1>)
-- 顶层形态 V2 扩展：[layout-surface-v2-plan.md](</e:/LS_WorkSpace/web/tiny-robot/packages/chat/docs/layout-surface-v2-plan.md:1>)
+- 设计文档：[phase-1-layout.md](./phase-1-layout.md)
+- TODO：[todo.md](./todo.md)
+- 主区滚动方案：[chat-main-scroll-plan.md](./chat-main-scroll-plan.md)
+- Aside 拖拽方案：[aside-resize-plan.md](./aside-resize-plan.md)
+- 顶层形态方案：[layout-surface-plan.md](./layout-surface-plan.md)
+- 顶层形态 V2 扩展：[layout-surface-v2-plan.md](./layout-surface-v2-plan.md)
 
 ## 主要文件
 
-- 类型定义：[src/types/layout.ts](</e:/LS_WorkSpace/web/tiny-robot/packages/chat/src/types/layout.ts:1>)
-- 内部类型：[src/types/layout.internal.ts](</e:/LS_WorkSpace/web/tiny-robot/packages/chat/src/types/layout.internal.ts:1>)
-- store：[src/composables/createChatLayoutStore.ts](</e:/LS_WorkSpace/web/tiny-robot/packages/chat/src/composables/createChatLayoutStore.ts:1>)
-- 布局骨架：[src/layout/ChatLayout.vue](</e:/LS_WorkSpace/web/tiny-robot/packages/chat/src/layout/ChatLayout.vue:1>)
-- aside：[src/layout/ChatAside.vue](</e:/LS_WorkSpace/web/tiny-robot/packages/chat/src/layout/ChatAside.vue:1>)
-- toggle：[src/layout/ChatAsideToggle.vue](</e:/LS_WorkSpace/web/tiny-robot/packages/chat/src/layout/ChatAsideToggle.vue:1>)
-- 样式：[src/styles/layout.css](</e:/LS_WorkSpace/web/tiny-robot/packages/chat/src/styles/layout.css:1>)
-- 默认变量：[src/styles/tokens.css](</e:/LS_WorkSpace/web/tiny-robot/packages/chat/src/styles/tokens.css:1>)
+- 类型定义：[src/types/layout.ts](../src/types/layout.ts)
+- 内部类型：[src/types/layout.internal.ts](../src/types/layout.internal.ts)
+- store：[src/composables/createChatLayoutStore.ts](../src/composables/createChatLayoutStore.ts)
+- 布局骨架：[src/layout/ChatLayout.vue](../src/layout/ChatLayout.vue)
+- aside：[src/layout/ChatAside.vue](../src/layout/ChatAside.vue)
+- toggle：[src/layout/ChatAsideToggle.vue](../src/layout/ChatAsideToggle.vue)
+- 样式：[src/styles/layout.css](../src/styles/layout.css)
+- 默认变量：[src/styles/tokens.css](../src/styles/tokens.css)
 
 ## 当前案例
 

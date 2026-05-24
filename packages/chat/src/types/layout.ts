@@ -1,9 +1,9 @@
 import type { VNode } from 'vue'
 
-export type ChatAsidePlacement = 'left' | 'right'
+export type ChatPlacement = 'left' | 'right'
 export type ChatAsideLayoutMode = 'dock' | 'drawer'
 export type ChatAsideCollapseEffect = 'overlay' | 'slide'
-export type ChatSurfaceMode = 'fullscreen' | 'floating' | 'edge-right'
+export type ChatSurfaceMode = 'embedded' | 'detached'
 
 export interface ChatAsideConfig {
   layoutMode?: ChatAsideLayoutMode
@@ -16,46 +16,62 @@ export interface ChatAsideConfig {
 }
 
 export interface ChatAsideResizeEventDetail {
-  placement: ChatAsidePlacement
+  placement: ChatPlacement
   width: number
 }
 
-export interface ChatSurfaceRect {
+export interface ChatDetachedBounds {
   x?: number
   y?: number
   width?: number | string
   height?: number | string
 }
 
-export interface ChatSurfaceConfig {
-  mode?: ChatSurfaceMode
-  draggable?: boolean
-  floatingRect?: ChatSurfaceRect
-  edgeWidth?: number | string
-  snapThreshold?: number
+export interface ChatDetachedResizeEventDetail {
+  edge: ChatPlacement
+  width: number
 }
 
 // Props
 export interface ChatLayoutProps {
-  surface?: ChatSurfaceConfig
+  /**
+   * Controls how the chat surface is attached to the host layout.
+   *
+   * embedded: rendered within the host layout flow.
+   * detached: rendered above the host layout and positioned independently.
+   *
+   * @default 'embedded'
+   */
+  surfaceMode?: ChatSurfaceMode
+  detachedBounds?: ChatDetachedBounds
+  detachedDraggable?: boolean
+  detachedResizable?: boolean
+  minDetachedWidth?: number | string
+  maxDetachedWidth?: number | string
   leftAside?: ChatAsideConfig
   rightAside?: ChatAsideConfig
 }
 
 export interface ChatLayoutEmits {
-  'update:surface': [value: ChatSurfaceConfig | undefined]
+  'update:surfaceMode': [value: ChatSurfaceMode | undefined]
+  'update:detachedBounds': [value: ChatDetachedBounds | undefined]
+  'update:leftAside': [value: ChatAsideConfig | undefined]
+  'update:rightAside': [value: ChatAsideConfig | undefined]
+  'detached-resize-start': [detail: ChatDetachedResizeEventDetail]
+  'detached-resize': [detail: ChatDetachedResizeEventDetail]
+  'detached-resize-end': [detail: ChatDetachedResizeEventDetail]
   'aside-resize-start': [detail: ChatAsideResizeEventDetail]
   'aside-resize': [detail: ChatAsideResizeEventDetail]
   'aside-resize-end': [detail: ChatAsideResizeEventDetail]
 }
 
 export interface ChatAsideProps {
-  placement: ChatAsidePlacement
+  placement: ChatPlacement
   collapseEffect?: ChatAsideCollapseEffect
 }
 
 export interface ChatAsideToggleProps {
-  placement: ChatAsidePlacement
+  placement: ChatPlacement
   ariaLabel?: string
 }
 

@@ -1,6 +1,6 @@
 import { useEventListener } from '@vueuse/core'
 import { computed, onBeforeUnmount, shallowRef, type Ref } from 'vue'
-import type { ChatAsidePlacement, ChatAsideResizeEventDetail } from '@/types/layout'
+import type { ChatAsideResizeEventDetail, ChatPlacement } from '@/types/layout'
 import type { ChatLayoutPanelApi } from '@/types/layout.internal'
 import { resolveCssLengthToPx } from '@/utils/cssLength'
 
@@ -19,7 +19,7 @@ interface ResizeState {
   pointerId: number
   handleEl: HTMLElement
   panel: ChatLayoutPanelApi
-  placement: ChatAsidePlacement
+  placement: ChatPlacement
   startX: number
   startWidth: number
   currentWidth: number
