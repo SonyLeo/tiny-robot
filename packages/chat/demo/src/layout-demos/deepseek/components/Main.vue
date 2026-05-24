@@ -72,7 +72,8 @@ import { actionIcons } from '../data'
 .deepseek-main__column {
   width: min(100%, 760px);
   margin: 0 auto;
-  padding: 32px 0 42px;
+  padding: 32px var(--tr-chat-layout-main-padding-inline, var(--tr-chat-layout-inner-padding-inline)) 42px;
+  box-sizing: border-box;
 }
 
 .deepseek-main__bubble-row {

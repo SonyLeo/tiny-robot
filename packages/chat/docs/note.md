@@ -56,11 +56,11 @@ interface ChatLayoutProps {
 - `collapsedWidth = 0` 或未配置：仅对 `dock` 生效，关闭后完全隐藏
 - aside 改宽能力放在 `ChatLayout` 壳层，不放进 `Chat.Aside`
 
-## 已确认待推进口径
+## 已确认口径
 
 - 不再保留旧三态、侧吸附和对应的专用字段表达。
 - `SurfaceLayoutDemo` 已收口为 `Embedded / Detached` 两种形态。
-- `Main` 只负责高度和裁剪，`BubbleList` 作为唯一真实滚动宿主的方案已经确认，待进入实现阶段。
+- `Main` 只负责高度和裁剪，`BubbleList` 作为唯一真实滚动宿主，`ChatMain` 内部滚动条只控制 `BubbleList`。
 
 ## 主要文档
 

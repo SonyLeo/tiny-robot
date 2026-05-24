@@ -31,7 +31,8 @@ import { chatGptAssistantActions } from '../data'
   display: grid;
   align-content: start;
   gap: 48px;
-  padding-top: 14px;
+  padding: 14px var(--tr-chat-layout-main-padding-inline, var(--tr-chat-layout-inner-padding-inline)) 0;
+  box-sizing: border-box;
 }
 
 .chatgpt-main__bubble-row {

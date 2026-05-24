@@ -188,10 +188,11 @@ export interface ChatDetachedResizeEventDetail {
 - `Main` 区域直接设 `height: 100%`，只负责高度和裁剪。
 - `BubbleList` 填充 `Main` 区域。
 - `BubbleList` 作为主区唯一真实滚动宿主。
-- `BubbleList` 内部分成两层：
-  - 根层负责滚动并铺满 `Main`
-  - 内容层负责 `max-width + margin-inline + padding-inline`
-- 虚拟滚动条只控制 `BubbleList` 的滚动。
+- 不修改 `BubbleList` 组件源码。
+- `ChatMain` 在运行时检测内部是否存在 `.tr-bubble-list`。
+- 通过 `ChatMain` 侧样式把 `.tr-bubble-list` 接成唯一 scroll host。
+- 通过 `ChatMain` 侧样式把每条 `.tr-bubble` 收敛到主区内容宽度。
+- `ChatMain` 内部虚拟滚动条只控制 `BubbleList` 的滚动。
 - 原生滚动条隐藏。
 
 明确不做：
@@ -204,14 +205,13 @@ export interface ChatDetachedResizeEventDetail {
 
 - `ChatLayout.main-shell` 不再承担真实滚动。
 - `ChatMain` 需要保证 `height: 100%`、`min-height: 0`、`overflow: hidden`。
-- `BubbleList` 的滚动根节点不能同时承担内容限宽职责。
+- `ChatMain` 需要接管 `.tr-bubble-list` 和 `.tr-bubble` 的主区布局样式。
+- 如果没有 `BubbleList`，`ChatMain` 自己继续作为回退滚动容器。
 
 涉及文件：
 
 - [src/layout/ChatMain.vue](../src/layout/ChatMain.vue)
 - [src/styles/layout-shell.css](../src/styles/layout-shell.css)
-- [../../components/src/bubble/BubbleList.vue](../../components/src/bubble/BubbleList.vue)
-- [../../components/src/bubble/index.type.ts](../../components/src/bubble/index.type.ts)
 - [chat-main-scroll-plan.md](./chat-main-scroll-plan.md)
 
 ## 7. 案例与文档同步

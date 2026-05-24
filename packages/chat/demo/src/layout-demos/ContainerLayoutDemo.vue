@@ -165,7 +165,8 @@ function handleRightAsideUpdate(nextConfig?: ChatAsideConfig): void {
 
 .container-layout-demo__main {
   min-height: 100%;
-  padding: 12px 0 24px;
+  padding: 12px var(--tr-chat-layout-main-padding-inline, var(--tr-chat-layout-inner-padding-inline)) 24px;
+  box-sizing: border-box;
 }
 
 .container-layout-demo__eyebrow {
