@@ -3,6 +3,8 @@ import { computed, onBeforeUnmount, shallowRef, type Ref } from 'vue'
 import type { ChatAsideResizeEventDetail, ChatPlacement } from '@/types/layout'
 import type { ChatLayoutPanelApi } from '@/types/layout.internal'
 import { resolveCssLengthToPx } from '@/utils/cssLength'
+import { lockBodyInteraction, restoreBodyInteraction, type BodyInteractionState } from '@/utils/domInteraction'
+import { clamp } from '@/utils/math'
 
 interface UseChatAsideResizeOptions {
   rootRef: Ref<HTMLElement | null>
@@ -27,12 +29,7 @@ interface ResizeState {
   effectiveMax: number
   pendingWidth: number | null
   frameId: number | null
-  bodyCursor: string
-  bodyUserSelect: string
-}
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.min(Math.max(value, min), max)
+  bodyState: BodyInteractionState
 }
 
 function getDockedAsideWidth(panel: ChatLayoutPanelApi, asideEl: HTMLElement | null | undefined): number {
@@ -48,10 +45,6 @@ export function useChatAsideResize(options: UseChatAsideResizeOptions) {
   const isResizing = computed(() => activeResize.value !== null)
   const draggingPlacement = computed(() => activeResize.value?.placement ?? null)
   const pointerTarget = typeof window === 'undefined' ? undefined : window
-
-  function canResize(panel: ChatLayoutPanelApi): boolean {
-    return panel.isDock && panel.isExpanded && panel.resizable
-  }
 
   function scheduleWidth(nextWidth: number): void {
     const state = activeResize.value
@@ -116,8 +109,7 @@ export function useChatAsideResize(options: UseChatAsideResizeOptions) {
     }
 
     const body = state.handleEl.ownerDocument.body
-    body.style.cursor = state.bodyCursor
-    body.style.userSelect = state.bodyUserSelect
+    restoreBodyInteraction(body, state.bodyState)
 
     options.onResizeEnd?.({
       placement: state.placement,
@@ -128,7 +120,7 @@ export function useChatAsideResize(options: UseChatAsideResizeOptions) {
   }
 
   function startResize(panel: ChatLayoutPanelApi, event: PointerEvent): void {
-    if (activeResize.value || !event.isPrimary || event.button !== 0 || !canResize(panel)) {
+    if (activeResize.value || !event.isPrimary || event.button !== 0 || !panel.canResize) {
       return
     }
 
@@ -170,12 +162,8 @@ export function useChatAsideResize(options: UseChatAsideResizeOptions) {
       effectiveMax,
       pendingWidth: null,
       frameId: null,
-      bodyCursor: body.style.cursor,
-      bodyUserSelect: body.style.userSelect,
+      bodyState: lockBodyInteraction(body, 'col-resize'),
     }
-
-    body.style.cursor = 'col-resize'
-    body.style.userSelect = 'none'
 
     options.onResizeStart?.({
       placement: panel.placement,

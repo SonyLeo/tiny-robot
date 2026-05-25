@@ -1,7 +1,20 @@
 import { useDraggable, useEventListener, useResizeObserver } from '@vueuse/core'
 import { computed, onBeforeUnmount, shallowRef, watch, type CSSProperties, type Ref } from 'vue'
 import type { ChatDetachedBounds, ChatDetachedResizeEventDetail, ChatPlacement, ChatSurfaceMode } from '@/types/layout'
-import { resolveCssLengthToPx, toCssLength } from '@/utils/cssLength'
+import { toCssLength } from '@/utils/cssLength'
+import {
+  areDetachedBoundsEqual,
+  DEFAULT_DETACHED_GAP,
+  DEFAULT_DETACHED_HEIGHT,
+  DEFAULT_DETACHED_TOP,
+  DEFAULT_DETACHED_WIDTH,
+  resolveCurrentDetachedBounds,
+  resolveDetachedSnapshot,
+  toCommittedDetachedBounds,
+  type DetachedBoundsSnapshot,
+} from '@/utils/chatSurfaceGeometry'
+import { lockBodyInteraction, restoreBodyInteraction, type BodyInteractionState } from '@/utils/domInteraction'
+import { clamp } from '@/utils/math'
 
 interface UseChatSurfaceOptions {
   surfaceModeState: Ref<ChatSurfaceMode | undefined>
@@ -18,49 +31,13 @@ interface UseChatSurfaceOptions {
   onDetachedResizeEnd?: (detail: ChatDetachedResizeEventDetail) => void
 }
 
-interface ResolvedDetachedBounds {
-  x?: number
-  y?: number
-  width: number | string
-  height: number | string
-}
-
-interface DetachedBoundsSnapshot {
-  raw: ResolvedDetachedBounds
-  rawWidth: number
-  rawHeight: number
-  widthPx: number
-  heightPx: number
-  x: number
-  y: number
-  xMax: number
-  yMax: number
-  minWidth: number
-  maxWidth: number
-}
-
 interface DetachedResizeState {
   pointerId: number
   handleEl: HTMLElement
   edge: ChatPlacement
   startBounds: DetachedBoundsSnapshot
   currentWidth: number
-  bodyCursor: string
-  bodyUserSelect: string
-}
-
-const DEFAULT_DETACHED_WIDTH = 420
-const DEFAULT_DETACHED_HEIGHT = '80vh'
-const DEFAULT_DETACHED_TOP = 24
-const DEFAULT_DETACHED_GAP = 24
-const DEFAULT_MIN_DETACHED_WIDTH = 320
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.min(Math.max(value, min), max)
-}
-
-function areDetachedBoundsEqual(left: ChatDetachedBounds | undefined, right: ChatDetachedBounds | undefined): boolean {
-  return left?.x === right?.x && left?.y === right?.y && left?.width === right?.width && left?.height === right?.height
+  bodyState: BodyInteractionState
 }
 
 export function useChatSurface(options: UseChatSurfaceOptions) {
@@ -75,128 +52,22 @@ export function useChatSurface(options: UseChatSurfaceOptions) {
   const activeResizeEdge = computed<ChatPlacement | null>(() => activeResize.value?.edge ?? null)
   const canDragDetached = computed(() => isDetached.value && isDetachedDraggable.value && !isResizing.value)
 
-  function resolveWidthLimits(hostEl: HTMLElement) {
-    const hostRect = hostEl.getBoundingClientRect()
-    const availableWidth = Math.max(1, hostRect.width - DEFAULT_DETACHED_GAP * 2)
-    const minWidth = clamp(
-      resolveCssLengthToPx(options.minDetachedWidthState.value, hostEl, DEFAULT_MIN_DETACHED_WIDTH),
-      1,
-      availableWidth,
+  function getCurrentDetachedBounds(): ChatDetachedBounds {
+    return resolveCurrentDetachedBounds(
+      options.detachedBoundsState.value,
+      options.hostRef.value,
+      options.minDetachedWidthState.value,
+      options.maxDetachedWidthState.value,
     )
-    const maxWidth = clamp(
-      resolveCssLengthToPx(options.maxDetachedWidthState.value, hostEl, availableWidth),
-      minWidth,
-      availableWidth,
+  }
+
+  function getDetachedSnapshot(bounds = getCurrentDetachedBounds()): DetachedBoundsSnapshot {
+    return resolveDetachedSnapshot(
+      bounds,
+      options.hostRef.value,
+      options.minDetachedWidthState.value,
+      options.maxDetachedWidthState.value,
     )
-
-    return {
-      hostRect,
-      minWidth,
-      maxWidth,
-      maxHeight: Math.max(1, hostRect.height - DEFAULT_DETACHED_TOP - DEFAULT_DETACHED_GAP),
-    }
-  }
-
-  function resolveDefaultDetachedBounds(source?: ChatDetachedBounds): ChatDetachedBounds {
-    const hostEl = options.hostRef.value
-    const width = source?.width ?? DEFAULT_DETACHED_WIDTH
-    const height = source?.height ?? DEFAULT_DETACHED_HEIGHT
-
-    if (!hostEl) {
-      return {
-        x: source?.x ?? DEFAULT_DETACHED_GAP,
-        y: source?.y ?? DEFAULT_DETACHED_TOP,
-        width,
-        height,
-      }
-    }
-
-    const { hostRect, minWidth, maxWidth, maxHeight } = resolveWidthLimits(hostEl)
-    const rawWidth = resolveCssLengthToPx(width, hostEl, DEFAULT_DETACHED_WIDTH)
-    const rawHeight = resolveCssLengthToPx(height, hostEl, hostRect.height, 'height')
-    const widthPx = clamp(rawWidth, minWidth, maxWidth)
-    const heightPx = Math.min(rawHeight, maxHeight)
-
-    return {
-      x: source?.x ?? Math.max(DEFAULT_DETACHED_GAP, (hostRect.width - widthPx) / 2),
-      y: source?.y ?? DEFAULT_DETACHED_TOP,
-      width,
-      height: heightPx === rawHeight ? height : heightPx,
-    }
-  }
-
-  function resolveCurrentDetachedBounds(): ChatDetachedBounds {
-    const externalBounds = options.detachedBoundsState.value
-
-    if (!externalBounds) {
-      return resolveDefaultDetachedBounds()
-    }
-
-    return {
-      ...resolveDefaultDetachedBounds(externalBounds),
-      ...externalBounds,
-    }
-  }
-
-  function resolveDetachedSnapshot(bounds = resolveCurrentDetachedBounds()): DetachedBoundsSnapshot {
-    const raw = {
-      x: bounds.x ?? undefined,
-      y: bounds.y ?? undefined,
-      width: bounds.width ?? DEFAULT_DETACHED_WIDTH,
-      height: bounds.height ?? DEFAULT_DETACHED_HEIGHT,
-    }
-    const hostEl = options.hostRef.value
-
-    if (!hostEl) {
-      const widthPx = resolveCssLengthToPx(raw.width, null, DEFAULT_DETACHED_WIDTH)
-      const heightPx = resolveCssLengthToPx(raw.height, null, 0, 'height')
-
-      return {
-        raw,
-        rawWidth: widthPx,
-        rawHeight: heightPx,
-        widthPx,
-        heightPx,
-        x: raw.x ?? DEFAULT_DETACHED_GAP,
-        y: raw.y ?? DEFAULT_DETACHED_TOP,
-        xMax: raw.x ?? DEFAULT_DETACHED_GAP,
-        yMax: raw.y ?? DEFAULT_DETACHED_TOP,
-        minWidth: 1,
-        maxWidth: Number.MAX_SAFE_INTEGER,
-      }
-    }
-
-    const { hostRect, minWidth, maxWidth, maxHeight } = resolveWidthLimits(hostEl)
-    const rawWidth = resolveCssLengthToPx(raw.width, hostEl, DEFAULT_DETACHED_WIDTH)
-    const rawHeight = resolveCssLengthToPx(raw.height, hostEl, hostRect.height, 'height')
-    const widthPx = clamp(rawWidth, minWidth, maxWidth)
-    const heightPx = Math.min(rawHeight, maxHeight)
-    const xMax = Math.max(DEFAULT_DETACHED_GAP, hostRect.width - widthPx - DEFAULT_DETACHED_GAP)
-    const yMax = Math.max(DEFAULT_DETACHED_TOP, hostRect.height - heightPx - DEFAULT_DETACHED_GAP)
-    const defaultX = Math.max(DEFAULT_DETACHED_GAP, (hostRect.width - widthPx) / 2)
-
-    return {
-      raw,
-      rawWidth,
-      rawHeight,
-      widthPx,
-      heightPx,
-      x: clamp(raw.x ?? defaultX, DEFAULT_DETACHED_GAP, xMax),
-      y: clamp(raw.y ?? DEFAULT_DETACHED_TOP, DEFAULT_DETACHED_TOP, yMax),
-      xMax,
-      yMax,
-      minWidth,
-      maxWidth,
-    }
-  }
-
-  function toCommittedDetachedBounds(snapshot: DetachedBoundsSnapshot): ChatDetachedBounds {
-    return {
-      x: snapshot.x,
-      y: snapshot.y,
-      width: snapshot.widthPx === snapshot.rawWidth ? snapshot.raw.width : snapshot.widthPx,
-      height: snapshot.heightPx === snapshot.rawHeight ? snapshot.raw.height : snapshot.heightPx,
-    }
   }
 
   function commitDetachedBounds(nextBounds: ChatDetachedBounds): void {
@@ -208,7 +79,7 @@ export function useChatSurface(options: UseChatSurfaceOptions) {
   }
 
   function ensureDetachedBounds(): ChatDetachedBounds {
-    const nextBounds = toCommittedDetachedBounds(resolveDetachedSnapshot())
+    const nextBounds = toCommittedDetachedBounds(getDetachedSnapshot())
     commitDetachedBounds(nextBounds)
     return nextBounds
   }
@@ -218,13 +89,12 @@ export function useChatSurface(options: UseChatSurfaceOptions) {
       return
     }
 
-    const nextBounds = toCommittedDetachedBounds(resolveDetachedSnapshot())
+    const nextBounds = toCommittedDetachedBounds(getDetachedSnapshot())
     commitDetachedBounds(nextBounds)
   }
 
   function resolveDraggedDetachedBounds(nextX: number, nextY: number): ChatDetachedBounds {
-    const currentBounds = resolveCurrentDetachedBounds()
-    const snapshot = resolveDetachedSnapshot(currentBounds)
+    const snapshot = getDetachedSnapshot()
 
     return {
       ...toCommittedDetachedBounds(snapshot),
@@ -275,8 +145,7 @@ export function useChatSurface(options: UseChatSurfaceOptions) {
     }
 
     const body = state.handleEl.ownerDocument.body
-    body.style.cursor = state.bodyCursor
-    body.style.userSelect = state.bodyUserSelect
+    restoreBodyInteraction(body, state.bodyState)
 
     options.onDetachedResizeEnd?.({
       edge: state.edge,
@@ -299,7 +168,7 @@ export function useChatSurface(options: UseChatSurfaceOptions) {
     }
 
     const detachedBounds = ensureDetachedBounds()
-    const snapshot = resolveDetachedSnapshot(detachedBounds)
+    const snapshot = getDetachedSnapshot(detachedBounds)
     const body = hostEl.ownerDocument.body
 
     event.preventDefault()
@@ -311,12 +180,8 @@ export function useChatSurface(options: UseChatSurfaceOptions) {
       edge,
       startBounds: snapshot,
       currentWidth: snapshot.widthPx,
-      bodyCursor: body.style.cursor,
-      bodyUserSelect: body.style.userSelect,
+      bodyState: lockBodyInteraction(body, 'col-resize'),
     }
-
-    body.style.cursor = 'col-resize'
-    body.style.userSelect = 'none'
 
     options.onDetachedResizeStart?.({
       edge,
@@ -401,7 +266,7 @@ export function useChatSurface(options: UseChatSurfaceOptions) {
     clampDetachedBounds()
   })
 
-  const detachedBounds = computed(() => toCommittedDetachedBounds(resolveDetachedSnapshot()))
+  const detachedBounds = computed(() => toCommittedDetachedBounds(getDetachedSnapshot()))
   const surfaceClass = computed(() => ({
     'tr-chat-layout-surface--embedded': isEmbedded.value,
     'tr-chat-layout-surface--detached': isDetached.value,

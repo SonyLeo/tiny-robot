@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { ref, shallowRef } from 'vue'
-import { Chat } from '@/index'
+import { computed, ref, shallowRef } from 'vue'
 import { BubbleList } from '@opentiny/tiny-robot'
 import type { BubbleListProps, BubbleRoleConfig } from '@opentiny/tiny-robot'
+import { Chat } from '@/index'
 import type { ChatDetachedBounds, ChatSurfaceMode } from '@/types/layout'
 
 type BubbleMessages = NonNullable<BubbleListProps['messages']>
 type BubbleMessage = BubbleMessages[number]
+type HostMode = 'page' | 'container'
 type SeedTurn = {
   question: string
   answers: string[]
@@ -83,11 +84,15 @@ const seedTurns: SeedTurn[] = [
 
 function createSeedMessages(): BubbleMessages {
   const intro: BubbleMessage[] = [
-    { role: 'assistant', content: '你好，我是 TinyRobot。这里是 detached 模式下的真实 BubbleList 场景。' },
     {
       role: 'assistant',
       content:
-        '这个 demo 会预置一段较长的多轮对话，让你一进来就能看出：1. 主区到底是谁在滚，2. 右侧虚拟滚动条是否跟随，3. 发送新消息后自动滚底是否稳定。',
+        '你好，我是 TinyRobot。这里是一个同时覆盖 page / container 宿主与 embedded / detached surface 的综合场景。',
+    },
+    {
+      role: 'assistant',
+      content:
+        '这个 demo 会预置一段较长的多轮对话，让你一进来就能看到主区滚动、容器约束、surface 拖拽改宽，以及切换宿主场景后的布局变化。',
     },
   ]
 
@@ -97,22 +102,18 @@ function createSeedMessages(): BubbleMessages {
   ])
 
   const outro: BubbleMessage[] = [
-    { role: 'user', content: '继续补一点内容，我想看看滚动条拖动时的反馈。' },
+    { role: 'user', content: '继续补一点内容，我想看看切到 container 之后 detached 的位置和滚动表现。' },
     {
       role: 'assistant',
       content:
-        '可以继续追加。你现在应该能明显看到：内容已经足够长，BubbleList 是唯一真实滚动宿主，虚拟滚动条 thumb 会随着滚动位置变化，发送新消息时如果处于底部附近会自动滚到底部。',
-    },
-    {
-      role: 'assistant',
-      content:
-        '如果你把 surface 切回 Embedded，再切回 Detached，也可以继续观察 detachedBounds 是否保持上次位置，以及列表滚动和滚动条是否仍然一致。',
+        '可以。你现在可以直接切 Host 为 Container，再来回切 Embedded / Detached，观察 surface 是否始终被约束在 frame 内部，以及长列表滚动与滚动条 thumb 是否仍然保持一致。',
     },
   ]
 
   return [...intro, ...transcript, ...outro]
 }
 
+const hostMode = shallowRef<HostMode>('page')
 const surfaceMode = shallowRef<ChatSurfaceMode>('detached')
 const detachedBounds = shallowRef<ChatDetachedBounds>({
   width: 480,
@@ -120,6 +121,7 @@ const detachedBounds = shallowRef<ChatDetachedBounds>({
 })
 const draft = ref('')
 const messages = ref<BubbleMessages>(createSeedMessages())
+const isContainerHost = computed(() => hostMode.value === 'container')
 
 const roleConfigs: Record<string, BubbleRoleConfig> = {
   assistant: {
@@ -145,7 +147,7 @@ function sendMessage(): void {
   appendMessage('user', value)
   appendMessage(
     'assistant',
-    `已收到你的问题：“${value}”。这条回复用于验证 BubbleList 作为唯一真实滚动宿主时，detached 主区的自动滚底与虚拟滚动条同步是否稳定。`,
+    `已收到你的问题：“${value}”。这条回复用于验证在 page / container 与 embedded / detached 组合切换下，BubbleList 作为唯一真实滚动宿主时的布局稳定性。`,
   )
   draft.value = ''
 }
@@ -153,69 +155,122 @@ function sendMessage(): void {
 
 <template>
   <div class="surface-layout-demo">
-    <Chat.Layout
-      v-model:surface-mode="surfaceMode"
-      v-model:detached-bounds="detachedBounds"
-      class="surface-layout-demo__layout"
-      detached-draggable
-      detached-resizable
-      :min-detached-width="320"
-      :max-detached-width="720"
-    >
-      <template #header>
-        <div class="surface-layout-demo__header">
-          <div class="surface-layout-demo__modes">
-            <button
-              type="button"
-              :class="{ 'is-active': surfaceMode === 'embedded' }"
-              @click="surfaceMode = 'embedded'"
-            >
-              Embedded
-            </button>
-            <button
-              type="button"
-              :class="{ 'is-active': surfaceMode === 'detached' }"
-              @click="surfaceMode = 'detached'"
-            >
-              Detached
-            </button>
-          </div>
-          <span>{{ messages.length }} messages</span>
-        </div>
-      </template>
+    <div class="surface-layout-demo__shell" :class="{ 'surface-layout-demo__shell--container': isContainerHost }">
+      <div class="surface-layout-demo__frame" :class="{ 'surface-layout-demo__frame--container': isContainerHost }">
+        <Chat.Layout
+          v-model:surface-mode="surfaceMode"
+          v-model:detached-bounds="detachedBounds"
+          class="surface-layout-demo__layout"
+          :class="{ 'surface-layout-demo__layout--container': isContainerHost }"
+          detached-draggable
+          detached-resizable
+          :min-detached-width="320"
+          :max-detached-width="720"
+        >
+          <template #header>
+            <div class="surface-layout-demo__header">
+              <div class="surface-layout-demo__controls">
+                <div class="surface-layout-demo__modes">
+                  <span class="surface-layout-demo__label">Host</span>
+                  <button type="button" :class="{ 'is-active': hostMode === 'page' }" @click="hostMode = 'page'">
+                    Page
+                  </button>
+                  <button
+                    type="button"
+                    :class="{ 'is-active': hostMode === 'container' }"
+                    @click="hostMode = 'container'"
+                  >
+                    Container
+                  </button>
+                </div>
+                <div class="surface-layout-demo__modes">
+                  <span class="surface-layout-demo__label">Surface</span>
+                  <button
+                    type="button"
+                    :class="{ 'is-active': surfaceMode === 'embedded' }"
+                    @click="surfaceMode = 'embedded'"
+                  >
+                    Embedded
+                  </button>
+                  <button
+                    type="button"
+                    :class="{ 'is-active': surfaceMode === 'detached' }"
+                    @click="surfaceMode = 'detached'"
+                  >
+                    Detached
+                  </button>
+                </div>
+              </div>
+              <span>{{ messages.length }} messages</span>
+            </div>
+          </template>
 
-      <template #main>
-        <Chat.Main>
-          <BubbleList
-            class="surface-layout-demo__conversation"
-            :messages="messages"
-            :role-configs="roleConfigs"
-            auto-scroll
-          />
-        </Chat.Main>
-      </template>
+          <template #main>
+            <Chat.Main>
+              <BubbleList
+                class="surface-layout-demo__conversation"
+                :messages="messages"
+                :role-configs="roleConfigs"
+                auto-scroll
+              />
+            </Chat.Main>
+          </template>
 
-      <template #footer>
-        <div class="surface-layout-demo__footer">
-          <input
-            v-model="draft"
-            type="text"
-            placeholder="输入问题，观察 Embedded / Detached 下的布局表现"
-            @keydown.enter="sendMessage"
-          />
-          <button type="button" @click="sendMessage">发送</button>
-        </div>
-      </template>
-    </Chat.Layout>
+          <template #footer>
+            <div class="surface-layout-demo__footer">
+              <input
+                v-model="draft"
+                type="text"
+                placeholder="输入问题，观察 Page / Container 与 Embedded / Detached 下的布局表现"
+                @keydown.enter="sendMessage"
+              />
+              <button type="button" @click="sendMessage">发送</button>
+            </div>
+          </template>
+        </Chat.Layout>
+      </div>
+    </div>
   </div>
 </template>
 
 <style scoped>
 .surface-layout-demo {
+  width: 100%;
+  height: 100%;
   min-height: 100%;
   background:
     radial-gradient(circle at top, rgba(97, 140, 255, 0.16), transparent 38%),
     linear-gradient(180deg, #f8fafc 0%, #eef3ff 100%);
+}
+
+.surface-layout-demo__shell {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+}
+
+.surface-layout-demo__shell--container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 36px;
+  box-sizing: border-box;
+}
+
+.surface-layout-demo__frame {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.surface-layout-demo__frame--container {
+  width: min(1120px, 100%);
+  height: min(760px, calc(100vh - 72px));
+  border: 1px solid #dbe3f0;
+  border-radius: 24px;
+  overflow: hidden;
+  background: #ffffff;
+  box-shadow: 0 30px 80px rgba(15, 23, 42, 0.12);
 }
 
 .surface-layout-demo__layout {
@@ -229,6 +284,10 @@ function sendMessage(): void {
   --tr-chat-surface-radius: 28px;
 }
 
+.surface-layout-demo__layout--container {
+  --tr-chat-layout-height: 100%;
+}
+
 .surface-layout-demo__header {
   display: flex;
   align-items: center;
@@ -237,10 +296,25 @@ function sendMessage(): void {
   min-height: 56px;
 }
 
+.surface-layout-demo__controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
 .surface-layout-demo__modes {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.surface-layout-demo__label {
+  color: #475569;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .surface-layout-demo__modes button {
@@ -306,6 +380,16 @@ function sendMessage(): void {
 }
 
 @media (max-width: 959px) {
+  .surface-layout-demo__shell--container {
+    padding: 12px;
+  }
+
+  .surface-layout-demo__frame--container {
+    width: 100%;
+    height: calc(100vh - 24px);
+    border-radius: 18px;
+  }
+
   .surface-layout-demo__layout {
     --tr-chat-layout-inner-padding-inline: 16px;
   }
@@ -314,6 +398,10 @@ function sendMessage(): void {
     min-height: 48px;
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .surface-layout-demo__controls {
+    width: 100%;
   }
 
   .surface-layout-demo__modes {

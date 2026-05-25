@@ -1,6 +1,5 @@
 {
-  "name": "@tiny-robot/chat",
-  "private": true,
+  "name": "@opentiny/tiny-robot-chat",
   "version": "0.0.0",
   "type": "module",
   "main": "./dist/index.cjs",

@@ -10,6 +10,7 @@ export interface ChatLayoutPanelApi {
   isDrawer: boolean
   isRail: boolean
   isHidden: boolean
+  canResize: boolean
   expandedWidth: string
   collapsedWidth: string
   resizable: boolean

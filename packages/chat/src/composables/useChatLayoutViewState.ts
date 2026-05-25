@@ -18,12 +18,8 @@ export function useChatLayoutViewState(options: UseChatLayoutViewStateOptions) {
 
   const leftAsideHidden = computed(() => !hasLeftSidebar.value || options.left.isHidden)
   const rightAsideHidden = computed(() => !hasRightPanel.value || options.right.isHidden)
-  const leftResizeVisible = computed(
-    () => hasLeftSidebar.value && options.left.isDock && options.left.isExpanded && options.left.resizable,
-  )
-  const rightResizeVisible = computed(
-    () => hasRightPanel.value && options.right.isDock && options.right.isExpanded && options.right.resizable,
-  )
+  const leftResizeVisible = computed(() => hasLeftSidebar.value && options.left.canResize)
+  const rightResizeVisible = computed(() => hasRightPanel.value && options.right.canResize)
 
   const layoutStyle = computed(() => ({
     '--tr-chat-layout-left-expanded-width': options.left.expandedWidth,

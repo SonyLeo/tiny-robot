@@ -1,5 +1,7 @@
 import { useEventListener, useMutationObserver, useResizeObserver } from '@vueuse/core'
 import { computed, onBeforeUnmount, onMounted, shallowRef, type CSSProperties, type Ref } from 'vue'
+import { lockBodyInteraction, restoreBodyInteraction, type BodyInteractionState } from '@/utils/domInteraction'
+import { clamp } from '@/utils/math'
 
 interface UseChatMainScrollbarOptions {
   rootRef: Ref<HTMLElement | null>
@@ -18,8 +20,7 @@ interface ThumbDragState {
   pointerId: number
   startY: number
   startScrollTop: number
-  bodyCursor: string
-  bodyUserSelect: string
+  bodyState: BodyInteractionState
 }
 
 const MIN_THUMB_HEIGHT = 36
@@ -33,10 +34,6 @@ function createEmptyMetrics(): ScrollMetrics {
     thumbOffset: 0,
     isScrollable: false,
   }
-}
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.min(Math.max(value, min), max)
 }
 
 export function useChatMainScrollbar(options: UseChatMainScrollbarOptions) {
@@ -124,8 +121,7 @@ export function useChatMainScrollbar(options: UseChatMainScrollbarOptions) {
     }
 
     const body = document.body
-    body.style.cursor = dragState.bodyCursor
-    body.style.userSelect = dragState.bodyUserSelect
+    restoreBodyInteraction(body, dragState.bodyState)
     thumbDragState.value = null
   }
 
@@ -140,12 +136,8 @@ export function useChatMainScrollbar(options: UseChatMainScrollbarOptions) {
       pointerId: event.pointerId,
       startY: event.clientY,
       startScrollTop: bubbleList.scrollTop,
-      bodyCursor: document.body.style.cursor,
-      bodyUserSelect: document.body.style.userSelect,
+      bodyState: lockBodyInteraction(document.body, 'grabbing'),
     }
-
-    document.body.style.cursor = 'grabbing'
-    document.body.style.userSelect = 'none'
   }
 
   useEventListener(bubbleListRef, 'scroll', () => {

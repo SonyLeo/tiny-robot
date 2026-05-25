@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, toRef, useSlots, useTemplateRef } from 'vue'
+import { computed, toRef, useModel, useSlots, useTemplateRef } from 'vue'
 import { createChatLayoutStore } from '@/composables/createChatLayoutStore'
 import { useChatLayoutInteractions } from '@/composables/useChatLayoutInteractions'
 import { provideChatLayoutStore } from '@/composables/useChatLayout'
@@ -8,32 +8,22 @@ import { useChatSurface } from '@/composables/useChatSurface'
 import ChatAsideResizeTrigger from './ChatAsideResizeTrigger.vue'
 import ChatSurfaceResizeTrigger from './ChatSurfaceResizeTrigger.vue'
 import { createChatLayoutAsideStoreInput } from './utils'
-import type {
-  ChatAsideConfig,
-  ChatDetachedBounds,
-  ChatLayoutEmits,
-  ChatLayoutProps,
-  ChatLayoutSlots,
-  ChatSurfaceMode,
-} from '@/types/layout'
+import type { ChatLayoutEmits, ChatLayoutProps, ChatLayoutSlots } from '@/types/layout'
 
 defineOptions({
   name: 'ChatLayout',
 })
 
-const props =
-  defineProps<
-    Pick<ChatLayoutProps, 'detachedDraggable' | 'detachedResizable' | 'minDetachedWidth' | 'maxDetachedWidth'>
-  >()
+const props = defineProps<ChatLayoutProps>()
 
 const emit = defineEmits<ChatLayoutEmits>()
 
 defineSlots<ChatLayoutSlots>()
 
-const surfaceModeState = defineModel<ChatSurfaceMode>('surfaceMode')
-const detachedBoundsState = defineModel<ChatDetachedBounds>('detachedBounds')
-const leftAsideState = defineModel<ChatAsideConfig>('leftAside')
-const rightAsideState = defineModel<ChatAsideConfig>('rightAside')
+const surfaceModeState = useModel(props, 'surfaceMode')
+const detachedBoundsState = useModel(props, 'detachedBounds')
+const leftAsideState = useModel(props, 'leftAside')
+const rightAsideState = useModel(props, 'rightAside')
 const surfaceHostRef = useTemplateRef<HTMLElement>('surfaceHostRef')
 const surfaceFrameRef = useTemplateRef<HTMLElement>('surfaceFrameRef')
 const surfaceDragHandleRef = useTemplateRef<HTMLElement>('surfaceDragHandleRef')

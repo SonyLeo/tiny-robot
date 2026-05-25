@@ -119,6 +119,7 @@ export function createChatLayoutStore(options: CreateChatLayoutStoreOptions = {}
       () => isDock.value && !config.expanded.value && hasCollapsedRail(config.collapsedWidthValue.value),
     )
     const isHidden = computed(() => !config.expanded.value && (isDrawer.value || !isRail.value))
+    const canResize = computed(() => isDock.value && config.expanded.value && config.resizable.value)
 
     function open(): void {
       if (isDrawer.value && otherConfig.layoutMode.value === 'drawer' && otherConfig.expanded.value) {
@@ -164,6 +165,9 @@ export function createChatLayoutStore(options: CreateChatLayoutStoreOptions = {}
       },
       get isHidden() {
         return isHidden.value
+      },
+      get canResize() {
+        return canResize.value
       },
       get expandedWidth() {
         return config.expandedWidth.value
