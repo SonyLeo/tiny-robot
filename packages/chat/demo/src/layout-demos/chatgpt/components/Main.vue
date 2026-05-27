@@ -27,10 +27,14 @@ import { chatGptAssistantActions } from '../data'
 
 <style scoped>
 .chatgpt-main {
-  min-height: 100%;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
   display: grid;
   align-content: start;
   gap: 48px;
+  overflow: auto;
+  overflow-x: hidden;
   padding: 14px var(--tr-chat-layout-main-padding-inline, var(--tr-chat-layout-inner-padding-inline)) 0;
   box-sizing: border-box;
 }

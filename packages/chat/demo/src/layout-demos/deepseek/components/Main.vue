@@ -66,7 +66,12 @@ import { actionIcons } from '../data'
 
 <style scoped>
 .deepseek-main {
-  min-height: 100%;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: auto;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 .deepseek-main__column {

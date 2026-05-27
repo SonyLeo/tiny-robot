@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useMediaQuery } from '@vueuse/core'
-import { computed, shallowRef, watch } from 'vue'
+import { computed, shallowRef, useTemplateRef, watch } from 'vue'
 import { Chat } from '@/index'
 import type { ChatAsideConfig } from '@/types/layout'
 import Composer from './chatgpt/components/Composer.vue'
@@ -15,6 +15,7 @@ const leftExpanded = shallowRef(true)
 const rightExpanded = shallowRef(true)
 const leftDockWidth = shallowRef<ChatAsideConfig['expandedWidth']>(260)
 const rightDockWidth = shallowRef<ChatAsideConfig['expandedWidth']>(364)
+const mainRef = useTemplateRef<InstanceType<typeof Main>>('mainRef')
 
 watch(
   isMobile,
@@ -78,8 +79,8 @@ function handleRightAsideUpdate(nextConfig?: ChatAsideConfig): void {
     </template>
 
     <template #main>
-      <Chat.Main>
-        <Main />
+      <Chat.Main :scroll-host="mainRef">
+        <Main ref="mainRef" />
       </Chat.Main>
     </template>
 

@@ -1,10 +1,10 @@
 import { useEventListener, useMutationObserver, useResizeObserver } from '@vueuse/core'
-import { computed, onBeforeUnmount, onMounted, shallowRef, type CSSProperties, type Ref } from 'vue'
+import { computed, onBeforeUnmount, shallowRef, watch, type CSSProperties, type Ref } from 'vue'
 import { lockBodyInteraction, restoreBodyInteraction, type BodyInteractionState } from '@/utils/domInteraction'
 import { clamp } from '@/utils/math'
 
 interface UseChatMainScrollbarOptions {
-  rootRef: Ref<HTMLElement | null>
+  scrollHostRef: Ref<HTMLElement | null>
 }
 
 interface ScrollMetrics {
@@ -37,40 +37,28 @@ function createEmptyMetrics(): ScrollMetrics {
 }
 
 export function useChatMainScrollbar(options: UseChatMainScrollbarOptions) {
-  const bubbleListRef = shallowRef<HTMLElement | null>(null)
   const metrics = shallowRef<ScrollMetrics>(createEmptyMetrics())
   const thumbDragState = shallowRef<ThumbDragState | null>(null)
   const isHovering = shallowRef(false)
   const pointerTarget = typeof window === 'undefined' ? undefined : window
   let frameId: number | null = null
 
-  const hasBubbleListScrollHost = computed(() => bubbleListRef.value !== null)
   const showScrollbar = computed(() => metrics.value.isScrollable)
   const isDraggingThumb = computed(() => thumbDragState.value !== null)
   const scrollbarVisible = computed(() => showScrollbar.value && (isHovering.value || isDraggingThumb.value))
 
-  function resolveBubbleList(): void {
-    const nextBubbleList = options.rootRef.value?.querySelector<HTMLElement>('.tr-bubble-list') ?? null
-    if (bubbleListRef.value === nextBubbleList) {
-      return
-    }
-
-    bubbleListRef.value = nextBubbleList
-    scheduleSync()
-  }
-
   function syncMetrics(): void {
     frameId = null
 
-    const bubbleList = bubbleListRef.value
-    if (!bubbleList) {
+    const scrollHost = options.scrollHostRef.value
+    if (!scrollHost) {
       metrics.value = createEmptyMetrics()
       return
     }
 
-    const clientHeight = bubbleList.clientHeight
-    const scrollHeight = bubbleList.scrollHeight
-    const scrollTop = bubbleList.scrollTop
+    const clientHeight = scrollHost.clientHeight
+    const scrollHeight = scrollHost.scrollHeight
+    const scrollTop = scrollHost.scrollTop
     const isScrollable = scrollHeight - clientHeight > 1
 
     if (!isScrollable) {
@@ -126,8 +114,8 @@ export function useChatMainScrollbar(options: UseChatMainScrollbarOptions) {
   }
 
   function startThumbDrag(event: PointerEvent): void {
-    const bubbleList = bubbleListRef.value
-    if (!bubbleList || !metrics.value.isScrollable || event.button !== 0 || !event.isPrimary) {
+    const scrollHost = options.scrollHostRef.value
+    if (!scrollHost || !metrics.value.isScrollable || event.button !== 0 || !event.isPrimary) {
       return
     }
 
@@ -135,20 +123,24 @@ export function useChatMainScrollbar(options: UseChatMainScrollbarOptions) {
     thumbDragState.value = {
       pointerId: event.pointerId,
       startY: event.clientY,
-      startScrollTop: bubbleList.scrollTop,
+      startScrollTop: scrollHost.scrollTop,
       bodyState: lockBodyInteraction(document.body, 'grabbing'),
     }
   }
 
-  useEventListener(bubbleListRef, 'scroll', () => {
+  useEventListener(options.scrollHostRef, 'scroll', () => {
+    scheduleSync()
+  })
+
+  useEventListener(options.scrollHostRef, 'wheel', () => {
     scheduleSync()
   })
 
   useEventListener(pointerTarget, 'pointermove', (event: PointerEvent) => {
     const dragState = thumbDragState.value
-    const bubbleList = bubbleListRef.value
+    const scrollHost = options.scrollHostRef.value
     const currentMetrics = metrics.value
-    if (!dragState || !bubbleList || event.pointerId !== dragState.pointerId || !currentMetrics.isScrollable) {
+    if (!dragState || !scrollHost || event.pointerId !== dragState.pointerId || !currentMetrics.isScrollable) {
       return
     }
 
@@ -156,7 +148,7 @@ export function useChatMainScrollbar(options: UseChatMainScrollbarOptions) {
     const scrollRange = currentMetrics.scrollHeight - currentMetrics.clientHeight
     const thumbTravel = currentMetrics.clientHeight - currentMetrics.thumbHeight
     const ratio = thumbTravel > 0 ? scrollRange / thumbTravel : 0
-    bubbleList.scrollTop = dragState.startScrollTop + deltaY * ratio
+    scrollHost.scrollTop = dragState.startScrollTop + deltaY * ratio
     scheduleSync()
   })
 
@@ -168,29 +160,27 @@ export function useChatMainScrollbar(options: UseChatMainScrollbarOptions) {
     stopThumbDrag(event.pointerId)
   })
 
-  useResizeObserver(options.rootRef, () => {
-    scheduleSync()
-  })
-
-  useResizeObserver(bubbleListRef, () => {
+  useResizeObserver(options.scrollHostRef, () => {
     scheduleSync()
   })
 
   useMutationObserver(
-    options.rootRef,
+    options.scrollHostRef,
     () => {
-      resolveBubbleList()
       scheduleSync()
     },
-    { childList: true, subtree: true },
+    { childList: true, subtree: true, characterData: true, attributes: true },
   )
 
-  useMutationObserver(
-    bubbleListRef,
-    () => {
+  watch(
+    options.scrollHostRef,
+    (nextHost, prevHost) => {
+      stopThumbDrag()
+      prevHost?.removeAttribute('data-tr-chat-scroll-host')
+      nextHost?.setAttribute('data-tr-chat-scroll-host', '')
       scheduleSync()
     },
-    { childList: true, subtree: true, characterData: true },
+    { immediate: true },
   )
 
   onBeforeUnmount(() => {
@@ -198,11 +188,7 @@ export function useChatMainScrollbar(options: UseChatMainScrollbarOptions) {
       window.cancelAnimationFrame(frameId)
     }
     stopThumbDrag()
-  })
-
-  onMounted(() => {
-    resolveBubbleList()
-    scheduleSync()
+    options.scrollHostRef.value?.removeAttribute('data-tr-chat-scroll-host')
   })
 
   const thumbStyle = computed<CSSProperties>(() => ({
@@ -211,13 +197,11 @@ export function useChatMainScrollbar(options: UseChatMainScrollbarOptions) {
   }))
 
   const rootClass = computed(() => ({
-    'tr-chat-main--bubble-scroll-host': hasBubbleListScrollHost.value,
     'tr-chat-main--scrollbar-visible': scrollbarVisible.value,
     'tr-chat-main--dragging-thumb': isDraggingThumb.value,
   }))
 
   return {
-    hasBubbleListScrollHost,
     showScrollbar,
     rootClass,
     thumbStyle,

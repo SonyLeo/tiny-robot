@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import { computed, ref, shallowRef } from 'vue'
+import { useWindowSize } from '@vueuse/core'
+import { computed, ref, shallowRef, useTemplateRef, watch } from 'vue'
 import { BubbleList } from '@opentiny/tiny-robot'
 import type { BubbleListProps, BubbleRoleConfig } from '@opentiny/tiny-robot'
 import { Chat } from '@/index'
-import type { ChatDetachedBounds, ChatSurfaceMode } from '@/types/layout'
+import type { ChatFloatingConfig, ChatLayoutMode } from '@/types/layout'
 
 type BubbleMessages = NonNullable<BubbleListProps['messages']>
 type BubbleMessage = BubbleMessages[number]
-type HostMode = 'page' | 'container'
+type SurfaceScenario = 'fullscreen' | 'right-edge'
 type SeedTurn = {
   question: string
   answers: string[]
@@ -77,7 +78,7 @@ const seedTurns: SeedTurn[] = [
     question: '再帮我补一个适合教学场景的总结。',
     answers: [
       '如果你是在课堂上讲解，可以这样收尾：When we talk about story structure, protagonist is the most precise term. When we want a more natural everyday expression, main character is usually enough. When we shift the focus to performance and casting, lead or leading role becomes more appropriate.',
-      '这类稍长一点的回复也很适合当前 demo，因为它能把 BubbleList 的内容密度拉起来，方便观察 detached 主区里的真实滚动、拖拽改宽和右侧虚拟滚动条 thumb 的同步关系。',
+      '这类稍长一点的回复也很适合当前 demo，因为它能把 BubbleList 的内容密度拉起来，方便观察全屏主区和右侧浮层里真实滚动、拖拽改宽与虚拟滚动条之间的同步关系。',
     ],
   },
 ]
@@ -87,12 +88,12 @@ function createSeedMessages(): BubbleMessages {
     {
       role: 'assistant',
       content:
-        '你好，我是 TinyRobot。这里是一个同时覆盖 page / container 宿主与 embedded / detached surface 的综合场景。',
+        '你好，我是 TinyRobot。这里把 Surface demo 收敛成两个更直接的场景：铺满全屏，以及贴住页面右侧的悬浮面板。',
     },
     {
       role: 'assistant',
       content:
-        '这个 demo 会预置一段较长的多轮对话，让你一进来就能看到主区滚动、容器约束、surface 拖拽改宽，以及切换宿主场景后的布局变化。',
+        '你可以切换 Fullscreen / Right Edge，重点观察主区滚动、输入区固定、右侧浮层改宽，以及虚拟滚动条和真实滚动宿主之间的同步关系。',
     },
   ]
 
@@ -102,26 +103,39 @@ function createSeedMessages(): BubbleMessages {
   ])
 
   const outro: BubbleMessage[] = [
-    { role: 'user', content: '继续补一点内容，我想看看切到 container 之后 detached 的位置和滚动表现。' },
+    { role: 'user', content: '切到 Right Edge 之后，我应该重点观察哪些地方？' },
     {
       role: 'assistant',
       content:
-        '可以。你现在可以直接切 Host 为 Container，再来回切 Embedded / Detached，观察 surface 是否始终被约束在 frame 内部，以及长列表滚动与滚动条 thumb 是否仍然保持一致。',
+        '重点看三件事：第一，右侧浮层默认是否贴边但仍然留出可拖拽和滚动的操作空间；第二，浮层改宽后，主区列表滚动和虚拟滚动条 thumb 是否仍然一致；第三，左侧业务背景是否还能成立，不会因为 surface 悬浮而显得语义混乱。',
     },
   ]
 
   return [...intro, ...transcript, ...outro]
 }
 
-const hostMode = shallowRef<HostMode>('page')
-const surfaceMode = shallowRef<ChatSurfaceMode>('detached')
-const detachedBounds = shallowRef<ChatDetachedBounds>({
-  width: 480,
-  height: '62vh',
+const scenario = shallowRef<SurfaceScenario>('fullscreen')
+const mode = shallowRef<ChatLayoutMode>('normal')
+const floating = shallowRef<ChatFloatingConfig>({
+  width: 448,
+  height: 'calc(100dvh - 48px)',
+  draggable: true,
+  resizable: true,
+  minWidth: 340,
+  maxWidth: 640,
 })
 const draft = ref('')
 const messages = ref<BubbleMessages>(createSeedMessages())
-const isContainerHost = computed(() => hostMode.value === 'container')
+const bubbleListRef = useTemplateRef<InstanceType<typeof BubbleList>>('bubbleListRef')
+const { width: viewportWidth } = useWindowSize({ type: 'visual' })
+
+const isFullscreenScenario = computed(() => scenario.value === 'fullscreen')
+const scenarioTitle = computed(() => (isFullscreenScenario.value ? '主区铺满全屏' : '右侧悬浮贴边'))
+const scenarioHint = computed(() =>
+  isFullscreenScenario.value
+    ? '适合检查主区滚动、header / footer 布局，以及内容在满屏主壳里的稳定性。'
+    : '适合检查右侧贴边浮层、改宽拖拽和虚拟滚动条在紧边界下的交互。',
+)
 
 const roleConfigs: Record<string, BubbleRoleConfig> = {
   assistant: {
@@ -133,6 +147,37 @@ const roleConfigs: Record<string, BubbleRoleConfig> = {
     shape: 'rounded',
   },
 }
+
+function createRightEdgeFloatingConfig(): ChatFloatingConfig {
+  const preferredWidth = Math.max(360, Math.round(viewportWidth.value * 0.34))
+  const viewportLimit = Math.max(320, viewportWidth.value - 48)
+  const nextWidth = Math.min(520, viewportLimit, preferredWidth)
+
+  return {
+    x: Math.max(24, viewportWidth.value - nextWidth - 24),
+    y: 24,
+    width: nextWidth,
+    height: 'calc(100dvh - 48px)',
+    draggable: true,
+    resizable: true,
+    minWidth: 340,
+    maxWidth: 640,
+  }
+}
+
+watch(
+  scenario,
+  (nextScenario) => {
+    if (nextScenario === 'fullscreen') {
+      mode.value = 'normal'
+      return
+    }
+
+    mode.value = 'floating'
+    floating.value = createRightEdgeFloatingConfig()
+  },
+  { immediate: true },
+)
 
 function appendMessage(role: 'user' | 'assistant', content: string): void {
   messages.value.push({ role, content })
@@ -147,67 +192,89 @@ function sendMessage(): void {
   appendMessage('user', value)
   appendMessage(
     'assistant',
-    `已收到你的问题：“${value}”。这条回复用于验证在 page / container 与 embedded / detached 组合切换下，BubbleList 作为唯一真实滚动宿主时的布局稳定性。`,
+    `已收到你的问题：“${value}”。这条回复用于继续观察当前场景下的主区滚动、输入区固定，以及虚拟滚动条在长内容增长后的同步表现。`,
   )
   draft.value = ''
 }
 </script>
 
 <template>
-  <div class="surface-layout-demo">
-    <div class="surface-layout-demo__shell" :class="{ 'surface-layout-demo__shell--container': isContainerHost }">
-      <div class="surface-layout-demo__frame" :class="{ 'surface-layout-demo__frame--container': isContainerHost }">
+  <div class="surface-layout-demo" :class="`surface-layout-demo--${scenario}`">
+    <div v-if="!isFullscreenScenario" class="surface-layout-demo__workspace" aria-hidden="true">
+      <section class="surface-layout-demo__workspace-hero">
+        <span class="surface-layout-demo__workspace-kicker">Right Edge Workspace</span>
+        <h2>把聊天浮层贴住页面右侧，左边仍然保留真实的业务背景。</h2>
+        <p>这个场景更接近“页面主内容 + 右侧 AI 助手”形态，适合观察贴边、改宽、滚动条和输入区的协同。</p>
+      </section>
+
+      <div class="surface-layout-demo__workspace-grid">
+        <article class="surface-layout-demo__workspace-card">
+          <span>01</span>
+          <strong>看默认位置</strong>
+          <p>浮层默认贴住右侧，但仍然留出滚动条和边缘改宽的交互空间。</p>
+        </article>
+        <article class="surface-layout-demo__workspace-card">
+          <span>02</span>
+          <strong>看改宽过程</strong>
+          <p>改宽时主区滚动容器、thumb 高度和 hover 命中不应该互相打架。</p>
+        </article>
+        <article class="surface-layout-demo__workspace-card">
+          <span>03</span>
+          <strong>看内容背景</strong>
+          <p>左侧页面仍然成立，不需要再靠 Host / Container 两层切换去解释语义。</p>
+        </article>
+      </div>
+    </div>
+
+    <div class="surface-layout-demo__shell">
+      <div
+        class="surface-layout-demo__frame"
+        :class="{ 'surface-layout-demo__frame--fullscreen': isFullscreenScenario }"
+      >
         <Chat.Layout
-          v-model:surface-mode="surfaceMode"
-          v-model:detached-bounds="detachedBounds"
+          v-model:mode="mode"
+          v-model:floating="floating"
           class="surface-layout-demo__layout"
-          :class="{ 'surface-layout-demo__layout--container': isContainerHost }"
-          detached-draggable
-          detached-resizable
-          :min-detached-width="320"
-          :max-detached-width="720"
+          :class="{
+            'surface-layout-demo__layout--fullscreen': isFullscreenScenario,
+            'surface-layout-demo__layout--right-edge': !isFullscreenScenario,
+          }"
         >
           <template #header>
             <div class="surface-layout-demo__header">
               <div class="surface-layout-demo__controls">
                 <div class="surface-layout-demo__modes">
-                  <span class="surface-layout-demo__label">Host</span>
-                  <button type="button" :class="{ 'is-active': hostMode === 'page' }" @click="hostMode = 'page'">
-                    Page
+                  <span class="surface-layout-demo__label">Scene</span>
+                  <button
+                    type="button"
+                    :class="{ 'is-active': scenario === 'fullscreen' }"
+                    @click="scenario = 'fullscreen'"
+                  >
+                    Fullscreen
                   </button>
                   <button
                     type="button"
-                    :class="{ 'is-active': hostMode === 'container' }"
-                    @click="hostMode = 'container'"
+                    :class="{ 'is-active': scenario === 'right-edge' }"
+                    @click="scenario = 'right-edge'"
                   >
-                    Container
+                    Right Edge
                   </button>
                 </div>
-                <div class="surface-layout-demo__modes">
-                  <span class="surface-layout-demo__label">Surface</span>
-                  <button
-                    type="button"
-                    :class="{ 'is-active': surfaceMode === 'embedded' }"
-                    @click="surfaceMode = 'embedded'"
-                  >
-                    Embedded
-                  </button>
-                  <button
-                    type="button"
-                    :class="{ 'is-active': surfaceMode === 'detached' }"
-                    @click="surfaceMode = 'detached'"
-                  >
-                    Detached
-                  </button>
+
+                <div class="surface-layout-demo__summary">
+                  <strong>{{ scenarioTitle }}</strong>
+                  <span>{{ scenarioHint }}</span>
                 </div>
               </div>
+
               <span>{{ messages.length }} messages</span>
             </div>
           </template>
 
           <template #main>
-            <Chat.Main>
+            <Chat.Main :scroll-host="bubbleListRef">
               <BubbleList
+                ref="bubbleListRef"
                 class="surface-layout-demo__conversation"
                 :messages="messages"
                 :role-configs="roleConfigs"
@@ -221,7 +288,7 @@ function sendMessage(): void {
               <input
                 v-model="draft"
                 type="text"
-                placeholder="输入问题，观察 Page / Container 与 Embedded / Detached 下的布局表现"
+                placeholder="输入问题，继续观察全屏主区或右侧浮层下的滚动与改宽表现"
                 @keydown.enter="sendMessage"
               />
               <button type="button" @click="sendMessage">发送</button>
@@ -235,45 +302,127 @@ function sendMessage(): void {
 
 <style scoped>
 .surface-layout-demo {
+  position: relative;
   width: 100%;
   height: 100%;
   min-height: 100%;
+  overflow: hidden;
   background:
     radial-gradient(circle at top, rgba(97, 140, 255, 0.16), transparent 38%),
     linear-gradient(180deg, #f8fafc 0%, #eef3ff 100%);
 }
 
-.surface-layout-demo__shell {
-  width: 100%;
-  height: 100%;
-  min-height: 100%;
+.surface-layout-demo--right-edge {
+  background:
+    radial-gradient(circle at top left, rgba(97, 140, 255, 0.14), transparent 36%),
+    linear-gradient(180deg, #f4f7fb 0%, #edf2ff 100%);
 }
 
-.surface-layout-demo__shell--container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 36px;
+.surface-layout-demo__workspace {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  align-content: start;
+  gap: 24px;
+  padding: 36px min(42vw, 560px) 32px 36px;
   box-sizing: border-box;
+  pointer-events: none;
 }
 
+.surface-layout-demo__workspace-hero {
+  width: min(100%, 620px);
+  padding: 28px 30px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 22px 64px rgba(15, 23, 42, 0.08);
+  backdrop-filter: blur(16px);
+}
+
+.surface-layout-demo__workspace-kicker {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(49, 94, 251, 0.1);
+  color: #315efb;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.surface-layout-demo__workspace-hero h2,
+.surface-layout-demo__workspace-hero p,
+.surface-layout-demo__workspace-card strong,
+.surface-layout-demo__workspace-card p {
+  margin: 0;
+}
+
+.surface-layout-demo__workspace-hero h2 {
+  margin-top: 16px;
+  color: #0f172a;
+  font-size: 32px;
+  line-height: 1.18;
+}
+
+.surface-layout-demo__workspace-hero p {
+  margin-top: 14px;
+  color: #475569;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.surface-layout-demo__workspace-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  width: min(100%, 720px);
+}
+
+.surface-layout-demo__workspace-card {
+  display: grid;
+  gap: 10px;
+  min-height: 152px;
+  padding: 22px 20px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.07);
+}
+
+.surface-layout-demo__workspace-card span {
+  color: #315efb;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.surface-layout-demo__workspace-card strong {
+  color: #0f172a;
+  font-size: 16px;
+}
+
+.surface-layout-demo__workspace-card p {
+  color: #475569;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.surface-layout-demo__shell,
 .surface-layout-demo__frame {
   width: 100%;
   height: 100%;
   min-height: 0;
 }
 
-.surface-layout-demo__frame--container {
-  width: min(1120px, 100%);
-  height: min(760px, calc(100vh - 72px));
-  border: 1px solid #dbe3f0;
-  border-radius: 24px;
-  overflow: hidden;
-  background: #ffffff;
-  box-shadow: 0 30px 80px rgba(15, 23, 42, 0.12);
+.surface-layout-demo__frame--fullscreen {
+  background: rgba(255, 255, 255, 0.94);
 }
 
 .surface-layout-demo__layout {
+  --tr-chat-layout-height: 100%;
   --tr-chat-layout-content-max-width: 980px;
   --tr-chat-layout-header-bg: rgba(255, 255, 255, 0.94);
   --tr-chat-layout-footer-bg: rgba(255, 255, 255, 0.94);
@@ -284,42 +433,41 @@ function sendMessage(): void {
   --tr-chat-surface-radius: 28px;
 }
 
-.surface-layout-demo__layout--container {
-  --tr-chat-layout-height: 100%;
+.surface-layout-demo__layout--right-edge {
+  --tr-chat-surface-radius: 30px;
 }
 
 .surface-layout-demo__header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
+  gap: 18px;
   min-height: 56px;
 }
 
 .surface-layout-demo__controls {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 12px;
+  display: grid;
+  gap: 14px;
 }
 
 .surface-layout-demo__modes {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
 .surface-layout-demo__label {
   color: #475569;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
 
 .surface-layout-demo__modes button {
-  min-height: 36px;
-  padding: 0 14px;
+  min-height: 38px;
+  padding: 0 16px;
   border: 1px solid #dbe3f0;
   border-radius: 999px;
   background: #ffffff;
@@ -332,6 +480,22 @@ function sendMessage(): void {
   border-color: #355dff;
   background: #eef3ff;
   color: #355dff;
+}
+
+.surface-layout-demo__summary {
+  display: grid;
+  gap: 4px;
+}
+
+.surface-layout-demo__summary strong {
+  color: #0f172a;
+  font-size: 15px;
+}
+
+.surface-layout-demo__summary span {
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.6;
 }
 
 .surface-layout-demo__conversation {
@@ -379,15 +543,20 @@ function sendMessage(): void {
   font-size: 15px;
 }
 
-@media (max-width: 959px) {
-  .surface-layout-demo__shell--container {
-    padding: 12px;
+@media (max-width: 1199px) {
+  .surface-layout-demo__workspace {
+    padding-right: min(46vw, 540px);
   }
 
-  .surface-layout-demo__frame--container {
-    width: 100%;
-    height: calc(100vh - 24px);
-    border-radius: 18px;
+  .surface-layout-demo__workspace-grid {
+    grid-template-columns: 1fr;
+    width: min(100%, 420px);
+  }
+}
+
+@media (max-width: 959px) {
+  .surface-layout-demo__workspace {
+    display: none;
   }
 
   .surface-layout-demo__layout {
@@ -396,16 +565,11 @@ function sendMessage(): void {
 
   .surface-layout-demo__header {
     min-height: 48px;
-    align-items: flex-start;
     flex-direction: column;
   }
 
   .surface-layout-demo__controls {
     width: 100%;
-  }
-
-  .surface-layout-demo__modes {
-    flex-wrap: wrap;
   }
 
   .surface-layout-demo__conversation {

@@ -1,16 +1,16 @@
-import type { ChatDetachedBounds } from '@/types/layout'
+import type { ChatFloatingConfig } from '@/types/layout'
 import { resolveCssLengthToPx } from '@/utils/cssLength'
 import { clamp } from '@/utils/math'
 
-interface ResolvedDetachedBounds {
+interface ResolvedFloatingGeometry {
   x?: number
   y?: number
   width: number | string
   height: number | string
 }
 
-export interface DetachedBoundsSnapshot {
-  raw: ResolvedDetachedBounds
+export interface FloatingSnapshot {
+  raw: ResolvedFloatingGeometry
   rawWidth: number
   rawHeight: number
   widthPx: number
@@ -23,93 +23,119 @@ export interface DetachedBoundsSnapshot {
   maxWidth: number
 }
 
-export const DEFAULT_DETACHED_WIDTH = 420
-export const DEFAULT_DETACHED_HEIGHT = '80vh'
-export const DEFAULT_DETACHED_TOP = 24
-export const DEFAULT_DETACHED_GAP = 24
-export const DEFAULT_MIN_DETACHED_WIDTH = 320
+export const DEFAULT_FLOATING_WIDTH = 420
+export const DEFAULT_FLOATING_HEIGHT = '80vh'
+export const DEFAULT_FLOATING_TOP = 24
+export const DEFAULT_FLOATING_GAP = 24
+export const DEFAULT_MIN_FLOATING_WIDTH = 320
 
-function resolveWidthLimits(
-  hostEl: HTMLElement,
-  minWidthValue: number | string | undefined,
-  maxWidthValue: number | string | undefined,
-) {
-  const hostRect = hostEl.getBoundingClientRect()
-  const availableWidth = Math.max(1, hostRect.width - DEFAULT_DETACHED_GAP * 2)
-  const minWidth = clamp(resolveCssLengthToPx(minWidthValue, hostEl, DEFAULT_MIN_DETACHED_WIDTH), 1, availableWidth)
-  const maxWidth = clamp(resolveCssLengthToPx(maxWidthValue, hostEl, availableWidth), minWidth, availableWidth)
+interface ViewportSize {
+  width: number
+  height: number
+}
+
+function getMeasurementRoot(): HTMLElement | null {
+  if (typeof document === 'undefined') {
+    return null
+  }
+
+  return document.body ?? document.documentElement ?? null
+}
+
+function resolveViewportSize(): ViewportSize {
+  if (typeof window === 'undefined') {
+    return {
+      width: 0,
+      height: 0,
+    }
+  }
+
+  const viewport = window.visualViewport
+  if (viewport) {
+    return {
+      width: viewport.width,
+      height: viewport.height,
+    }
+  }
 
   return {
-    hostRect,
-    minWidth,
-    maxWidth,
-    maxHeight: Math.max(1, hostRect.height - DEFAULT_DETACHED_TOP - DEFAULT_DETACHED_GAP),
+    width: window.innerWidth,
+    height: window.innerHeight,
   }
 }
 
-function resolveDefaultDetachedBounds(
-  source: ChatDetachedBounds | undefined,
-  hostEl: HTMLElement | null | undefined,
-  minWidthValue: number | string | undefined,
-  maxWidthValue: number | string | undefined,
-): ChatDetachedBounds {
-  const width = source?.width ?? DEFAULT_DETACHED_WIDTH
-  const height = source?.height ?? DEFAULT_DETACHED_HEIGHT
+function resolveWidthLimits(source: ChatFloatingConfig | undefined, measurementRoot: HTMLElement | null) {
+  const viewportSize = resolveViewportSize()
+  const availableWidth = Math.max(1, viewportSize.width - DEFAULT_FLOATING_GAP * 2)
+  const minWidth = clamp(
+    resolveCssLengthToPx(source?.minWidth, measurementRoot, DEFAULT_MIN_FLOATING_WIDTH),
+    1,
+    availableWidth,
+  )
+  const maxWidth = clamp(
+    resolveCssLengthToPx(source?.maxWidth, measurementRoot, availableWidth),
+    minWidth,
+    availableWidth,
+  )
 
-  if (!hostEl) {
+  return {
+    viewportSize,
+    minWidth,
+    maxWidth,
+    maxHeight: Math.max(1, viewportSize.height - DEFAULT_FLOATING_TOP - DEFAULT_FLOATING_GAP),
+  }
+}
+
+function resolveDefaultFloatingGeometry(source: ChatFloatingConfig | undefined): ResolvedFloatingGeometry {
+  const width = source?.width ?? DEFAULT_FLOATING_WIDTH
+  const height = source?.height ?? DEFAULT_FLOATING_HEIGHT
+  const measurementRoot = getMeasurementRoot()
+
+  if (!measurementRoot) {
     return {
-      x: source?.x ?? DEFAULT_DETACHED_GAP,
-      y: source?.y ?? DEFAULT_DETACHED_TOP,
+      x: source?.x ?? DEFAULT_FLOATING_GAP,
+      y: source?.y ?? DEFAULT_FLOATING_TOP,
       width,
       height,
     }
   }
 
-  const { hostRect, minWidth, maxWidth, maxHeight } = resolveWidthLimits(hostEl, minWidthValue, maxWidthValue)
-  const rawWidth = resolveCssLengthToPx(width, hostEl, DEFAULT_DETACHED_WIDTH)
-  const rawHeight = resolveCssLengthToPx(height, hostEl, hostRect.height, 'height')
+  const { viewportSize, minWidth, maxWidth, maxHeight } = resolveWidthLimits(source, measurementRoot)
+  const rawWidth = resolveCssLengthToPx(width, measurementRoot, DEFAULT_FLOATING_WIDTH)
+  const rawHeight = resolveCssLengthToPx(height, measurementRoot, viewportSize.height, 'height')
   const widthPx = clamp(rawWidth, minWidth, maxWidth)
   const heightPx = Math.min(rawHeight, maxHeight)
 
   return {
-    x: source?.x ?? Math.max(DEFAULT_DETACHED_GAP, (hostRect.width - widthPx) / 2),
-    y: source?.y ?? DEFAULT_DETACHED_TOP,
+    x: source?.x ?? Math.max(DEFAULT_FLOATING_GAP, (viewportSize.width - widthPx) / 2),
+    y: source?.y ?? DEFAULT_FLOATING_TOP,
     width,
     height: heightPx === rawHeight ? height : heightPx,
   }
 }
 
-export function resolveCurrentDetachedBounds(
-  externalBounds: ChatDetachedBounds | undefined,
-  hostEl: HTMLElement | null | undefined,
-  minWidthValue: number | string | undefined,
-  maxWidthValue: number | string | undefined,
-): ChatDetachedBounds {
-  if (!externalBounds) {
-    return resolveDefaultDetachedBounds(undefined, hostEl, minWidthValue, maxWidthValue)
+export function resolveCurrentFloatingConfig(externalConfig: ChatFloatingConfig | undefined): ChatFloatingConfig {
+  if (!externalConfig) {
+    return resolveDefaultFloatingGeometry(undefined)
   }
 
   return {
-    ...resolveDefaultDetachedBounds(externalBounds, hostEl, minWidthValue, maxWidthValue),
-    ...externalBounds,
+    ...resolveDefaultFloatingGeometry(externalConfig),
+    ...externalConfig,
   }
 }
 
-export function resolveDetachedSnapshot(
-  bounds: ChatDetachedBounds | undefined,
-  hostEl: HTMLElement | null | undefined,
-  minWidthValue: number | string | undefined,
-  maxWidthValue: number | string | undefined,
-): DetachedBoundsSnapshot {
+export function resolveFloatingSnapshot(config: ChatFloatingConfig | undefined): FloatingSnapshot {
   const raw = {
-    x: bounds?.x ?? undefined,
-    y: bounds?.y ?? undefined,
-    width: bounds?.width ?? DEFAULT_DETACHED_WIDTH,
-    height: bounds?.height ?? DEFAULT_DETACHED_HEIGHT,
+    x: config?.x ?? undefined,
+    y: config?.y ?? undefined,
+    width: config?.width ?? DEFAULT_FLOATING_WIDTH,
+    height: config?.height ?? DEFAULT_FLOATING_HEIGHT,
   }
+  const measurementRoot = getMeasurementRoot()
 
-  if (!hostEl) {
-    const widthPx = resolveCssLengthToPx(raw.width, null, DEFAULT_DETACHED_WIDTH)
+  if (!measurementRoot) {
+    const widthPx = resolveCssLengthToPx(raw.width, null, DEFAULT_FLOATING_WIDTH)
     const heightPx = resolveCssLengthToPx(raw.height, null, 0, 'height')
 
     return {
@@ -118,23 +144,23 @@ export function resolveDetachedSnapshot(
       rawHeight: heightPx,
       widthPx,
       heightPx,
-      x: raw.x ?? DEFAULT_DETACHED_GAP,
-      y: raw.y ?? DEFAULT_DETACHED_TOP,
-      xMax: raw.x ?? DEFAULT_DETACHED_GAP,
-      yMax: raw.y ?? DEFAULT_DETACHED_TOP,
+      x: raw.x ?? DEFAULT_FLOATING_GAP,
+      y: raw.y ?? DEFAULT_FLOATING_TOP,
+      xMax: raw.x ?? DEFAULT_FLOATING_GAP,
+      yMax: raw.y ?? DEFAULT_FLOATING_TOP,
       minWidth: 1,
       maxWidth: Number.MAX_SAFE_INTEGER,
     }
   }
 
-  const { hostRect, minWidth, maxWidth, maxHeight } = resolveWidthLimits(hostEl, minWidthValue, maxWidthValue)
-  const rawWidth = resolveCssLengthToPx(raw.width, hostEl, DEFAULT_DETACHED_WIDTH)
-  const rawHeight = resolveCssLengthToPx(raw.height, hostEl, hostRect.height, 'height')
+  const { viewportSize, minWidth, maxWidth, maxHeight } = resolveWidthLimits(config, measurementRoot)
+  const rawWidth = resolveCssLengthToPx(raw.width, measurementRoot, DEFAULT_FLOATING_WIDTH)
+  const rawHeight = resolveCssLengthToPx(raw.height, measurementRoot, viewportSize.height, 'height')
   const widthPx = clamp(rawWidth, minWidth, maxWidth)
   const heightPx = Math.min(rawHeight, maxHeight)
-  const xMax = Math.max(DEFAULT_DETACHED_GAP, hostRect.width - widthPx - DEFAULT_DETACHED_GAP)
-  const yMax = Math.max(DEFAULT_DETACHED_TOP, hostRect.height - heightPx - DEFAULT_DETACHED_GAP)
-  const defaultX = Math.max(DEFAULT_DETACHED_GAP, (hostRect.width - widthPx) / 2)
+  const xMax = Math.max(DEFAULT_FLOATING_GAP, viewportSize.width - widthPx - DEFAULT_FLOATING_GAP)
+  const yMax = Math.max(DEFAULT_FLOATING_TOP, viewportSize.height - heightPx - DEFAULT_FLOATING_GAP)
+  const defaultX = Math.max(DEFAULT_FLOATING_GAP, (viewportSize.width - widthPx) / 2)
 
   return {
     raw,
@@ -142,8 +168,8 @@ export function resolveDetachedSnapshot(
     rawHeight,
     widthPx,
     heightPx,
-    x: clamp(raw.x ?? defaultX, DEFAULT_DETACHED_GAP, xMax),
-    y: clamp(raw.y ?? DEFAULT_DETACHED_TOP, DEFAULT_DETACHED_TOP, yMax),
+    x: clamp(raw.x ?? defaultX, DEFAULT_FLOATING_GAP, xMax),
+    y: clamp(raw.y ?? DEFAULT_FLOATING_TOP, DEFAULT_FLOATING_TOP, yMax),
     xMax,
     yMax,
     minWidth,
@@ -151,7 +177,9 @@ export function resolveDetachedSnapshot(
   }
 }
 
-export function toCommittedDetachedBounds(snapshot: DetachedBoundsSnapshot): ChatDetachedBounds {
+export function toCommittedFloatingConfig(
+  snapshot: FloatingSnapshot,
+): Pick<ChatFloatingConfig, 'x' | 'y' | 'width' | 'height'> {
   return {
     x: snapshot.x,
     y: snapshot.y,
@@ -160,9 +188,9 @@ export function toCommittedDetachedBounds(snapshot: DetachedBoundsSnapshot): Cha
   }
 }
 
-export function areDetachedBoundsEqual(
-  left: ChatDetachedBounds | undefined,
-  right: ChatDetachedBounds | undefined,
+export function areFloatingGeometryEqual(
+  left: Pick<ChatFloatingConfig, 'x' | 'y' | 'width' | 'height'> | undefined,
+  right: Pick<ChatFloatingConfig, 'x' | 'y' | 'width' | 'height'> | undefined,
 ): boolean {
   return left?.x === right?.x && left?.y === right?.y && left?.width === right?.width && left?.height === right?.height
 }

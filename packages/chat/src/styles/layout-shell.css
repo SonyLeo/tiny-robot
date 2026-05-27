@@ -165,43 +165,33 @@
   flex-direction: column;
   min-height: 100%;
   height: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden;
   --tr-bubble-list-padding:
     var(--tr-chat-layout-inner-padding-block)
     var(--tr-chat-layout-main-padding-inline, var(--tr-chat-layout-inner-padding-inline));
   --tr-bubble-list-content-max-width: var(--tr-chat-layout-main-max-width, var(--tr-chat-layout-content-max-width, 960px));
 }
 
-.tr-chat-main--bubble-scroll-host {
-  overflow: hidden;
-}
-
-.tr-chat-main--bubble-scroll-host .tr-bubble-list {
+.tr-chat-main [data-tr-chat-scroll-host] {
+  width: 100%;
   height: 100%;
   min-height: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
   box-sizing: border-box;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
 
-.tr-chat-main--bubble-scroll-host .tr-bubble-list::-webkit-scrollbar {
+.tr-chat-main [data-tr-chat-scroll-host]::-webkit-scrollbar {
   display: none;
-}
-
-.tr-chat-main--bubble-scroll-host .tr-bubble-list > .tr-bubble {
-  width: min(100%, var(--tr-bubble-list-content-max-width));
-  margin-inline: auto;
 }
 
 .tr-chat-main__scrollbar {
   position: absolute;
   top: var(--tr-chat-layout-inner-padding-block);
-  right: 4px;
+  right: var(--tr-chat-main-scrollbar-inline-end, 4px);
   bottom: var(--tr-chat-layout-inner-padding-block);
-  width: 10px;
+  width: var(--tr-chat-main-scrollbar-width);
+  border-radius: 999px;
   opacity: 0;
   pointer-events: none;
   transition: opacity 140ms ease;
@@ -213,12 +203,12 @@
 
 .tr-chat-main__scrollbar-thumb {
   position: absolute;
-  left: 1px;
-  right: 1px;
+  left: var(--tr-chat-main-scrollbar-thumb-inset);
+  right: var(--tr-chat-main-scrollbar-thumb-inset);
   min-height: 36px;
   border-radius: 999px;
   background: color-mix(in srgb, var(--tr-text-primary, #111827) 18%, transparent);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  box-shadow: none;
   cursor: grab;
   pointer-events: auto;
   transition: background-color 140ms ease;
@@ -230,7 +220,7 @@
 
 .tr-chat-main--dragging-thumb .tr-chat-main__scrollbar-thumb {
   cursor: grabbing;
-  background: color-mix(in srgb, var(--tr-color-primary, #1476ff) 48%, rgba(255, 255, 255, 0.7));
+  background: color-mix(in srgb, var(--tr-text-primary, #111827) 36%, transparent);
 }
 
 .tr-chat-aside {

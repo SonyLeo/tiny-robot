@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useMediaQuery } from '@vueuse/core'
-import { computed, shallowRef, watch } from 'vue'
+import { computed, shallowRef, useTemplateRef, watch } from 'vue'
 import { Chat } from '@/index'
 import type { ChatAsideConfig } from '@/types/layout'
 import Composer from './deepseek/components/Composer.vue'
@@ -15,6 +15,7 @@ const isMobile = useMediaQuery('(max-width: 959px)')
 const leftExpanded = shallowRef(false)
 const rightExpanded = shallowRef(false)
 const rightDockWidth = shallowRef<ChatAsideConfig['expandedWidth']>(320)
+const mainRef = useTemplateRef<InstanceType<typeof Main>>('mainRef')
 
 watch(
   isMobile,
@@ -72,8 +73,8 @@ function handleRightAsideUpdate(nextConfig?: ChatAsideConfig): void {
       </template>
 
       <template #main>
-        <Chat.Main>
-          <Main />
+        <Chat.Main :scroll-host="mainRef">
+          <Main ref="mainRef" />
         </Chat.Main>
       </template>
 

@@ -1,9 +1,9 @@
-import type { VNode } from 'vue'
+import type { ComponentPublicInstance, VNode } from 'vue'
 
 export type ChatPlacement = 'left' | 'right'
 export type ChatAsideLayoutMode = 'dock' | 'drawer'
 export type ChatAsideCollapseEffect = 'overlay' | 'slide'
-export type ChatSurfaceMode = 'embedded' | 'detached'
+export type ChatLayoutMode = 'normal' | 'floating'
 
 export interface ChatAsideConfig {
   layoutMode?: ChatAsideLayoutMode
@@ -20,46 +20,50 @@ export interface ChatAsideResizeEventDetail {
   width: number
 }
 
-export interface ChatDetachedBounds {
+export interface ChatFloatingConfig {
   x?: number
   y?: number
   width?: number | string
   height?: number | string
+  draggable?: boolean
+  resizable?: boolean
+  minWidth?: number | string
+  maxWidth?: number | string
 }
 
-export interface ChatDetachedResizeEventDetail {
+export interface ChatFloatingResizeEventDetail {
   edge: ChatPlacement
   width: number
 }
 
+export type ChatMainScrollHostComponent = Pick<ComponentPublicInstance, '$el'>
+
+export type ChatMainScrollHost = HTMLElement | ChatMainScrollHostComponent | null | undefined
+
 // Props
 export interface ChatLayoutProps {
   /**
-   * Controls how the chat surface is attached to the host layout.
+   * Controls whether the chat surface stays in layout flow or floats above it.
    *
-   * embedded: rendered within the host layout flow.
-   * detached: rendered above the host layout and positioned independently.
+   * normal: rendered within the host layout flow.
+   * floating: rendered above the host layout and positioned independently.
    *
-   * @default 'embedded'
+   * @default 'normal'
    */
-  surfaceMode?: ChatSurfaceMode
-  detachedBounds?: ChatDetachedBounds
-  detachedDraggable?: boolean
-  detachedResizable?: boolean
-  minDetachedWidth?: number | string
-  maxDetachedWidth?: number | string
+  mode?: ChatLayoutMode
+  floating?: ChatFloatingConfig
   leftAside?: ChatAsideConfig
   rightAside?: ChatAsideConfig
 }
 
 export interface ChatLayoutEmits {
-  'update:surfaceMode': [value: ChatSurfaceMode | undefined]
-  'update:detachedBounds': [value: ChatDetachedBounds | undefined]
+  'update:mode': [value: ChatLayoutMode | undefined]
+  'update:floating': [value: ChatFloatingConfig | undefined]
   'update:leftAside': [value: ChatAsideConfig | undefined]
   'update:rightAside': [value: ChatAsideConfig | undefined]
-  'detached-resize-start': [detail: ChatDetachedResizeEventDetail]
-  'detached-resize': [detail: ChatDetachedResizeEventDetail]
-  'detached-resize-end': [detail: ChatDetachedResizeEventDetail]
+  'floating-resize-start': [detail: ChatFloatingResizeEventDetail]
+  'floating-resize': [detail: ChatFloatingResizeEventDetail]
+  'floating-resize-end': [detail: ChatFloatingResizeEventDetail]
   'aside-resize-start': [detail: ChatAsideResizeEventDetail]
   'aside-resize': [detail: ChatAsideResizeEventDetail]
   'aside-resize-end': [detail: ChatAsideResizeEventDetail]
@@ -73,6 +77,14 @@ export interface ChatAsideProps {
 export interface ChatAsideToggleProps {
   placement: ChatPlacement
   ariaLabel?: string
+}
+
+export interface ChatMainProps {
+  /**
+   * The only real scroll host inside Chat.Main.
+   * The resolved element should provide its own overflow and sizing styles.
+   */
+  scrollHost: ChatMainScrollHost
 }
 
 // Slot props

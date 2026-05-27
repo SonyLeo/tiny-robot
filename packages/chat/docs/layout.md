@@ -17,7 +17,7 @@
 export type ChatPlacement = 'left' | 'right'
 export type ChatAsideLayoutMode = 'dock' | 'drawer'
 export type ChatAsideCollapseEffect = 'overlay' | 'slide'
-export type ChatSurfaceMode = 'embedded' | 'detached'
+export type ChatLayoutMode = 'normal' | 'floating'
 
 export interface ChatAsideConfig {
   layoutMode?: ChatAsideLayoutMode
@@ -29,11 +29,15 @@ export interface ChatAsideConfig {
   maxExpandedWidth?: number | string
 }
 
-export interface ChatDetachedBounds {
+export interface ChatFloatingConfig {
   x?: number
   y?: number
   width?: number | string
   height?: number | string
+  draggable?: boolean
+  resizable?: boolean
+  minWidth?: number | string
+  maxWidth?: number | string
 }
 ```
 
@@ -45,8 +49,8 @@ export interface ChatDetachedBounds {
 - `expanded = false`：当前收起。
 - `collapsedWidth > 0`：仅对 `dock` 生效，收起后保留 rail。
 - `collapsedWidth` 为空或 `0`：仅对 `dock` 生效，收起后完全隐藏。
-- `surfaceMode = 'embedded'`：surface 在布局流内。
-- `surfaceMode = 'detached'`：surface 在 host 内独立定位。
+- `mode = 'normal'`：surface 在布局流内。
+- `mode = 'floating'`：surface 贴住 viewport 独立定位。
 
 ## 3. 组件与插槽
 
@@ -54,27 +58,23 @@ export interface ChatDetachedBounds {
 
 主要 props：
 
-- `surfaceMode`
-- `detachedBounds`
-- `detachedDraggable`
-- `detachedResizable`
-- `minDetachedWidth`
-- `maxDetachedWidth`
+- `mode`
+- `floating`
 - `leftAside`
 - `rightAside`
 
 主要事件：
 
-- `update:surfaceMode`
-- `update:detachedBounds`
+- `update:mode`
+- `update:floating`
 - `update:leftAside`
 - `update:rightAside`
 - `aside-resize-start`
 - `aside-resize`
 - `aside-resize-end`
-- `detached-resize-start`
-- `detached-resize`
-- `detached-resize-end`
+- `floating-resize-start`
+- `floating-resize`
+- `floating-resize-end`
 
 支持插槽：
 
@@ -86,9 +86,25 @@ export interface ChatDetachedBounds {
 
 ### 3.2 `Chat.Main`
 
-- 主内容容器。
-- 默认自己作为滚动容器。
-- 检测到内部存在 `.tr-bubble-list` 时，会切换为裁剪层，由 `BubbleList` 接管真实滚动。
+- 主内容壳层。
+- 必须显式传入 `scrollHost`。
+- 自身固定 `overflow: hidden`，不再承担真实滚动。
+- 真实滚动、尺寸约束和内容滚动样式都由 `scrollHost` 自己负责。
+- 如果 `scrollHost` 的滚动能力依赖组件样式或外部样式文件，对应样式也必须先加载。
+
+props：
+
+```ts
+import type { ComponentPublicInstance } from 'vue'
+
+export type ChatMainScrollHostComponent = Pick<ComponentPublicInstance, '$el'>
+
+export type ChatMainScrollHost = HTMLElement | ChatMainScrollHostComponent | null | undefined
+
+export interface ChatMainProps {
+  scrollHost: ChatMainScrollHost
+}
+```
 
 ### 3.3 `Chat.Aside`
 
@@ -143,7 +159,7 @@ slot props：
 - `Chat.Layout` 是唯一布局入口，内部维护左右 panel 的运行时视图状态。
 - `drawer` 打开时会显示 backdrop，按 `Escape` 会关闭当前 drawer。
 - `Chat.Layout` 使用 CSS variables 驱动列宽，不把宽度逻辑下沉到 `Chat.Aside`。
-- `surface host` 使用 `--tr-chat-layout-height` 控制高度；未配置时默认占满视口高度。
+- `layout host` 使用 `--tr-chat-layout-height` 控制高度；未配置时默认占满视口高度。
 
 ## 5. CSS 变量
 
@@ -187,4 +203,4 @@ aside 宽度变量：
 
 - `DeepSeek`：左侧 `drawer`，右侧桌面 `dock` / 移动端 `drawer`。
 - `ChatGPT`：左侧 `dock + rail`，右侧桌面 `dock` / 移动端 `drawer`。
-- `Surface`：验证 `page / container + embedded / detached`。
+- `Surface`：验证全屏主区与页面右侧贴边浮层两个典型场景。

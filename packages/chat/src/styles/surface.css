@@ -1,5 +1,4 @@
-.tr-chat-layout-surface-host {
-  position: relative;
+.tr-chat-layout-host {
   width: 100%;
   min-height: 0;
   height: var(--tr-chat-layout-height, 100vh);
@@ -14,22 +13,23 @@
   background: var(--tr-chat-layout-bg);
 }
 
-.tr-chat-layout-surface--embedded {
+.tr-chat-layout-surface--normal {
   overflow: hidden;
   border-radius: 0;
   box-shadow: none;
 }
 
-.tr-chat-layout-surface--detached {
-  position: absolute;
-  overflow: hidden;
+.tr-chat-layout-surface--floating {
+  position: fixed;
+  overflow: visible;
   background: var(--tr-chat-layout-bg);
   border-radius: var(--tr-chat-surface-radius);
   border: 1px solid color-mix(in srgb, var(--tr-text-primary, #111827) 6%, transparent);
   box-shadow: var(--tr-chat-surface-shadow);
+  z-index: var(--tr-chat-surface-z-index);
 }
 
-.tr-chat-layout-surface--detached {
+.tr-chat-layout-surface--floating {
   outline: 1px solid color-mix(in srgb, var(--tr-container-bg-default, #ffffff) 52%, transparent);
   outline-offset: -1px;
 }
@@ -78,7 +78,7 @@
   cursor: grab;
 }
 
-.tr-chat-layout-surface--detached .tr-chat-layout-surface__drag-bar {
+.tr-chat-layout-surface--floating .tr-chat-layout-surface__drag-bar {
   display: flex;
 }
 
@@ -117,13 +117,15 @@
   pointer-events: none;
 }
 
-.tr-chat-layout-surface--embedded .tr-chat-layout-surface__drag-bar,
-.tr-chat-layout-surface--embedded .tr-chat-layout-surface__resize-trigger {
+.tr-chat-layout-surface--normal .tr-chat-layout-surface__drag-bar,
+.tr-chat-layout-surface--normal .tr-chat-layout-surface__resize-trigger {
   display: none;
 }
 
-.tr-chat-layout-surface--detached > .tr-chat-layout {
+.tr-chat-layout-surface--floating > .tr-chat-layout {
   box-sizing: border-box;
+  overflow: hidden;
+  border-radius: inherit;
   padding-top: calc(var(--tr-chat-surface-drag-hit-height) + 8px);
 }
 
@@ -139,18 +141,20 @@
   touch-action: none;
   cursor: col-resize;
   z-index: 4;
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
   isolation: isolate;
 }
 
 .tr-chat-layout-surface__resize-trigger--left {
-  left: 0;
+  left: calc(var(--tr-chat-surface-resize-hit-area-size) / -2);
+  justify-content: flex-end;
   cursor: w-resize;
 }
 
 .tr-chat-layout-surface__resize-trigger--right {
-  right: 0;
+  right: calc(var(--tr-chat-surface-resize-hit-area-size) / -2);
+  justify-content: flex-start;
   cursor: e-resize;
 }
 
