@@ -13,6 +13,7 @@ import {
   toCommittedFloatingConfig,
   type FloatingSnapshot,
 } from '@/utils/chatSurfaceGeometry'
+import { resolveFloatingResizeGeometry } from '@/utils/chatSurfaceResize'
 import { lockBodyInteraction, restoreBodyInteraction, type BodyInteractionState } from '@/utils/domInteraction'
 import { clamp } from '@/utils/math'
 
@@ -109,6 +110,13 @@ export function useChatSurface(options: UseChatSurfaceOptions) {
     }
   }
 
+  function applyDraggedPosition(nextX: number, nextY: number): void {
+    const nextGeometry = resolveDraggedFloatingGeometry(nextX, nextY)
+    x.value = nextGeometry.x ?? DEFAULT_FLOATING_GAP
+    y.value = nextGeometry.y ?? DEFAULT_FLOATING_TOP
+    commitFloatingGeometry(nextGeometry)
+  }
+
   const { x, y, isDragging } = useDraggable(options.frameRef, {
     handle: options.dragHandleRef,
     initialValue: { x: DEFAULT_FLOATING_GAP, y: DEFAULT_FLOATING_TOP },
@@ -124,18 +132,8 @@ export function useChatSurface(options: UseChatSurfaceOptions) {
       x.value = floatingConfig.x ?? DEFAULT_FLOATING_GAP
       y.value = floatingConfig.y ?? DEFAULT_FLOATING_TOP
     },
-    onMove: (position) => {
-      const nextGeometry = resolveDraggedFloatingGeometry(position.x, position.y)
-      x.value = nextGeometry.x ?? DEFAULT_FLOATING_GAP
-      y.value = nextGeometry.y ?? DEFAULT_FLOATING_TOP
-      commitFloatingGeometry(nextGeometry)
-    },
-    onEnd: (position) => {
-      const nextGeometry = resolveDraggedFloatingGeometry(position.x, position.y)
-      x.value = nextGeometry.x ?? DEFAULT_FLOATING_GAP
-      y.value = nextGeometry.y ?? DEFAULT_FLOATING_TOP
-      commitFloatingGeometry(nextGeometry)
-    },
+    onMove: (position) => applyDraggedPosition(position.x, position.y),
+    onEnd: (position) => applyDraggedPosition(position.x, position.y),
   })
   const canResizeFloating = computed(() => isFloating.value && isFloatingResizable.value && !isDragging.value)
 
@@ -194,6 +192,26 @@ export function useChatSurface(options: UseChatSurfaceOptions) {
     })
   }
 
+  function applyResizeDelta(state: FloatingResizeState, deltaX: number): void {
+    const nextGeometry = resolveFloatingResizeGeometry({
+      edge: state.edge,
+      deltaX,
+      snapshot: state.currentBounds,
+      viewportWidth: viewportWidth.value,
+    })
+
+    state.currentBounds = resolveFloatingSnapshot({
+      ...(options.floatingState.value ?? {}),
+      ...nextGeometry,
+    })
+    state.currentWidth = state.currentBounds.widthPx
+    commitFloatingGeometry(nextGeometry)
+    options.onFloatingResize?.({
+      edge: state.edge,
+      width: state.currentWidth,
+    })
+  }
+
   useEventListener(pointerTarget, 'pointermove', (event: PointerEvent) => {
     const state = activeResize.value
     if (!state || event.pointerId !== state.pointerId) {
@@ -207,47 +225,8 @@ export function useChatSurface(options: UseChatSurfaceOptions) {
       return
     }
 
-    const minX = DEFAULT_FLOATING_GAP
-    const maxRight = viewportWidth.value - DEFAULT_FLOATING_GAP
-    let nextX = state.currentBounds.x
-    let nextWidth = state.currentBounds.widthPx
-
-    if (state.edge === 'left') {
-      nextX = state.currentBounds.x + deltaX
-      nextWidth = clamp(
-        state.currentBounds.widthPx - deltaX,
-        state.currentBounds.minWidth,
-        state.currentBounds.maxWidth,
-      )
-    } else {
-      const nextRight = state.currentBounds.x + state.currentBounds.widthPx + deltaX
-      nextWidth = clamp(
-        state.currentBounds.widthPx + deltaX,
-        state.currentBounds.minWidth,
-        state.currentBounds.maxWidth,
-      )
-      nextX = nextRight - nextWidth
-    }
-
-    nextX = clamp(nextX, minX, Math.max(minX, maxRight - nextWidth))
-
-    const nextGeometry = {
-      ...toCommittedFloatingConfig(state.currentBounds),
-      x: nextX,
-      width: nextWidth,
-    }
-
-    state.currentBounds = resolveFloatingSnapshot({
-      ...(options.floatingState.value ?? {}),
-      ...nextGeometry,
-    })
+    applyResizeDelta(state, deltaX)
     state.lastPointerX = pointerX
-    state.currentWidth = nextWidth
-    commitFloatingGeometry(nextGeometry)
-    options.onFloatingResize?.({
-      edge: state.edge,
-      width: nextWidth,
-    })
   })
 
   useEventListener(pointerTarget, 'pointerup', (event: PointerEvent) => {
