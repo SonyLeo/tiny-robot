@@ -11,6 +11,7 @@ interface ScrollMetrics {
   clientHeight: number
   scrollHeight: number
   scrollTop: number
+  trackHeight: number
   thumbHeight: number
   thumbOffset: number
   isScrollable: boolean
@@ -30,10 +31,23 @@ function createEmptyMetrics(): ScrollMetrics {
     clientHeight: 0,
     scrollHeight: 0,
     scrollTop: 0,
+    trackHeight: 0,
     thumbHeight: 0,
     thumbOffset: 0,
     isScrollable: false,
   }
+}
+
+function resolveTrackHeight(scrollHost: HTMLElement, clientHeight: number): number {
+  const mainEl = scrollHost.closest('.tr-chat-main')
+
+  if (!(mainEl instanceof HTMLElement)) {
+    return clientHeight
+  }
+
+  const styles = window.getComputedStyle(mainEl)
+  const insetBlock = Number.parseFloat(styles.getPropertyValue('--tr-chat-layout-inner-padding-block')) || 0
+  return Math.max(clientHeight - insetBlock * 2, 0)
 }
 
 export function useChatMainScrollbar(options: UseChatMainScrollbarOptions) {
@@ -59,6 +73,7 @@ export function useChatMainScrollbar(options: UseChatMainScrollbarOptions) {
     const clientHeight = scrollHost.clientHeight
     const scrollHeight = scrollHost.scrollHeight
     const scrollTop = scrollHost.scrollTop
+    const trackHeight = resolveTrackHeight(scrollHost, clientHeight)
     const isScrollable = scrollHeight - clientHeight > 1
 
     if (!isScrollable) {
@@ -66,14 +81,14 @@ export function useChatMainScrollbar(options: UseChatMainScrollbarOptions) {
         clientHeight,
         scrollHeight,
         scrollTop,
-        thumbHeight: clientHeight,
+        trackHeight,
+        thumbHeight: trackHeight,
         thumbOffset: 0,
         isScrollable: false,
       }
       return
     }
 
-    const trackHeight = clientHeight
     const scrollRange = scrollHeight - clientHeight
     const thumbHeight = clamp((clientHeight / scrollHeight) * trackHeight, MIN_THUMB_HEIGHT, trackHeight)
     const thumbTravel = Math.max(0, trackHeight - thumbHeight)
@@ -83,6 +98,7 @@ export function useChatMainScrollbar(options: UseChatMainScrollbarOptions) {
       clientHeight,
       scrollHeight,
       scrollTop,
+      trackHeight,
       thumbHeight,
       thumbOffset,
       isScrollable: true,
@@ -146,7 +162,7 @@ export function useChatMainScrollbar(options: UseChatMainScrollbarOptions) {
 
     const deltaY = event.clientY - dragState.startY
     const scrollRange = currentMetrics.scrollHeight - currentMetrics.clientHeight
-    const thumbTravel = currentMetrics.clientHeight - currentMetrics.thumbHeight
+    const thumbTravel = currentMetrics.trackHeight - currentMetrics.thumbHeight
     const ratio = thumbTravel > 0 ? scrollRange / thumbTravel : 0
     scrollHost.scrollTop = dragState.startScrollTop + deltaY * ratio
     scheduleSync()
