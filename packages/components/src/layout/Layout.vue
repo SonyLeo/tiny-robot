@@ -152,13 +152,13 @@ const layoutRootStyle = computed(() => ({
             :aria-hidden="leftAsideHidden ? 'true' : undefined"
             :inert="leftAsideHidden"
           >
-            <slot name="left-aside" />
             <AsideResizeTrigger
               v-if="leftResizeVisible"
               placement="left"
               :dragging-placement="draggingPlacement"
               @pointerdown="leftHandleProps.onPointerdown"
             />
+            <slot name="left-aside" />
           </div>
 
           <div
