@@ -11,7 +11,7 @@ pnpm dlx @opentiny/tiny-robot-cli create my-app
 
 ## Options
 
-- `-t, --template <name>`: template name, currently supports `basic`
+- `-t, --template <name>`: template name, currently supports `basic`, `assistant-panel`
 - `-h, --help`: show help
 
 ## Template Documentation
@@ -19,3 +19,4 @@ pnpm dlx @opentiny/tiny-robot-cli create my-app
 Template-specific features and environment variables are documented in each template directory, for example:
 
 - `packages/cli/templates/basic/README.md`
+- `packages/cli/templates/assistant-panel/README.md`
