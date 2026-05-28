@@ -1,0 +1,18 @@
+export const layoutSelectors = {
+  pageTitle: 'h2',
+  leftAside: '[data-part="aside"][data-placement="left"]',
+  rightAside: '[data-part="aside"][data-placement="right"]',
+  leftAsideContent: '[data-part="aside-content"][data-placement="left"]',
+  rightAsideContent: '[data-part="aside-content"][data-placement="right"]',
+  main: '[data-part="main"]',
+  scrollbar: '[data-part="scrollbar"]',
+  scrollbarThumb: '[data-part="scrollbar-thumb"]',
+  surface: '[data-part="surface"]',
+  surfaceHost: '[data-part="surface-host"]',
+  surfaceDragBar: '[data-part="surface-drag-bar"]',
+  backdrop: '[data-part="backdrop"]',
+  leftResizeTrigger: '[data-part="resize-trigger"][data-placement="left"]',
+  rightResizeTrigger: '[data-part="resize-trigger"][data-placement="right"]',
+  leftSurfaceResizeTrigger: '[data-part="surface-resize-trigger"][data-edge="left"]',
+  rightSurfaceResizeTrigger: '[data-part="surface-resize-trigger"][data-edge="right"]',
+}
