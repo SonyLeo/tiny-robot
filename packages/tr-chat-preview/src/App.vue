@@ -8,7 +8,7 @@ import TinyRobotChat from './TinyRobotChat.vue'
       <p class="hero-card__eyebrow">TrChat</p>
       <h1 class="hero-card__title">Minimal Consumer Preview</h1>
       <p class="hero-card__description">
-        This project consumes <code>@opentiny/tiny-robot/chat</code> and only passes the minimum chat props.
+        This project consumes <code>@opentiny/tiny-robot/experimental</code> and only passes the minimum chat props.
       </p>
       <div class="hero-card__steps">
         <span>1. Copy <code>.env.example</code></span>
