@@ -10,6 +10,12 @@ import { Command } from 'commander'
 const TEMPLATE_PLACEHOLDER = '__PROJECT_NAME__'
 const DEFAULT_TEMPLATE = 'basic'
 const DEFAULT_PROJECT_NAME = 'tiny-robot-app'
+const CHAT_CONFIG_FILE = path.join('src', 'tiny-robot', 'chat.ts')
+const CHAT_DEPENDENCIES = {
+  '@opentiny/tiny-robot': 'latest',
+  dompurify: '^3.3.1',
+  'markdown-it': '^14.1.0',
+}
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const templatesRoot = path.resolve(__dirname, '../templates')
@@ -118,6 +124,95 @@ function replaceProjectName(targetDir, projectName) {
   }
 }
 
+function normalizeDisplayPath(filePath) {
+  return filePath.split(path.sep).join('/')
+}
+
+function readJsonFile(filePath) {
+  return JSON.parse(fs.readFileSync(filePath, 'utf-8'))
+}
+
+function writeJsonFile(filePath, data) {
+  fs.writeFileSync(filePath, `${JSON.stringify(data, null, 2)}\n`, 'utf-8')
+}
+
+function ensureChatDependencies(packageJson) {
+  packageJson.dependencies ??= {}
+
+  const addedDependencies = []
+
+  for (const [dependencyName, dependencyVersion] of Object.entries(CHAT_DEPENDENCIES)) {
+    if (packageJson.dependencies[dependencyName] || packageJson.devDependencies?.[dependencyName]) {
+      continue
+    }
+
+    packageJson.dependencies[dependencyName] = dependencyVersion
+    addedDependencies.push(`${dependencyName}@${dependencyVersion}`)
+  }
+
+  return addedDependencies
+}
+
+function getChatConfigTemplate() {
+  return `import type { ChatMcpServerConfig, ChatModelOption } from '@opentiny/tiny-robot/chat'
+
+export const chatModelOptions: ChatModelOption[] = [
+  {
+    id: 'deepseek-chat',
+    provider: 'deepseek',
+    name: 'DeepSeek Chat',
+    model: 'deepseek-chat',
+    apiUrl: 'https://api.deepseek.com/chat/completions',
+    apiKey: import.meta.env.VITE_DEEPSEEK_API_KEY || '',
+  },
+]
+
+export const chatMcpServers: Record<string, ChatMcpServerConfig> = {}
+`
+}
+
+function addChatFeature() {
+  const projectRoot = process.cwd()
+  const packageJsonPath = path.join(projectRoot, 'package.json')
+
+  if (!fs.existsSync(packageJsonPath)) {
+    console.error('Error: package.json not found in the current directory.')
+    process.exit(1)
+  }
+
+  const packageJson = readJsonFile(packageJsonPath)
+  const addedDependencies = ensureChatDependencies(packageJson)
+  writeJsonFile(packageJsonPath, packageJson)
+
+  const chatConfigPath = path.join(projectRoot, CHAT_CONFIG_FILE)
+  const chatConfigDisplayPath = normalizeDisplayPath(CHAT_CONFIG_FILE)
+  let createdChatConfig = false
+
+  if (!fs.existsSync(chatConfigPath)) {
+    fs.mkdirSync(path.dirname(chatConfigPath), { recursive: true })
+    fs.writeFileSync(chatConfigPath, getChatConfigTemplate(), 'utf-8')
+    createdChatConfig = true
+  }
+
+  console.log('\nChat setup updated.')
+  console.log(createdChatConfig ? `Created: ${chatConfigDisplayPath}` : `Skipped: ${chatConfigDisplayPath} already exists`)
+
+  if (addedDependencies.length > 0) {
+    console.log('\nAdded dependencies:')
+    addedDependencies.forEach((dependencyName) => {
+      console.log(`  ${dependencyName}`)
+    })
+  } else {
+    console.log('\nDependencies already present.')
+  }
+
+  console.log('\nNext steps:')
+  console.log('  pnpm install')
+  console.log("  import '@opentiny/tiny-robot/dist/style.css'")
+  console.log("  import { TrChat } from '@opentiny/tiny-robot/chat'")
+  console.log("  import { chatModelOptions, chatMcpServers } from './src/tiny-robot/chat'")
+}
+
 async function createProject(initialProjectName, initialTemplateName, skipPrompts) {
   const availableTemplates = getAvailableTemplates()
   if (availableTemplates.length === 0) {
@@ -174,6 +269,18 @@ function run() {
         console.error(`Error: ${error instanceof Error ? error.message : String(error)}`)
         process.exit(1)
       })
+    })
+
+  program
+    .command('add <feature>')
+    .description('Add a TinyRobot feature into the current project')
+    .action((feature) => {
+      if (feature !== 'chat') {
+        console.error(`Error: unsupported feature "${feature}". Available: chat`)
+        process.exit(1)
+      }
+
+      addChatFeature()
     })
 
   if (process.argv.length <= 2) {

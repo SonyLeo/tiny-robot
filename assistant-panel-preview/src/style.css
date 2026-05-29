@@ -1,0 +1,93 @@
+:root {
+  font-family:
+    'Segoe UI',
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  color: var(--tr-text-primary);
+  --assistant-launcher-size: 56px;
+  --assistant-panel-offset: 24px;
+  --assistant-launcher-bg:
+    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.98), rgba(239, 246, 255, 0.98) 65%, rgba(222, 236, 255, 0.94) 100%);
+  --assistant-launcher-color: var(--tr-color-primary);
+  --assistant-launcher-border: rgba(20, 118, 255, 0.1);
+  --assistant-launcher-shadow:
+    0 12px 32px rgba(20, 118, 255, 0.16),
+    0 2px 8px rgba(20, 118, 255, 0.08);
+  --tr-container-width: min(420px, 100vw);
+  --tr-container-border-width: 1px;
+  --tr-container-header-padding: 0 16px 12px;
+  --tr-container-header-padding-fullscreen: 0 max(24px, calc((100vw - 1280px) / 2)) 16px;
+  --tr-container-title-font-size: 18px;
+  --tr-container-title-font-size-fullscreen: 20px;
+  --tr-container-title-line-height: 28px;
+  --tr-container-title-line-height-fullscreen: 28px;
+  --tr-container-header-operations-gap: 8px;
+  --assistant-scrollbar-size: 10px;
+  --assistant-scrollbar-track: transparent;
+  --assistant-scrollbar-thumb: rgba(148, 163, 184, 0.42);
+  --assistant-scrollbar-thumb-hover: rgba(100, 116, 139, 0.68);
+}
+
+html[data-tr-color-mode='dark'] {
+  color-scheme: dark;
+  --assistant-launcher-bg:
+    radial-gradient(circle at 30% 30%, rgba(49, 65, 91, 0.98), rgba(30, 41, 59, 0.98) 65%, rgba(15, 23, 42, 0.98) 100%);
+  --assistant-launcher-color: #8fc0ff;
+  --assistant-launcher-border: rgba(143, 192, 255, 0.14);
+  --assistant-launcher-shadow:
+    0 16px 36px rgba(2, 6, 23, 0.42),
+    0 0 0 1px rgba(143, 192, 255, 0.06);
+  --assistant-scrollbar-thumb: rgba(148, 163, 184, 0.3);
+  --assistant-scrollbar-thumb-hover: rgba(148, 163, 184, 0.5);
+}
+
+html[data-tr-color-mode='light'] {
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+  scrollbar-width: thin;
+  scrollbar-color: var(--assistant-scrollbar-thumb) var(--assistant-scrollbar-track);
+}
+
+*::-webkit-scrollbar {
+  width: var(--assistant-scrollbar-size);
+  height: var(--assistant-scrollbar-size);
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--assistant-scrollbar-track);
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--assistant-scrollbar-thumb);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--assistant-scrollbar-thumb-hover);
+  background-clip: padding-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top, rgba(20, 118, 255, 0.08) 0, transparent 38%),
+    radial-gradient(circle at bottom right, rgba(20, 118, 255, 0.06) 0, transparent 28%),
+    var(--tr-container-bg-default);
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+#app {
+  min-height: 100vh;
+}
