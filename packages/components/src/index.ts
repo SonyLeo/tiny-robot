@@ -12,6 +12,7 @@ import DropdownMenu from './dropdown-menu'
 import Feedback from './feedback'
 import History from './history'
 import IconButton from './icon-button'
+import TrMarkdown from './markdown/index'
 import { Prompt, Prompts } from './prompts'
 import Sender from './sender'
 import SenderCompat from './sender-compat'
@@ -43,6 +44,7 @@ export * from './dropdown-menu/index.type'
 export * from './feedback/index.type'
 export * from './history/index.type'
 export * from './icon-button/index.type'
+export * from './markdown/index.type'
 export * from './prompts/index.type'
 export * from './sender/index.type'
 export * from './sender-actions/index.type'
@@ -63,6 +65,7 @@ export {
   useOmitMessageFields,
   useToolCall,
 } from './bubble'
+export { markdownItAdapter, useMarkdownContext } from './markdown/index'
 export { useTheme } from './theme-provider/useTheme'
 export { useSenderContext } from './sender'
 export { vDropzone } from './drag-overlay/directives/vDropzone'
@@ -81,6 +84,7 @@ const components = [
   Feedback,
   History,
   IconButton,
+  TrMarkdown,
   Prompt,
   Prompts,
   Sender,
@@ -135,6 +139,7 @@ export {
   History as TrHistory,
   IconButton,
   IconButton as TrIconButton,
+  TrMarkdown,
   Prompt,
   Prompt as TrPrompt,
   Prompts,

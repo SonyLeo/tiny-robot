@@ -72,6 +72,7 @@ export default defineConfig({
         '@opentiny/tiny-robot-svgs',
         'markdown-it',
         'dompurify',
+        /^highlight\.js(\/.*)?$/,
         /^@tiptap.*/,
       ],
       input: entries,
