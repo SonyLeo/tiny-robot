@@ -2,6 +2,7 @@ import { h, VNode } from 'vue'
 import type { TrMarkdownContext } from '../context'
 import type { TrMarkdownRenderNode } from '../index.type'
 import CodeFenceResolver from '../components/code-block/CodeFenceResolver.vue'
+import StreamAnimatedText from '../components/stream/StreamAnimatedText.vue'
 import Blockquote from '../components/nodes/Blockquote.vue'
 import Heading from '../components/nodes/Heading.vue'
 import Hr from '../components/nodes/Hr.vue'
@@ -13,6 +14,8 @@ import ListItem from '../components/nodes/ListItem.vue'
 import Paragraph from '../components/nodes/Paragraph.vue'
 import Table from '../components/nodes/Table.vue'
 import type { TrMarkdownCodeConfig } from '../index.type'
+import { countTextGraphemes } from '../stream/grapheme'
+import type { TrMarkdownNodeAnimationMeta } from '../stream/streamingAnimation.type'
 
 const headingLevelMap: Record<string, number> = {
   h1: 1,
@@ -23,33 +26,64 @@ const headingLevelMap: Record<string, number> = {
   h6: 6,
 }
 
-const createChildren = (nodes: TrMarkdownRenderNode[] | undefined, context: TrMarkdownContext): VNode[] => {
-  return (nodes || []).map((node) => renderNode(node, context))
+type TextAnimationCursor = {
+  value: number
 }
 
-export const renderNode = (node: TrMarkdownRenderNode, context: TrMarkdownContext): VNode => {
+const createChildren = (
+  nodes: TrMarkdownRenderNode[] | undefined,
+  context: TrMarkdownContext,
+  animation?: TrMarkdownNodeAnimationMeta,
+  cursor?: TextAnimationCursor,
+): VNode[] => {
+  return (nodes || []).map((node) => renderNode(node, context, animation, cursor))
+}
+
+export const renderNode = (
+  node: TrMarkdownRenderNode,
+  context: TrMarkdownContext,
+  animation?: TrMarkdownNodeAnimationMeta,
+  cursor = animation ? { value: 0 } : undefined,
+): VNode => {
   const components = context.components
   const codeConfig = context.code as Required<TrMarkdownCodeConfig>
   const highlightConfig = codeConfig.highlight || {}
 
   switch (node.type) {
     case 'text':
+      if (animation && cursor && node.text) {
+        const startOffset = cursor.value
+        cursor.value += countTextGraphemes(node.text)
+
+        return h(StreamAnimatedText, {
+          text: node.text,
+          startOffset,
+          controller: animation.controller,
+        })
+      }
+
       return h('span', { class: 'tr-markdown__text' }, node.text || '')
     case 'softbreak':
     case 'hardbreak':
       return h('br')
     case 'paragraph_open':
-      return h(components.paragraph || Paragraph, { node }, () => createChildren(node.children, context))
+      return h(components.paragraph || Paragraph, { node }, () =>
+        createChildren(node.children, context, animation, cursor),
+      )
     case 'heading_open':
       return h(components.heading || Heading, { level: headingLevelMap[node.tag || 'h1'] || 1 }, () =>
-        createChildren(node.children, context),
+        createChildren(node.children, context, animation, cursor),
       )
     case 'blockquote_open':
-      return h(components.blockquote || Blockquote, () => createChildren(node.children, context))
+      return h(components.blockquote || Blockquote, () => createChildren(node.children, context, animation, cursor))
     case 'bullet_list_open':
-      return h(components.list || List, { ordered: false }, () => createChildren(node.children, context))
+      return h(components.list || List, { ordered: false }, () =>
+        createChildren(node.children, context, animation, cursor),
+      )
     case 'ordered_list_open':
-      return h(components.list || List, { ordered: true }, () => createChildren(node.children, context))
+      return h(components.list || List, { ordered: true }, () =>
+        createChildren(node.children, context, animation, cursor),
+      )
     case 'list_item_open':
       return h(
         components.listItem || ListItem,
@@ -57,7 +91,7 @@ export const renderNode = (node: TrMarkdownRenderNode, context: TrMarkdownContex
           task: Boolean(node.attrs?.task),
           checked: Boolean(node.attrs?.checked),
         },
-        () => createChildren(node.children, context),
+        () => createChildren(node.children, context, animation, cursor),
       )
     case 'task-checkbox':
       return h('input', {
@@ -76,7 +110,7 @@ export const renderNode = (node: TrMarkdownRenderNode, context: TrMarkdownContex
           target: context.link.target,
           rel: context.link.rel,
         },
-        () => createChildren(node.children, context),
+        () => createChildren(node.children, context, animation, cursor),
       )
     case 'image':
       return h(components.image || Image, {
@@ -112,22 +146,22 @@ export const renderNode = (node: TrMarkdownRenderNode, context: TrMarkdownContex
     case 'hr':
       return h(components.hr || Hr)
     case 'strong':
-      return h('strong', createChildren(node.children, context))
+      return h('strong', createChildren(node.children, context, animation, cursor))
     case 'emphasis':
-      return h('em', createChildren(node.children, context))
+      return h('em', createChildren(node.children, context, animation, cursor))
     case 'delete':
-      return h('s', createChildren(node.children, context))
+      return h('s', createChildren(node.children, context, animation, cursor))
     case 'underline':
-      return h('ins', { class: 'tr-markdown__underline' }, createChildren(node.children, context))
+      return h('ins', { class: 'tr-markdown__underline' }, createChildren(node.children, context, animation, cursor))
     case 'subscript':
-      return h('sub', { class: 'tr-markdown__subscript' }, createChildren(node.children, context))
+      return h('sub', { class: 'tr-markdown__subscript' }, createChildren(node.children, context, animation, cursor))
     case 'superscript':
-      return h('sup', { class: 'tr-markdown__superscript' }, createChildren(node.children, context))
+      return h('sup', { class: 'tr-markdown__superscript' }, createChildren(node.children, context, animation, cursor))
     case 'keyboard':
-      return h('kbd', { class: 'tr-markdown__kbd' }, createChildren(node.children, context))
+      return h('kbd', { class: 'tr-markdown__kbd' }, createChildren(node.children, context, animation, cursor))
     case 'html':
       return h('span', node.text || '')
     default:
-      return h(node.tag || 'div', () => createChildren(node.children, context))
+      return h(node.tag || 'div', () => createChildren(node.children, context, animation, cursor))
   }
 }

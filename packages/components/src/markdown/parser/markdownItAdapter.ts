@@ -8,6 +8,7 @@ type MarkdownItToken = {
   content: string
   info: string
   children?: MarkdownItToken[]
+  map?: [number, number] | null
 }
 
 const inlineTokenTypeMap: Record<string, string> = {
@@ -43,13 +44,58 @@ const normalizeAttrs = (token: MarkdownItToken): Record<string, unknown> | undef
   return Object.fromEntries(token.attrs.map(([key, value]) => [key, value]))
 }
 
-const createNode = (token: MarkdownItToken, overrides?: Partial<TrMarkdownRenderNode>): TrMarkdownRenderNode => {
+const createInlineNode = (token: MarkdownItToken, overrides?: Partial<TrMarkdownRenderNode>): TrMarkdownRenderNode => {
   return {
     type: overrides?.type || token.type,
     tag: overrides?.tag || token.tag || undefined,
     text: overrides?.text ?? undefined,
     attrs: overrides?.attrs || normalizeAttrs(token),
     children: overrides?.children,
+  }
+}
+
+const createLineStartOffsets = (source: string) => {
+  const offsets = [0]
+
+  for (let index = 0; index < source.length; index += 1) {
+    if (source[index] === '\n') {
+      offsets.push(index + 1)
+    }
+  }
+
+  return offsets
+}
+
+const resolvePosition = (token: MarkdownItToken, source: string, lineStartOffsets: number[]) => {
+  if (!token.map || token.map.length !== 2) {
+    return
+  }
+
+  const [lineStart, lineEnd] = token.map
+  const charStart = lineStartOffsets[lineStart] ?? source.length
+  const charEnd = lineEnd < lineStartOffsets.length ? lineStartOffsets[lineEnd] : source.length
+
+  return {
+    lineStart,
+    lineEnd,
+    charStart,
+    charEnd,
+  }
+}
+
+const createNode = (
+  token: MarkdownItToken,
+  source: string,
+  lineStartOffsets: number[],
+  overrides?: Partial<TrMarkdownRenderNode>,
+): TrMarkdownRenderNode => {
+  return {
+    type: overrides?.type || token.type,
+    tag: overrides?.tag || token.tag || undefined,
+    text: overrides?.text ?? undefined,
+    attrs: overrides?.attrs || normalizeAttrs(token),
+    children: overrides?.children,
+    position: overrides?.position || resolvePosition(token, source, lineStartOffsets),
   }
 }
 
@@ -161,7 +207,7 @@ const parseInlineChildren = (tokens: MarkdownItToken[]): TrMarkdownRenderNode[] 
 
     if (token.type === 'image') {
       pushNode(
-        createNode(token, {
+        createInlineNode(token, {
           type: 'image',
           tag: 'img',
           attrs: {
@@ -176,7 +222,7 @@ const parseInlineChildren = (tokens: MarkdownItToken[]): TrMarkdownRenderNode[] 
     if (token.type.endsWith('_open')) {
       const normalizedType = inlineTokenTypeMap[token.type]
       const nodeType = normalizedType ? normalizedType.replace(/-open$/, '') : token.type
-      const node = createNode(token, { type: nodeType, children: [] })
+      const node = createInlineNode(token, { type: nodeType, children: [] })
       pushNode(node)
       stack.push(node)
       continue
@@ -215,9 +261,10 @@ const normalizeTaskListChildren = (children: TrMarkdownRenderNode[]): { checked:
   return { checked }
 }
 
-const parseTokens = (tokens: MarkdownItToken[]): TrMarkdownRenderNode[] => {
+const parseTokens = (tokens: MarkdownItToken[], source: string): TrMarkdownRenderNode[] => {
   const result: TrMarkdownRenderNode[] = []
   const stack: Array<TrMarkdownRenderNode> = []
+  const lineStartOffsets = createLineStartOffsets(source)
 
   const pushNode = (node: TrMarkdownRenderNode) => {
     const parent = stack.at(-1)
@@ -267,7 +314,7 @@ const parseTokens = (tokens: MarkdownItToken[]): TrMarkdownRenderNode[] => {
 
     if (token.type === 'fence' || token.type === 'code_block') {
       pushNode(
-        createNode(token, {
+        createNode(token, source, lineStartOffsets, {
           type: 'code-block',
           tag: 'pre',
           text: token.content,
@@ -290,7 +337,7 @@ const parseTokens = (tokens: MarkdownItToken[]): TrMarkdownRenderNode[] => {
     }
 
     if (token.type.endsWith('_open')) {
-      const node = createNode(token, { children: [] })
+      const node = createNode(token, source, lineStartOffsets, { children: [] })
       pushNode(node)
       stack.push(node)
       continue
@@ -314,6 +361,6 @@ export const markdownItAdapter: TrMarkdownParserAdapter = {
       breaks: options?.breaks,
     })
 
-    return parseTokens(parser.parse(source, {}) as MarkdownItToken[])
+    return parseTokens(parser.parse(source, {}) as MarkdownItToken[], source)
   },
 }

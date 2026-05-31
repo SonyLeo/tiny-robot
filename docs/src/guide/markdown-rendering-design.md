@@ -29,13 +29,18 @@ outline: deep
 - 独立组件使用
 - 作为 `Bubble` 的 Markdown 内容渲染内核
 
-## 当前实现快照（2026-05-30）
+## 当前实现快照（2026-05-31）
 
 当前实现已经从“方案草图”进入到“可运行的第一版基座”：
 
 - `TrMarkdown`、parser adapter、render 层、节点组件和 code 子系统都已在 `packages/components/src/markdown` 内落地
 - `BubbleRenderers.Markdown` 已经改为消费 `TrMarkdown`
 - `markdown-demo` 已切成 docs preview 风格双栏结构，并通过 `TrThemeProvider` 统一 light / dark
+- `markdown-demo` 当前已拆成两层：
+  - `Public parity`：公开对标层，按 LobeUI section 心智组织
+  - `Internal regression`：内部回归层，保留 article / Bubble 集成等实现验收 case
+- 公开 demo 当前 section 已收敛为：
+  - `Basic / Media / Lists / Code / Variants / Streamdown / Custom / APIs`
 - 基础排版当前已覆盖：
   - `headings`
   - `paragraph`
@@ -56,10 +61,41 @@ outline: deep
   - 不额外引入 `markdown-it-task-lists`
   - 继续沿用现有 parser IR，在 list item 首段识别 `[ ] / [x]`
   - 渲染层输出受控 checkbox，并复用现有 list / bubble 样式体系
+- Bubble 集成当前已完成的边界：
+  - string content 可通过 `fallbackContentRenderer={BubbleRenderers.Markdown}` 接入
+  - `{ type: 'markdown', text }` 可通过 provider-level `contentRendererMatches` 显式启用
+  - provider `contentAttributes` / renderer attributes 已可继续透传 `style / code / link / parserOptions / features`
+  - 默认不把 markdown content type 放进 Bubble 内建匹配，避免未启用 markdown 的 Bubble 主路径承担额外运行时代价
+- `M4` 第一阶段的 streaming 分支也已落地：
+  - `TrMarkdown` 已补 `streaming` 配置入口
+  - 静态 parser 只消费 `stableContent`
+  - `StreamTail` 单独承接 tail / cursor 语义
+  - 首批 incomplete hold 已覆盖 `link / code fence / table`
+- `M4` 第二阶段当前补充完成的项：
+  - `incomplete image` 已进入同一套 hold / tail 链路
+  - `markdown-demo` 已补 `large append / paragraph burst` 两个 `LobeUI` 对标 repro case
+  - 对照本地 `LobeUI` 源码后，已确认 `queue / scheduler` 对应的是字符动画编排，而非 parser 级 token diff
+- `M4.5` P0 已完成可验证闭环，整体仍保留后续专项 Spike 空间：
+  - 继续沿现有 `TrMarkdown` 第一方 streaming 分支推进
+  - 不替换主线 markdown renderer
+  - 直接复用现有 `@vueuse/core` 与 `unicode-segmenter`
+  - 仅把 `fast-array-diff` 保留为可选小依赖备选
+  - 已补 `streaming.mode/preset`、block `position`、stable top-level key、`useStreamBlockDiff`、`useStreamRevealQueue`、`useStreamTextAnimation`、`StreamAnimatedText`
+  - `TrMarkdown` root 已补 `stream state / scheduler phase / queueLength / blockCount / activeIndex / animatingIndex / streamingIndex / charDelay / fadeDuration / settleHoldMs / activeBlockCount / revealedCount / pendingCount / rewriteCount / resetCount / parseCount` telemetry
+  - 已补第一方 stream profiler 事件模型，当前覆盖 `input / parse / block-diff / queue-transition / animation-frame / token-schedule / root-commit / block-commit`
+  - 已补 token scheduler，当前把 token patch 结果收敛为 `idle / append / patch / reset` 调度动作与 preserved / inserted / deleted / replaced 计数
+  - profiler 面板已补 `timeline / FPS / frame duration / root commit cost / block commit cost` 观察面
+  - `markdown-demo` 已补 `animated streaming repro`、`rewrite/reset` fixture、预览侧/控制侧 telemetry，以及 finalized 后再 loop 的自动回放
+  - `markdown-demo` 的 animated repro 已继续覆盖 `fast chunks / high TPS burst / settling append`
+  - `packages/test` 已补 `large append / paragraph burst / fast chunks / high TPS / heading + list / quote + paragraph / settling append / rewrite-reset / skip matrix / profiler / token scheduler / finalized cleanup` 回归
+  - `useStreamTextAnimation` 已补 backlog cap，避免 stream 速度快于 fade 时积压出长时间不可见尾队列
+  - `useStreamRevealQueue` 已显式区分 `animatingIndex / streamingIndex`，并对 `streaming.active = false -> settling -> finalized`、`append during settling` 做正式收口
 - 当前仍明确不在默认主路径中的能力：
   - footnotes / alerts
   - math / mermaid / html preview
-  - 流式 markdown
+  - parser 级 token diff
+  - 跨 block 或 parser 级 token diff
+  - React Profiler 等价的底层 commit 事件流和 DevTools 级 profiler 可视化
 
 ## 命名规则
 
@@ -126,6 +162,58 @@ outline: deep
 2. **不直接把编辑器产品当作运行时渲染内核**
 3. **静态渲染与流式渲染允许使用不同底层**
 4. **优先选可组合、可替换、边界清晰的库**
+
+### `M4.5` 基础库决策（2026-05-30）
+
+围绕 `streaming animation` 这一轮，当前不再继续评估“整套 markdown renderer 替换主线”，而是把目标收缩为：
+
+- 在现有 `TrMarkdown` streaming 分支上补 reveal queue、text-only animation 和 reset 策略
+- 优先复用小型基础库，而不是引入新的大框架
+
+当前已经冻结的基础库决策如下：
+
+#### 直接复用
+
+- `@vueuse/core/useRafFn`
+  - 当前组件包已存在依赖
+  - 适合作为 streaming 动画的主循环调度入口
+  - 比额外引入通用动画框架更贴合当前需求
+- `unicode-segmenter`
+  - 当前组件包已存在依赖
+  - 适合做字符级动画时的 grapheme 切分
+  - 避免 emoji、合字、变音符被错误拆成多个动画单元
+
+#### 小依赖备选
+
+- `fast-array-diff`
+  - 只解决 top-level block array 的 diff / patch
+  - 体量小、职责单一
+  - 若后续手写 block patch 复杂度明显升高，再作为可选依赖引入
+
+#### 延后 Spike
+
+- `framesync`
+  - 若后续需要更细粒度的读写分帧，再单独评估
+  - 当前阶段先用 `useRafFn` 足够
+- `@sanity/diff-match-patch`
+  - 更适合处理 rewrite / reset 较多的文本改写场景
+  - 当前阶段仍以 append-first 的 streaming 体验为主
+- `micromark` / `mdast-util-from-markdown`
+  - 值得尊重，适合未来 parser 基座升级 Spike
+  - 但不属于这轮“少造轮子”的最小加速件
+
+#### 当前不采用
+
+- `motion` / `motion-v` / `@vueuse/motion`
+  - 更偏通用 UI 动画框架
+  - 对 markdown streaming 来说过重
+- `Splitting.js`
+  - 更适合静态 DOM 后处理文本动效
+  - 不适合 Vue 渲染树驱动的 streaming markdown
+- `marked`
+  - 虽然适合做 block lexer 参考
+  - 但当前主链路已经是 `markdown-it -> IR -> render`
+  - 这轮不再引入第二套 parser 以避免语义漂移
 
 ## 性能与体积约束
 
@@ -1501,12 +1589,15 @@ const defaultCodeConfig: TrMarkdownCodeConfig = {
 - `pnpm -F @opentiny/tiny-robot build`
 - `pnpm -F @opentiny/tiny-robot-markdown-demo type-check`
 - `pnpm -F @opentiny/tiny-robot-markdown-demo build`
+- `pnpm -F tiny-robot-test build`
 - `pnpm -F tiny-robot-test test -- src/markdown/index.spec.ts`
 - demo 浅色 / 暗色模式页面截图核对
-- `packages/components` 构建结果：`514 modules transformed`
-- `packages/components/dist/markdown/index.js`：`35.98 kB / gzip 8.73 kB`
-- `packages/markdown-demo` 构建结果：`267 modules transformed`
+- `packages/components` 构建结果：`527 modules transformed`
+- `packages/components/dist/markdown/index.js`：`54.47 kB / gzip 13.90 kB`
+- `packages/markdown-demo` 构建结果：`365 modules transformed`
 - `packages/markdown-demo` 构建日志已不再出现 large chunk warning
+- `packages/test` 构建结果：`3224 modules transformed`
+- `packages/test` 仍存在 `950.27 kB` 主入口 chunk warning，该 warning 属于 E2E harness 打包整套测试页与组件库 `dist`，不是 `TrMarkdown` 对外生产主路径
 
 当前残余风险：
 
@@ -1584,7 +1675,6 @@ interface TrMarkdownCodeHighlightResult {
 
 - code fence 未闭合
 - link 未闭合
-- image 未闭合
 - table 未闭合
 - 流式尾巴
 - 大段闪烁与整段重排
@@ -1594,6 +1684,7 @@ interface TrMarkdownCodeHighlightResult {
 - `useMarkdownStreamState`
 - `useMarkdownSmoother`
 - `useIncompleteMarkdown`
+- `StreamTail`
 
 ### 推荐策略
 
@@ -1603,6 +1694,552 @@ interface TrMarkdownCodeHighlightResult {
 - incomplete token 的保守展示
 - 在 bubble 场景下稳定可读
 
+当前已落地的实现细节：
+
+- `TrMarkdown` 在 streaming 打开时会先计算 `stableContent` 和 `tailContent`
+- 静态 parser 只吃 `stableContent`，避免 tail 变化时默认重跑前序 block
+- `StreamTail` 负责：
+  - text/link 的 pending tail
+  - image/code/table 的原始 tail 容器
+  - cursor 语义
+- 第二阶段补完后的当前结论：
+  - `incomplete image` 已进入同一条 hold / tail 分支
+  - `LobeUI` 的 `useStreamQueue` 依赖 `rehypeStreamAnimated` 的字符级 DOM 包装，属于动画编排层
+  - 当前 TinyRobot 第一方 streaming 路线暂不引入外部 queue / scheduler
+  - `token-level rewrite patch` 与 token scheduler 已进入 `M4.5` P0：同 block rewrite 会尽量复用未变 grapheme 的 birth timeline
+  - stream profiler 已进入 `M4.5` P0：当前先以 root dataset 和 demo telemetry panel 暴露事件快照
+  - LobeUI root commit / block commit 级 profiler 面板继续保留为后续深度对标项
+
+### `M4.5`：Streaming Animation 设计
+
+当前对标 `LobeUI` 的下一步，不是重写 parser，而是在现有 `M4` 基础上新增一层 animation orchestration。
+
+这一层的目标是：
+
+- 保持当前 `stableContent + tailContent + incomplete hold` 不变
+- 为“已稳定进入 parser 的顶层文本 block”补顺序 reveal 和字符级淡入
+- 跳过 code / table / image 这类重节点，避免为追求动画效果破坏当前稳定边界
+
+### 目标
+
+- 对标 `LobeUI` 的 streaming 动画观感，但继续保持 TinyRobot 第一方架构
+- 只对文本类 block 做 reveal / fade
+- 让大段追加、分段突发、token rewrite patch 和结构 hard reset 四类场景都可控
+- 不为这轮目标引入新的整套 renderer 或大体积动画框架
+
+### 非目标
+
+- 不做 parser 级 token diff
+- 不做 code block 内部逐字符动画
+- 不做 mermaid / katex / html preview 的 streaming 动画
+- 不把所有动画调参项一次性暴露成 public API
+
+### 实施前问题清单与当前剩余 gap
+
+在再次对标 `LobeUI` 本地 streaming 源码后，`M4.5` 启动前曾确认下面几处关键缺口。
+
+截至 `2026-05-31`，其中：
+
+- `block identity`
+- 动画生命周期契约
+- rewrite / reset 正式策略
+- skip matrix
+- 可观测性约束
+
+都已经完成第一轮正式收口；当前真正剩余的 gap，主要收缩为：
+
+- profiler 事件语义与 root / block commit 命名对齐
+- 更强的 profiler 可视化面板、frame duration / commit cost / FPS 性能采样
+- token patch 回归补齐同块 rewrite / 插删改 / hard reset / finalized cleanup
+
+### `M4.5` P0 收口范围
+
+当前 `M4.5` 剩余项不再扩大成新的 parser 工程，而收敛为一个 P0 闭环：
+
+1. **事件语义**
+   - 统一 root / block 级事件命名
+   - 统一 timeline label 与 root dataset 字段
+   - 保持 Vue 近似 commit 事件，而不是承诺 React Profiler 等价实现
+2. **timeline 面板**
+   - 按 input / parse / diff / queue / frame / token 分组展示
+   - 补 FPS、frame duration、commit / cycle cost 的聚合指标
+   - 保持 demo-only / dev-only 定位，不进入默认用户界面
+3. **token patch 回归**
+   - 同 block rewrite 继续复用未变 grapheme birth
+   - 覆盖中间插入、中间删除、中间替换、emoji / CJK、inline markup 内文本改写
+   - block 数量、block type 或 tag 变化继续 hard reset
+4. **文档边界**
+   - 明确当前只做同 block token patch
+   - 跨 block token reorder、parser 级 AST diff、code/table/image 内部 patch 全部进入后续 Spike
+
+### 跨 block / parser 级 token diff 的边界
+
+这部分不进入当前 `M4.5` 默认主线，原因是它会改变 `TrMarkdown` 当前稳定的分层边界：
+
+- 需要更强的 source map 或 AST position 信息
+- 需要在 parser 层保留 token identity，而不仅是 render node identity
+- 需要处理 block split / merge / reorder，而不仅是同 block 内文本改写
+- 需要重新定义 code / table / image / future mermaid / math 的 skip 或 patch 策略
+
+因此它只作为后续 Spike 方案保留，目标是回答“是否值得从同 block token patch 升级到 parser-aware diff”，而不是作为当前 animated streaming 的完成门槛。
+
+#### 1. 缺少稳定 block identity 契约
+
+`LobeUI` 的 queue 之所以稳定，是因为它拿到的是：
+
+- block `raw`
+- block `startOffset`
+
+而当前 TinyRobot 的 `TrMarkdownRenderNode` 只有结构，没有天然的：
+
+- block id
+- source range
+- stable key
+
+如果不先补这个契约：
+
+- reveal queue 会很容易把“同一个 block 的续写”误判为“新 block”
+- reset / rewrite 很难准确识别
+- top-level `v-for` 若继续用 index key，会放大 remount 和动画重启问题
+
+#### 2. 缺少动画生命周期契约
+
+当前方案虽然写了 `mode: 'animated'`，但还没有明确：
+
+- 什么时候开始 reveal queue
+- 什么时候停止追加 birth
+- 什么时候把 settled block 回落为普通文本 DOM
+- `streaming.active = false` 后是立即 flush，还是有 settle 窗口
+
+这会导致实现时容易出现：
+
+- 流结束后仍残留大量 `.stream-char`
+- 旧队列没有真正结束，新 chunk 又开始新的动画
+
+#### 3. 缺少 rewrite / reset 的正式策略
+
+`LobeUI` 的主假设基本是 append-first，并通过 block `startOffset` 复用 birth timeline。
+
+TinyRobot 当前已经把 rewrite 拆成两层：
+
+- 同一 block、同一 revision、同时具备公共前缀与公共后缀：进入 token rewrite patch，复用未变 grapheme 的 birth timeline
+- block 数量、block 类型或 tag 变化：进入 hard reset，递增 `resetRevision` 并重建 queue / birth timeline
+- root telemetry 通过 `updateKind / hardReset / rewriteCount / resetCount` 区分这两类行为
+
+#### 4. 缺少更明确的 skip matrix
+
+当前只写了“code / table / image 跳过字符动画”，但没有把下面这些场景写成正式矩阵：
+
+- `inline code`
+- `task checkbox`
+- `html preview`
+- `mermaid`
+- `math`
+- 原始 HTML
+- 后续可能补入的 alert / footnotes
+
+这会导致后续实现时不断把规则散落进节点组件。
+
+#### 5. 缺少 benchmark scene 的优先级定义
+
+`LobeUI` 的 streaming 动画核心对标场景，本质上是 `chat` variant。
+
+当前方案虽然要求 `default / article / bubble` 都回归，但没有明确：
+
+- 主 benchmark 场景是谁
+- 哪条路径的观感必须最先对齐 `LobeUI`
+
+如果不先定，容易把资源平均分散到不关键场景。
+
+#### 6. 缺少可观测性约束
+
+`LobeUI` 不只是做了动画，还专门有：
+
+- `streamingAnimationRepro`
+- `StreamingPlayground`
+- profiler / skipped char 统计
+
+当前 TinyRobot 方案虽然已有 fixture 和 demo，但对 `M4.5` 还缺：
+
+- skipped / animated / settled 的观察入口
+- parse count 之外的 queue / span 数量观测
+- reset / rewrite 的专用 demo
+
+### `M4.5` 的正式前提
+
+基于上面的缺口，当前 `M4.5` 必须先把下面这些前提写成正式契约，再进入实现：
+
+1. 顶层 block 必须有稳定 identity
+2. top-level render key 不能继续只依赖 index
+3. append、rewrite、finalize 三种生命周期必须分开
+4. 文本类节点和重节点的 skip matrix 必须写清
+5. bubble/chat variant 是第一优先 benchmark
+
+### 分层模型
+
+建议把 `M4.5` 收敛为下面四层：
+
+#### `Layer 0`：输入稳定层
+
+继续复用当前：
+
+- `stream/useMarkdownStreamState.ts`
+- `stream/useMarkdownSmoother.ts`
+- `stream/useIncompleteMarkdown.ts`
+- `components/stream/StreamTail.vue`
+
+职责：
+
+- 维护 `stableContent / tailContent`
+- 处理 incomplete hold
+- 保证 parser 只消费稳定头部
+
+这层是当前 `M4` 已完成的正式基线，不在 `M4.5` 中重写。
+
+#### `Layer 1`：block diff 层
+
+新增建议：
+
+- `stream/useStreamBlockDiff.ts`
+
+职责：
+
+- 基于每次 parse 后得到的顶层 `TrMarkdownRenderNode[]` 做 block 级 diff
+- 识别：
+  - 已稳定 block
+  - 新增 block
+  - 被改写 block
+  - reset / restart
+
+这里的 diff 对象不是原始 markdown 字符串，而是“已经进入稳定头部的顶层渲染节点数组”。
+
+### block identity 契约
+
+为了让 `Layer 1` 真正可实现，当前建议在 `TrMarkdown` 内部新增一层 stream-only block model，而不是直接拿“裸 `TrMarkdownRenderNode[]`”做不带 identity 的比较。
+
+推荐草图：
+
+```ts
+interface TrMarkdownStreamBlock {
+  id: string
+  kind: 'paragraph' | 'heading' | 'list-item' | 'blockquote' | 'code' | 'table' | 'other'
+  signature: string
+  rawText: string
+  node: TrMarkdownRenderNode
+}
+```
+
+其中：
+
+- `id`
+  - 第一优先使用 parser 产生的稳定位置信息
+  - 若当前 parser 没有位置信息，则至少要构造可复现的 block key
+- `signature`
+  - 用于判断 block 是否被续写 / 改写
+- `rawText`
+  - 仅对文本类 block 用于字符动画切分
+
+### top-level key 契约
+
+当前 top-level render 若继续使用：
+
+```ts
+${node.type}-${node.tag}-${index}
+```
+
+会在 block 插入、队列 reveal、rewrite 时频繁 remount。
+
+因此 `M4.5` 的正式约束应该是：
+
+- 静态路径可以继续容忍 index key
+- animated streaming 路径必须切换到 block identity key
+
+否则：
+
+- queue state 难以稳定
+- settled block 也会因为 key 漂移被迫重建
+
+#### `Layer 2`：reveal queue 层
+
+新增建议：
+
+- `stream/useStreamRevealQueue.ts`
+
+职责：
+
+- 参考 `LobeUI useStreamQueue` 的思路
+- 给 block 打上：
+  - `revealed`
+  - `animating`
+  - `queued`
+- 让大段新增 block 按顺序进入，而不是一次性全部落地
+
+这层只负责 block 级时序，不直接持有字符 span。
+
+#### `Layer 3`：text animation 层
+
+新增建议：
+
+- `stream/useStreamTextAnimation.ts`
+- `components/stream/StreamAnimatedText.vue`
+
+职责：
+
+- 只处理当前活动文本 block 的字符切分、birth time 和 fade 状态
+- settled 后回落为普通文本 DOM
+- 通过 `unicode-segmenter` 或 `Intl.Segmenter` 做 grapheme 切分
+
+### 生命周期契约
+
+当前建议把 `M4.5` 的生命周期明确拆成四类：
+
+#### `idle`
+
+- 未启用 streaming
+- 或 `streaming.mode !== 'animated'`
+- 直接走当前 `M4 basic` 路径
+
+#### `streaming`
+
+- `streaming.enabled = true`
+- `streaming.active = true`
+- append-first 的 chunk 继续进入 queue 与 birth time 分配
+
+#### `settling`
+
+- `streaming.active = false`
+- 当前会停止继续追加新的 birth timeline，并让已有 reveal queue 进入可见 settle
+- queue 若已清空，也会保留一个短暂 finalize hold，再进入最终回落
+- 该状态会通过 root telemetry 暴露出来，便于 demo / test 观测
+
+#### `finalized`
+
+- queue 已空
+- tail 已空
+- settled 文本 block 回落为普通文本 DOM
+- `.stream-char` 已清空，不长期残留字符 span
+- 当前消息重新回到稳定静态态
+
+### rewrite / reset 契约
+
+当前建议把内容更新先按两类分流：
+
+#### append update
+
+- 新内容以前一版 `stableContent` / rendered head 为前缀
+- 继续沿用当前 queue / animation timeline
+
+#### rewrite update
+
+- 新内容不是前缀追加
+- 先进入 token patch 判定
+
+rewrite update 的当前正式策略是：
+
+- 若仍是同一个 block，并且同一 revision 中同时具备公共前缀与公共后缀，则按 grapheme 生成 `equal / insert / delete / replace` patch segment
+- `equal` segment 复用旧 birth timeline
+- `insert / replace` segment 分配新的 birth timeline
+- `delete` segment 不进入下一帧渲染
+- 若 block 数量、block type 或 tag 发生变化，则进入 hard reset，递增 `resetRevision`
+
+当前仍不建议在 `M4.5` 第一轮里继续扩大到：
+
+- parser 级 AST diff
+- 跨 block token reorder patch
+- code/table/image 内部逐字符 patch
+- 把 patch 细节暴露成 public API
+
+### 节点覆盖范围
+
+当前建议的动画覆盖范围如下：
+
+#### 进入动画路径
+
+- `paragraph`
+- `heading`
+- `listItem`
+- `blockquote`
+
+#### 保持跳过
+
+- `code block`
+- `inline code`
+- `table`
+- `image`
+- `hr`
+- 原始 HTML / preview 类节点
+
+### skip matrix
+
+为了避免规则在实现时散落，当前建议把 `M4.5` 的节点处理矩阵固定为：
+
+| 节点 | 是否进入字符动画 | 当前策略 |
+| --- | --- | --- |
+| `paragraph` | 是 | 进入 queue + grapheme fade |
+| `heading` | 是 | 进入 queue + grapheme fade |
+| `listItem` | 是 | 仅文本内容进入，checkbox 本身跳过 |
+| `blockquote` | 是 | 进入 queue + grapheme fade |
+| `strong/em/link` | 间接是 | 仅其内部 text leaf 被拆分 |
+| `inline code` | 否 | 保持稳定 leaf |
+| `task-checkbox` | 否 | 永远稳定，不参与动画 |
+| `code block` | 否 | 继续走当前 `M4` 与 code 子系统 |
+| `table` | 否 | 保持整体稳定边界 |
+| `image` | 否 | 保持整体稳定边界 |
+| `raw html / preview` | 否 | 继续跳过 |
+| `mermaid / math / alert` | 否 | 作为后续阶段保留 |
+
+### 文本动画作用范围
+
+这里还需要明确一个实现细节：
+
+- 不是“整个 block 全部 children 都统一包装成 span”
+- 而是“只对 eligible block 的 text leaf 做 grapheme split”
+
+这点和 `LobeUI` 的 `rehypeStreamAnimated` 心智是一致的，只是我们会用 Vue render tree 的方式去做。
+
+原因很明确：
+
+- 文本类 block 更适合做淡入
+- 重节点已经在当前 `M4` 中有稳定 hold / fallback 路径
+- 不应该为了动画把 code / table 重新切碎
+
+### 建议模块结构
+
+建议在现有 `stream/` 和 `components/stream/` 下新增：
+
+- `stream/useStreamBlockDiff.ts`
+- `stream/useStreamRevealQueue.ts`
+- `stream/useStreamTextAnimation.ts`
+- `stream/streamingAnimation.type.ts`
+- `components/stream/StreamAnimatedText.vue`
+
+同时建议在 `NodeRenderer` 与文本类节点组件之间新增一层 animation meta 透传，而不是直接在所有节点组件里散写动画判断。
+
+### API 增量建议
+
+当前已实现的 `streaming` 配置建议继续保留，并为 `M4.5` 预留两项最小公开扩展：
+
+```ts
+streaming?: boolean | {
+  enabled?: boolean
+  active?: boolean
+  showTail?: boolean
+  showCursor?: boolean
+  smoothingChars?: number
+  mode?: 'basic' | 'animated'
+  preset?: 'balanced' | 'realtime' | 'silky'
+  profile?: boolean | {
+    enabled?: boolean
+    label?: string
+    maxEvents?: number
+  }
+}
+```
+
+其中：
+
+- `mode`
+  - `basic`：沿用当前 `M4` 实现
+  - `animated`：启用 `M4.5` reveal queue + text animation
+- `preset`
+  - 用于统一调节动画节奏和 flush 策略
+  - 先对齐 `LobeUI` 的 preset 心智，不直接暴露更细碎的内部参数
+- `profile`
+  - demo / test 可打开 profiler dataset 与 timeline
+  - 当前定位是可观测性门禁，不作为默认主路径能力
+
+更细的参数，例如：
+
+- `charsPerFrame`
+- `queueAcceleration`
+- `settleDelayMs`
+
+当前仍建议留在内部实现，不直接公开。
+
+### preset 语义
+
+当前建议让 `preset` 至少控制下面这些内部节奏参数：
+
+- active input window
+- settle window
+- reveal cadence
+- backlog flush 强度
+
+建议心智保持与 `LobeUI` 一致：
+
+- `realtime`
+  - 更偏实时跟手
+- `balanced`
+  - 默认平衡
+- `silky`
+  - 更偏平滑展示
+
+但这些参数的具体数值当前仍建议留在内部常量，不作为 public contract。
+
+### 实现顺序
+
+建议按下面顺序推进，不要反过来：
+
+1. 先补 `block diff`
+2. 再补 `reveal queue`
+3. 再接 `text-only` 字符动画
+4. 最后把 demo / test / profiler case 补齐
+
+原因：
+
+- 没有 block 稳定边界，字符动画会很容易退化成整段重渲染
+- 没有 queue，`large append` 和 `paragraph burst` 的观感仍会一下子冲出来
+
+### 验证门禁
+
+`M4.5` 的实现门禁建议固定为下面四类：
+
+#### 功能门禁
+
+- `large append` 具备顺序 reveal，而不是整块瞬间出现
+- `paragraph burst` 具备分段进入节奏
+- reset / rewrite 时能中止旧队列并重新对齐
+
+#### 结构门禁
+
+- parser 仍只在 `stableContent` 变化时重跑
+- settled 文本 block 不应永久保留大量 char span
+- code / table / image 继续走稳定跳过路径
+
+#### 体积门禁
+
+- 首选 0 新依赖
+- 若确需引入 `fast-array-diff`，必须在文档中说明收益
+- 不引入通用动画框架和第二 markdown parser
+
+#### 场景门禁
+
+- `bubble`
+- `default`
+- `article`
+
+三条路径都要回归，但优先级不相同：
+
+- `bubble`
+  - 第一优先 benchmark
+  - 需要直接对标 `LobeUI chat`
+- `default`
+  - 需要保证不退化
+- `article`
+  - 需要保证长文档排版与动画边界不冲突
+
+### 可观测性门禁
+
+当前建议为 `M4.5` 补一组 dev-only 或 demo-only 观测能力：
+
+- 当前 queue 长度
+- active / settled block 数量
+- 当前 live `.stream-char` 数量
+- reset / rewrite 次数
+- parse count
+
+不一定全部进入公共 API，但至少要在 demo / test 场景中可观察，否则很难判断是否真的对齐了 `LobeUI` 的体验边界。
+
 ## API 草图
 
 ### 顶层 props
@@ -1611,34 +2248,66 @@ interface TrMarkdownCodeHighlightResult {
 export interface TrMarkdownProps {
   content?: string
   variant?: 'default' | 'bubble' | 'article'
-  parser?: 'markdown-it' | 'unified' | TrMarkdownParserAdapter
-  parserOptions?: Record<string, unknown>
-  allowHtml?: boolean
-  sanitize?: boolean | {
-    enabled?: boolean
-    config?: Record<string, unknown>
-  }
+  parser?: TrMarkdownParserAdapter
+  parserOptions?: TrMarkdownParserOptions
   features?: {
-    gfm?: boolean
-    breaks?: boolean
-    math?: boolean
-    mermaid?: boolean
-    footnotes?: boolean
-    taskList?: boolean
+    html?: boolean
+    codeBlock?: boolean
+    codeHighlight?: boolean
   }
-  components?: Partial<TrMarkdownComponentMap>
+  code?: {
+    copyable?: boolean
+    showLanguage?: boolean
+    inlineColorPreview?: boolean
+    blockMode?: 'overlay' | 'full'
+    defaultExpand?: boolean
+    highlight?: {
+      enabled?: boolean
+      engine?: 'highlightjs' | 'shiki'
+      enableTransformer?: boolean
+    }
+  }
   link?: {
     target?: '_self' | '_blank'
     rel?: string
   }
-  streaming?: false | {
-    hasNextChunk?: boolean
-    mode?: 'realtime' | 'smooth'
-    tail?: boolean | { content?: string }
-    incomplete?: 'hold' | 'placeholder' | 'safe-flush'
+  streaming?: boolean | {
+    enabled?: boolean
+    active?: boolean
+    showTail?: boolean
+    showCursor?: boolean
+    smoothingChars?: number
+    mode?: 'basic' | 'animated'
+    preset?: 'balanced' | 'realtime' | 'silky'
   }
+  components?: Partial<TrMarkdownComponentMap>
 }
 ```
+
+当前 `streaming` 配置的设计含义：
+
+- `enabled`
+  - 是否启用流式分支
+- `active`
+  - 当前消息是否仍处于 streaming 中
+- `showTail`
+  - 是否单独显示 pending tail
+- `showCursor`
+  - 是否在 tail 末尾显示 cursor
+- `smoothingChars`
+  - text tail smoothing 的窗口大小
+- `mode`
+  - `basic`：当前 `M4` 的 stable head + tail 分支
+  - `animated`：当前 `M4.5` 的 reveal queue + text-only animation
+- `preset`
+  - 统一承接 smoothing / flush / reveal 的节奏预设
+  - 用于避免把内部调度参数直接暴露给外部
+
+后续若进入更强的 streaming 动画阶段再考虑扩展：
+
+- React Profiler 等价的底层 commit 事件流和更精细采样
+- profiler 面板的 DevTools 级可视化布局
+- 跨 block 或 parser 级 token diff
 
 ### 公开导出建议
 
@@ -1664,7 +2333,7 @@ export interface TrMarkdownProps {
 { type: 'markdown', text: string }
 ```
 
-对应默认匹配规则：
+对应推荐接入方式：
 
 ```ts
 {
@@ -1673,6 +2342,14 @@ export interface TrMarkdownProps {
   priority: BubbleRendererMatchPriority.CONTENT
 }
 ```
+
+这里的关键不是“默认内建 markdown 匹配”，而是“显式 opt-in 的 markdown 内容类型分流”。
+
+原因：
+
+- 让 `text` 和 `markdown` 的语义边界更明确
+- 支持一条消息里同时出现 markdown item 和 plain text item
+- 避免普通 Bubble 主路径因为默认匹配而承担 markdown 运行时代码
 
 ### 配置传递建议
 
@@ -1685,6 +2362,18 @@ export interface TrMarkdownProps {
 - `BubbleRenderers.Markdown` 显式 props
 
 来给 `TrMarkdown` 透传配置。
+
+当前实现边界可以总结为：
+
+- `BubbleRenderers.Markdown` 默认以 `bubble` variant 为主
+- string fallback 路径和显式 markdown content type 路径都可以透传 `TrMarkdown` props
+- 更适合透传的内容包括：
+  - `style`
+  - `code`
+  - `link`
+  - `parserOptions`
+  - `features`
+- 不建议继续依赖历史上的 `BubbleProvider.store.mdConfig` / `dompurifyConfig`
 
 ### 样式桥接建议
 
@@ -1748,6 +2437,12 @@ Bubble 场景应通过变量桥接，而不是复制完整样式：
 - 建立流式 markdown 分支
 - 处理不完整 token 和 smoothing
 
+### Phase 3.5
+
+- 建立 `M4.5` streaming animation 子阶段
+- 补 block diff / reveal queue / text-only animation
+- 固化 reset rewrite、large append、paragraph burst 的回归门禁
+
 ### Phase 4
 
 - Mermaid
@@ -1756,6 +2451,158 @@ Bubble 场景应通过变量桥接，而不是复制完整样式：
 - HTML Preview
 - 图片 Gallery
 - 自定义块节点
+
+## `M5`：高级能力实现方案草案
+
+`M5` 的目标不是一次性把所有高级能力塞进默认路径，而是在保持 `TrMarkdown` 基础路径轻量的前提下，逐步补齐 LobeUI 级别的高级节点。
+
+### 总体原则
+
+- 所有高级能力默认关闭
+- 所有重运行时都必须按需加载
+- 所有高级节点都必须走第一方 Vue 组件映射，不回退到整段 `v-html`
+- Bubble 普通主路径不自动承担 Mermaid / KaTeX / Preview / Gallery 成本
+- 每个能力都必须有 demo、fixture、test、体积记录
+
+### 统一配置草图
+
+```ts
+features?: {
+  mermaid?: boolean | TrMarkdownMermaidConfig
+  math?: boolean | TrMarkdownMathConfig
+  footnotes?: boolean
+  alerts?: boolean
+  htmlPreview?: boolean | TrMarkdownHtmlPreviewConfig
+  imageGallery?: boolean | TrMarkdownImageGalleryConfig
+}
+```
+
+### M5.0：阶段准备
+
+先冻结公共门禁与命名，而不是直接写 Mermaid：
+
+- `features` 配置结构
+- fixture 命名
+- demo section
+- 默认关闭策略
+- 动态 import 策略
+- 体积记录模板
+
+### M5.1：Mermaid block
+
+Mermaid 应作为 code 子系统的一个显式分流，而不是普通 code block 的隐式副作用。
+
+推荐链路：
+
+1. parser 识别 fenced code block 的 language 为 `mermaid`
+2. render 层判断 `features.mermaid`
+3. 未开启时仍按普通 code block 展示源码
+4. 开启后动态 import `mermaid`
+5. 渲染到 `MermaidBlock`
+6. `MermaidBlock` 自己处理 loading、error、retry、copy source、theme
+
+验收重点：
+
+- 默认不加载 `mermaid`
+- 暗色 / 亮色主题能映射
+- 错误图表不会打断整篇 Markdown
+- Bubble 普通路径不受影响
+
+### M5.2：KaTeX / LaTeX
+
+公式能力应先冻结语法范围，再选插件。
+
+推荐策略：
+
+- inline math 与 block math 分开
+- 继续沿当前 `markdown-it` adapter 扩展，优先评估 `markdown-it-katex` 或 `markdown-it-texmath`
+- 只在 `features.math` 开启时注册公式插件
+- 只在命中公式内容时加载 KaTeX 样式与运行时
+- render 层输出 `MathInline` / `MathBlock`
+
+验收重点：
+
+- 普通 `$` 文本不误判
+- 错误公式有 fallback
+- 默认路径不引入 KaTeX
+
+### M5.3：Footnotes
+
+Footnotes 相对轻，可以在 Mermaid / Math 的动态能力边界稳定后推进。
+
+推荐策略：
+
+- 使用 `markdown-it-footnote` 或等价轻量插件
+- 将 footnote ref / footnote list 映射为第一方节点
+- 样式统一走 `--tr-markdown-*` token
+- 注意锚点、返回链接和可访问性
+
+验收重点：
+
+- 单脚注、多脚注、脚注内 link / code 都正常
+- anchor id 稳定
+- 不破坏普通列表和链接样式
+
+### M5.4：GitHub Alert
+
+Alert 不一定需要重 parser 插件，优先在 blockquote render 阶段轻量识别。
+
+推荐策略：
+
+- 识别 `> [!NOTE]`、`TIP`、`IMPORTANT`、`WARNING`、`CAUTION`
+- 映射为 `AlertBlock`
+- 普通 blockquote 不被误判
+- 主题色、border、icon、spacing 全部走 token
+
+验收重点：
+
+- 五类 alert 样式明确
+- dark mode 对比度稳定
+- 普通 blockquote 仍保持原样
+
+### M5.5：HTML Preview / Image Gallery
+
+这两项属于交互增强，安全和默认路径门禁优先级高于效果。
+
+HTML Preview：
+
+- 只对 `html` fenced code 且 `features.htmlPreview` 开启时启用
+- 默认展示源码，preview 是显式能力
+- iframe 必须带 sandbox
+- 不默认执行任意脚本
+
+Image Gallery：
+
+- 普通 image 默认仍是轻量图片节点
+- `features.imageGallery` 开启后才接入预览层
+- 支持多图浏览、caption、alt、键盘关闭
+
+### M5.6：插件与扩展点
+
+插件与扩展点不建议先行抽象。至少完成两类高级节点后，再冻结 public API。
+
+候选公开边界：
+
+- `components`
+- `componentProps`
+- `parserOptions`
+- `renderOptions`
+- `features`
+
+仍保持 internal 的内容：
+
+- stream scheduler 内部状态
+- token patch segment
+- profiler 原始事件数组
+- 高级节点内部 lazy-loader
+
+### 推荐开工顺序
+
+1. 先确认 `M5.0 + M5.1 Mermaid` 是否作为下一轮正式实现范围
+2. Mermaid 完成后再进入 KaTeX / LaTeX
+3. Footnotes 可作为轻量穿插项
+4. Alert / Preview / Gallery 等节点体验放在第三批
+5. 插件 API 最后冻结，避免先抽象后返工
 
 ## 与其他文档的边界
 

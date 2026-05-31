@@ -59,18 +59,14 @@ Bubble 气泡组件用于展示消息气泡，支持流式文本、头像、位�
 
 ### 渲染 markdown
 
-Bubble 组件提供了 `markdown` 渲染器，可以渲染 markdown 内容。需要安装 `markdown-it` 和 `dompurify` 依赖
+Bubble 组件提供了 `markdown` 渲染器。当前 `BubbleRenderers.Markdown` 已经消费内置 `TrMarkdown`，不再要求业务侧额外安装 `markdown-it` / `dompurify`。
 
-> BubbleList 使用自定义渲染器，需要使用 BubbleProvider 包裹，BubbleProvider 的详细 Props 信息请参考 [Props](#props)。
+推荐接入方式分两条：
 
-```bash
-# npm
-npm install markdown-it dompurify
-# yarn
-yarn add markdown-it dompurify
-# pnpm
-pnpm add markdown-it dompurify
-```
+- string content：通过 `fallback-content-renderer="BubbleRenderers.Markdown"` 接入
+- `{ type: 'markdown', text }`：通过 provider-level `content-renderer-matches` 显式启用
+
+如果需要统一控制 bubble 内 markdown 的链接、代码块或排版参数，优先通过 `content-attributes` 向 `BubbleRenderers.Markdown` 透传 `style / code / link / parserOptions / features`。
 
 <demo vue="../../demos/bubble/markdown.vue" />
 

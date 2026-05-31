@@ -49,6 +49,12 @@ packages/components/src/markdown/
 
 如果后续需要测试项目承接，也可以在 `packages/test/src/markdown/` 下建立与之对应的 demo 和 spec。
 
+当前已正式落地的首批流式 fixture 基线位于：
+
+- `packages/components/src/markdown/fixtures/streaming.ts`
+
+原因是 `M4` 第一阶段需要的是“固定 step 的 chunk 场景”，TS 场景集比单个 `.md` 文件更适合同时驱动 demo controls 和 Playwright 断言。
+
 ## Fixture 分类
 
 ## A. 基础语法类
@@ -160,6 +166,8 @@ packages/components/src/markdown/
 - 对话气泡里常见 markdown
 - 紧凑排版
 - 图片、链接、引用、代码混排
+- fallback renderer 与显式 markdown content type 两条接入方式
+- provider attributes 对 bubble markdown 的配置透传
 
 用途：
 
@@ -169,7 +177,10 @@ packages/components/src/markdown/
 当前 demo / test 映射：
 
 - `Bubble variant`
+- `markdown-demo` 中的 `Bubble integration`
 - `packages/test/src/markdown/index.vue` 中的 `markdown-bubble`
+- `packages/test/src/markdown/index.vue` 中的 `markdown-bubble-fallback`
+- `packages/test/src/markdown/index.vue` 中的 `markdown-bubble-content-type`
 
 ## E. 流式场景类
 
@@ -185,6 +196,13 @@ packages/components/src/markdown/
 
 - `M4` 流式基础能力
 
+当前 demo / test 映射：
+
+- `markdown-demo` 中的 `Streaming markdown`
+- `packages/test/src/markdown/index.vue` 中的 `markdown-stream-smoothing`
+- `packages/test/src/markdown/index.vue` 中的 `markdown-stream-link`
+- `packages/test/src/markdown/index.vue` 中的 `markdown-stream-image`
+
 ### 8. `streaming-code.md`
 
 覆盖目标：
@@ -197,6 +215,40 @@ packages/components/src/markdown/
 用途：
 
 - `M4` 代码块流式回归
+
+当前 demo / test 映射：
+
+- `markdown-demo` 中的 `Streaming markdown`
+- `packages/test/src/markdown/index.vue` 中的 `markdown-stream-code`
+- `packages/test/src/markdown/index.vue` 中的 `markdown-stream-table`
+
+### 9. `streaming-repro.md`
+
+覆盖目标：
+
+- 对标 `LobeUI streamingAnimationRepro` 的 `large append`
+- 对标 `LobeUI streamingAnimationRepro` 的 `paragraph burst`
+- 对标 `LobeUI` 风格 queue handoff 的 `fast chunks / high TPS burst`
+- 对标 finalize 中断恢复的 `settling append`
+- 明确当前第一方 streaming 路线的 scheduler 契约是否已正式收口
+
+用途：
+
+- `M4.5` animated repro、scheduler 观测与 finalize / reset 回归
+
+当前 demo / test 映射：
+
+- `markdown-demo` 中的 `Streaming repro`
+- `packages/test/src/markdown/index.vue` 中的：
+  - `markdown-stream-animated-large-append`
+  - `markdown-stream-animated-paragraph-burst`
+  - `markdown-stream-animated-fast-chunks`
+  - `markdown-stream-animated-high-tps`
+  - `markdown-stream-animated-heading-list`
+  - `markdown-stream-animated-quote-paragraph`
+  - `markdown-stream-animated-settling-append`
+  - `markdown-stream-animated-rewrite-reset`
+  - `markdown-stream-animated-skip-matrix`
 
 ## 每个 Fixture 应记录的信息
 

@@ -256,6 +256,248 @@ outline: deep
 - `mermaid`
 - 公式能力后续再引
 
+## M4 当前开工基线（2026-05-30）
+
+在 `M0`、`M1`、`M2` 以及 Bubble markdown 集成收口后，`M4` 的重点不再是“换一个 markdown 组件”，而是先把 AI 流式输出中最容易感知的稳定性问题拆出来单独处理。
+
+### 这轮先做什么
+
+只做第一批最容易让用户感知到“闪一下 / 跳一下 / 整段重排”的问题：
+
+- 未闭合 code fence
+- 未闭合 link
+- 未闭合 table
+- 尾部 token 追加时的 block 稳定性
+
+### 这轮明确不做什么
+
+- 不补 `mermaid / math / alerts / footnotes`
+- 不把静态渲染主路径切换到另一套底层
+- 不在第一步就追求完整 token-level diff
+
+### 当前建议的最小执行顺序
+
+1. 固定两组流式 fixture：
+   - `streaming-basic.md`
+   - `streaming-code.md`
+2. 在 `packages/components/src/markdown/stream/` 下建立最小模块草图：
+   - `useMarkdownStreamState.ts`
+   - `useMarkdownSmoother.ts`
+   - `useIncompleteMarkdown.ts`
+3. 先基于现有 `TrMarkdown` 静态链路做“尾部稳定输出”实验
+4. 如果自建 smoothing 成本过高，再回到 `streamdown-vue` / `Comark` 做第二轮对照 Spike
+
+### 当前判断
+
+现阶段最稳妥的策略是：
+
+- 保持 `TrMarkdown` 静态路径不动
+- 把 streaming 当作单独分支
+- 先验证“增量稳定性”这件事本身
+
+这样做的好处是：
+
+- 不会把流式复杂度传播给所有 markdown 场景
+- 能更清楚地衡量 `streamdown-vue` / `Comark` 的真实收益
+- 可以先拿 TinyRobot 自己的 AI 输出场景做基准，再决定是否引入新依赖
+
+## M4 第一阶段实现结论（2026-05-30）
+
+在按上述基线推进后，当前可以确认：
+
+- 这轮 `M4` 没有引入新的默认依赖
+- 当前正式实现继续建立在现有 `TrMarkdown` 静态链路之上，而不是切换到底层新库
+- 第一阶段已经落地的模块为：
+  - `stream/useMarkdownStreamState.ts`
+  - `stream/useMarkdownSmoother.ts`
+  - `stream/useIncompleteMarkdown.ts`
+  - `components/stream/StreamTail.vue`
+- 当前策略已经验证有效的点：
+  - text tail smoothing
+  - incomplete link hold
+  - incomplete code fence hold
+  - incomplete table hold
+  - parser 仅在 `stableContent` 变化时重跑
+
+这说明当前最小第一方 streaming 分支已经足以完成 `M4` 第一阶段，不需要为了当前范围立即把 `streamdown-vue` 或 `Comark` 引入默认实现。
+
+后续若要再评估外部 streaming 底层，更适合等下面这些问题真正成为瓶颈后再做第二轮 Spike：
+
+- queue / scheduler
+- 更细粒度 token diff
+- 更复杂的 block merge / paragraph continuation
+
+## M4 第二阶段对照结论（2026-05-30）
+
+对照本地 `LobeUI` streaming 源码后，可以进一步确认：
+
+- `src/Markdown/SyntaxMarkdown/useSmoothStreamContent.ts`
+  - 解决的是 smoothing preset、输入压力和特定 fenced language bypass
+- `src/Markdown/SyntaxMarkdown/useStreamQueue.ts`
+  - 解决的是 block reveal / char fade 的动画调度
+  - 前提是 `rehypeStreamAnimated.ts` 已把文本拆成 `.stream-char`
+- `src/Markdown/SyntaxMarkdown/StreamdownRender.tsx`
+  - 采用的是“smoothed content -> block re-lex -> birth map / animation meta”这条链路
+  - 并不存在一层独立的 parser 级 token diff 系统
+
+这意味着对 TinyRobot 当前第一方 streaming 路线，更合理的第二阶段收口是：
+
+- 补 `incomplete image`
+- 补 `LobeUI streamingAnimationRepro` 对标 demo case
+- 保持 `queue / scheduler` 与 parser 级 token diff 继续留在后续 Spike，而不是强行塞进当前默认实现
+
+## M4.5 基础库与实现策略 Spike（2026-05-30）
+
+在这轮继续深度对标 `LobeUI` streaming 体验前，当前已经补做了一轮“基础库层”的缩窄验证。
+
+目标不是再找一套能整体替换 `TrMarkdown` 的大框架，而是确认：
+
+1. 有没有可以直接补到现有第一方实现里的小型基础库
+2. 哪些库值得复用，哪些库会导致重复造轮子变成“重复引入大轮子”
+
+### 当前已经冻结的结论
+
+#### 直接复用
+
+- `@vueuse/core/useRafFn`
+  - 组件包当前已存在依赖
+  - 适合作为 streaming animation 的主循环调度
+  - 不需要额外引入新的通用动画框架
+- `unicode-segmenter`
+  - 组件包当前已存在依赖
+  - 适合作为 grapheme 切分底层
+  - 能避免 emoji / 合字在字符动画里被错误拆分
+
+#### 小依赖备选
+
+- `fast-array-diff`
+  - 只解决 top-level block array 的 diff / patch
+  - 职责单一，适合作为后续 `useStreamBlockDiff` 的可选实现加速件
+  - 当前先不默认引入，等手写 block patch 复杂度真正升高后再决定
+
+#### 延后评估
+
+- `framesync`
+  - 如果后续动画循环真的需要更细的 read/write phases，再单独评估
+  - 目前 `useRafFn` 已经足够
+- `@sanity/diff-match-patch`
+  - 更适合 rewrite / reset 较多的文本改写场景
+  - 当前 streaming 主场景仍然以 append-first 为主
+- `micromark` / `mdast-util-from-markdown`
+  - 值得尊重，适合未来 parser 基座升级 Spike
+  - 但不属于这轮“避免重复造轮子”的最小加速件
+
+#### 当前不采用
+
+- `motion` / `motion-v` / `@vueuse/motion`
+  - 更偏通用 UI 动画
+  - 对 markdown streaming 来说过重
+- `Splitting.js`
+  - 适合静态 DOM 文本动效
+  - 不适合 Vue 渲染树驱动的 streaming markdown
+- `marked`
+  - 虽可作为 block lexer 参考
+  - 但当前主链路已经是 `markdown-it -> IR -> render`
+  - 这轮不引入第二套 parser，避免语义漂移
+
+### 为什么不直接继续引现成 streaming markdown 库
+
+因为这轮的目标已经从“证明 streaming markdown 是否可行”变化为：
+
+- 保留当前 `TrMarkdown`
+- 在现有 `M4` 基线之上补 reveal queue 和 text animation
+
+这意味着我们真正缺的不是：
+
+- 整套 markdown renderer
+- 新的 code block 系统
+- 新的 theme / provider
+
+而是：
+
+- RAF 调度
+- grapheme 切分
+- block diff / queue
+
+### `M4.5` 当前建议实现路径
+
+建议把 `M4.5` 收敛为：
+
+1. 继续复用当前 `stableContent + tailContent + incomplete hold`
+2. 在 parse 后的顶层 `TrMarkdownRenderNode[]` 上做 block diff
+3. 补 reveal queue
+4. 只对文本类 block 做字符淡入
+5. code / table / image 继续保持跳过
+
+### 当前方案缺口分析
+
+在再次对照 `LobeUI` 本地源码后，当前 `M4.5` 方案如果不补这些缺口，直接进入实现会有较高返工风险：
+
+#### 1. 缺少 block identity
+
+`LobeUI` 的 block queue 依赖 block `raw + startOffset`。
+
+而 TinyRobot 当前：
+
+- `TrMarkdownRenderNode` 没有 source range
+- 顶层渲染还没有 streaming 专用稳定 key 契约
+
+这意味着我们必须先补一层 stream-only block model，再谈 reveal queue。
+
+#### 2. 缺少 finalize / settle 契约
+
+`LobeUI` 的动画并不是一直挂着，它会在 block settled 后回到 revealed 状态。
+
+TinyRobot 当前方案若不补：
+
+- stream 结束后的 settle window
+- settled 后回落 plain text DOM
+
+就容易长期残留 `.stream-char`，也不利于控制 DOM 数量。
+
+#### 3. 缺少 rewrite / reset 的正式策略
+
+当前 `M4.5` 的现实目标仍然是 append-first。
+
+所以方案必须明确：
+
+- append：沿用当前 queue
+- rewrite：hard reset，重建 timeline
+
+否则实现时很容易一边做 queue，一边又被 rewrite 场景拖进 token diff 复杂度。
+
+#### 4. 缺少 skip matrix
+
+当前不能只写“code / table / image 跳过”，还必须把：
+
+- inline code
+- task checkbox
+- raw html / preview
+- 后续 mermaid / math
+
+都提前写成固定矩阵。
+
+#### 5. 缺少可观测性
+
+`LobeUI` 有 repro 和 profiler，这对调 `skipped@birth`、`revealedLive/totalLive` 很关键。
+
+TinyRobot 当前也需要至少在 demo / test 场景里补：
+
+- queue 长度
+- live span 数量
+- rewrite / reset 次数
+- parse count
+
+### 这轮 Spike 的结论
+
+如果只看“少造轮子、少引大框架、又能加速实现”的目标，当前最合理的组合是：
+
+- `@vueuse/core/useRafFn`
+- `unicode-segmenter`
+- `fast-array-diff`（仅备选）
+
+这比再接一套新的 markdown renderer 或通用动画框架，更符合 TinyRobot 当前 `M4.5` 的边界。
+
 ## 正式实现前准备完成条件
 
 我建议把“可以进入正式实现”定义成下面这些条件满足：
@@ -309,9 +551,117 @@ outline: deep
 
 ## 下一步建议
 
-建议在正式实现前，再完成下面两件准备物：
+在 `M4` 第一阶段和第二阶段完成后，下一步更合理的是：
 
-1. 新建 Markdown fixtures / benchmark 规划文档
-2. 新建 `M0 / M1` 实施 checklist 文档
+1. 维持当前第一方 streaming 分支，不替换主线 renderer
+2. 进入 `M4.5`，先补：
+   - block diff
+   - reveal queue
+   - text-only animation
+3. 保持 `token-level diff`、更重的 parser 升级和通用动画框架继续停留在后续 Spike
 
-做完这两件后，就可以进入正式实现。
+### 2026-05-31 后续更新
+
+本轮 Spike 的原始结论仍适用于“不要在 `M4.5` 起步阶段先替换 parser 或引入重型 diff 框架”。后续正式实现中，TinyRobot 已在不新增依赖的前提下补入轻量 token rewrite patch 与 token scheduler：
+
+- 基于 `unicode-segmenter` 的 grapheme 切分
+- 同 block rewrite 时生成 `equal / insert / delete / replace` patch segment
+- `equal` segment 复用旧 birth timeline
+- block 数量、type 或 tag 变化仍进入 hard reset
+
+### 当前 P0 收口边界（2026-05-31）
+
+- `M4.5` 的 profiler 事件语义已扩展到 root / block / frame / token 级别，但仍只作为观测和回归门禁，不代表引入了跨 block / parser diff
+- `timeline` 面板已补 root commit / block commit / FPS / frame cost 观察面，但仍属于 P0 可视化，不是新的 diff 引擎
+- `token patch` 仅覆盖同 block 内的 rewrite 复用，跨 block / parser 级 token diff 仍然只属于后续 Spike
+
+因此当前剩余的 Spike 项已从“是否做 rewrite patch / 是否补 root-block profiler”收缩为：
+
+- 是否继续细化 root commit / block commit 级 profiler 的采样精度和可视化布局
+- 是否继续细化 profiler 面板的时间轴、frame duration、commit cost 与 FPS 采样
+- skipped-char profiler 是否需要按节点类型、字符数量和 block state 继续分桶
+
+## 后续 Spike：跨 block / parser 级 token diff
+
+### 定位
+
+这不是当前 `M4.5` P0 的完成门槛，而是未来如果继续深挖 streaming rewrite 体验时的专项 Spike。
+
+当前 `M4.5` 已经做的是“同 block token patch”：在同一个稳定 block 内，按 grapheme 识别 `equal / insert / delete / replace`，并复用未变字符的 birth timeline。
+
+跨 block / parser 级 token diff 要解决的是更重的一类问题：
+
+- 段落被模型改写后拆成两段
+- 两个段落被模型合并成一段
+- list / blockquote / heading 在 rewrite 中发生结构变化
+- 旧 block 的内容移动到新 block
+- parser token 与 render node 的 identity 需要跨 parse 保持稳定
+
+### 为什么不进当前默认主线
+
+- 会把 streaming 动画从 render 层推进到 parser / AST 层，影响范围明显扩大
+- 需要更完整的 source range、token identity 和 block merge / split 规则
+- 会和后续 `M5` 的 mermaid / math / alert / footnotes 等高级节点互相影响
+- 对大多数 AI append-first 输出场景收益有限，但实现和验证成本高
+
+### 方案草图
+
+#### Phase 1：source map 与 token identity Spike
+
+- 为 `markdownItAdapter` 输出更稳定的 source range
+- 建立 `StreamTokenIdentity` 草图：
+  - `sourceStart`
+  - `sourceEnd`
+  - `nodeType`
+  - `tag`
+  - `textFingerprint`
+- 对比当前 `TrMarkdownRenderNode.position` 是否足够承接跨 parse diff
+
+#### Phase 2：block split / merge diff Spike
+
+- 基于顶层 block 建立 diff 输入：
+  - previous blocks
+  - next blocks
+  - source range
+  - normalized text
+- 验证三类操作：
+  - split：一个 paragraph 变成两个 paragraph
+  - merge：两个 paragraph 合并成一个 paragraph
+  - move：同一段文本位置发生移动
+- 判断是否需要引入 `fast-array-diff` 或保留手写 diff
+
+#### Phase 3：parser-aware token patch Spike
+
+- 在 block diff 之上继续做 token patch：
+  - text token patch
+  - inline mark boundary patch
+  - link text patch
+- 明确继续跳过：
+  - code block
+  - table
+  - image
+  - raw html
+  - future mermaid / math / alert
+
+#### Phase 4：验证与门禁
+
+- demo case：
+  - paragraph split
+  - paragraph merge
+  - list item rewrite
+  - heading to paragraph
+  - paragraph to blockquote
+- test case：
+  - preserved token count 不应为 0
+  - split / merge 不应误触发全局 reset
+  - 结构类型变化仍应 hard reset
+- 性能门禁：
+  - diff 只作用于 streaming animated 路径
+  - 默认 static / basic streaming 路径零影响
+  - 大文档 rewrite 不应出现明显长任务
+
+### 建议结论
+
+短期不做。
+
+等 `M4.5` P0 的事件语义、timeline 面板、token patch 回归、文档边界收口后，如果真实业务中频繁出现“模型跨段落重写”的体验问题，再启动这个 Spike。

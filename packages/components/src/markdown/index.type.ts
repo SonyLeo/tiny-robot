@@ -46,12 +46,41 @@ export interface TrMarkdownParserOptions {
   breaks?: boolean
 }
 
+export type TrMarkdownStreamTailKind = 'text' | 'link' | 'code' | 'table' | 'image'
+export type TrMarkdownStreamingMode = 'basic' | 'animated'
+export type TrMarkdownStreamingPreset = 'balanced' | 'realtime' | 'silky'
+
+export interface TrMarkdownStreamingProfilerConfig {
+  enabled?: boolean
+  label?: string
+  maxEvents?: number
+}
+
+export interface TrMarkdownStreamingConfig {
+  enabled?: boolean
+  active?: boolean
+  showTail?: boolean
+  showCursor?: boolean
+  smoothingChars?: number
+  mode?: TrMarkdownStreamingMode
+  preset?: TrMarkdownStreamingPreset
+  profile?: boolean | TrMarkdownStreamingProfilerConfig
+}
+
+export interface TrMarkdownRenderNodePosition {
+  lineStart: number
+  lineEnd: number
+  charStart: number
+  charEnd: number
+}
+
 export interface TrMarkdownRenderNode {
   type: string
   tag?: string
   text?: string
   attrs?: Record<string, unknown>
   children?: TrMarkdownRenderNode[]
+  position?: TrMarkdownRenderNodePosition
 }
 
 export interface TrMarkdownParserAdapter {
@@ -81,6 +110,7 @@ export interface TrMarkdownProps {
   variant?: 'default' | 'bubble' | 'article'
   parser?: TrMarkdownParserAdapter
   parserOptions?: TrMarkdownParserOptions
+  streaming?: boolean | TrMarkdownStreamingConfig
   features?: TrMarkdownFeatureFlags
   code?: TrMarkdownCodeConfig
   link?: TrMarkdownLinkConfig

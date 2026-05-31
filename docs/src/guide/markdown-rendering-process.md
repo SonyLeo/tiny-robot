@@ -152,6 +152,7 @@ Markdown 渲染整体推进建议按这个阶段顺序：
 - 高级能力后接入
 - 先结构正确，再样式精修
 - 先静态路径，再流式路径
+- rewrite / reset 类能力必须先区分 token patch 与 hard reset，不能继续把所有非 append 更新都当成整块重置
 
 ### 禁止事项
 
@@ -184,6 +185,41 @@ Markdown 渲染整体推进建议按这个阶段顺序：
 ### 目的
 
 验证功能正确性和性能边界。
+
+### 验证入口硬门禁
+
+凡是用于 `TrMarkdown` 验证的入口页，都必须先确认自己吃的是哪条代码路径：
+
+- `markdown-demo`
+- `packages/test`
+- Playwright / E2E 本地 webServer
+- docs 本地 demo（若本轮用它做验收）
+
+至少要满足下面两条之一：
+
+1. 公开包导入通过 Vite alias + TS path 明确指向 workspace `src`
+2. 明确使用受控的内部 source entry，而不是回退到 `packages/components/dist`
+
+如果走第 1 条，还要同步补齐：
+
+- `optimizeDeps.exclude`
+- consumer `tsconfig` 对 `Bundler` / `ES2022.Intl` / source-only type 依赖的支持
+
+否则很容易出现：
+
+- `src` 改了但 demo / test 没吃到
+- `dist` 还是旧产物，误判实现无效
+- E2E 实际验证的是缓存或历史构建，不是当前源码
+
+### Streaming rewrite / scheduler 额外门禁
+
+凡是本轮涉及 `M4.5` streaming animation、rewrite patch 或 scheduler 收口，都必须额外确认：
+
+- root telemetry 能暴露 `updateKind / hardReset / rewriteCount / resetCount`
+- 同 block rewrite 应增加 `rewriteCount`，但不应增加 `resetCount`
+- block 数量、block type 或 tag 变化才应触发 `hardReset = true`
+- `resetRevision` 只在 hard reset 时递增，避免 token patch rewrite 被误判为整块重播
+- demo 与 `packages/test` 至少各有一个 token patch rewrite / hard reset 区分案例
 
 ### 测试分层
 
@@ -410,6 +446,7 @@ Markdown 渲染整体推进建议按这个阶段顺序：
 - 代码块更新导致全量重算
 - 文档、测试、实现明显脱节
 - 组件能力边界开始模糊
+- 验证入口仍默认依赖 `packages/components/dist`，无法证明当前 `src` 改动已经被实际消费
 
 ## 最终原则
 

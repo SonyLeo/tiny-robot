@@ -11,6 +11,19 @@
             </div>
 
             <div class="hero__meta">
+              <div class="view-switch">
+                <button
+                  v-for="view in viewOptions"
+                  :key="view.id"
+                  type="button"
+                  class="view-switch__chip"
+                  :class="{ 'view-switch__chip--active': activeView === view.id }"
+                  @click="activeView = view.id"
+                >
+                  {{ view.label }}
+                </button>
+              </div>
+
               <button type="button" class="theme-chip" @click="toggleTheme">Theme: {{ theme }}</button>
 
               <div class="install-snippet">
@@ -19,7 +32,7 @@
             </div>
           </section>
 
-          <section v-for="section in markdownSections" :key="section.id" class="content-section" :id="section.id">
+          <section v-for="section in activeSections" :key="section.id" class="content-section" :id="section.id">
             <div class="content-section__header">
               <h2>{{ section.title }}</h2>
               <p>{{ section.description }}</p>
@@ -35,15 +48,41 @@
               <MarkdownPreviewCard :demo-case="demoCase" />
             </article>
           </section>
+
+          <section v-if="activeView === 'public'" id="apis" class="content-section">
+            <div class="content-section__header">
+              <h2>APIs</h2>
+              <p>公开层补一份最小 API 摘要，和 LobeUI 文档页的阅读顺序保持一致。</p>
+            </div>
+
+            <div class="api-table">
+              <div class="api-table__head">
+                <span>Property</span>
+                <span>Description</span>
+                <span>Type</span>
+                <span>Default</span>
+              </div>
+              <div v-for="row in markdownApiRows" :key="row.name" class="api-table__row">
+                <code>{{ row.name }}</code>
+                <span>{{ row.description }}</span>
+                <code>{{ row.type }}</code>
+                <code>{{ row.defaultValue }}</code>
+              </div>
+            </div>
+          </section>
         </div>
 
         <aside class="toc">
           <div class="toc__panel">
             <p class="toc__title">Table of Contents</p>
             <nav>
+              <a v-for="section in activeSections" :key="section.id" :href="`#${section.id}`" class="toc__section">
+                {{ section.title }}
+              </a>
               <a v-for="demoCase in allCases" :key="demoCase.id" :href="`#${demoCase.id}`">
                 {{ demoCase.title }}
               </a>
+              <a v-if="activeView === 'public'" href="#apis">APIs</a>
             </nav>
           </div>
         </aside>
@@ -54,13 +93,23 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import TrThemeProvider from '../../components/src/theme-provider'
+import { TrThemeProvider } from '@opentiny/tiny-robot'
 import MarkdownCaseSource from './components/MarkdownCaseSource.vue'
 import MarkdownPreviewCard from './components/MarkdownPreviewCard.vue'
-import { markdownIntro, markdownSections } from './data/markdownCases'
+import { internalMarkdownSections, markdownApiRows, markdownIntro, publicMarkdownSections } from './data/markdownCases'
 
 const theme = ref<'light' | 'dark'>('light')
-const allCases = computed(() => markdownSections.flatMap((section) => section.cases))
+const activeView = ref<'public' | 'internal'>('public')
+const viewOptions = [
+  { id: 'public', label: 'Public parity' },
+  { id: 'internal', label: 'Internal regression' },
+] as const
+
+const activeSections = computed(() => {
+  return activeView.value === 'public' ? publicMarkdownSections : internalMarkdownSections
+})
+
+const allCases = computed(() => activeSections.value.flatMap((section) => section.cases))
 
 const toggleTheme = () => {
   theme.value = theme.value === 'light' ? 'dark' : 'light'
@@ -144,6 +193,30 @@ h1 {
   flex-wrap: wrap;
   gap: 14px;
   align-items: center;
+}
+
+.view-switch {
+  display: inline-flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.view-switch__chip {
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid color-mix(in srgb, var(--tr-border-color-default) 22%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--tr-container-bg-default) 86%, transparent);
+  color: var(--tr-text-secondary);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.view-switch__chip--active {
+  border-color: color-mix(in srgb, var(--tr-color-primary) 34%, transparent);
+  background: color-mix(in srgb, var(--tr-container-bg-default) 72%, var(--tr-color-primary) 28%);
+  color: var(--tr-text-primary);
 }
 
 .theme-chip {
@@ -232,6 +305,10 @@ h1 {
   gap: 12px;
 }
 
+.toc__section {
+  font-weight: 700;
+}
+
 .toc a {
   color: var(--tr-text-secondary);
   text-decoration: none;
@@ -239,6 +316,50 @@ h1 {
 
 .toc a:hover {
   color: var(--tr-text-primary);
+}
+
+.api-table {
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--tr-border-color-default) 18%, transparent);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--tr-container-bg-default) 94%, transparent);
+}
+
+.api-table__head,
+.api-table__row {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.9fr) minmax(0, 1.8fr) minmax(180px, 1.2fr) 120px;
+  gap: 16px;
+  padding: 14px 16px;
+}
+
+.api-table__head {
+  background: color-mix(in srgb, var(--tr-container-bg-default) 76%, transparent);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--tr-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.api-table__row + .api-table__row {
+  border-top: 1px solid color-mix(in srgb, var(--tr-border-color-default) 14%, transparent);
+}
+
+.api-table__row span,
+.api-table__row code {
+  min-width: 0;
+}
+
+.api-table__row span {
+  color: var(--tr-text-primary);
+  line-height: 1.6;
+}
+
+.api-table__row code {
+  font-size: 12px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 @media (max-width: 1160px) {
@@ -258,6 +379,11 @@ h1 {
 
   .hero__desc {
     font-size: 16px;
+  }
+
+  .api-table__head,
+  .api-table__row {
+    grid-template-columns: 1fr;
   }
 }
 </style>
