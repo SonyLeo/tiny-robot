@@ -75,6 +75,27 @@ test.describe('Layout 组件测试 - Aside', () => {
     expect(afterRight).toBeGreaterThanOrEqual(beforeRight)
   })
 
+  test('Dock: main min width - 双侧展开时主区不应被压穿', async ({ page }) => {
+    await page.getByTestId('right-mode-dock-btn').click()
+    await page.getByTestId('right-toggle-btn').click()
+
+    await expect
+      .poll(async () => {
+        const box = await page.locator(layoutSelectors.main).boundingBox()
+        return box?.width ?? 0
+      })
+      .toBeGreaterThanOrEqual(320)
+  })
+
+  test('Rail: complex collapsedWidth - 不应误判为 rail', async ({ page }) => {
+    await page.getByTestId('left-collapsed-calc-btn').click()
+    await page.getByTestId('left-collapse-btn').click()
+
+    await expect(page.locator('[data-part="root"]')).not.toHaveClass(/tr-layout--left-rail/)
+    await expect(page.locator(layoutSelectors.leftAside)).not.toHaveClass(/tr-layout__aside--rail/)
+    await expect(page.locator(layoutSelectors.leftAside)).toHaveAttribute('aria-hidden', 'true')
+  })
+
   test('Props: resizable=false - 应隐藏 resize trigger', async ({ page }) => {
     await page.getByTestId('left-resizable-off-btn').click()
     await page.getByTestId('right-mode-dock-btn').click()

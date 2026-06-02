@@ -14,6 +14,7 @@ const sharedSidebarItems = [
     base: '/components/',
     items: [
       { text: 'Container 容器', link: 'container' },
+      { text: 'Layout 布局', link: 'layout' },
       { text: 'Bubble 气泡', link: 'bubble' },
       { text: 'Sender 消息输入框', link: 'sender' },
       { text: 'Prompts 提示集', link: 'prompts' },
@@ -62,7 +63,10 @@ const sidebar = {
     {
       text: '演示',
       base: '/examples/',
-      items: [{ text: '综合示例', link: 'assistant' }],
+      items: [
+        { text: '综合示例', link: 'assistant' },
+        { text: '布局综合案例', link: 'layout-assistant' },
+      ],
     },
   ],
   '/migration/': [

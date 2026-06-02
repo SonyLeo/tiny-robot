@@ -35,4 +35,32 @@ test.describe('Layout 组件测试 - 结构', () => {
   test('Props: ariaLabel - right toggle 应使用默认 aria-label', async ({ page }) => {
     await expect(page.getByTestId('right-aside-toggle')).toHaveAttribute('aria-label', 'Toggle right panel')
   })
+
+  test('Fallthrough attrs: class / id / data-* - 应始终落在 surface', async ({ page }) => {
+    const surface = page.locator(layoutSelectors.surface)
+    const surfaceHost = page.locator(layoutSelectors.surfaceHost)
+
+    await expect(surface).toHaveAttribute('id', 'layout-demo-surface')
+    await expect(surface).toHaveAttribute('data-surface-marker', 'layout-demo-surface')
+    await expect(surface).toHaveClass(/layout-demo__layout--surface-marker/)
+    await expect(surfaceHost).not.toHaveAttribute('id', 'layout-demo-surface')
+    await expect(surfaceHost).not.toHaveAttribute('data-surface-marker', 'layout-demo-surface')
+
+    await page.getByTestId('mode-floating-btn').click()
+
+    await expect(surface).toHaveAttribute('id', 'layout-demo-surface')
+    await expect(surface).toHaveAttribute('data-surface-marker', 'layout-demo-surface')
+    await expect(surface).toHaveClass(/layout-demo__layout--surface-marker/)
+  })
+
+  test('Conditional slots: empty header / left-aside - should not keep empty shell or resize trigger', async ({
+    page,
+  }) => {
+    await page.getByTestId('conditional-slots-empty-btn').click()
+
+    await expect(page.locator('.tr-layout__header-shell')).not.toHaveClass(/tr-layout__header-shell--active/)
+    await expect(page.locator(layoutSelectors.leftAside)).toHaveAttribute('aria-hidden', 'true')
+    await expect(page.locator(layoutSelectors.leftResizeTrigger)).toHaveCount(0)
+    await expect(page.locator('[data-part="root"]')).not.toHaveClass(/tr-layout--left-expanded/)
+  })
 })

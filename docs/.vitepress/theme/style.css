@@ -225,10 +225,51 @@ div:has(h1[id='bubble-气泡组件']) {
   min-height: calc(100dvh - 113px);
 }
 
+/* ===== Layout 示例页专用承载布局 ===== */
+.layout-showcase-page {
+  --layout-showcase-shell-gap: 24px;
+  --layout-showcase-shell-left: 0px;
+  --layout-showcase-shell-top: 0px;
+}
+
+.layout-showcase-page .vp-doc,
+.layout-showcase-page .VPDoc .content,
+.layout-showcase-page .VPDoc .content-container {
+  max-width: none;
+}
+
+.layout-showcase-page .vitepress-demo-plugin__container {
+  overflow: hidden;
+}
+
+.layout-showcase-page .vitepress-demo-plugin__container > .vitepress-demo-plugin-preview {
+  padding: 0;
+}
+
 /* ===== 响应式布局 ===== */
+@media (min-width: 768px) {
+  .layout-showcase-page {
+    --layout-showcase-shell-top: 64px;
+  }
+}
+
 @media (min-width: 960px) {
   .VPSidebar {
     padding-top: var(--vp-sidebar-nav-padding-top) !important;
+  }
+
+  .layout-showcase-page {
+    --layout-showcase-shell-left: var(--vp-sidebar-width);
+  }
+
+  .layout-showcase-page .VPDoc .content {
+    padding-inline: 0;
+  }
+}
+
+@media (min-width: 1024px) {
+  .layout-showcase-page {
+    --layout-showcase-shell-top: 113px;
   }
 }
 

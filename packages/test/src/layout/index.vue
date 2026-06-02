@@ -7,6 +7,8 @@ const mode = ref<'normal' | 'floating'>('normal')
 const scrollHostRef = ref<LayoutMainScrollHost>(null)
 const leftCollapseEffect = ref<'overlay' | 'slide'>('overlay')
 const rightCollapseEffect = ref<'overlay' | 'slide'>('overlay')
+const showHeaderSlot = ref(true)
+const showLeftAsideSlot = ref(true)
 
 const leftAside = ref<LayoutAsideConfig>({
   layoutMode: 'dock',
@@ -108,12 +110,21 @@ function disableRightResizable() {
   rightAside.value = { ...rightAside.value, resizable: false }
 }
 
+function setLeftCollapsedWidthUnsafe(collapsedWidth: string) {
+  leftAside.value = { ...leftAside.value, collapsedWidth: collapsedWidth as LayoutAsideConfig['collapsedWidth'] }
+}
+
 function disableFloatingResizable() {
   floating.value = { ...floating.value, resizable: false }
 }
 
 function disableFloatingDraggable() {
   floating.value = { ...floating.value, draggable: false }
+}
+
+function emptyConditionalSlots() {
+  showHeaderSlot.value = false
+  showLeftAsideSlot.value = false
 }
 
 function updateLeftAside(next?: LayoutAsideConfig) {
@@ -167,6 +178,9 @@ function resetFloating() {
       <button data-testid="left-resizable-off-btn" type="button" @click="disableLeftResizable">
         left resizable off
       </button>
+      <button data-testid="left-collapsed-calc-btn" type="button" @click="setLeftCollapsedWidthUnsafe('calc(56px)')">
+        left collapsed calc
+      </button>
 
       <button data-testid="right-mode-dock-btn" type="button" @click="setRightMode('dock')">right dock</button>
       <button data-testid="right-mode-drawer-btn" type="button" @click="setRightMode('drawer')">right drawer</button>
@@ -180,6 +194,9 @@ function resetFloating() {
       </button>
 
       <button data-testid="append-messages-btn" type="button" @click="appendMessages">append messages</button>
+      <button data-testid="conditional-slots-empty-btn" type="button" @click="emptyConditionalSlots">
+        empty conditional slots
+      </button>
       <button data-testid="floating-resizable-off-btn" type="button" @click="disableFloatingResizable">
         floating resizable off
       </button>
@@ -208,7 +225,9 @@ function resetFloating() {
 
     <div class="layout-demo__host" data-testid="layout-demo-host">
       <TrLayout
-        class="layout-demo__layout"
+        id="layout-demo-surface"
+        class="layout-demo__layout layout-demo__layout--surface-marker"
+        data-surface-marker="layout-demo-surface"
         :mode="mode"
         :floating="floating"
         :left-aside="leftAside"
@@ -242,7 +261,7 @@ function resetFloating() {
         "
       >
         <template #left-aside>
-          <TrLayout.Aside placement="left" :collapse-effect="leftCollapseEffect">
+          <TrLayout.Aside v-if="showLeftAsideSlot" placement="left" :collapse-effect="leftCollapseEffect">
             <div class="layout-demo__aside-content" data-testid="left-aside-slot">
               <div class="layout-demo__aside-header">
                 <span data-testid="left-expanded-state">{{ leftExpanded }}</span>
@@ -258,7 +277,7 @@ function resetFloating() {
         </template>
 
         <template #header>
-          <div class="layout-demo__header" data-testid="layout-header-slot">layout header</div>
+          <div v-if="showHeaderSlot" class="layout-demo__header" data-testid="layout-header-slot">layout header</div>
         </template>
 
         <template #main>
