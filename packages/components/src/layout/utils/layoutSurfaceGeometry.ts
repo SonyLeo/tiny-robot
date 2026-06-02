@@ -27,7 +27,7 @@ export const DEFAULT_FLOATING_WIDTH = 420
 export const DEFAULT_FLOATING_HEIGHT = '80vh'
 export const DEFAULT_FLOATING_TOP = 24
 export const DEFAULT_FLOATING_GAP = 24
-export const DEFAULT_MIN_FLOATING_WIDTH = 320
+const DEFAULT_MIN_FLOATING_WIDTH = 320
 
 interface ViewportSize {
   width: number

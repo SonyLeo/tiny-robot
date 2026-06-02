@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useVModel } from '@vueuse/core'
-import { computed, ref, useSlots } from 'vue'
+import { computed, ref, useAttrs, useSlots } from 'vue'
 import AsideResizeTrigger from './components/AsideResizeTrigger.vue'
 import SurfaceResizeTrigger from './components/SurfaceResizeTrigger.vue'
 import { createLayoutStore } from './composables/createLayoutStore'
@@ -13,11 +13,13 @@ import { createLayoutAsideStoreInput } from './utils'
 
 defineOptions({
   name: 'Layout',
+  inheritAttrs: false,
 })
 
 const props = defineProps<LayoutProps>()
 
 const emit = defineEmits<LayoutEmits>()
+const attrs = useAttrs()
 
 const modeState = useVModel(props, 'mode', emit, { passive: true })
 const floatingState = useVModel(props, 'floating', emit, { passive: true, deep: true })
@@ -59,7 +61,6 @@ const {
 
 const {
   hasHeader,
-  hasMain,
   hasFooter,
   leftAsideHidden,
   rightAsideHidden,
@@ -100,12 +101,15 @@ const layoutRootStyle = computed(() => ({
   ...layoutStyle.value,
   '--tr-layout-height': '100%',
 }))
+
+const toAriaHidden = (hidden: boolean) => (hidden ? 'true' : undefined)
 </script>
 
 <template>
   <div v-show="!isFloating" class="tr-layout-host" data-part="surface-host">
     <Teleport to="body" :disabled="!isFloating">
       <div
+        v-bind="attrs"
         ref="surfaceFrameRef"
         class="tr-layout-surface"
         :class="surfaceClass"
@@ -148,12 +152,12 @@ const layoutRootStyle = computed(() => ({
             :class="leftAsideClass"
             data-part="aside"
             data-placement="left"
-            :data-resizable="leftResizeVisible ? '' : undefined"
-            :aria-hidden="leftAsideHidden ? 'true' : undefined"
-            :inert="leftAsideHidden"
+            :data-resizable="leftResizeVisible() ? '' : undefined"
+            :aria-hidden="toAriaHidden(leftAsideHidden())"
+            :inert="leftAsideHidden()"
           >
             <AsideResizeTrigger
-              v-if="leftResizeVisible"
+              v-if="leftResizeVisible()"
               placement="left"
               :dragging-placement="draggingPlacement"
               @pointerdown="leftHandleProps.onPointerdown"
@@ -161,11 +165,7 @@ const layoutRootStyle = computed(() => ({
             <slot name="left-aside" />
           </div>
 
-          <div
-            class="tr-layout__header-shell"
-            :class="{ 'tr-layout__header-shell--active': hasHeader }"
-            :aria-hidden="hasHeader ? undefined : 'true'"
-          >
+          <div class="tr-layout__header-shell" :class="{ 'tr-layout__header-shell--active': hasHeader() }">
             <div class="tr-layout__header-inner">
               <header class="tr-layout__header">
                 <slot name="header" />
@@ -173,17 +173,13 @@ const layoutRootStyle = computed(() => ({
             </div>
           </div>
 
-          <div class="tr-layout__main-shell" :aria-hidden="hasMain ? undefined : 'true'">
+          <div class="tr-layout__main-shell">
             <div class="tr-layout__main-inner">
               <slot name="main" />
             </div>
           </div>
 
-          <div
-            class="tr-layout__footer-shell"
-            :class="{ 'tr-layout__footer-shell--active': hasFooter }"
-            :aria-hidden="hasFooter ? undefined : 'true'"
-          >
+          <div class="tr-layout__footer-shell" :class="{ 'tr-layout__footer-shell--active': hasFooter() }">
             <div class="tr-layout__footer-inner">
               <footer class="tr-layout__footer">
                 <slot name="footer" />
@@ -197,12 +193,12 @@ const layoutRootStyle = computed(() => ({
             :class="rightAsideClass"
             data-part="aside"
             data-placement="right"
-            :data-resizable="rightResizeVisible ? '' : undefined"
-            :aria-hidden="rightAsideHidden ? 'true' : undefined"
-            :inert="rightAsideHidden"
+            :data-resizable="rightResizeVisible() ? '' : undefined"
+            :aria-hidden="toAriaHidden(rightAsideHidden())"
+            :inert="rightAsideHidden()"
           >
             <AsideResizeTrigger
-              v-if="rightResizeVisible"
+              v-if="rightResizeVisible()"
               placement="right"
               :dragging-placement="draggingPlacement"
               @pointerdown="rightHandleProps.onPointerdown"
@@ -216,7 +212,7 @@ const layoutRootStyle = computed(() => ({
             data-part="backdrop"
             type="button"
             :tabindex="isDrawerVisible ? 0 : -1"
-            :aria-hidden="isDrawerVisible ? undefined : 'true'"
+            :aria-hidden="toAriaHidden(!isDrawerVisible)"
             @click="closeDrawers"
           />
         </div>
@@ -227,17 +223,15 @@ const layoutRootStyle = computed(() => ({
 
 <style lang="less" scoped>
 .tr-layout-host {
-  width: 100%;
-  min-height: 0;
-  height: var(--tr-layout-height, 100vh);
-  height: var(--tr-layout-height, 100dvh);
-  overflow: hidden;
+  display: contents;
 }
 
 .tr-layout-surface {
   position: relative;
   width: 100%;
-  height: 100%;
+  min-height: 0;
+  height: var(--tr-layout-height, 100vh);
+  height: var(--tr-layout-height, 100dvh);
   background: var(--tr-layout-bg);
 
   &--normal {
@@ -356,7 +350,10 @@ const layoutRootStyle = computed(() => ({
   --tr-layout-left-width: 0px;
   --tr-layout-right-width: 0px;
   display: grid;
-  grid-template-columns: var(--tr-layout-left-width, 0px) minmax(0, 1fr) var(--tr-layout-right-width, 0px);
+  grid-template-columns:
+    var(--tr-layout-left-width, 0px)
+    minmax(var(--tr-layout-main-min-width, 320px), 1fr)
+    var(--tr-layout-right-width, 0px);
   grid-template-rows: auto minmax(0, 1fr) auto;
   grid-template-areas:
     'left header right'

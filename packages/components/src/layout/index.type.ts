@@ -4,15 +4,17 @@ export type LayoutPlacement = 'left' | 'right'
 export type LayoutAsideMode = 'dock' | 'drawer'
 export type LayoutAsideCollapseEffect = 'overlay' | 'slide'
 export type LayoutMode = 'normal' | 'floating'
+export type LayoutLength = number | string
+export type LayoutRailWidth = number | `${number}px`
 
 export interface LayoutAsideConfig {
   layoutMode?: LayoutAsideMode
   expanded?: boolean
-  expandedWidth?: number | string
-  collapsedWidth?: number | string
+  expandedWidth?: LayoutLength
+  collapsedWidth?: LayoutRailWidth
   resizable?: boolean
-  minExpandedWidth?: number | string
-  maxExpandedWidth?: number | string
+  minExpandedWidth?: LayoutLength
+  maxExpandedWidth?: LayoutLength
 }
 
 export interface LayoutAsideResizeEventDetail {
@@ -23,12 +25,12 @@ export interface LayoutAsideResizeEventDetail {
 export interface LayoutFloatingConfig {
   x?: number
   y?: number
-  width?: number | string
-  height?: number | string
+  width?: LayoutLength
+  height?: LayoutLength
   draggable?: boolean
   resizable?: boolean
-  minWidth?: number | string
-  maxWidth?: number | string
+  minWidth?: LayoutLength
+  maxWidth?: LayoutLength
 }
 
 export interface LayoutFloatingResizeEventDetail {

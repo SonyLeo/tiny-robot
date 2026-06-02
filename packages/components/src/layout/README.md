@@ -55,6 +55,8 @@ const leftAside = ref({
 </template>
 ```
 
+`collapsedWidth` 建议只传 `number` 或 `px` 字符串；复杂表达式会保留宽度样式，但不会被识别为 rail。
+
 ## `scrollHost` 约束
 
 - `Layout.Main` 只负责监听滚动宿主和渲染虚拟滚动条。

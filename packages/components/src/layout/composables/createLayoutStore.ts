@@ -1,7 +1,7 @@
 import { computed, toValue, type ComputedRef } from 'vue'
 import type { LayoutAsideConfig, LayoutAsideMode, LayoutPlacement } from '../index.type'
 import type { CreateLayoutStoreOptions, LayoutAsideStoreInput, LayoutPanelApi, LayoutStore } from '../internal.type'
-import { resolveCssLengthToPx, toCssLength } from '../utils/cssLength'
+import { toCssLength } from '../utils/cssLength'
 
 type ResolvedLayoutAsideConfig = {
   layoutMode: ComputedRef<LayoutAsideMode>
@@ -18,8 +18,11 @@ type ResolvedLayoutAsideConfig = {
   onUpdate?: (nextConfig: LayoutAsideConfig) => void
 }
 
+const ZERO_LENGTH_RE = /^0(?:\.0+)?(?:[a-z%]+)?$/i
+const PX_LENGTH_RE = /^(-?(?:\d+|\d*\.\d+))px$/i
+
 function hasCollapsedRail(value: number | string | undefined): boolean {
-  if (typeof value === 'number') {
+  if (typeof value === 'number' && Number.isFinite(value)) {
     return value > 0
   }
 
@@ -33,21 +36,18 @@ function hasCollapsedRail(value: number | string | undefined): boolean {
     return false
   }
 
-  if (/^0(?:\.0+)?(?:[a-z%]+)?$/.test(normalized)) {
+  if (ZERO_LENGTH_RE.test(normalized)) {
     return false
   }
 
-  const measuredWidth = resolveCssLengthToPx(
-    normalized,
-    typeof document === 'undefined' ? null : document.body,
-    Number.NaN,
-  )
+  const pxMatch = normalized.match(PX_LENGTH_RE)
 
-  if (Number.isFinite(measuredWidth)) {
-    return measuredWidth > 0
+  if (!pxMatch) {
+    return false
   }
 
-  return true
+  const parsed = Number.parseFloat(pxMatch[1])
+  return Number.isFinite(parsed) && parsed > 0
 }
 
 export function createLayoutStore(options: CreateLayoutStoreOptions = {}): LayoutStore {
