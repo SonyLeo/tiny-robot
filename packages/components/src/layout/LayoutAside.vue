@@ -1,17 +1,121 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import {
+  computed,
+  getCurrentInstance,
+  onBeforeUnmount,
+  onMounted,
+  onUpdated,
+  ref,
+  shallowRef,
+  useAttrs,
+  type StyleValue,
+} from 'vue'
+import { useControllableState } from './composables/useControllableState'
 import { useLayoutAside } from './composables/useLayoutAside'
-import type { LayoutAsideProps } from './index.type'
+import { useLayout } from './composables/useLayout'
+import type { LayoutAsideEmits, LayoutAsideProps } from './index.type'
 
 defineOptions({
   name: 'LayoutAside',
+  inheritAttrs: false,
 })
 
 const props = defineProps<LayoutAsideProps>()
+const emit = defineEmits<LayoutAsideEmits>()
+const attrs = useAttrs()
+const layoutStore = useLayout()
+const instance = getCurrentInstance()
+const contentRef = ref<HTMLElement | null>(null)
+const resolvedDrawerWidth = shallowRef<string | undefined>(undefined)
 
-const { isExpanded, isDock, isDrawer, isRail, isHidden } = useLayoutAside(() => props.placement)
+const defaultOpenByPlacement = {
+  left: true,
+  right: false,
+} as const
+
+function hasVNodeProp(name: string): boolean {
+  const rawProps = instance?.vnode.props
+
+  if (!rawProps) {
+    return false
+  }
+
+  const kebabName = name.replace(/[A-Z]/g, (char) => `-${char.toLowerCase()}`)
+
+  return (
+    Object.prototype.hasOwnProperty.call(rawProps, name) || Object.prototype.hasOwnProperty.call(rawProps, kebabName)
+  )
+}
+
+const openProvided = hasVNodeProp('open')
+const defaultOpenProvided = hasVNodeProp('defaultOpen')
+
+const openState = useControllableState<boolean>({
+  value: () => (openProvided ? props.open : undefined),
+  defaultValue: () => (defaultOpenProvided ? props.defaultOpen : defaultOpenByPlacement[props.placement]),
+  isControlled: openProvided,
+  onChange: (nextOpen) => emit('update:open', nextOpen),
+})
+
+const widthState = useControllableState<number>({
+  value: () => props.width,
+  defaultValue: () => props.defaultWidth,
+  onChange: (nextWidth) => emit('update:width', nextWidth),
+})
+
+function syncDrawerWidthVar(): void {
+  if (typeof window === 'undefined' || !contentRef.value) {
+    return
+  }
+
+  const nextValue = getComputedStyle(contentRef.value).getPropertyValue('--tr-layout-drawer-width').trim()
+  resolvedDrawerWidth.value = nextValue || undefined
+}
+
+const layoutMode = computed(() => props.mode ?? 'dock')
+const railWidth = computed(() => props.railWidth)
+const minWidth = computed(() => props.minWidth ?? (props.placement === 'left' ? 200 : 240))
+const maxWidth = computed(() => props.maxWidth ?? (props.placement === 'left' ? 560 : 640))
+const resizable = computed(() => props.resizable ?? false)
+const containerStyle = computed<StyleValue | undefined>(() => {
+  if (!resolvedDrawerWidth.value) {
+    return attrs.style as StyleValue | undefined
+  }
+
+  return [attrs.style as StyleValue | undefined, { '--tr-layout-drawer-width': resolvedDrawerWidth.value }]
+})
+
+layoutStore.registerPanel({
+  placement: props.placement,
+  layoutMode,
+  isOpen: computed(() => openState.resolvedState.value ?? defaultOpenByPlacement[props.placement]),
+  width: computed(() => widthState.resolvedState.value),
+  containerClass: computed(() => attrs.class),
+  containerStyle,
+  railWidth,
+  minWidth,
+  maxWidth,
+  resizable,
+  commitOpen: openState.commit,
+  commitWidth: widthState.commit,
+})
+
+onBeforeUnmount(() => {
+  layoutStore.unregisterPanel(props.placement)
+})
+
+onMounted(() => {
+  syncDrawerWidthVar()
+})
+
+onUpdated(() => {
+  syncDrawerWidthVar()
+})
+
+const { isOpen, isExpanded, isDock, isDrawer, isRail, isHidden } = useLayoutAside(() => props.placement)
 
 const slotProps = computed(() => ({
+  isOpen: isOpen.value,
   isExpanded: isExpanded.value,
 }))
 
@@ -20,6 +124,8 @@ const collapseEffect = computed(() => props.collapseEffect ?? 'overlay')
 
 <template>
   <aside
+    v-bind="attrs"
+    ref="contentRef"
     class="tr-layout-aside"
     data-part="aside-content"
     :data-placement="props.placement"
@@ -41,6 +147,8 @@ const collapseEffect = computed(() => props.collapseEffect ?? 'overlay')
 
 <style lang="less" scoped>
 .tr-layout-aside {
+  --hidden-offset: var(--tr-layout-aside-hidden-offset);
+
   min-width: 0;
   min-height: 0;
   height: 100%;
@@ -62,45 +170,45 @@ const collapseEffect = computed(() => props.collapseEffect ?? 'overlay')
     }
 
     &.tr-layout-aside--left {
-      width: var(--tr-layout-left-expanded-width);
+      width: var(--left-dock-width);
 
       &.tr-layout-aside--rail {
-        width: var(--tr-layout-left-collapsed-width);
+        width: var(--left-rail-width);
 
         &.tr-layout-aside--effect-overlay {
-          width: var(--tr-layout-left-expanded-width);
+          width: var(--left-dock-width);
         }
 
         &.tr-layout-aside--effect-slide {
-          width: var(--tr-layout-left-expanded-width);
-          transform: translateX(calc(var(--tr-layout-left-collapsed-width) - var(--tr-layout-left-expanded-width)));
+          width: var(--left-dock-width);
+          transform: translateX(calc(var(--left-rail-width) - var(--left-dock-width)));
         }
       }
 
       &.tr-layout-aside--hidden {
-        transform: translateX(calc(-100% - 12px));
+        transform: translateX(calc(-100% - var(--hidden-offset)));
       }
     }
 
     &.tr-layout-aside--right {
-      width: var(--tr-layout-right-expanded-width);
+      width: var(--right-dock-width);
       margin-inline-start: auto;
 
       &.tr-layout-aside--rail {
-        width: var(--tr-layout-right-collapsed-width);
+        width: var(--right-rail-width);
 
         &.tr-layout-aside--effect-overlay {
-          width: var(--tr-layout-right-expanded-width);
+          width: var(--right-dock-width);
         }
 
         &.tr-layout-aside--effect-slide {
-          width: var(--tr-layout-right-expanded-width);
-          transform: translateX(calc(var(--tr-layout-right-expanded-width) - var(--tr-layout-right-collapsed-width)));
+          width: var(--right-dock-width);
+          transform: translateX(calc(var(--right-dock-width) - var(--right-rail-width)));
         }
       }
 
       &.tr-layout-aside--hidden {
-        transform: translateX(calc(100% + 12px));
+        transform: translateX(calc(100% + var(--hidden-offset)));
       }
     }
   }

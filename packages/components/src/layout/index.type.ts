@@ -5,17 +5,6 @@ export type LayoutAsideMode = 'dock' | 'drawer'
 export type LayoutAsideCollapseEffect = 'overlay' | 'slide'
 export type LayoutMode = 'normal' | 'floating'
 export type LayoutLength = number | string
-export type LayoutRailWidth = number | `${number}px`
-
-export interface LayoutAsideConfig {
-  layoutMode?: LayoutAsideMode
-  expanded?: boolean
-  expandedWidth?: LayoutLength
-  collapsedWidth?: LayoutRailWidth
-  resizable?: boolean
-  minExpandedWidth?: LayoutLength
-  maxExpandedWidth?: LayoutLength
-}
 
 export interface LayoutAsideResizeEventDetail {
   placement: LayoutPlacement
@@ -44,16 +33,14 @@ export type LayoutMainScrollHost = HTMLElement | LayoutMainScrollHostComponent |
 
 export interface LayoutProps {
   mode?: LayoutMode
+  defaultMode?: LayoutMode
   floating?: LayoutFloatingConfig
-  leftAside?: LayoutAsideConfig
-  rightAside?: LayoutAsideConfig
+  defaultFloating?: LayoutFloatingConfig
 }
 
 export interface LayoutEmits {
-  'update:mode': [value: LayoutMode | undefined]
-  'update:floating': [value: LayoutFloatingConfig | undefined]
-  'update:leftAside': [value: LayoutAsideConfig | undefined]
-  'update:rightAside': [value: LayoutAsideConfig | undefined]
+  'update:mode': [value: LayoutMode]
+  'update:floating': [value: LayoutFloatingConfig]
   'floating-resize-start': [detail: LayoutFloatingResizeEventDetail]
   'floating-resize': [detail: LayoutFloatingResizeEventDetail]
   'floating-resize-end': [detail: LayoutFloatingResizeEventDetail]
@@ -64,7 +51,21 @@ export interface LayoutEmits {
 
 export interface LayoutAsideProps {
   placement: LayoutPlacement
+  mode?: LayoutAsideMode
+  open?: boolean
+  defaultOpen?: boolean
+  width?: number
+  defaultWidth?: number
+  railWidth?: number
+  minWidth?: number
+  maxWidth?: number
+  resizable?: boolean
   collapseEffect?: LayoutAsideCollapseEffect
+}
+
+export interface LayoutAsideEmits {
+  'update:open': [value: boolean]
+  'update:width': [value: number]
 }
 
 export interface LayoutAsideToggleProps {
@@ -77,11 +78,11 @@ export interface LayoutMainProps {
 }
 
 export interface LayoutAsideSlots {
-  default?: (slotProps: { isExpanded: boolean }) => VNode | VNode[]
+  default?: (slotProps: { isOpen: boolean; isExpanded: boolean }) => VNode | VNode[]
 }
 
 export interface LayoutAsideToggleSlots {
-  default?: (slotProps: { isExpanded: boolean }) => VNode | VNode[]
+  default?: (slotProps: { isOpen: boolean; isExpanded: boolean }) => VNode | VNode[]
 }
 
 export interface LayoutSlots {

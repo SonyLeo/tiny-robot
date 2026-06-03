@@ -1,27 +1,19 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { TrLayout } from '@opentiny/tiny-robot'
-import type { LayoutAsideConfig } from '@opentiny/tiny-robot'
 import './demo.css'
 
-const leftAside = ref<LayoutAsideConfig>({
-  layoutMode: 'dock',
-  expanded: true,
-  expandedWidth: 200,
-})
-
-const rightAside = ref<LayoutAsideConfig>({
-  layoutMode: 'dock',
-  expanded: true,
-  expandedWidth: 240,
-})
+const leftOpen = ref(true)
+const rightOpen = ref(true)
+const leftWidth = ref(200)
+const rightWidth = ref(240)
 </script>
 
 <template>
   <div class="layout-demo-shell layout-demo-shell--basic">
-    <TrLayout class="layout-demo-layout layout-demo-layout--aside" :left-aside="leftAside" :right-aside="rightAside">
+    <TrLayout class="layout-demo-layout layout-demo-layout--aside">
       <template #left-aside>
-        <TrLayout.Aside placement="left">
+        <TrLayout.Aside placement="left" mode="dock" v-model:open="leftOpen" v-model:width="leftWidth">
           <div class="layout-demo-panel">
             <div class="layout-demo-panel__header">
               <strong class="layout-demo-copy">导航</strong>
@@ -49,7 +41,7 @@ const rightAside = ref<LayoutAsideConfig>({
       </template>
 
       <template #right-aside>
-        <TrLayout.Aside placement="right">
+        <TrLayout.Aside placement="right" mode="dock" v-model:open="rightOpen" v-model:width="rightWidth">
           <div class="layout-demo-panel">
             <div class="layout-demo-panel__header">
               <strong class="layout-demo-copy">信息栏</strong>

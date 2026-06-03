@@ -1,18 +1,23 @@
 <template>
   <div class="layout-assistant-demo">
-    <TrLayout
-      class="layout-assistant-demo__layout"
-      :left-aside="leftAside"
-      :right-aside="rightAside"
-      @update:left-aside="updateLeftAside"
-      @update:right-aside="updateRightAside"
-    >
+    <TrLayout class="layout-assistant-demo__layout">
       <template #header>
         <Header :context="context" />
       </template>
 
       <template #left-aside>
-        <TrLayout.Aside placement="left" v-slot="{ isExpanded }">
+        <TrLayout.Aside
+          placement="left"
+          mode="dock"
+          v-model:open="leftOpen"
+          v-model:width="leftWidth"
+          :rail-width="52"
+          :min-width="220"
+          :max-width="420"
+          :resizable="true"
+          class="layout-assistant-demo__left-aside"
+          v-slot="{ isExpanded }"
+        >
           <Sidebar :context="context" :is-expanded="isExpanded" />
         </TrLayout.Aside>
       </template>
@@ -28,7 +33,16 @@
       </template>
 
       <template #right-aside>
-        <TrLayout.Aside placement="right">
+        <TrLayout.Aside
+          placement="right"
+          mode="dock"
+          v-model:open="rightOpen"
+          v-model:width="rightWidth"
+          :min-width="240"
+          :max-width="380"
+          :resizable="true"
+          class="layout-assistant-demo__right-aside"
+        >
           <Panel :context="context" />
         </TrLayout.Aside>
       </template>
@@ -39,7 +53,7 @@
 <script setup lang="ts">
 import type { BubbleRoleConfig, PromptProps, SuggestionItem, UserItem } from '@opentiny/tiny-robot'
 import { TrLayout } from '@opentiny/tiny-robot'
-import type { LayoutAsideConfig, LayoutMainScrollHost } from '@opentiny/tiny-robot'
+import type { LayoutMainScrollHost } from '@opentiny/tiny-robot'
 import type { ConversationInfo, UseMessageOptions } from '@opentiny/tiny-robot-kit'
 import { toolPlugin, useConversation } from '@opentiny/tiny-robot-kit'
 import { IconAi, IconEdit, IconUser } from '@opentiny/tiny-robot-svgs'
@@ -60,26 +74,10 @@ import Panel from './Panel.vue'
 import Sidebar from './Sidebar.vue'
 import type { LayoutAssistantContext } from './context'
 
-const leftAside = ref<LayoutAsideConfig>({
-  layoutMode: 'dock',
-  expanded: true,
-  expandedWidth: 260,
-  collapsedWidth: 52,
-  resizable: true,
-  minExpandedWidth: 220,
-  maxExpandedWidth: 420,
-})
-
-const rightAside = ref<LayoutAsideConfig>({
-  layoutMode: 'dock',
-  expanded: true,
-  expandedWidth: 288,
-  collapsedWidth: 0,
-  resizable: true,
-  minExpandedWidth: 240,
-  maxExpandedWidth: 380,
-})
-
+const leftOpen = ref(true)
+const rightOpen = ref(true)
+const leftWidth = ref(260)
+const rightWidth = ref(288)
 const scrollHostRef = ref<LayoutMainScrollHost>(null)
 
 const aiAvatar = h(IconAi, { class: 'layout-assistant-demo__bubble-avatar' })
@@ -164,14 +162,6 @@ const handleNewConversation = () => {
 
 const handleHistorySelect = (item: ConversationInfo) => {
   switchConversation(item.id)
-}
-
-const updateLeftAside = (next?: LayoutAsideConfig) => {
-  leftAside.value = next ?? {}
-}
-
-const updateRightAside = (next?: LayoutAsideConfig) => {
-  rightAside.value = next ?? {}
 }
 
 const handleSendMessage = (textContent: string) => {

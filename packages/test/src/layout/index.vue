@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { BubbleList, TrLayout } from '@opentiny/tiny-robot'
-import type { LayoutAsideConfig, LayoutFloatingConfig, LayoutMainScrollHost } from '@opentiny/tiny-robot'
+import type { LayoutFloatingConfig, LayoutMainScrollHost } from '@opentiny/tiny-robot'
+import AsideStateFixtures from './fixtures/AsideStateFixtures.vue'
+import FloatingStateFixtures from './fixtures/FloatingStateFixtures.vue'
 
 const mode = ref<'normal' | 'floating'>('normal')
 const scrollHostRef = ref<LayoutMainScrollHost>(null)
@@ -9,26 +11,18 @@ const leftCollapseEffect = ref<'overlay' | 'slide'>('overlay')
 const rightCollapseEffect = ref<'overlay' | 'slide'>('overlay')
 const showHeaderSlot = ref(true)
 const showLeftAsideSlot = ref(true)
-
-const leftAside = ref<LayoutAsideConfig>({
-  layoutMode: 'dock',
-  expanded: true,
-  expandedWidth: 280,
-  collapsedWidth: 56,
-  resizable: true,
-  minExpandedWidth: 220,
-  maxExpandedWidth: 420,
-})
-
-const rightAside = ref<LayoutAsideConfig>({
-  layoutMode: 'drawer',
-  expanded: false,
-  expandedWidth: 320,
-  collapsedWidth: 0,
-  resizable: true,
-  minExpandedWidth: 240,
-  maxExpandedWidth: 420,
-})
+const leftMode = ref<'dock' | 'drawer'>('dock')
+const rightMode = ref<'dock' | 'drawer'>('drawer')
+const leftOpen = ref(true)
+const rightOpen = ref(false)
+const leftWidth = ref(280)
+const rightWidth = ref(320)
+const leftRailWidth = ref(56)
+const rightRailWidth = ref(0)
+const leftResizable = ref(true)
+const rightResizable = ref(true)
+const showAsideStateFixtures = ref(false)
+const showFloatingStateFixtures = ref(false)
 
 const floating = ref<LayoutFloatingConfig>({
   x: 96,
@@ -41,8 +35,8 @@ const floating = ref<LayoutFloatingConfig>({
   maxWidth: 720,
 })
 
-const leftExpanded = computed(() => String(leftAside.value.expanded ?? false))
-const rightExpanded = computed(() => String(rightAside.value.expanded ?? false))
+const leftExpanded = computed(() => String(leftOpen.value))
+const rightExpanded = computed(() => String(rightOpen.value))
 
 const metrics = ref({
   leftResizeStart: 0,
@@ -77,41 +71,41 @@ function setMode(next: 'normal' | 'floating') {
 }
 
 function setLeftMode(layoutMode: 'dock' | 'drawer') {
-  leftAside.value = { ...leftAside.value, layoutMode }
+  leftMode.value = layoutMode
 }
 
 function setRightMode(layoutMode: 'dock' | 'drawer') {
-  rightAside.value = { ...rightAside.value, layoutMode }
+  rightMode.value = layoutMode
 }
 
 function toggleLeft() {
-  leftAside.value = { ...leftAside.value, expanded: !(leftAside.value.expanded ?? false) }
+  leftOpen.value = !leftOpen.value
   metrics.value.leftToggleActions += 1
 }
 
 function toggleRight() {
-  rightAside.value = { ...rightAside.value, expanded: !(rightAside.value.expanded ?? false) }
+  rightOpen.value = !rightOpen.value
   metrics.value.rightToggleActions += 1
 }
 
 function collapseLeft() {
-  leftAside.value = { ...leftAside.value, expanded: false }
+  leftOpen.value = false
 }
 
 function collapseRight() {
-  rightAside.value = { ...rightAside.value, expanded: false }
+  rightOpen.value = false
 }
 
 function disableLeftResizable() {
-  leftAside.value = { ...leftAside.value, resizable: false }
+  leftResizable.value = false
 }
 
 function disableRightResizable() {
-  rightAside.value = { ...rightAside.value, resizable: false }
+  rightResizable.value = false
 }
 
-function setLeftCollapsedWidthUnsafe(collapsedWidth: string) {
-  leftAside.value = { ...leftAside.value, collapsedWidth: collapsedWidth as LayoutAsideConfig['collapsedWidth'] }
+function setLeftRailWidth(nextWidth: number) {
+  leftRailWidth.value = nextWidth
 }
 
 function disableFloatingResizable() {
@@ -127,12 +121,22 @@ function emptyConditionalSlots() {
   showLeftAsideSlot.value = false
 }
 
-function updateLeftAside(next?: LayoutAsideConfig) {
-  leftAside.value = next ?? {}
+function updateLeftOpen(next: boolean) {
+  leftOpen.value = next
 }
 
-function updateRightAside(next?: LayoutAsideConfig) {
-  rightAside.value = next ?? {}
+function updateLeftWidth(next: number) {
+  leftWidth.value = next
+  widths.value.left = next
+}
+
+function updateRightOpen(next: boolean) {
+  rightOpen.value = next
+}
+
+function updateRightWidth(next: number) {
+  rightWidth.value = next
+  widths.value.right = next
 }
 
 function updateFloating(next?: LayoutFloatingConfig) {
@@ -178,9 +182,7 @@ function resetFloating() {
       <button data-testid="left-resizable-off-btn" type="button" @click="disableLeftResizable">
         left resizable off
       </button>
-      <button data-testid="left-collapsed-calc-btn" type="button" @click="setLeftCollapsedWidthUnsafe('calc(56px)')">
-        left collapsed calc
-      </button>
+      <button data-testid="left-rail-width-zero-btn" type="button" @click="setLeftRailWidth(0)">left rail zero</button>
 
       <button data-testid="right-mode-dock-btn" type="button" @click="setRightMode('dock')">right dock</button>
       <button data-testid="right-mode-drawer-btn" type="button" @click="setRightMode('drawer')">right drawer</button>
@@ -202,6 +204,12 @@ function resetFloating() {
       </button>
       <button data-testid="floating-draggable-off-btn" type="button" @click="disableFloatingDraggable">
         floating draggable off
+      </button>
+      <button data-testid="show-aside-state-fixtures-btn" type="button" @click="showAsideStateFixtures = true">
+        show aside fixtures
+      </button>
+      <button data-testid="show-floating-state-fixtures-btn" type="button" @click="showFloatingStateFixtures = true">
+        show floating fixtures
       </button>
     </div>
 
@@ -230,10 +238,6 @@ function resetFloating() {
         data-surface-marker="layout-demo-surface"
         :mode="mode"
         :floating="floating"
-        :left-aside="leftAside"
-        :right-aside="rightAside"
-        @update:left-aside="updateLeftAside"
-        @update:right-aside="updateRightAside"
         @update:floating="updateFloating"
         @aside-resize-start="
           ({ placement }) => (placement === 'left' ? metrics.leftResizeStart++ : metrics.rightResizeStart++)
@@ -261,13 +265,27 @@ function resetFloating() {
         "
       >
         <template #left-aside>
-          <TrLayout.Aside v-if="showLeftAsideSlot" placement="left" :collapse-effect="leftCollapseEffect">
+          <TrLayout.Aside
+            v-if="showLeftAsideSlot"
+            placement="left"
+            :mode="leftMode"
+            :open="leftOpen"
+            :width="leftWidth"
+            :rail-width="leftRailWidth"
+            :min-width="220"
+            :max-width="420"
+            :resizable="leftResizable"
+            :collapse-effect="leftCollapseEffect"
+            class="layout-demo__aside layout-demo__aside--left"
+            @update:open="updateLeftOpen"
+            @update:width="updateLeftWidth"
+          >
             <div class="layout-demo__aside-content" data-testid="left-aside-slot">
               <div class="layout-demo__aside-header">
                 <span data-testid="left-expanded-state">{{ leftExpanded }}</span>
                 <TrLayout.AsideToggle placement="left" data-testid="left-aside-toggle">
-                  <template #default="{ isExpanded }">
-                    <span data-testid="left-toggle-slot">{{ isExpanded ? 'left-open' : 'left-close' }}</span>
+                  <template #default="{ isOpen }">
+                    <span data-testid="left-toggle-slot">{{ isOpen ? 'left-open' : 'left-close' }}</span>
                   </template>
                 </TrLayout.AsideToggle>
               </div>
@@ -291,7 +309,20 @@ function resetFloating() {
         </template>
 
         <template #right-aside>
-          <TrLayout.Aside placement="right" :collapse-effect="rightCollapseEffect">
+          <TrLayout.Aside
+            placement="right"
+            :mode="rightMode"
+            :open="rightOpen"
+            :width="rightWidth"
+            :rail-width="rightRailWidth"
+            :min-width="240"
+            :max-width="420"
+            :resizable="rightResizable"
+            :collapse-effect="rightCollapseEffect"
+            class="layout-demo__aside layout-demo__aside--right"
+            @update:open="updateRightOpen"
+            @update:width="updateRightWidth"
+          >
             <div class="layout-demo__aside-content" data-testid="right-aside-slot">
               <div class="layout-demo__aside-header">
                 <span data-testid="right-expanded-state">{{ rightExpanded }}</span>
@@ -303,6 +334,9 @@ function resetFloating() {
         </template>
       </TrLayout>
     </div>
+
+    <AsideStateFixtures v-if="showAsideStateFixtures" />
+    <FloatingStateFixtures v-if="showFloatingStateFixtures" />
   </div>
 </template>
 
@@ -357,6 +391,14 @@ function resetFloating() {
 .layout-demo__footer {
   border-top: 1px solid #ebeef5;
   border-bottom: 0;
+}
+
+.layout-demo__aside--left {
+  --tr-layout-drawer-width: min(84vw, 320px);
+}
+
+.layout-demo__aside--right {
+  --tr-layout-drawer-width: min(88vw, 360px);
 }
 
 .layout-demo__aside-content {

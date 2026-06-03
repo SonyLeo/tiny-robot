@@ -1,6 +1,22 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Locator, type Page } from '@playwright/test'
 import { dragBy, openLayoutPage } from '../helpers'
 import { layoutSelectors } from '../selectors'
+
+async function openFloatingStateFixtures(page: Page) {
+  await page.getByTestId('show-floating-state-fixtures-btn').click()
+  await expect(page.locator('#blocked-floating-surface')).toBeVisible()
+  await expect(page.locator('#uncontrolled-floating-surface')).toBeVisible()
+}
+
+async function getBox(locator: Locator) {
+  const box = await locator.boundingBox()
+
+  if (!box) {
+    throw new Error('Missing bounding box')
+  }
+
+  return box
+}
 
 test.describe('Layout 组件测试 - Floating', () => {
   test.beforeEach(async ({ page }) => {
@@ -84,5 +100,90 @@ test.describe('Layout 组件测试 - Floating', () => {
         return box ? box.x >= 0 && box.y >= 0 : false
       })
       .toBe(true)
+  })
+
+  test('Controlled props: floating - 受控父级不回写时应只发事件，不自改位置和宽度', async ({ page }) => {
+    await openFloatingStateFixtures(page)
+
+    const surface = page.locator('#blocked-floating-surface')
+    const dragBar = surface.locator(layoutSelectors.surfaceDragBar)
+    const rightResizeHandle = surface.locator(layoutSelectors.rightSurfaceResizeTrigger)
+    const before = await getBox(surface)
+
+    await dragBy(page, dragBar, 140, 40)
+    await expect
+      .poll(async () => Number(await page.getByTestId('blocked-floating-updates').textContent()))
+      .toBeGreaterThan(0)
+    await expect
+      .poll(async () => Number(await page.getByTestId('blocked-floating-last-x').textContent()))
+      .toBeGreaterThan(64)
+
+    const afterDrag = await getBox(surface)
+    expect(Math.abs(afterDrag.x - before.x)).toBeLessThan(2)
+    expect(Math.abs(afterDrag.y - before.y)).toBeLessThan(2)
+
+    await dragBy(page, rightResizeHandle, 160, 0)
+    await expect
+      .poll(async () => Number(await page.getByTestId('blocked-floating-last-width').textContent()))
+      .toBeGreaterThan(420)
+
+    const afterResize = await getBox(surface)
+    expect(Math.abs(afterResize.width - before.width)).toBeLessThan(2)
+  })
+
+  test('Default props: defaultMode / defaultFloating - 非受控 floating 应按默认几何值启动', async ({ page }) => {
+    await openFloatingStateFixtures(page)
+
+    const surface = page.locator('#uncontrolled-floating-surface')
+    const box = await getBox(surface)
+
+    await expect(surface).toHaveClass(/tr-layout-surface--floating/)
+    expect(box.x).toBeGreaterThanOrEqual(556)
+    expect(box.x).toBeLessThanOrEqual(564)
+    expect(box.y).toBeGreaterThanOrEqual(92)
+    expect(box.y).toBeLessThanOrEqual(100)
+    expect(box.width).toBeGreaterThanOrEqual(416)
+    expect(box.width).toBeLessThanOrEqual(424)
+    expect(box.height).toBeGreaterThanOrEqual(296)
+    expect(box.height).toBeLessThanOrEqual(304)
+  })
+
+  test('Default props: defaultFloating - 非受控 floating 拖拽后应更新内部位置', async ({ page }) => {
+    await openFloatingStateFixtures(page)
+
+    const surface = page.locator('#uncontrolled-floating-surface')
+    const dragBar = surface.locator(layoutSelectors.surfaceDragBar)
+    const before = await getBox(surface)
+
+    await dragBy(page, dragBar, -120, 60)
+    await expect
+      .poll(async () => Number(await page.getByTestId('uncontrolled-floating-updates').textContent()))
+      .toBeGreaterThan(0)
+
+    const after = await getBox(surface)
+    expect(after.x).toBeLessThan(before.x - 40)
+    expect(after.y).toBeGreaterThan(before.y + 20)
+  })
+
+  test('Default props: minWidth / maxWidth - 非受控 floating resize 应 obey clamp', async ({ page }) => {
+    await openFloatingStateFixtures(page)
+
+    const surface = page.locator('#uncontrolled-floating-surface')
+    const rightResizeHandle = surface.locator(layoutSelectors.rightSurfaceResizeTrigger)
+    const leftResizeHandle = surface.locator(layoutSelectors.leftSurfaceResizeTrigger)
+
+    await dragBy(page, rightResizeHandle, 240, 0)
+    await expect
+      .poll(async () => Number(await page.getByTestId('uncontrolled-floating-last-width').textContent()))
+      .toBeGreaterThan(420)
+
+    const expanded = await getBox(surface)
+    expect(expanded.width).toBeGreaterThanOrEqual(476)
+    expect(expanded.width).toBeLessThanOrEqual(484)
+
+    await dragBy(page, leftResizeHandle, 400, 0)
+    const shrunk = await getBox(surface)
+    expect(shrunk.width).toBeGreaterThanOrEqual(316)
+    expect(shrunk.width).toBeLessThanOrEqual(324)
   })
 })

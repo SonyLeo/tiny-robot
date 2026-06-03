@@ -1,5 +1,14 @@
 import { useDraggable, useEventListener, useWindowSize } from '@vueuse/core'
-import { computed, onBeforeUnmount, shallowRef, watch, type CSSProperties, type Ref } from 'vue'
+import {
+  computed,
+  onBeforeUnmount,
+  shallowRef,
+  toValue,
+  watch,
+  type CSSProperties,
+  type MaybeRefOrGetter,
+  type Ref,
+} from 'vue'
 import type { LayoutFloatingConfig, LayoutFloatingResizeEventDetail, LayoutMode, LayoutPlacement } from '../index.type'
 import { toCssLength } from '../utils/cssLength'
 import {
@@ -8,7 +17,6 @@ import {
   DEFAULT_FLOATING_HEIGHT,
   DEFAULT_FLOATING_TOP,
   DEFAULT_FLOATING_WIDTH,
-  resolveCurrentFloatingConfig,
   resolveFloatingSnapshot,
   toCommittedFloatingConfig,
   type FloatingSnapshot,
@@ -18,8 +26,9 @@ import { lockBodyInteraction, restoreBodyInteraction, type BodyInteractionState 
 import { clamp } from '../utils/math'
 
 interface UseLayoutSurfaceOptions {
-  modeState: Ref<LayoutMode | undefined>
-  floatingState: Ref<LayoutFloatingConfig | undefined>
+  mode: MaybeRefOrGetter<LayoutMode>
+  floating: MaybeRefOrGetter<LayoutFloatingConfig | undefined>
+  commitFloating: (nextFloating: LayoutFloatingConfig) => void
   frameRef: Ref<HTMLElement | null>
   dragHandleRef: Ref<HTMLElement | null>
   onFloatingResizeStart?: (detail: LayoutFloatingResizeEventDetail) => void
@@ -45,48 +54,39 @@ export function useLayoutSurface(options: UseLayoutSurfaceOptions) {
     initialWidth: DEFAULT_FLOATING_WIDTH + DEFAULT_FLOATING_GAP * 2,
     initialHeight: 0,
   })
-  const mode = computed<LayoutMode>(() => options.modeState.value ?? 'normal')
+  const mode = computed<LayoutMode>(() => toValue(options.mode))
   const isFloating = computed(() => mode.value === 'floating')
   const isNormal = computed(() => mode.value === 'normal')
-  const isFloatingDraggable = computed(() => options.floatingState.value?.draggable ?? true)
-  const isFloatingResizable = computed(() => options.floatingState.value?.resizable === true)
+  const isFloatingDraggable = computed(() => toValue(options.floating)?.draggable ?? true)
+  const isFloatingResizable = computed(() => toValue(options.floating)?.resizable === true)
   const isResizing = computed(() => activeResize.value !== null)
   const activeResizeEdge = computed<LayoutPlacement | null>(() => activeResize.value?.edge ?? null)
   const canDragFloating = computed(() => isFloating.value && isFloatingDraggable.value && !isResizing.value)
 
-  function getCurrentFloatingConfig(): LayoutFloatingConfig {
-    return resolveCurrentFloatingConfig(options.floatingState.value)
+  function getCurrentFloatingConfig(): LayoutFloatingConfig | undefined {
+    return toValue(options.floating)
   }
 
   function getFloatingSnapshot(config = getCurrentFloatingConfig()): FloatingSnapshot {
     return resolveFloatingSnapshot(config)
   }
 
+  function getCommittedFloatingGeometry(config = getCurrentFloatingConfig()) {
+    return toCommittedFloatingConfig(getFloatingSnapshot(config))
+  }
+
   function commitFloatingGeometry(nextGeometry: Pick<LayoutFloatingConfig, 'x' | 'y' | 'width' | 'height'>): void {
-    if (areFloatingGeometryEqual(options.floatingState.value, nextGeometry)) {
+    const currentFloating = toValue(options.floating)
+    const nextFloating = {
+      ...(currentFloating ?? {}),
+      ...nextGeometry,
+    }
+
+    if (areFloatingGeometryEqual(currentFloating, nextFloating)) {
       return
     }
 
-    options.floatingState.value = {
-      ...(options.floatingState.value ?? {}),
-      ...nextGeometry,
-    }
-  }
-
-  function ensureFloatingConfig(): LayoutFloatingConfig {
-    const nextGeometry = toCommittedFloatingConfig(getFloatingSnapshot())
-
-    if (!options.floatingState.value || !areFloatingGeometryEqual(options.floatingState.value, nextGeometry)) {
-      options.floatingState.value = {
-        ...(options.floatingState.value ?? {}),
-        ...nextGeometry,
-      }
-    }
-
-    return {
-      ...(options.floatingState.value ?? {}),
-      ...nextGeometry,
-    }
+    options.commitFloating(nextFloating)
   }
 
   function clampFloatingBounds(): void {
@@ -94,7 +94,11 @@ export function useLayoutSurface(options: UseLayoutSurfaceOptions) {
       return
     }
 
-    commitFloatingGeometry(toCommittedFloatingConfig(getFloatingSnapshot()))
+    const nextGeometry = getCommittedFloatingGeometry()
+
+    if (!areFloatingGeometryEqual(getCurrentFloatingConfig(), nextGeometry)) {
+      commitFloatingGeometry(nextGeometry)
+    }
   }
 
   function resolveDraggedFloatingGeometry(
@@ -128,9 +132,9 @@ export function useLayoutSurface(options: UseLayoutSurfaceOptions) {
         return false
       }
 
-      const floatingConfig = ensureFloatingConfig()
-      x.value = floatingConfig.x ?? DEFAULT_FLOATING_GAP
-      y.value = floatingConfig.y ?? DEFAULT_FLOATING_TOP
+      const snapshot = getFloatingSnapshot()
+      x.value = snapshot.x
+      y.value = snapshot.y
     },
     onMove: (position) => applyDraggedPosition(position.x, position.y),
     onEnd: (position) => applyDraggedPosition(position.x, position.y),
@@ -169,8 +173,7 @@ export function useLayoutSurface(options: UseLayoutSurfaceOptions) {
       return
     }
 
-    const floatingConfig = ensureFloatingConfig()
-    const snapshot = getFloatingSnapshot(floatingConfig)
+    const snapshot = getFloatingSnapshot()
 
     event.preventDefault()
     handleEl.setPointerCapture(event.pointerId)
@@ -200,7 +203,7 @@ export function useLayoutSurface(options: UseLayoutSurfaceOptions) {
     })
 
     state.currentBounds = resolveFloatingSnapshot({
-      ...(options.floatingState.value ?? {}),
+      ...(getCurrentFloatingConfig() ?? {}),
       ...nextGeometry,
     })
     state.currentWidth = state.currentBounds.widthPx
@@ -245,19 +248,19 @@ export function useLayoutSurface(options: UseLayoutSurfaceOptions) {
     mode,
     (variant) => {
       if (variant === 'floating') {
-        const floatingConfig = ensureFloatingConfig()
-        x.value = floatingConfig.x ?? DEFAULT_FLOATING_GAP
-        y.value = floatingConfig.y ?? DEFAULT_FLOATING_TOP
+        const snapshot = getFloatingSnapshot()
+        x.value = snapshot.x
+        y.value = snapshot.y
       }
     },
     { immediate: true },
   )
 
-  watch([mode, options.floatingState, viewportWidth, viewportHeight], () => {
+  watch([mode, () => toValue(options.floating), viewportWidth, viewportHeight], () => {
     clampFloatingBounds()
   })
 
-  const floatingConfig = computed(() => toCommittedFloatingConfig(getFloatingSnapshot()))
+  const floatingConfig = computed(() => getCommittedFloatingGeometry())
   const surfaceClass = computed(() => ({
     'tr-layout-surface--normal': isNormal.value,
     'tr-layout-surface--floating': isFloating.value,

@@ -71,7 +71,7 @@ export function useLayoutAsideResize(options: UseLayoutAsideResizeOptions) {
         return
       }
 
-      current.panel.setExpandedWidth(current.pendingWidth)
+      current.panel.setWidth(current.pendingWidth)
       options.onResize?.({
         placement: current.placement,
         width: current.pendingWidth,
@@ -92,7 +92,7 @@ export function useLayoutAsideResize(options: UseLayoutAsideResizeOptions) {
     }
 
     if (state.pendingWidth !== null) {
-      state.panel.setExpandedWidth(state.pendingWidth)
+      state.panel.setWidth(state.pendingWidth)
       options.onResize?.({
         placement: state.placement,
         width: state.pendingWidth,
@@ -131,8 +131,8 @@ export function useLayoutAsideResize(options: UseLayoutAsideResizeOptions) {
     const oppositeAsideEl = panel.placement === 'left' ? options.rightAsideRef.value : options.leftAsideRef.value
     const rootRect = rootEl.getBoundingClientRect()
     const startWidth = asideEl.getBoundingClientRect().width
-    const maxWidth = resolveCssLengthToPx(panel.maxExpandedWidth, rootEl, startWidth)
-    const minWidth = resolveCssLengthToPx(panel.minExpandedWidth, rootEl, startWidth)
+    const maxWidth = panel.maxWidth
+    const minWidth = panel.minWidth
     const mainMinWidth = resolveCssLengthToPx(
       getComputedStyle(rootEl).getPropertyValue('--tr-layout-main-min-width').trim() || '320px',
       rootEl,

@@ -312,15 +312,15 @@ Radix 的习惯是：
 建议：
 
 - 公开变量继续使用 `--tr-layout-*`
-- 私有变量改成 `--_tr-layout-*`
+- 组件内部桥接层改成局部 alias，例如 `--left-dock-width`
 
 示意：
 
 ```css
 --tr-layout-drawer-width: min(84vw, 320px);
---_tr-layout-left-dock-width: 280px;
---_tr-layout-right-dock-width: 360px;
---_tr-layout-left-rail-width: 52px;
+--left-dock-width: 280px;
+--right-dock-width: 360px;
+--left-rail-width: 52px;
 ```
 
 这样做的价值：
@@ -438,7 +438,7 @@ CSS 变量收敛不能单独做，必须和 `Layout` 的状态/API 收敛一起�
 - [ ] 从 `packages/components/src/styles/components/layout.less` 抽出现有变量清单
 - [ ] 标记每个变量属于“公开 / 私有 / 删除”
 - [ ] 建立新命名映射表
-- [ ] 定义私有变量命名规则：`--_tr-layout-*`
+- [ ] 定义组件局部桥接变量命名规则，例如 `--left-dock-width`
 
 产出：
 
@@ -460,7 +460,7 @@ CSS 变量收敛不能单独做，必须和 `Layout` 的状态/API 收敛一起�
 
 - [ ] 重构 `useLayoutViewState.ts`
 - [ ] 不再直接把公开变量名当成运行时状态投影出口
-- [ ] 改为写入私有变量，例如 `--_tr-layout-left-dock-width`
+- [ ] 改为写入组件局部桥接变量，例如 `--left-dock-width`
 - [ ] 在状态缺省时不给公开变量写 inline 覆盖
 
 目标：

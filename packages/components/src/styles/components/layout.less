@@ -14,10 +14,11 @@
     text-primary: var(--tr-text-primary);
     transition-duration: 220ms;
     transition-easing: ease;
-    left-expanded-width: 300px;
-    left-collapsed-width: 48px;
-    right-expanded-width: 320px;
-    right-collapsed-width: 48px;
+    left-dock-width: 300px;
+    right-dock-width: 320px;
+    left-drawer-width: 300px;
+    right-drawer-width: 320px;
+    aside-hidden-offset: 12px;
     main-min-width: 320px;
     resize-trigger-size: 6px;
     resize-line-color: transparent;
@@ -53,13 +54,12 @@
   };
 
   @surface-vars: {
-    floating-width: 420px;
-    floating-height: 80vh;
-    floating-top: 24px;
-    floating-gap: 24px;
     z-index: calc(var(--tr-layout-z-index-overlay) + 1);
     radius: 24px;
     shadow: 0 28px 72px rgba(15, 23, 42, 0.2);
+    border-color: color-mix(in srgb, var(--tr-text-primary, #111827) 6%, transparent);
+    outline-color: color-mix(in srgb, var(--tr-container-bg-default, #ffffff) 52%, transparent);
+    drag-bar-top: 8px;
     drag-hit-width: 56px;
     drag-hit-height: 18px;
     drag-pill-width: 40px;

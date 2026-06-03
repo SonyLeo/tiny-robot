@@ -9,9 +9,10 @@ defineOptions({
 
 const props = defineProps<LayoutAsideToggleProps>()
 
-const { isExpanded, toggle } = useLayoutAside(() => props.placement)
+const { isOpen, isExpanded, toggle } = useLayoutAside(() => props.placement)
 
 const slotProps = computed(() => ({
+  isOpen: isOpen.value,
   isExpanded: isExpanded.value,
 }))
 
@@ -35,18 +36,12 @@ const ariaLabel = computed(() => props.ariaLabel ?? defaultAriaLabels[props.plac
 
 const fallbackText = computed(() => {
   const text = fallbackTexts[props.placement]
-  return isExpanded.value ? text.expanded : text.collapsed
+  return isOpen.value ? text.expanded : text.collapsed
 })
 </script>
 
 <template>
-  <button
-    class="tr-layout-aside-toggle"
-    type="button"
-    :aria-expanded="isExpanded"
-    :aria-label="ariaLabel"
-    @click="toggle"
-  >
+  <button class="tr-layout-aside-toggle" type="button" :aria-expanded="isOpen" :aria-label="ariaLabel" @click="toggle">
     <slot v-bind="slotProps">
       {{ fallbackText }}
     </slot>

@@ -61,12 +61,27 @@ export function useLayoutViewState(options: UseLayoutViewStateOptions) {
   const leftResizeVisible = () => hasLeftAside() && options.left.canResize
   const rightResizeVisible = () => hasRightAside() && options.right.canResize
 
-  const layoutStyle = computed(() => ({
-    '--tr-layout-left-expanded-width': options.left.expandedWidth,
-    '--tr-layout-left-collapsed-width': options.left.collapsedWidth,
-    '--tr-layout-right-expanded-width': options.right.expandedWidth,
-    '--tr-layout-right-collapsed-width': options.right.collapsedWidth,
-  }))
+  const layoutStyle = computed<Record<string, string>>(() => {
+    const style: Record<string, string> = {}
+
+    if (options.left.widthStyle) {
+      style['--left-dock-width'] = options.left.widthStyle
+    }
+
+    if (options.left.railWidthStyle) {
+      style['--left-rail-width'] = options.left.railWidthStyle
+    }
+
+    if (options.right.widthStyle) {
+      style['--right-dock-width'] = options.right.widthStyle
+    }
+
+    if (options.right.railWidthStyle) {
+      style['--right-rail-width'] = options.right.railWidthStyle
+    }
+
+    return style
+  })
 
   const layoutClass = computed(() => ({
     'tr-layout--left-dock': hasLeftAside() && options.left.isDock,

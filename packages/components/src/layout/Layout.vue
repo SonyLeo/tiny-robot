@@ -1,15 +1,14 @@
 <script setup lang="ts">
-import { useVModel } from '@vueuse/core'
 import { computed, ref, useAttrs, useSlots } from 'vue'
 import AsideResizeTrigger from './components/AsideResizeTrigger.vue'
 import SurfaceResizeTrigger from './components/SurfaceResizeTrigger.vue'
 import { createLayoutStore } from './composables/createLayoutStore'
+import { useControllableLayoutState } from './composables/useControllableLayoutState'
 import { useLayoutInteractions } from './composables/useLayoutInteractions'
 import { provideLayoutStore } from './composables/useLayout'
 import { useLayoutSurface } from './composables/useLayoutSurface'
 import { useLayoutViewState } from './composables/useLayoutViewState'
 import type { LayoutEmits, LayoutProps } from './index.type'
-import { createLayoutAsideStoreInput } from './utils'
 
 defineOptions({
   name: 'Layout',
@@ -21,20 +20,14 @@ const props = defineProps<LayoutProps>()
 const emit = defineEmits<LayoutEmits>()
 const attrs = useAttrs()
 
-const modeState = useVModel(props, 'mode', emit, { passive: true })
-const floatingState = useVModel(props, 'floating', emit, { passive: true, deep: true })
-const leftAsideState = useVModel(props, 'leftAside', emit, { passive: true, deep: true })
-const rightAsideState = useVModel(props, 'rightAside', emit, { passive: true, deep: true })
+const { resolvedMode, resolvedFloating, commitFloating } = useControllableLayoutState(props, emit)
 const surfaceFrameRef = ref<HTMLElement | null>(null)
 const surfaceDragHandleRef = ref<HTMLElement | null>(null)
 const layoutRootRef = ref<HTMLElement | null>(null)
 const leftAsideRef = ref<HTMLElement | null>(null)
 const rightAsideRef = ref<HTMLElement | null>(null)
 
-const layoutStore = createLayoutStore({
-  left: createLayoutAsideStoreInput(leftAsideState),
-  right: createLayoutAsideStoreInput(rightAsideState),
-})
+const layoutStore = createLayoutStore()
 
 provideLayoutStore(layoutStore)
 
@@ -88,8 +81,9 @@ const {
   leftResizeHandleProps,
   rightResizeHandleProps,
 } = useLayoutSurface({
-  modeState,
-  floatingState,
+  mode: resolvedMode,
+  floating: resolvedFloating,
+  commitFloating,
   frameRef: surfaceFrameRef,
   dragHandleRef: surfaceDragHandleRef,
   onFloatingResizeStart: (detail) => emit('floating-resize-start', detail),
@@ -149,7 +143,8 @@ const toAriaHidden = (hidden: boolean) => (hidden ? 'true' : undefined)
           <div
             ref="leftAsideRef"
             class="tr-layout__aside tr-layout__aside--left"
-            :class="leftAsideClass"
+            :class="[leftAsideClass, left.containerClass]"
+            :style="left.containerStyle"
             data-part="aside"
             data-placement="left"
             :data-resizable="leftResizeVisible() ? '' : undefined"
@@ -190,7 +185,8 @@ const toAriaHidden = (hidden: boolean) => (hidden ? 'true' : undefined)
           <div
             ref="rightAsideRef"
             class="tr-layout__aside tr-layout__aside--right"
-            :class="rightAsideClass"
+            :class="[rightAsideClass, right.containerClass]"
+            :style="right.containerStyle"
             data-part="aside"
             data-placement="right"
             :data-resizable="rightResizeVisible() ? '' : undefined"
@@ -227,6 +223,10 @@ const toAriaHidden = (hidden: boolean) => (hidden ? 'true' : undefined)
 }
 
 .tr-layout-surface {
+  --border-color: var(--tr-layout-surface-border-color);
+  --outline-color: var(--tr-layout-surface-outline-color);
+  --drag-bar-top: var(--tr-layout-surface-drag-bar-top);
+
   position: relative;
   width: 100%;
   min-height: 0;
@@ -245,23 +245,23 @@ const toAriaHidden = (hidden: boolean) => (hidden ? 'true' : undefined)
     overflow: visible;
     background: var(--tr-layout-bg);
     border-radius: var(--tr-layout-surface-radius);
-    border: 1px solid color-mix(in srgb, var(--tr-text-primary, #111827) 6%, transparent);
+    border: 1px solid var(--border-color);
     box-shadow: var(--tr-layout-surface-shadow);
     z-index: var(--tr-layout-surface-z-index);
-    outline: 1px solid color-mix(in srgb, var(--tr-container-bg-default, #ffffff) 52%, transparent);
+    outline: 1px solid var(--outline-color);
     outline-offset: -1px;
 
     > .tr-layout {
       box-sizing: border-box;
       overflow: hidden;
       border-radius: inherit;
-      padding-top: calc(var(--tr-layout-surface-drag-hit-height) + 8px);
+      padding-top: calc(var(--tr-layout-surface-drag-hit-height) + var(--drag-bar-top));
     }
   }
 
   &__drag-bar {
     position: absolute;
-    top: 8px;
+    top: var(--drag-bar-top);
     left: 50%;
     z-index: 4;
     display: flex;
@@ -347,13 +347,23 @@ const toAriaHidden = (hidden: boolean) => (hidden ? 'true' : undefined)
 }
 
 .tr-layout {
-  --tr-layout-left-width: 0px;
-  --tr-layout-right-width: 0px;
+  /* 组件局部桥接变量 */
+  --left-width: 0px;
+  --right-width: 0px;
+  --left-dock-width: var(--tr-layout-left-dock-width);
+  --left-rail-width: 0px;
+  --right-dock-width: var(--tr-layout-right-dock-width);
+  --right-rail-width: 0px;
+  --left-drawer-width: var(--tr-layout-left-drawer-width);
+  --right-drawer-width: var(--tr-layout-right-drawer-width);
+}
+
+.tr-layout {
   display: grid;
   grid-template-columns:
-    var(--tr-layout-left-width, 0px)
+    var(--left-width)
     minmax(var(--tr-layout-main-min-width, 320px), 1fr)
-    var(--tr-layout-right-width, 0px);
+    var(--right-width);
   grid-template-rows: auto minmax(0, 1fr) auto;
   grid-template-areas:
     'left header right'
@@ -381,19 +391,19 @@ const toAriaHidden = (hidden: boolean) => (hidden ? 'true' : undefined)
   }
 
   &--left-dock&--left-expanded {
-    --tr-layout-left-width: var(--tr-layout-left-expanded-width);
+    --left-width: var(--left-dock-width);
   }
 
   &--left-dock&--left-rail {
-    --tr-layout-left-width: var(--tr-layout-left-collapsed-width);
+    --left-width: var(--left-rail-width);
   }
 
   &--right-dock&--right-expanded {
-    --tr-layout-right-width: var(--tr-layout-right-expanded-width);
+    --right-width: var(--right-dock-width);
   }
 
   &--right-dock&--right-rail {
-    --tr-layout-right-width: var(--tr-layout-right-collapsed-width);
+    --right-width: var(--right-rail-width);
   }
 
   &__aside,
@@ -544,14 +554,16 @@ const toAriaHidden = (hidden: boolean) => (hidden ? 'true' : undefined)
         visibility var(--tr-layout-transition-duration, 220ms) var(--tr-layout-transition-easing, ease);
 
       &.tr-layout__aside--left {
+        --drawer-width: var(--tr-layout-drawer-width, var(--left-drawer-width));
         left: 0;
-        width: min(var(--tr-layout-left-expanded-width), 100%);
+        width: min(var(--drawer-width), 100%);
         transform: translateX(-100%);
       }
 
       &.tr-layout__aside--right {
+        --drawer-width: var(--tr-layout-drawer-width, var(--right-drawer-width));
         right: 0;
-        width: min(var(--tr-layout-right-expanded-width), 100%);
+        width: min(var(--drawer-width), 100%);
         transform: translateX(100%);
       }
 

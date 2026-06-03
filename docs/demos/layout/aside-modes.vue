@@ -1,43 +1,19 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { TrLayout } from '@opentiny/tiny-robot'
-import type { LayoutAsideConfig } from '@opentiny/tiny-robot'
 import './demo.css'
 
-const leftAside = ref<LayoutAsideConfig>({
-  layoutMode: 'dock',
-  expanded: true,
-  expandedWidth: 220,
-  collapsedWidth: 56,
-  resizable: true,
-})
-
-const rightAside = ref<LayoutAsideConfig>({
-  layoutMode: 'drawer',
-  expanded: false,
-  expandedWidth: 280,
-})
+const leftOpen = ref(true)
+const rightOpen = ref(false)
+const leftWidth = ref(220)
+const rightWidth = ref(280)
 
 function toggleLeftAside() {
-  leftAside.value = {
-    ...leftAside.value,
-    expanded: !(leftAside.value.expanded ?? true),
-  }
+  leftOpen.value = !leftOpen.value
 }
 
 function openRightAside() {
-  rightAside.value = {
-    ...rightAside.value,
-    expanded: true,
-  }
-}
-
-function updateLeftAside(next?: LayoutAsideConfig) {
-  leftAside.value = next ?? {}
-}
-
-function updateRightAside(next?: LayoutAsideConfig) {
-  rightAside.value = next ?? {}
+  rightOpen.value = true
 }
 </script>
 
@@ -51,15 +27,17 @@ function updateRightAside(next?: LayoutAsideConfig) {
     <div class="layout-aside-demo__tip">左侧收起后保留 rail；右侧 drawer 可点击遮罩或按 Esc 关闭。</div>
 
     <div class="layout-demo-shell layout-demo-shell--basic">
-      <TrLayout
-        class="layout-demo-layout layout-demo-layout--aside"
-        :left-aside="leftAside"
-        :right-aside="rightAside"
-        @update:left-aside="updateLeftAside"
-        @update:right-aside="updateRightAside"
-      >
+      <TrLayout class="layout-demo-layout layout-demo-layout--aside">
         <template #left-aside>
-          <TrLayout.Aside placement="left" collapse-effect="slide">
+          <TrLayout.Aside
+            placement="left"
+            mode="dock"
+            v-model:open="leftOpen"
+            v-model:width="leftWidth"
+            :rail-width="56"
+            :resizable="true"
+            collapse-effect="slide"
+          >
             <div class="layout-demo-panel">
               <div class="layout-demo-panel__header">
                 <strong class="layout-demo-copy">Rail 导航</strong>
@@ -80,13 +58,19 @@ function updateRightAside(next?: LayoutAsideConfig) {
           <div class="layout-demo-copy layout-demo-copy--spacious">
             <h3>侧栏形态</h3>
             <p class="layout-demo-muted">
-              左侧使用 `dock + collapsedWidth` 演示 rail；右侧使用 `drawer` 演示遮罩关闭和默认切换文案。
+              左侧使用 `dock + railWidth` 演示 rail；右侧使用 `drawer` 演示遮罩关闭和默认切换文案。
             </p>
           </div>
         </template>
 
         <template #right-aside>
-          <TrLayout.Aside placement="right">
+          <TrLayout.Aside
+            placement="right"
+            mode="drawer"
+            v-model:open="rightOpen"
+            v-model:width="rightWidth"
+            class="layout-aside-demo__drawer"
+          >
             <div class="layout-demo-panel">
               <div class="layout-demo-panel__header">
                 <strong class="layout-demo-copy">右侧 Drawer</strong>
@@ -129,5 +113,9 @@ function updateRightAside(next?: LayoutAsideConfig) {
 
 .layout-aside-demo__tip {
   color: var(--vp-c-text-2, var(--tr-text-secondary, #4e5969));
+}
+
+.layout-aside-demo__drawer {
+  --tr-layout-drawer-width: min(88vw, 320px);
 }
 </style>

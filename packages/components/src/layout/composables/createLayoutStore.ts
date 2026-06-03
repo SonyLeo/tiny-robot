@@ -1,140 +1,71 @@
-import { computed, toValue, type ComputedRef } from 'vue'
-import type { LayoutAsideConfig, LayoutAsideMode, LayoutPlacement } from '../index.type'
-import type { CreateLayoutStoreOptions, LayoutAsideStoreInput, LayoutPanelApi, LayoutStore } from '../internal.type'
-import { toCssLength } from '../utils/cssLength'
+import { computed, shallowReactive, toValue } from 'vue'
+import type { LayoutAsideMode, LayoutPlacement } from '../index.type'
+import type { LayoutPanelApi, LayoutPanelRegistration, LayoutStore } from '../internal.type'
 
-type ResolvedLayoutAsideConfig = {
-  layoutMode: ComputedRef<LayoutAsideMode>
-  expanded: ComputedRef<boolean>
-  expandedWidthValue: ComputedRef<LayoutAsideConfig['expandedWidth']>
-  collapsedWidthValue: ComputedRef<LayoutAsideConfig['collapsedWidth']>
-  resizable: ComputedRef<boolean>
-  minExpandedWidthValue: ComputedRef<LayoutAsideConfig['minExpandedWidth']>
-  maxExpandedWidthValue: ComputedRef<LayoutAsideConfig['maxExpandedWidth']>
-  expandedWidth: ComputedRef<string>
-  collapsedWidth: ComputedRef<string>
-  minExpandedWidth: ComputedRef<string>
-  maxExpandedWidth: ComputedRef<string>
-  onUpdate?: (nextConfig: LayoutAsideConfig) => void
+const DEFAULT_LEFT_MIN_WIDTH = 200
+const DEFAULT_RIGHT_MIN_WIDTH = 240
+const DEFAULT_LEFT_MAX_WIDTH = 560
+const DEFAULT_RIGHT_MAX_WIDTH = 640
+
+type RegistrationMap = Record<LayoutPlacement, LayoutPanelRegistration | undefined>
+
+function toPx(value: number | undefined): string | undefined {
+  return value === undefined ? undefined : `${value}px`
 }
 
-const ZERO_LENGTH_RE = /^0(?:\.0+)?(?:[a-z%]+)?$/i
-const PX_LENGTH_RE = /^(-?(?:\d+|\d*\.\d+))px$/i
+export function createLayoutStore(): LayoutStore {
+  const registrations = shallowReactive<RegistrationMap>({
+    left: undefined,
+    right: undefined,
+  })
 
-function hasCollapsedRail(value: number | string | undefined): boolean {
-  if (typeof value === 'number' && Number.isFinite(value)) {
-    return value > 0
-  }
+  function createPanelApi(placement: LayoutPlacement): LayoutPanelApi {
+    const registration = computed(() => registrations[placement])
+    const otherPlacement = placement === 'left' ? 'right' : 'left'
+    const otherRegistration = computed(() => registrations[otherPlacement])
+    const defaultMinWidth = placement === 'left' ? DEFAULT_LEFT_MIN_WIDTH : DEFAULT_RIGHT_MIN_WIDTH
+    const defaultMaxWidth = placement === 'left' ? DEFAULT_LEFT_MAX_WIDTH : DEFAULT_RIGHT_MAX_WIDTH
 
-  if (typeof value !== 'string') {
-    return false
-  }
-
-  const normalized = value.trim().toLowerCase()
-
-  if (!normalized) {
-    return false
-  }
-
-  if (ZERO_LENGTH_RE.test(normalized)) {
-    return false
-  }
-
-  const pxMatch = normalized.match(PX_LENGTH_RE)
-
-  if (!pxMatch) {
-    return false
-  }
-
-  const parsed = Number.parseFloat(pxMatch[1])
-  return Number.isFinite(parsed) && parsed > 0
-}
-
-export function createLayoutStore(options: CreateLayoutStoreOptions = {}): LayoutStore {
-  function resolveAsideConfig(
-    side: LayoutPlacement,
-    config: LayoutAsideStoreInput | undefined,
-  ): ResolvedLayoutAsideConfig {
-    const defaultExpanded = side === 'left'
-    const defaultExpandedWidth = side === 'left' ? '300px' : '320px'
-    const defaultMinExpandedWidth = side === 'left' ? '200px' : '240px'
-    const defaultMaxExpandedWidth = side === 'left' ? '560px' : '640px'
-
-    const layoutMode = computed<LayoutAsideMode>(() => toValue(config?.layoutMode) ?? 'dock')
-    const expanded = computed<boolean>(() => toValue(config?.expanded) ?? defaultExpanded)
-    const expandedWidthValue = computed<LayoutAsideConfig['expandedWidth']>(() => toValue(config?.expandedWidth))
-    const collapsedWidthValue = computed<LayoutAsideConfig['collapsedWidth']>(() => toValue(config?.collapsedWidth))
-    const resizable = computed<boolean>(() => toValue(config?.resizable) ?? false)
-    const minExpandedWidthValue = computed<LayoutAsideConfig['minExpandedWidth']>(() =>
-      toValue(config?.minExpandedWidth),
-    )
-    const maxExpandedWidthValue = computed<LayoutAsideConfig['maxExpandedWidth']>(() =>
-      toValue(config?.maxExpandedWidth),
-    )
-    const expandedWidth = computed(() => toCssLength(expandedWidthValue.value, defaultExpandedWidth))
-    const collapsedWidth = computed(() => toCssLength(collapsedWidthValue.value, '0px'))
-    const minExpandedWidth = computed(() => toCssLength(minExpandedWidthValue.value, defaultMinExpandedWidth))
-    const maxExpandedWidth = computed(() => toCssLength(maxExpandedWidthValue.value, defaultMaxExpandedWidth))
-
-    return {
-      layoutMode,
-      expanded,
-      expandedWidthValue,
-      collapsedWidthValue,
-      resizable,
-      minExpandedWidthValue,
-      maxExpandedWidthValue,
-      expandedWidth,
-      collapsedWidth,
-      minExpandedWidth,
-      maxExpandedWidth,
-      onUpdate: config?.onUpdate,
-    }
-  }
-
-  const leftConfig = resolveAsideConfig('left', options.left)
-  const rightConfig = resolveAsideConfig('right', options.right)
-
-  function emitAsideUpdate(config: ResolvedLayoutAsideConfig, patch: Partial<LayoutAsideConfig>): void {
-    config.onUpdate?.({
-      layoutMode: config.layoutMode.value,
-      expanded: config.expanded.value,
-      expandedWidth: config.expandedWidthValue.value,
-      collapsedWidth: config.collapsedWidthValue.value,
-      resizable: config.resizable.value,
-      minExpandedWidth: config.minExpandedWidthValue.value,
-      maxExpandedWidth: config.maxExpandedWidthValue.value,
-      ...patch,
+    const isRegistered = computed(() => registration.value !== undefined)
+    const layoutMode = computed<LayoutAsideMode>(() => {
+      return registration.value ? toValue(registration.value.layoutMode) : 'dock'
     })
-  }
-
-  function createAsideController(
-    placement: LayoutPlacement,
-    config: ResolvedLayoutAsideConfig,
-    otherConfig: ResolvedLayoutAsideConfig,
-  ): LayoutPanelApi {
-    const isDock = computed(() => config.layoutMode.value === 'dock')
-    const isDrawer = computed(() => config.layoutMode.value === 'drawer')
-    const isRail = computed(
-      () => isDock.value && !config.expanded.value && hasCollapsedRail(config.collapsedWidthValue.value),
-    )
-    const isHidden = computed(() => !config.expanded.value && (isDrawer.value || !isRail.value))
-    const canResize = computed(() => isDock.value && config.expanded.value && config.resizable.value)
+    const isOpen = computed(() => (registration.value ? toValue(registration.value.isOpen) : false))
+    const width = computed(() => (registration.value ? toValue(registration.value.width) : undefined))
+    const containerClass = computed(() => (registration.value ? toValue(registration.value.containerClass) : undefined))
+    const containerStyle = computed(() => (registration.value ? toValue(registration.value.containerStyle) : undefined))
+    const railWidthValue = computed(() => (registration.value ? toValue(registration.value.railWidth) : undefined))
+    const railWidth = computed(() => railWidthValue.value ?? 0)
+    const minWidth = computed(() => (registration.value ? toValue(registration.value.minWidth) : defaultMinWidth))
+    const maxWidth = computed(() => (registration.value ? toValue(registration.value.maxWidth) : defaultMaxWidth))
+    const resizable = computed(() => (registration.value ? toValue(registration.value.resizable) : false))
+    const isDock = computed(() => layoutMode.value === 'dock')
+    const isDrawer = computed(() => layoutMode.value === 'drawer')
+    const isRail = computed(() => isRegistered.value && isDock.value && !isOpen.value && railWidth.value > 0)
+    const isHidden = computed(() => !isRegistered.value || (!isOpen.value && (isDrawer.value || !isRail.value)))
+    const canResize = computed(() => isRegistered.value && isDock.value && isOpen.value && resizable.value)
 
     function open(): void {
-      if (isDrawer.value && otherConfig.layoutMode.value === 'drawer' && otherConfig.expanded.value) {
-        emitAsideUpdate(otherConfig, { expanded: false })
+      if (!registration.value) {
+        return
       }
 
-      emitAsideUpdate(config, { expanded: true })
+      if (isDrawer.value) {
+        const sibling = otherRegistration.value
+        if (sibling && toValue(sibling.layoutMode) === 'drawer' && toValue(sibling.isOpen)) {
+          sibling.commitOpen(false)
+        }
+      }
+
+      registration.value.commitOpen(true)
     }
 
     function close(): void {
-      emitAsideUpdate(config, { expanded: false })
+      registration.value?.commitOpen(false)
     }
 
     function toggle(): void {
-      if (config.expanded.value) {
+      if (isOpen.value) {
         close()
         return
       }
@@ -142,17 +73,25 @@ export function createLayoutStore(options: CreateLayoutStoreOptions = {}): Layou
       open()
     }
 
-    function setExpandedWidth(nextWidth: number): void {
-      emitAsideUpdate(config, { expandedWidth: nextWidth })
+    function setWidth(nextWidth: number): void {
+      registration.value?.commitWidth(nextWidth)
     }
 
     return {
-      placement,
+      get placement() {
+        return placement
+      },
+      get isRegistered() {
+        return isRegistered.value
+      },
       get layoutMode() {
-        return config.layoutMode.value
+        return layoutMode.value
+      },
+      get isOpen() {
+        return isOpen.value
       },
       get isExpanded() {
-        return config.expanded.value
+        return isOpen.value
       },
       get isDock() {
         return isDock.value
@@ -169,38 +108,50 @@ export function createLayoutStore(options: CreateLayoutStoreOptions = {}): Layou
       get canResize() {
         return canResize.value
       },
-      get expandedWidth() {
-        return config.expandedWidth.value
+      get width() {
+        return width.value
       },
-      get collapsedWidth() {
-        return config.collapsedWidth.value
+      get widthStyle() {
+        return toPx(width.value)
+      },
+      get containerClass() {
+        return containerClass.value
+      },
+      get containerStyle() {
+        return containerStyle.value
+      },
+      get railWidth() {
+        return railWidth.value
+      },
+      get railWidthStyle() {
+        return toPx(railWidthValue.value)
+      },
+      get minWidth() {
+        return minWidth.value
+      },
+      get maxWidth() {
+        return maxWidth.value
       },
       get resizable() {
-        return config.resizable.value
+        return resizable.value
       },
-      get minExpandedWidth() {
-        return config.minExpandedWidth.value
-      },
-      get maxExpandedWidth() {
-        return config.maxExpandedWidth.value
-      },
-      setExpandedWidth,
       open,
       close,
       toggle,
+      setWidth,
     }
   }
 
-  const left = createAsideController('left', leftConfig, rightConfig)
-  const right = createAsideController('right', rightConfig, leftConfig)
+  const left = createPanelApi('left')
+  const right = createPanelApi('right')
 
   function closeDrawers(): void {
-    if (left.layoutMode === 'drawer' && left.isExpanded) {
-      emitAsideUpdate(leftConfig, { expanded: false })
+    if (left.isDrawer && left.isOpen) {
+      left.close()
     }
 
-    if (right.layoutMode === 'drawer' && right.isExpanded) {
-      emitAsideUpdate(rightConfig, { expanded: false })
+    if (right.isDrawer && right.isOpen) {
+      right.close()
     }
   }
 
@@ -208,8 +159,14 @@ export function createLayoutStore(options: CreateLayoutStoreOptions = {}): Layou
     left,
     right,
     get isDrawerVisible() {
-      return (left.isDrawer && left.isExpanded) || (right.isDrawer && right.isExpanded)
+      return (left.isDrawer && left.isOpen) || (right.isDrawer && right.isOpen)
     },
     closeDrawers,
+    registerPanel(panel: LayoutPanelRegistration) {
+      registrations[panel.placement] = panel
+    },
+    unregisterPanel(placement: LayoutPlacement) {
+      registrations[placement] = undefined
+    },
   }
 }

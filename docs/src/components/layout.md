@@ -38,28 +38,12 @@ outline: [1, 3]
 
 | 属性名 | 说明 | 类型 | 默认值 |
 | ------ | ---- | ---- | ------ |
-| `mode` | 布局模式 | `'normal' \| 'floating'` | `'normal'` |
-| `floating` | 浮层配置 | `LayoutFloatingConfig` | `-` |
-| `leftAside` | 左侧栏配置 | `LayoutAsideConfig` | `-` |
-| `rightAside` | 右侧栏配置 | `LayoutAsideConfig` | `-` |
-
-#### LayoutAsideConfig
-
-以下默认值中的 left / right，表示作为 `leftAside` / `rightAside` 使用时的运行时默认值。
-
-| 属性名 | 说明 | 类型 | 默认值 |
-| ------ | ---- | ---- | ------ |
-| `layoutMode` | 侧栏模式 | `'dock' \| 'drawer'` | `'dock'` |
-| `expanded` | 是否展开 | `boolean` | `left: true` / `right: false` |
-| `expandedWidth` | 展开宽度 | `number \| string` | `left: '300px'` / `right: '320px'` |
-| `collapsedWidth` | 收起宽度，仅 `dock` 生效 | <code>number \| `${number}px`</code> | `0` |
-| `resizable` | 是否允许改宽 | `boolean` | `false` |
-| `minExpandedWidth` | 最小展开宽度 | `number \| string` | `left: '200px'` / `right: '240px'` |
-| `maxExpandedWidth` | 最大展开宽度 | `number \| string` | `left: '560px'` / `right: '640px'` |
+| `mode` | 受控布局模式 | `'normal' \| 'floating'` | `-` |
+| `defaultMode` | 非受控初始布局模式 | `'normal' \| 'floating'` | `'normal'` |
+| `floating` | 受控浮层配置 | `LayoutFloatingConfig` | `-` |
+| `defaultFloating` | 非受控初始浮层配置 | `LayoutFloatingConfig` | `-` |
 
 #### LayoutFloatingConfig
-
-当 `mode='floating'` 且字段缺省时，会按下列运行时默认值补齐。
 
 | 属性名 | 说明 | 类型 | 默认值 |
 | ------ | ---- | ---- | ------ |
@@ -83,6 +67,15 @@ outline: [1, 3]
 | 属性名 | 说明 | 类型 | 默认值 |
 | ------ | ---- | ---- | ------ |
 | `placement` | 侧栏位置 | `'left' \| 'right'` | `-` |
+| `mode` | 侧栏模式 | `'dock' \| 'drawer'` | `'dock'` |
+| `open` | 受控开合状态 | `boolean` | `-` |
+| `defaultOpen` | 非受控初始开合状态 | `boolean` | `left: true` / `right: false` |
+| `width` | 受控 dock 宽度 | `number` | `-` |
+| `defaultWidth` | 非受控初始 dock 宽度 | `number` | `-` |
+| `railWidth` | dock 收起后的 rail 宽度 | `number` | `0` |
+| `minWidth` | dock 最小宽度 | `number` | `left: 200` / `right: 240` |
+| `maxWidth` | dock 最大宽度 | `number` | `left: 560` / `right: 640` |
+| `resizable` | 是否允许 dock 改宽 | `boolean` | `false` |
 | `collapseEffect` | 收起效果 | `'overlay' \| 'slide'` | `'overlay'` |
 
 ### Layout.AsideToggle
@@ -108,13 +101,13 @@ outline: [1, 3]
 
 | 插槽名 | 说明 | 作用域参数 |
 | ------ | ---- | ---------- |
-| `default` | 侧栏内容 | `{ isExpanded: boolean }` |
+| `default` | 侧栏内容 | `{ isOpen: boolean; isExpanded: boolean }` |
 
 ### Layout.AsideToggle
 
 | 插槽名 | 说明 | 作用域参数 |
 | ------ | ---- | ---------- |
-| `default` | 自定义切换按钮内容 | `{ isExpanded: boolean }` |
+| `default` | 自定义切换按钮内容 | `{ isOpen: boolean; isExpanded: boolean }` |
 
 ## Events
 
@@ -122,10 +115,8 @@ outline: [1, 3]
 
 | 事件名 | 说明 | 回调参数 |
 | ------ | ---- | -------- |
-| `update:mode` | 布局模式更新 | `(value: LayoutMode \| undefined)` |
-| `update:floating` | 浮层状态更新 | `(value: LayoutFloatingConfig \| undefined)` |
-| `update:leftAside` | 左侧栏状态更新 | `(value: LayoutAsideConfig \| undefined)` |
-| `update:rightAside` | 右侧栏状态更新 | `(value: LayoutAsideConfig \| undefined)` |
+| `update:mode` | 布局模式更新 | `(value: LayoutMode)` |
+| `update:floating` | 浮层状态更新 | `(value: LayoutFloatingConfig)` |
 | `aside-resize-start` | 侧栏开始改宽 | `(detail: { placement: 'left' \| 'right'; width: number })` |
 | `aside-resize` | 侧栏改宽中 | `(detail: { placement: 'left' \| 'right'; width: number })` |
 | `aside-resize-end` | 侧栏改宽结束 | `(detail: { placement: 'left' \| 'right'; width: number })` |
@@ -133,7 +124,48 @@ outline: [1, 3]
 | `floating-resize` | 浮层改宽中 | `(detail: { edge: 'left' \| 'right'; width: number })` |
 | `floating-resize-end` | 浮层改宽结束 | `(detail: { edge: 'left' \| 'right'; width: number })` |
 
+### Layout.Aside
+
+| 事件名 | 说明 | 回调参数 |
+| ------ | ---- | -------- |
+| `update:open` | 侧栏开合状态更新 | `(value: boolean)` |
+| `update:width` | dock 宽度更新 | `(value: number)` |
+
 ## 使用说明
+
+### 状态边界
+
+- `Layout` 根组件只管理 `mode/defaultMode` 和 `floating/defaultFloating`。
+- 单侧侧栏状态由 `Layout.Aside` 自己管理，推荐直接使用 `v-model:open` 和 `v-model:width`。
+- `width/defaultWidth` 只作用于 `dock` 模式，`drawer` 宽度不进入状态轴。
+
+### Drawer 宽度
+
+- `drawer` 宽度通过 `--tr-layout-drawer-width` 定制。
+- 推荐把变量写在具体的 `Layout.Aside` class 上，便于左右两侧分别配置。
+
+```vue
+<TrLayout.Aside
+  placement="right"
+  mode="drawer"
+  v-model:open="rightOpen"
+  class="inspector-drawer"
+>
+  ...
+</TrLayout.Aside>
+
+<style scoped>
+.inspector-drawer {
+  --tr-layout-drawer-width: min(88vw, 360px);
+}
+</style>
+```
+
+### Dock 改宽
+
+- 仅当侧栏有内容、`mode='dock'`、`open=true`、`resizable=true` 时，才允许拖拽改宽。
+- `railWidth > 0` 时，收起后的 dock 侧栏会保留 rail；`0` 时会完全隐藏。
+- 同一时刻只会保留一个 drawer 展开；打开后支持点击遮罩或按 `Escape` 关闭。
 
 ### Layout.Main
 
@@ -141,56 +173,36 @@ outline: [1, 3]
 - 滚动容器本身需要负责 `overflow: auto` 或 `overflow-y: auto`。
 - 建议滚动容器同时设置 `width: 100%`、`height: 100%`、`box-sizing: border-box`。
 
-### 受控状态
-
-- 父组件传入 `leftAside`、`rightAside`、`floating` 后，如需把 Toggle、拖拽、改宽结果同步回父状态，应监听对应的 `update:*` 事件并回写。
-
-### 侧栏改宽
-
-- 仅当侧栏有内容、`layoutMode='dock'`、`expanded=true`、`resizable=true` 时，才允许拖拽改宽。
-- `collapsedWidth` 仅在传入正数或正的 `px` 字符串时才会被识别为 rail；`0`、空值或复杂表达式会在收起时完全隐藏。
-- `drawer` 打开后支持点击遮罩或按 `Escape` 关闭；同一时刻只会保留一个 drawer 展开。
-
-### 浮层改宽
-
-- 当前仅支持左边和右边改宽。
-
 ## CSS 变量
 
-### 布局
+### 布局基础
 
 | 变量名 | 说明 |
 | ------ | ---- |
 | `--tr-layout-height` | 布局高度 |
+| `--tr-layout-bg` | 容器背景 |
+| `--tr-layout-left-bg` | 左侧栏背景 |
+| `--tr-layout-right-bg` | 右侧栏背景 |
+| `--tr-layout-header-bg` | 顶部背景 |
+| `--tr-layout-main-bg` | 主区背景 |
+| `--tr-layout-footer-bg` | 底部背景 |
+| `--tr-layout-divider-color` | 分隔线颜色 |
+| `--tr-layout-overlay-bg` | drawer 遮罩颜色 |
+| `--tr-layout-panel-shadow` | drawer 阴影 |
+| `--tr-layout-surface-radius` | 浮层圆角 |
+| `--tr-layout-surface-shadow` | 浮层阴影 |
+| `--tr-layout-surface-z-index` | 浮层层级 |
+
+### 内容与交互
+
+| 变量名 | 说明 |
+| ------ | ---- |
 | `--tr-layout-content-max-width` | 内容最大宽度 |
 | `--tr-layout-inner-padding-inline` | 横向内边距 |
 | `--tr-layout-inner-padding-block` | 纵向内边距 |
-| `--tr-layout-header-max-width` | 顶部最大宽度 |
-| `--tr-layout-main-max-width` | 主区最大宽度 |
-| `--tr-layout-footer-max-width` | 底部最大宽度 |
-| `--tr-layout-header-padding-inline` | 顶部横向内边距 |
-| `--tr-layout-main-padding-inline` | 主区横向内边距 |
-| `--tr-layout-footer-padding-inline` | 底部横向内边距 |
-
-### 侧栏
-
-| 变量名 | 说明 |
-| ------ | ---- |
-| `--tr-layout-left-expanded-width` | 左侧栏展开宽度 |
-| `--tr-layout-left-collapsed-width` | 左侧栏收起宽度 |
-| `--tr-layout-right-expanded-width` | 右侧栏展开宽度 |
-| `--tr-layout-right-collapsed-width` | 右侧栏收起宽度 |
 | `--tr-layout-main-min-width` | 主区最小宽度 |
-
-### 浮层与滚动条
-
-| 变量名 | 说明 |
-| ------ | ---- |
-| `--tr-layout-surface-z-index` | 浮层层级 |
-| `--tr-layout-surface-radius` | 浮层圆角 |
-| `--tr-layout-surface-shadow` | 浮层阴影 |
+| `--tr-layout-drawer-width` | drawer 展示宽度 |
 | `--tr-layout-main-scrollbar-width` | 滚动条宽度 |
-| `--tr-layout-main-scrollbar-inline-end` | 滚动条右侧偏移 |
 | `--tr-layout-main-scrollbar-thumb-bg` | 滚动条滑块颜色 |
 | `--tr-layout-main-scrollbar-thumb-bg-hover` | 滑块悬停颜色 |
 | `--tr-layout-main-scrollbar-thumb-bg-active` | 滑块激活颜色 |
