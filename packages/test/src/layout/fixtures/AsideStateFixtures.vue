@@ -5,28 +5,13 @@ import { TrLayout } from '@opentiny/tiny-robot'
 const baseLayoutStyle = {
   '--tr-layout-height': '100%',
   '--tr-layout-content-max-width': 'none',
-  '--tr-layout-main-max-width': 'none',
-  '--tr-layout-header-max-width': 'none',
-  '--tr-layout-footer-max-width': 'none',
-  '--tr-layout-header-padding-inline': '0',
-  '--tr-layout-main-padding-inline': '0',
-  '--tr-layout-footer-padding-inline': '0',
+  '--tr-layout-inner-padding-inline': '0',
   '--tr-layout-inner-padding-block': '0',
   '--tr-layout-main-min-width': '120px',
   '--tr-layout-left-bg': '#f8fafc',
   '--tr-layout-right-bg': '#f8fafc',
   '--tr-layout-main-bg': '#ffffff',
   height: '100%',
-} as const
-
-const blockedLayoutStyle = {
-  ...baseLayoutStyle,
-  '--tr-layout-left-dock-width': '410px',
-} as const
-
-const tokenLayoutStyle = {
-  ...baseLayoutStyle,
-  '--tr-layout-left-dock-width': '376px',
 } as const
 
 const blockedOpenEvents = ref(0)
@@ -84,7 +69,7 @@ function updateDrawerRightOpen(next: boolean) {
     <section class="aside-state-fixtures__section" data-testid="blocked-aside-fixture">
       <h3>Blocked Controlled Aside</h3>
       <div class="aside-state-fixtures__host">
-        <TrLayout class="aside-state-fixtures__layout" :style="blockedLayoutStyle">
+        <TrLayout class="aside-state-fixtures__layout" :style="baseLayoutStyle">
           <template #left-aside>
             <TrLayout.Aside
               placement="left"
@@ -150,25 +135,6 @@ function updateDrawerRightOpen(next: boolean) {
 
           <template #main>
             <div class="aside-state-fixtures__main">uncontrolled aside</div>
-          </template>
-        </TrLayout>
-      </div>
-    </section>
-
-    <section class="aside-state-fixtures__section" data-testid="token-aside-fixture">
-      <h3>Token Fallback Aside</h3>
-      <div class="aside-state-fixtures__host">
-        <TrLayout class="aside-state-fixtures__layout" :style="tokenLayoutStyle">
-          <template #left-aside>
-            <TrLayout.Aside placement="left" mode="dock" :open="true">
-              <div class="aside-state-fixtures__panel">
-                <span data-testid="token-open-state">open</span>
-              </div>
-            </TrLayout.Aside>
-          </template>
-
-          <template #main>
-            <div class="aside-state-fixtures__main">token fallback aside</div>
           </template>
         </TrLayout>
       </div>

@@ -147,8 +147,6 @@ const collapseEffect = computed(() => props.collapseEffect ?? 'overlay')
 
 <style lang="less" scoped>
 .tr-layout-aside {
-  --hidden-offset: var(--tr-layout-aside-hidden-offset);
-
   min-width: 0;
   min-height: 0;
   height: 100%;
@@ -160,8 +158,8 @@ const collapseEffect = computed(() => props.collapseEffect ?? 'overlay')
   &--dock {
     width: 100%;
     transition:
-      transform var(--tr-layout-transition-duration, 220ms) var(--tr-layout-transition-easing, ease),
-      opacity var(--tr-layout-transition-duration, 220ms) var(--tr-layout-transition-easing, ease);
+      transform var(--transition-duration) var(--transition-easing),
+      opacity var(--transition-duration) var(--transition-easing);
     will-change: transform, opacity;
 
     &.tr-layout-aside--hidden {

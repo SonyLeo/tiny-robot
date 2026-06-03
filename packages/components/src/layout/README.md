@@ -28,7 +28,6 @@ const leftOpen = ref(true)
 const leftWidth = ref(280)
 
 const rightOpen = ref(false)
-const rightWidth = ref(320)
 
 const floating = ref<LayoutFloatingConfig>({
   x: 80,
@@ -69,7 +68,7 @@ const messages = [
     </template>
 
     <template #right-aside>
-      <Layout.Aside placement="right" mode="drawer" v-model:open="rightOpen" v-model:width="rightWidth" class="app-drawer">
+      <Layout.Aside placement="right" mode="drawer" v-model:open="rightOpen" class="app-drawer">
         <div>Inspector</div>
       </Layout.Aside>
     </template>

@@ -24,10 +24,12 @@
 - [x] 完成最终 API 定稿
 - [x] 完成组件主链路代码实现
 - [x] 完成 demo / README / 组件文档主口径收口
-- [ ] 完成 CSS 变量默认值清理与公开面进一步收敛
+- [x] 完成 CSS 变量默认值清理与公开面进一步收敛
 - 已把 dock / drawer 默认宽度，以及 surface / aside 的部分默认样式 owner 回收到 `layout.less`
+- 已把内部默认值收回 `layout.less` 的局部 alias owner，源码 / demo / README 已不再依赖旧的 per-section 内容变量和 dock 宽度变量
 - 已修正 `defaultOpen/open` 可选布尔 prop 的受控判定，以及 `Layout.Aside` 到 drawer 容器的宽度变量桥接
-- 已完成 build-first 运行时回归：`pnpm build:components` 后，`layout` 目标用例 `36` 条全部通过
+- 已完成 build-first 运行时回归：`pnpm build:components` 后，`layout` 目标用例 `35` 条全部通过
+- 已完成全仓回归：`pnpm test`、`pnpm type-check`、`pnpm build:playground`、`pnpm build:docs` 全部通过
 - [ ] 完成 CSS 变量公开面专项测试补齐
 
 ## 阶段总览
@@ -85,19 +87,19 @@
 
 ### 阶段 6：CSS 变量收敛
 
-- [ ] 收敛 `packages/components/src/styles/components/layout.less`
-- [ ] 保留公开稳定变量
-- [ ] 降级内部桥接变量为私有实现变量
+- [x] 收敛 `packages/components/src/styles/components/layout.less`
+- [x] 保留公开稳定变量
+- [x] 降级内部桥接变量为私有实现变量
 - [x] 删除文档中的预留变量承诺
 - [x] 把 `drawer` 宽度收口到 `--tr-layout-drawer-width`
-- [ ] 评估 `railWidth` 是否保留公开 CSS 变量
+- [x] 评估 `railWidth` 是否保留公开 CSS 变量
 
 ### 阶段 7：组件样式消费链路重构
 
 - [x] 重写 `Layout.vue` 的 grid / drawer 宽度消费链路
 - [x] 重写 `LayoutAside.vue` 的 dock / rail / slide / overlay 宽度消费链路
 - [x] 保持 `LayoutMain.vue` 滚动条样式契约最小化
-- [ ] 清理对 left / right expanded / collapsed 公开变量的依赖
+- [x] 清理对 left / right expanded / collapsed 公开变量的依赖
 
 ### 阶段 8：文档与 README 收口
 
@@ -133,8 +135,8 @@
 - [ ] 删除旧整对象 API 的 demo 残留
 - [ ] 删除不再公开的旧变量名说明
 - [ ] 删除无效预留变量
-- [ ] 删除依赖内部变量的旧测试断言
-- [ ] 删除实现中的重复默认值 owner
+- [x] 删除依赖内部变量的旧测试断言
+- [x] 删除实现中的重复默认值 owner
 
 ## 任务分组 Checklist
 
@@ -148,7 +150,7 @@
 ### B. 必须跟上
 
 - [x] 收口运行时样式投影
-- [ ] 收敛 CSS 变量公开面
+- [x] 收敛 CSS 变量公开面
 - [x] 重写样式消费链路
 
 ### C. 完成闭环
@@ -161,11 +163,11 @@
 
 ## 实施顺序
 
-按下面顺序推进：
+本轮实际按下面顺序推进：
 
-1. 清理 `layout.less` 中仍在公开的旧宽度变量和预留默认值。
-2. 补齐受控 / 非受控 / CSS 变量优先级专项测试。
-3. 删除遗留旧变量说明和内部实现残留。
+1. 清理 `layout.less` 中仍在公开的旧宽度变量和实现细节变量，把默认值 owner 收回到局部 alias。
+2. 收口组件样式消费链路、测试夹具、README 和 docs demo，删掉对旧变量面的依赖。
+3. 执行 build-first 验证，再跑 `layout` 目标矩阵和全仓回归。
 
 ## 完成标准
 
@@ -175,7 +177,7 @@
 - [x] `Layout.Aside` 轴式 API 已稳定
 - [x] `leftAside/rightAside` 整对象协议不再是主推荐方案
 - [x] `drawer` 宽度已收口到 CSS 变量
-- [ ] 公开 CSS 变量面已收敛
+- [x] 公开 CSS 变量面已收敛
 - [x] README / docs / demo 口径一致
 - [ ] 测试覆盖受控 / 非受控 / CSS 变量优先级 / 时序 / 约束
 - [x] 无预留变量公开承诺

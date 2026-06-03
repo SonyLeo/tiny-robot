@@ -91,12 +91,7 @@ function closeFloating() {
 .layout-floating-layout {
   --tr-layout-height: 100%;
   --tr-layout-content-max-width: none;
-  --tr-layout-main-max-width: none;
-  --tr-layout-header-max-width: none;
-  --tr-layout-footer-max-width: none;
-  --tr-layout-header-padding-inline: 0;
-  --tr-layout-main-padding-inline: 0;
-  --tr-layout-footer-padding-inline: 0;
+  --tr-layout-inner-padding-inline: 0;
   --tr-layout-inner-padding-block: 0;
   --tr-layout-surface-radius: 26px;
   --tr-layout-surface-shadow: 0 24px 60px color-mix(in srgb, var(--vp-c-text-1, #111827) 14%, transparent);

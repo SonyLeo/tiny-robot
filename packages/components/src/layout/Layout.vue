@@ -223,10 +223,6 @@ const toAriaHidden = (hidden: boolean) => (hidden ? 'true' : undefined)
 }
 
 .tr-layout-surface {
-  --border-color: var(--tr-layout-surface-border-color);
-  --outline-color: var(--tr-layout-surface-outline-color);
-  --drag-bar-top: var(--tr-layout-surface-drag-bar-top);
-
   position: relative;
   width: 100%;
   min-height: 0;
@@ -255,7 +251,7 @@ const toAriaHidden = (hidden: boolean) => (hidden ? 'true' : undefined)
       box-sizing: border-box;
       overflow: hidden;
       border-radius: inherit;
-      padding-top: calc(var(--tr-layout-surface-drag-hit-height) + var(--drag-bar-top));
+      padding-top: calc(var(--drag-hit-height) + var(--drag-bar-top));
     }
   }
 
@@ -267,8 +263,8 @@ const toAriaHidden = (hidden: boolean) => (hidden ? 'true' : undefined)
     display: flex;
     align-items: center;
     justify-content: center;
-    width: var(--tr-layout-surface-drag-hit-width);
-    height: var(--tr-layout-surface-drag-hit-height);
+    width: var(--drag-hit-width);
+    height: var(--drag-hit-height);
     transform: translateX(-50%);
     touch-action: none;
     user-select: none;
@@ -291,20 +287,20 @@ const toAriaHidden = (hidden: boolean) => (hidden ? 'true' : undefined)
       content: '';
       position: relative;
       display: block;
-      width: var(--tr-layout-surface-drag-pill-width);
-      height: var(--tr-layout-surface-drag-pill-height);
+      width: var(--drag-pill-width);
+      height: var(--drag-pill-height);
       border-radius: 999px;
-      background: var(--tr-layout-surface-drag-pill-bg);
-      box-shadow: var(--tr-layout-surface-drag-pill-shadow);
+      background: var(--drag-pill-bg);
+      box-shadow: var(--drag-pill-shadow);
     }
 
     &--draggable {
       cursor: grab;
 
       &:hover::before {
-        background: var(--tr-layout-surface-drag-hover-bg);
-        border-color: var(--tr-layout-surface-drag-hover-border);
-        box-shadow: var(--tr-layout-surface-drag-hover-shadow);
+        background: var(--drag-hover-bg);
+        border-color: var(--drag-hover-border);
+        box-shadow: var(--drag-hover-shadow);
       }
     }
   }
@@ -350,12 +346,8 @@ const toAriaHidden = (hidden: boolean) => (hidden ? 'true' : undefined)
   /* 组件局部桥接变量 */
   --left-width: 0px;
   --right-width: 0px;
-  --left-dock-width: var(--tr-layout-left-dock-width);
   --left-rail-width: 0px;
-  --right-dock-width: var(--tr-layout-right-dock-width);
   --right-rail-width: 0px;
-  --left-drawer-width: var(--tr-layout-left-drawer-width);
-  --right-drawer-width: var(--tr-layout-right-drawer-width);
 }
 
 .tr-layout {
@@ -377,8 +369,8 @@ const toAriaHidden = (hidden: boolean) => (hidden ? 'true' : undefined)
   height: var(--tr-layout-height, 100dvh);
   overflow: hidden;
   background: var(--tr-layout-bg);
-  color: var(--tr-layout-text-primary);
-  transition: grid-template-columns var(--tr-layout-transition-duration, 220ms) var(--tr-layout-transition-easing, ease);
+  color: var(--tr-text-primary);
+  transition: grid-template-columns var(--transition-duration) var(--transition-easing);
 
   &--resizing {
     cursor: col-resize;
@@ -451,28 +443,28 @@ const toAriaHidden = (hidden: boolean) => (hidden ? 'true' : undefined)
   }
 
   &__header-inner {
-    max-width: var(--tr-layout-header-max-width, var(--tr-layout-content-max-width, 960px));
-    margin-inline-start: var(--tr-layout-header-margin-inline-start, auto);
-    margin-inline-end: var(--tr-layout-header-margin-inline-end, auto);
-    padding-inline: var(--tr-layout-header-padding-inline, var(--tr-layout-inner-padding-inline));
+    max-width: var(--tr-layout-content-max-width, 960px);
+    margin-inline-start: auto;
+    margin-inline-end: auto;
+    padding-inline: var(--tr-layout-inner-padding-inline);
     padding-top: max(var(--tr-layout-inner-padding-block), env(safe-area-inset-top));
     padding-bottom: var(--tr-layout-inner-padding-block);
   }
 
   &__main-inner {
-    max-width: var(--tr-layout-main-max-width, var(--tr-layout-content-max-width, 960px));
-    margin-inline-start: var(--tr-layout-main-margin-inline-start, auto);
-    margin-inline-end: var(--tr-layout-main-margin-inline-end, auto);
-    padding-inline: var(--tr-layout-main-padding-inline, var(--tr-layout-inner-padding-inline));
+    max-width: var(--tr-layout-content-max-width, 960px);
+    margin-inline-start: auto;
+    margin-inline-end: auto;
+    padding-inline: var(--tr-layout-inner-padding-inline);
     min-height: 100%;
     height: 100%;
   }
 
   &__footer-inner {
-    max-width: var(--tr-layout-footer-max-width, var(--tr-layout-content-max-width, 960px));
-    margin-inline-start: var(--tr-layout-footer-margin-inline-start, auto);
-    margin-inline-end: var(--tr-layout-footer-margin-inline-end, auto);
-    padding-inline: var(--tr-layout-footer-padding-inline, var(--tr-layout-inner-padding-inline));
+    max-width: var(--tr-layout-content-max-width, 960px);
+    margin-inline-start: auto;
+    margin-inline-end: auto;
+    padding-inline: var(--tr-layout-inner-padding-inline);
     padding-top: var(--tr-layout-inner-padding-block);
     padding-bottom: max(var(--tr-layout-inner-padding-block), env(safe-area-inset-bottom));
   }
@@ -480,7 +472,7 @@ const toAriaHidden = (hidden: boolean) => (hidden ? 'true' : undefined)
   &__backdrop {
     position: absolute;
     inset: 0;
-    z-index: calc(var(--tr-layout-z-index-overlay) - 1);
+    z-index: calc(var(--overlay-z-index) - 1);
     border: 0;
     background: var(--tr-layout-overlay-bg);
     opacity: 0;
@@ -488,8 +480,8 @@ const toAriaHidden = (hidden: boolean) => (hidden ? 'true' : undefined)
     pointer-events: none;
     cursor: pointer;
     transition:
-      opacity var(--tr-layout-transition-duration, 220ms) var(--tr-layout-transition-easing, ease),
-      visibility var(--tr-layout-transition-duration, 220ms) var(--tr-layout-transition-easing, ease);
+      opacity var(--transition-duration) var(--transition-easing),
+      visibility var(--transition-duration) var(--transition-easing);
 
     &--active {
       opacity: 1;
@@ -542,7 +534,7 @@ const toAriaHidden = (hidden: boolean) => (hidden ? 'true' : undefined)
       grid-area: auto;
       top: 0;
       bottom: 0;
-      z-index: var(--tr-layout-z-index-overlay);
+      z-index: var(--overlay-z-index);
       max-width: 100%;
       overflow: hidden;
       visibility: hidden;
@@ -550,8 +542,8 @@ const toAriaHidden = (hidden: boolean) => (hidden ? 'true' : undefined)
       box-shadow: var(--tr-layout-panel-shadow);
       will-change: transform;
       transition:
-        transform var(--tr-layout-transition-duration, 220ms) var(--tr-layout-transition-easing, ease),
-        visibility var(--tr-layout-transition-duration, 220ms) var(--tr-layout-transition-easing, ease);
+        transform var(--transition-duration) var(--transition-easing),
+        visibility var(--transition-duration) var(--transition-easing);
 
       &.tr-layout__aside--left {
         --drawer-width: var(--tr-layout-drawer-width, var(--left-drawer-width));

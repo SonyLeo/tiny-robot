@@ -69,7 +69,7 @@ const { showScrollbar, rootClass, thumbStyle, setHovering, startThumbDrag } = us
   &__scrollbar {
     position: absolute;
     top: var(--tr-layout-inner-padding-block);
-    right: var(--tr-layout-main-scrollbar-inline-end);
+    right: var(--scrollbar-inline-end);
     bottom: var(--tr-layout-inner-padding-block);
     width: var(--tr-layout-main-scrollbar-width);
     border-radius: 999px;
@@ -84,8 +84,8 @@ const { showScrollbar, rootClass, thumbStyle, setHovering, startThumbDrag } = us
 
   &__scrollbar-thumb {
     position: absolute;
-    left: var(--tr-layout-main-scrollbar-thumb-inset);
-    right: var(--tr-layout-main-scrollbar-thumb-inset);
+    left: var(--scrollbar-thumb-inset);
+    right: var(--scrollbar-thumb-inset);
     min-height: 36px;
     border-radius: 999px;
     background: var(--tr-layout-main-scrollbar-thumb-bg);

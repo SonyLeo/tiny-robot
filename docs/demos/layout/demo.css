@@ -16,12 +16,7 @@
 .layout-demo-layout {
   --tr-layout-height: 100%;
   --tr-layout-content-max-width: none;
-  --tr-layout-main-max-width: none;
-  --tr-layout-header-max-width: none;
-  --tr-layout-footer-max-width: none;
-  --tr-layout-header-padding-inline: 0;
-  --tr-layout-main-padding-inline: 0;
-  --tr-layout-footer-padding-inline: 0;
+  --tr-layout-inner-padding-inline: 0;
   --tr-layout-inner-padding-block: 0;
   --tr-layout-main-bg: var(--vp-c-bg, var(--tr-container-bg-default, #ffffff));
   --tr-layout-header-bg: var(--vp-c-bg, var(--tr-container-bg-default, #ffffff));

@@ -218,17 +218,6 @@ test.describe('Layout 组件测试 - Aside', () => {
     expect(minClampedWidth).toBeLessThanOrEqual(244)
   })
 
-  test('Runtime fallback: 无显式 width 时应消费最新 dock token 默认值', async ({ page }) => {
-    await openAsideStateFixtures(page)
-
-    const fixture = page.getByTestId('token-aside-fixture')
-    const leftAside = fixture.locator(layoutSelectors.leftAside)
-    const width = await getWidth(leftAside)
-
-    expect(width).toBeGreaterThanOrEqual(372)
-    expect(width).toBeLessThanOrEqual(380)
-  })
-
   test('CSS vars: drawer width - 应按实例变量生效，且双 drawer 打开时保持互斥', async ({ page }) => {
     await openAsideStateFixtures(page)
 

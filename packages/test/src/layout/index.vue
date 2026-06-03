@@ -366,19 +366,13 @@ function resetFloating() {
 .layout-demo__layout {
   --tr-layout-height: 100%;
   --tr-layout-content-max-width: none;
-  --tr-layout-main-max-width: none;
-  --tr-layout-header-max-width: none;
-  --tr-layout-footer-max-width: none;
-  --tr-layout-header-padding-inline: 0;
-  --tr-layout-main-padding-inline: 0;
-  --tr-layout-footer-padding-inline: 0;
+  --tr-layout-inner-padding-inline: 0;
   --tr-layout-inner-padding-block: 0;
   --tr-layout-left-bg: #f8fafc;
   --tr-layout-right-bg: #f8fafc;
   --tr-layout-header-bg: #ffffff;
   --tr-layout-main-bg: #ffffff;
   --tr-layout-footer-bg: #ffffff;
-  --tr-layout-main-scrollbar-inline-end: 4px;
   height: 100%;
 }
 

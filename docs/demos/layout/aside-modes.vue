@@ -6,7 +6,6 @@ import './demo.css'
 const leftOpen = ref(true)
 const rightOpen = ref(false)
 const leftWidth = ref(220)
-const rightWidth = ref(280)
 
 function toggleLeftAside() {
   leftOpen.value = !leftOpen.value
@@ -64,13 +63,7 @@ function openRightAside() {
         </template>
 
         <template #right-aside>
-          <TrLayout.Aside
-            placement="right"
-            mode="drawer"
-            v-model:open="rightOpen"
-            v-model:width="rightWidth"
-            class="layout-aside-demo__drawer"
-          >
+          <TrLayout.Aside placement="right" mode="drawer" v-model:open="rightOpen" class="layout-aside-demo__drawer">
             <div class="layout-demo-panel">
               <div class="layout-demo-panel__header">
                 <strong class="layout-demo-copy">右侧 Drawer</strong>

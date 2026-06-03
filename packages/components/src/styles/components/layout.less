@@ -11,52 +11,42 @@
     main-bg: var(--tr-container-bg-default);
     footer-bg: var(--tr-container-bg-default);
     divider-color: var(--tr-border-color-disabled);
-    text-primary: var(--tr-text-primary);
+    content-max-width: 960px;
+    inner-padding-inline: 16px;
+    inner-padding-block: 12px;
+    main-min-width: 320px;
+    panel-shadow: 0 20px 48px rgba(15, 23, 42, 0.18);
+    overlay-bg: rgba(15, 23, 42, 0.42);
+  };
+
+  @surface-vars: {
+    z-index: calc(var(--tr-z-index-drawer, 1000) + 1);
+    radius: 24px;
+    shadow: 0 28px 72px rgba(15, 23, 42, 0.2);
+  };
+
+  @main-vars: {
+    scrollbar-width: 12px;
+    scrollbar-thumb-bg: color-mix(in srgb, var(--tr-text-primary, #111827) 18%, transparent);
+    scrollbar-thumb-bg-hover: color-mix(in srgb, var(--tr-text-primary, #111827) 28%, transparent);
+    scrollbar-thumb-bg-active: color-mix(in srgb, var(--tr-text-primary, #111827) 36%, transparent);
+  };
+
+  @layout-private-vars: {
+    overlay-z-index: var(--tr-z-index-drawer, 1000);
     transition-duration: 220ms;
     transition-easing: ease;
     left-dock-width: 300px;
     right-dock-width: 320px;
     left-drawer-width: 300px;
     right-drawer-width: 320px;
-    aside-hidden-offset: 12px;
-    main-min-width: 320px;
-    resize-trigger-size: 6px;
-    resize-line-color: transparent;
-    resize-line-hover-color: color-mix(in srgb, var(--tr-color-primary, #1476ff) 32%, transparent);
-    resize-line-active-color: color-mix(in srgb, var(--tr-color-primary, #1476ff) 66%, transparent);
-    resize-indicator-width: 6px;
-    resize-indicator-height: 22px;
-    resize-indicator-bg: #ffffff;
-    resize-indicator-border: color-mix(in srgb, var(--tr-text-primary, #111827) 10%, transparent);
-    resize-indicator-active-bg: color-mix(in srgb, var(--tr-color-primary, #1476ff) 72%, #ffffff);
-    resize-indicator-active-border: color-mix(in srgb, var(--tr-color-primary, #1476ff) 88%, #ffffff);
-    resize-indicator-active-shadow: 0 0 0 4px color-mix(in srgb, var(--tr-color-primary-light, #deecff) 56%, transparent);
-    resize-indicator-idle-opacity: 0;
-    resize-indicator-idle-offset: 4px;
-    content-max-width: 960px;
-    inner-padding-inline: 16px;
-    inner-padding-block: 12px;
-    header-max-width: var(--tr-layout-content-max-width);
-    main-max-width: var(--tr-layout-content-max-width);
-    footer-max-width: var(--tr-layout-content-max-width);
-    header-padding-inline: var(--tr-layout-inner-padding-inline);
-    main-padding-inline: var(--tr-layout-inner-padding-inline);
-    footer-padding-inline: var(--tr-layout-inner-padding-inline);
-    header-margin-inline-start: auto;
-    header-margin-inline-end: auto;
-    main-margin-inline-start: auto;
-    main-margin-inline-end: auto;
-    footer-margin-inline-start: auto;
-    footer-margin-inline-end: auto;
-    panel-shadow: 0 20px 48px rgba(15, 23, 42, 0.18);
-    overlay-bg: rgba(15, 23, 42, 0.42);
-    z-index-overlay: var(--tr-z-index-drawer, 1000);
   };
 
-  @surface-vars: {
-    z-index: calc(var(--tr-layout-z-index-overlay) + 1);
-    radius: 24px;
-    shadow: 0 28px 72px rgba(15, 23, 42, 0.2);
+  @aside-private-vars: {
+    hidden-offset: 12px;
+  };
+
+  @surface-private-vars: {
     border-color: color-mix(in srgb, var(--tr-text-primary, #111827) 6%, transparent);
     outline-color: color-mix(in srgb, var(--tr-container-bg-default, #ffffff) 52%, transparent);
     drag-bar-top: 8px;
@@ -69,26 +59,41 @@
     drag-hover-bg: color-mix(in srgb, var(--tr-container-bg-default, #ffffff) 88%, transparent);
     drag-hover-border: color-mix(in srgb, var(--tr-text-primary, #111827) 8%, transparent);
     drag-hover-shadow: 0 10px 24px rgba(15, 23, 42, 0.1);
-    resize-hit-area-size: 12px;
-    resize-indicator-width: var(--tr-layout-resize-indicator-width);
-    resize-indicator-height: var(--tr-layout-resize-indicator-height);
-    resize-indicator-bg: var(--tr-layout-resize-indicator-bg);
-    resize-indicator-border: var(--tr-layout-resize-indicator-border);
-    resize-indicator-active-bg: var(--tr-layout-resize-indicator-active-bg);
-    resize-indicator-active-border: var(--tr-layout-resize-indicator-active-border);
-    resize-indicator-active-shadow: var(--tr-layout-resize-indicator-active-shadow);
-    resize-indicator-idle-opacity: 0;
-    resize-indicator-hover-opacity: 1;
-    resize-indicator-idle-offset: 6px;
   };
 
-  @main-vars: {
-    scrollbar-width: 12px;
+  @resize-trigger-private-vars: {
+    trigger-size: 6px;
+    line-color: transparent;
+    line-hover-color: color-mix(in srgb, var(--tr-color-primary, #1476ff) 32%, transparent);
+    line-active-color: color-mix(in srgb, var(--tr-color-primary, #1476ff) 66%, transparent);
+    indicator-width: 6px;
+    indicator-height: 22px;
+    indicator-bg: #ffffff;
+    indicator-border: color-mix(in srgb, var(--tr-text-primary, #111827) 10%, transparent);
+    indicator-active-bg: color-mix(in srgb, var(--tr-color-primary, #1476ff) 72%, #ffffff);
+    indicator-active-border: color-mix(in srgb, var(--tr-color-primary, #1476ff) 88%, #ffffff);
+    indicator-active-shadow: 0 0 0 4px color-mix(in srgb, var(--tr-color-primary-light, #deecff) 56%, transparent);
+    indicator-idle-opacity: 0;
+    indicator-idle-offset: 4px;
+  };
+
+  @surface-resize-private-vars: {
+    hit-area-size: 12px;
+    indicator-width: 6px;
+    indicator-height: 22px;
+    indicator-bg: #ffffff;
+    indicator-border: color-mix(in srgb, var(--tr-text-primary, #111827) 10%, transparent);
+    indicator-active-bg: color-mix(in srgb, var(--tr-color-primary, #1476ff) 72%, #ffffff);
+    indicator-active-border: color-mix(in srgb, var(--tr-color-primary, #1476ff) 88%, #ffffff);
+    indicator-active-shadow: 0 0 0 4px color-mix(in srgb, var(--tr-color-primary-light, #deecff) 56%, transparent);
+    indicator-idle-opacity: 0;
+    indicator-hover-opacity: 1;
+    indicator-idle-offset: 6px;
+  };
+
+  @main-private-vars: {
     scrollbar-inline-end: 4px;
     scrollbar-thumb-inset: 2px;
-    scrollbar-thumb-bg: color-mix(in srgb, var(--tr-text-primary, #111827) 18%, transparent);
-    scrollbar-thumb-bg-hover: color-mix(in srgb, var(--tr-text-primary, #111827) 28%, transparent);
-    scrollbar-thumb-bg-active: color-mix(in srgb, var(--tr-text-primary, #111827) 36%, transparent);
   };
 
   :root,
@@ -103,6 +108,42 @@
 
     each(@main-vars, {
       --@{main-prefix}-@{key}: @value;
+    });
+  }
+
+  .tr-layout {
+    each(@layout-private-vars, {
+      --@{key}: @value;
+    });
+  }
+
+  .tr-layout-aside {
+    each(@aside-private-vars, {
+      --@{key}: @value;
+    });
+  }
+
+  .tr-layout-surface {
+    each(@surface-private-vars, {
+      --@{key}: @value;
+    });
+  }
+
+  .tr-layout__resize-trigger {
+    each(@resize-trigger-private-vars, {
+      --@{key}: @value;
+    });
+  }
+
+  .tr-layout-surface__resize-trigger {
+    each(@surface-resize-private-vars, {
+      --@{key}: @value;
+    });
+  }
+
+  .tr-layout-main {
+    each(@main-private-vars, {
+      --@{key}: @value;
     });
   }
 }
