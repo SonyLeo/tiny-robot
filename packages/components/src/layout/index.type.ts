@@ -6,6 +6,22 @@ export type LayoutAsideCollapseEffect = 'overlay' | 'slide'
 export type LayoutMode = 'normal' | 'floating'
 export type LayoutLength = number | string
 
+type RequiredProp<Key extends string, Value> = {
+  [K in Key]: Value
+}
+
+type OptionalProp<Key extends string, Value> = {
+  [K in Key]?: Value
+}
+
+type ForbiddenProp<Key extends string> = {
+  [K in Key]?: never
+}
+
+type ExclusiveControllablePair<ControlledKey extends string, DefaultKey extends string, Value> =
+  | (RequiredProp<ControlledKey, Value> & ForbiddenProp<DefaultKey>)
+  | (ForbiddenProp<ControlledKey> & OptionalProp<DefaultKey, Value>)
+
 export interface LayoutAsideResizeEventDetail {
   placement: LayoutPlacement
   width: number
@@ -36,12 +52,20 @@ export type LayoutMainScrollHostComponent = Pick<ComponentPublicInstance, '$el'>
 
 export type LayoutMainScrollHost = HTMLElement | LayoutMainScrollHostComponent | null | undefined
 
-export interface LayoutProps {
+type LayoutModeState = ExclusiveControllablePair<'mode', 'defaultMode', LayoutMode>
+type LayoutFloatingState = ExclusiveControllablePair<'floating', 'defaultFloating', LayoutFloatingConfig>
+
+export interface LayoutRuntimeProps {
   mode?: LayoutMode
   defaultMode?: LayoutMode
   floating?: LayoutFloatingConfig
   defaultFloating?: LayoutFloatingConfig
 }
+
+// Keep runtime props flat for defineProps().
+// Vue's type-to-runtime conversion is AST-based and does not reliably support
+// full props-object conditional / exclusive unions here.
+export type LayoutProps = LayoutRuntimeProps & LayoutModeState & LayoutFloatingState
 
 export interface LayoutEmits {
   'update:mode': [value: LayoutMode]
@@ -57,18 +81,25 @@ export interface LayoutEmits {
   'aside-resize-end': [detail: LayoutAsideResizeEventDetail]
 }
 
-export interface LayoutAsideProps {
+interface LayoutAsideBaseProps {
   placement: LayoutPlacement
   mode?: LayoutAsideMode
-  open?: boolean
-  defaultOpen?: boolean
-  width?: number
-  defaultWidth?: number
   railWidth?: number
   minWidth?: number
   maxWidth?: number
   resizable?: boolean
   collapseEffect?: LayoutAsideCollapseEffect
+}
+
+type LayoutAsideOpenState = ExclusiveControllablePair<'open', 'defaultOpen', boolean>
+type LayoutAsideWidthState = ExclusiveControllablePair<'width', 'defaultWidth', number>
+
+export type LayoutAsideProps = LayoutAsideBaseProps & LayoutAsideOpenState & LayoutAsideWidthState
+export type LayoutAsideRuntimeProps = LayoutAsideBaseProps & {
+  open?: boolean
+  defaultOpen?: boolean
+  width?: number
+  defaultWidth?: number
 }
 
 export interface LayoutAsideEmits {
@@ -86,11 +117,11 @@ export interface LayoutMainProps {
 }
 
 export interface LayoutAsideSlots {
-  default?: (slotProps: { isOpen: boolean; isExpanded: boolean }) => VNode | VNode[]
+  default?: (slotProps: { isOpen: boolean }) => VNode | VNode[]
 }
 
 export interface LayoutAsideToggleSlots {
-  default?: (slotProps: { isOpen: boolean; isExpanded: boolean }) => VNode | VNode[]
+  default?: (slotProps: { isOpen: boolean }) => VNode | VNode[]
 }
 
 export interface LayoutSlots {

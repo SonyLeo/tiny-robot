@@ -8,6 +8,10 @@ interface UseLayoutViewStateOptions {
   isResizing: MaybeRefOrGetter<boolean>
 }
 
+function toPx(value: number | undefined): string | undefined {
+  return value === undefined ? undefined : `${value}px`
+}
+
 function hasRenderableValue(value: unknown): boolean {
   if (value == null) {
     return false
@@ -63,21 +67,25 @@ export function useLayoutViewState(options: UseLayoutViewStateOptions) {
 
   const layoutStyle = computed<Record<string, string>>(() => {
     const style: Record<string, string> = {}
+    const leftDockWidth = toPx(options.left.width)
+    const leftRailWidth = toPx(options.left.railWidth)
+    const rightDockWidth = toPx(options.right.width)
+    const rightRailWidth = toPx(options.right.railWidth)
 
-    if (options.left.widthStyle) {
-      style['--left-dock-width'] = options.left.widthStyle
+    if (leftDockWidth) {
+      style['--left-dock-width'] = leftDockWidth
     }
 
-    if (options.left.railWidthStyle) {
-      style['--left-rail-width'] = options.left.railWidthStyle
+    if (leftRailWidth) {
+      style['--left-rail-width'] = leftRailWidth
     }
 
-    if (options.right.widthStyle) {
-      style['--right-dock-width'] = options.right.widthStyle
+    if (rightDockWidth) {
+      style['--right-dock-width'] = rightDockWidth
     }
 
-    if (options.right.railWidthStyle) {
-      style['--right-rail-width'] = options.right.railWidthStyle
+    if (rightRailWidth) {
+      style['--right-rail-width'] = rightRailWidth
     }
 
     return style
@@ -86,11 +94,11 @@ export function useLayoutViewState(options: UseLayoutViewStateOptions) {
   const layoutClass = computed(() => ({
     'tr-layout--left-dock': hasLeftAside() && options.left.isDock,
     'tr-layout--left-drawer': hasLeftAside() && options.left.isDrawer,
-    'tr-layout--left-expanded': hasLeftAside() && options.left.isExpanded,
+    'tr-layout--left-expanded': hasLeftAside() && options.left.isOpen,
     'tr-layout--left-rail': hasLeftAside() && options.left.isRail,
     'tr-layout--right-dock': hasRightAside() && options.right.isDock,
     'tr-layout--right-drawer': hasRightAside() && options.right.isDrawer,
-    'tr-layout--right-expanded': hasRightAside() && options.right.isExpanded,
+    'tr-layout--right-expanded': hasRightAside() && options.right.isOpen,
     'tr-layout--right-rail': hasRightAside() && options.right.isRail,
     'tr-layout--resizing': toValue(options.isResizing),
   }))
@@ -99,7 +107,7 @@ export function useLayoutViewState(options: UseLayoutViewStateOptions) {
     'tr-layout__aside--active': hasLeftAside(),
     'tr-layout__aside--dock': options.left.isDock,
     'tr-layout__aside--drawer': options.left.isDrawer,
-    'tr-layout__aside--expanded': options.left.isExpanded,
+    'tr-layout__aside--expanded': options.left.isOpen,
     'tr-layout__aside--rail': options.left.isRail,
     'tr-layout__aside--hidden': options.left.isHidden,
   }))
@@ -108,7 +116,7 @@ export function useLayoutViewState(options: UseLayoutViewStateOptions) {
     'tr-layout__aside--active': hasRightAside(),
     'tr-layout__aside--dock': options.right.isDock,
     'tr-layout__aside--drawer': options.right.isDrawer,
-    'tr-layout__aside--expanded': options.right.isExpanded,
+    'tr-layout__aside--expanded': options.right.isOpen,
     'tr-layout__aside--rail': options.right.isRail,
     'tr-layout__aside--hidden': options.right.isHidden,
   }))

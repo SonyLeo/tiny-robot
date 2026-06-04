@@ -1,7 +1,8 @@
-import { computed } from 'vue'
-import type { LayoutEmits, LayoutFloatingConfig, LayoutMode, LayoutProps } from '../index.type'
+import { computed, getCurrentInstance } from 'vue'
+import type { LayoutEmits, LayoutFloatingConfig, LayoutMode, LayoutRuntimeProps } from '../index.type'
 import type { UseControllableLayoutStateResult } from '../internal.type'
 import { useControllableState } from './useControllableState'
+import { hasVNodeProp } from '../utils/vnodeProp'
 
 type EmitFn = <K extends keyof LayoutEmits>(event: K, ...args: LayoutEmits[K]) => void
 
@@ -21,16 +22,24 @@ function isFloatingConfigEqual(
   )
 }
 
-export function useControllableLayoutState(props: LayoutProps, emit: EmitFn): UseControllableLayoutStateResult {
+export function useControllableLayoutState(props: LayoutRuntimeProps, emit: EmitFn): UseControllableLayoutStateResult {
+  const instance = getCurrentInstance()
+  const modeProvided = hasVNodeProp(instance, 'mode')
+  const defaultModeProvided = hasVNodeProp(instance, 'defaultMode')
+  const floatingProvided = hasVNodeProp(instance, 'floating')
+  const defaultFloatingProvided = hasVNodeProp(instance, 'defaultFloating')
+
   const modeState = useControllableState<LayoutMode>({
-    value: () => props.mode,
-    defaultValue: () => props.defaultMode ?? 'normal',
+    value: () => ('mode' in props ? props.mode : undefined),
+    defaultValue: () => (defaultModeProvided ? props.defaultMode : 'normal'),
+    isControlled: modeProvided,
     onChange: (nextMode) => emit('update:mode', nextMode),
   })
 
   const floatingState = useControllableState<LayoutFloatingConfig>({
-    value: () => props.floating,
-    defaultValue: () => props.defaultFloating,
+    value: () => ('floating' in props ? props.floating : undefined),
+    defaultValue: () => (defaultFloatingProvided ? props.defaultFloating : undefined),
+    isControlled: floatingProvided,
     onChange: (nextFloating) => emit('update:floating', nextFloating),
   })
 

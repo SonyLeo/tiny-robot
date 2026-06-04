@@ -1,13 +1,6 @@
-import { expect, test, type Locator, type Page } from '@playwright/test'
-import { openLayoutPage } from '../helpers'
+import type { Locator } from '@playwright/test'
+import { expect, test } from '../helpers'
 import { layoutSelectors } from '../selectors'
-
-async function openCssVarFixtures(page: Page) {
-  await page.getByTestId('show-css-var-fixtures-btn').click()
-  await expect(page.getByTestId('css-vars-normal-surface')).toBeVisible()
-  await expect(page.getByTestId('css-vars-scrollbar-surface')).toBeVisible()
-  await expect(page.getByTestId('css-vars-floating-surface')).toHaveClass(/tr-layout-surface--floating/)
-}
 
 async function readStyle(locator: Locator, prop: string) {
   return locator.evaluate((el, name) => getComputedStyle(el).getPropertyValue(name).trim(), prop)
@@ -24,9 +17,9 @@ async function getBox(locator: Locator) {
 }
 
 test.describe('Layout 组件测试 - CSS Variables', () => {
-  test.beforeEach(async ({ page }) => {
-    await openLayoutPage(page)
-    await openCssVarFixtures(page)
+  test.beforeEach(async ({ layout }) => {
+    await layout.showCssVarFixtures()
+    await layout.expectSurfaceMode('floating', layout.page.getByTestId('css-vars-floating-surface'))
   })
 
   test('公开变量: --tr-layout-height / --tr-layout-bg - 应影响 surface 实际高度和背景', async ({ page }) => {

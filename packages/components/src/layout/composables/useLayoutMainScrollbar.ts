@@ -21,6 +21,7 @@ interface ThumbDragState {
   pointerId: number
   startY: number
   startScrollTop: number
+  bodyEl: HTMLBodyElement
   bodyState: BodyInteractionState
 }
 
@@ -124,7 +125,7 @@ export function useLayoutMainScrollbar(options: UseLayoutMainScrollbarOptions) {
       return
     }
 
-    restoreBodyInteraction(document.body, dragState.bodyState)
+    restoreBodyInteraction(dragState.bodyEl, dragState.bodyState)
     thumbDragState.value = null
   }
 
@@ -134,12 +135,18 @@ export function useLayoutMainScrollbar(options: UseLayoutMainScrollbarOptions) {
       return
     }
 
+    const bodyEl = scrollHost.ownerDocument.body
+    if (!(bodyEl instanceof HTMLBodyElement)) {
+      return
+    }
+
     event.preventDefault()
     thumbDragState.value = {
       pointerId: event.pointerId,
       startY: event.clientY,
       startScrollTop: scrollHost.scrollTop,
-      bodyState: lockBodyInteraction(document.body, 'grabbing'),
+      bodyEl,
+      bodyState: lockBodyInteraction(bodyEl, 'grabbing'),
     }
   }
 
@@ -184,7 +191,7 @@ export function useLayoutMainScrollbar(options: UseLayoutMainScrollbarOptions) {
     () => {
       scheduleSync()
     },
-    { childList: true, subtree: true, characterData: true, attributes: true },
+    { childList: true, subtree: true, characterData: true },
   )
 
   watch(

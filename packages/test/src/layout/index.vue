@@ -1,10 +1,62 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { onBeforeUnmount, ref, watchEffect } from 'vue'
 import { BubbleList, TrLayout } from '@opentiny/tiny-robot'
-import type { LayoutFloatingConfig, LayoutMainScrollHost } from '@opentiny/tiny-robot'
+import type {
+  LayoutAsideResizeEventDetail,
+  LayoutFloatingConfig,
+  LayoutFloatingDragEventDetail,
+  LayoutFloatingResizeEventDetail,
+  LayoutMainScrollHost,
+} from '@opentiny/tiny-robot'
 import AsideStateFixtures from './fixtures/AsideStateFixtures.vue'
 import FloatingStateFixtures from './fixtures/FloatingStateFixtures.vue'
 import LayoutCssVarFixtures from './fixtures/LayoutCssVarFixtures.vue'
+
+interface LayoutMetrics {
+  leftResizeStart: number
+  leftResizeEnd: number
+  rightResizeStart: number
+  rightResizeEnd: number
+  floatingDragStart: number
+  floatingDrag: number
+  floatingDragEnd: number
+  floatingLeftResizeStart: number
+  floatingLeftResizeEnd: number
+  floatingRightResizeStart: number
+  floatingRightResizeEnd: number
+  leftToggleActions: number
+  rightToggleActions: number
+  modeToggleActions: number
+}
+
+interface LayoutWidths {
+  left: number
+  right: number
+  floating: number
+}
+
+type LayoutEventPhase = 'start' | 'progress' | 'end'
+
+type AsideResizeLogEntry = LayoutAsideResizeEventDetail & { phase: LayoutEventPhase }
+type FloatingDragLogEntry = LayoutFloatingDragEventDetail & { phase: LayoutEventPhase }
+type FloatingResizeLogEntry = LayoutFloatingResizeEventDetail & { phase: LayoutEventPhase }
+
+interface LayoutHarnessSnapshot {
+  metrics: LayoutMetrics
+  widths: LayoutWidths
+  messagesCount: number
+  logs: {
+    asideResize: AsideResizeLogEntry[]
+    floatingDrag: FloatingDragLogEntry[]
+    floatingResize: FloatingResizeLogEntry[]
+  }
+}
+
+declare global {
+  interface Window {
+    __TR_LAYOUT_HARNESS__?: LayoutHarnessSnapshot
+  }
+}
 
 const mode = ref<'normal' | 'floating'>('normal')
 const scrollHostRef = ref<LayoutMainScrollHost>(null)
@@ -37,10 +89,7 @@ const floating = ref<LayoutFloatingConfig>({
   maxWidth: 720,
 })
 
-const leftExpanded = computed(() => String(leftOpen.value))
-const rightExpanded = computed(() => String(rightOpen.value))
-
-const metrics = ref({
+const metrics = ref<LayoutMetrics>({
   leftResizeStart: 0,
   leftResizeEnd: 0,
   rightResizeStart: 0,
@@ -57,10 +106,16 @@ const metrics = ref({
   modeToggleActions: 0,
 })
 
-const widths = ref({
+const widths = ref<LayoutWidths>({
   left: 280,
   right: 320,
   floating: 520,
+})
+
+const eventLogs = ref<LayoutHarnessSnapshot['logs']>({
+  asideResize: [],
+  floatingDrag: [],
+  floatingResize: [],
 })
 
 const messages = ref(
@@ -163,6 +218,111 @@ function resetFloating() {
   floating.value = { ...floating.value, x: 96, y: 72, width: 520, height: 620 }
   widths.value.floating = 520
 }
+
+function pushAsideResizeLog(phase: LayoutEventPhase, detail: LayoutAsideResizeEventDetail) {
+  eventLogs.value.asideResize.push({ phase, ...detail })
+}
+
+function pushFloatingDragLog(phase: LayoutEventPhase, detail: LayoutFloatingDragEventDetail) {
+  eventLogs.value.floatingDrag.push({ phase, ...detail })
+}
+
+function pushFloatingResizeLog(phase: LayoutEventPhase, detail: LayoutFloatingResizeEventDetail) {
+  eventLogs.value.floatingResize.push({ phase, ...detail })
+}
+
+function handleAsideResizeStart(detail: LayoutAsideResizeEventDetail) {
+  if (detail.placement === 'left') {
+    metrics.value.leftResizeStart += 1
+  } else {
+    metrics.value.rightResizeStart += 1
+  }
+
+  pushAsideResizeLog('start', detail)
+}
+
+function handleAsideResize(detail: LayoutAsideResizeEventDetail) {
+  pushAsideResizeLog('progress', detail)
+}
+
+function handleAsideResizeEnd(detail: LayoutAsideResizeEventDetail) {
+  if (detail.placement === 'left') {
+    metrics.value.leftResizeEnd += 1
+    widths.value.left = detail.width
+  } else {
+    metrics.value.rightResizeEnd += 1
+    widths.value.right = detail.width
+  }
+
+  pushAsideResizeLog('end', detail)
+}
+
+function handleFloatingDragStart(detail: LayoutFloatingDragEventDetail) {
+  metrics.value.floatingDragStart += 1
+  pushFloatingDragLog('start', detail)
+}
+
+function handleFloatingDrag(detail: LayoutFloatingDragEventDetail) {
+  metrics.value.floatingDrag += 1
+  pushFloatingDragLog('progress', detail)
+}
+
+function handleFloatingDragEnd(detail: LayoutFloatingDragEventDetail) {
+  metrics.value.floatingDragEnd += 1
+  pushFloatingDragLog('end', detail)
+}
+
+function handleFloatingResizeStart(detail: LayoutFloatingResizeEventDetail) {
+  if (detail.edge === 'left') {
+    metrics.value.floatingLeftResizeStart += 1
+  } else {
+    metrics.value.floatingRightResizeStart += 1
+  }
+
+  pushFloatingResizeLog('start', detail)
+}
+
+function handleFloatingResize(detail: LayoutFloatingResizeEventDetail) {
+  widths.value.floating = detail.width
+  pushFloatingResizeLog('progress', detail)
+}
+
+function handleFloatingResizeEnd(detail: LayoutFloatingResizeEventDetail) {
+  widths.value.floating = detail.width
+
+  if (detail.edge === 'left') {
+    metrics.value.floatingLeftResizeEnd += 1
+  } else {
+    metrics.value.floatingRightResizeEnd += 1
+  }
+
+  pushFloatingResizeLog('end', detail)
+}
+
+watchEffect(() => {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  window.__TR_LAYOUT_HARNESS__ = {
+    metrics: { ...metrics.value },
+    widths: { ...widths.value },
+    messagesCount: messages.value.length,
+    logs: {
+      asideResize: eventLogs.value.asideResize.map((entry) => ({ ...entry })),
+      floatingDrag: eventLogs.value.floatingDrag.map((entry) => ({ ...entry })),
+      floatingResize: eventLogs.value.floatingResize.map((entry) => ({ ...entry })),
+    },
+  }
+})
+
+onBeforeUnmount(() => {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  delete window.__TR_LAYOUT_HARNESS__
+})
 </script>
 
 <template>
@@ -220,28 +380,6 @@ function resetFloating() {
         show css var fixtures
       </button>
     </div>
-
-    <div class="layout-demo__metrics">
-      <div data-testid="metric-left-resize-start">{{ metrics.leftResizeStart }}</div>
-      <div data-testid="metric-left-resize-end">{{ metrics.leftResizeEnd }}</div>
-      <div data-testid="metric-right-resize-start">{{ metrics.rightResizeStart }}</div>
-      <div data-testid="metric-right-resize-end">{{ metrics.rightResizeEnd }}</div>
-      <div data-testid="metric-floating-drag-start">{{ metrics.floatingDragStart }}</div>
-      <div data-testid="metric-floating-drag">{{ metrics.floatingDrag }}</div>
-      <div data-testid="metric-floating-drag-end">{{ metrics.floatingDragEnd }}</div>
-      <div data-testid="metric-floating-left-resize-start">{{ metrics.floatingLeftResizeStart }}</div>
-      <div data-testid="metric-floating-left-resize-end">{{ metrics.floatingLeftResizeEnd }}</div>
-      <div data-testid="metric-floating-right-resize-start">{{ metrics.floatingRightResizeStart }}</div>
-      <div data-testid="metric-floating-right-resize-end">{{ metrics.floatingRightResizeEnd }}</div>
-      <div data-testid="metric-left-toggle-actions">{{ metrics.leftToggleActions }}</div>
-      <div data-testid="metric-right-toggle-actions">{{ metrics.rightToggleActions }}</div>
-      <div data-testid="metric-mode-toggle-actions">{{ metrics.modeToggleActions }}</div>
-      <div data-testid="emitted-left-width">{{ widths.left }}</div>
-      <div data-testid="emitted-right-width">{{ widths.right }}</div>
-      <div data-testid="emitted-floating-width">{{ widths.floating }}</div>
-      <div data-testid="messages-count">{{ messages.length }}</div>
-    </div>
-
     <div class="layout-demo__host" data-testid="layout-demo-host">
       <TrLayout
         id="layout-demo-surface"
@@ -250,33 +388,15 @@ function resetFloating() {
         :mode="mode"
         :floating="floating"
         @update:floating="updateFloating"
-        @aside-resize-start="
-          ({ placement }) => (placement === 'left' ? metrics.leftResizeStart++ : metrics.rightResizeStart++)
-        "
-        @aside-resize-end="
-          ({ placement, width }) => {
-            if (placement === 'left') {
-              metrics.leftResizeEnd++
-              widths.left = width
-            } else {
-              metrics.rightResizeEnd++
-              widths.right = width
-            }
-          }
-        "
-        @floating-drag-start="metrics.floatingDragStart++"
-        @floating-drag="metrics.floatingDrag++"
-        @floating-drag-end="metrics.floatingDragEnd++"
-        @floating-resize-start="
-          ({ edge }) => (edge === 'left' ? metrics.floatingLeftResizeStart++ : metrics.floatingRightResizeStart++)
-        "
-        @floating-resize-end="
-          ({ edge, width }) => {
-            widths.floating = width
-            if (edge === 'left') metrics.floatingLeftResizeEnd++
-            else metrics.floatingRightResizeEnd++
-          }
-        "
+        @aside-resize-start="handleAsideResizeStart"
+        @aside-resize="handleAsideResize"
+        @aside-resize-end="handleAsideResizeEnd"
+        @floating-drag-start="handleFloatingDragStart"
+        @floating-drag="handleFloatingDrag"
+        @floating-drag-end="handleFloatingDragEnd"
+        @floating-resize-start="handleFloatingResizeStart"
+        @floating-resize="handleFloatingResize"
+        @floating-resize-end="handleFloatingResizeEnd"
       >
         <template #left-aside>
           <TrLayout.Aside
@@ -296,7 +416,6 @@ function resetFloating() {
           >
             <div class="layout-demo__aside-content" data-testid="left-aside-slot">
               <div class="layout-demo__aside-header">
-                <span data-testid="left-expanded-state">{{ leftExpanded }}</span>
                 <TrLayout.AsideToggle placement="left" data-testid="left-aside-toggle">
                   <template #default="{ isOpen }">
                     <span data-testid="left-toggle-slot">{{ isOpen ? 'left-open' : 'left-close' }}</span>
@@ -339,7 +458,6 @@ function resetFloating() {
           >
             <div class="layout-demo__aside-content" data-testid="right-aside-slot">
               <div class="layout-demo__aside-header">
-                <span data-testid="right-expanded-state">{{ rightExpanded }}</span>
                 <TrLayout.AsideToggle placement="right" data-testid="right-aside-toggle" />
               </div>
               <div class="layout-demo__aside-body">right aside content</div>
@@ -365,10 +483,6 @@ function resetFloating() {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-}
-
-.layout-demo__metrics {
-  display: none;
 }
 
 .layout-demo__host {

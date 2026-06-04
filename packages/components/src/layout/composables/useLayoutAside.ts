@@ -23,7 +23,6 @@ export function useLayoutAside(placement: MaybeRefOrGetter<LayoutPlacement>) {
   return {
     layoutMode: computed(() => panel.value.layoutMode),
     isOpen: computed(() => panel.value.isOpen),
-    isExpanded: computed(() => panel.value.isExpanded),
     isDock: computed(() => panel.value.isDock),
     isDrawer: computed(() => panel.value.isDrawer),
     isRail: computed(() => panel.value.isRail),

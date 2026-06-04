@@ -18,7 +18,7 @@ const blockedFloatingUpdates = ref(0)
 const blockedFloatingLastWidth = ref(420)
 const blockedFloatingLastX = ref(64)
 
-const defaultFloating: LayoutFloatingConfig = {
+const uncontrolledDefaultFloating = ref<LayoutFloatingConfig>({
   x: 560,
   y: 96,
   width: 420,
@@ -27,7 +27,7 @@ const defaultFloating: LayoutFloatingConfig = {
   resizable: true,
   minWidth: 320,
   maxWidth: 480,
-}
+})
 
 const uncontrolledFloatingUpdates = ref(0)
 const uncontrolledFloatingLastWidth = ref(420)
@@ -44,6 +44,15 @@ function handleUncontrolledFloating(next: LayoutFloatingConfig) {
   uncontrolledFloatingLastWidth.value =
     typeof next.width === 'number' ? next.width : uncontrolledFloatingLastWidth.value
   uncontrolledFloatingLastX.value = typeof next.x === 'number' ? next.x : uncontrolledFloatingLastX.value
+}
+
+function updateUncontrolledDefaultFloating() {
+  uncontrolledDefaultFloating.value = {
+    ...uncontrolledDefaultFloating.value,
+    x: 700,
+    y: 132,
+    width: 360,
+  }
 }
 </script>
 
@@ -76,11 +85,20 @@ function handleUncontrolledFloating(next: LayoutFloatingConfig) {
       data-surface-marker="uncontrolled-floating"
       class="floating-state-fixtures__layout"
       default-mode="floating"
-      :default-floating="defaultFloating"
+      :default-floating="uncontrolledDefaultFloating"
       @update:floating="handleUncontrolledFloating"
     >
       <template #main>
-        <div class="floating-state-fixtures__panel">uncontrolled floating</div>
+        <div class="floating-state-fixtures__panel">
+          <span>uncontrolled floating</span>
+          <button
+            type="button"
+            data-testid="uncontrolled-default-floating-update-btn"
+            @click="updateUncontrolledDefaultFloating"
+          >
+            update default floating
+          </button>
+        </div>
       </template>
     </TrLayout>
   </div>
@@ -98,8 +116,10 @@ function handleUncontrolledFloating(next: LayoutFloatingConfig) {
 }
 
 .floating-state-fixtures__panel {
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
   min-height: 100%;
   padding: 16px;
   box-sizing: border-box;

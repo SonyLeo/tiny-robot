@@ -8,14 +8,14 @@ import { useLayoutInteractions } from './composables/useLayoutInteractions'
 import { provideLayoutStore } from './composables/useLayout'
 import { useLayoutSurface } from './composables/useLayoutSurface'
 import { useLayoutViewState } from './composables/useLayoutViewState'
-import type { LayoutEmits, LayoutProps } from './index.type'
+import type { LayoutEmits, LayoutRuntimeProps } from './index.type'
 
 defineOptions({
   name: 'Layout',
   inheritAttrs: false,
 })
 
-const props = defineProps<LayoutProps>()
+const props = defineProps<LayoutRuntimeProps>()
 
 const emit = defineEmits<LayoutEmits>()
 const attrs = useAttrs()
@@ -99,6 +99,22 @@ const layoutRootStyle = computed(() => ({
   '--tr-layout-height': '100%',
 }))
 
+const surfaceMode = computed(() => (isFloating.value ? 'floating' : 'normal'))
+
+const resolveAsideMode = (isDrawer: boolean) => (isDrawer ? 'drawer' : 'dock')
+
+const resolveAsideState = (isOpen: boolean, isRail: boolean) => {
+  if (isOpen) {
+    return 'open'
+  }
+
+  if (isRail) {
+    return 'rail'
+  }
+
+  return 'closed'
+}
+
 const toAriaHidden = (hidden: boolean) => (hidden ? 'true' : undefined)
 </script>
 
@@ -112,6 +128,7 @@ const toAriaHidden = (hidden: boolean) => (hidden ? 'true' : undefined)
         :class="surfaceClass"
         :style="surfaceStyle"
         data-part="surface"
+        :data-mode="surfaceMode"
         :data-resizing-edge="activeResizeEdge ?? undefined"
       >
         <div
@@ -146,10 +163,11 @@ const toAriaHidden = (hidden: boolean) => (hidden ? 'true' : undefined)
           <div
             ref="leftAsideRef"
             class="tr-layout__aside tr-layout__aside--left"
-            :class="[leftAsideClass, left.containerClass]"
-            :style="left.containerStyle"
+            :class="leftAsideClass"
             data-part="aside"
             data-placement="left"
+            :data-mode="resolveAsideMode(left.isDrawer)"
+            :data-state="resolveAsideState(left.isOpen, left.isRail)"
             :data-resizable="leftResizeVisible() ? '' : undefined"
             :aria-hidden="toAriaHidden(leftAsideHidden())"
             :inert="leftAsideHidden()"
@@ -196,10 +214,11 @@ const toAriaHidden = (hidden: boolean) => (hidden ? 'true' : undefined)
           <div
             ref="rightAsideRef"
             class="tr-layout__aside tr-layout__aside--right"
-            :class="[rightAsideClass, right.containerClass]"
-            :style="right.containerStyle"
+            :class="rightAsideClass"
             data-part="aside"
             data-placement="right"
+            :data-mode="resolveAsideMode(right.isDrawer)"
+            :data-state="resolveAsideState(right.isOpen, right.isRail)"
             :data-resizable="rightResizeVisible() ? '' : undefined"
             :aria-hidden="toAriaHidden(rightAsideHidden())"
             :inert="rightAsideHidden()"
@@ -217,6 +236,7 @@ const toAriaHidden = (hidden: boolean) => (hidden ? 'true' : undefined)
             class="tr-layout__backdrop"
             :class="{ 'tr-layout__backdrop--active': isDrawerVisible }"
             data-part="backdrop"
+            :data-state="isDrawerVisible ? 'open' : 'closed'"
             type="button"
             :tabindex="isDrawerVisible ? 0 : -1"
             :aria-hidden="toAriaHidden(!isDrawerVisible)"
@@ -557,16 +577,12 @@ const toAriaHidden = (hidden: boolean) => (hidden ? 'true' : undefined)
         visibility var(--transition-duration) var(--transition-easing);
 
       &.tr-layout__aside--left {
-        --drawer-width: var(--tr-layout-drawer-width, var(--left-drawer-width));
         left: 0;
-        width: min(var(--drawer-width), 100%);
         transform: translateX(-100%);
       }
 
       &.tr-layout__aside--right {
-        --drawer-width: var(--tr-layout-drawer-width, var(--right-drawer-width));
         right: 0;
-        width: min(var(--drawer-width), 100%);
         transform: translateX(100%);
       }
 

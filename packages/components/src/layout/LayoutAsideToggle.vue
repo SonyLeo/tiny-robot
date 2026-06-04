@@ -9,11 +9,10 @@ defineOptions({
 
 const props = defineProps<LayoutAsideToggleProps>()
 
-const { isOpen, isExpanded, toggle } = useLayoutAside(() => props.placement)
+const { isOpen, toggle } = useLayoutAside(() => props.placement)
 
 const slotProps = computed(() => ({
   isOpen: isOpen.value,
-  isExpanded: isExpanded.value,
 }))
 
 const defaultAriaLabels = {

@@ -1,4 +1,4 @@
-import type { ClassValue, ComputedRef, MaybeRefOrGetter, StyleValue } from 'vue'
+import type { ComputedRef, MaybeRefOrGetter } from 'vue'
 import type { LayoutAsideMode, LayoutFloatingConfig, LayoutMode, LayoutPlacement } from './index.type'
 
 export interface LayoutPanelRegistration {
@@ -6,8 +6,6 @@ export interface LayoutPanelRegistration {
   layoutMode: MaybeRefOrGetter<LayoutAsideMode>
   isOpen: MaybeRefOrGetter<boolean>
   width: MaybeRefOrGetter<number | undefined>
-  containerClass?: MaybeRefOrGetter<ClassValue | undefined>
-  containerStyle?: MaybeRefOrGetter<StyleValue | undefined>
   railWidth: MaybeRefOrGetter<number | undefined>
   minWidth: MaybeRefOrGetter<number>
   maxWidth: MaybeRefOrGetter<number>
@@ -21,18 +19,13 @@ export interface LayoutPanelApi {
   isRegistered: boolean
   layoutMode: LayoutAsideMode
   isOpen: boolean
-  isExpanded: boolean
   isDock: boolean
   isDrawer: boolean
   isRail: boolean
   isHidden: boolean
   canResize: boolean
   width: number | undefined
-  widthStyle: string | undefined
-  containerClass: ClassValue | undefined
-  containerStyle: StyleValue | undefined
-  railWidth: number
-  railWidthStyle: string | undefined
+  railWidth: number | undefined
   minWidth: number
   maxWidth: number
   resizable: boolean

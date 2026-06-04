@@ -55,6 +55,8 @@ interface FloatingResizeState {
   bodyState: BodyInteractionState
 }
 
+type FloatingGeometry = Pick<LayoutFloatingConfig, 'x' | 'y' | 'width' | 'height'>
+
 export function useLayoutSurface(options: UseLayoutSurfaceOptions) {
   const activeResize = shallowRef<FloatingResizeState | null>(null)
   const pointerTarget = typeof window === 'undefined' ? undefined : window
@@ -76,51 +78,41 @@ export function useLayoutSurface(options: UseLayoutSurfaceOptions) {
     return toValue(options.floating)
   }
 
-  function getFloatingSnapshot(config = getCurrentFloatingConfig()): FloatingSnapshot {
-    return resolveFloatingSnapshot(config)
+  function resolveFloatingSnapshotFor(overrides?: Partial<FloatingGeometry>): FloatingSnapshot {
+    return resolveFloatingSnapshot({
+      ...(getCurrentFloatingConfig() ?? {}),
+      ...(overrides ?? {}),
+    })
   }
 
-  function getCommittedFloatingGeometry(config = getCurrentFloatingConfig()) {
-    return toCommittedFloatingConfig(getFloatingSnapshot(config))
+  function resolveFloatingGeometry(overrides?: Partial<FloatingGeometry>): FloatingGeometry {
+    return toCommittedFloatingConfig(resolveFloatingSnapshotFor(overrides))
   }
 
-  function commitFloatingGeometry(nextGeometry: Pick<LayoutFloatingConfig, 'x' | 'y' | 'width' | 'height'>): void {
-    const currentFloating = toValue(options.floating)
-    const nextFloating = {
+  function commitFloatingGeometry(overrides?: Partial<FloatingGeometry>): FloatingGeometry {
+    const currentFloating = getCurrentFloatingConfig()
+    const nextGeometry = resolveFloatingGeometry(overrides)
+
+    if (areFloatingGeometryEqual(currentFloating, nextGeometry)) {
+      return nextGeometry
+    }
+
+    options.commitFloating({
       ...(currentFloating ?? {}),
       ...nextGeometry,
-    }
+    })
 
-    if (areFloatingGeometryEqual(currentFloating, nextFloating)) {
-      return
-    }
-
-    options.commitFloating(nextFloating)
+    return nextGeometry
   }
 
-  function clampFloatingBounds(): void {
+  function syncFloatingGeometry(): void {
     if (!isFloating.value || isDragging.value || isResizing.value) {
       return
     }
 
-    const nextGeometry = getCommittedFloatingGeometry()
-
-    if (!areFloatingGeometryEqual(getCurrentFloatingConfig(), nextGeometry)) {
-      commitFloatingGeometry(nextGeometry)
-    }
-  }
-
-  function resolveDraggedFloatingGeometry(
-    nextX: number,
-    nextY: number,
-  ): Pick<LayoutFloatingConfig, 'x' | 'y' | 'width' | 'height'> {
-    const snapshot = getFloatingSnapshot()
-
-    return {
-      ...toCommittedFloatingConfig(snapshot),
-      x: clamp(nextX, DEFAULT_FLOATING_GAP, snapshot.xMax),
-      y: clamp(nextY, DEFAULT_FLOATING_TOP, snapshot.yMax),
-    }
+    const nextGeometry = commitFloatingGeometry()
+    x.value = nextGeometry.x ?? DEFAULT_FLOATING_GAP
+    y.value = nextGeometry.y ?? DEFAULT_FLOATING_TOP
   }
 
   function toFloatingDragDetail(
@@ -133,10 +125,13 @@ export function useLayoutSurface(options: UseLayoutSurfaceOptions) {
   }
 
   function applyDraggedPosition(nextX: number, nextY: number) {
-    const nextGeometry = resolveDraggedFloatingGeometry(nextX, nextY)
+    const snapshot = resolveFloatingSnapshotFor()
+    const nextGeometry = commitFloatingGeometry({
+      x: clamp(nextX, DEFAULT_FLOATING_GAP, snapshot.xMax),
+      y: clamp(nextY, DEFAULT_FLOATING_TOP, snapshot.yMax),
+    })
     x.value = nextGeometry.x ?? DEFAULT_FLOATING_GAP
     y.value = nextGeometry.y ?? DEFAULT_FLOATING_TOP
-    commitFloatingGeometry(nextGeometry)
     return nextGeometry
   }
 
@@ -151,7 +146,7 @@ export function useLayoutSurface(options: UseLayoutSurfaceOptions) {
         return false
       }
 
-      const snapshot = getFloatingSnapshot()
+      const snapshot = resolveFloatingSnapshotFor()
       x.value = snapshot.x
       y.value = snapshot.y
       options.onFloatingDragStart?.({
@@ -202,7 +197,7 @@ export function useLayoutSurface(options: UseLayoutSurfaceOptions) {
       return
     }
 
-    const snapshot = getFloatingSnapshot()
+    const snapshot = resolveFloatingSnapshotFor()
 
     event.preventDefault()
     handleEl.setPointerCapture(event.pointerId)
@@ -224,19 +219,16 @@ export function useLayoutSurface(options: UseLayoutSurfaceOptions) {
   }
 
   function applyResizeDelta(state: FloatingResizeState, deltaX: number): void {
-    const nextGeometry = resolveFloatingResizeGeometry({
+    const nextResizeGeometry = resolveFloatingResizeGeometry({
       edge: state.edge,
       deltaX,
       snapshot: state.currentBounds,
       viewportWidth: viewportWidth.value,
     })
+    const nextGeometry = commitFloatingGeometry(nextResizeGeometry)
 
-    state.currentBounds = resolveFloatingSnapshot({
-      ...(getCurrentFloatingConfig() ?? {}),
-      ...nextGeometry,
-    })
+    state.currentBounds = resolveFloatingSnapshotFor(nextGeometry)
     state.currentWidth = state.currentBounds.widthPx
-    commitFloatingGeometry(nextGeometry)
 
     options.onFloatingResize?.({
       edge: state.edge,
@@ -274,22 +266,14 @@ export function useLayoutSurface(options: UseLayoutSurfaceOptions) {
   })
 
   watch(
-    mode,
-    (variant) => {
-      if (variant === 'floating') {
-        const snapshot = getFloatingSnapshot()
-        x.value = snapshot.x
-        y.value = snapshot.y
-      }
+    [mode, () => toValue(options.floating), viewportWidth, viewportHeight],
+    () => {
+      syncFloatingGeometry()
     },
     { immediate: true },
   )
 
-  watch([mode, () => toValue(options.floating), viewportWidth, viewportHeight], () => {
-    clampFloatingBounds()
-  })
-
-  const floatingConfig = computed(() => getCommittedFloatingGeometry())
+  const floatingConfig = computed(() => resolveFloatingGeometry())
   const surfaceClass = computed(() => ({
     'tr-layout-surface--normal': isNormal.value,
     'tr-layout-surface--floating': isFloating.value,

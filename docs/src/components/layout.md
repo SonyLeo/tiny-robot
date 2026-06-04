@@ -20,6 +20,8 @@ outline: [1, 3]
 - 只传初始值：使用 `defaultMode`、`defaultFloating`、`defaultOpen`、`defaultWidth`
 - 外部控制状态：使用 `mode`、`floating`、`open`、`width`，并回写对应的 `update:*` 事件
 
+同一组状态里，受控写法和初始值写法只能二选一，例如 `mode` 和 `defaultMode` 不能同时传。
+
 通常 `Layout` 负责布局模式和浮层位置，`Layout.Aside` 负责单个侧栏的开关和宽度。
 
 ## 基础布局
@@ -92,6 +94,8 @@ outline: [1, 3]
 - 滚动容器本身需要设置 `overflow: auto` 或 `overflow-y: auto`
 - 建议同时设置 `width: 100%`、`height: 100%`、`box-sizing: border-box`
 
+`Layout.Main` 会统一处理主区滚动条的展示，因此不建议再额外定制 `scrollHost` 的滚动条样式。
+
 <demo
   vue="../../demos/layout/main-scroll.vue"
   :vueFiles="[
@@ -123,9 +127,9 @@ outline: [1, 3]
 | 属性名 | 说明 | 类型 | 默认值 |
 | ------ | ---- | ---- | ------ |
 | `mode` | 外部控制布局模式 | `'normal' \| 'floating'` | `-` |
-| `defaultMode` | 初始布局模式，之后由组件自己维护 | `'normal' \| 'floating'` | `'normal'` |
+| `defaultMode` | 初始布局模式，仅在初始化时读取一次 | `'normal' \| 'floating'` | `'normal'` |
 | `floating` | 外部传入的浮层位置和尺寸 | `LayoutFloatingConfig` | `-` |
-| `defaultFloating` | 浮层初始位置和尺寸 | `LayoutFloatingConfig` | `-` |
+| `defaultFloating` | 浮层初始位置和尺寸，仅在初始化时读取一次 | `LayoutFloatingConfig` | `-` |
 
 <a id="layout-floating-config"></a>
 #### LayoutFloatingConfig
@@ -156,9 +160,9 @@ outline: [1, 3]
 | `placement` | 侧栏位置 | `'left' \| 'right'` | `-` |
 | `mode` | 侧栏模式 | `'dock' \| 'drawer'` | `'dock'` |
 | `open` | 外部控制侧栏开关 | `boolean` | `-` |
-| `defaultOpen` | 侧栏初始开关状态 | `boolean` | `left: true` / `right: false` |
+| `defaultOpen` | 侧栏初始开关状态，仅在初始化时读取一次 | `boolean` | `left: true` / `right: false` |
 | `width` | 外部控制的 `dock` 宽度 | `number` | `-` |
-| `defaultWidth` | `dock` 初始宽度 | `number` | `-` |
+| `defaultWidth` | `dock` 初始宽度，仅在初始化时读取一次 | `number` | `-` |
 | `railWidth` | `dock` 收起后保留的窄栏宽度 | `number` | `0` |
 | `minWidth` | `dock` 最小宽度 | `number` | `left: 200` / `right: 240` |
 | `maxWidth` | `dock` 最大宽度 | `number` | `left: 560` / `right: 640` |
@@ -190,13 +194,13 @@ outline: [1, 3]
 
 | 插槽名 | 说明 | 作用域参数 |
 | ------ | ---- | ---------- |
-| `default` | 侧栏内容 | `{ isOpen: boolean; isExpanded: boolean }` |
+| `default` | 侧栏内容 | `{ isOpen: boolean }` |
 
 ### Layout.AsideToggle
 
 | 插槽名 | 说明 | 作用域参数 |
 | ------ | ---- | ---------- |
-| `default` | 自定义切换按钮内容 | `{ isOpen: boolean; isExpanded: boolean }` |
+| `default` | 自定义切换按钮内容 | `{ isOpen: boolean }` |
 
 ## Events
 

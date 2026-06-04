@@ -1,54 +1,32 @@
 <script setup lang="ts">
-import {
-  computed,
-  getCurrentInstance,
-  onBeforeUnmount,
-  onMounted,
-  onUpdated,
-  ref,
-  shallowRef,
-  useAttrs,
-  type StyleValue,
-} from 'vue'
+import { computed, getCurrentInstance, onBeforeUnmount, useAttrs } from 'vue'
 import { useControllableState } from './composables/useControllableState'
 import { useLayoutAside } from './composables/useLayoutAside'
 import { useLayout } from './composables/useLayout'
-import type { LayoutAsideEmits, LayoutAsideProps } from './index.type'
+import type { LayoutAsideEmits, LayoutAsideRuntimeProps } from './index.type'
+import { clamp } from './utils/math'
+import { hasVNodeProp } from './utils/vnodeProp'
 
 defineOptions({
   name: 'LayoutAside',
   inheritAttrs: false,
 })
 
-const props = defineProps<LayoutAsideProps>()
+const props = defineProps<LayoutAsideRuntimeProps>()
 const emit = defineEmits<LayoutAsideEmits>()
 const attrs = useAttrs()
 const layoutStore = useLayout()
 const instance = getCurrentInstance()
-const contentRef = ref<HTMLElement | null>(null)
-const resolvedDrawerWidth = shallowRef<string | undefined>(undefined)
 
 const defaultOpenByPlacement = {
   left: true,
   right: false,
 } as const
 
-function hasVNodeProp(name: string): boolean {
-  const rawProps = instance?.vnode.props
-
-  if (!rawProps) {
-    return false
-  }
-
-  const kebabName = name.replace(/[A-Z]/g, (char) => `-${char.toLowerCase()}`)
-
-  return (
-    Object.prototype.hasOwnProperty.call(rawProps, name) || Object.prototype.hasOwnProperty.call(rawProps, kebabName)
-  )
-}
-
-const openProvided = hasVNodeProp('open')
-const defaultOpenProvided = hasVNodeProp('defaultOpen')
+const openProvided = hasVNodeProp(instance, 'open')
+const defaultOpenProvided = hasVNodeProp(instance, 'defaultOpen')
+const widthProvided = hasVNodeProp(instance, 'width')
+const defaultWidthProvided = hasVNodeProp(instance, 'defaultWidth')
 
 const openState = useControllableState<boolean>({
   value: () => (openProvided ? props.open : undefined),
@@ -58,65 +36,66 @@ const openState = useControllableState<boolean>({
 })
 
 const widthState = useControllableState<number>({
-  value: () => props.width,
-  defaultValue: () => props.defaultWidth,
+  value: () => (widthProvided ? props.width : undefined),
+  defaultValue: () => (defaultWidthProvided ? props.defaultWidth : undefined),
+  isControlled: widthProvided,
   onChange: (nextWidth) => emit('update:width', nextWidth),
 })
 
-function syncDrawerWidthVar(): void {
-  if (typeof window === 'undefined' || !contentRef.value) {
-    return
-  }
-
-  const nextValue = getComputedStyle(contentRef.value).getPropertyValue('--tr-layout-drawer-width').trim()
-  resolvedDrawerWidth.value = nextValue || undefined
-}
-
+const resolvedOpen = computed(() => openState.resolvedState.value ?? defaultOpenByPlacement[props.placement])
 const layoutMode = computed(() => props.mode ?? 'dock')
 const railWidth = computed(() => props.railWidth)
 const minWidth = computed(() => props.minWidth ?? (props.placement === 'left' ? 200 : 240))
 const maxWidth = computed(() => props.maxWidth ?? (props.placement === 'left' ? 560 : 640))
 const resizable = computed(() => props.resizable ?? false)
-const containerStyle = computed<StyleValue | undefined>(() => {
-  if (!resolvedDrawerWidth.value) {
-    return attrs.style as StyleValue | undefined
+const resolvedWidth = computed(() => {
+  const nextWidth = widthState.resolvedState.value
+
+  if (nextWidth === undefined || !Number.isFinite(nextWidth)) {
+    return undefined
   }
 
-  return [attrs.style as StyleValue | undefined, { '--tr-layout-drawer-width': resolvedDrawerWidth.value }]
+  return clamp(nextWidth, minWidth.value, maxWidth.value)
 })
+
+function commitOpen(nextOpen: boolean): void {
+  if (resolvedOpen.value === nextOpen) {
+    return
+  }
+
+  openState.commit(nextOpen)
+}
+
+function commitWidth(nextWidth: number): void {
+  const clampedWidth = clamp(nextWidth, minWidth.value, maxWidth.value)
+  if (resolvedWidth.value === clampedWidth) {
+    return
+  }
+
+  widthState.commit(clampedWidth)
+}
 
 layoutStore.registerPanel({
   placement: props.placement,
   layoutMode,
-  isOpen: computed(() => openState.resolvedState.value ?? defaultOpenByPlacement[props.placement]),
-  width: computed(() => widthState.resolvedState.value),
-  containerClass: computed(() => attrs.class),
-  containerStyle,
+  isOpen: resolvedOpen,
+  width: resolvedWidth,
   railWidth,
   minWidth,
   maxWidth,
   resizable,
-  commitOpen: openState.commit,
-  commitWidth: widthState.commit,
+  commitOpen,
+  commitWidth,
 })
 
 onBeforeUnmount(() => {
   layoutStore.unregisterPanel(props.placement)
 })
 
-onMounted(() => {
-  syncDrawerWidthVar()
-})
-
-onUpdated(() => {
-  syncDrawerWidthVar()
-})
-
-const { isOpen, isExpanded, isDock, isDrawer, isRail, isHidden } = useLayoutAside(() => props.placement)
+const { isOpen, isDock, isDrawer, isRail, isHidden } = useLayoutAside(() => props.placement)
 
 const slotProps = computed(() => ({
   isOpen: isOpen.value,
-  isExpanded: isExpanded.value,
 }))
 
 const collapseEffect = computed(() => props.collapseEffect ?? 'overlay')
@@ -125,16 +104,16 @@ const collapseEffect = computed(() => props.collapseEffect ?? 'overlay')
 <template>
   <aside
     v-bind="attrs"
-    ref="contentRef"
     class="tr-layout-aside"
     data-part="aside-content"
     :data-placement="props.placement"
+    :data-collapse-effect="collapseEffect"
     :class="{
       'tr-layout-aside--left': props.placement === 'left',
       'tr-layout-aside--right': props.placement === 'right',
       'tr-layout-aside--dock': isDock,
       'tr-layout-aside--drawer': isDrawer,
-      'tr-layout-aside--expanded': isExpanded,
+      'tr-layout-aside--expanded': isOpen,
       'tr-layout-aside--rail': isRail,
       'tr-layout-aside--hidden': isHidden,
       'tr-layout-aside--effect-overlay': collapseEffect === 'overlay',
@@ -154,6 +133,11 @@ const collapseEffect = computed(() => props.collapseEffect ?? 'overlay')
   flex-direction: column;
   overflow-y: auto;
   overflow-x: hidden;
+
+  &--drawer {
+    width: var(--tr-layout-drawer-width, max-content);
+    max-width: 100%;
+  }
 
   &--dock {
     width: 100%;

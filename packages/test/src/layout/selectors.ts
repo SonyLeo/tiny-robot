@@ -1,5 +1,6 @@
 export const layoutSelectors = {
   pageTitle: 'h2',
+  root: '[data-part="root"]',
   leftAside: '[data-part="aside"][data-placement="left"]',
   rightAside: '[data-part="aside"][data-placement="right"]',
   leftAsideContent: '[data-part="aside-content"][data-placement="left"]',
@@ -9,6 +10,7 @@ export const layoutSelectors = {
   main: '[data-part="main"]',
   mainShell: '[data-part="main-shell"]',
   mainInner: '[data-part="main-inner"]',
+  scrollHost: '[data-tr-layout-scroll-host]',
   footerShell: '[data-part="footer-shell"]',
   footerInner: '[data-part="footer-inner"]',
   scrollbar: '[data-part="scrollbar"]',

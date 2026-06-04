@@ -9,10 +9,6 @@ const DEFAULT_RIGHT_MAX_WIDTH = 640
 
 type RegistrationMap = Record<LayoutPlacement, LayoutPanelRegistration | undefined>
 
-function toPx(value: number | undefined): string | undefined {
-  return value === undefined ? undefined : `${value}px`
-}
-
 export function createLayoutStore(): LayoutStore {
   const registrations = shallowReactive<RegistrationMap>({
     left: undefined,
@@ -32,8 +28,6 @@ export function createLayoutStore(): LayoutStore {
     })
     const isOpen = computed(() => (registration.value ? toValue(registration.value.isOpen) : false))
     const width = computed(() => (registration.value ? toValue(registration.value.width) : undefined))
-    const containerClass = computed(() => (registration.value ? toValue(registration.value.containerClass) : undefined))
-    const containerStyle = computed(() => (registration.value ? toValue(registration.value.containerStyle) : undefined))
     const railWidthValue = computed(() => (registration.value ? toValue(registration.value.railWidth) : undefined))
     const railWidth = computed(() => railWidthValue.value ?? 0)
     const minWidth = computed(() => (registration.value ? toValue(registration.value.minWidth) : defaultMinWidth))
@@ -90,9 +84,6 @@ export function createLayoutStore(): LayoutStore {
       get isOpen() {
         return isOpen.value
       },
-      get isExpanded() {
-        return isOpen.value
-      },
       get isDock() {
         return isDock.value
       },
@@ -111,20 +102,8 @@ export function createLayoutStore(): LayoutStore {
       get width() {
         return width.value
       },
-      get widthStyle() {
-        return toPx(width.value)
-      },
-      get containerClass() {
-        return containerClass.value
-      },
-      get containerStyle() {
-        return containerStyle.value
-      },
       get railWidth() {
-        return railWidth.value
-      },
-      get railWidthStyle() {
-        return toPx(railWidthValue.value)
+        return railWidthValue.value
       },
       get minWidth() {
         return minWidth.value

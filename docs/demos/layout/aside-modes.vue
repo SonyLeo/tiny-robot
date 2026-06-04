@@ -10,8 +10,8 @@ const rightOpen = ref(false)
     <TrLayout>
       <template #left-aside>
         <TrLayout.Aside placement="left" default-open :default-width="156" :rail-width="56">
-          <template #default="{ isExpanded }">
-            <div v-if="isExpanded" class="layout-aside-demo__aside">
+          <template #default="{ isOpen }">
+            <div v-if="isOpen" class="layout-aside-demo__aside">
               <TrLayout.AsideToggle placement="left" class="layout-aside-demo__chip"> 收起侧栏 </TrLayout.AsideToggle>
               <div class="layout-aside-demo__chip">railWidth: 56px</div>
             </div>

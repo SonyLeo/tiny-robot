@@ -86,45 +86,6 @@ function resolveWidthLimits(source: LayoutFloatingConfig | undefined, measuremen
   }
 }
 
-function resolveDefaultFloatingGeometry(source: LayoutFloatingConfig | undefined): ResolvedFloatingGeometry {
-  const width = source?.width ?? DEFAULT_FLOATING_WIDTH
-  const height = source?.height ?? DEFAULT_FLOATING_HEIGHT
-  const measurementRoot = getMeasurementRoot()
-
-  if (!measurementRoot) {
-    return {
-      x: source?.x ?? DEFAULT_FLOATING_GAP,
-      y: source?.y ?? DEFAULT_FLOATING_TOP,
-      width,
-      height,
-    }
-  }
-
-  const { viewportSize, minWidth, maxWidth, maxHeight } = resolveWidthLimits(source, measurementRoot)
-  const rawWidth = resolveCssLengthToPx(width, measurementRoot, DEFAULT_FLOATING_WIDTH)
-  const rawHeight = resolveCssLengthToPx(height, measurementRoot, viewportSize.height, 'height')
-  const widthPx = clamp(rawWidth, minWidth, maxWidth)
-  const heightPx = Math.min(rawHeight, maxHeight)
-
-  return {
-    x: source?.x ?? Math.max(DEFAULT_FLOATING_GAP, (viewportSize.width - widthPx) / 2),
-    y: source?.y ?? DEFAULT_FLOATING_TOP,
-    width,
-    height: heightPx === rawHeight ? height : heightPx,
-  }
-}
-
-export function resolveCurrentFloatingConfig(externalConfig: LayoutFloatingConfig | undefined): LayoutFloatingConfig {
-  if (!externalConfig) {
-    return resolveDefaultFloatingGeometry(undefined)
-  }
-
-  return {
-    ...resolveDefaultFloatingGeometry(externalConfig),
-    ...externalConfig,
-  }
-}
-
 export function resolveFloatingSnapshot(config: LayoutFloatingConfig | undefined): FloatingSnapshot {
   const raw = {
     x: config?.x ?? undefined,

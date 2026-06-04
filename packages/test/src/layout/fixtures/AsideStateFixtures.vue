@@ -22,6 +22,8 @@ const blockedLastWidth = ref(260)
 const uncontrolledOpenEvents = ref(0)
 const uncontrolledWidthEvents = ref(0)
 const uncontrolledLastWidth = ref(290)
+const uncontrolledDefaultOpen = ref(true)
+const uncontrolledDefaultWidth = ref(290)
 
 const drawerLeftOpen = ref(false)
 const drawerRightOpen = ref(false)
@@ -43,6 +45,11 @@ function handleUncontrolledOpen() {
 function handleUncontrolledWidth(next: number) {
   uncontrolledWidthEvents.value += 1
   uncontrolledLastWidth.value = next
+}
+
+function updateUncontrolledDefaults() {
+  uncontrolledDefaultOpen.value = false
+  uncontrolledDefaultWidth.value = 332
 }
 
 function updateDrawerLeftOpen(next: boolean) {
@@ -111,8 +118,8 @@ function updateDrawerRightOpen(next: boolean) {
             <TrLayout.Aside
               placement="left"
               mode="dock"
-              :default-open="true"
-              :default-width="290"
+              :default-open="uncontrolledDefaultOpen"
+              :default-width="uncontrolledDefaultWidth"
               :rail-width="52"
               :min-width="240"
               :max-width="340"
@@ -128,6 +135,13 @@ function updateDrawerRightOpen(next: boolean) {
                     aria-label="Uncontrolled custom toggle"
                     data-testid="uncontrolled-toggle"
                   />
+                  <button
+                    type="button"
+                    data-testid="uncontrolled-default-update-btn"
+                    @click="updateUncontrolledDefaults"
+                  >
+                    update defaults
+                  </button>
                 </div>
               </template>
             </TrLayout.Aside>

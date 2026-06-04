@@ -3,7 +3,7 @@ import { computed, shallowRef, toValue, type ComputedRef, type MaybeRefOrGetter 
 interface UseControllableStateOptions<T> {
   value: MaybeRefOrGetter<T | undefined>
   defaultValue?: MaybeRefOrGetter<T | undefined>
-  isControlled?: MaybeRefOrGetter<boolean>
+  isControlled: MaybeRefOrGetter<boolean>
   onChange?: (nextValue: T) => void
 }
 
@@ -15,9 +15,7 @@ interface UseControllableStateResult<T> {
 
 export function useControllableState<T>(options: UseControllableStateOptions<T>): UseControllableStateResult<T> {
   const internalState = shallowRef<T | undefined>(toValue(options.defaultValue))
-  const isControlled = computed(() =>
-    options.isControlled !== undefined ? toValue(options.isControlled) : toValue(options.value) !== undefined,
-  )
+  const isControlled = computed(() => toValue(options.isControlled))
   const resolvedState = computed(() => (isControlled.value ? toValue(options.value) : internalState.value))
 
   function commit(nextValue: T): void {

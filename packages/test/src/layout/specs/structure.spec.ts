@@ -1,44 +1,39 @@
-import { expect, test } from '@playwright/test'
-import { openLayoutPage } from '../helpers'
-import { layoutSelectors } from '../selectors'
+import { expect, test } from '../helpers'
 
 test.describe('Layout 组件测试 - 结构', () => {
-  test.beforeEach(async ({ page }) => {
-    await openLayoutPage(page)
+  test('Slots: header / footer / left-aside / right-aside - 应正确渲染', async ({ layout }) => {
+    await expect(layout.page.getByTestId('layout-header-slot')).toBeVisible()
+    await expect(layout.page.getByTestId('layout-footer-slot')).toBeVisible()
+    await expect(layout.page.getByTestId('left-aside-slot')).toBeVisible()
+    await expect(layout.page.getByTestId('right-aside-slot')).toBeHidden()
+
+    await layout.toggleAside('right')
+    await expect(layout.page.getByTestId('right-aside-slot')).toBeVisible()
   })
 
-  test('Slots: header / footer / left-aside / right-aside - 应正确渲染', async ({ page }) => {
-    await expect(page.getByTestId('layout-header-slot')).toBeVisible()
-    await expect(page.getByTestId('layout-footer-slot')).toBeVisible()
-    await expect(page.getByTestId('left-aside-slot')).toBeVisible()
-    await expect(page.getByTestId('right-aside-slot')).toBeHidden()
-
-    await page.getByTestId('right-toggle-btn').click()
-    await expect(page.getByTestId('right-aside-slot')).toBeVisible()
+  test('Stable hooks - 应输出关键 data-part / data-placement / data-state', async ({ layout }) => {
+    await expect(layout.surface).toBeVisible()
+    await expect(layout.main).toBeVisible()
+    await expect(layout.getAside('left')).toHaveAttribute('data-placement', 'left')
+    await expect(layout.getAside('right')).toHaveAttribute('data-placement', 'right')
+    await expect(layout.getAsideContent('left')).toHaveAttribute('data-placement', 'left')
+    await expect(layout.getAsideContent('right')).toHaveAttribute('data-placement', 'right')
+    await layout.expectAsideState('left', 'open')
+    await layout.expectAsideState('right', 'closed')
   })
 
-  test('Stable hooks - 应输出关键 data-part / data-placement', async ({ page }) => {
-    await expect(page.locator(layoutSelectors.surface)).toBeVisible()
-    await expect(page.locator(layoutSelectors.main)).toBeVisible()
-    await expect(page.locator(layoutSelectors.leftAside)).toHaveAttribute('data-placement', 'left')
-    await expect(page.locator(layoutSelectors.rightAside)).toHaveAttribute('data-placement', 'right')
-    await expect(page.locator(layoutSelectors.leftAsideContent)).toHaveAttribute('data-placement', 'left')
-    await expect(page.locator(layoutSelectors.rightAsideContent)).toHaveAttribute('data-placement', 'right')
+  test('Layout.AsideToggle slot - 应能拿到 isOpen', async ({ layout }) => {
+    await expect(layout.page.getByTestId('left-toggle-slot')).toHaveText('left-open')
+    await layout.page.getByTestId('left-aside-toggle').click()
+    await expect(layout.page.getByTestId('left-toggle-slot')).toHaveText('left-close')
   })
 
-  test('Layout.AsideToggle slot - 应能拿到 isExpanded', async ({ page }) => {
-    await expect(page.getByTestId('left-toggle-slot')).toHaveText('left-open')
-    await page.getByTestId('left-aside-toggle').click()
-    await expect(page.getByTestId('left-toggle-slot')).toHaveText('left-close')
+  test('Props: ariaLabel - right toggle 应使用默认 aria-label', async ({ layout }) => {
+    await expect(layout.page.getByTestId('right-aside-toggle')).toHaveAttribute('aria-label', 'Toggle right panel')
   })
 
-  test('Props: ariaLabel - right toggle 应使用默认 aria-label', async ({ page }) => {
-    await expect(page.getByTestId('right-aside-toggle')).toHaveAttribute('aria-label', 'Toggle right panel')
-  })
-
-  test('Fallthrough attrs: class / id / data-* - 应始终落在 surface', async ({ page }) => {
-    const surface = page.locator(layoutSelectors.surface)
-    const surfaceHost = page.locator(layoutSelectors.surfaceHost)
+  test('Fallthrough attrs: class / id / data-* - 应始终落在 surface', async ({ layout }) => {
+    const { surface, surfaceHost } = layout
 
     await expect(surface).toHaveAttribute('id', 'layout-demo-surface')
     await expect(surface).toHaveAttribute('data-surface-marker', 'layout-demo-surface')
@@ -46,21 +41,33 @@ test.describe('Layout 组件测试 - 结构', () => {
     await expect(surfaceHost).not.toHaveAttribute('id', 'layout-demo-surface')
     await expect(surfaceHost).not.toHaveAttribute('data-surface-marker', 'layout-demo-surface')
 
-    await page.getByTestId('mode-floating-btn').click()
+    await layout.setMode('floating')
 
     await expect(surface).toHaveAttribute('id', 'layout-demo-surface')
     await expect(surface).toHaveAttribute('data-surface-marker', 'layout-demo-surface')
     await expect(surface).toHaveClass(/layout-demo__layout--surface-marker/)
   })
 
-  test('Conditional slots: empty header / left-aside - should not keep empty shell or resize trigger', async ({
-    page,
-  }) => {
-    await page.getByTestId('conditional-slots-empty-btn').click()
+  test('Layout.Aside attrs: 自定义 class 应落在 aside-content，而不是外层 shell', async ({ layout }) => {
+    const leftAside = layout.getAside('left')
+    const leftAsideContent = layout.getAsideContent('left')
+    const rightAside = layout.getAside('right')
+    const rightAsideContent = layout.getAsideContent('right')
 
-    await expect(page.locator('.tr-layout__header-shell')).not.toHaveClass(/tr-layout__header-shell--active/)
-    await expect(page.locator(layoutSelectors.leftAside)).toHaveAttribute('aria-hidden', 'true')
-    await expect(page.locator(layoutSelectors.leftResizeTrigger)).toHaveCount(0)
-    await expect(page.locator('[data-part="root"]')).not.toHaveClass(/tr-layout--left-expanded/)
+    await expect(leftAside).not.toHaveClass(/layout-demo__aside--left/)
+    await expect(leftAsideContent).toHaveClass(/layout-demo__aside--left/)
+    await expect(rightAside).not.toHaveClass(/layout-demo__aside--right/)
+    await expect(rightAsideContent).toHaveClass(/layout-demo__aside--right/)
+  })
+
+  test('Conditional slots: empty header / left-aside - should not keep empty shell or resize trigger', async ({
+    layout,
+  }) => {
+    await layout.emptyConditionalSlots()
+
+    await expect(layout.page.locator('[data-part="header-shell"]')).toBeHidden()
+    await expect(layout.getAside('left')).toHaveAttribute('aria-hidden', 'true')
+    await expect(layout.getResizeTrigger('left')).toHaveCount(0)
+    await layout.expectAsideState('left', 'closed')
   })
 })
