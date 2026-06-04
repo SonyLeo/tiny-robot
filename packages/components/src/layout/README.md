@@ -82,12 +82,36 @@ const messages = [
 </style>
 ```
 
+## 非受控示例
+
+```vue
+<template>
+  <Layout default-mode="normal">
+    <template #left-aside>
+      <Layout.Aside placement="left" default-open :default-width="280" :rail-width="48" :min-width="220" :max-width="420">
+        <div>History</div>
+      </Layout.Aside>
+    </template>
+
+    <template #main>
+      <div>Main</div>
+    </template>
+  </Layout>
+</template>
+```
+
 ## 状态边界
 
 - `Layout` 根组件只管理根级状态：`mode/defaultMode`、`floating/defaultFloating`
 - `Layout.Aside` 自己管理单侧状态：`open/defaultOpen`、`width/defaultWidth`
 - `railWidth`、`minWidth`、`maxWidth`、`resizable`、`mode` 属于 aside 配置
 - `drawer` 宽度通过 `--tr-layout-drawer-width` 定制，不进入 `v-model:width`
+
+## 浮层事件
+
+- `update:floating` 负责提交最终浮层几何状态
+- `floating-drag-start / floating-drag / floating-drag-end` 负责公开拖拽三阶段事件，回调参数为 `{ x: number; y: number }`
+- `floating-resize-start / floating-resize / floating-resize-end` 负责公开改宽三阶段事件，回调参数为 `{ edge: 'left' | 'right'; width: number }`
 
 ## `scrollHost` 约束
 
@@ -106,6 +130,12 @@ const messages = [
 - `root`
 - `aside`
 - `aside-content`
+- `header-shell`
+- `header-inner`
+- `main-shell`
+- `main-inner`
+- `footer-shell`
+- `footer-inner`
 - `backdrop`
 - `main`
 - `scrollbar`

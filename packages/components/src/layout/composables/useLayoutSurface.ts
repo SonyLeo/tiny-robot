@@ -9,7 +9,13 @@ import {
   type MaybeRefOrGetter,
   type Ref,
 } from 'vue'
-import type { LayoutFloatingConfig, LayoutFloatingResizeEventDetail, LayoutMode, LayoutPlacement } from '../index.type'
+import type {
+  LayoutFloatingConfig,
+  LayoutFloatingDragEventDetail,
+  LayoutFloatingResizeEventDetail,
+  LayoutMode,
+  LayoutPlacement,
+} from '../index.type'
 import { toCssLength } from '../utils/cssLength'
 import {
   areFloatingGeometryEqual,
@@ -31,6 +37,9 @@ interface UseLayoutSurfaceOptions {
   commitFloating: (nextFloating: LayoutFloatingConfig) => void
   frameRef: Ref<HTMLElement | null>
   dragHandleRef: Ref<HTMLElement | null>
+  onFloatingDragStart?: (detail: LayoutFloatingDragEventDetail) => void
+  onFloatingDrag?: (detail: LayoutFloatingDragEventDetail) => void
+  onFloatingDragEnd?: (detail: LayoutFloatingDragEventDetail) => void
   onFloatingResizeStart?: (detail: LayoutFloatingResizeEventDetail) => void
   onFloatingResize?: (detail: LayoutFloatingResizeEventDetail) => void
   onFloatingResizeEnd?: (detail: LayoutFloatingResizeEventDetail) => void
@@ -114,11 +123,21 @@ export function useLayoutSurface(options: UseLayoutSurfaceOptions) {
     }
   }
 
-  function applyDraggedPosition(nextX: number, nextY: number): void {
+  function toFloatingDragDetail(
+    geometry: Pick<LayoutFloatingConfig, 'x' | 'y' | 'width' | 'height'>,
+  ): LayoutFloatingDragEventDetail {
+    return {
+      x: geometry.x ?? DEFAULT_FLOATING_GAP,
+      y: geometry.y ?? DEFAULT_FLOATING_TOP,
+    }
+  }
+
+  function applyDraggedPosition(nextX: number, nextY: number) {
     const nextGeometry = resolveDraggedFloatingGeometry(nextX, nextY)
     x.value = nextGeometry.x ?? DEFAULT_FLOATING_GAP
     y.value = nextGeometry.y ?? DEFAULT_FLOATING_TOP
     commitFloatingGeometry(nextGeometry)
+    return nextGeometry
   }
 
   const { x, y, isDragging } = useDraggable(options.frameRef, {
@@ -135,9 +154,19 @@ export function useLayoutSurface(options: UseLayoutSurfaceOptions) {
       const snapshot = getFloatingSnapshot()
       x.value = snapshot.x
       y.value = snapshot.y
+      options.onFloatingDragStart?.({
+        x: snapshot.x,
+        y: snapshot.y,
+      })
     },
-    onMove: (position) => applyDraggedPosition(position.x, position.y),
-    onEnd: (position) => applyDraggedPosition(position.x, position.y),
+    onMove: (position) => {
+      const nextGeometry = applyDraggedPosition(position.x, position.y)
+      options.onFloatingDrag?.(toFloatingDragDetail(nextGeometry))
+    },
+    onEnd: (position) => {
+      const nextGeometry = applyDraggedPosition(position.x, position.y)
+      options.onFloatingDragEnd?.(toFloatingDragDetail(nextGeometry))
+    },
   })
 
   const canResizeFloating = computed(() => isFloating.value && isFloatingResizable.value && !isDragging.value)

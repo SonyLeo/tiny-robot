@@ -16,6 +16,7 @@
 
 - [OPTIMIZATION.md](./OPTIMIZATION.md)
 - [CSS_VARIABLES.md](./CSS_VARIABLES.md)
+- [DOCS_TASKLIST.md](./DOCS_TASKLIST.md)
 
 ## 当前进度
 
@@ -24,13 +25,18 @@
 - [x] 完成最终 API 定稿
 - [x] 完成组件主链路代码实现
 - [x] 完成 demo / README / 组件文档主口径收口
+- [x] 完成 README / docs 非受控示例补齐与设计文档历史口径标注
 - [x] 完成 CSS 变量默认值清理与公开面进一步收敛
+- [x] 完成 `layout.md` 结构重排、黑话清理与浮层 demo 修正
+- [x] 完成 layout docs demo 精简、共享 `demo.css` 移除、rail 示例形态优化与受控浮层示例补齐
 - 已把 dock / drawer 默认宽度，以及 surface / aside 的部分默认样式 owner 回收到 `layout.less`
 - 已把内部默认值收回 `layout.less` 的局部 alias owner，源码 / demo / README 已不再依赖旧的 per-section 内容变量和 dock 宽度变量
 - 已修正 `defaultOpen/open` 可选布尔 prop 的受控判定，以及 `Layout.Aside` 到 drawer 容器的宽度变量桥接
 - 已完成 build-first 运行时回归：`pnpm build:components` 后，`layout` 目标用例 `35` 条全部通过
 - 已完成全仓回归：`pnpm test`、`pnpm type-check`、`pnpm build:playground`、`pnpm build:docs` 全部通过
-- [ ] 完成 CSS 变量公开面专项测试补齐
+- [x] 清理 `LayoutAsideToggle.vue` 对已移除变量 `--tr-layout-text-primary` 的残留依赖
+- [x] 补齐 `floating-drag-start / floating-drag / floating-drag-end`
+- [x] 完成 CSS 变量公开面专项测试补齐
 
 ## 阶段总览
 
@@ -74,7 +80,7 @@
 - [x] 去掉 `useLayoutSurface.ts` 中“读时写入”的默认值补齐路径
 - [x] 拆开 floating 默认值解析和 floating 提交
 - [x] 保留 `floating-resize-start / floating-resize / floating-resize-end`
-- [ ] 决定是否补 `floating-drag-start / floating-drag / floating-drag-end`
+- [x] 补 `floating-drag-start / floating-drag / floating-drag-end`
 - [x] 保留最近一次 floating 几何状态
 
 ### 阶段 5：运行时样式投影重构
@@ -105,6 +111,13 @@
 
 - [x] 更新 `packages/components/src/layout/README.md`
 - [x] 更新 `docs/src/components/layout.md`
+- [x] 把 `layout.md` 调整为“说明 + 示例”的能力分组结构
+- [x] 清理 `layout.md` 中的实现视角术语和黑话
+- [x] 修正浮层 demo 的错误受控写法
+- [x] 移除 layout docs 共享 `demo.css`
+- [x] 精简 4 个文档 demo 的代码量和展示内容
+- [x] 补齐“受控浮层”单独示例
+- [x] 优化 rail 示例形态，使其和综合案例一样根据展开态切换内容布局
 - [x] 只保留公开稳定变量说明
 - [x] 删除内部桥接变量说明
 - [x] 删除预留变量说明
@@ -126,15 +139,16 @@
 - [x] 补受控模式“只发事件，不自改 UI”测试
 - [x] 补非受控模式“自改 UI”测试
 - [x] 补 `drawer` 宽度通过 `--tr-layout-drawer-width` 生效测试
-- [ ] 补显式状态值优先于公开 CSS 变量测试
-- [ ] 补私有变量不作为公开契约断言测试
-- [ ] 补文档中列出的公开变量都有真实能力支撑的回归测试
+- [x] 补显式状态值优先于公开 CSS 变量测试
+- [x] 补私有变量不作为公开契约断言测试
+- [x] 补文档中列出的公开变量都有真实能力支撑的回归测试
 
 ### 阶段 11：遗留清理
 
-- [ ] 删除旧整对象 API 的 demo 残留
-- [ ] 删除不再公开的旧变量名说明
-- [ ] 删除无效预留变量
+- [x] 删除旧整对象 API 的 demo 残留
+- [x] 从 README / docs 删除不再公开的旧变量名说明
+- [x] 从公开契约中删除无效预留变量
+- [x] 清理 `LayoutAsideToggle.vue` 对已移除变量 `--tr-layout-text-primary` 的残留依赖
 - [x] 删除依赖内部变量的旧测试断言
 - [x] 删除实现中的重复默认值 owner
 
@@ -158,8 +172,8 @@
 - [x] 更新 README
 - [x] 更新组件文档
 - [x] 更新 demo
-- [ ] 补齐测试
-- [ ] 清理遗留实现
+- [x] 补齐测试
+- [x] 清理遗留实现
 
 ## 实施顺序
 
@@ -179,7 +193,7 @@
 - [x] `drawer` 宽度已收口到 CSS 变量
 - [x] 公开 CSS 变量面已收敛
 - [x] README / docs / demo 口径一致
-- [ ] 测试覆盖受控 / 非受控 / CSS 变量优先级 / 时序 / 约束
+- [x] 测试覆盖受控 / 非受控 / CSS 变量优先级 / 时序 / 约束
 - [x] 无预留变量公开承诺
 - [x] 无“读时写入”状态路径
 

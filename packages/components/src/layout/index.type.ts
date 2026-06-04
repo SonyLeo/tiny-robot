@@ -27,6 +27,11 @@ export interface LayoutFloatingResizeEventDetail {
   width: number
 }
 
+export interface LayoutFloatingDragEventDetail {
+  x: number
+  y: number
+}
+
 export type LayoutMainScrollHostComponent = Pick<ComponentPublicInstance, '$el'>
 
 export type LayoutMainScrollHost = HTMLElement | LayoutMainScrollHostComponent | null | undefined
@@ -41,6 +46,9 @@ export interface LayoutProps {
 export interface LayoutEmits {
   'update:mode': [value: LayoutMode]
   'update:floating': [value: LayoutFloatingConfig]
+  'floating-drag-start': [detail: LayoutFloatingDragEventDetail]
+  'floating-drag': [detail: LayoutFloatingDragEventDetail]
+  'floating-drag-end': [detail: LayoutFloatingDragEventDetail]
   'floating-resize-start': [detail: LayoutFloatingResizeEventDetail]
   'floating-resize': [detail: LayoutFloatingResizeEventDetail]
   'floating-resize-end': [detail: LayoutFloatingResizeEventDetail]

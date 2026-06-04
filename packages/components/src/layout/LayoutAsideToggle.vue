@@ -57,7 +57,7 @@ const fallbackText = computed(() => {
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--tr-layout-text-primary);
+  color: inherit;
   cursor: pointer;
 }
 </style>

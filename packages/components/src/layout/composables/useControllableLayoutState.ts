@@ -37,14 +37,6 @@ export function useControllableLayoutState(props: LayoutProps, emit: EmitFn): Us
   const resolvedMode = computed<LayoutMode>(() => modeState.resolvedState.value ?? 'normal')
   const resolvedFloating = computed(() => floatingState.resolvedState.value)
 
-  function commitMode(nextMode: LayoutMode): void {
-    if (resolvedMode.value === nextMode) {
-      return
-    }
-
-    modeState.commit(nextMode)
-  }
-
   function commitFloating(nextFloating: LayoutFloatingConfig): void {
     if (isFloatingConfigEqual(resolvedFloating.value, nextFloating)) {
       return
@@ -56,7 +48,6 @@ export function useControllableLayoutState(props: LayoutProps, emit: EmitFn): Us
   return {
     resolvedMode,
     resolvedFloating,
-    commitMode,
     commitFloating,
   }
 }

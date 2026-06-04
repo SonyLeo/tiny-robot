@@ -189,9 +189,8 @@ test.describe('Layout 组件测试 - Aside', () => {
     await expect(fixture.getByTestId('uncontrolled-open-state')).toHaveText('closed')
     await expect(leftAside).toHaveClass(/tr-layout__aside--rail/)
 
-    const railWidth = await getWidth(leftAside)
-    expect(railWidth).toBeGreaterThanOrEqual(48)
-    expect(railWidth).toBeLessThanOrEqual(56)
+    await expect.poll(async () => await getWidth(leftAside)).toBeGreaterThanOrEqual(48)
+    await expect.poll(async () => await getWidth(leftAside)).toBeLessThanOrEqual(56)
   })
 
   test('Default props: defaultWidth / minWidth / maxWidth - 非受控 resize 应更新内部宽度并 obey clamp', async ({

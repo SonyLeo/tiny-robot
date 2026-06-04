@@ -4,6 +4,7 @@ import { BubbleList, TrLayout } from '@opentiny/tiny-robot'
 import type { LayoutFloatingConfig, LayoutMainScrollHost } from '@opentiny/tiny-robot'
 import AsideStateFixtures from './fixtures/AsideStateFixtures.vue'
 import FloatingStateFixtures from './fixtures/FloatingStateFixtures.vue'
+import LayoutCssVarFixtures from './fixtures/LayoutCssVarFixtures.vue'
 
 const mode = ref<'normal' | 'floating'>('normal')
 const scrollHostRef = ref<LayoutMainScrollHost>(null)
@@ -23,6 +24,7 @@ const leftResizable = ref(true)
 const rightResizable = ref(true)
 const showAsideStateFixtures = ref(false)
 const showFloatingStateFixtures = ref(false)
+const showCssVarFixtures = ref(false)
 
 const floating = ref<LayoutFloatingConfig>({
   x: 96,
@@ -43,6 +45,9 @@ const metrics = ref({
   leftResizeEnd: 0,
   rightResizeStart: 0,
   rightResizeEnd: 0,
+  floatingDragStart: 0,
+  floatingDrag: 0,
+  floatingDragEnd: 0,
   floatingLeftResizeStart: 0,
   floatingLeftResizeEnd: 0,
   floatingRightResizeStart: 0,
@@ -211,6 +216,9 @@ function resetFloating() {
       <button data-testid="show-floating-state-fixtures-btn" type="button" @click="showFloatingStateFixtures = true">
         show floating fixtures
       </button>
+      <button data-testid="show-css-var-fixtures-btn" type="button" @click="showCssVarFixtures = true">
+        show css var fixtures
+      </button>
     </div>
 
     <div class="layout-demo__metrics">
@@ -218,6 +226,9 @@ function resetFloating() {
       <div data-testid="metric-left-resize-end">{{ metrics.leftResizeEnd }}</div>
       <div data-testid="metric-right-resize-start">{{ metrics.rightResizeStart }}</div>
       <div data-testid="metric-right-resize-end">{{ metrics.rightResizeEnd }}</div>
+      <div data-testid="metric-floating-drag-start">{{ metrics.floatingDragStart }}</div>
+      <div data-testid="metric-floating-drag">{{ metrics.floatingDrag }}</div>
+      <div data-testid="metric-floating-drag-end">{{ metrics.floatingDragEnd }}</div>
       <div data-testid="metric-floating-left-resize-start">{{ metrics.floatingLeftResizeStart }}</div>
       <div data-testid="metric-floating-left-resize-end">{{ metrics.floatingLeftResizeEnd }}</div>
       <div data-testid="metric-floating-right-resize-start">{{ metrics.floatingRightResizeStart }}</div>
@@ -253,6 +264,9 @@ function resetFloating() {
             }
           }
         "
+        @floating-drag-start="metrics.floatingDragStart++"
+        @floating-drag="metrics.floatingDrag++"
+        @floating-drag-end="metrics.floatingDragEnd++"
         @floating-resize-start="
           ({ edge }) => (edge === 'left' ? metrics.floatingLeftResizeStart++ : metrics.floatingRightResizeStart++)
         "
@@ -337,6 +351,7 @@ function resetFloating() {
 
     <AsideStateFixtures v-if="showAsideStateFixtures" />
     <FloatingStateFixtures v-if="showFloatingStateFixtures" />
+    <LayoutCssVarFixtures v-if="showCssVarFixtures" />
   </div>
 </template>
 

@@ -4,6 +4,8 @@
 
 为 `Layout` 建立一套更清晰的库级组件设计约束，重点解决状态归属、默认值分层、样式契约和规格测试问题。
 
+> 注：这份文档保留了重构推导过程。文中出现的 `leftAside/rightAside` 整对象方案、`expandedWidth` / `collapsedWidth` 等旧命名，除非明确标注“最终公开 API”，否则都属于过程分析，不代表当前公开实现。当前公开口径以 `README.md` 和 `docs/src/components/layout.md` 为准。
+
 当前判断：
 
 - 不需要推倒重写。

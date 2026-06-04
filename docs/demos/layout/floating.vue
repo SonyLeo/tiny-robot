@@ -1,62 +1,43 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { TrLayout } from '@opentiny/tiny-robot'
-import { IconClose } from '@opentiny/tiny-robot-svgs'
-import type { LayoutFloatingConfig, LayoutMode } from '@opentiny/tiny-robot'
-import './demo.css'
+import type { LayoutFloatingConfig } from '@opentiny/tiny-robot'
 
-const mode = ref<LayoutMode>('normal')
+const open = ref(false)
 
-const floating = ref<LayoutFloatingConfig>({
+const defaultFloating: LayoutFloatingConfig = {
   x: 48,
   y: 32,
   width: 520,
-  height: 420,
+  height: 360,
   draggable: true,
   resizable: true,
-  minWidth: 380,
+  minWidth: 360,
   maxWidth: 680,
-})
-
-function openFloating() {
-  mode.value = 'floating'
-}
-
-function closeFloating() {
-  mode.value = 'normal'
 }
 </script>
 
 <template>
   <div class="layout-floating-demo">
-    <div class="layout-floating-toolbar">
-      <button v-if="mode === 'normal'" type="button" class="layout-floating-trigger" @click="openFloating">
-        打开浮层
-      </button>
-      <button v-else type="button" class="layout-floating-trigger" @click="closeFloating">关闭浮层</button>
-    </div>
+    <button type="button" class="layout-floating-demo__trigger" @click="open = !open">
+      {{ open ? '关闭浮层' : '打开浮层' }}
+    </button>
 
-    <div class="layout-floating-tip">点击按钮查看浮层布局。</div>
+    <p class="layout-floating-demo__tip">打开后可直接拖动顶部横条，或拖动左右边缘调整宽度。</p>
 
-    <TrLayout v-if="mode === 'floating'" class="layout-floating-layout" :mode="mode" :floating="floating">
+    <TrLayout v-if="open" class="layout-floating-demo__layout" mode="floating" :default-floating="defaultFloating">
       <template #header>
-        <div class="layout-demo-header layout-floating-header">
-          <span>Floating Layout</span>
-          <button type="button" class="layout-floating-close" aria-label="关闭浮层" @click="closeFloating">
-            <IconClose />
-          </button>
+        <div class="layout-floating-demo__header">
+          <strong>浮层布局</strong>
+          <button type="button" class="layout-floating-demo__close" @click="open = false">关闭</button>
         </div>
       </template>
 
       <template #main>
-        <div class="layout-demo-copy layout-demo-copy--spacious">
-          <h3>浮层内容区</h3>
-          <p class="layout-demo-muted">支持拖拽移动，并支持左右边缘改宽。</p>
+        <div class="layout-floating-demo__main">
+          <h3>初始值写法</h3>
+          <p>这个示例只传 `defaultFloating`，后续位置和宽度由组件自己维护。</p>
         </div>
-      </template>
-
-      <template #footer>
-        <div class="layout-demo-footer">可拖拽 / 可改宽</div>
       </template>
     </TrLayout>
   </div>
@@ -66,62 +47,54 @@ function closeFloating() {
 .layout-floating-demo {
   display: grid;
   gap: 12px;
+
+  --tr-layout-height: 100%;
+  --tr-layout-content-max-width: none;
+  --tr-layout-inner-padding-inline: 0;
+  --tr-layout-inner-padding-block: 0;
+  --tr-layout-surface-radius: 24px;
+  --tr-layout-surface-shadow: 0 24px 60px color-mix(in srgb, var(--vp-c-text-1, #111827) 14%, transparent);
+  --tr-layout-main-bg: var(--vp-c-bg, var(--tr-container-bg-default, #ffffff));
+  --tr-layout-header-bg: var(--vp-c-bg, var(--tr-container-bg-default, #ffffff));
 }
 
-.layout-floating-toolbar {
-  display: flex;
-  justify-content: flex-start;
-}
-
-.layout-floating-trigger {
-  min-width: 96px;
+.layout-floating-demo__trigger,
+.layout-floating-demo__close {
   height: 36px;
   padding: 0 14px;
   border: 1px solid var(--vp-c-divider, var(--tr-border-color, #dcdfe6));
   border-radius: 999px;
   background: var(--vp-c-bg, var(--tr-container-bg-default, #ffffff));
   color: var(--vp-c-text-1, var(--tr-text-primary, #1f2329));
-  cursor: pointer;
 }
 
-.layout-floating-tip {
+.layout-floating-demo__trigger {
+  justify-self: start;
+}
+
+.layout-floating-demo__tip {
+  margin: 0;
   color: var(--vp-c-text-2, var(--tr-text-secondary, #4e5969));
 }
 
-.layout-floating-layout {
-  --tr-layout-height: 100%;
-  --tr-layout-content-max-width: none;
-  --tr-layout-inner-padding-inline: 0;
-  --tr-layout-inner-padding-block: 0;
-  --tr-layout-surface-radius: 26px;
-  --tr-layout-surface-shadow: 0 24px 60px color-mix(in srgb, var(--vp-c-text-1, #111827) 14%, transparent);
-  --tr-layout-main-bg: var(--vp-c-bg, var(--tr-container-bg-default, #ffffff));
-  --tr-layout-header-bg: var(--vp-c-bg, var(--tr-container-bg-default, #ffffff));
-  --tr-layout-footer-bg: var(--vp-c-bg, var(--tr-container-bg-default, #ffffff));
-  height: 100%;
-}
-
-.layout-floating-header {
+.layout-floating-demo__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-}
-
-.layout-floating-close {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  border: 1px solid var(--vp-c-divider, var(--tr-border-color, #dcdfe6));
-  border-radius: 999px;
-  background: var(--vp-c-bg, var(--tr-container-bg-default, #ffffff));
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--vp-c-divider, var(--tr-border-color, #dcdfe6));
   color: var(--vp-c-text-1, var(--tr-text-primary, #1f2329));
-  cursor: pointer;
 }
 
-.layout-floating-close :deep(svg) {
-  font-size: 14px;
+.layout-floating-demo__main {
+  padding: 24px;
+  color: var(--vp-c-text-1, var(--tr-text-primary, #1f2329));
+}
+
+.layout-floating-demo__main p {
+  margin: 8px 0 0;
+  line-height: 1.6;
+  color: var(--vp-c-text-2, var(--tr-text-secondary, #4e5969));
 }
 </style>

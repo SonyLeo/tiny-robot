@@ -54,6 +54,5 @@ export interface LayoutStore {
 export interface UseControllableLayoutStateResult {
   resolvedMode: ComputedRef<LayoutMode>
   resolvedFloating: ComputedRef<LayoutFloatingConfig | undefined>
-  commitMode: (nextMode: LayoutMode) => void
   commitFloating: (nextFloating: LayoutFloatingConfig) => void
 }

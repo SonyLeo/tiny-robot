@@ -49,6 +49,18 @@ test.describe('Layout 组件测试 - Floating', () => {
     expect(after.y).toBeGreaterThan(before.y)
   })
 
+  test('Events: floating-drag* - 拖拽应公开三阶段事件', async ({ page }) => {
+    await page.getByTestId('mode-floating-btn').click()
+
+    await dragBy(page, page.locator(layoutSelectors.surfaceDragBar), 80, 40)
+
+    await expect(page.getByTestId('metric-floating-drag-start')).toHaveText('1')
+    await expect(page.getByTestId('metric-floating-drag-end')).toHaveText('1')
+    await expect
+      .poll(async () => Number(await page.getByTestId('metric-floating-drag').textContent()))
+      .toBeGreaterThan(0)
+  })
+
   test('Props: draggable=false - drag bar 不应再移动 surface', async ({ page }) => {
     await page.getByTestId('mode-floating-btn').click()
     await page.getByTestId('floating-draggable-off-btn').click()

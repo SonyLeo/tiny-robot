@@ -86,6 +86,9 @@ const {
   commitFloating,
   frameRef: surfaceFrameRef,
   dragHandleRef: surfaceDragHandleRef,
+  onFloatingDragStart: (detail) => emit('floating-drag-start', detail),
+  onFloatingDrag: (detail) => emit('floating-drag', detail),
+  onFloatingDragEnd: (detail) => emit('floating-drag-end', detail),
   onFloatingResizeStart: (detail) => emit('floating-resize-start', detail),
   onFloatingResize: (detail) => emit('floating-resize', detail),
   onFloatingResizeEnd: (detail) => emit('floating-resize-end', detail),
@@ -160,22 +163,30 @@ const toAriaHidden = (hidden: boolean) => (hidden ? 'true' : undefined)
             <slot name="left-aside" />
           </div>
 
-          <div class="tr-layout__header-shell" :class="{ 'tr-layout__header-shell--active': hasHeader() }">
-            <div class="tr-layout__header-inner">
+          <div
+            class="tr-layout__header-shell"
+            :class="{ 'tr-layout__header-shell--active': hasHeader() }"
+            data-part="header-shell"
+          >
+            <div class="tr-layout__header-inner" data-part="header-inner">
               <header class="tr-layout__header">
                 <slot name="header" />
               </header>
             </div>
           </div>
 
-          <div class="tr-layout__main-shell">
-            <div class="tr-layout__main-inner">
+          <div class="tr-layout__main-shell" data-part="main-shell">
+            <div class="tr-layout__main-inner" data-part="main-inner">
               <slot name="main" />
             </div>
           </div>
 
-          <div class="tr-layout__footer-shell" :class="{ 'tr-layout__footer-shell--active': hasFooter() }">
-            <div class="tr-layout__footer-inner">
+          <div
+            class="tr-layout__footer-shell"
+            :class="{ 'tr-layout__footer-shell--active': hasFooter() }"
+            data-part="footer-shell"
+          >
+            <div class="tr-layout__footer-inner" data-part="footer-inner">
               <footer class="tr-layout__footer">
                 <slot name="footer" />
               </footer>
