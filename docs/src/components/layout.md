@@ -17,8 +17,8 @@ outline: [1, 3]
 
 `Layout` 和 `Layout.Aside` 都支持两种状态写法：
 
-- 只传初始值：使用 `defaultMode`、`defaultFloating`、`defaultOpen`、`defaultWidth`
-- 外部控制状态：使用 `mode`、`floating`、`open`、`width`，并回写对应的 `update:*` 事件
+- 设置默认状态：使用 `defaultMode`、`defaultFloating`、`defaultOpen`、`defaultWidth`
+- 外部持续控制状态：使用 `mode`、`floating`、`open`、`width`，并回写对应的 `update:*` 事件
 
 同一组状态里，受控写法和初始值写法只能二选一，例如 `mode` 和 `defaultMode` 不能同时传。
 
@@ -113,7 +113,7 @@ outline: [1, 3]
 
 浮层模式适合临时工作区、对话框式页面或可移动面板。
 
-如果只想传初始值，使用 `defaultFloating`。如果需要在外部保存位置和宽度，使用 `floating` 并监听 `update:floating`。
+如果只需要设置默认位置和宽度，使用 `defaultFloating`。如果需要在外部持续同步位置和宽度，使用 `floating` 并监听 `update:floating`。
 
 <demo vue="../../demos/layout/floating.vue" title="浮层模式" description="只传初始值的浮层示例。" />
 
@@ -127,9 +127,9 @@ outline: [1, 3]
 | 属性名 | 说明 | 类型 | 默认值 |
 | ------ | ---- | ---- | ------ |
 | `mode` | 外部控制布局模式 | `'normal' \| 'floating'` | `-` |
-| `defaultMode` | 初始布局模式，仅在初始化时读取一次 | `'normal' \| 'floating'` | `'normal'` |
+| `defaultMode` | 默认布局模式 | `'normal' \| 'floating'` | `'normal'` |
 | `floating` | 外部传入的浮层位置和尺寸 | `LayoutFloatingConfig` | `-` |
-| `defaultFloating` | 浮层初始位置和尺寸，仅在初始化时读取一次 | `LayoutFloatingConfig` | `-` |
+| `defaultFloating` | 默认浮层位置和尺寸 | `LayoutFloatingConfig` | `-` |
 
 <a id="layout-floating-config"></a>
 #### LayoutFloatingConfig
@@ -160,9 +160,9 @@ outline: [1, 3]
 | `placement` | 侧栏位置 | `'left' \| 'right'` | `-` |
 | `mode` | 侧栏模式 | `'dock' \| 'drawer'` | `'dock'` |
 | `open` | 外部控制侧栏开关 | `boolean` | `-` |
-| `defaultOpen` | 侧栏初始开关状态，仅在初始化时读取一次 | `boolean` | `left: true` / `right: false` |
+| `defaultOpen` | 默认开关状态 | `boolean` | `left: true` / `right: false` |
 | `width` | 外部控制的 `dock` 宽度 | `number` | `-` |
-| `defaultWidth` | `dock` 初始宽度，仅在初始化时读取一次 | `number` | `-` |
+| `defaultWidth` | 默认 `dock` 宽度 | `number` | `-` |
 | `railWidth` | `dock` 收起后保留的窄栏宽度 | `number` | `0` |
 | `minWidth` | `dock` 最小宽度 | `number` | `left: 200` / `right: 240` |
 | `maxWidth` | `dock` 最大宽度 | `number` | `left: 560` / `right: 640` |
