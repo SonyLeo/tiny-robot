@@ -553,7 +553,7 @@ const toAriaHidden = (hidden: boolean) => (hidden ? 'true' : undefined)
     &--dock {
       position: relative;
       z-index: 1;
-      overflow: visible;
+      overflow: hidden;
 
       &.tr-layout__aside--rail {
         overflow: hidden;
