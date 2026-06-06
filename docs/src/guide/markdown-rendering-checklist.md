@@ -124,10 +124,11 @@ outline: deep
   - 先冻结起手顺序、非目标和门禁
   - 暂不直接进入 Mermaid / KaTeX 正式实现
 - [ ] `M5` 起步任务待确认：
+  - HTML Preview 最小方案与 demo / fixture
   - Mermaid 最小方案与 demo / fixture
   - KaTeX / LaTeX 最小方案
   - Footnotes 最小 parser / render 方案
-  - Alert / Preview / Gallery 优先级
+  - Alert / Gallery 优先级
   - 插件与扩展点公开边界
 
 ## LobeUI Public Demo Checklist
@@ -575,16 +576,19 @@ outline: deep
 - [x] 已确认 `M5` 不再和 `M4` / `M2` 混做
 - [x] 已确认先冻结顺序，再决定具体能力的最小切入面
 - [x] 已确认当前推荐起手顺序：
+  - `HTML Preview`
   - `Mermaid`
   - `KaTeX / LaTeX`
   - `Footnotes`
-  - `GitHub Alert / HTML Preview / Image Gallery`
+  - `GitHub Alert`
+  - `Image Gallery`
   - 插件与扩展点
 
 ## 阶段门禁
 
 - [x] 默认路径不得自动引入 `Mermaid`
 - [x] 默认路径不得自动引入 `KaTeX`
+- [x] 默认路径不得自动启用 `HTML Preview`
 - [x] 所有高级能力都必须显式开关控制
 - [x] 所有重能力都必须支持延迟加载
 - [x] 普通 Bubble 主路径不得默认承担高级 markdown 成本
@@ -597,23 +601,34 @@ outline: deep
 
 ## 起步任务
 
+- [ ] `HTML Preview` 的目标冻结 / 最小方案确认
+- [ ] `HTML Preview` 的 demo / fixture / 验收基线
 - [ ] `Mermaid` 的目标冻结 / 最小方案确认
 - [ ] `Mermaid` 的 demo / fixture / 验收基线
 - [ ] `KaTeX / LaTeX` 的目标冻结 / 最小方案确认
 - [ ] `Footnotes` 的最小 parser / render 方案确认
-- [ ] `Alert / Preview / Gallery` 的优先级再排序
+- [ ] `Alert / Gallery` 的优先级再排序
 - [ ] 插件与扩展点的最小公开边界确认
 
 ## M5 Tasklist（待确认后实现）
 
 ### M5.0 阶段准备
 
-- [ ] 冻结 `features.mermaid / math / footnotes / alerts / htmlPreview / imageGallery`
+- [ ] 冻结 `features.htmlPreview / mermaid / math / footnotes / alerts / imageGallery`
 - [ ] 冻结默认关闭、按需加载、Bubble 普通路径不承载高级能力的门禁
 - [ ] 新增 M5 fixture 命名规则与 demo 分组
 - [ ] 补 M5 验证命令与体积记录模板
 
-### M5.1 Mermaid block
+### M5.1 HTML Preview
+
+- [x] `html` fenced code 识别并分流到 `HtmlPreviewBlock`
+- [x] HTML Preview 使用 iframe sandbox + srcdoc 隔离渲染
+- [x] 支持 Preview / Code 切换
+- [x] 支持 copy code、download code、fallback、dark mode
+- [x] demo 覆盖完整文档预览、fragment 回退和显式开关
+- [x] test 覆盖默认关闭、显式开启、sandbox 属性与 Preview / Code 切换
+
+### M5.2 Mermaid block
 
 - [ ] 识别 `mermaid` fenced code block
 - [ ] code 子系统分流到 `MermaidBlock`
@@ -623,7 +638,7 @@ outline: deep
 - [ ] demo 覆盖 flowchart / sequence / state / error
 - [ ] test 覆盖默认关闭、显式开启、非 mermaid code 不加载 mermaid
 
-### M5.2 KaTeX / LaTeX
+### M5.3 KaTeX / LaTeX
 
 - [ ] 冻结 inline math 与 block math 语法范围
 - [ ] 评估并选定 `markdown-it` 侧公式插件
@@ -632,7 +647,7 @@ outline: deep
 - [ ] demo 覆盖 inline formula、block formula、错误公式
 - [ ] test 覆盖开关、错误 fallback、普通 `$` 文本不误判
 
-### M5.3 Footnotes
+### M5.4 Footnotes
 
 - [ ] 选定 `markdown-it-footnote` 或等价轻量插件
 - [ ] footnote ref / footnote list 映射为第一方 Vue 节点
@@ -640,7 +655,7 @@ outline: deep
 - [ ] demo 覆盖单脚注、多脚注、脚注内 link / code
 - [ ] test 覆盖 parser token、render node、主题样式
 
-### M5.4 GitHub Alert
+### M5.5 GitHub Alert
 
 - [ ] 支持 `NOTE / TIP / IMPORTANT / WARNING / CAUTION`
 - [ ] 优先在 blockquote render 阶段轻量识别
@@ -648,17 +663,14 @@ outline: deep
 - [ ] demo 覆盖五类 alert 与普通 blockquote 对照
 - [ ] test 覆盖普通 blockquote 不被误判
 
-### M5.5 HTML Preview / Image Gallery
+### M5.6 Image Gallery
 
-- [ ] HTML Preview 仅在 `features.htmlPreview` 开启且命中 html fence 时启用
-- [ ] HTML Preview 使用 iframe sandbox 隔离
-- [ ] 支持 source / preview 切换
 - [ ] Image Gallery 仅在 `features.imageGallery` 开启时启用
 - [ ] Image Gallery 支持多图浏览、caption、alt、键盘关闭
-- [ ] demo 覆盖 preview 安全态、gallery 多图、暗色模式
+- [ ] demo 覆盖 gallery 多图、暗色模式
 - [ ] test 覆盖默认关闭、sandbox 属性、图片点击行为
 
-### M5.6 插件与扩展点
+### M5.7 插件与扩展点
 
 - [ ] 至少两类高级节点落地后再冻结 public API
 - [ ] 冻结 `components / componentProps / parserOptions / renderOptions / features`
@@ -670,4 +682,4 @@ outline: deep
 - [x] 起手顺序明确
 - [x] 阶段非目标明确
 - [x] 默认路径门禁明确
-- [ ] 第一项能力的最小切入方案拍板
+- [x] 第一项能力的最小切入方案拍板

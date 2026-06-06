@@ -275,6 +275,16 @@ outline: deep
 - 不把静态渲染主路径切换到另一套底层
 - 不在第一步就追求完整 token-level diff
 
+### M5 起手顺序补充说明
+
+当前 `M5` 的第一阶段已调整为 `HTML Preview`，不是 `Mermaid`。
+
+原因很简单：
+
+- HTML Preview 能更早验证安全隔离、显式开关和默认路径零污染
+- 它直接复用 code 子系统，切入面比 Mermaid 更小
+- 先把 preview 的门禁跑通，再进入 Mermaid / KaTeX，会更稳
+
 ### 当前建议的最小执行顺序
 
 1. 固定两组流式 fixture：

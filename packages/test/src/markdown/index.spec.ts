@@ -86,6 +86,51 @@ test.describe('markdown component', () => {
     )
   })
 
+  test('renders html preview only when enabled for a full html document', async ({ page }) => {
+    await page.goto('http://127.0.0.1:3333/')
+    await page.getByRole('link', { name: 'Markdown 组件' }).click()
+
+    const disabledSection = page.getByTestId('markdown-html-preview-disabled')
+    const enabledSection = page.getByTestId('markdown-html-preview-enabled')
+    const fragmentSection = page.getByTestId('markdown-html-preview-fragment')
+
+    await expect(disabledSection.locator('.tr-markdown__code-block-wrap')).toHaveCount(1)
+    await expect(disabledSection.locator('[data-code-type="html-preview"]')).toHaveCount(0)
+
+    const previewBlock = enabledSection.locator('[data-code-type="html-preview"]').first()
+    const toolbar = previewBlock.locator('.tr-markdown__html-preview-toolbar')
+
+    await expect(previewBlock).toHaveCount(1)
+    await expect(previewBlock.locator('iframe.tr-markdown__html-preview-iframe')).toHaveCount(1)
+    await expect(previewBlock.locator('iframe.tr-markdown__html-preview-iframe')).toHaveAttribute(
+      'sandbox',
+      'allow-scripts allow-forms allow-modals',
+    )
+    await expect(toolbar).toHaveCSS('opacity', '0')
+    await previewBlock.hover()
+    await expect(toolbar).toHaveCSS('opacity', '1')
+    await expect(toolbar.getByRole('button', { name: 'Preview' })).toHaveClass(
+      /tr-markdown__html-preview-segment--active/,
+    )
+    const sourceButton = toolbar.getByRole('button', { name: 'Code', exact: true })
+    const previewButton = toolbar.getByRole('button', { name: 'Preview', exact: true })
+
+    await sourceButton.click()
+    await expect(sourceButton).toHaveClass(/tr-markdown__html-preview-segment--active/)
+    await expect(previewBlock.locator('.tr-markdown__code-highlight--block')).toContainText(
+      'Hello from inside Markdown',
+    )
+    await previewButton.click()
+    await expect(previewBlock.locator('iframe.tr-markdown__html-preview-iframe')).toHaveCount(1)
+    await expect(previewBlock.getByRole('button', { name: 'Copy HTML code' })).toBeVisible()
+    await previewBlock.getByRole('button', { name: 'Copy HTML code' }).click()
+    await expect(previewBlock.getByRole('button', { name: 'Copy HTML code' })).toHaveAttribute('title', 'Copied')
+    await expect(previewBlock.getByRole('button', { name: 'Download HTML' })).toBeVisible()
+
+    await expect(fragmentSection.locator('[data-code-type="html-preview"]')).toHaveCount(0)
+    await expect(fragmentSection.locator('.tr-markdown__code-block-wrap')).toHaveCount(1)
+  })
+
   test('holds incomplete streaming structures until they are complete', async ({ page }) => {
     await page.goto('http://127.0.0.1:3333/')
     await page.getByRole('link', { name: 'Markdown 组件' }).click()

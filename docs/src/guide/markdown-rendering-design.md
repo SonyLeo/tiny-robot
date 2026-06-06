@@ -2468,18 +2468,18 @@ Bubble 场景应通过变量桥接，而不是复制完整样式：
 
 ```ts
 features?: {
+  htmlPreview?: boolean | TrMarkdownHtmlPreviewConfig
   mermaid?: boolean | TrMarkdownMermaidConfig
   math?: boolean | TrMarkdownMathConfig
   footnotes?: boolean
   alerts?: boolean
-  htmlPreview?: boolean | TrMarkdownHtmlPreviewConfig
   imageGallery?: boolean | TrMarkdownImageGalleryConfig
 }
 ```
 
 ### M5.0：阶段准备
 
-先冻结公共门禁与命名，而不是直接写 Mermaid：
+先冻结公共门禁与命名，而不是直接写某个高级节点：
 
 - `features` 配置结构
 - fixture 命名
@@ -2488,7 +2488,30 @@ features?: {
 - 动态 import 策略
 - 体积记录模板
 
-### M5.1：Mermaid block
+### M5.1：HTML Preview
+
+HTML Preview 应作为 code 子系统的显式分流，而不是把用户 HTML 注入当前 Markdown DOM。
+
+推荐链路：
+
+1. parser 识别 fenced code block 的 language 为 `html`
+2. render / code resolver 层判断 `features.htmlPreview`
+3. 未开启时仍按普通 code block 展示源码
+4. 开启后渲染到 `HtmlPreviewBlock`
+5. `HtmlPreviewBlock` 使用 iframe `sandbox` + `srcdoc` 进行隔离渲染
+6. `HtmlPreviewBlock` 自己处理 Preview / Code 切换、copy code、download code、fallback、theme
+
+验收重点：
+
+- 默认不启用 preview，也不改变普通 `html` code block
+- preview 不使用整段 `v-html` 注入主 DOM
+- iframe 默认 sandbox 使用隔离 `srcdoc`，不加入 `allow-same-origin`
+- Preview / Code 切换不影响 copy code / download code
+- 错误 HTML 或受限能力有明确 fallback
+- toolbar 默认隐藏，hover / focus-within 后显示，和 LobeUI 的 inline top-right toolbar 交互一致
+- Bubble 普通路径不受影响
+
+### M5.2：Mermaid block
 
 Mermaid 应作为 code 子系统的一个显式分流，而不是普通 code block 的隐式副作用。
 
@@ -2508,7 +2531,7 @@ Mermaid 应作为 code 子系统的一个显式分流，而不是普通 code blo
 - 错误图表不会打断整篇 Markdown
 - Bubble 普通路径不受影响
 
-### M5.2：KaTeX / LaTeX
+### M5.3：KaTeX / LaTeX
 
 公式能力应先冻结语法范围，再选插件。
 
@@ -2526,9 +2549,9 @@ Mermaid 应作为 code 子系统的一个显式分流，而不是普通 code blo
 - 错误公式有 fallback
 - 默认路径不引入 KaTeX
 
-### M5.3：Footnotes
+### M5.4：Footnotes
 
-Footnotes 相对轻，可以在 Mermaid / Math 的动态能力边界稳定后推进。
+Footnotes 相对轻，可以在 Preview / Mermaid / Math 的动态能力边界稳定后推进。
 
 推荐策略：
 
@@ -2543,7 +2566,7 @@ Footnotes 相对轻，可以在 Mermaid / Math 的动态能力边界稳定后推
 - anchor id 稳定
 - 不破坏普通列表和链接样式
 
-### M5.4：GitHub Alert
+### M5.5：GitHub Alert
 
 Alert 不一定需要重 parser 插件，优先在 blockquote render 阶段轻量识别。
 
@@ -2560,16 +2583,9 @@ Alert 不一定需要重 parser 插件，优先在 blockquote render 阶段轻�
 - dark mode 对比度稳定
 - 普通 blockquote 仍保持原样
 
-### M5.5：HTML Preview / Image Gallery
+### M5.6：Image Gallery
 
-这两项属于交互增强，安全和默认路径门禁优先级高于效果。
-
-HTML Preview：
-
-- 只对 `html` fenced code 且 `features.htmlPreview` 开启时启用
-- 默认展示源码，preview 是显式能力
-- iframe 必须带 sandbox
-- 不默认执行任意脚本
+Image Gallery 属于图片节点的交互增强，默认路径门禁优先级高于效果。
 
 Image Gallery：
 
@@ -2577,7 +2593,7 @@ Image Gallery：
 - `features.imageGallery` 开启后才接入预览层
 - 支持多图浏览、caption、alt、键盘关闭
 
-### M5.6：插件与扩展点
+### M5.7：插件与扩展点
 
 插件与扩展点不建议先行抽象。至少完成两类高级节点后，再冻结 public API。
 
@@ -2598,11 +2614,12 @@ Image Gallery：
 
 ### 推荐开工顺序
 
-1. 先确认 `M5.0 + M5.1 Mermaid` 是否作为下一轮正式实现范围
-2. Mermaid 完成后再进入 KaTeX / LaTeX
-3. Footnotes 可作为轻量穿插项
-4. Alert / Preview / Gallery 等节点体验放在第三批
-5. 插件 API 最后冻结，避免先抽象后返工
+1. 先确认 `M5.0 + M5.1 HTML Preview` 是否作为下一轮正式实现范围
+2. HTML Preview 完成后再进入 Mermaid
+3. Mermaid 完成后再进入 KaTeX / LaTeX
+4. Footnotes 可作为轻量穿插项
+5. Alert / Gallery 等节点体验放在第三批
+6. 插件 API 最后冻结，避免先抽象后返工
 
 ## 与其他文档的边界
 

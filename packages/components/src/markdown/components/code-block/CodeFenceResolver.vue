@@ -4,10 +4,13 @@ import type {
   TrMarkdownCodeActionsRender,
   TrMarkdownCodeBlockMode,
   TrMarkdownCodeHighlightEngine,
+  TrMarkdownHtmlPreviewConfig,
 } from '../../index.type'
 import CodeBlock from './CodeBlock.vue'
 import CodeBlockFull from './CodeBlockFull.vue'
 import CodeBlockSingleLine from './CodeBlockSingleLine.vue'
+import HtmlPreviewBlock from '../html-preview/HtmlPreviewBlock.vue'
+import { isFullHtmlDocument, resolveHtmlPreviewConfig } from '../html-preview/utils'
 
 const props = withDefaults(
   defineProps<{
@@ -19,6 +22,7 @@ const props = withDefaults(
     enableTransformer?: boolean
     highlight?: boolean
     highlightEngine?: TrMarkdownCodeHighlightEngine
+    htmlPreview?: boolean | TrMarkdownHtmlPreviewConfig
     language?: string
     showLanguage?: boolean
   }>(),
@@ -37,6 +41,16 @@ const normalizedCode = computed(() => {
   return (props.code || '').replace(/\n$/, '')
 })
 
+const htmlPreviewConfig = computed(() => resolveHtmlPreviewConfig(props.htmlPreview))
+
+const shouldRenderHtmlPreview = computed(() => {
+  return (
+    htmlPreviewConfig.value.enabled &&
+    (props.language || '').trim().toLowerCase() === 'html' &&
+    isFullHtmlDocument(normalizedCode.value)
+  )
+})
+
 const isSingleLine = computed(() => {
   const content = normalizedCode.value
   return !content.includes('\n') && content.length <= 32
@@ -44,8 +58,21 @@ const isSingleLine = computed(() => {
 </script>
 
 <template>
+  <HtmlPreviewBlock
+    v-if="shouldRenderHtmlPreview"
+    :code="normalizedCode"
+    :copyable="htmlPreviewConfig.copyable ?? copyable"
+    :default-height="htmlPreviewConfig.defaultHeight"
+    :default-mode="htmlPreviewConfig.defaultMode"
+    :downloadable="htmlPreviewConfig.downloadable"
+    :enable-transformer="enableTransformer"
+    :file-name="htmlPreviewConfig.fileName"
+    :highlight="highlight"
+    :highlight-engine="highlightEngine"
+    :sandbox="htmlPreviewConfig.sandbox"
+  />
   <CodeBlockSingleLine
-    v-if="isSingleLine"
+    v-else-if="isSingleLine"
     :actions-render="actionsRender"
     :code="normalizedCode"
     :copyable="copyable"

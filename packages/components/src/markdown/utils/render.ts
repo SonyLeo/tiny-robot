@@ -132,6 +132,7 @@ export const renderNode = (
         defaultExpand: codeConfig.defaultExpand !== false,
         highlight: highlightConfig.enabled !== false,
         highlightEngine: highlightConfig.engine || 'highlightjs',
+        htmlPreview: context.features.htmlPreview,
         enableTransformer: Boolean(highlightConfig.enableTransformer),
         actionsRender: codeConfig.actionsRender,
       })

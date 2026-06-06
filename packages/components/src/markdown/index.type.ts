@@ -9,11 +9,27 @@ export interface TrMarkdownFeatureFlags {
   html?: boolean
   codeBlock?: boolean
   codeHighlight?: boolean
+  htmlPreview?: boolean | TrMarkdownHtmlPreviewConfig
 }
 
 export type TrMarkdownCodeBlockMode = 'overlay' | 'full'
 
 export type TrMarkdownCodeHighlightEngine = 'highlightjs' | 'shiki'
+
+export type TrMarkdownHtmlPreviewMode = 'preview' | 'source'
+
+export type TrMarkdownHtmlPreviewStreamingMode = 'auto' | 'live' | 'defer'
+
+export interface TrMarkdownHtmlPreviewConfig {
+  enabled?: boolean
+  copyable?: boolean
+  downloadable?: boolean
+  defaultHeight?: number
+  defaultMode?: TrMarkdownHtmlPreviewMode
+  fileName?: string
+  sandbox?: string
+  streamingMode?: TrMarkdownHtmlPreviewStreamingMode
+}
 
 export interface TrMarkdownCodeHighlightConfig {
   enabled?: boolean

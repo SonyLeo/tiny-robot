@@ -7,6 +7,7 @@ import { colorModelsCase } from './cases/colorModels'
 import { customHighlightCase } from './cases/customHighlight'
 import { headingsCase } from './cases/headings'
 import { imagesCase } from './cases/images'
+import { htmlPreviewCase, htmlPreviewFragmentCase } from './cases/htmlPreview'
 import { inlineCodeCase } from './cases/inlineCode'
 import { linksCase } from './cases/links'
 import { listsCase } from './cases/lists'
@@ -58,6 +59,12 @@ export const publicMarkdownSections: MarkdownDemoSection[] = [
     description:
       '围绕 inline code、颜色预览、snippet、block toolbar、Shiki transformer 和自定义 actionsRender 收敛 code 模块。',
     cases: [inlineCodeCase, colorModelsCase, codeBlocksCase, shikiTransformersCase, customHighlightCase],
+  },
+  {
+    id: 'html-preview',
+    title: 'HTML Preview',
+    description: '对标 LobeUI 的 HTML preview 案例，完整 HTML 文档才走 iframe 预览，fragment 保持 source 视图。',
+    cases: [htmlPreviewCase, htmlPreviewFragmentCase],
   },
   {
     id: 'variants',
@@ -119,6 +126,12 @@ export const markdownApiRows: MarkdownDemoApiRow[] = [
     description: '代码块配置，包括 copy、language、block mode 与 highlight engine。',
     type: 'TrMarkdownCodeConfig',
     defaultValue: '{}',
+  },
+  {
+    name: 'features',
+    description: '高级能力显式开关。当前 HTML Preview 通过 `features.htmlPreview` 开启。',
+    type: 'TrMarkdownFeatureFlags',
+    defaultValue: '{ html: false }',
   },
   {
     name: 'components',

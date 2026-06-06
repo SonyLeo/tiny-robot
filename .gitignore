@@ -43,3 +43,6 @@ pnpm-lock.yaml
 yarn.lock
 packages/svgs/src/components
 cui.config.js
+packages/markdown-demo/src/**/*.d.ts
+packages/markdown-demo/src/**/*.js
+packages/test/packages/test/**/*.png

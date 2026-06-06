@@ -865,21 +865,24 @@ TinyRobot 当前的问题不是完全缺能力，而是 Markdown 逻辑分散在
 - 状态：`Planned`
 - 依赖：`M1`，部分能力依赖 `M2` / `M4`
 
-### 当前建议起手顺序（2026-05-30）
+### 当前建议起手顺序（2026-05-31）
 
 当前不建议把 `M5` 视为“一次性做完所有高级能力”的阶段，而建议拆成下面这条顺序：
 
-1. `Mermaid`
-2. `KaTeX / LaTeX`
-3. `Footnotes`
-4. `GitHub Alert / HTML Preview / Image Gallery`
-5. 插件与扩展点
+1. `HTML Preview`
+2. `Mermaid`
+3. `KaTeX / LaTeX`
+4. `Footnotes`
+5. `GitHub Alert`
+6. `Image Gallery`
+7. 插件与扩展点
 
 这样做的原因是：
 
-- `Mermaid` 和 `KaTeX` 是最典型的重运行时，需要最早验证“显式开关 + 延迟加载 + 默认路径零污染”这条约束
+- `HTML Preview` 能最早验证“显式开关 + iframe sandbox + 默认路径零污染”这条约束，而且复用现有 code 子系统，切入面最小
+- `Mermaid` 和 `KaTeX` 是最典型的重运行时，适合在 preview 安全门禁跑通后再验证“动态加载 + 默认路径零污染”
 - `Footnotes` 相对更轻，适合在重能力主路径稳定后补入
-- `Alert / Preview / Gallery` 更偏节点体验和交互层，建立在前面基础能力稳定之后更合适
+- `Alert / Gallery` 更偏节点体验和交互层，建立在前面基础能力稳定之后更合适
 - 插件与扩展点应建立在至少一批高级节点已经落地后，否则容易先抽象、后补实现
 
 ### M5 推荐 Tasklist（待确认后实现）
@@ -887,11 +890,11 @@ TinyRobot 当前的问题不是完全缺能力，而是 Markdown 逻辑分散在
 #### M5.0：阶段准备与门禁
 
 - 冻结 `features` 配置结构：
+  - `features.htmlPreview`
   - `features.mermaid`
   - `features.math`
   - `features.footnotes`
   - `features.alerts`
-  - `features.htmlPreview`
   - `features.imageGallery`
 - 冻结高级能力的共同门禁：
   - 默认关闭
@@ -899,13 +902,24 @@ TinyRobot 当前的问题不是完全缺能力，而是 Markdown 逻辑分散在
   - 不进入 Bubble 普通主路径
   - 不回退到整段 `v-html`
 - 补 fixture / demo / test 命名规则：
+  - `m5-html-preview`
   - `m5-mermaid`
   - `m5-math`
   - `m5-footnotes`
   - `m5-alerts`
-  - `m5-preview-gallery`
+  - `m5-image-gallery`
 
-#### M5.1：Mermaid block
+#### M5.1：HTML Preview
+
+- 识别 `html` fenced code block
+- 在 code 子系统中分流到 `HtmlPreviewBlock`
+- 通过 iframe sandbox + srcdoc 进行隔离渲染
+- 支持 Preview / Code 切换
+- 支持 copy code、download code、fallback、dark mode
+- demo 覆盖安全预览、样式预览、错误兜底
+- test 覆盖默认关闭、显式开启、sandbox 属性与 Preview / Code 切换
+
+#### M5.2：Mermaid block
 
 - 识别 ` ```mermaid ` fenced code block
 - 在 code 子系统中分流到 `MermaidBlock`
@@ -915,7 +929,7 @@ TinyRobot 当前的问题不是完全缺能力，而是 Markdown 逻辑分散在
 - demo 覆盖 flowchart / sequence / state / error
 - test 覆盖默认关闭、显式开启、非 mermaid code 不加载 mermaid
 
-#### M5.2：KaTeX / LaTeX
+#### M5.3：KaTeX / LaTeX
 
 - 冻结 inline math 与 block math 语法范围
 - 评估当前 `markdown-it` adapter 下使用 `markdown-it-katex` 或 `markdown-it-texmath`
@@ -924,7 +938,7 @@ TinyRobot 当前的问题不是完全缺能力，而是 Markdown 逻辑分散在
 - demo 覆盖 inline formula、block formula、错误公式
 - test 覆盖开关、错误 fallback、普通 `$` 文本不误判
 
-#### M5.3：Footnotes
+#### M5.4：Footnotes
 
 - 采用 `markdown-it-footnote` 或等价轻量 parser 插件
 - 将 footnote ref / footnote list 映射为第一方 Vue 节点
@@ -932,7 +946,7 @@ TinyRobot 当前的问题不是完全缺能力，而是 Markdown 逻辑分散在
 - demo 覆盖单脚注、多脚注、脚注内 link / code
 - test 覆盖 parser token、render node、主题样式
 
-#### M5.4：GitHub Alert
+#### M5.5：GitHub Alert
 
 - 支持 `> [!NOTE]` / `TIP` / `IMPORTANT` / `WARNING` / `CAUTION`
 - 不依赖重 parser，优先在 blockquote render 阶段识别
@@ -940,21 +954,16 @@ TinyRobot 当前的问题不是完全缺能力，而是 Markdown 逻辑分散在
 - demo 覆盖五类 alert 与普通 blockquote 对照
 - test 覆盖普通 blockquote 不被误判
 
-#### M5.5：HTML Preview 与 Image Gallery
+#### M5.6：Image Gallery
 
-- HTML Preview：
-  - 仅对 `html` fenced code 且 `features.htmlPreview` 开启时启用
-  - iframe sandbox 隔离
-  - source / preview 切换
-  - 禁止默认执行任意脚本
 - Image Gallery：
   - 普通 image 默认仍轻量
   - `features.imageGallery` 开启后接入预览层
   - 支持多图浏览、caption、alt、键盘关闭
-- demo 覆盖 preview 安全态、gallery 多图、暗色模式
+- demo 覆盖 gallery 多图、暗色模式
 - test 覆盖默认关闭、sandbox 属性、图片点击行为
 
-#### M5.6：插件与扩展点
+#### M5.7：插件与扩展点
 
 - 在至少两类高级节点落地后再抽象
 - 冻结最小公开边界：

@@ -27,6 +27,21 @@
       <TrMarkdown :content="fullCodeContent" :code="fullCodeConfig" variant="default" />
     </section>
 
+    <section class="markdown-demo__section" data-testid="markdown-html-preview-disabled">
+      <h3>HTML Preview Disabled Markdown</h3>
+      <TrMarkdown :content="htmlPreviewDisabledContent" variant="default" />
+    </section>
+
+    <section class="markdown-demo__section" data-testid="markdown-html-preview-enabled">
+      <h3>HTML Preview Enabled Markdown</h3>
+      <TrMarkdown :content="htmlPreviewEnabledContent" :features="htmlPreviewEnabledFeatures" variant="default" />
+    </section>
+
+    <section class="markdown-demo__section" data-testid="markdown-html-preview-fragment">
+      <h3>HTML Preview Fragment Markdown</h3>
+      <TrMarkdown :content="htmlPreviewFragmentContent" :features="htmlPreviewFragmentFeatures" variant="default" />
+    </section>
+
     <section class="markdown-demo__section" data-testid="markdown-stream-smoothing">
       <h3>Streaming Smoothing Markdown</h3>
       <div class="markdown-demo__actions">
@@ -599,6 +614,75 @@ const fullCodeConfig: TrMarkdownCodeConfig = {
       'AI',
     ),
   ],
+}
+
+const htmlPreviewDocument = `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>TinyRobot HTML Preview Test</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+      }
+
+      body {
+        min-height: 220px;
+        padding: 32px;
+        box-sizing: border-box;
+        background: #101628;
+        color: #ffffff;
+        font-family: ui-sans-serif, system-ui, sans-serif;
+      }
+
+      .pill {
+        display: inline-flex;
+        padding: 0.2em 0.6em;
+        border-radius: 999px;
+        background: #34d3f5;
+        color: #0f172a;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Hello from inside Markdown</h1>
+      <p>This block is rendered by <span class="pill">HtmlPreview</span>.</p>
+      <p>Scripts run inside an isolated sandbox iframe.</p>
+    </main>
+  </body>
+</html>`
+
+const htmlPreviewFragment = `<section>
+  <h1>Fragment fallback</h1>
+  <p>This stays as code because it is not a full HTML document.</p>
+</section>`
+
+const htmlPreviewDisabledContent = `\`\`\`html
+${htmlPreviewDocument}
+\`\`\``
+
+const htmlPreviewEnabledContent = `\`\`\`html
+${htmlPreviewDocument}
+\`\`\``
+
+const htmlPreviewFragmentContent = `\`\`\`html
+${htmlPreviewFragment}
+\`\`\``
+
+const htmlPreviewEnabledFeatures = {
+  htmlPreview: {
+    enabled: true,
+    defaultHeight: 260,
+    fileName: 'tiny-robot-html-preview.html',
+  },
+}
+
+const htmlPreviewFragmentFeatures = {
+  htmlPreview: {
+    enabled: true,
+  },
 }
 
 const bubbleFallbackContent = `## Bubble Fallback
