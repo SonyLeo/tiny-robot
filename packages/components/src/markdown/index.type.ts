@@ -5,11 +5,23 @@ export interface TrMarkdownLinkConfig {
   rel?: string
 }
 
+export interface TrMarkdownCitationItem {
+  url: string
+  title?: string
+  alt?: string
+  summary?: string
+}
+
 export interface TrMarkdownFeatureFlags {
   html?: boolean
   codeBlock?: boolean
   codeHighlight?: boolean
   htmlPreview?: boolean | TrMarkdownHtmlPreviewConfig
+  math?: boolean | TrMarkdownMathConfig
+  mermaid?: boolean | TrMarkdownMermaidConfig
+  footnotes?: boolean | TrMarkdownFootnoteConfig
+  alerts?: boolean | TrMarkdownAlertConfig
+  imageGallery?: boolean | TrMarkdownImageGalleryConfig
 }
 
 export type TrMarkdownCodeBlockMode = 'overlay' | 'full'
@@ -20,6 +32,8 @@ export type TrMarkdownHtmlPreviewMode = 'preview' | 'source'
 
 export type TrMarkdownHtmlPreviewStreamingMode = 'auto' | 'live' | 'defer'
 
+export type TrMarkdownMermaidMode = 'preview' | 'source'
+
 export interface TrMarkdownHtmlPreviewConfig {
   enabled?: boolean
   copyable?: boolean
@@ -29,6 +43,33 @@ export interface TrMarkdownHtmlPreviewConfig {
   fileName?: string
   sandbox?: string
   streamingMode?: TrMarkdownHtmlPreviewStreamingMode
+}
+
+export interface TrMarkdownMermaidConfig {
+  enabled?: boolean
+  copyable?: boolean
+  defaultMode?: TrMarkdownMermaidMode
+}
+
+export interface TrMarkdownMathConfig {
+  enabled?: boolean
+  copyable?: boolean
+}
+
+export interface TrMarkdownFootnoteConfig {
+  enabled?: boolean
+}
+
+export interface TrMarkdownAlertConfig {
+  enabled?: boolean
+}
+
+export type TrMarkdownAlertKind = 'note' | 'tip' | 'important' | 'warning' | 'caution'
+
+export interface TrMarkdownImageGalleryConfig {
+  enabled?: boolean
+  showCaption?: boolean
+  closeOnEscape?: boolean
 }
 
 export interface TrMarkdownCodeHighlightConfig {
@@ -60,6 +101,8 @@ export interface TrMarkdownParserOptions {
   linkify?: boolean
   typographer?: boolean
   breaks?: boolean
+  math?: boolean | TrMarkdownMathConfig
+  footnotes?: boolean | TrMarkdownFootnoteConfig
 }
 
 export type TrMarkdownStreamTailKind = 'text' | 'link' | 'code' | 'table' | 'image'
@@ -99,6 +142,26 @@ export interface TrMarkdownRenderNode {
   position?: TrMarkdownRenderNodePosition
 }
 
+export interface TrMarkdownAlertRenderContext {
+  kind: TrMarkdownAlertKind
+  title: string
+  node: TrMarkdownRenderNode
+  component: Component
+  props: Record<string, unknown>
+  renderChildren: () => VNodeChild[]
+  renderDefault: (overrideProps?: Record<string, unknown>) => VNodeChild
+}
+
+export type TrMarkdownAlertRender = (context: TrMarkdownAlertRenderContext) => VNodeChild
+
+export interface TrMarkdownAlertRenderOptions {
+  render?: TrMarkdownAlertRender
+}
+
+export interface TrMarkdownRenderOptions {
+  alerts?: TrMarkdownAlertRenderOptions
+}
+
 export interface TrMarkdownParserAdapter {
   name: string
   parse: (source: string, options?: TrMarkdownParserOptions) => Promise<TrMarkdownRenderNode[]>
@@ -108,8 +171,19 @@ export interface TrMarkdownComponentMap {
   paragraph: Component
   heading: Component
   link: Component
+  citation?: Component
+  thinkingBlock?: Component
+  artifactBlock?: Component
   image: Component
+  video?: Component
   inlineCode: Component
+  mathInline?: Component
+  mathBlock?: Component
+  footnoteRef?: Component
+  footnoteBlock?: Component
+  footnoteItem?: Component
+  footnoteBackref?: Component
+  alertBlock?: Component
   codeInline?: Component
   codeFenceResolver?: Component
   codeBlock: Component
@@ -121,14 +195,19 @@ export interface TrMarkdownComponentMap {
   hr: Component
 }
 
+export type TrMarkdownComponentPropsMap = Partial<Record<keyof TrMarkdownComponentMap, Record<string, unknown>>>
+
 export interface TrMarkdownProps {
   content?: string
   variant?: 'default' | 'bubble' | 'article'
+  citations?: TrMarkdownCitationItem[]
   parser?: TrMarkdownParserAdapter
   parserOptions?: TrMarkdownParserOptions
+  renderOptions?: TrMarkdownRenderOptions
   streaming?: boolean | TrMarkdownStreamingConfig
   features?: TrMarkdownFeatureFlags
   code?: TrMarkdownCodeConfig
   link?: TrMarkdownLinkConfig
   components?: Partial<TrMarkdownComponentMap>
+  componentProps?: TrMarkdownComponentPropsMap
 }

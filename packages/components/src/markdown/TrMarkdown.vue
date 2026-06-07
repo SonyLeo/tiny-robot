@@ -1,15 +1,17 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed } from 'vue'
 import { provideMarkdownContext } from './context'
-import type { TrMarkdownProps, TrMarkdownRenderNode } from './index.type'
+import type { TrMarkdownProps } from './index.type'
 import { markdownItAdapter } from './parser/markdownItAdapter'
 import NodeRenderer from './NodeRenderer'
+import MarkdownImageGalleryPreview from './components/image-gallery/MarkdownImageGalleryPreview.vue'
 import StreamBlockRenderer from './components/stream/StreamBlockRenderer.vue'
 import StreamTail from './components/stream/StreamTail.vue'
-import { resolveStreamingConfig, useMarkdownStreamState } from './stream/useMarkdownStreamState'
-import { createTrMarkdownStreamProfiler, resolveTrMarkdownStreamProfilerOptions } from './stream/streamProfiler'
-import { useStreamBlockDiff } from './stream/useStreamBlockDiff'
-import { useStreamRevealQueue } from './stream/useStreamRevealQueue'
+import { useMarkdownAnimatedStreamRuntime } from './runtime/useMarkdownAnimatedStreamRuntime'
+import { useMarkdownImageGalleryRuntime } from './runtime/useMarkdownImageGalleryRuntime'
+import { useMarkdownParseRuntime } from './runtime/useMarkdownParseRuntime'
+import { useMarkdownRootCommitRuntime } from './runtime/useMarkdownRootCommitRuntime'
+import { useMarkdownStreamStateRuntime } from './runtime/useMarkdownStreamStateRuntime'
 
 const defaultCodeConfig = {
   copyable: true,
@@ -27,6 +29,7 @@ const defaultCodeConfig = {
 const props = withDefaults(defineProps<TrMarkdownProps>(), {
   content: '',
   variant: 'default',
+  citations: () => [],
   parser: () => markdownItAdapter,
   parserOptions: () => ({
     html: false,
@@ -34,6 +37,7 @@ const props = withDefaults(defineProps<TrMarkdownProps>(), {
     typographer: false,
     breaks: false,
   }),
+  renderOptions: () => ({}),
   features: () => ({
     html: false,
   }),
@@ -54,6 +58,7 @@ const props = withDefaults(defineProps<TrMarkdownProps>(), {
     rel: 'noopener noreferrer',
   }),
   components: () => ({}),
+  componentProps: () => ({}),
 })
 
 const resolvedCode = computed(() => ({
@@ -65,148 +70,76 @@ const resolvedCode = computed(() => ({
   },
 }))
 
-provideMarkdownContext({
-  variant: props.variant,
-  features: props.features,
-  code: resolvedCode.value,
-  link: props.link,
-  components: props.components,
-})
-
-const nodes = ref<TrMarkdownRenderNode[]>([])
-const parsedStableContent = ref('')
-const parserOptionsKey = computed(() => JSON.stringify(props.parserOptions || {}))
-const featuresKey = computed(() => JSON.stringify(props.features || {}))
-const streamingConfig = computed(() => resolveStreamingConfig(props.streaming))
-const streamProfilerOptions = computed(() => resolveTrMarkdownStreamProfilerOptions(streamingConfig.value.profile))
-const streamProfiler = createTrMarkdownStreamProfiler(streamProfilerOptions)
-const streamProfilerSnapshot = computed(() => streamProfiler.snapshot.value)
-const streamState = useMarkdownStreamState(() => props.content || '', streamingConfig)
-const animatedStreamingEnabled = computed(
-  () => streamingConfig.value.enabled && streamingConfig.value.mode === 'animated',
+const { animatedStreamingEnabled, streamProfiler, streamProfilerSnapshot, streamState, streamingConfig } =
+  useMarkdownStreamStateRuntime(props)
+const { nodes, parsedStableContent, streamParseCount } = useMarkdownParseRuntime(
+  props,
+  () => streamState.value.stableContent,
+  () => streamProfiler,
+)
+const {
+  imageGallery,
+  imageGalleryCloseOnEscape,
+  imageGalleryCurrentIndex,
+  imageGalleryEnabled,
+  imageGalleryItems,
+  imageGalleryShowCaption,
+  showImageGalleryPreview,
+} = useMarkdownImageGalleryRuntime(
+  () => nodes.value,
+  () => props.features?.imageGallery,
 )
 const markdownContext = computed(() => ({
   variant: props.variant,
   features: props.features,
   code: resolvedCode.value,
   link: props.link,
+  citations: props.citations,
   components: props.components,
+  componentProps: props.componentProps,
+  renderOptions: props.renderOptions,
+  imageGalleryIndexMap: imageGalleryEnabled.value ? imageGallery.indexMap.value : undefined,
+  openImageGallery: imageGalleryEnabled.value ? imageGallery.openAt : undefined,
 }))
-const streamBlockDiff = useStreamBlockDiff(
-  () => nodes.value,
-  () => parsedStableContent.value,
-  () => streamProfiler,
-)
-const streamRevealQueue = useStreamRevealQueue(
-  () => streamBlockDiff.value.blocks,
-  () => ({
-    enabled: animatedStreamingEnabled.value,
-    active: streamState.value.active,
-    resetRevision: streamBlockDiff.value.resetRevision,
-    preset: streamingConfig.value.preset,
-  }),
-  () => streamProfiler,
-)
-const streamQueueItems = computed(() => streamRevealQueue.items.value)
-const streamQueueLength = computed(() => streamRevealQueue.queueLength.value)
-const streamSchedulerPhase = computed(() => (animatedStreamingEnabled.value ? streamRevealQueue.phase.value : 'idle'))
-const streamRevealedCount = computed(() => streamRevealQueue.revealedCount.value)
-const streamPendingCount = computed(() => streamRevealQueue.pendingCount.value)
-const streamResetCount = computed(() => streamRevealQueue.rewriteCount.value)
-const streamResetRevision = computed(() => streamBlockDiff.value.resetRevision)
-const streamingPreset = computed(() => streamingConfig.value.preset)
-const streamBlockCount = computed(() => streamRevealQueue.blockCount.value)
-const streamActiveIndex = computed(() => streamRevealQueue.activeIndex.value)
-const streamAnimatingIndex = computed(() => streamRevealQueue.animatingIndex.value)
-const streamStreamingIndex = computed(() => streamRevealQueue.streamingIndex.value)
-const streamCharDelay = computed(() => streamRevealQueue.charDelay.value)
-const streamFadeDuration = computed(() => streamRevealQueue.fadeDuration.value)
-const streamSettleHoldMs = computed(() => streamRevealQueue.settleHoldMs.value)
-const streamActiveBlockCount = computed(
-  () => streamQueueItems.value.filter((item) => item.state === 'animating' || item.state === 'streaming').length,
-)
-const streamPhase = computed(() => {
-  if (!streamingConfig.value.enabled) {
-    return 'idle'
-  }
-
-  if (animatedStreamingEnabled.value) {
-    if (streamState.value.active) {
-      return 'streaming'
-    }
-
-    if (streamSchedulerPhase.value === 'settling') {
-      return 'settling'
-    }
-
-    if (streamSchedulerPhase.value === 'finalized') {
-      return 'finalized'
-    }
-  }
-
-  if (streamState.value.active) {
-    return 'streaming'
-  }
-
-  return 'finalized'
+provideMarkdownContext({
+  variant: props.variant,
+  features: props.features,
+  code: resolvedCode.value,
+  link: props.link,
+  citations: props.citations,
+  components: props.components,
+  componentProps: props.componentProps,
+  renderOptions: props.renderOptions,
+  imageGalleryIndexMap: imageGalleryEnabled.value ? imageGallery.indexMap.value : undefined,
+  openImageGallery: imageGalleryEnabled.value ? imageGallery.openAt : undefined,
 })
-const streamParseCount = ref(0)
-let parseRequestId = 0
-let previousProfilerContent = ''
-let rootCommitStartedAt = 0
-let rootCommitSeen = false
-
-const getNow = () => {
-  return typeof performance === 'undefined' ? Date.now() : performance.now()
-}
-
-watch(
-  () => props.content || '',
-  (nextContent) => {
-    const updateKind = !previousProfilerContent
-      ? 'init'
-      : nextContent.startsWith(previousProfilerContent)
-        ? 'append'
-        : 'rewrite'
-
-    streamProfiler.recordInput({
-      appendedChars: updateKind === 'append' ? nextContent.length - previousProfilerContent.length : 0,
-      contentLength: nextContent.length,
-      updateKind,
-    })
-    previousProfilerContent = nextContent
-  },
-  {
-    immediate: true,
-  },
-)
-
-const parseMarkdown = async () => {
-  const requestId = ++parseRequestId
-  const source = streamState.value.stableContent
-  const parseStart = typeof performance === 'undefined' ? Date.now() : performance.now()
-  const parsedNodes = await props.parser.parse(source, {
-    ...props.parserOptions,
-    html: props.features?.html || props.parserOptions?.html,
-  })
-
-  if (requestId !== parseRequestId) {
-    return
-  }
-
-  nodes.value = parsedNodes
-  parsedStableContent.value = source
-  streamParseCount.value += 1
-  streamProfiler.recordCalculation({
-    durationMs: (typeof performance === 'undefined' ? Date.now() : performance.now()) - parseStart,
-    itemCount: parsedNodes.length,
-    name: 'parse',
-    textLength: source.length,
-  })
-}
-
-watch([() => streamState.value.stableContent, () => props.parser, parserOptionsKey, featuresKey], parseMarkdown, {
-  immediate: true,
+const {
+  handleStreamBlockSettled,
+  streamActiveBlockCount,
+  streamActiveIndex,
+  streamAnimatingIndex,
+  streamBlockCount,
+  streamBlockDiff,
+  streamCharDelay,
+  streamFadeDuration,
+  streamPendingCount,
+  streamPhase,
+  streamQueueItems,
+  streamQueueLength,
+  streamResetCount,
+  streamResetRevision,
+  streamRevealedCount,
+  streamSchedulerPhase,
+  streamSettleHoldMs,
+  streamStreamingIndex,
+  streamingPreset,
+} = useMarkdownAnimatedStreamRuntime({
+  animatedStreamingEnabled,
+  nodes: () => nodes.value,
+  parsedStableContent: () => parsedStableContent.value,
+  streamProfiler: () => streamProfiler,
+  streamState: () => streamState.value,
+  streamingConfig: () => streamingConfig.value,
 })
 
 const rootClass = computed(() => [
@@ -220,37 +153,12 @@ const rootClass = computed(() => [
   },
 ])
 
-const handleStreamBlockSettled = (blockKey: string) => {
-  streamRevealQueue.onBlockSettled(blockKey)
-}
-
-watch(
-  [() => nodes.value.length, () => streamPhase.value, () => parsedStableContent.value],
-  () => {
-    rootCommitStartedAt = getNow()
-  },
-  {
-    immediate: true,
-    flush: 'pre',
-  },
-)
-
-watch(
-  [() => nodes.value.length, () => streamPhase.value, () => parsedStableContent.value],
-  ([blockCount, , stableContent]) => {
-    streamProfiler.recordRootCommit({
-      blockCount,
-      durationMs: Math.max(0, getNow() - rootCommitStartedAt),
-      phase: rootCommitSeen ? 'update' : 'mount',
-      textLength: stableContent.length,
-    })
-    rootCommitSeen = true
-  },
-  {
-    immediate: true,
-    flush: 'post',
-  },
-)
+useMarkdownRootCommitRuntime({
+  nodesLength: () => nodes.value.length,
+  parsedStableContent: () => parsedStableContent.value,
+  streamPhase: () => streamPhase.value,
+  streamProfiler: () => streamProfiler,
+})
 </script>
 
 <template>
@@ -334,6 +242,8 @@ watch(
     :data-stream-profiler-token-inserted-count="streamProfilerSnapshot.tokenInsertedCount"
     :data-stream-profiler-token-deleted-count="streamProfilerSnapshot.tokenDeletedCount"
     :data-stream-profiler-token-replaced-count="streamProfilerSnapshot.tokenReplacedCount"
+    :data-image-gallery-enabled="String(imageGalleryEnabled)"
+    :data-image-gallery-count="imageGalleryItems.length"
   >
     <template v-if="animatedStreamingEnabled">
       <StreamBlockRenderer
@@ -358,6 +268,19 @@ watch(
         :context="markdownContext"
       />
     </template>
-    <StreamTail :content="streamState.tailContent" :kind="streamState.tailKind" :show-cursor="streamState.showCursor" />
+    <StreamTail
+      :content="streamState.tailContent"
+      :kind="streamState.tailKind"
+      :html-preview="props.features?.htmlPreview"
+      :show-cursor="streamState.showCursor"
+    />
+    <MarkdownImageGalleryPreview
+      v-if="showImageGalleryPreview"
+      v-model:current-index="imageGalleryCurrentIndex"
+      :images="imageGalleryItems"
+      :show-caption="imageGalleryShowCaption"
+      :close-on-escape="imageGalleryCloseOnEscape"
+      @close="imageGallery.close"
+    />
   </div>
 </template>

@@ -5,12 +5,15 @@ import type {
   TrMarkdownCodeBlockMode,
   TrMarkdownCodeHighlightEngine,
   TrMarkdownHtmlPreviewConfig,
+  TrMarkdownMermaidConfig,
 } from '../../index.type'
 import CodeBlock from './CodeBlock.vue'
 import CodeBlockFull from './CodeBlockFull.vue'
 import CodeBlockSingleLine from './CodeBlockSingleLine.vue'
 import HtmlPreviewBlock from '../html-preview/HtmlPreviewBlock.vue'
+import MermaidBlock from '../mermaid/MermaidBlock.vue'
 import { isFullHtmlDocument, resolveHtmlPreviewConfig } from '../html-preview/utils'
+import { resolveMermaidConfig } from '../mermaid/utils'
 
 const props = withDefaults(
   defineProps<{
@@ -24,6 +27,7 @@ const props = withDefaults(
     highlightEngine?: TrMarkdownCodeHighlightEngine
     htmlPreview?: boolean | TrMarkdownHtmlPreviewConfig
     language?: string
+    mermaid?: boolean | TrMarkdownMermaidConfig
     showLanguage?: boolean
   }>(),
   {
@@ -42,13 +46,17 @@ const normalizedCode = computed(() => {
 })
 
 const htmlPreviewConfig = computed(() => resolveHtmlPreviewConfig(props.htmlPreview))
+const mermaidConfig = computed(() => resolveMermaidConfig(props.mermaid))
+const normalizedLanguage = computed(() => (props.language || '').trim().toLowerCase())
 
 const shouldRenderHtmlPreview = computed(() => {
   return (
-    htmlPreviewConfig.value.enabled &&
-    (props.language || '').trim().toLowerCase() === 'html' &&
-    isFullHtmlDocument(normalizedCode.value)
+    htmlPreviewConfig.value.enabled && normalizedLanguage.value === 'html' && isFullHtmlDocument(normalizedCode.value)
   )
+})
+
+const shouldRenderMermaid = computed(() => {
+  return mermaidConfig.value.enabled && normalizedLanguage.value === 'mermaid'
 })
 
 const isSingleLine = computed(() => {
@@ -70,6 +78,13 @@ const isSingleLine = computed(() => {
     :highlight="highlight"
     :highlight-engine="highlightEngine"
     :sandbox="htmlPreviewConfig.sandbox"
+    :streaming-mode="htmlPreviewConfig.streamingMode"
+  />
+  <MermaidBlock
+    v-else-if="shouldRenderMermaid"
+    :code="normalizedCode"
+    :copyable="mermaidConfig.copyable ?? copyable"
+    :default-mode="mermaidConfig.defaultMode"
   />
   <CodeBlockSingleLine
     v-else-if="isSingleLine"

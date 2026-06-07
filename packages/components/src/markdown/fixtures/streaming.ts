@@ -71,6 +71,93 @@ const ultraFastParagraphC =
 const slowBaselineParagraph =
   'This slow baseline keeps the stream pressure low and gives the scheduler enough time to reveal each block without a backlog spike.'
 
+const htmlPreviewStreamStyleOpen = `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Streaming HTML Preview</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+      }
+
+      body {
+        padding: 28px;
+        box-sizing: border-box;
+        background: linear-gradient(180deg, #0f172a 0%, #111827 100%);
+        color: #f8fafc;
+        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      }
+
+      .card {
+        max-width: 620px;
+        padding: 24px;
+        border-radius: 18px;
+        background: rgba(15, 23, 42, 0.82);
+        box-shadow: 0 20px 50px rgba(15, 23, 42, 0.32);
+      }
+
+      .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0.25em 0.7em;
+        border-radius: 999px;
+        background: rgba(52, 211, 153, 0.18);
+        color: #a7f3d0;
+        font-size: 13px;
+        font-weight: 600;
+      }`
+
+const htmlPreviewStreamNoScriptOpen = `${htmlPreviewStreamStyleOpen}
+`
+
+const htmlPreviewStreamNoScriptLive = `${htmlPreviewStreamStyleOpen}
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <h1>Streaming HTML preview</h1>
+      <p>The preview can mount before the closing html tag arrives.</p>
+      <p class="status">auto / no script</p>
+`
+
+const htmlPreviewStreamNoScriptClosed = `${htmlPreviewStreamNoScriptLive}    </main>
+  </body>
+</html>
+`
+
+const htmlPreviewStreamScriptLive = `${htmlPreviewStreamStyleOpen}
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <h1>Streaming HTML preview</h1>
+      <p>Script-bearing documents should wait in auto mode.</p>
+      <p class="status">script payload attached</p>
+    </main>
+    <script>
+      document.body.dataset.previewBoot = 'ready'
+    </script>
+`
+
+const htmlPreviewStreamScriptClosed = `${htmlPreviewStreamScriptLive}</body>
+</html>
+`
+
+const createOpenHtmlPreviewFence = (content: string) => `\`\`\`html
+${content}`
+
+const createClosedHtmlPreviewFence = (content: string) => `\`\`\`html
+${content}\`\`\`
+`
+
 export const trMarkdownStreamingFixtures: TrMarkdownStreamingFixtureScenario[] = [
   {
     id: 'text-tail',
@@ -167,6 +254,54 @@ export const trMarkdownStreamingFixtures: TrMarkdownStreamingFixtureScenario[] =
         label: 'Close fence',
         content:
           "## Streaming code\n\n```ts\nconst status = 'streaming'\nfunction flushTail() {\n  return status.toUpperCase()\n}\n```\n",
+      },
+    ],
+  },
+  {
+    id: 'html-preview-auto-noscript',
+    group: 'code',
+    title: 'HTML preview auto, no script',
+    description:
+      '对齐 LobeUI 的无脚本 streaming HTML preview：在 `auto` 模式下，样式头部闭合后即可提前挂载 iframe，不必等待 `</html>`。',
+    steps: [
+      {
+        id: 'html-preview-auto-noscript-1',
+        label: 'Open fence',
+        content: createOpenHtmlPreviewFence(htmlPreviewStreamNoScriptOpen),
+      },
+      {
+        id: 'html-preview-auto-noscript-2',
+        label: 'Close head',
+        content: createOpenHtmlPreviewFence(htmlPreviewStreamNoScriptLive),
+      },
+      {
+        id: 'html-preview-auto-noscript-3',
+        label: 'Close document',
+        content: createClosedHtmlPreviewFence(htmlPreviewStreamNoScriptClosed),
+      },
+    ],
+  },
+  {
+    id: 'html-preview-auto-script',
+    group: 'code',
+    title: 'HTML preview auto, script locked',
+    description:
+      '对齐 LobeUI 的脚本锁定路径：`auto` 模式下只要流式文档里出现脚本，就延后到 `</html>` 完整闭合后再挂载 iframe。',
+    steps: [
+      {
+        id: 'html-preview-auto-script-1',
+        label: 'Open fence',
+        content: createOpenHtmlPreviewFence(htmlPreviewStreamNoScriptOpen),
+      },
+      {
+        id: 'html-preview-auto-script-2',
+        label: 'Attach script',
+        content: createOpenHtmlPreviewFence(htmlPreviewStreamScriptLive),
+      },
+      {
+        id: 'html-preview-auto-script-3',
+        label: 'Close document',
+        content: createClosedHtmlPreviewFence(htmlPreviewStreamScriptClosed),
       },
     ],
   },

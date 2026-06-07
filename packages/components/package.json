@@ -72,6 +72,9 @@
     "@vueuse/core": "^13.1.0",
     "highlight.js": "^11.11.1",
     "jsonrepair": "^3.13.1",
+    "katex": "0.17.0",
+    "markdown-it-footnote": "4.0.0",
+    "mermaid": "11.15.0",
     "shiki": "2.5.0",
     "unicode-segmenter": "^0.14.5"
   },

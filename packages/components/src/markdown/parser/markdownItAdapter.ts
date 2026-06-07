@@ -1,5 +1,10 @@
 import MarkdownIt from 'markdown-it'
+import footnotePlugin from 'markdown-it-footnote'
 import type { TrMarkdownParserAdapter, TrMarkdownParserOptions, TrMarkdownRenderNode } from '../index.type'
+import { resolveFootnoteConfig } from '../utils/footnotes'
+import { customTagPlugin } from './customTagPlugin'
+import { mathPlugin } from './mathPlugin'
+import { videoPlugin } from './videoPlugin'
 
 type MarkdownItToken = {
   type: string
@@ -9,6 +14,7 @@ type MarkdownItToken = {
   info: string
   children?: MarkdownItToken[]
   map?: [number, number] | null
+  meta?: Record<string, unknown>
 }
 
 const inlineTokenTypeMap: Record<string, string> = {
@@ -38,10 +44,30 @@ const supportedInlineHtmlTagMap: Record<string, { type: string; tag: string }> =
 const supportedInlineHtmlTagPattern = /<(\/?)(ins|sub|sup|kbd|br)\s*\/?>/gi
 const taskListMarkerPattern = /^\[( |x|X)\]\s*/
 
+const isMathEnabled = (options?: TrMarkdownParserOptions) => {
+  if (!options?.math) {
+    return false
+  }
+
+  return typeof options.math === 'boolean' ? options.math : options.math.enabled !== false
+}
+
+const isFootnotesEnabled = (options?: TrMarkdownParserOptions) => {
+  return resolveFootnoteConfig(options?.footnotes).enabled
+}
+
 const normalizeAttrs = (token: MarkdownItToken): Record<string, unknown> | undefined => {
   if (!token.attrs?.length) return
 
   return Object.fromEntries(token.attrs.map(([key, value]) => [key, value]))
+}
+
+const normalizeMeta = (token: MarkdownItToken): Record<string, unknown> | undefined => {
+  if (!token.meta) {
+    return
+  }
+
+  return { ...token.meta }
 }
 
 const createInlineNode = (token: MarkdownItToken, overrides?: Partial<TrMarkdownRenderNode>): TrMarkdownRenderNode => {
@@ -205,6 +231,20 @@ const parseInlineChildren = (tokens: MarkdownItToken[]): TrMarkdownRenderNode[] 
       continue
     }
 
+    if (token.type === 'math_inline') {
+      pushNode({ type: 'math-inline', tag: 'span', text: token.content })
+      continue
+    }
+
+    if (token.type === 'footnote_ref') {
+      pushNode({
+        type: 'footnote-ref',
+        tag: 'sup',
+        attrs: normalizeMeta(token),
+      })
+      continue
+    }
+
     if (token.type === 'image') {
       pushNode(
         createInlineNode(token, {
@@ -214,6 +254,16 @@ const parseInlineChildren = (tokens: MarkdownItToken[]): TrMarkdownRenderNode[] 
             ...normalizeAttrs(token),
             alt: token.content,
           },
+        }),
+      )
+      continue
+    }
+
+    if (token.type === 'video') {
+      pushNode(
+        createInlineNode(token, {
+          type: 'video',
+          tag: 'video',
         }),
       )
       continue
@@ -261,10 +311,15 @@ const normalizeTaskListChildren = (children: TrMarkdownRenderNode[]): { checked:
   return { checked }
 }
 
-const parseTokens = (tokens: MarkdownItToken[], source: string): TrMarkdownRenderNode[] => {
+const parseTokens = (
+  tokens: MarkdownItToken[],
+  source: string,
+  options?: TrMarkdownParserOptions,
+): TrMarkdownRenderNode[] => {
   const result: TrMarkdownRenderNode[] = []
   const stack: Array<TrMarkdownRenderNode> = []
   const lineStartOffsets = createLineStartOffsets(source)
+  const mathEnabled = isMathEnabled(options)
 
   const pushNode = (node: TrMarkdownRenderNode) => {
     const parent = stack.at(-1)
@@ -312,7 +367,40 @@ const parseTokens = (tokens: MarkdownItToken[], source: string): TrMarkdownRende
       continue
     }
 
+    if (token.type === 'footnote_anchor') {
+      pushNode(
+        createNode(token, source, lineStartOffsets, {
+          type: 'footnote-backref',
+          tag: 'a',
+          attrs: normalizeMeta(token),
+        }),
+      )
+      continue
+    }
+
+    if (token.type === 'math_block') {
+      pushNode(
+        createNode(token, source, lineStartOffsets, {
+          type: 'math-block',
+          tag: 'div',
+          text: token.content,
+        }),
+      )
+      continue
+    }
+
     if (token.type === 'fence' || token.type === 'code_block') {
+      if (mathEnabled && token.info?.trim() === 'math') {
+        pushNode(
+          createNode(token, source, lineStartOffsets, {
+            type: 'math-block',
+            tag: 'div',
+            text: token.content,
+          }),
+        )
+        continue
+      }
+
       pushNode(
         createNode(token, source, lineStartOffsets, {
           type: 'code-block',
@@ -326,8 +414,69 @@ const parseTokens = (tokens: MarkdownItToken[], source: string): TrMarkdownRende
       continue
     }
 
+    if (token.type === 'video') {
+      pushNode(
+        createNode(token, source, lineStartOffsets, {
+          type: 'video',
+          tag: 'video',
+          attrs: normalizeAttrs(token),
+        }),
+      )
+      continue
+    }
+
+    if (token.type === 'tr_thinking_block') {
+      pushNode(
+        createNode(token, source, lineStartOffsets, {
+          type: 'thinking-block',
+          tag: 'tr-thinking',
+          text: token.content,
+          attrs: normalizeAttrs(token),
+        }),
+      )
+      continue
+    }
+
+    if (token.type === 'tr_artifact_block') {
+      pushNode(
+        createNode(token, source, lineStartOffsets, {
+          type: 'artifact-block',
+          tag: 'tr-artifact',
+          text: token.content,
+          attrs: normalizeAttrs(token),
+        }),
+      )
+      continue
+    }
+
     if (token.type === 'hr') {
       pushNode({ type: 'hr', tag: 'hr' })
+      continue
+    }
+
+    if (token.type === 'footnote_block_open') {
+      const node = createNode(token, source, lineStartOffsets, {
+        type: 'footnote-block',
+        tag: 'section',
+        attrs: {
+          label: 'Footnotes',
+        },
+        children: [],
+      })
+      pushNode(node)
+      stack.push(node)
+      continue
+    }
+
+    if (token.type === 'footnote_open') {
+      const node = createNode(token, source, lineStartOffsets, {
+        type: 'footnote-item',
+        tag: 'li',
+        attrs: normalizeMeta(token),
+        children: [],
+      })
+      pushNode(node)
+      stack.push(node)
       continue
     }
 
@@ -361,6 +510,17 @@ export const markdownItAdapter: TrMarkdownParserAdapter = {
       breaks: options?.breaks,
     })
 
-    return parseTokens(parser.parse(source, {}) as MarkdownItToken[], source)
+    if (isMathEnabled(options)) {
+      parser.use(mathPlugin)
+    }
+
+    if (isFootnotesEnabled(options)) {
+      parser.use(footnotePlugin)
+    }
+
+    parser.use(customTagPlugin)
+    parser.use(videoPlugin)
+
+    return parseTokens(parser.parse(source, {}) as MarkdownItToken[], source, options)
   },
 }

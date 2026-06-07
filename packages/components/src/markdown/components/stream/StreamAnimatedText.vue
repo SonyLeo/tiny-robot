@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, watchEffect } from 'vue'
+import { computed, watch } from 'vue'
 import { splitTextGraphemes } from '../../stream/grapheme'
 import type { TrMarkdownStreamTextAnimationController } from '../../stream/streamingAnimation.type'
 
@@ -55,22 +55,27 @@ const items = computed(() => {
 
 const revealCharCount = computed(() => items.value.filter((item) => item.className.includes('--animating')).length)
 
-watchEffect(() => {
-  const frameStart = getNow()
-  const revealChars = revealCharCount.value
-  const now = props.controller.nowMs.value
-  const frameIntervalMs = previousFrameTs > 0 ? Math.max(0, now - previousFrameTs) : undefined
-  previousFrameTs = now
-  props.controller.profiler?.recordAnimationFrame({
-    backlog: revealChars,
-    blockKey: props.controller.blockKey,
-    durationMs: Math.max(0, getNow() - frameStart),
-    frameIntervalMs,
-    inputActive: revealChars > 0,
-    revealChars,
-    skipped: revealChars === 0,
-  })
-})
+watch(
+  [() => props.controller.nowMs.value, revealCharCount],
+  ([now, revealChars]) => {
+    const frameStart = getNow()
+    const frameIntervalMs = previousFrameTs > 0 ? Math.max(0, now - previousFrameTs) : undefined
+    previousFrameTs = now
+    props.controller.profiler?.recordAnimationFrame({
+      backlog: revealChars,
+      blockKey: props.controller.blockKey,
+      durationMs: Math.max(0, getNow() - frameStart),
+      frameIntervalMs,
+      inputActive: revealChars > 0,
+      revealChars,
+      skipped: revealChars === 0,
+    })
+  },
+  {
+    flush: 'post',
+    immediate: true,
+  },
+)
 </script>
 
 <template>

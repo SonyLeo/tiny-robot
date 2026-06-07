@@ -16,6 +16,12 @@ export interface ResolvedTrMarkdownHtmlPreviewConfig {
   streamingMode: 'auto' | 'live' | 'defer'
 }
 
+export interface TrMarkdownHtmlFenceTail {
+  code: string
+  info: string
+  marker: string
+}
+
 const escapeScriptString = (value: string) => {
   return JSON.stringify(value).replace(/</g, '\\u003c')
 }
@@ -64,6 +70,30 @@ export const isHtmlContentClosed = (content: string) => {
 
 export const containsScript = (content: string) => {
   return /<script\b/i.test(content || '')
+}
+
+export const parseHtmlFenceTail = (content: string): TrMarkdownHtmlFenceTail | undefined => {
+  if (!content) {
+    return
+  }
+
+  const matched = content.match(/^ {0,3}(```+|~~~+)([^\n]*)\n([\s\S]*)$/)
+  if (!matched) {
+    return
+  }
+
+  const [, marker, infoRaw, body] = matched
+  const info = (infoRaw || '').trim()
+  const language = info.split(/\s+/)[0]?.toLowerCase()
+  if (language !== 'html') {
+    return
+  }
+
+  return {
+    code: body,
+    info,
+    marker,
+  }
 }
 
 const createStorageShim = () => {
