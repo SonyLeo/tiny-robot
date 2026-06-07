@@ -1,12 +1,18 @@
 import type { ComputedRef, MaybeRefOrGetter } from 'vue'
-import type { LayoutAsideMode, LayoutFloatingConfig, LayoutMode, LayoutPlacement } from './index.type'
+import type {
+  LayoutAsideMode,
+  LayoutDefaultFloatingConfig,
+  LayoutFloatingRect,
+  LayoutMode,
+  LayoutPlacement,
+} from './index.type'
 
 export interface LayoutPanelRegistration {
   placement: LayoutPlacement
   layoutMode: MaybeRefOrGetter<LayoutAsideMode>
   isOpen: MaybeRefOrGetter<boolean>
   width: MaybeRefOrGetter<number | undefined>
-  railWidth: MaybeRefOrGetter<number | undefined>
+  collapsedWidth: MaybeRefOrGetter<number | undefined>
   minWidth: MaybeRefOrGetter<number>
   maxWidth: MaybeRefOrGetter<number>
   resizable: MaybeRefOrGetter<boolean>
@@ -25,7 +31,7 @@ export interface LayoutPanelApi {
   isHidden: boolean
   canResize: boolean
   width: number | undefined
-  railWidth: number | undefined
+  collapsedWidth: number | undefined
   minWidth: number
   maxWidth: number
   resizable: boolean
@@ -46,6 +52,7 @@ export interface LayoutStore {
 
 export interface UseControllableLayoutStateResult {
   resolvedMode: ComputedRef<LayoutMode>
-  resolvedFloating: ComputedRef<LayoutFloatingConfig | undefined>
-  commitFloating: (nextFloating: LayoutFloatingConfig) => void
+  resolvedFloating: ComputedRef<LayoutFloatingRect | LayoutDefaultFloatingConfig | undefined>
+  commitFloating: (nextFloating: LayoutFloatingRect) => void
+  initializeFloating: (nextFloating: LayoutFloatingRect) => void
 }

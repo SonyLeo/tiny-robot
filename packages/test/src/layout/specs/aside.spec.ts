@@ -101,8 +101,8 @@ test.describe('Layout 组件测试 - Aside', () => {
       .toBeGreaterThanOrEqual(320)
   })
 
-  test('Rail: railWidth=0 - 收起后应完全隐藏', async ({ layout }) => {
-    await layout.setLeftRailWidthZero()
+  test('Rail: collapsedWidth=0 - 收起后应完全隐藏', async ({ layout }) => {
+    await layout.setLeftCollapsedWidthZero()
     await layout.collapseAside('left')
 
     await layout.expectAsideState('left', 'closed')
@@ -175,7 +175,7 @@ test.describe('Layout 组件测试 - Aside', () => {
     expect(width).toBeLessThanOrEqual(294)
   })
 
-  test('Default props: defaultOpen / railWidth - 非受控 aside 收起后应保留 rail', async ({ layout }) => {
+  test('Default props: defaultOpen / collapsedWidth - 非受控 aside 收起后应保留 rail', async ({ layout }) => {
     await layout.showAsideFixtures()
 
     const fixture = layout.uncontrolledAsideFixture

@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import { computed, getCurrentInstance, onBeforeUnmount, useAttrs } from 'vue'
+import { computed, onBeforeUnmount, useAttrs } from 'vue'
 import { useControllableState } from './composables/useControllableState'
-import { useLayoutAside } from './composables/useLayoutAside'
 import { useLayout } from './composables/useLayout'
+import { usePropPresence } from './composables/usePropPresence'
 import type { LayoutAsideEmits, LayoutAsideRuntimeProps } from './index.type'
 import { clamp } from './utils/math'
-import { hasVNodeProp } from './utils/vnodeProp'
 
 defineOptions({
   name: 'LayoutAside',
@@ -16,17 +15,17 @@ const props = defineProps<LayoutAsideRuntimeProps>()
 const emit = defineEmits<LayoutAsideEmits>()
 const attrs = useAttrs()
 const layoutStore = useLayout()
-const instance = getCurrentInstance()
+const hasProp = usePropPresence()
 
 const defaultOpenByPlacement = {
   left: true,
   right: false,
 } as const
 
-const openProvided = hasVNodeProp(instance, 'open')
-const defaultOpenProvided = hasVNodeProp(instance, 'defaultOpen')
-const widthProvided = hasVNodeProp(instance, 'width')
-const defaultWidthProvided = hasVNodeProp(instance, 'defaultWidth')
+const openProvided = hasProp('open')
+const defaultOpenProvided = hasProp('defaultOpen')
+const widthProvided = hasProp('width')
+const defaultWidthProvided = hasProp('defaultWidth')
 
 const openState = useControllableState<boolean>({
   value: () => (openProvided ? props.open : undefined),
@@ -44,10 +43,14 @@ const widthState = useControllableState<number>({
 
 const resolvedOpen = computed(() => openState.resolvedState.value ?? defaultOpenByPlacement[props.placement])
 const layoutMode = computed(() => props.mode ?? 'dock')
-const railWidth = computed(() => props.railWidth)
+const collapsedWidth = computed(() => props.collapsedWidth)
 const minWidth = computed(() => props.minWidth ?? (props.placement === 'left' ? 200 : 240))
 const maxWidth = computed(() => props.maxWidth ?? (props.placement === 'left' ? 560 : 640))
 const resizable = computed(() => props.resizable ?? false)
+const isDock = computed(() => layoutMode.value === 'dock')
+const isDrawer = computed(() => layoutMode.value === 'drawer')
+const isRail = computed(() => isDock.value && !resolvedOpen.value && (collapsedWidth.value ?? 0) > 0)
+const isHidden = computed(() => !resolvedOpen.value && (isDrawer.value || !isRail.value))
 const resolvedWidth = computed(() => {
   const nextWidth = widthState.resolvedState.value
 
@@ -80,7 +83,7 @@ layoutStore.registerPanel({
   layoutMode,
   isOpen: resolvedOpen,
   width: resolvedWidth,
-  railWidth,
+  collapsedWidth,
   minWidth,
   maxWidth,
   resizable,
@@ -92,10 +95,8 @@ onBeforeUnmount(() => {
   layoutStore.unregisterPanel(props.placement)
 })
 
-const { isOpen, isDock, isDrawer, isRail, isHidden } = useLayoutAside(() => props.placement)
-
 const slotProps = computed(() => ({
-  isOpen: isOpen.value,
+  isOpen: resolvedOpen.value,
 }))
 
 const collapseEffect = computed(() => props.collapseEffect ?? 'overlay')
@@ -113,7 +114,7 @@ const collapseEffect = computed(() => props.collapseEffect ?? 'overlay')
       'tr-layout-aside--right': props.placement === 'right',
       'tr-layout-aside--dock': isDock,
       'tr-layout-aside--drawer': isDrawer,
-      'tr-layout-aside--expanded': isOpen,
+      'tr-layout-aside--expanded': resolvedOpen,
       'tr-layout-aside--rail': isRail,
       'tr-layout-aside--hidden': isHidden,
       'tr-layout-aside--effect-overlay': collapseEffect === 'overlay',
@@ -155,7 +156,7 @@ const collapseEffect = computed(() => props.collapseEffect ?? 'overlay')
       width: var(--left-dock-width);
 
       &.tr-layout-aside--rail {
-        width: var(--left-rail-width);
+        width: var(--left-collapsed-width);
 
         &.tr-layout-aside--effect-overlay {
           width: var(--left-dock-width);
@@ -163,7 +164,7 @@ const collapseEffect = computed(() => props.collapseEffect ?? 'overlay')
 
         &.tr-layout-aside--effect-slide {
           width: var(--left-dock-width);
-          transform: translateX(calc(var(--left-rail-width) - var(--left-dock-width)));
+          transform: translateX(calc(var(--left-collapsed-width) - var(--left-dock-width)));
         }
       }
 
@@ -177,7 +178,7 @@ const collapseEffect = computed(() => props.collapseEffect ?? 'overlay')
       margin-inline-start: auto;
 
       &.tr-layout-aside--rail {
-        width: var(--right-rail-width);
+        width: var(--right-collapsed-width);
 
         &.tr-layout-aside--effect-overlay {
           width: var(--right-dock-width);
@@ -185,7 +186,7 @@ const collapseEffect = computed(() => props.collapseEffect ?? 'overlay')
 
         &.tr-layout-aside--effect-slide {
           width: var(--right-dock-width);
-          transform: translateX(calc(var(--right-dock-width) - var(--right-rail-width)));
+          transform: translateX(calc(var(--right-dock-width) - var(--right-collapsed-width)));
         }
       }
 

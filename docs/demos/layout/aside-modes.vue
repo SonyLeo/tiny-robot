@@ -9,11 +9,11 @@ const rightOpen = ref(false)
   <div class="layout-aside-demo">
     <TrLayout>
       <template #left-aside>
-        <TrLayout.Aside placement="left" default-open :default-width="156" :rail-width="56">
+        <TrLayout.Aside placement="left" default-open :default-width="156" :collapsed-width="56">
           <template #default="{ isOpen }">
             <div v-if="isOpen" class="layout-aside-demo__aside">
               <TrLayout.AsideToggle placement="left" class="layout-aside-demo__chip"> 收起侧栏 </TrLayout.AsideToggle>
-              <div class="layout-aside-demo__chip">railWidth: 56px</div>
+              <div class="layout-aside-demo__chip">collapsedWidth: 56px</div>
             </div>
             <div v-else class="layout-aside-demo__rail">
               <TrLayout.AsideToggle placement="left" class="layout-aside-demo__rail-chip">栏</TrLayout.AsideToggle>
@@ -31,7 +31,7 @@ const rightOpen = ref(false)
       </template>
 
       <template #main>
-        <div class="layout-aside-demo__main">左侧是 `dock + railWidth`，右侧是 `drawer`。</div>
+        <div class="layout-aside-demo__main">左侧是 `dock + collapsedWidth`，右侧是 `drawer`。</div>
       </template>
 
       <template #right-aside>

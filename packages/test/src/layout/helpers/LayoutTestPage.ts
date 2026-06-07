@@ -9,6 +9,7 @@ export type LayoutAsideMode = 'dock' | 'drawer'
 export type LayoutCollapseEffect = 'overlay' | 'slide'
 export type LayoutAsideState = 'open' | 'rail' | 'closed'
 export type LayoutEventPhase = 'start' | 'progress' | 'end'
+export type LayoutFloatingHandle = 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw'
 
 export interface LayoutAsideResizeLogEntry {
   phase: LayoutEventPhase
@@ -24,8 +25,11 @@ export interface LayoutFloatingDragLogEntry {
 
 export interface LayoutFloatingResizeLogEntry {
   phase: LayoutEventPhase
-  edge: LayoutPlacement
+  handle: LayoutFloatingHandle
+  x: number
+  y: number
   width: number
+  height: number
 }
 
 export interface LayoutHarnessSnapshot {
@@ -37,10 +41,8 @@ export interface LayoutHarnessSnapshot {
     floatingDragStart: number
     floatingDrag: number
     floatingDragEnd: number
-    floatingLeftResizeStart: number
-    floatingLeftResizeEnd: number
-    floatingRightResizeStart: number
-    floatingRightResizeEnd: number
+    floatingResizeStartByHandle: Record<LayoutFloatingHandle, number>
+    floatingResizeEndByHandle: Record<LayoutFloatingHandle, number>
     leftToggleActions: number
     rightToggleActions: number
     modeToggleActions: number
@@ -74,7 +76,7 @@ export class LayoutTestPage {
   }
 
   get surface() {
-    return this.page.locator(layoutSelectors.surface)
+    return this.page.locator('#layout-demo-surface')
   }
 
   get surfaceHost() {
@@ -125,9 +127,12 @@ export class LayoutTestPage {
     return this.page.locator('#uncontrolled-floating-surface')
   }
 
+  getFloatingSurfaceByMarker(marker: string) {
+    return this.page.locator(`[data-surface-marker="${marker}"]`)
+  }
+
   async open() {
-    await this.page.goto('/')
-    await this.page.click('text=Layout 组件')
+    await this.page.goto('/layout')
     await expect(this.page.getByRole('heading', { level: 2, name: 'Layout 组件测试' })).toBeVisible()
   }
 
@@ -143,14 +148,22 @@ export class LayoutTestPage {
     return within(scope, placement === 'left' ? layoutSelectors.leftResizeTrigger : layoutSelectors.rightResizeTrigger)
   }
 
-  getSurfaceResizeTrigger(edge: LayoutPlacement, scope: ScopedTarget = this.page) {
-    return within(
-      scope,
-      edge === 'left' ? layoutSelectors.leftSurfaceResizeTrigger : layoutSelectors.rightSurfaceResizeTrigger,
-    )
+  getSurfaceResizeTrigger(handle: LayoutFloatingHandle, scope: ScopedTarget = this.surface) {
+    const selectorMap: Record<LayoutFloatingHandle, string> = {
+      n: layoutSelectors.surfaceResizeTriggerN,
+      s: layoutSelectors.surfaceResizeTriggerS,
+      e: layoutSelectors.surfaceResizeTriggerE,
+      w: layoutSelectors.surfaceResizeTriggerW,
+      ne: layoutSelectors.surfaceResizeTriggerNE,
+      nw: layoutSelectors.surfaceResizeTriggerNW,
+      se: layoutSelectors.surfaceResizeTriggerSE,
+      sw: layoutSelectors.surfaceResizeTriggerSW,
+    }
+
+    return within(scope, selectorMap[handle])
   }
 
-  getSurfaceDragBar(scope: ScopedTarget = this.page) {
+  getSurfaceDragBar(scope: ScopedTarget = this.surface) {
     return within(scope, layoutSelectors.surfaceDragBar)
   }
 
@@ -169,6 +182,12 @@ export class LayoutTestPage {
     await this.page.getByTestId('show-floating-state-fixtures-btn').click()
     await expect(this.blockedFloatingSurface).toBeVisible()
     await expect(this.uncontrolledFloatingSurface).toBeVisible()
+  }
+
+  async showFloatingPlacementFixtures() {
+    await this.showFloatingFixtures()
+    await this.page.getByTestId('show-floating-placement-fixtures-btn').click()
+    await expect(this.getFloatingSurfaceByMarker('placement-top-left')).toBeVisible()
   }
 
   async showCssVarFixtures() {
@@ -200,8 +219,8 @@ export class LayoutTestPage {
     await this.page.getByTestId(`${placement}-resizable-off-btn`).click()
   }
 
-  async setLeftRailWidthZero() {
-    await this.page.getByTestId('left-rail-width-zero-btn').click()
+  async setLeftCollapsedWidthZero() {
+    await this.page.getByTestId('left-collapsed-width-zero-btn').click()
   }
 
   async appendMessages() {
@@ -269,12 +288,12 @@ export class LayoutTestPage {
     return box.width
   }
 
-  async dragSurface(deltaX: number, deltaY: number, scope: ScopedTarget = this.page) {
+  async dragSurface(deltaX: number, deltaY: number, scope: ScopedTarget = this.surface) {
     await this.dragBy(this.getSurfaceDragBar(scope), deltaX, deltaY)
   }
 
-  async resizeSurface(edge: LayoutPlacement, deltaX: number, scope: ScopedTarget = this.page) {
-    await this.dragBy(this.getSurfaceResizeTrigger(edge, scope), deltaX, 0)
+  async resizeSurface(handle: LayoutFloatingHandle, deltaX: number, deltaY = 0, scope: ScopedTarget = this.surface) {
+    await this.dragSurfaceResizeHandle(this.getSurfaceResizeTrigger(handle, scope), handle, deltaX, deltaY)
   }
 
   async resizeAside(placement: LayoutPlacement, deltaX: number, scope: ScopedTarget = this.page) {
@@ -308,12 +327,38 @@ export class LayoutTestPage {
       throw new Error('Missing resize handle')
     }
 
-    const startX = side === 'left' ? box.x + box.width - 1 : box.x + 1
+    const startX = side === 'left' ? box.x + box.width - 1 : box.x + box.width - 1
     const startY = box.y + box.height / 2
 
     await this.page.mouse.move(startX, startY)
     await this.page.mouse.down()
     await this.page.mouse.move(startX + deltaX, startY, { steps: 24 })
+    await this.page.mouse.up()
+  }
+
+  async dragSurfaceResizeHandle(locator: Locator, handle: LayoutFloatingHandle, deltaX: number, deltaY: number) {
+    await expect(locator).toBeVisible()
+    await locator.hover()
+    const box = await locator.boundingBox()
+
+    if (!box) {
+      throw new Error('Missing surface resize handle')
+    }
+
+    const startX = handle.includes('w')
+      ? box.x + box.width - 1
+      : handle.includes('e')
+        ? box.x + 1
+        : box.x + box.width / 2
+    const startY = handle.includes('n')
+      ? box.y + box.height - 1
+      : handle.includes('s')
+        ? box.y + 1
+        : box.y + box.height / 2
+
+    await this.page.mouse.move(startX, startY)
+    await this.page.mouse.down()
+    await this.page.mouse.move(startX + deltaX, startY + deltaY, { steps: 24 })
     await this.page.mouse.up()
   }
 }

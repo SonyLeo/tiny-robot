@@ -4,7 +4,36 @@ export type LayoutPlacement = 'left' | 'right'
 export type LayoutAsideMode = 'dock' | 'drawer'
 export type LayoutAsideCollapseEffect = 'overlay' | 'slide'
 export type LayoutMode = 'normal' | 'floating'
-export type LayoutLength = number | string
+export type LayoutFloatingPlacement = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'center'
+
+export interface LayoutFloatingBase {
+  width?: number
+  height?: number
+  draggable?: boolean
+  resizable?: boolean
+  minWidth?: number
+  maxWidth?: number
+  minHeight?: number
+  maxHeight?: number
+}
+
+export interface LayoutFloatingRect extends LayoutFloatingBase {
+  x: number
+  y: number
+  width: number
+  height: number
+  placement?: never
+  offset?: never
+}
+
+export interface LayoutDefaultFloatingConfig extends LayoutFloatingBase {
+  x?: never
+  y?: never
+  placement?: LayoutFloatingPlacement
+  offset?: number
+}
+
+export type LayoutFloatingResizeHandle = 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw'
 
 type RequiredProp<Key extends string, Value> = {
   [K in Key]: Value
@@ -18,29 +47,26 @@ type ForbiddenProp<Key extends string> = {
   [K in Key]?: never
 }
 
-type ExclusiveControllablePair<ControlledKey extends string, DefaultKey extends string, Value> =
-  | (RequiredProp<ControlledKey, Value> & ForbiddenProp<DefaultKey>)
-  | (ForbiddenProp<ControlledKey> & OptionalProp<DefaultKey, Value>)
+type ExclusiveControllablePair<
+  ControlledKey extends string,
+  ControlledValue,
+  DefaultKey extends string,
+  DefaultValue,
+> =
+  | (RequiredProp<ControlledKey, ControlledValue> & ForbiddenProp<DefaultKey>)
+  | (ForbiddenProp<ControlledKey> & OptionalProp<DefaultKey, DefaultValue>)
 
 export interface LayoutAsideResizeEventDetail {
   placement: LayoutPlacement
   width: number
 }
 
-export interface LayoutFloatingConfig {
-  x?: number
-  y?: number
-  width?: LayoutLength
-  height?: LayoutLength
-  draggable?: boolean
-  resizable?: boolean
-  minWidth?: LayoutLength
-  maxWidth?: LayoutLength
-}
-
 export interface LayoutFloatingResizeEventDetail {
-  edge: LayoutPlacement
+  handle: LayoutFloatingResizeHandle
   width: number
+  height: number
+  x: number
+  y: number
 }
 
 export interface LayoutFloatingDragEventDetail {
@@ -52,24 +78,27 @@ export type LayoutMainScrollHostComponent = Pick<ComponentPublicInstance, '$el'>
 
 export type LayoutMainScrollHost = HTMLElement | LayoutMainScrollHostComponent | null | undefined
 
-type LayoutModeState = ExclusiveControllablePair<'mode', 'defaultMode', LayoutMode>
-type LayoutFloatingState = ExclusiveControllablePair<'floating', 'defaultFloating', LayoutFloatingConfig>
+type LayoutFloatingState = ExclusiveControllablePair<
+  'floating',
+  LayoutFloatingRect,
+  'defaultFloating',
+  LayoutDefaultFloatingConfig
+>
 
 export interface LayoutRuntimeProps {
   mode?: LayoutMode
-  defaultMode?: LayoutMode
-  floating?: LayoutFloatingConfig
-  defaultFloating?: LayoutFloatingConfig
+  floating?: LayoutFloatingRect
+  defaultFloating?: LayoutDefaultFloatingConfig
 }
 
 // Keep runtime props flat for defineProps().
 // Vue's type-to-runtime conversion is AST-based and does not reliably support
 // full props-object conditional / exclusive unions here.
-export type LayoutProps = LayoutRuntimeProps & LayoutModeState & LayoutFloatingState
+export type LayoutProps = LayoutRuntimeProps & LayoutFloatingState
 
 export interface LayoutEmits {
   'update:mode': [value: LayoutMode]
-  'update:floating': [value: LayoutFloatingConfig]
+  'update:floating': [value: LayoutFloatingRect]
   'floating-drag-start': [detail: LayoutFloatingDragEventDetail]
   'floating-drag': [detail: LayoutFloatingDragEventDetail]
   'floating-drag-end': [detail: LayoutFloatingDragEventDetail]
@@ -84,15 +113,15 @@ export interface LayoutEmits {
 interface LayoutAsideBaseProps {
   placement: LayoutPlacement
   mode?: LayoutAsideMode
-  railWidth?: number
+  collapsedWidth?: number
   minWidth?: number
   maxWidth?: number
   resizable?: boolean
   collapseEffect?: LayoutAsideCollapseEffect
 }
 
-type LayoutAsideOpenState = ExclusiveControllablePair<'open', 'defaultOpen', boolean>
-type LayoutAsideWidthState = ExclusiveControllablePair<'width', 'defaultWidth', number>
+type LayoutAsideOpenState = ExclusiveControllablePair<'open', boolean, 'defaultOpen', boolean>
+type LayoutAsideWidthState = ExclusiveControllablePair<'width', number, 'defaultWidth', number>
 
 export type LayoutAsideProps = LayoutAsideBaseProps & LayoutAsideOpenState & LayoutAsideWidthState
 export type LayoutAsideRuntimeProps = LayoutAsideBaseProps & {

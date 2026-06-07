@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { TrLayout } from '@opentiny/tiny-robot'
-import type { LayoutFloatingConfig, LayoutMainScrollHost } from '@opentiny/tiny-robot'
+import type { LayoutFloatingRect, LayoutMainScrollHost } from '@opentiny/tiny-robot'
 
 const scrollbarHostRef = ref<LayoutMainScrollHost>(null)
 
@@ -12,7 +12,7 @@ const floating = {
   height: 260,
   draggable: false,
   resizable: false,
-} satisfies LayoutFloatingConfig
+} satisfies LayoutFloatingRect
 
 const scrollItems = Array.from({ length: 80 }, (_, index) => `css var item ${index + 1}`)
 </script>

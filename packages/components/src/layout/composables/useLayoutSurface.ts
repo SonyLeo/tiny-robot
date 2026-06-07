@@ -10,31 +10,31 @@ import {
   type Ref,
 } from 'vue'
 import type {
-  LayoutFloatingConfig,
+  LayoutDefaultFloatingConfig,
   LayoutFloatingDragEventDetail,
+  LayoutFloatingRect,
   LayoutFloatingResizeEventDetail,
+  LayoutFloatingResizeHandle,
   LayoutMode,
-  LayoutPlacement,
 } from '../index.type'
-import { toCssLength } from '../utils/cssLength'
 import {
   areFloatingGeometryEqual,
+  clampFloatingRect,
+  clampFloatingRectByHandle,
   DEFAULT_FLOATING_GAP,
   DEFAULT_FLOATING_HEIGHT,
   DEFAULT_FLOATING_TOP,
   DEFAULT_FLOATING_WIDTH,
-  resolveFloatingSnapshot,
-  toCommittedFloatingConfig,
-  type FloatingSnapshot,
+  normalizeFloatingRect,
 } from '../utils/layoutSurfaceGeometry'
-import { resolveFloatingResizeGeometry } from '../utils/layoutSurfaceResize'
+import { resolveFloatingResizeRect } from '../utils/layoutSurfaceResize'
 import { lockBodyInteraction, restoreBodyInteraction, type BodyInteractionState } from '../utils/domInteraction'
-import { clamp } from '../utils/math'
 
 interface UseLayoutSurfaceOptions {
   mode: MaybeRefOrGetter<LayoutMode>
-  floating: MaybeRefOrGetter<LayoutFloatingConfig | undefined>
-  commitFloating: (nextFloating: LayoutFloatingConfig) => void
+  floating: MaybeRefOrGetter<LayoutFloatingRect | LayoutDefaultFloatingConfig | undefined>
+  commitFloating: (nextFloating: LayoutFloatingRect) => void
+  initializeFloating: (nextFloating: LayoutFloatingRect) => void
   frameRef: Ref<HTMLElement | null>
   dragHandleRef: Ref<HTMLElement | null>
   onFloatingDragStart?: (detail: LayoutFloatingDragEventDetail) => void
@@ -48,91 +48,127 @@ interface UseLayoutSurfaceOptions {
 interface FloatingResizeState {
   pointerId: number
   handleEl: HTMLElement
-  edge: LayoutPlacement
-  currentBounds: FloatingSnapshot
+  handle: LayoutFloatingResizeHandle
+  currentRect: LayoutFloatingRect
   lastPointerX: number
-  currentWidth: number
+  lastPointerY: number
   bodyState: BodyInteractionState
 }
 
-type FloatingGeometry = Pick<LayoutFloatingConfig, 'x' | 'y' | 'width' | 'height'>
+const RESIZE_HANDLES: LayoutFloatingResizeHandle[] = ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw']
+
+function resolveResizeCursor(handle: LayoutFloatingResizeHandle): string {
+  if (handle === 'n' || handle === 's') {
+    return 'ns-resize'
+  }
+
+  if (handle === 'e' || handle === 'w') {
+    return 'ew-resize'
+  }
+
+  if (handle === 'ne' || handle === 'sw') {
+    return 'nesw-resize'
+  }
+
+  return 'nwse-resize'
+}
+
+function toDragDetail(rect: LayoutFloatingRect): LayoutFloatingDragEventDetail {
+  return {
+    x: rect.x,
+    y: rect.y,
+  }
+}
+
+function toResizeDetail(handle: LayoutFloatingResizeHandle, rect: LayoutFloatingRect): LayoutFloatingResizeEventDetail {
+  return {
+    handle,
+    x: rect.x,
+    y: rect.y,
+    width: rect.width,
+    height: rect.height,
+  }
+}
 
 export function useLayoutSurface(options: UseLayoutSurfaceOptions) {
   const activeResize = shallowRef<FloatingResizeState | null>(null)
   const pointerTarget = typeof window === 'undefined' ? undefined : window
+
   const { width: viewportWidth, height: viewportHeight } = useWindowSize({
     type: 'visual',
     initialWidth: DEFAULT_FLOATING_WIDTH + DEFAULT_FLOATING_GAP * 2,
-    initialHeight: 0,
+    initialHeight: DEFAULT_FLOATING_HEIGHT + DEFAULT_FLOATING_GAP * 2,
   })
+
   const mode = computed<LayoutMode>(() => toValue(options.mode))
   const isFloating = computed(() => mode.value === 'floating')
   const isNormal = computed(() => mode.value === 'normal')
-  const isFloatingDraggable = computed(() => toValue(options.floating)?.draggable ?? true)
-  const isFloatingResizable = computed(() => toValue(options.floating)?.resizable === true)
+  const floatingValue = computed(() => toValue(options.floating))
+  const isFloatingRectValue = computed(() => {
+    const value = floatingValue.value
+    return value !== undefined && 'x' in value && 'y' in value
+  })
+  const floatingRect = computed(() => normalizeFloatingRect(floatingValue.value))
+  const isFloatingDraggable = computed(() => floatingRect.value.draggable ?? true)
+  const isFloatingResizable = computed(() => floatingRect.value.resizable === true)
   const isResizing = computed(() => activeResize.value !== null)
-  const activeResizeEdge = computed<LayoutPlacement | null>(() => activeResize.value?.edge ?? null)
+  const activeResizeHandle = computed<LayoutFloatingResizeHandle | null>(() => activeResize.value?.handle ?? null)
   const canDragFloating = computed(() => isFloating.value && isFloatingDraggable.value && !isResizing.value)
 
-  function getCurrentFloatingConfig(): LayoutFloatingConfig | undefined {
-    return toValue(options.floating)
+  function toPersistedRect(rect: LayoutFloatingRect): LayoutFloatingRect {
+    const source = floatingValue.value
+
+    return {
+      x: rect.x,
+      y: rect.y,
+      width: rect.width,
+      height: rect.height,
+      ...(source?.draggable !== undefined ? { draggable: source.draggable } : {}),
+      ...(source?.resizable !== undefined ? { resizable: source.resizable } : {}),
+      ...(source?.minWidth !== undefined ? { minWidth: source.minWidth } : {}),
+      ...(source?.maxWidth !== undefined ? { maxWidth: source.maxWidth } : {}),
+      ...(source?.minHeight !== undefined ? { minHeight: source.minHeight } : {}),
+      ...(source?.maxHeight !== undefined ? { maxHeight: source.maxHeight } : {}),
+    }
   }
 
-  function resolveFloatingSnapshotFor(overrides?: Partial<FloatingGeometry>): FloatingSnapshot {
-    return resolveFloatingSnapshot({
-      ...(getCurrentFloatingConfig() ?? {}),
-      ...(overrides ?? {}),
-    })
-  }
+  function commitRect(nextRect: LayoutFloatingRect): LayoutFloatingRect {
+    const normalizedRect = clampFloatingRect(nextRect)
 
-  function resolveFloatingGeometry(overrides?: Partial<FloatingGeometry>): FloatingGeometry {
-    return toCommittedFloatingConfig(resolveFloatingSnapshotFor(overrides))
-  }
-
-  function commitFloatingGeometry(overrides?: Partial<FloatingGeometry>): FloatingGeometry {
-    const currentFloating = getCurrentFloatingConfig()
-    const nextGeometry = resolveFloatingGeometry(overrides)
-
-    if (areFloatingGeometryEqual(currentFloating, nextGeometry)) {
-      return nextGeometry
+    if (areFloatingGeometryEqual(floatingRect.value, normalizedRect)) {
+      return normalizedRect
     }
 
-    options.commitFloating({
-      ...(currentFloating ?? {}),
-      ...nextGeometry,
-    })
+    options.commitFloating(toPersistedRect(normalizedRect))
 
-    return nextGeometry
+    return normalizedRect
   }
 
-  function syncFloatingGeometry(): void {
+  function syncFloatingRect(): void {
     if (!isFloating.value || isDragging.value || isResizing.value) {
       return
     }
 
-    const nextGeometry = commitFloatingGeometry()
-    x.value = nextGeometry.x ?? DEFAULT_FLOATING_GAP
-    y.value = nextGeometry.y ?? DEFAULT_FLOATING_TOP
-  }
-
-  function toFloatingDragDetail(
-    geometry: Pick<LayoutFloatingConfig, 'x' | 'y' | 'width' | 'height'>,
-  ): LayoutFloatingDragEventDetail {
-    return {
-      x: geometry.x ?? DEFAULT_FLOATING_GAP,
-      y: geometry.y ?? DEFAULT_FLOATING_TOP,
+    if (!isFloatingRectValue.value) {
+      options.initializeFloating(toPersistedRect(floatingRect.value))
     }
+
+    const nextRect = commitRect(floatingRect.value)
+    x.value = nextRect.x
+    y.value = nextRect.y
   }
 
   function applyDraggedPosition(nextX: number, nextY: number) {
-    const snapshot = resolveFloatingSnapshotFor()
-    const nextGeometry = commitFloatingGeometry({
-      x: clamp(nextX, DEFAULT_FLOATING_GAP, snapshot.xMax),
-      y: clamp(nextY, DEFAULT_FLOATING_TOP, snapshot.yMax),
+    const nextRect = commitRect({
+      ...floatingRect.value,
+      x: nextX,
+      y: nextY,
     })
-    x.value = nextGeometry.x ?? DEFAULT_FLOATING_GAP
-    y.value = nextGeometry.y ?? DEFAULT_FLOATING_TOP
-    return nextGeometry
+
+    x.value = nextRect.x
+    y.value = nextRect.y
+
+    return nextRect
   }
 
   const { x, y, isDragging } = useDraggable(options.frameRef, {
@@ -146,21 +182,18 @@ export function useLayoutSurface(options: UseLayoutSurfaceOptions) {
         return false
       }
 
-      const snapshot = resolveFloatingSnapshotFor()
-      x.value = snapshot.x
-      y.value = snapshot.y
-      options.onFloatingDragStart?.({
-        x: snapshot.x,
-        y: snapshot.y,
-      })
+      const rect = floatingRect.value
+      x.value = rect.x
+      y.value = rect.y
+      options.onFloatingDragStart?.(toDragDetail(rect))
     },
     onMove: (position) => {
-      const nextGeometry = applyDraggedPosition(position.x, position.y)
-      options.onFloatingDrag?.(toFloatingDragDetail(nextGeometry))
+      const nextRect = applyDraggedPosition(position.x, position.y)
+      options.onFloatingDrag?.(toDragDetail(nextRect))
     },
     onEnd: (position) => {
-      const nextGeometry = applyDraggedPosition(position.x, position.y)
-      options.onFloatingDragEnd?.(toFloatingDragDetail(nextGeometry))
+      const nextRect = applyDraggedPosition(position.x, position.y)
+      options.onFloatingDragEnd?.(toDragDetail(nextRect))
     },
   })
 
@@ -168,6 +201,7 @@ export function useLayoutSurface(options: UseLayoutSurfaceOptions) {
 
   function stopResize(pointerId?: number): void {
     const state = activeResize.value
+
     if (!state || (pointerId !== undefined && state.pointerId !== pointerId)) {
       return
     }
@@ -177,16 +211,11 @@ export function useLayoutSurface(options: UseLayoutSurfaceOptions) {
     }
 
     restoreBodyInteraction(state.handleEl.ownerDocument.body, state.bodyState)
-
-    options.onFloatingResizeEnd?.({
-      edge: state.edge,
-      width: state.currentWidth,
-    })
-
+    options.onFloatingResizeEnd?.(toResizeDetail(state.handle, state.currentRect))
     activeResize.value = null
   }
 
-  function startResize(edge: LayoutPlacement, event: PointerEvent): void {
+  function startResize(handle: LayoutFloatingResizeHandle, event: PointerEvent): void {
     if (activeResize.value || isDragging.value || !event.isPrimary || event.button !== 0 || !canResizeFloating.value) {
       return
     }
@@ -197,7 +226,7 @@ export function useLayoutSurface(options: UseLayoutSurfaceOptions) {
       return
     }
 
-    const snapshot = resolveFloatingSnapshotFor()
+    const startRect = floatingRect.value
 
     event.preventDefault()
     handleEl.setPointerCapture(event.pointerId)
@@ -205,52 +234,48 @@ export function useLayoutSurface(options: UseLayoutSurfaceOptions) {
     activeResize.value = {
       pointerId: event.pointerId,
       handleEl,
-      edge,
-      currentBounds: snapshot,
+      handle,
+      currentRect: startRect,
       lastPointerX: event.clientX,
-      currentWidth: snapshot.widthPx,
-      bodyState: lockBodyInteraction(handleEl.ownerDocument.body, 'col-resize'),
+      lastPointerY: event.clientY,
+      bodyState: lockBodyInteraction(handleEl.ownerDocument.body, resolveResizeCursor(handle)),
     }
 
-    options.onFloatingResizeStart?.({
-      edge,
-      width: snapshot.widthPx,
-    })
+    options.onFloatingResizeStart?.(toResizeDetail(handle, startRect))
   }
 
-  function applyResizeDelta(state: FloatingResizeState, deltaX: number): void {
-    const nextResizeGeometry = resolveFloatingResizeGeometry({
-      edge: state.edge,
-      deltaX,
-      snapshot: state.currentBounds,
-      viewportWidth: viewportWidth.value,
-    })
-    const nextGeometry = commitFloatingGeometry(nextResizeGeometry)
+  function applyResize(state: FloatingResizeState, pointerX: number, pointerY: number): void {
+    const nextRect = commitRect(
+      clampFloatingRectByHandle(
+        resolveFloatingResizeRect({
+          handle: state.handle,
+          deltaX: pointerX - state.lastPointerX,
+          deltaY: pointerY - state.lastPointerY,
+          startRect: state.currentRect,
+        }),
+        state.handle,
+      ),
+    )
 
-    state.currentBounds = resolveFloatingSnapshotFor(nextGeometry)
-    state.currentWidth = state.currentBounds.widthPx
+    state.currentRect = nextRect
+    state.lastPointerX = pointerX
+    state.lastPointerY = pointerY
 
-    options.onFloatingResize?.({
-      edge: state.edge,
-      width: state.currentWidth,
-    })
+    options.onFloatingResize?.(toResizeDetail(state.handle, nextRect))
   }
 
   useEventListener(pointerTarget, 'pointermove', (event: PointerEvent) => {
     const state = activeResize.value
+
     if (!state || event.pointerId !== state.pointerId) {
       return
     }
 
-    const pointerX = event.clientX
-    const deltaX = pointerX - state.lastPointerX
-
-    if (deltaX === 0) {
+    if (event.clientX === state.lastPointerX && event.clientY === state.lastPointerY) {
       return
     }
 
-    applyResizeDelta(state, deltaX)
-    state.lastPointerX = pointerX
+    applyResize(state, event.clientX, event.clientY)
   })
 
   useEventListener(pointerTarget, 'pointerup', (event: PointerEvent) => {
@@ -266,14 +291,13 @@ export function useLayoutSurface(options: UseLayoutSurfaceOptions) {
   })
 
   watch(
-    [mode, () => toValue(options.floating), viewportWidth, viewportHeight],
+    [mode, floatingValue, viewportWidth, viewportHeight],
     () => {
-      syncFloatingGeometry()
+      syncFloatingRect()
     },
     { immediate: true },
   )
 
-  const floatingConfig = computed(() => resolveFloatingGeometry())
   const surfaceClass = computed(() => ({
     'tr-layout-surface--normal': isNormal.value,
     'tr-layout-surface--floating': isFloating.value,
@@ -281,8 +305,6 @@ export function useLayoutSurface(options: UseLayoutSurfaceOptions) {
     'tr-layout-surface--draggable': canDragFloating.value,
     'tr-layout-surface--resizable': isFloating.value && isFloatingResizable.value,
     'tr-layout-surface--resizing': isResizing.value,
-    'tr-layout-surface--resizing-left': activeResizeEdge.value === 'left',
-    'tr-layout-surface--resizing-right': activeResizeEdge.value === 'right',
   }))
 
   const surfaceStyle = computed<CSSProperties>(() => {
@@ -291,16 +313,24 @@ export function useLayoutSurface(options: UseLayoutSurfaceOptions) {
     }
 
     return {
-      left: `${floatingConfig.value.x ?? DEFAULT_FLOATING_GAP}px`,
-      top: `${floatingConfig.value.y ?? DEFAULT_FLOATING_TOP}px`,
-      width: toCssLength(floatingConfig.value.width, `${DEFAULT_FLOATING_WIDTH}px`),
-      height: toCssLength(floatingConfig.value.height, DEFAULT_FLOATING_HEIGHT),
+      left: `${floatingRect.value.x}px`,
+      top: `${floatingRect.value.y}px`,
+      width: `${floatingRect.value.width}px`,
+      height: `${floatingRect.value.height}px`,
     }
   })
 
   const dragBarClass = computed(() => ({
     'tr-layout-surface__drag-bar--draggable': canDragFloating.value,
   }))
+
+  const resizeHandles = computed(() =>
+    RESIZE_HANDLES.map((handle) => ({
+      handle,
+      active: activeResizeHandle.value === handle,
+      onPointerdown: (event: PointerEvent) => startResize(handle, event),
+    })),
+  )
 
   return {
     isFloating,
@@ -309,12 +339,7 @@ export function useLayoutSurface(options: UseLayoutSurfaceOptions) {
     surfaceClass,
     surfaceStyle,
     dragBarClass,
-    activeResizeEdge,
-    leftResizeHandleProps: {
-      onPointerdown: (event: PointerEvent) => startResize('left', event),
-    },
-    rightResizeHandleProps: {
-      onPointerdown: (event: PointerEvent) => startResize('right', event),
-    },
+    activeResizeHandle,
+    resizeHandles,
   }
 }

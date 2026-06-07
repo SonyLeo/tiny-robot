@@ -3,9 +3,10 @@ import { onBeforeUnmount, ref, watchEffect } from 'vue'
 import { BubbleList, TrLayout } from '@opentiny/tiny-robot'
 import type {
   LayoutAsideResizeEventDetail,
-  LayoutFloatingConfig,
+  LayoutFloatingRect,
   LayoutFloatingDragEventDetail,
   LayoutFloatingResizeEventDetail,
+  LayoutFloatingResizeHandle,
   LayoutMainScrollHost,
 } from '@opentiny/tiny-robot'
 import AsideStateFixtures from './fixtures/AsideStateFixtures.vue'
@@ -20,10 +21,8 @@ interface LayoutMetrics {
   floatingDragStart: number
   floatingDrag: number
   floatingDragEnd: number
-  floatingLeftResizeStart: number
-  floatingLeftResizeEnd: number
-  floatingRightResizeStart: number
-  floatingRightResizeEnd: number
+  floatingResizeStartByHandle: Record<LayoutFloatingResizeHandle, number>
+  floatingResizeEndByHandle: Record<LayoutFloatingResizeHandle, number>
   leftToggleActions: number
   rightToggleActions: number
   modeToggleActions: number
@@ -70,15 +69,15 @@ const leftOpen = ref(true)
 const rightOpen = ref(false)
 const leftWidth = ref(280)
 const rightWidth = ref(320)
-const leftRailWidth = ref(56)
-const rightRailWidth = ref(0)
+const leftCollapsedWidth = ref(56)
+const rightCollapsedWidth = ref(0)
 const leftResizable = ref(true)
 const rightResizable = ref(true)
 const showAsideStateFixtures = ref(false)
 const showFloatingStateFixtures = ref(false)
 const showCssVarFixtures = ref(false)
 
-const floating = ref<LayoutFloatingConfig>({
+const floating = ref<LayoutFloatingRect>({
   x: 96,
   y: 72,
   width: 520,
@@ -97,10 +96,26 @@ const metrics = ref<LayoutMetrics>({
   floatingDragStart: 0,
   floatingDrag: 0,
   floatingDragEnd: 0,
-  floatingLeftResizeStart: 0,
-  floatingLeftResizeEnd: 0,
-  floatingRightResizeStart: 0,
-  floatingRightResizeEnd: 0,
+  floatingResizeStartByHandle: {
+    n: 0,
+    s: 0,
+    e: 0,
+    w: 0,
+    ne: 0,
+    nw: 0,
+    se: 0,
+    sw: 0,
+  },
+  floatingResizeEndByHandle: {
+    n: 0,
+    s: 0,
+    e: 0,
+    w: 0,
+    ne: 0,
+    nw: 0,
+    se: 0,
+    sw: 0,
+  },
   leftToggleActions: 0,
   rightToggleActions: 0,
   modeToggleActions: 0,
@@ -164,8 +179,8 @@ function disableRightResizable() {
   rightResizable.value = false
 }
 
-function setLeftRailWidth(nextWidth: number) {
-  leftRailWidth.value = nextWidth
+function setLeftCollapsedWidth(nextWidth: number) {
+  leftCollapsedWidth.value = nextWidth
 }
 
 function disableFloatingResizable() {
@@ -199,8 +214,8 @@ function updateRightWidth(next: number) {
   widths.value.right = next
 }
 
-function updateFloating(next?: LayoutFloatingConfig) {
-  floating.value = next ?? {}
+function updateFloating(next: LayoutFloatingRect) {
+  floating.value = next
 }
 
 function appendMessages() {
@@ -273,11 +288,7 @@ function handleFloatingDragEnd(detail: LayoutFloatingDragEventDetail) {
 }
 
 function handleFloatingResizeStart(detail: LayoutFloatingResizeEventDetail) {
-  if (detail.edge === 'left') {
-    metrics.value.floatingLeftResizeStart += 1
-  } else {
-    metrics.value.floatingRightResizeStart += 1
-  }
+  metrics.value.floatingResizeStartByHandle[detail.handle] += 1
 
   pushFloatingResizeLog('start', detail)
 }
@@ -290,11 +301,7 @@ function handleFloatingResize(detail: LayoutFloatingResizeEventDetail) {
 function handleFloatingResizeEnd(detail: LayoutFloatingResizeEventDetail) {
   widths.value.floating = detail.width
 
-  if (detail.edge === 'left') {
-    metrics.value.floatingLeftResizeEnd += 1
-  } else {
-    metrics.value.floatingRightResizeEnd += 1
-  }
+  metrics.value.floatingResizeEndByHandle[detail.handle] += 1
 
   pushFloatingResizeLog('end', detail)
 }
@@ -347,7 +354,9 @@ onBeforeUnmount(() => {
       <button data-testid="left-resizable-off-btn" type="button" @click="disableLeftResizable">
         left resizable off
       </button>
-      <button data-testid="left-rail-width-zero-btn" type="button" @click="setLeftRailWidth(0)">left rail zero</button>
+      <button data-testid="left-collapsed-width-zero-btn" type="button" @click="setLeftCollapsedWidth(0)">
+        left collapsed zero
+      </button>
 
       <button data-testid="right-mode-dock-btn" type="button" @click="setRightMode('dock')">right dock</button>
       <button data-testid="right-mode-drawer-btn" type="button" @click="setRightMode('drawer')">right drawer</button>
@@ -405,7 +414,7 @@ onBeforeUnmount(() => {
             :mode="leftMode"
             :open="leftOpen"
             :width="leftWidth"
-            :rail-width="leftRailWidth"
+            :collapsed-width="leftCollapsedWidth"
             :min-width="220"
             :max-width="420"
             :resizable="leftResizable"
@@ -447,7 +456,7 @@ onBeforeUnmount(() => {
             :mode="rightMode"
             :open="rightOpen"
             :width="rightWidth"
-            :rail-width="rightRailWidth"
+            :collapsed-width="rightCollapsedWidth"
             :min-width="240"
             :max-width="420"
             :resizable="rightResizable"

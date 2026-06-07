@@ -10,7 +10,7 @@ interface UseControllableStateOptions<T> {
 interface UseControllableStateResult<T> {
   isControlled: ComputedRef<boolean>
   resolvedState: ComputedRef<T | undefined>
-  commit: (nextValue: T) => void
+  commit: (nextValue: T, options?: { notify?: boolean }) => void
 }
 
 export function useControllableState<T>(options: UseControllableStateOptions<T>): UseControllableStateResult<T> {
@@ -18,12 +18,14 @@ export function useControllableState<T>(options: UseControllableStateOptions<T>)
   const isControlled = computed(() => toValue(options.isControlled))
   const resolvedState = computed(() => (isControlled.value ? toValue(options.value) : internalState.value))
 
-  function commit(nextValue: T): void {
+  function commit(nextValue: T, commitOptions?: { notify?: boolean }): void {
     if (!isControlled.value) {
       internalState.value = nextValue
     }
 
-    options.onChange?.(nextValue)
+    if (commitOptions?.notify !== false) {
+      options.onChange?.(nextValue)
+    }
   }
 
   return {

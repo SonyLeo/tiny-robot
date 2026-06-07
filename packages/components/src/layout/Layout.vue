@@ -20,7 +20,7 @@ const props = defineProps<LayoutRuntimeProps>()
 const emit = defineEmits<LayoutEmits>()
 const attrs = useAttrs()
 
-const { resolvedMode, resolvedFloating, commitFloating } = useControllableLayoutState(props, emit)
+const { resolvedMode, resolvedFloating, commitFloating, initializeFloating } = useControllableLayoutState(props, emit)
 const surfaceFrameRef = ref<HTMLElement | null>(null)
 const surfaceDragHandleRef = ref<HTMLElement | null>(null)
 const layoutRootRef = ref<HTMLElement | null>(null)
@@ -77,13 +77,13 @@ const {
   surfaceClass,
   surfaceStyle,
   dragBarClass,
-  activeResizeEdge,
-  leftResizeHandleProps,
-  rightResizeHandleProps,
+  activeResizeHandle,
+  resizeHandles,
 } = useLayoutSurface({
   mode: resolvedMode,
   floating: resolvedFloating,
   commitFloating,
+  initializeFloating,
   frameRef: surfaceFrameRef,
   dragHandleRef: surfaceDragHandleRef,
   onFloatingDragStart: (detail) => emit('floating-drag-start', detail),
@@ -129,7 +129,7 @@ const toAriaHidden = (hidden: boolean) => (hidden ? 'true' : undefined)
         :style="surfaceStyle"
         data-part="surface"
         :data-mode="surfaceMode"
-        :data-resizing-edge="activeResizeEdge ?? undefined"
+        :data-resizing-handle="activeResizeHandle ?? undefined"
       >
         <div
           v-if="showDragBar"
@@ -140,16 +140,11 @@ const toAriaHidden = (hidden: boolean) => (hidden ? 'true' : undefined)
         />
 
         <SurfaceResizeTrigger
-          v-if="showResizeHandles"
-          edge="left"
-          :active="activeResizeEdge === 'left'"
-          @pointerdown="leftResizeHandleProps.onPointerdown"
-        />
-        <SurfaceResizeTrigger
-          v-if="showResizeHandles"
-          edge="right"
-          :active="activeResizeEdge === 'right'"
-          @pointerdown="rightResizeHandleProps.onPointerdown"
+          v-for="resizeHandle in showResizeHandles ? resizeHandles : []"
+          :key="resizeHandle.handle"
+          :handle="resizeHandle.handle"
+          :active="resizeHandle.active"
+          @pointerdown="resizeHandle.onPointerdown"
         />
 
         <div
@@ -341,8 +336,6 @@ const toAriaHidden = (hidden: boolean) => (hidden ? 'true' : undefined)
   }
 
   &--resizing {
-    cursor: col-resize;
-
     &,
     * {
       user-select: none;
@@ -377,8 +370,8 @@ const toAriaHidden = (hidden: boolean) => (hidden ? 'true' : undefined)
   /* 组件局部桥接变量 */
   --left-width: 0px;
   --right-width: 0px;
-  --left-rail-width: 0px;
-  --right-rail-width: 0px;
+  --left-collapsed-width: 0px;
+  --right-collapsed-width: 0px;
 }
 
 .tr-layout {
@@ -418,7 +411,7 @@ const toAriaHidden = (hidden: boolean) => (hidden ? 'true' : undefined)
   }
 
   &--left-dock&--left-rail {
-    --left-width: var(--left-rail-width);
+    --left-width: var(--left-collapsed-width);
   }
 
   &--right-dock&--right-expanded {
@@ -426,7 +419,7 @@ const toAriaHidden = (hidden: boolean) => (hidden ? 'true' : undefined)
   }
 
   &--right-dock&--right-rail {
-    --right-width: var(--right-rail-width);
+    --right-width: var(--right-collapsed-width);
   }
 
   &__aside,

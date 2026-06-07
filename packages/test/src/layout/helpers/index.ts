@@ -6,6 +6,7 @@ export type {
   LayoutAsideMode,
   LayoutAsideState,
   LayoutCollapseEffect,
+  LayoutFloatingHandle,
   LayoutHarnessSnapshot,
   LayoutMode,
   LayoutPlacement,

@@ -68,24 +68,24 @@ export function useLayoutViewState(options: UseLayoutViewStateOptions) {
   const layoutStyle = computed<Record<string, string>>(() => {
     const style: Record<string, string> = {}
     const leftDockWidth = toPx(options.left.width)
-    const leftRailWidth = toPx(options.left.railWidth)
+    const leftCollapsedWidth = toPx(options.left.collapsedWidth)
     const rightDockWidth = toPx(options.right.width)
-    const rightRailWidth = toPx(options.right.railWidth)
+    const rightCollapsedWidth = toPx(options.right.collapsedWidth)
 
     if (leftDockWidth) {
       style['--left-dock-width'] = leftDockWidth
     }
 
-    if (leftRailWidth) {
-      style['--left-rail-width'] = leftRailWidth
+    if (leftCollapsedWidth) {
+      style['--left-collapsed-width'] = leftCollapsedWidth
     }
 
     if (rightDockWidth) {
       style['--right-dock-width'] = rightDockWidth
     }
 
-    if (rightRailWidth) {
-      style['--right-rail-width'] = rightRailWidth
+    if (rightCollapsedWidth) {
+      style['--right-collapsed-width'] = rightCollapsedWidth
     }
 
     return style

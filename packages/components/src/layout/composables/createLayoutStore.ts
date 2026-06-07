@@ -28,14 +28,16 @@ export function createLayoutStore(): LayoutStore {
     })
     const isOpen = computed(() => (registration.value ? toValue(registration.value.isOpen) : false))
     const width = computed(() => (registration.value ? toValue(registration.value.width) : undefined))
-    const railWidthValue = computed(() => (registration.value ? toValue(registration.value.railWidth) : undefined))
-    const railWidth = computed(() => railWidthValue.value ?? 0)
+    const collapsedWidthValue = computed(() =>
+      registration.value ? toValue(registration.value.collapsedWidth) : undefined,
+    )
+    const collapsedWidth = computed(() => collapsedWidthValue.value ?? 0)
     const minWidth = computed(() => (registration.value ? toValue(registration.value.minWidth) : defaultMinWidth))
     const maxWidth = computed(() => (registration.value ? toValue(registration.value.maxWidth) : defaultMaxWidth))
     const resizable = computed(() => (registration.value ? toValue(registration.value.resizable) : false))
     const isDock = computed(() => layoutMode.value === 'dock')
     const isDrawer = computed(() => layoutMode.value === 'drawer')
-    const isRail = computed(() => isRegistered.value && isDock.value && !isOpen.value && railWidth.value > 0)
+    const isRail = computed(() => isRegistered.value && isDock.value && !isOpen.value && collapsedWidth.value > 0)
     const isHidden = computed(() => !isRegistered.value || (!isOpen.value && (isDrawer.value || !isRail.value)))
     const canResize = computed(() => isRegistered.value && isDock.value && isOpen.value && resizable.value)
 
@@ -102,8 +104,8 @@ export function createLayoutStore(): LayoutStore {
       get width() {
         return width.value
       },
-      get railWidth() {
-        return railWidthValue.value
+      get collapsedWidth() {
+        return collapsedWidthValue.value
       },
       get minWidth() {
         return minWidth.value

@@ -1,4 +1,99 @@
-import { expect, test } from '../helpers'
+import { expect, test, type LayoutFloatingHandle } from '../helpers'
+
+const placementCases = [
+  { marker: 'placement-top-left', xCheck: 'left', yCheck: 'top' },
+  { marker: 'placement-top-right', xCheck: 'right', yCheck: 'top' },
+  { marker: 'placement-bottom-left', xCheck: 'left', yCheck: 'bottom' },
+  { marker: 'placement-bottom-right', xCheck: 'right', yCheck: 'bottom' },
+  { marker: 'placement-center', xCheck: 'center', yCheck: 'center' },
+] as const
+
+const resizeCases: Array<{
+  handle: LayoutFloatingHandle
+  deltaX: number
+  deltaY: number
+  assert: (
+    before: { x: number; y: number; width: number; height: number },
+    after: { x: number; y: number; width: number; height: number },
+  ) => void
+}> = [
+  {
+    handle: 'e',
+    deltaX: 80,
+    deltaY: 0,
+    assert: (before, after) => {
+      expect(after.width).toBeGreaterThan(before.width)
+      expect(Math.abs(after.x - before.x)).toBeLessThanOrEqual(2)
+    },
+  },
+  {
+    handle: 'w',
+    deltaX: 80,
+    deltaY: 0,
+    assert: (before, after) => {
+      expect(after.width).toBeLessThan(before.width)
+      expect(after.x).toBeGreaterThan(before.x)
+    },
+  },
+  {
+    handle: 's',
+    deltaX: 0,
+    deltaY: 80,
+    assert: (before, after) => {
+      expect(after.height).toBeGreaterThan(before.height)
+      expect(Math.abs(after.y - before.y)).toBeLessThanOrEqual(2)
+    },
+  },
+  {
+    handle: 'n',
+    deltaX: 0,
+    deltaY: 80,
+    assert: (before, after) => {
+      expect(after.height).toBeLessThan(before.height)
+      expect(after.y).toBeGreaterThan(before.y)
+    },
+  },
+  {
+    handle: 'ne',
+    deltaX: 80,
+    deltaY: 80,
+    assert: (before, after) => {
+      expect(after.width).toBeGreaterThan(before.width)
+      expect(after.height).toBeLessThan(before.height)
+      expect(after.y).toBeGreaterThan(before.y)
+    },
+  },
+  {
+    handle: 'nw',
+    deltaX: 80,
+    deltaY: 80,
+    assert: (before, after) => {
+      expect(after.width).toBeLessThan(before.width)
+      expect(after.height).toBeLessThan(before.height)
+      expect(after.x).toBeGreaterThan(before.x)
+      expect(after.y).toBeGreaterThan(before.y)
+    },
+  },
+  {
+    handle: 'se',
+    deltaX: 80,
+    deltaY: 80,
+    assert: (before, after) => {
+      expect(after.width).toBeGreaterThan(before.width)
+      expect(after.height).toBeGreaterThan(before.height)
+    },
+  },
+  {
+    handle: 'sw',
+    deltaX: 80,
+    deltaY: 80,
+    assert: (before, after) => {
+      expect(after.width).toBeLessThan(before.width)
+      expect(after.height).toBeGreaterThan(before.height)
+      expect(after.x).toBeGreaterThan(before.x)
+    },
+  },
+] as const
 
 test.describe('Layout 组件测试 - Floating', () => {
   test('Props: mode - 应支持 normal 与 floating 切换', async ({ layout }) => {
@@ -13,15 +108,36 @@ test.describe('Layout 组件测试 - Floating', () => {
     await layout.expectSurfaceMode('normal')
   })
 
-  test('Props: draggable - floating 拖拽应更新位置', async ({ layout }) => {
-    await layout.setMode('floating')
-    const before = await layout.getBox(layout.surface)
+  test('Props: defaultFloating - 5 种 placement 初始化应正确', async ({ layout }) => {
+    await layout.showFloatingPlacementFixtures()
 
-    await layout.dragSurface(80, 40)
-    const after = await layout.getBox(layout.surface)
+    const viewport = layout.page.viewportSize()
+    if (!viewport) {
+      throw new Error('Missing viewport size')
+    }
 
-    expect(after.x).toBeGreaterThan(before.x)
-    expect(after.y).toBeGreaterThan(before.y)
+    for (const placementCase of placementCases) {
+      const surface = layout.getFloatingSurfaceByMarker(placementCase.marker)
+      const box = await layout.getBox(surface)
+
+      if (placementCase.xCheck === 'left') {
+        expect(box.x).toBeLessThan(120)
+      } else if (placementCase.xCheck === 'right') {
+        expect(box.x + box.width).toBeGreaterThan(viewport.width - 120)
+      } else {
+        const centerX = box.x + box.width / 2
+        expect(Math.abs(centerX - viewport.width / 2)).toBeLessThanOrEqual(4)
+      }
+
+      if (placementCase.yCheck === 'top') {
+        expect(box.y).toBeLessThan(120)
+      } else if (placementCase.yCheck === 'bottom') {
+        expect(box.y + box.height).toBeGreaterThan(viewport.height - 120)
+      } else {
+        const centerY = box.y + box.height / 2
+        expect(Math.abs(centerY - viewport.height / 2)).toBeLessThanOrEqual(4)
+      }
+    }
   })
 
   test('Events: floating-drag* - 拖拽应公开三阶段事件，并保证 end 与最后一次 progress 对齐', async ({ layout }) => {
@@ -43,6 +159,17 @@ test.describe('Layout 组件测试 - Floating', () => {
     expect(endLog?.y).toBe(progressLogs.at(-1)?.y)
   })
 
+  test('Props: draggable - floating 拖拽应更新位置', async ({ layout }) => {
+    await layout.setMode('floating')
+    const before = await layout.getBox(layout.surface)
+
+    await layout.dragSurface(80, 40)
+    const after = await layout.getBox(layout.surface)
+
+    expect(after.x).toBeGreaterThan(before.x)
+    expect(after.y).toBeGreaterThan(before.y)
+  })
+
   test('Props: draggable=false - drag bar 不应再移动 surface', async ({ layout }) => {
     await layout.setMode('floating')
     await layout.disableFloatingDraggable()
@@ -52,48 +179,47 @@ test.describe('Layout 组件测试 - Floating', () => {
     const after = await layout.getBox(layout.surface)
 
     expect(Math.abs(after.x - before.x)).toBeLessThan(2)
+    expect(Math.abs(after.y - before.y)).toBeLessThan(2)
   })
 
-  test('Props: resizable / floating-resize* - 左右改宽应生效，并保证 end 与最后一次 progress 对齐', async ({
+  test('Props: resizable=false - 应隐藏 8 个 floating resize trigger', async ({ layout }) => {
+    await layout.setMode('floating')
+    await layout.disableFloatingResizable()
+
+    for (const handle of ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'] as const) {
+      await expect(layout.getSurfaceResizeTrigger(handle)).toHaveCount(0)
+    }
+  })
+
+  test('Props: resizable / floating-resize* - 8 方向 resize 应生效，并保证 end 与最后一次 progress 对齐', async ({
     layout,
   }) => {
     await layout.setMode('floating')
 
-    const before = (await layout.readHarness()).widths.floating
-    await layout.resizeSurface('right', 80)
+    for (const resizeCase of resizeCases) {
+      await layout.resetFloating()
+      const before = await layout.getBox(layout.surface)
 
-    let harness = await layout.readHarness()
-    const rightLogs = harness.logs.floatingResize.filter((entry) => entry.edge === 'right')
-    const rightProgressLogs = rightLogs.filter((entry) => entry.phase === 'progress')
-    const rightEndLog = rightLogs.at(-1)
+      await layout.resizeSurface(resizeCase.handle, resizeCase.deltaX, resizeCase.deltaY)
 
-    expect(harness.widths.floating).toBeGreaterThan(before)
-    expect(harness.metrics.floatingRightResizeStart).toBe(1)
-    expect(harness.metrics.floatingRightResizeEnd).toBe(1)
-    expect(rightLogs[0]?.phase).toBe('start')
-    expect(rightEndLog?.phase).toBe('end')
-    expect(rightEndLog?.width).toBe(rightProgressLogs.at(-1)?.width)
+      const harness = await layout.readHarness()
+      const logs = harness.logs.floatingResize.filter((entry) => entry.handle === resizeCase.handle)
+      const progressLogs = logs.filter((entry) => entry.phase === 'progress')
+      const endLog = logs.at(-1)
+      const after = await layout.getBox(layout.surface)
 
-    await layout.resizeSurface('left', 60)
+      expect(harness.metrics.floatingResizeStartByHandle[resizeCase.handle]).toBeGreaterThan(0)
+      expect(harness.metrics.floatingResizeEndByHandle[resizeCase.handle]).toBeGreaterThan(0)
+      expect(logs[0]?.phase).toBe('start')
+      expect(endLog?.phase).toBe('end')
+      expect(progressLogs.length).toBeGreaterThan(0)
+      expect(endLog?.x).toBe(progressLogs.at(-1)?.x)
+      expect(endLog?.y).toBe(progressLogs.at(-1)?.y)
+      expect(endLog?.width).toBe(progressLogs.at(-1)?.width)
+      expect(endLog?.height).toBe(progressLogs.at(-1)?.height)
 
-    harness = await layout.readHarness()
-    const leftLogs = harness.logs.floatingResize.filter((entry) => entry.edge === 'left')
-    const leftProgressLogs = leftLogs.filter((entry) => entry.phase === 'progress')
-    const leftEndLog = leftLogs.at(-1)
-
-    expect(harness.metrics.floatingLeftResizeStart).toBe(1)
-    expect(harness.metrics.floatingLeftResizeEnd).toBe(1)
-    expect(leftLogs[0]?.phase).toBe('start')
-    expect(leftEndLog?.phase).toBe('end')
-    expect(leftEndLog?.width).toBe(leftProgressLogs.at(-1)?.width)
-  })
-
-  test('Props: resizable=false - 应隐藏 floating resize trigger', async ({ layout }) => {
-    await layout.setMode('floating')
-    await layout.disableFloatingResizable()
-
-    await expect(layout.getSurfaceResizeTrigger('left')).toHaveCount(0)
-    await expect(layout.getSurfaceResizeTrigger('right')).toHaveCount(0)
+      resizeCase.assert(before, after)
+    }
   })
 
   test('viewport clamp - 超界拖拽后应被限制在视口内', async ({ layout }) => {
@@ -106,9 +232,24 @@ test.describe('Layout 组件测试 - Floating', () => {
         return box ? box.x >= 0 && box.y >= 0 : false
       })
       .toBe(true)
+
+    await layout.dragSurface(4000, 4000)
+
+    await expect
+      .poll(async () => {
+        const box = await layout.surface.boundingBox()
+        const viewport = layout.page.viewportSize()
+
+        if (!box || !viewport) {
+          return false
+        }
+
+        return box.x + box.width <= viewport.width && box.y + box.height <= viewport.height
+      })
+      .toBe(true)
   })
 
-  test('Controlled props: floating - 受控父级不回写时应只发事件，不自改位置和宽度', async ({ layout }) => {
+  test('Controlled props: floating - 受控父级不回写时应只发事件，不自改位置和尺寸', async ({ layout }) => {
     await layout.showFloatingFixtures()
 
     const surface = layout.blockedFloatingSurface
@@ -126,37 +267,29 @@ test.describe('Layout 组件测试 - Floating', () => {
     expect(Math.abs(afterDrag.x - before.x)).toBeLessThan(2)
     expect(Math.abs(afterDrag.y - before.y)).toBeLessThan(2)
 
-    await layout.resizeSurface('right', 160, surface)
+    await layout.resizeSurface('se', 120, 120, surface)
     await expect
       .poll(async () => Number(await layout.page.getByTestId('blocked-floating-last-width').textContent()))
       .toBeGreaterThan(420)
 
     const afterResize = await layout.getBox(surface)
     expect(Math.abs(afterResize.width - before.width)).toBeLessThan(2)
+    expect(Math.abs(afterResize.height - before.height)).toBeLessThan(2)
   })
 
-  test('Default props: defaultMode / defaultFloating - 非受控 floating 应按默认几何值启动', async ({ layout }) => {
-    await layout.showFloatingFixtures()
-
-    const surface = layout.uncontrolledFloatingSurface
-    const box = await layout.getBox(surface)
-
-    await layout.expectSurfaceMode('floating', surface)
-    expect(box.x).toBeGreaterThanOrEqual(556)
-    expect(box.x).toBeLessThanOrEqual(564)
-    expect(box.y).toBeGreaterThanOrEqual(92)
-    expect(box.y).toBeLessThanOrEqual(100)
-    expect(box.width).toBeGreaterThanOrEqual(416)
-    expect(box.width).toBeLessThanOrEqual(424)
-    expect(box.height).toBeGreaterThanOrEqual(296)
-    expect(box.height).toBeLessThanOrEqual(304)
-  })
-
-  test('Default props: defaultFloating - 非受控 floating 拖拽后应更新内部位置', async ({ layout }) => {
+  test('Default props: defaultFloating - 非受控 floating 应按 placement 初始化，并在交互后更新内部 rect', async ({
+    layout,
+  }) => {
     await layout.showFloatingFixtures()
 
     const surface = layout.uncontrolledFloatingSurface
     const before = await layout.getBox(surface)
+
+    await layout.expectSurfaceMode('floating', surface)
+    expect(before.width).toBeGreaterThanOrEqual(416)
+    expect(before.width).toBeLessThanOrEqual(424)
+    expect(before.height).toBeGreaterThanOrEqual(296)
+    expect(before.height).toBeLessThanOrEqual(304)
 
     await layout.dragSurface(-120, 60, surface)
     await expect
@@ -187,7 +320,7 @@ test.describe('Layout 组件测试 - Floating', () => {
 
     const surface = layout.uncontrolledFloatingSurface
 
-    await layout.resizeSurface('right', 240, surface)
+    await layout.resizeSurface('w', -240, 0, surface)
     await expect
       .poll(async () => Number(await layout.page.getByTestId('uncontrolled-floating-last-width').textContent()))
       .toBeGreaterThan(420)
@@ -196,7 +329,7 @@ test.describe('Layout 组件测试 - Floating', () => {
     expect(expanded.width).toBeGreaterThanOrEqual(476)
     expect(expanded.width).toBeLessThanOrEqual(484)
 
-    await layout.resizeSurface('left', 400, surface)
+    await layout.resizeSurface('w', 400, 0, surface)
     const shrunk = await layout.getBox(surface)
     expect(shrunk.width).toBeGreaterThanOrEqual(316)
     expect(shrunk.width).toBeLessThanOrEqual(324)

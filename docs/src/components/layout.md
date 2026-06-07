@@ -13,16 +13,18 @@ outline: [1, 3]
 - 主区滚动同步
 - 可拖动、可改宽的浮层布局
 
-## 状态控制
+## 受控与非受控
 
-`Layout` 和 `Layout.Aside` 都支持两种状态写法：
+`Layout` 和 `Layout.Aside` 都支持非受控初始化和受控同步两种写法：
 
-- 设置默认状态：使用 `defaultMode`、`defaultFloating`、`defaultOpen`、`defaultWidth`
-- 外部持续控制状态：使用 `mode`、`floating`、`open`、`width`，并回写对应的 `update:*` 事件
+- 非受控：使用 `defaultFloating`、`defaultOpen`、`defaultWidth` 提供初始值
+- 受控：使用 `mode`、`floating`、`open`、`width` 持续驱动状态，并监听对应的 `update:*` 事件
 
-同一组状态里，受控写法和初始值写法只能二选一，例如 `mode` 和 `defaultMode` 不能同时传。
+使用时注意：
 
-通常 `Layout` 负责布局模式和浮层位置，`Layout.Aside` 负责单个侧栏的开关和宽度。
+- 同一组状态里，受控写法和初始值写法只能二选一，例如不要同时传 `floating` 和 `defaultFloating`
+- `defaultFloating`、`defaultOpen`、`defaultWidth` 都只在首次挂载时读取一次
+- `Layout` 负责布局模式和浮层位置，`Layout.Aside` 负责单个侧栏的开关和宽度
 
 ## 基础布局
 
@@ -46,10 +48,10 @@ outline: [1, 3]
 - `dock`：侧栏占据布局空间，适合桌面端常驻侧栏
 - `drawer`：侧栏覆盖在主区上方，适合移动端或临时面板
 
-当侧栏使用 `dock` 时，还可以通过 `railWidth` 控制收起后的窄栏宽度：
+当侧栏使用 `dock` 时，还可以通过 `collapsedWidth` 控制收起后的窄栏宽度：
 
-- `railWidth > 0`：收起后保留一条窄栏
-- `railWidth = 0`：收起后完全隐藏
+- `collapsedWidth > 0`：收起后保留一条窄栏
+- `collapsedWidth = 0`：收起后完全隐藏
 
 抽屉侧栏的宽度不通过 `width` 控制，而是通过 `--tr-layout-drawer-width` 设置。
 
@@ -113,11 +115,13 @@ outline: [1, 3]
 
 浮层模式适合临时工作区、对话框式页面或可移动面板。
 
-如果只需要设置默认位置和宽度，使用 `defaultFloating`。如果需要在外部持续同步位置和宽度，使用 `floating` 并监听 `update:floating`。
+如果只需要设置默认位置和尺寸，使用 `defaultFloating`。它只在首次挂载时读取一次，按 `placement + offset + size` 解析出第一份浮层 rect。初始化完成后，窗口不会继续按 placement 自动贴边，只会在视口变化时做 clamp。
+
+如果需要在外部持续同步运行时位置和尺寸，使用 `floating` 并监听 `update:floating`。`floating` 表示完整 runtime rect，适合受控场景。
 
 <demo vue="../../demos/layout/floating.vue" title="浮层模式" description="只传初始值的浮层示例。" />
 
-配置详见：[Layout Props](#layout-props)、[LayoutFloatingConfig](#layout-floating-config)、[Layout Events](#layout-layout-events)、[CSS 变量](#layout-css-basics)
+配置详见：[Layout Props](#layout-props)、[Types](#types)、[Layout Events](#layout-layout-events)、[CSS 变量](#layout-css-basics)
 
 ## Props
 
@@ -126,34 +130,21 @@ outline: [1, 3]
 
 | 属性名 | 说明 | 类型 | 默认值 |
 | ------ | ---- | ---- | ------ |
-| `mode` | 外部控制布局模式 | `'normal' \| 'floating'` | `-` |
-| `defaultMode` | 默认布局模式 | `'normal' \| 'floating'` | `'normal'` |
-| `floating` | 外部传入的浮层位置和尺寸 | `LayoutFloatingConfig` | `-` |
-| `defaultFloating` | 默认浮层位置和尺寸 | `LayoutFloatingConfig` | `-` |
-
-<a id="layout-floating-config"></a>
-#### LayoutFloatingConfig
-
-| 属性名 | 说明 | 类型 | 默认值 |
-| ------ | ---- | ---- | ------ |
-| `x` | 距离视口左侧的偏移 | `number` | `视口内水平居中` |
-| `y` | 距离视口顶部的偏移 | `number` | `24` |
-| `width` | 浮层宽度 | `number \| string` | `420` |
-| `height` | 浮层高度 | `number \| string` | `'80vh'` |
-| `draggable` | 是否允许拖动浮层 | `boolean` | `true` |
-| `resizable` | 是否允许从左右边缘改宽 | `boolean` | `false` |
-| `minWidth` | 最小宽度 | `number \| string` | `320` |
-| `maxWidth` | 最大宽度 | `number \| string` | `视口宽度 - 48px` |
+| `mode` | 布局模式，设为 `floating` 时启用浮层交互 | `'normal' \| 'floating'` | `'normal'` |
+| `defaultFloating` | 非受控浮层的初始化配置，仅首次挂载读取一次 | `LayoutDefaultFloatingConfig` | `-` |
+| `floating` | 受控浮层的运行时 rect，需配合 `update:floating` 使用 | `LayoutFloatingRect` | `-` |
 
 <a id="layout-main-props"></a>
 ### Layout.Main
 
 | 属性名 | 说明 | 类型 | 默认值 |
 | ------ | ---- | ---- | ------ |
-| `scrollHost` | 真实滚动容器的元素或组件 ref | `HTMLElement \| ComponentPublicInstance \| null` | `-` |
+| `scrollHost` | 真实滚动容器的元素或组件实例 ref | `HTMLElement \| ComponentPublicInstance \| null` | `-` |
 
 <a id="layout-aside-props"></a>
 ### Layout.Aside
+
+#### 通用字段
 
 | 属性名 | 说明 | 类型 | 默认值 |
 | ------ | ---- | ---- | ------ |
@@ -161,13 +152,20 @@ outline: [1, 3]
 | `mode` | 侧栏模式 | `'dock' \| 'drawer'` | `'dock'` |
 | `open` | 外部控制侧栏开关 | `boolean` | `-` |
 | `defaultOpen` | 默认开关状态 | `boolean` | `left: true` / `right: false` |
-| `width` | 外部控制的 `dock` 宽度 | `number` | `-` |
-| `defaultWidth` | 默认 `dock` 宽度 | `number` | `-` |
-| `railWidth` | `dock` 收起后保留的窄栏宽度 | `number` | `0` |
-| `minWidth` | `dock` 最小宽度 | `number` | `left: 200` / `right: 240` |
-| `maxWidth` | `dock` 最大宽度 | `number` | `left: 560` / `right: 640` |
-| `resizable` | 是否允许拖动改变 `dock` 宽度 | `boolean` | `false` |
+
+#### `dock` 专属字段
+
+| 属性名 | 说明 | 类型 | 默认值 |
+| ------ | ---- | ---- | ------ |
+| `width` | 外部控制的侧栏宽度 | `number` | `-` |
+| `defaultWidth` | 默认侧栏宽度 | `number` | `-` |
+| `collapsedWidth` | 收起后保留的窄栏宽度 | `number` | `0` |
+| `minWidth` | 最小宽度 | `number` | `left: 200` / `right: 240` |
+| `maxWidth` | 最大宽度 | `number` | `left: 560` / `right: 640` |
+| `resizable` | 是否允许拖动改宽 | `boolean` | `false` |
 | `collapseEffect` | 收起时的动画效果 | `'overlay' \| 'slide'` | `'overlay'` |
+
+`drawer` 模式下的宽度通过 `--tr-layout-drawer-width` 控制。
 
 <a id="layout-aside-toggle-props"></a>
 ### Layout.AsideToggle
@@ -210,16 +208,42 @@ outline: [1, 3]
 | 事件名 | 说明 | 回调参数 |
 | ------ | ---- | -------- |
 | `update:mode` | 布局模式变化 | `(value: LayoutMode)` |
-| `update:floating` | 浮层位置或尺寸变化 | `(value: LayoutFloatingConfig)` |
-| `aside-resize-start` | 开始调整侧栏宽度 | `(detail: { placement: 'left' \| 'right'; width: number })` |
-| `aside-resize` | 调整侧栏宽度时持续触发 | `(detail: { placement: 'left' \| 'right'; width: number })` |
-| `aside-resize-end` | 结束调整侧栏宽度 | `(detail: { placement: 'left' \| 'right'; width: number })` |
-| `floating-drag-start` | 开始拖动浮层 | `(detail: { x: number; y: number })` |
-| `floating-drag` | 拖动浮层时持续触发 | `(detail: { x: number; y: number })` |
-| `floating-drag-end` | 结束拖动浮层 | `(detail: { x: number; y: number })` |
-| `floating-resize-start` | 开始调整浮层宽度 | `(detail: { edge: 'left' \| 'right'; width: number })` |
-| `floating-resize` | 调整浮层宽度时持续触发 | `(detail: { edge: 'left' \| 'right'; width: number })` |
-| `floating-resize-end` | 结束调整浮层宽度 | `(detail: { edge: 'left' \| 'right'; width: number })` |
+| `update:floating` | 浮层位置或尺寸变化 | `(value: LayoutFloatingRect)` |
+| `aside-resize-start` | 开始调整侧栏宽度 | `(detail: LayoutAsideResizeDetail)` |
+| `aside-resize` | 调整侧栏宽度时持续触发 | `(detail: LayoutAsideResizeDetail)` |
+| `aside-resize-end` | 结束调整侧栏宽度 | `(detail: LayoutAsideResizeDetail)` |
+| `floating-drag-start` | 开始拖动浮层 | `(detail: LayoutFloatingDragDetail)` |
+| `floating-drag` | 拖动浮层时持续触发 | `(detail: LayoutFloatingDragDetail)` |
+| `floating-drag-end` | 结束拖动浮层 | `(detail: LayoutFloatingDragDetail)` |
+| `floating-resize-start` | 开始调整浮层尺寸 | `(detail: LayoutFloatingResizeDetail)` |
+| `floating-resize` | 调整浮层尺寸时持续触发 | `(detail: LayoutFloatingResizeDetail)` |
+| `floating-resize-end` | 结束调整浮层尺寸 | `(detail: LayoutFloatingResizeDetail)` |
+
+所有浮层拖拽和 resize 事件中的坐标都以 viewport 为基准。
+
+#### 侧栏 resize 事件字段
+
+| 字段 | 说明 | 类型 |
+| ---- | ---- | ---- |
+| `placement` | 当前被调整的侧栏位置 | `'left' \| 'right'` |
+| `width` | 当前侧栏宽度 | `number` |
+
+#### 浮层 drag 事件字段
+
+| 字段 | 说明 | 类型 |
+| ---- | ---- | ---- |
+| `x` | 当前距视口左侧的偏移 | `number` |
+| `y` | 当前距视口顶部的偏移 | `number` |
+
+#### 浮层 resize 事件字段
+
+| 字段 | 说明 | 类型 |
+| ---- | ---- | ---- |
+| `handle` | 当前 resize 方向 | `'n' \| 's' \| 'e' \| 'w' \| 'ne' \| 'nw' \| 'se' \| 'sw'` |
+| `x` | 当前距视口左侧的偏移 | `number` |
+| `y` | 当前距视口顶部的偏移 | `number` |
+| `width` | 当前宽度 | `number` |
+| `height` | 当前高度 | `number` |
 
 <a id="layout-aside-events"></a>
 ### Layout.Aside
@@ -228,6 +252,44 @@ outline: [1, 3]
 | ------ | ---- | -------- |
 | `update:open` | 侧栏开关变化 | `(value: boolean)` |
 | `update:width` | `dock` 宽度变化 | `(value: number)` |
+
+<a id="types"></a>
+## Types
+
+<a id="layout-floating-config"></a>
+<a id="layout-floating-fields"></a>
+### 浮层字段
+
+`defaultFloating` 用于初始化，`floating` 表示运行时 rect。下面按字段职责拆开说明。
+
+<a id="layout-default-floating-config"></a>
+#### LayoutDefaultFloatingConfig
+
+| 字段 | 说明 | 类型 | 默认值 |
+| ---- | ---- | ---- | ------ |
+| `placement` | 初始停靠位置 | `'top-left' \| 'top-right' \| 'bottom-left' \| 'bottom-right' \| 'center'` | `'center'` |
+| `offset` | 非 `center` 时的初始边距 | `number` | `24` |
+
+<a id="layout-floating-rect"></a>
+#### LayoutFloatingRect
+
+| 字段 | 说明 | 类型 | 默认值 |
+| ---- | ---- | ---- | ------ |
+| `x` | 当前距视口左侧的偏移 | `number` | `-` |
+| `y` | 当前距视口顶部的偏移 | `number` | `-` |
+
+#### 共享尺寸与交互字段
+
+| 字段 | 说明 | 类型 | 默认值 |
+| ---- | ---- | ---- | ------ |
+| `width` | 宽度；在 `defaultFloating` 中表示初始值，在 `floating` 中表示当前值 | `number` | `420` |
+| `height` | 高度；在 `defaultFloating` 中表示初始值，在 `floating` 中表示当前值 | `number` | `560` |
+| `draggable` | 是否允许拖动浮层 | `boolean` | `true` |
+| `resizable` | 是否允许通过 8 个方向手柄调整尺寸 | `boolean` | `false` |
+| `minWidth` | 最小宽度 | `number` | `320` |
+| `maxWidth` | 最大宽度 | `number` | `视口宽度 - 48` |
+| `minHeight` | 最小高度 | `number` | `240` |
+| `maxHeight` | 最大高度 | `number` | `视口高度 - 48` |
 
 ## CSS 变量
 

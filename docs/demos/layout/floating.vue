@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { TrLayout } from '@opentiny/tiny-robot'
-import type { LayoutFloatingConfig } from '@opentiny/tiny-robot'
+import type { LayoutDefaultFloatingConfig } from '@opentiny/tiny-robot'
 
 const open = ref(false)
 
-const defaultFloating: LayoutFloatingConfig = {
-  x: 48,
-  y: 32,
+const defaultFloating: LayoutDefaultFloatingConfig = {
+  placement: 'top-right',
+  offset: 24,
   width: 520,
   height: 360,
   draggable: true,
@@ -23,7 +23,7 @@ const defaultFloating: LayoutFloatingConfig = {
       {{ open ? '关闭浮层' : '打开浮层' }}
     </button>
 
-    <p class="layout-floating-demo__tip">打开后可直接拖动顶部横条，或拖动左右边缘调整宽度。</p>
+    <p class="layout-floating-demo__tip">打开后可直接拖动顶部横条，或拖动 8 个方向手柄调整尺寸。</p>
 
     <TrLayout v-if="open" class="layout-floating-demo__layout" mode="floating" :default-floating="defaultFloating">
       <template #header>
@@ -36,7 +36,9 @@ const defaultFloating: LayoutFloatingConfig = {
       <template #main>
         <div class="layout-floating-demo__main">
           <h3>初始值写法</h3>
-          <p>这个示例只传 `defaultFloating`，后续位置和宽度由组件自己维护。</p>
+          <p>
+            这个示例只传 `defaultFloating`，首次挂载时按 `placement + offset` 初始化，后续位置和尺寸由组件自己维护。
+          </p>
         </div>
       </template>
     </TrLayout>
