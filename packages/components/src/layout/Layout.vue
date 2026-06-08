@@ -173,7 +173,9 @@ const toAriaHidden = (hidden: boolean) => (hidden ? 'true' : undefined)
               :dragging-placement="draggingPlacement"
               @pointerdown="leftHandleProps.onPointerdown"
             />
-            <slot name="left-aside" />
+            <div class="tr-layout__aside-clip" data-part="aside-clip">
+              <slot name="left-aside" />
+            </div>
           </div>
 
           <div
@@ -224,7 +226,9 @@ const toAriaHidden = (hidden: boolean) => (hidden ? 'true' : undefined)
               :dragging-placement="draggingPlacement"
               @pointerdown="rightHandleProps.onPointerdown"
             />
-            <slot name="right-aside" />
+            <div class="tr-layout__aside-clip" data-part="aside-clip">
+              <slot name="right-aside" />
+            </div>
           </div>
 
           <button
@@ -250,6 +254,7 @@ const toAriaHidden = (hidden: boolean) => (hidden ? 'true' : undefined)
 
 .tr-layout-surface {
   position: relative;
+  box-sizing: border-box;
   width: 100%;
   min-height: 0;
   height: var(--tr-layout-height, 100vh);
@@ -524,7 +529,7 @@ const toAriaHidden = (hidden: boolean) => (hidden ? 'true' : undefined)
 
   &__aside {
     position: relative;
-    overflow: hidden;
+    overflow: visible;
 
     &--left {
       grid-area: left;
@@ -546,10 +551,9 @@ const toAriaHidden = (hidden: boolean) => (hidden ? 'true' : undefined)
     &--dock {
       position: relative;
       z-index: 1;
-      overflow: hidden;
 
       &.tr-layout__aside--rail {
-        overflow: hidden;
+        overflow: visible;
       }
     }
 
@@ -585,6 +589,13 @@ const toAriaHidden = (hidden: boolean) => (hidden ? 'true' : undefined)
         transform: translateX(0);
       }
     }
+  }
+
+  &__aside-clip {
+    min-width: 0;
+    min-height: 0;
+    height: 100%;
+    overflow: hidden;
   }
 }
 </style>

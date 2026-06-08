@@ -45,34 +45,26 @@ outline: [1, 3]
 
 `Layout.Aside` 支持两种展示方式：
 
-- `dock`：侧栏占据布局空间，适合桌面端常驻侧栏
-- `drawer`：侧栏覆盖在主区上方，适合移动端或临时面板
+- `dock`：占位侧栏，会参与布局宽度分配，适合桌面端常驻侧栏
+- `drawer`：覆盖侧栏，不参与布局宽度分配，适合移动端或临时面板
+
+:::info `dock` 和 `drawer` 怎么选
+- 需要常驻导航、工具栏、信息栏时，用 `dock`
+- 需要临时展开的面板，不希望挤压主区时，用 `drawer`
+:::
 
 当侧栏使用 `dock` 时，还可以通过 `collapsedWidth` 控制收起后的窄栏宽度：
 
 - `collapsedWidth > 0`：收起后保留一条窄栏
 - `collapsedWidth = 0`：收起后完全隐藏
 
+:::tip `collapsedWidth` 的作用
+它只在 `dock` 模式下生效，用来控制“收起后是否还保留一条可点击的窄栏”。
+:::
+
 抽屉侧栏的宽度不通过 `width` 控制，而是通过 `--tr-layout-drawer-width` 设置。
 
-```vue
-<TrLayout.Aside
-  placement="right"
-  mode="drawer"
-  v-model:open="rightOpen"
-  class="inspector-drawer"
->
-  ...
-</TrLayout.Aside>
-
-<style scoped>
-.inspector-drawer {
-  --tr-layout-drawer-width: min(88vw, 360px);
-}
-</style>
-```
-
-<demo vue="../../demos/layout/aside-modes.vue" title="侧栏形态" description="左侧 rail，右侧 drawer。" />
+<demo vue="../../demos/layout/aside-modes.vue" title="侧栏形态" description="左侧保留窄栏，右侧覆盖抽屉。" />
 
 配置详见：[Layout.Aside Props](#layout-aside-props)、[Layout.AsideToggle Props](#layout-aside-toggle-props)、[Layout.Aside Events](#layout-aside-events)、[CSS 变量](#layout-css-content)
 
@@ -87,6 +79,13 @@ outline: [1, 3]
 ## 主区滚动
 
 `Layout.Main` 用来接管主区滚动条，但它不制造滚动。真正发生滚动的仍然是你传入的 `scrollHost`。
+
+:::tip `scrollHost` 怎么理解
+把 `scrollHost` 当成“真正出现滚动条的那个元素”。
+
+- 如果你自己写的是 `div`，就把 `div` 的 `ref` 传进来
+- 如果你传的是组件 `ref`，这个组件的根元素需要就是滚动容器
+:::
 
 下面分别展示 `BubbleList` 和普通 `div` 作为滚动容器时的写法。
 
@@ -115,9 +114,20 @@ outline: [1, 3]
 
 浮层模式适合临时工作区、对话框式页面或可移动面板。
 
+:::warning 生效前提
+`defaultFloating` 和 `floating` 只有在 `mode="floating"` 时才生效。
+
+只传 `defaultFloating` 或 `floating`，不会自动切到浮层模式。
+:::
+
 如果只需要设置默认位置和尺寸，使用 `defaultFloating`。它只在首次挂载时读取一次，按 `placement + offset + size` 解析出第一份浮层 rect。初始化完成后，窗口不会继续按 placement 自动贴边，只会在视口变化时做 clamp。
 
 如果需要在外部持续同步运行时位置和尺寸，使用 `floating` 并监听 `update:floating`。`floating` 表示完整 runtime rect，适合受控场景。
+
+:::info 受控与非受控的区别
+- `defaultFloating` 只负责初始化第一份位置和尺寸
+- `floating` 表示当前运行时 rect；如果你使用受控写法，需要在 `update:floating` 后自行回写
+:::
 
 <demo vue="../../demos/layout/floating.vue" title="浮层模式" description="只传初始值的浮层示例。" />
 
@@ -127,6 +137,10 @@ outline: [1, 3]
 
 <a id="layout-props"></a>
 ### Layout
+
+:::info 浮层属性的生效条件
+`defaultFloating` 和 `floating` 只在 `mode="floating"` 时生效。
+:::
 
 | 属性名 | 说明 | 类型 | 默认值 |
 | ------ | ---- | ---- | ------ |
@@ -155,6 +169,12 @@ outline: [1, 3]
 
 #### `dock` 专属字段
 
+:::info 字段适用范围
+`width`、`defaultWidth`、`collapsedWidth`、`minWidth`、`maxWidth`、`resizable`、`collapseEffect` 只在 `dock` 模式下生效。
+
+`drawer` 模式下的宽度通过 `--tr-layout-drawer-width` 控制。
+:::
+
 | 属性名 | 说明 | 类型 | 默认值 |
 | ------ | ---- | ---- | ------ |
 | `width` | 外部控制的侧栏宽度 | `number` | `-` |
@@ -163,12 +183,14 @@ outline: [1, 3]
 | `minWidth` | 最小宽度 | `number` | `left: 200` / `right: 240` |
 | `maxWidth` | 最大宽度 | `number` | `left: 560` / `right: 640` |
 | `resizable` | 是否允许拖动改宽 | `boolean` | `false` |
-| `collapseEffect` | 收起时的动画效果 | `'overlay' \| 'slide'` | `'overlay'` |
-
-`drawer` 模式下的宽度通过 `--tr-layout-drawer-width` 控制。
+| `collapseEffect` | 收起时的动画效果；`overlay` 保留原位覆盖收起，`slide` 连同内容一起滑出 | `'overlay' \| 'slide'` | `'overlay'` |
 
 <a id="layout-aside-toggle-props"></a>
 ### Layout.AsideToggle
+
+:::info 作用范围
+`Layout.AsideToggle` 只会控制同一个 `Layout` 上下文里、`placement` 相同的那个侧栏。
+:::
 
 | 属性名 | 说明 | 类型 | 默认值 |
 | ------ | ---- | ---- | ------ |
@@ -262,6 +284,14 @@ outline: [1, 3]
 
 `defaultFloating` 用于初始化，`floating` 表示运行时 rect。下面按字段职责拆开说明。
 
+:::info 阅读方式
+下面 3 张表是同一套浮层配置的拆分视图：
+
+- `LayoutDefaultFloatingConfig` 只列初始化专属字段
+- `LayoutFloatingRect` 只列运行时 rect 专属字段
+- “共享尺寸与交互字段”同时适用于两者
+:::
+
 <a id="layout-default-floating-config"></a>
 #### LayoutDefaultFloatingConfig
 
@@ -275,8 +305,8 @@ outline: [1, 3]
 
 | 字段 | 说明 | 类型 | 默认值 |
 | ---- | ---- | ---- | ------ |
-| `x` | 当前距视口左侧的偏移 | `number` | `-` |
-| `y` | 当前距视口顶部的偏移 | `number` | `-` |
+| `x` | 当前距视口左侧的偏移，基于 viewport 坐标系 | `number` | `-` |
+| `y` | 当前距视口顶部的偏移，基于 viewport 坐标系 | `number` | `-` |
 
 #### 共享尺寸与交互字段
 

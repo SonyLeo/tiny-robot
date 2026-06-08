@@ -33,22 +33,20 @@ const sections = Array.from({ length: 12 }, (_, index) => ({
 }
 
 .layout-main-scroll-div__host {
+  display: grid;
+  gap: 12px;
   width: 100%;
   height: 100%;
   overflow: auto;
   box-sizing: border-box;
-  padding: 20px;
+  padding: 16px;
 }
 
 .layout-main-scroll-div__card {
-  padding: 16px 18px;
+  padding: 16px;
   border: 1px solid var(--vp-c-divider, var(--tr-border-color, #dcdfe6));
-  border-radius: 16px;
+  border-radius: 12px;
   background: var(--vp-c-bg, #ffffff);
-}
-
-.layout-main-scroll-div__card + .layout-main-scroll-div__card {
-  margin-top: 12px;
 }
 
 .layout-main-scroll-div__card p {

@@ -32,12 +32,11 @@ import { TrLayout } from '@opentiny/tiny-robot'
   --tr-layout-inner-padding-inline: 0;
   --tr-layout-inner-padding-block: 0;
   --tr-layout-main-min-width: 0;
-  --tr-layout-left-bg: color-mix(in srgb, var(--vp-c-bg-soft, #f5f7fa) 90%, #ffffff);
+  --tr-layout-left-bg: var(--vp-c-bg-alt, #f8fafc);
   height: 400px;
   overflow: hidden;
   border: 1px solid var(--vp-c-divider, var(--tr-border-color, #dcdfe6));
-  border-radius: 18px;
-  background: var(--vp-c-bg-soft, var(--tr-container-bg-secondary, #f5f7fa));
+  border-radius: 16px;
   color: var(--vp-c-text-1, var(--tr-text-primary, #1f2329));
 }
 

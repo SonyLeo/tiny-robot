@@ -31,7 +31,7 @@ export interface FloatingSnapshot {
 
 export const DEFAULT_FLOATING_WIDTH = 420
 export const DEFAULT_FLOATING_HEIGHT = 560
-export const DEFAULT_FLOATING_GAP = 24
+export const DEFAULT_FLOATING_GAP = 0
 export const DEFAULT_FLOATING_TOP = DEFAULT_FLOATING_GAP
 export const DEFAULT_FLOATING_OFFSET = 24
 export const DEFAULT_MIN_FLOATING_WIDTH = 320

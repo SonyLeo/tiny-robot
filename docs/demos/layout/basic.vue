@@ -39,22 +39,20 @@ import { TrLayout } from '@opentiny/tiny-robot'
   --tr-layout-inner-padding-inline: 0;
   --tr-layout-inner-padding-block: 0;
   --tr-layout-main-min-width: 0;
-  --tr-layout-header-bg: color-mix(in srgb, var(--tr-color-primary, #1476ff) 8%, #ffffff);
-  --tr-layout-main-bg: var(--vp-c-bg, var(--tr-container-bg-default, #ffffff));
-  --tr-layout-footer-bg: color-mix(in srgb, var(--tr-color-primary, #1476ff) 8%, #ffffff);
-  --tr-layout-left-bg: color-mix(in srgb, var(--vp-c-bg-soft, #f5f7fa) 92%, #eef3ff);
-  --tr-layout-right-bg: color-mix(in srgb, var(--vp-c-bg-soft, #f5f7fa) 92%, #eef3ff);
+  --tr-layout-header-bg: var(--vp-c-bg-soft, #f6f8fa);
+  --tr-layout-main-bg: var(--vp-c-bg, #ffffff);
+  --tr-layout-footer-bg: var(--vp-c-bg-soft, #f6f8fa);
+  --tr-layout-left-bg: var(--vp-c-bg-alt, #f8fafc);
+  --tr-layout-right-bg: var(--vp-c-bg-alt, #f8fafc);
   height: 400px;
   overflow: hidden;
   border: 1px solid var(--vp-c-divider, var(--tr-border-color, #dcdfe6));
-  border-radius: 18px;
-  color: var(--vp-c-text-1, var(--tr-text-primary, #1f2329));
-  font-weight: 600;
+  border-radius: 16px;
 }
 
 .layout-basic-demo__header,
 .layout-basic-demo__footer {
-  padding: 16px 20px;
+  padding: 12px 16px;
   text-align: center;
 }
 

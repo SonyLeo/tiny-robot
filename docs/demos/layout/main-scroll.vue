@@ -47,23 +47,24 @@ const currentExample = computed(() => (activeExample.value === 'bubble' ? MainSc
 }
 
 .layout-main-scroll-demo__switcher {
-  display: inline-flex;
+  display: flex;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
 .layout-main-scroll-demo__switch {
   height: 34px;
-  padding: 0 14px;
+  padding: 0 12px;
   border: 1px solid var(--vp-c-divider, var(--tr-border-color, #dcdfe6));
-  border-radius: 999px;
+  border-radius: 8px;
   background: var(--vp-c-bg, #ffffff);
   color: var(--vp-c-text-2, var(--tr-text-secondary, #4e5969));
+  cursor: pointer;
 }
 
 .layout-main-scroll-demo__switch.is-active {
   border-color: var(--vp-c-brand-1, var(--tr-color-primary, #5e7ce0));
   color: var(--vp-c-brand-1, var(--tr-color-primary, #5e7ce0));
-  background: color-mix(in srgb, var(--vp-c-brand-1, var(--tr-color-primary, #5e7ce0)) 10%, white);
 }
 
 .layout-main-scroll-demo__tip {
