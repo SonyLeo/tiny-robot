@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { TrLayout } from '@opentiny/tiny-robot'
-import type { LayoutDefaultFloatingConfig, LayoutFloatingRect } from '@opentiny/tiny-robot'
+import type { LayoutFloating } from '@opentiny/tiny-robot'
 
-const blockedFloating = ref<LayoutFloatingRect>({
-  x: 64,
-  y: 96,
+const blockedFloating = ref<LayoutFloating>({
+  placement: 'top-left',
+  offsetX: 64,
+  offsetY: 96,
   width: 420,
   height: 300,
   draggable: true,
@@ -15,12 +16,15 @@ const blockedFloating = ref<LayoutFloatingRect>({
 })
 
 const blockedFloatingUpdates = ref(0)
+const blockedFloatingLastPlacement = ref('')
+const blockedFloatingLastOffsetX = ref(-1)
+const blockedFloatingLastOffsetY = ref(-1)
 const blockedFloatingLastWidth = ref(420)
-const blockedFloatingLastX = ref(64)
 
-const uncontrolledDefaultFloating = ref<LayoutDefaultFloatingConfig>({
+const uncontrolledDefaultFloating = ref<LayoutFloating>({
   placement: 'top-right',
-  offset: 24,
+  offsetX: 24,
+  offsetY: 32,
   width: 420,
   height: 300,
   draggable: true,
@@ -30,50 +34,101 @@ const uncontrolledDefaultFloating = ref<LayoutDefaultFloatingConfig>({
 })
 
 const uncontrolledFloatingUpdates = ref(0)
+const uncontrolledFloatingLastPlacement = ref('')
+const uncontrolledFloatingLastOffsetX = ref(-1)
+const uncontrolledFloatingLastOffsetY = ref(-1)
 const uncontrolledFloatingLastWidth = ref(420)
-const uncontrolledFloatingLastX = ref(0)
 const showPlacementFixtures = ref(false)
 
-const placementDefaults: Array<{ marker: string; config: LayoutDefaultFloatingConfig }> = [
+const placementDefaults: Array<{ marker: string; config: LayoutFloating }> = [
   {
     marker: 'placement-top-left',
-    config: { placement: 'top-left', offset: 16, width: 320, height: 220, draggable: false, resizable: false },
+    config: {
+      placement: 'top-left',
+      offsetX: 16,
+      offsetY: 16,
+      width: 320,
+      height: 220,
+      draggable: false,
+      resizable: false,
+    },
   },
   {
     marker: 'placement-top-right',
-    config: { placement: 'top-right', offset: 20, width: 340, height: 230, draggable: false, resizable: false },
+    config: {
+      placement: 'top-right',
+      offsetX: 20,
+      offsetY: 36,
+      width: 340,
+      height: 230,
+      draggable: false,
+      resizable: false,
+    },
   },
   {
     marker: 'placement-bottom-left',
-    config: { placement: 'bottom-left', offset: 28, width: 300, height: 210, draggable: false, resizable: false },
+    config: {
+      placement: 'bottom-left',
+      offsetX: 28,
+      offsetY: 44,
+      width: 300,
+      height: 210,
+      draggable: false,
+      resizable: false,
+    },
   },
   {
     marker: 'placement-bottom-right',
-    config: { placement: 'bottom-right', offset: 32, width: 280, height: 200, draggable: false, resizable: false },
+    config: {
+      placement: 'bottom-right',
+      offsetX: 32,
+      offsetY: 32,
+      width: 280,
+      height: 200,
+      draggable: false,
+      resizable: false,
+    },
   },
   {
     marker: 'placement-center',
-    config: { placement: 'center', offset: 96, width: 360, height: 240, draggable: false, resizable: false },
+    config: {
+      placement: 'center',
+      offsetX: 96,
+      offsetY: 96,
+      width: 360,
+      height: 240,
+      draggable: false,
+      resizable: false,
+    },
   },
 ]
 
-function handleBlockedFloating(next: LayoutFloatingRect) {
+function handleBlockedFloating(next: LayoutFloating) {
   blockedFloatingUpdates.value += 1
-  blockedFloatingLastWidth.value = next.width
-  blockedFloatingLastX.value = next.x
+  blockedFloatingLastPlacement.value = next.placement ?? ''
+  blockedFloatingLastOffsetX.value = next.offsetX ?? -1
+  blockedFloatingLastOffsetY.value = next.offsetY ?? -1
+  if (next.width !== undefined) {
+    blockedFloatingLastWidth.value = next.width
+  }
 }
 
-function handleUncontrolledFloating(next: LayoutFloatingRect) {
+function handleUncontrolledFloating(next: LayoutFloating) {
   uncontrolledFloatingUpdates.value += 1
-  uncontrolledFloatingLastWidth.value = next.width
-  uncontrolledFloatingLastX.value = next.x
+  uncontrolledFloatingLastPlacement.value = next.placement ?? ''
+  uncontrolledFloatingLastOffsetX.value = next.offsetX ?? -1
+  uncontrolledFloatingLastOffsetY.value = next.offsetY ?? -1
+  if (next.width !== undefined) {
+    uncontrolledFloatingLastWidth.value = next.width
+  }
 }
 
 function updateUncontrolledDefaultFloating() {
   uncontrolledDefaultFloating.value = {
     ...uncontrolledDefaultFloating.value,
     placement: 'bottom-left',
-    offset: 40,
+    offsetX: 40,
+    offsetY: 48,
     width: 360,
   }
 }
@@ -87,11 +142,15 @@ function openPlacementFixtures() {
   <div class="floating-state-fixtures">
     <div class="floating-state-fixtures__metrics">
       <div data-testid="blocked-floating-updates">{{ blockedFloatingUpdates }}</div>
+      <div data-testid="blocked-floating-last-placement">{{ blockedFloatingLastPlacement }}</div>
+      <div data-testid="blocked-floating-last-offset-x">{{ blockedFloatingLastOffsetX }}</div>
+      <div data-testid="blocked-floating-last-offset-y">{{ blockedFloatingLastOffsetY }}</div>
       <div data-testid="blocked-floating-last-width">{{ blockedFloatingLastWidth }}</div>
-      <div data-testid="blocked-floating-last-x">{{ blockedFloatingLastX }}</div>
       <div data-testid="uncontrolled-floating-updates">{{ uncontrolledFloatingUpdates }}</div>
+      <div data-testid="uncontrolled-floating-last-placement">{{ uncontrolledFloatingLastPlacement }}</div>
+      <div data-testid="uncontrolled-floating-last-offset-x">{{ uncontrolledFloatingLastOffsetX }}</div>
+      <div data-testid="uncontrolled-floating-last-offset-y">{{ uncontrolledFloatingLastOffsetY }}</div>
       <div data-testid="uncontrolled-floating-last-width">{{ uncontrolledFloatingLastWidth }}</div>
-      <div data-testid="uncontrolled-floating-last-x">{{ uncontrolledFloatingLastX }}</div>
     </div>
 
     <button

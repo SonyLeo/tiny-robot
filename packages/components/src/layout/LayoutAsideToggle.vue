@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useLayoutAside } from './composables/useLayoutAside'
-import type { LayoutAsideToggleProps } from './index.type'
+import { useLayoutPanel } from './composables/useLayoutPanel'
+import type { LayoutAsideToggleProps } from './internal.type'
 
 defineOptions({
   name: 'LayoutAsideToggle',
@@ -9,7 +9,7 @@ defineOptions({
 
 const props = defineProps<LayoutAsideToggleProps>()
 
-const { isOpen, toggle } = useLayoutAside(() => props.placement)
+const { isOpen, toggle } = useLayoutPanel(() => props.placement)
 
 const slotProps = computed(() => ({
   isOpen: isOpen.value,

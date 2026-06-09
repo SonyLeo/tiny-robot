@@ -1,17 +1,19 @@
 import { useEventListener } from '@vueuse/core'
-import { computed, onBeforeUnmount, shallowRef, type Ref } from 'vue'
+import { computed, onBeforeUnmount, shallowRef, toValue, type MaybeRefOrGetter, type Ref } from 'vue'
 import type { LayoutAsideResizeEventDetail, LayoutPlacement } from '../index.type'
 import type { LayoutPanelApi } from '../internal.type'
 import { resolveCssLengthToPx } from '../utils/cssLength'
 import { lockBodyInteraction, restoreBodyInteraction, type BodyInteractionState } from '../utils/domInteraction'
 import { clamp } from '../utils/math'
 
-interface UseLayoutAsideResizeOptions {
+interface UseLayoutAsideInteractionsOptions {
   rootRef: Ref<HTMLElement | null>
   leftAsideRef: Ref<HTMLElement | null>
   rightAsideRef: Ref<HTMLElement | null>
   left: LayoutPanelApi
   right: LayoutPanelApi
+  isDrawerVisible: MaybeRefOrGetter<boolean>
+  closeDrawers: () => void
   onResizeStart?: (detail: LayoutAsideResizeEventDetail) => void
   onResize?: (detail: LayoutAsideResizeEventDetail) => void
   onResizeEnd?: (detail: LayoutAsideResizeEventDetail) => void
@@ -40,11 +42,12 @@ function getDockedAsideWidth(panel: LayoutPanelApi, asideEl: HTMLElement | null 
   return asideEl.getBoundingClientRect().width
 }
 
-export function useLayoutAsideResize(options: UseLayoutAsideResizeOptions) {
+export function useLayoutAsideInteractions(options: UseLayoutAsideInteractionsOptions) {
   const activeResize = shallowRef<ResizeState | null>(null)
   const isResizing = computed(() => activeResize.value !== null)
   const draggingPlacement = computed(() => activeResize.value?.placement ?? null)
   const pointerTarget = typeof window === 'undefined' ? undefined : window
+  const keyboardTarget = typeof window === 'undefined' ? undefined : window
 
   function scheduleWidth(nextWidth: number): void {
     const state = activeResize.value
@@ -182,6 +185,14 @@ export function useLayoutAsideResize(options: UseLayoutAsideResizeOptions) {
 
   useEventListener(pointerTarget, 'pointercancel', (event: PointerEvent) => {
     stopResize(event.pointerId)
+  })
+
+  useEventListener(keyboardTarget, 'keydown', (event: KeyboardEvent) => {
+    if (event.defaultPrevented || event.key !== 'Escape' || !toValue(options.isDrawerVisible)) {
+      return
+    }
+
+    options.closeDrawers()
   })
 
   onBeforeUnmount(() => {

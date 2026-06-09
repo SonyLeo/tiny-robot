@@ -1,10 +1,5 @@
-import type {
-  LayoutDefaultFloatingConfig,
-  LayoutFloatingBase,
-  LayoutFloatingPlacement,
-  LayoutFloatingRect,
-  LayoutFloatingResizeHandle,
-} from '../index.type'
+import type { LayoutFloating, LayoutFloatingPlacement, LayoutFloatingResizeHandle } from '../index.type'
+import type { LayoutDefaultFloatingConfig, LayoutFloatingBase, LayoutFloatingRect } from '../internal.type'
 import { clamp } from './math'
 
 export interface FloatingBounds {
@@ -22,6 +17,7 @@ export interface FloatingConstraints {
 }
 
 export interface FloatingSnapshot {
+  placement: LayoutFloatingPlacement
   rect: LayoutFloatingRect
   bounds: FloatingBounds
   constraints: FloatingConstraints
@@ -44,8 +40,17 @@ interface ViewportSize {
   height: number
 }
 
+interface ResolvedFloatingOffset {
+  x: number
+  y: number
+}
+
+function resolveFloatingPlacement(config: Pick<LayoutFloating, 'placement'> | undefined): LayoutFloatingPlacement {
+  return config?.placement ?? 'center'
+}
+
 function isFloatingRect(value: LayoutFloatingRect | LayoutDefaultFloatingConfig): value is LayoutFloatingRect {
-  return typeof value.x === 'number' && typeof value.y === 'number'
+  return value !== undefined && 'x' in value && 'y' in value
 }
 
 function resolveViewportSize(): ViewportSize {
@@ -76,28 +81,28 @@ function getPlacementPosition(
   bounds: FloatingBounds,
   width: number,
   height: number,
-  offset: number,
+  offset: ResolvedFloatingOffset,
 ) {
   switch (placement) {
     case 'top-left':
       return {
-        x: bounds.left + offset,
-        y: bounds.top + offset,
+        x: bounds.left + offset.x,
+        y: bounds.top + offset.y,
       }
     case 'top-right':
       return {
-        x: bounds.right - width - offset,
-        y: bounds.top + offset,
+        x: bounds.right - width - offset.x,
+        y: bounds.top + offset.y,
       }
     case 'bottom-left':
       return {
-        x: bounds.left + offset,
-        y: bounds.bottom - height - offset,
+        x: bounds.left + offset.x,
+        y: bounds.bottom - height - offset.y,
       }
     case 'bottom-right':
       return {
-        x: bounds.right - width - offset,
-        y: bounds.bottom - height - offset,
+        x: bounds.right - width - offset.x,
+        y: bounds.bottom - height - offset.y,
       }
     case 'center':
     default:
@@ -106,6 +111,56 @@ function getPlacementPosition(
         y: (bounds.top + bounds.bottom - height) / 2,
       }
   }
+}
+
+function resolveFloatingOffset(config: LayoutDefaultFloatingConfig | undefined): ResolvedFloatingOffset {
+  return {
+    x: config?.offsetX ?? DEFAULT_FLOATING_OFFSET,
+    y: config?.offsetY ?? DEFAULT_FLOATING_OFFSET,
+  }
+}
+
+function resolveFloatingOffsetFromRect(
+  rect: LayoutFloatingRect,
+  bounds: FloatingBounds,
+  placement: LayoutFloatingPlacement,
+): ResolvedFloatingOffset | null {
+  switch (placement) {
+    case 'top-left':
+      return {
+        x: rect.x - bounds.left,
+        y: rect.y - bounds.top,
+      }
+    case 'top-right':
+      return {
+        x: bounds.right - rect.width - rect.x,
+        y: rect.y - bounds.top,
+      }
+    case 'bottom-left':
+      return {
+        x: rect.x - bounds.left,
+        y: bounds.bottom - rect.height - rect.y,
+      }
+    case 'bottom-right':
+      return {
+        x: bounds.right - rect.width - rect.x,
+        y: bounds.bottom - rect.height - rect.y,
+      }
+    case 'center':
+    default:
+      return null
+  }
+}
+
+function resolveNearestCornerPlacement(rect: LayoutFloatingRect, bounds: FloatingBounds): LayoutFloatingPlacement {
+  const centerX = rect.x + rect.width / 2
+  const centerY = rect.y + rect.height / 2
+  const viewportCenterX = (bounds.left + bounds.right) / 2
+  const viewportCenterY = (bounds.top + bounds.bottom) / 2
+  const horizontal = centerX <= viewportCenterX ? 'left' : 'right'
+  const vertical = centerY <= viewportCenterY ? 'top' : 'bottom'
+
+  return `${vertical}-${horizontal}` as Exclude<LayoutFloatingPlacement, 'center'>
 }
 
 export function resolveViewportBounds(gap = DEFAULT_FLOATING_GAP, topGap = DEFAULT_FLOATING_TOP): FloatingBounds {
@@ -230,8 +285,8 @@ export function resolveDefaultFloatingRect(
   const constraints = resolveFloatingConstraints(config)
   const width = clamp(config?.width ?? DEFAULT_FLOATING_WIDTH, constraints.minWidth, constraints.maxWidth)
   const height = clamp(config?.height ?? DEFAULT_FLOATING_HEIGHT, constraints.minHeight, constraints.maxHeight)
-  const placement = config?.placement ?? 'center'
-  const offset = config?.offset ?? DEFAULT_FLOATING_OFFSET
+  const placement = resolveFloatingPlacement(config)
+  const offset = resolveFloatingOffset(config)
   const position = getPlacementPosition(placement, bounds, width, height, offset)
 
   return clampFloatingRect(
@@ -282,6 +337,7 @@ export function normalizeFloatingRect(
 
 export function resolveFloatingSnapshot(
   config: LayoutFloatingRect | LayoutDefaultFloatingConfig | undefined,
+  source?: Pick<LayoutFloating, 'placement'>,
 ): FloatingSnapshot {
   const bounds = resolveViewportBounds()
   const rect = normalizeFloatingRect(config)
@@ -289,6 +345,7 @@ export function resolveFloatingSnapshot(
   const normalizedRect = clampFloatingRect(rect, constraints, bounds)
 
   return {
+    placement: config && isFloatingRect(config) ? resolveFloatingPlacement(source) : resolveFloatingPlacement(config),
     rect: normalizedRect,
     bounds,
     constraints,
@@ -297,8 +354,30 @@ export function resolveFloatingSnapshot(
   }
 }
 
-export function toCommittedFloatingConfig(snapshot: FloatingSnapshot): LayoutFloatingRect {
-  return snapshot.rect
+export function toCommittedFloatingConfig(
+  snapshot: FloatingSnapshot,
+  source?: Partial<LayoutFloating>,
+): LayoutFloating {
+  const placement =
+    source?.placement === undefined
+      ? 'center'
+      : source.placement === 'center'
+        ? resolveNearestCornerPlacement(snapshot.rect, snapshot.bounds)
+        : source.placement
+  const offset = resolveFloatingOffsetFromRect(snapshot.rect, snapshot.bounds, placement)
+
+  return {
+    placement,
+    ...(offset ? { offsetX: offset.x, offsetY: offset.y } : {}),
+    width: snapshot.rect.width,
+    height: snapshot.rect.height,
+    ...(source?.draggable !== undefined ? { draggable: source.draggable } : {}),
+    ...(source?.resizable !== undefined ? { resizable: source.resizable } : {}),
+    ...(source?.minWidth !== undefined ? { minWidth: source.minWidth } : {}),
+    ...(source?.maxWidth !== undefined ? { maxWidth: source.maxWidth } : {}),
+    ...(source?.minHeight !== undefined ? { minHeight: source.minHeight } : {}),
+    ...(source?.maxHeight !== undefined ? { maxHeight: source.maxHeight } : {}),
+  }
 }
 
 export function areFloatingGeometryEqual(

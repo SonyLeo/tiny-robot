@@ -1,102 +1,19 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, useAttrs } from 'vue'
-import { useControllableState } from './composables/useControllableState'
-import { useLayout } from './composables/useLayout'
-import { usePropPresence } from './composables/usePropPresence'
-import type { LayoutAsideEmits, LayoutAsideRuntimeProps } from './index.type'
-import { clamp } from './utils/math'
+import { computed, useAttrs } from 'vue'
+import { useLayoutPanel } from './composables/useLayoutPanel'
+import type { LayoutAsideInternalProps } from './internal.type'
 
 defineOptions({
   name: 'LayoutAside',
   inheritAttrs: false,
 })
 
-const props = defineProps<LayoutAsideRuntimeProps>()
-const emit = defineEmits<LayoutAsideEmits>()
+const props = defineProps<LayoutAsideInternalProps>()
 const attrs = useAttrs()
-const layoutStore = useLayout()
-const hasProp = usePropPresence()
-
-const defaultOpenByPlacement = {
-  left: true,
-  right: false,
-} as const
-
-const openProvided = hasProp('open')
-const defaultOpenProvided = hasProp('defaultOpen')
-const widthProvided = hasProp('width')
-const defaultWidthProvided = hasProp('defaultWidth')
-
-const openState = useControllableState<boolean>({
-  value: () => (openProvided ? props.open : undefined),
-  defaultValue: () => (defaultOpenProvided ? props.defaultOpen : defaultOpenByPlacement[props.placement]),
-  isControlled: openProvided,
-  onChange: (nextOpen) => emit('update:open', nextOpen),
-})
-
-const widthState = useControllableState<number>({
-  value: () => (widthProvided ? props.width : undefined),
-  defaultValue: () => (defaultWidthProvided ? props.defaultWidth : undefined),
-  isControlled: widthProvided,
-  onChange: (nextWidth) => emit('update:width', nextWidth),
-})
-
-const resolvedOpen = computed(() => openState.resolvedState.value ?? defaultOpenByPlacement[props.placement])
-const layoutMode = computed(() => props.mode ?? 'dock')
-const collapsedWidth = computed(() => props.collapsedWidth)
-const minWidth = computed(() => props.minWidth ?? (props.placement === 'left' ? 200 : 240))
-const maxWidth = computed(() => props.maxWidth ?? (props.placement === 'left' ? 560 : 640))
-const resizable = computed(() => props.resizable ?? false)
-const isDock = computed(() => layoutMode.value === 'dock')
-const isDrawer = computed(() => layoutMode.value === 'drawer')
-const isRail = computed(() => isDock.value && !resolvedOpen.value && (collapsedWidth.value ?? 0) > 0)
-const isHidden = computed(() => !resolvedOpen.value && (isDrawer.value || !isRail.value))
-const resolvedWidth = computed(() => {
-  const nextWidth = widthState.resolvedState.value
-
-  if (nextWidth === undefined || !Number.isFinite(nextWidth)) {
-    return undefined
-  }
-
-  return clamp(nextWidth, minWidth.value, maxWidth.value)
-})
-
-function commitOpen(nextOpen: boolean): void {
-  if (resolvedOpen.value === nextOpen) {
-    return
-  }
-
-  openState.commit(nextOpen)
-}
-
-function commitWidth(nextWidth: number): void {
-  const clampedWidth = clamp(nextWidth, minWidth.value, maxWidth.value)
-  if (resolvedWidth.value === clampedWidth) {
-    return
-  }
-
-  widthState.commit(clampedWidth)
-}
-
-layoutStore.registerPanel({
-  placement: props.placement,
-  layoutMode,
-  isOpen: resolvedOpen,
-  width: resolvedWidth,
-  collapsedWidth,
-  minWidth,
-  maxWidth,
-  resizable,
-  commitOpen,
-  commitWidth,
-})
-
-onBeforeUnmount(() => {
-  layoutStore.unregisterPanel(props.placement)
-})
+const { isOpen, isDock, isDrawer, isRail, isHidden } = useLayoutPanel(() => props.placement)
 
 const slotProps = computed(() => ({
-  isOpen: resolvedOpen.value,
+  isOpen: isOpen.value,
 }))
 
 const collapseEffect = computed(() => props.collapseEffect ?? 'overlay')
@@ -114,7 +31,7 @@ const collapseEffect = computed(() => props.collapseEffect ?? 'overlay')
       'tr-layout-aside--right': props.placement === 'right',
       'tr-layout-aside--dock': isDock,
       'tr-layout-aside--drawer': isDrawer,
-      'tr-layout-aside--expanded': resolvedOpen,
+      'tr-layout-aside--expanded': isOpen,
       'tr-layout-aside--rail': isRail,
       'tr-layout-aside--hidden': isHidden,
       'tr-layout-aside--effect-overlay': collapseEffect === 'overlay',

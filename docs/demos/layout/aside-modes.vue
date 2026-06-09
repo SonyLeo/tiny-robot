@@ -1,15 +1,24 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { TrLayout } from '@opentiny/tiny-robot'
+import type { LayoutAsideValue } from '@opentiny/tiny-robot'
 
 const rightOpen = ref(false)
+
+function updateRightAside(next: LayoutAsideValue) {
+  rightOpen.value = next.open
+}
 </script>
 
 <template>
   <div class="layout-aside-demo">
-    <TrLayout>
+    <TrLayout
+      :left-aside="{ defaultOpen: true, defaultExpandedWidth: 156, collapsedWidth: 56 }"
+      :right-aside="{ mode: 'drawer', open: rightOpen }"
+      @update:rightAside="updateRightAside"
+    >
       <template #left-aside>
-        <TrLayout.Aside placement="left" default-open :default-width="156" :collapsed-width="56">
+        <TrLayout.Aside placement="left">
           <template #default="{ isOpen }">
             <div v-if="isOpen" class="layout-aside-demo__aside">
               <TrLayout.AsideToggle placement="left" class="layout-aside-demo__chip">收起侧栏</TrLayout.AsideToggle>
@@ -35,12 +44,7 @@ const rightOpen = ref(false)
       </template>
 
       <template #right-aside>
-        <TrLayout.Aside
-          placement="right"
-          mode="drawer"
-          v-model:open="rightOpen"
-          class="layout-aside-demo__drawer-panel"
-        >
+        <TrLayout.Aside placement="right" class="layout-aside-demo__drawer-panel">
           <div class="layout-aside-demo__drawer">
             <div>Drawer</div>
             <div>点击遮罩、按 `Esc` 或按钮关闭。</div>

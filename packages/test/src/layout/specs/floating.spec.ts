@@ -1,10 +1,10 @@
 import { expect, test, type LayoutFloatingHandle } from '../helpers'
 
 const placementCases = [
-  { marker: 'placement-top-left', xCheck: 'left', yCheck: 'top' },
-  { marker: 'placement-top-right', xCheck: 'right', yCheck: 'top' },
-  { marker: 'placement-bottom-left', xCheck: 'left', yCheck: 'bottom' },
-  { marker: 'placement-bottom-right', xCheck: 'right', yCheck: 'bottom' },
+  { marker: 'placement-top-left', xCheck: 'left', yCheck: 'top', edgeOffset: { x: 16, y: 16 } },
+  { marker: 'placement-top-right', xCheck: 'right', yCheck: 'top', edgeOffset: { x: 20, y: 36 } },
+  { marker: 'placement-bottom-left', xCheck: 'left', yCheck: 'bottom', edgeOffset: { x: 28, y: 44 } },
+  { marker: 'placement-bottom-right', xCheck: 'right', yCheck: 'bottom', edgeOffset: { x: 32, y: 32 } },
   { marker: 'placement-center', xCheck: 'center', yCheck: 'center' },
 ] as const
 
@@ -122,8 +122,10 @@ test.describe('Layout 组件测试 - Floating', () => {
 
       if (placementCase.xCheck === 'left') {
         expect(box.x).toBeLessThan(120)
+        expect(Math.abs(box.x - placementCase.edgeOffset.x)).toBeLessThanOrEqual(2)
       } else if (placementCase.xCheck === 'right') {
         expect(box.x + box.width).toBeGreaterThan(viewport.width - 120)
+        expect(Math.abs(viewport.width - box.x - box.width - placementCase.edgeOffset.x)).toBeLessThanOrEqual(2)
       } else {
         const centerX = box.x + box.width / 2
         expect(Math.abs(centerX - viewport.width / 2)).toBeLessThanOrEqual(4)
@@ -131,8 +133,10 @@ test.describe('Layout 组件测试 - Floating', () => {
 
       if (placementCase.yCheck === 'top') {
         expect(box.y).toBeLessThan(120)
+        expect(Math.abs(box.y - placementCase.edgeOffset.y)).toBeLessThanOrEqual(2)
       } else if (placementCase.yCheck === 'bottom') {
         expect(box.y + box.height).toBeGreaterThan(viewport.height - 120)
+        expect(Math.abs(viewport.height - box.y - box.height - placementCase.edgeOffset.y)).toBeLessThanOrEqual(2)
       } else {
         const centerY = box.y + box.height / 2
         expect(Math.abs(centerY - viewport.height / 2)).toBeLessThanOrEqual(4)
@@ -145,18 +149,27 @@ test.describe('Layout 组件测试 - Floating', () => {
     await layout.dragSurface(80, 40)
 
     const harness = await layout.readHarness()
+    const startLog = harness.logs.floatingDrag[0]
     const phases = harness.logs.floatingDrag.map((entry) => entry.phase)
     const progressLogs = harness.logs.floatingDrag.filter((entry) => entry.phase === 'progress')
     const endLog = harness.logs.floatingDrag.at(-1)
 
     expect(phases[0]).toBe('start')
     expect(progressLogs.length).toBeGreaterThan(0)
+    expect(startLog?.placement).toBe('top-left')
+    expect(startLog?.offsetX).toBe(96)
+    expect(startLog?.offsetY).toBe(72)
     expect(endLog?.phase).toBe('end')
+    expect(endLog?.placement).toBe('top-left')
+    expect(endLog?.offsetX).toBe(progressLogs.at(-1)?.offsetX)
+    expect(endLog?.offsetY).toBe(progressLogs.at(-1)?.offsetY)
+    expect(endLog?.width).toBe(progressLogs.at(-1)?.width)
+    expect(endLog?.height).toBe(progressLogs.at(-1)?.height)
+    expect(endLog?.offsetX ?? 0).toBeGreaterThan(startLog?.offsetX ?? 0)
+    expect(endLog?.offsetY ?? 0).toBeGreaterThan(startLog?.offsetY ?? 0)
     expect(harness.metrics.floatingDragStart).toBe(1)
     expect(harness.metrics.floatingDragEnd).toBe(1)
     expect(harness.metrics.floatingDrag).toBeGreaterThan(0)
-    expect(endLog?.x).toBe(progressLogs.at(-1)?.x)
-    expect(endLog?.y).toBe(progressLogs.at(-1)?.y)
   })
 
   test('Props: draggable - floating 拖拽应更新位置', async ({ layout }) => {
@@ -211,10 +224,12 @@ test.describe('Layout 组件测试 - Floating', () => {
       expect(harness.metrics.floatingResizeStartByHandle[resizeCase.handle]).toBeGreaterThan(0)
       expect(harness.metrics.floatingResizeEndByHandle[resizeCase.handle]).toBeGreaterThan(0)
       expect(logs[0]?.phase).toBe('start')
+      expect(logs[0]?.placement).toBe('top-left')
       expect(endLog?.phase).toBe('end')
       expect(progressLogs.length).toBeGreaterThan(0)
-      expect(endLog?.x).toBe(progressLogs.at(-1)?.x)
-      expect(endLog?.y).toBe(progressLogs.at(-1)?.y)
+      expect(endLog?.placement).toBe('top-left')
+      expect(endLog?.offsetX).toBe(progressLogs.at(-1)?.offsetX)
+      expect(endLog?.offsetY).toBe(progressLogs.at(-1)?.offsetY)
       expect(endLog?.width).toBe(progressLogs.at(-1)?.width)
       expect(endLog?.height).toBe(progressLogs.at(-1)?.height)
 
@@ -260,8 +275,14 @@ test.describe('Layout 组件测试 - Floating', () => {
       .poll(async () => Number(await layout.page.getByTestId('blocked-floating-updates').textContent()))
       .toBeGreaterThan(0)
     await expect
-      .poll(async () => Number(await layout.page.getByTestId('blocked-floating-last-x').textContent()))
+      .poll(async () => layout.page.getByTestId('blocked-floating-last-placement').textContent())
+      .toBe('top-left')
+    await expect
+      .poll(async () => Number(await layout.page.getByTestId('blocked-floating-last-offset-x').textContent()))
       .toBeGreaterThan(64)
+    await expect
+      .poll(async () => Number(await layout.page.getByTestId('blocked-floating-last-offset-y').textContent()))
+      .toBeGreaterThan(96)
 
     const afterDrag = await layout.getBox(surface)
     expect(Math.abs(afterDrag.x - before.x)).toBeLessThan(2)
@@ -271,6 +292,9 @@ test.describe('Layout 组件测试 - Floating', () => {
     await expect
       .poll(async () => Number(await layout.page.getByTestId('blocked-floating-last-width').textContent()))
       .toBeGreaterThan(420)
+    await expect
+      .poll(async () => layout.page.getByTestId('blocked-floating-last-placement').textContent())
+      .toBe('top-left')
 
     const afterResize = await layout.getBox(surface)
     expect(Math.abs(afterResize.width - before.width)).toBeLessThan(2)
@@ -295,6 +319,15 @@ test.describe('Layout 组件测试 - Floating', () => {
     await expect
       .poll(async () => Number(await layout.page.getByTestId('uncontrolled-floating-updates').textContent()))
       .toBeGreaterThan(0)
+    await expect
+      .poll(async () => layout.page.getByTestId('uncontrolled-floating-last-placement').textContent())
+      .toBe('top-right')
+    await expect
+      .poll(async () => Number(await layout.page.getByTestId('uncontrolled-floating-last-offset-x').textContent()))
+      .toBeGreaterThan(24)
+    await expect
+      .poll(async () => Number(await layout.page.getByTestId('uncontrolled-floating-last-offset-y').textContent()))
+      .toBeGreaterThan(32)
 
     const after = await layout.getBox(surface)
     expect(after.x).toBeLessThan(before.x - 40)

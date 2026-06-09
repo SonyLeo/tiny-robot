@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { TrLayout } from '@opentiny/tiny-robot'
+import type { LayoutAsideValue } from '@opentiny/tiny-robot'
 
 const baseLayoutStyle = {
   '--tr-layout-height': '100%',
@@ -15,36 +16,72 @@ const baseLayoutStyle = {
 } as const
 
 const blockedOpenEvents = ref(0)
-const blockedLastOpen = ref('none')
+const blockedLastOpen = ref('true')
 const blockedWidthEvents = ref(0)
 const blockedLastWidth = ref(260)
 
 const uncontrolledOpenEvents = ref(0)
 const uncontrolledWidthEvents = ref(0)
 const uncontrolledLastWidth = ref(290)
+const uncontrolledLastOpen = ref(true)
 const uncontrolledDefaultOpen = ref(true)
 const uncontrolledDefaultWidth = ref(290)
 
 const drawerLeftOpen = ref(false)
 const drawerRightOpen = ref(false)
 
-function handleBlockedOpen(next: boolean) {
-  blockedOpenEvents.value += 1
-  blockedLastOpen.value = String(next)
+const blockedLeftAside = {
+  mode: 'dock',
+  open: true,
+  expandedWidth: 260,
+  collapsedWidth: 48,
+  minExpandedWidth: 220,
+  maxExpandedWidth: 420,
+  resizable: true,
+} as const
+
+const uncontrolledLeftAside = computed(() => ({
+  mode: 'dock' as const,
+  defaultOpen: uncontrolledDefaultOpen.value,
+  defaultExpandedWidth: uncontrolledDefaultWidth.value,
+  collapsedWidth: 52,
+  minExpandedWidth: 240,
+  maxExpandedWidth: 340,
+  resizable: true,
+}))
+
+const drawerLeftAside = computed(() => ({
+  mode: 'drawer' as const,
+  open: drawerLeftOpen.value,
+}))
+
+const drawerRightAside = computed(() => ({
+  mode: 'drawer' as const,
+  open: drawerRightOpen.value,
+}))
+
+function handleBlockedAside(next: LayoutAsideValue) {
+  if (blockedLastOpen.value !== String(next.open)) {
+    blockedOpenEvents.value += 1
+    blockedLastOpen.value = String(next.open)
+  }
+
+  if (next.expandedWidth !== undefined && next.expandedWidth !== blockedLastWidth.value) {
+    blockedWidthEvents.value += 1
+    blockedLastWidth.value = next.expandedWidth
+  }
 }
 
-function handleBlockedWidth(next: number) {
-  blockedWidthEvents.value += 1
-  blockedLastWidth.value = next
-}
+function handleUncontrolledAside(next: LayoutAsideValue) {
+  if (next.open !== uncontrolledLastOpen.value) {
+    uncontrolledOpenEvents.value += 1
+    uncontrolledLastOpen.value = next.open
+  }
 
-function handleUncontrolledOpen() {
-  uncontrolledOpenEvents.value += 1
-}
-
-function handleUncontrolledWidth(next: number) {
-  uncontrolledWidthEvents.value += 1
-  uncontrolledLastWidth.value = next
+  if (next.expandedWidth !== undefined && next.expandedWidth !== uncontrolledLastWidth.value) {
+    uncontrolledWidthEvents.value += 1
+    uncontrolledLastWidth.value = next.expandedWidth
+  }
 }
 
 function updateUncontrolledDefaults() {
@@ -52,12 +89,12 @@ function updateUncontrolledDefaults() {
   uncontrolledDefaultWidth.value = 332
 }
 
-function updateDrawerLeftOpen(next: boolean) {
-  drawerLeftOpen.value = next
+function updateDrawerLeftAside(next: LayoutAsideValue) {
+  drawerLeftOpen.value = next.open
 }
 
-function updateDrawerRightOpen(next: boolean) {
-  drawerRightOpen.value = next
+function updateDrawerRightAside(next: LayoutAsideValue) {
+  drawerRightOpen.value = next.open
 }
 </script>
 
@@ -76,20 +113,14 @@ function updateDrawerRightOpen(next: boolean) {
     <section class="aside-state-fixtures__section" data-testid="blocked-aside-fixture">
       <h3>Blocked Controlled Aside</h3>
       <div class="aside-state-fixtures__host">
-        <TrLayout class="aside-state-fixtures__layout" :style="baseLayoutStyle">
+        <TrLayout
+          class="aside-state-fixtures__layout"
+          :style="baseLayoutStyle"
+          :left-aside="blockedLeftAside"
+          @update:leftAside="handleBlockedAside"
+        >
           <template #left-aside>
-            <TrLayout.Aside
-              placement="left"
-              mode="dock"
-              :open="true"
-              :width="260"
-              :collapsed-width="48"
-              :min-width="220"
-              :max-width="420"
-              :resizable="true"
-              @update:open="handleBlockedOpen"
-              @update:width="handleBlockedWidth"
-            >
+            <TrLayout.Aside placement="left">
               <template #default="{ isOpen }">
                 <div class="aside-state-fixtures__panel">
                   <span data-testid="blocked-open-state">{{ isOpen ? 'open' : 'closed' }}</span>
@@ -113,20 +144,14 @@ function updateDrawerRightOpen(next: boolean) {
     <section class="aside-state-fixtures__section" data-testid="uncontrolled-aside-fixture">
       <h3>Uncontrolled Aside</h3>
       <div class="aside-state-fixtures__host">
-        <TrLayout class="aside-state-fixtures__layout" :style="baseLayoutStyle">
+        <TrLayout
+          class="aside-state-fixtures__layout"
+          :style="baseLayoutStyle"
+          :left-aside="uncontrolledLeftAside"
+          @update:leftAside="handleUncontrolledAside"
+        >
           <template #left-aside>
-            <TrLayout.Aside
-              placement="left"
-              mode="dock"
-              :default-open="uncontrolledDefaultOpen"
-              :default-width="uncontrolledDefaultWidth"
-              :collapsed-width="52"
-              :min-width="240"
-              :max-width="340"
-              :resizable="true"
-              @update:open="handleUncontrolledOpen"
-              @update:width="handleUncontrolledWidth"
-            >
+            <TrLayout.Aside placement="left">
               <template #default="{ isOpen }">
                 <div class="aside-state-fixtures__panel">
                   <span data-testid="uncontrolled-open-state">{{ isOpen ? 'open' : 'closed' }}</span>
@@ -157,15 +182,19 @@ function updateDrawerRightOpen(next: boolean) {
     <section class="aside-state-fixtures__section" data-testid="drawer-aside-fixture">
       <h3>Drawer Width Aside</h3>
       <div class="aside-state-fixtures__host">
-        <TrLayout class="aside-state-fixtures__layout" :style="baseLayoutStyle">
+        <TrLayout
+          class="aside-state-fixtures__layout"
+          :style="baseLayoutStyle"
+          :left-aside="drawerLeftAside"
+          :right-aside="drawerRightAside"
+          @update:leftAside="updateDrawerLeftAside"
+          @update:rightAside="updateDrawerRightAside"
+        >
           <template #left-aside>
             <TrLayout.Aside
               placement="left"
-              mode="drawer"
-              :open="drawerLeftOpen"
               class="aside-state-fixtures__drawer"
               style="--tr-layout-drawer-width: 344px"
-              @update:open="updateDrawerLeftOpen"
             >
               <div class="aside-state-fixtures__panel">
                 <span data-testid="drawer-left-state">{{ drawerLeftOpen ? 'open' : 'closed' }}</span>
@@ -187,11 +216,8 @@ function updateDrawerRightOpen(next: boolean) {
           <template #right-aside>
             <TrLayout.Aside
               placement="right"
-              mode="drawer"
-              :open="drawerRightOpen"
               class="aside-state-fixtures__drawer"
               style="--tr-layout-drawer-width: 388px"
-              @update:open="updateDrawerRightOpen"
             >
               <div class="aside-state-fixtures__panel">
                 <span data-testid="drawer-right-state">{{ drawerRightOpen ? 'open' : 'closed' }}</span>

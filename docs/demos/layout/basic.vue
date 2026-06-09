@@ -4,9 +4,12 @@ import { TrLayout } from '@opentiny/tiny-robot'
 
 <template>
   <div class="layout-basic-demo">
-    <TrLayout>
+    <TrLayout
+      :left-aside="{ defaultOpen: true, defaultExpandedWidth: 160 }"
+      :right-aside="{ defaultOpen: true, defaultExpandedWidth: 160 }"
+    >
       <template #left-aside>
-        <TrLayout.Aside placement="left" default-open :default-width="160">
+        <TrLayout.Aside placement="left">
           <div class="layout-basic-demo__aside">导航</div>
         </TrLayout.Aside>
       </template>
@@ -24,7 +27,7 @@ import { TrLayout } from '@opentiny/tiny-robot'
       </template>
 
       <template #right-aside>
-        <TrLayout.Aside placement="right" default-open :default-width="160">
+        <TrLayout.Aside placement="right">
           <div class="layout-basic-demo__aside">信息栏</div>
         </TrLayout.Aside>
       </template>

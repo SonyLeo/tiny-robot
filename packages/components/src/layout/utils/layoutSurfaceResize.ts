@@ -1,4 +1,5 @@
-import type { LayoutFloatingRect, LayoutFloatingResizeHandle } from '../index.type'
+import type { LayoutFloatingResizeHandle } from '../index.type'
+import type { LayoutFloatingRect } from '../internal.type'
 
 interface ResolveFloatingResizeRectOptions {
   handle: LayoutFloatingResizeHandle

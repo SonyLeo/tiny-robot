@@ -2,7 +2,7 @@
 import { unrefElement } from '@vueuse/core'
 import { computed, type ComponentPublicInstance } from 'vue'
 import { useLayoutMainScrollbar } from './composables/useLayoutMainScrollbar'
-import type { LayoutMainProps, LayoutMainScrollHost } from './index.type'
+import type { LayoutMainProps, LayoutMainScrollHost } from './internal.type'
 
 defineOptions({
   name: 'LayoutMain',

@@ -2,44 +2,44 @@
 import { computed, ref, useAttrs, useSlots } from 'vue'
 import AsideResizeTrigger from './components/AsideResizeTrigger.vue'
 import SurfaceResizeTrigger from './components/SurfaceResizeTrigger.vue'
-import { createLayoutStore } from './composables/createLayoutStore'
-import { useControllableLayoutState } from './composables/useControllableLayoutState'
-import { useLayoutInteractions } from './composables/useLayoutInteractions'
-import { provideLayoutStore } from './composables/useLayout'
-import { useLayoutSurface } from './composables/useLayoutSurface'
-import { useLayoutViewState } from './composables/useLayoutViewState'
-import type { LayoutEmits, LayoutRuntimeProps } from './index.type'
+import { createLayoutContext } from './composables/createLayoutContext'
+import { useLayoutAsideInteractions } from './composables/useLayoutAsideInteractions'
+import { provideLayoutContext } from './composables/useLayoutContext'
+import { useLayoutFloatingSurface } from './composables/useLayoutFloatingSurface'
+import { useLayoutRenderState } from './composables/useLayoutRenderState'
+import { useLayoutRootState } from './composables/useLayoutRootState'
+import type { LayoutEmits, LayoutProps } from './index.type'
 
 defineOptions({
   name: 'Layout',
   inheritAttrs: false,
 })
 
-const props = defineProps<LayoutRuntimeProps>()
+const props = defineProps<LayoutProps>()
 
 const emit = defineEmits<LayoutEmits>()
 const attrs = useAttrs()
 
-const { resolvedMode, resolvedFloating, commitFloating, initializeFloating } = useControllableLayoutState(props, emit)
+const { resolvedMode, resolvedFloating, commitFloating, initializeFloating, leftAside, rightAside } =
+  useLayoutRootState(props, emit)
 const surfaceFrameRef = ref<HTMLElement | null>(null)
 const surfaceDragHandleRef = ref<HTMLElement | null>(null)
 const layoutRootRef = ref<HTMLElement | null>(null)
 const leftAsideRef = ref<HTMLElement | null>(null)
 const rightAsideRef = ref<HTMLElement | null>(null)
+const layoutContext = createLayoutContext(leftAside, rightAside)
 
-const layoutStore = createLayoutStore()
-
-provideLayoutStore(layoutStore)
+provideLayoutContext(layoutContext)
 
 const slots = useSlots()
-const { closeDrawers, left, right } = layoutStore
-const isDrawerVisible = computed(() => layoutStore.isDrawerVisible)
+const { closeDrawers, left, right } = layoutContext
+const isDrawerVisible = computed(() => layoutContext.isDrawerVisible)
 const {
   isResizing: isAsideResizing,
   draggingPlacement,
   leftHandleProps,
   rightHandleProps,
-} = useLayoutInteractions({
+} = useLayoutAsideInteractions({
   rootRef: layoutRootRef,
   leftAsideRef,
   rightAsideRef,
@@ -59,11 +59,13 @@ const {
   rightAsideHidden,
   leftResizeVisible,
   rightResizeVisible,
+  leftAsideSlotProps,
+  rightAsideSlotProps,
   layoutStyle,
   layoutClass,
   leftAsideClass,
   rightAsideClass,
-} = useLayoutViewState({
+} = useLayoutRenderState({
   slots,
   left,
   right,
@@ -79,7 +81,7 @@ const {
   dragBarClass,
   activeResizeHandle,
   resizeHandles,
-} = useLayoutSurface({
+} = useLayoutFloatingSurface({
   mode: resolvedMode,
   floating: resolvedFloating,
   commitFloating,
@@ -174,7 +176,7 @@ const toAriaHidden = (hidden: boolean) => (hidden ? 'true' : undefined)
               @pointerdown="leftHandleProps.onPointerdown"
             />
             <div class="tr-layout__aside-clip" data-part="aside-clip">
-              <slot name="left-aside" />
+              <slot name="left-aside" v-bind="leftAsideSlotProps" />
             </div>
           </div>
 
@@ -227,7 +229,7 @@ const toAriaHidden = (hidden: boolean) => (hidden ? 'true' : undefined)
               @pointerdown="rightHandleProps.onPointerdown"
             />
             <div class="tr-layout__aside-clip" data-part="aside-clip">
-              <slot name="right-aside" />
+              <slot name="right-aside" v-bind="rightAsideSlotProps" />
             </div>
           </div>
 

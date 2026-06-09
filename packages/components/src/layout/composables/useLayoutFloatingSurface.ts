@@ -10,13 +10,13 @@ import {
   type Ref,
 } from 'vue'
 import type {
-  LayoutDefaultFloatingConfig,
+  LayoutFloating,
   LayoutFloatingDragEventDetail,
-  LayoutFloatingRect,
   LayoutFloatingResizeEventDetail,
   LayoutFloatingResizeHandle,
   LayoutMode,
 } from '../index.type'
+import type { LayoutFloatingRect } from '../internal.type'
 import {
   areFloatingGeometryEqual,
   clampFloatingRect,
@@ -26,15 +26,17 @@ import {
   DEFAULT_FLOATING_TOP,
   DEFAULT_FLOATING_WIDTH,
   normalizeFloatingRect,
+  resolveFloatingSnapshot,
+  toCommittedFloatingConfig,
 } from '../utils/layoutSurfaceGeometry'
 import { resolveFloatingResizeRect } from '../utils/layoutSurfaceResize'
 import { lockBodyInteraction, restoreBodyInteraction, type BodyInteractionState } from '../utils/domInteraction'
 
-interface UseLayoutSurfaceOptions {
+interface UseLayoutFloatingSurfaceOptions {
   mode: MaybeRefOrGetter<LayoutMode>
-  floating: MaybeRefOrGetter<LayoutFloatingRect | LayoutDefaultFloatingConfig | undefined>
-  commitFloating: (nextFloating: LayoutFloatingRect) => void
-  initializeFloating: (nextFloating: LayoutFloatingRect) => void
+  floating: MaybeRefOrGetter<LayoutFloating | undefined>
+  commitFloating: (nextFloating: LayoutFloating) => void
+  initializeFloating: (nextFloating: LayoutFloating) => void
   frameRef: Ref<HTMLElement | null>
   dragHandleRef: Ref<HTMLElement | null>
   onFloatingDragStart?: (detail: LayoutFloatingDragEventDetail) => void
@@ -73,24 +75,7 @@ function resolveResizeCursor(handle: LayoutFloatingResizeHandle): string {
   return 'nwse-resize'
 }
 
-function toDragDetail(rect: LayoutFloatingRect): LayoutFloatingDragEventDetail {
-  return {
-    x: rect.x,
-    y: rect.y,
-  }
-}
-
-function toResizeDetail(handle: LayoutFloatingResizeHandle, rect: LayoutFloatingRect): LayoutFloatingResizeEventDetail {
-  return {
-    handle,
-    x: rect.x,
-    y: rect.y,
-    width: rect.width,
-    height: rect.height,
-  }
-}
-
-export function useLayoutSurface(options: UseLayoutSurfaceOptions) {
+export function useLayoutFloatingSurface(options: UseLayoutFloatingSurfaceOptions) {
   const activeResize = shallowRef<FloatingResizeState | null>(null)
   const pointerTarget = typeof window === 'undefined' ? undefined : window
 
@@ -104,10 +89,6 @@ export function useLayoutSurface(options: UseLayoutSurfaceOptions) {
   const isFloating = computed(() => mode.value === 'floating')
   const isNormal = computed(() => mode.value === 'normal')
   const floatingValue = computed(() => toValue(options.floating))
-  const isFloatingRectValue = computed(() => {
-    const value = floatingValue.value
-    return value !== undefined && 'x' in value && 'y' in value
-  })
   const floatingRect = computed(() => normalizeFloatingRect(floatingValue.value))
   const isFloatingDraggable = computed(() => floatingRect.value.draggable ?? true)
   const isFloatingResizable = computed(() => floatingRect.value.resizable === true)
@@ -115,20 +96,21 @@ export function useLayoutSurface(options: UseLayoutSurfaceOptions) {
   const activeResizeHandle = computed<LayoutFloatingResizeHandle | null>(() => activeResize.value?.handle ?? null)
   const canDragFloating = computed(() => isFloating.value && isFloatingDraggable.value && !isResizing.value)
 
-  function toPersistedRect(rect: LayoutFloatingRect): LayoutFloatingRect {
-    const source = floatingValue.value
+  function toFloatingConfig(rect: LayoutFloatingRect): LayoutFloating {
+    return toCommittedFloatingConfig(resolveFloatingSnapshot(rect, floatingValue.value), floatingValue.value)
+  }
 
+  function toDragDetail(rect: LayoutFloatingRect): LayoutFloatingDragEventDetail {
+    return toFloatingConfig(rect)
+  }
+
+  function toResizeDetail(
+    handle: LayoutFloatingResizeHandle,
+    rect: LayoutFloatingRect,
+  ): LayoutFloatingResizeEventDetail {
     return {
-      x: rect.x,
-      y: rect.y,
-      width: rect.width,
-      height: rect.height,
-      ...(source?.draggable !== undefined ? { draggable: source.draggable } : {}),
-      ...(source?.resizable !== undefined ? { resizable: source.resizable } : {}),
-      ...(source?.minWidth !== undefined ? { minWidth: source.minWidth } : {}),
-      ...(source?.maxWidth !== undefined ? { maxWidth: source.maxWidth } : {}),
-      ...(source?.minHeight !== undefined ? { minHeight: source.minHeight } : {}),
-      ...(source?.maxHeight !== undefined ? { maxHeight: source.maxHeight } : {}),
+      ...toDragDetail(rect),
+      handle,
     }
   }
 
@@ -139,7 +121,7 @@ export function useLayoutSurface(options: UseLayoutSurfaceOptions) {
       return normalizedRect
     }
 
-    options.commitFloating(toPersistedRect(normalizedRect))
+    options.commitFloating(toFloatingConfig(normalizedRect))
 
     return normalizedRect
   }
@@ -149,8 +131,8 @@ export function useLayoutSurface(options: UseLayoutSurfaceOptions) {
       return
     }
 
-    if (!isFloatingRectValue.value) {
-      options.initializeFloating(toPersistedRect(floatingRect.value))
+    if (!floatingValue.value) {
+      options.initializeFloating(toFloatingConfig(floatingRect.value))
     }
 
     const nextRect = commitRect(floatingRect.value)

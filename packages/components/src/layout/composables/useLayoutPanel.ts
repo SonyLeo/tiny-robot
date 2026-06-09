@@ -1,12 +1,12 @@
 import { computed, toValue, type MaybeRefOrGetter } from 'vue'
-import { useLayout } from './useLayout'
+import { useLayoutContext } from './useLayoutContext'
 import type { LayoutPlacement } from '../index.type'
 import type { LayoutPanelApi } from '../internal.type'
 
-export function useLayoutAside(placement: MaybeRefOrGetter<LayoutPlacement>) {
-  const store = useLayout()
+export function useLayoutPanel(placement: MaybeRefOrGetter<LayoutPlacement>) {
+  const context = useLayoutContext()
   const resolvedPlacement = computed(() => toValue(placement))
-  const panel = computed<LayoutPanelApi>(() => (resolvedPlacement.value === 'left' ? store.left : store.right))
+  const panel = computed<LayoutPanelApi>(() => (resolvedPlacement.value === 'left' ? context.left : context.right))
 
   function open(): void {
     panel.value.open()

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { BubbleList, TrLayout } from '@opentiny/tiny-robot'
-import type { LayoutMainScrollHost } from '@opentiny/tiny-robot'
+
+type LayoutMainScrollHost = HTMLElement | { $el: Element | null } | null | undefined
 
 const scrollHostRef = ref<LayoutMainScrollHost>(null)
 

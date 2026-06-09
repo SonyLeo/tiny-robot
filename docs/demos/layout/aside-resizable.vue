@@ -4,16 +4,17 @@ import { TrLayout } from '@opentiny/tiny-robot'
 
 <template>
   <div class="layout-aside-resizable-demo">
-    <TrLayout>
+    <TrLayout
+      :left-aside="{
+        defaultOpen: true,
+        defaultExpandedWidth: 220,
+        minExpandedWidth: 160,
+        maxExpandedWidth: 320,
+        resizable: true,
+      }"
+    >
       <template #left-aside>
-        <TrLayout.Aside
-          placement="left"
-          default-open
-          :default-width="220"
-          :min-width="160"
-          :max-width="320"
-          :resizable="true"
-        >
+        <TrLayout.Aside placement="left">
           <div class="layout-aside-resizable-demo__aside">拖动右侧分隔线</div>
         </TrLayout.Aside>
       </template>

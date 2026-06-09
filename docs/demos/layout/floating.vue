@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { TrLayout } from '@opentiny/tiny-robot'
-import type { LayoutDefaultFloatingConfig } from '@opentiny/tiny-robot'
+import type { LayoutFloating } from '@opentiny/tiny-robot'
 
 const open = ref(false)
 
-const defaultFloating: LayoutDefaultFloatingConfig = {
+const defaultFloating: LayoutFloating = {
   placement: 'top-right',
-  offset: 24,
+  offsetX: 24,
+  offsetY: 32,
   width: 520,
   height: 360,
   draggable: true,
@@ -37,8 +38,10 @@ const defaultFloating: LayoutDefaultFloatingConfig = {
         <div class="layout-floating-demo__main">
           <h3>初始值写法</h3>
           <p>
-            这个示例只传 `defaultFloating`，首次挂载时按 `placement + offset` 初始化，后续位置和尺寸由组件自己维护。
+            这个示例只传 `defaultFloating`，首次挂载时按 `placement + offsetX + offsetY`
+            初始化，后续位置和尺寸由组件自己维护。
           </p>
+          <p>受控写法时，`floating` 和 `update:floating` 也使用同一套 `LayoutFloating` 字段。</p>
         </div>
       </template>
     </TrLayout>

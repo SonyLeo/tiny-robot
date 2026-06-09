@@ -10,6 +10,7 @@ export type LayoutCollapseEffect = 'overlay' | 'slide'
 export type LayoutAsideState = 'open' | 'rail' | 'closed'
 export type LayoutEventPhase = 'start' | 'progress' | 'end'
 export type LayoutFloatingHandle = 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw'
+export type LayoutFloatingPlacement = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'center'
 
 export interface LayoutAsideResizeLogEntry {
   phase: LayoutEventPhase
@@ -19,15 +20,19 @@ export interface LayoutAsideResizeLogEntry {
 
 export interface LayoutFloatingDragLogEntry {
   phase: LayoutEventPhase
-  x: number
-  y: number
+  placement?: LayoutFloatingPlacement
+  offsetX?: number
+  offsetY?: number
+  width?: number
+  height?: number
 }
 
 export interface LayoutFloatingResizeLogEntry {
   phase: LayoutEventPhase
   handle: LayoutFloatingHandle
-  x: number
-  y: number
+  placement?: LayoutFloatingPlacement
+  offsetX?: number
+  offsetY?: number
   width: number
   height: number
 }

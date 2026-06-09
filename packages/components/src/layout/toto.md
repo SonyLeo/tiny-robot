@@ -155,6 +155,16 @@ provider 提供状态
 provider 同时提供修改状态的方法
 injector 通过这些方法表达意图，而不是自己直接改状态
 
+
+### 260609
+#### 1. 扩展 offset 为 offsetX 和 offsetY，有默认值 
+#### 2. 优化 LayoutAsideRuntimeProps 类型。统一至 LayoutAsideProps 中
+#### 3. 移除对外暴露 x,y。收敛为 placement + offsetX + offsetY、后续只有 offsetX 和 offsetY 变化。只有组件内部改动才要非受控
+#### 4. layout 属性整理，leftAside -> rightAside 插槽作用域暴露属性，相关 update 方法。可以从外部控制更新；
+
+非受控：穿进去的只会是初始值，组件内可以改，但是有事件返回，
+受控：穿进去的什么，渲染什么。组件内部改了，必须通过双向绑定才能生效
+
 ## 二、Todo List
 
 ### floating 主线

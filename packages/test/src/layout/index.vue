@@ -1,17 +1,19 @@
 <script setup lang="ts">
-import { onBeforeUnmount, ref, watchEffect } from 'vue'
+import { computed, onBeforeUnmount, ref, watchEffect } from 'vue'
 import { BubbleList, TrLayout } from '@opentiny/tiny-robot'
 import type {
+  LayoutAsideValue,
   LayoutAsideResizeEventDetail,
-  LayoutFloatingRect,
+  LayoutFloating,
   LayoutFloatingDragEventDetail,
   LayoutFloatingResizeEventDetail,
   LayoutFloatingResizeHandle,
-  LayoutMainScrollHost,
 } from '@opentiny/tiny-robot'
 import AsideStateFixtures from './fixtures/AsideStateFixtures.vue'
 import FloatingStateFixtures from './fixtures/FloatingStateFixtures.vue'
 import LayoutCssVarFixtures from './fixtures/LayoutCssVarFixtures.vue'
+
+type LayoutMainScrollHost = HTMLElement | { $el: Element | null } | null | undefined
 
 interface LayoutMetrics {
   leftResizeStart: number
@@ -77,9 +79,10 @@ const showAsideStateFixtures = ref(false)
 const showFloatingStateFixtures = ref(false)
 const showCssVarFixtures = ref(false)
 
-const floating = ref<LayoutFloatingRect>({
-  x: 96,
-  y: 72,
+const floating = ref<LayoutFloating>({
+  placement: 'top-left',
+  offsetX: 96,
+  offsetY: 72,
   width: 520,
   height: 620,
   draggable: true,
@@ -87,6 +90,26 @@ const floating = ref<LayoutFloatingRect>({
   minWidth: 360,
   maxWidth: 720,
 })
+
+const leftAside = computed(() => ({
+  mode: leftMode.value,
+  open: leftOpen.value,
+  expandedWidth: leftWidth.value,
+  collapsedWidth: leftCollapsedWidth.value,
+  minExpandedWidth: 220,
+  maxExpandedWidth: 420,
+  resizable: leftResizable.value,
+}))
+
+const rightAside = computed(() => ({
+  mode: rightMode.value,
+  open: rightOpen.value,
+  expandedWidth: rightWidth.value,
+  collapsedWidth: rightCollapsedWidth.value,
+  minExpandedWidth: 240,
+  maxExpandedWidth: 420,
+  resizable: rightResizable.value,
+}))
 
 const metrics = ref<LayoutMetrics>({
   leftResizeStart: 0,
@@ -196,25 +219,25 @@ function emptyConditionalSlots() {
   showLeftAsideSlot.value = false
 }
 
-function updateLeftOpen(next: boolean) {
-  leftOpen.value = next
+function updateLeftAside(next: LayoutAsideValue) {
+  leftOpen.value = next.open
+
+  if (next.expandedWidth !== undefined) {
+    leftWidth.value = next.expandedWidth
+    widths.value.left = next.expandedWidth
+  }
 }
 
-function updateLeftWidth(next: number) {
-  leftWidth.value = next
-  widths.value.left = next
+function updateRightAside(next: LayoutAsideValue) {
+  rightOpen.value = next.open
+
+  if (next.expandedWidth !== undefined) {
+    rightWidth.value = next.expandedWidth
+    widths.value.right = next.expandedWidth
+  }
 }
 
-function updateRightOpen(next: boolean) {
-  rightOpen.value = next
-}
-
-function updateRightWidth(next: number) {
-  rightWidth.value = next
-  widths.value.right = next
-}
-
-function updateFloating(next: LayoutFloatingRect) {
+function updateFloating(next: LayoutFloating) {
   floating.value = next
 }
 
@@ -230,7 +253,7 @@ function appendMessages() {
 }
 
 function resetFloating() {
-  floating.value = { ...floating.value, x: 96, y: 72, width: 520, height: 620 }
+  floating.value = { ...floating.value, placement: 'top-left', offsetX: 96, offsetY: 72, width: 520, height: 620 }
   widths.value.floating = 520
 }
 
@@ -294,12 +317,17 @@ function handleFloatingResizeStart(detail: LayoutFloatingResizeEventDetail) {
 }
 
 function handleFloatingResize(detail: LayoutFloatingResizeEventDetail) {
-  widths.value.floating = detail.width
+  if (detail.width !== undefined) {
+    widths.value.floating = detail.width
+  }
+
   pushFloatingResizeLog('progress', detail)
 }
 
 function handleFloatingResizeEnd(detail: LayoutFloatingResizeEventDetail) {
-  widths.value.floating = detail.width
+  if (detail.width !== undefined) {
+    widths.value.floating = detail.width
+  }
 
   metrics.value.floatingResizeEndByHandle[detail.handle] += 1
 
@@ -395,7 +423,11 @@ onBeforeUnmount(() => {
         class="layout-demo__layout layout-demo__layout--surface-marker"
         data-surface-marker="layout-demo-surface"
         :mode="mode"
+        :left-aside="leftAside"
+        :right-aside="rightAside"
         :floating="floating"
+        @update:leftAside="updateLeftAside"
+        @update:rightAside="updateRightAside"
         @update:floating="updateFloating"
         @aside-resize-start="handleAsideResizeStart"
         @aside-resize="handleAsideResize"
@@ -411,17 +443,8 @@ onBeforeUnmount(() => {
           <TrLayout.Aside
             v-if="showLeftAsideSlot"
             placement="left"
-            :mode="leftMode"
-            :open="leftOpen"
-            :width="leftWidth"
-            :collapsed-width="leftCollapsedWidth"
-            :min-width="220"
-            :max-width="420"
-            :resizable="leftResizable"
             :collapse-effect="leftCollapseEffect"
             class="layout-demo__aside layout-demo__aside--left"
-            @update:open="updateLeftOpen"
-            @update:width="updateLeftWidth"
           >
             <div class="layout-demo__aside-content" data-testid="left-aside-slot">
               <div class="layout-demo__aside-header">
@@ -453,17 +476,8 @@ onBeforeUnmount(() => {
         <template #right-aside>
           <TrLayout.Aside
             placement="right"
-            :mode="rightMode"
-            :open="rightOpen"
-            :width="rightWidth"
-            :collapsed-width="rightCollapsedWidth"
-            :min-width="240"
-            :max-width="420"
-            :resizable="rightResizable"
             :collapse-effect="rightCollapseEffect"
             class="layout-demo__aside layout-demo__aside--right"
-            @update:open="updateRightOpen"
-            @update:width="updateRightWidth"
           >
             <div class="layout-demo__aside-content" data-testid="right-aside-slot">
               <div class="layout-demo__aside-header">

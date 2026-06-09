@@ -1,23 +1,81 @@
-import type { ComputedRef, MaybeRefOrGetter } from 'vue'
+import type { ComponentPublicInstance, ComputedRef, MaybeRefOrGetter, VNode } from 'vue'
 import type {
   LayoutAsideMode,
-  LayoutDefaultFloatingConfig,
-  LayoutFloatingRect,
+  LayoutAsideProps,
+  LayoutFloating,
+  LayoutProps,
   LayoutMode,
   LayoutPlacement,
 } from './index.type'
 
-export interface LayoutPanelRegistration {
+export type LayoutAsideCollapseEffect = 'overlay' | 'slide'
+
+export type LayoutFloatingBase = Omit<LayoutFloating, 'placement' | 'offsetX' | 'offsetY'>
+export interface LayoutFloatingRect extends LayoutFloatingBase {
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
+export type LayoutDefaultFloatingConfig = LayoutFloating
+
+// Keep runtime props flat for defineProps().
+// Vue's type-to-runtime conversion is AST-based and does not reliably support
+// full props-object conditional / exclusive unions here.
+export type LayoutRuntimeProps = LayoutProps
+
+export type LayoutMainScrollHostComponent = Pick<ComponentPublicInstance, '$el'>
+
+export type LayoutMainScrollHost = HTMLElement | LayoutMainScrollHostComponent | null | undefined
+
+export interface LayoutAsideInternalProps extends LayoutAsideProps {
+  placement: LayoutPlacement
+  minWidth?: number
+  maxWidth?: number
+  collapseEffect?: LayoutAsideCollapseEffect
+  width?: number
+  defaultWidth?: number
+}
+
+export interface LayoutAsideEmits {
+  'update:open': [value: boolean]
+  'update:width': [value: number]
+}
+
+export interface LayoutAsideToggleProps {
+  placement: LayoutPlacement
+  ariaLabel?: string
+}
+
+export interface LayoutMainProps {
+  scrollHost: LayoutMainScrollHost
+}
+
+export interface LayoutAsideSlots {
+  default?: (slotProps: { isOpen: boolean }) => VNode | VNode[]
+}
+
+export interface LayoutAsideToggleSlots {
+  default?: (slotProps: { isOpen: boolean }) => VNode | VNode[]
+}
+
+export interface LayoutPanelState {
   placement: LayoutPlacement
   layoutMode: MaybeRefOrGetter<LayoutAsideMode>
   isOpen: MaybeRefOrGetter<boolean>
+  isDock: MaybeRefOrGetter<boolean>
+  isDrawer: MaybeRefOrGetter<boolean>
+  isRail: MaybeRefOrGetter<boolean>
+  isHidden: MaybeRefOrGetter<boolean>
+  canResize: MaybeRefOrGetter<boolean>
   width: MaybeRefOrGetter<number | undefined>
   collapsedWidth: MaybeRefOrGetter<number | undefined>
   minWidth: MaybeRefOrGetter<number>
   maxWidth: MaybeRefOrGetter<number>
   resizable: MaybeRefOrGetter<boolean>
-  commitOpen: (nextOpen: boolean) => void
-  commitWidth: (nextWidth: number) => void
+  setOpen: (nextOpen: boolean) => void
+  setWidth: (nextWidth: number) => void
 }
 
 export interface LayoutPanelApi {
@@ -38,21 +96,22 @@ export interface LayoutPanelApi {
   open: () => void
   close: () => void
   toggle: () => void
+  setOpen: (nextOpen: boolean) => void
   setWidth: (nextWidth: number) => void
 }
 
-export interface LayoutStore {
+export interface LayoutContext {
   left: LayoutPanelApi
   right: LayoutPanelApi
   isDrawerVisible: boolean
   closeDrawers: () => void
-  registerPanel: (panel: LayoutPanelRegistration) => void
-  unregisterPanel: (placement: LayoutPlacement) => void
 }
 
-export interface UseControllableLayoutStateResult {
+export interface UseLayoutRootStateResult {
   resolvedMode: ComputedRef<LayoutMode>
-  resolvedFloating: ComputedRef<LayoutFloatingRect | LayoutDefaultFloatingConfig | undefined>
-  commitFloating: (nextFloating: LayoutFloatingRect) => void
-  initializeFloating: (nextFloating: LayoutFloatingRect) => void
+  resolvedFloating: ComputedRef<LayoutFloating | undefined>
+  commitFloating: (nextFloating: LayoutFloating) => void
+  initializeFloating: (nextFloating: LayoutFloating) => void
+  leftAside: LayoutPanelState
+  rightAside: LayoutPanelState
 }
