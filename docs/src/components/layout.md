@@ -53,7 +53,7 @@ outline: [1, 3]
 - 需要临时展开的面板，不希望挤压主区时，用 `drawer`
 :::
 
-当侧栏使用 `dock` 时，还可以通过 `collapsedWidth` 控制收起后的窄栏宽度：
+当侧栏使用 `dock` 时，还可以通过 `collapsedWidth` 控制收起后保留下来的窄栏宽度：
 
 - `collapsedWidth > 0`：收起后保留一条窄栏
 - `collapsedWidth = 0`：收起后完全隐藏
@@ -62,7 +62,7 @@ outline: [1, 3]
 它只在 `dock` 模式下生效，用来控制“收起后是否还保留一条可点击的窄栏”。
 :::
 
-抽屉侧栏的宽度不通过 `width` 控制，而是通过 `--tr-layout-drawer-width` 设置。
+覆盖侧栏的宽度不通过 `width` 控制，而是通过 `--tr-layout-drawer-width` 设置。
 
 <demo vue="../../demos/layout/aside-modes.vue" title="侧栏形态" description="左侧保留窄栏，右侧覆盖抽屉。" />
 
@@ -78,7 +78,7 @@ outline: [1, 3]
 
 ## 主区滚动
 
-`Layout.Main` 用来接管主区滚动条，但它不制造滚动。真正发生滚动的仍然是你传入的 `scrollHost`。
+`Layout.Main` 用来接管主区滚动条，但它不制造滚动。真正发生滚动的仍然是你传入的 `scrollHost`，也就是真实滚动容器。
 
 :::tip `scrollHost` 怎么理解
 把 `scrollHost` 当成“真正出现滚动条的那个元素”。
@@ -120,13 +120,13 @@ outline: [1, 3]
 只传 `defaultFloating` 或 `floating`，不会自动切到浮层模式。
 :::
 
-如果只需要设置默认位置和尺寸，使用 `defaultFloating`。它只在首次挂载时读取一次，按 `placement + offset + size` 解析出第一份浮层 rect。初始化完成后，窗口不会继续按 placement 自动贴边，只会在视口变化时做 clamp。
+如果只需要设置默认位置和尺寸，使用 `defaultFloating`。它只在首次挂载时读取一次，按 `placement + offset + size` 解析出第一份浮层的位置和尺寸。初始化完成后，窗口不会继续按 placement 自动贴边，只会在视口变化时把浮层限制在浏览器可视区域内。
 
-如果需要在外部持续同步运行时位置和尺寸，使用 `floating` 并监听 `update:floating`。`floating` 表示完整 runtime rect，适合受控场景。
+如果需要在外部持续同步当前实际位置和尺寸，使用 `floating` 并监听 `update:floating`。`floating` 表示完整的位置和尺寸对象，适合受控场景。
 
 :::info 受控与非受控的区别
 - `defaultFloating` 只负责初始化第一份位置和尺寸
-- `floating` 表示当前运行时 rect；如果你使用受控写法，需要在 `update:floating` 后自行回写
+- `floating` 表示当前实际位置和尺寸；如果你使用受控写法，需要在 `update:floating` 后自行回写
 :::
 
 <demo vue="../../demos/layout/floating.vue" title="浮层模式" description="只传初始值的浮层示例。" />
@@ -241,7 +241,7 @@ outline: [1, 3]
 | `floating-resize` | 调整浮层尺寸时持续触发 | `(detail: LayoutFloatingResizeDetail)` |
 | `floating-resize-end` | 结束调整浮层尺寸 | `(detail: LayoutFloatingResizeDetail)` |
 
-所有浮层拖拽和 resize 事件中的坐标都以 viewport 为基准。
+所有浮层拖拽和 resize 事件中的坐标都以浏览器可视区域（viewport）为基准。
 
 #### 侧栏 resize 事件字段
 
@@ -261,7 +261,7 @@ outline: [1, 3]
 
 | 字段 | 说明 | 类型 |
 | ---- | ---- | ---- |
-| `handle` | 当前 resize 方向 | `'n' \| 's' \| 'e' \| 'w' \| 'ne' \| 'nw' \| 'se' \| 'sw'` |
+| `handle` | 当前拖动的边或角 | `'n' \| 's' \| 'e' \| 'w' \| 'ne' \| 'nw' \| 'se' \| 'sw'` |
 | `x` | 当前距视口左侧的偏移 | `number` |
 | `y` | 当前距视口顶部的偏移 | `number` |
 | `width` | 当前宽度 | `number` |
@@ -282,13 +282,13 @@ outline: [1, 3]
 <a id="layout-floating-fields"></a>
 ### 浮层字段
 
-`defaultFloating` 用于初始化，`floating` 表示运行时 rect。下面按字段职责拆开说明。
+`defaultFloating` 用于初始化，`floating` 表示当前实际位置和尺寸。下面按字段职责拆开说明。
 
 :::info 阅读方式
 下面 3 张表是同一套浮层配置的拆分视图：
 
 - `LayoutDefaultFloatingConfig` 只列初始化专属字段
-- `LayoutFloatingRect` 只列运行时 rect 专属字段
+- `LayoutFloatingRect` 只列当前实际位置和尺寸专属字段
 - “共享尺寸与交互字段”同时适用于两者
 :::
 
@@ -305,8 +305,8 @@ outline: [1, 3]
 
 | 字段 | 说明 | 类型 | 默认值 |
 | ---- | ---- | ---- | ------ |
-| `x` | 当前距视口左侧的偏移，基于 viewport 坐标系 | `number` | `-` |
-| `y` | 当前距视口顶部的偏移，基于 viewport 坐标系 | `number` | `-` |
+| `x` | 当前距视口左侧的偏移，基于浏览器可视区域（viewport）坐标系 | `number` | `-` |
+| `y` | 当前距视口顶部的偏移，基于浏览器可视区域（viewport）坐标系 | `number` | `-` |
 
 #### 共享尺寸与交互字段
 
