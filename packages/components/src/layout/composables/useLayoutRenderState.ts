@@ -1,7 +1,8 @@
 import { computed, toValue, type MaybeRefOrGetter, type Slots } from 'vue'
 import type { LayoutAsideSlotProps } from '../index.type'
 import type { LayoutPanelApi } from '../internal.type'
-import { hasRenderableSlot, toPx } from '../utils/layoutRender'
+import { toPx } from '../utils/cssLength'
+import { hasRenderableSlot } from '../utils/slots'
 
 interface UseLayoutRenderStateOptions {
   slots: Slots
@@ -25,19 +26,18 @@ function createAsideSlotProps(panel: LayoutPanelApi, placement: 'left' | 'right'
 }
 
 export function useLayoutRenderState({ slots, left, right, isResizing }: UseLayoutRenderStateOptions) {
-  const hasLeftAside = () => hasRenderableSlot(slots['left-aside'])
+  const leftAsideSlotProps = computed<LayoutAsideSlotProps>(() => createAsideSlotProps(left, 'left'))
+  const rightAsideSlotProps = computed<LayoutAsideSlotProps>(() => createAsideSlotProps(right, 'right'))
+
+  const hasLeftAside = () => hasRenderableSlot(slots['left-aside'], leftAsideSlotProps.value)
   const hasHeader = () => hasRenderableSlot(slots.header)
   const hasFooter = () => hasRenderableSlot(slots.footer)
-  const hasRightAside = () => hasRenderableSlot(slots['right-aside'])
+  const hasRightAside = () => hasRenderableSlot(slots['right-aside'], rightAsideSlotProps.value)
 
   const leftAsideHidden = () => !hasLeftAside() || left.isHidden
   const rightAsideHidden = () => !hasRightAside() || right.isHidden
   const leftResizeVisible = () => hasLeftAside() && left.canResize
   const rightResizeVisible = () => hasRightAside() && right.canResize
-
-  const leftAsideSlotProps = computed<LayoutAsideSlotProps>(() => createAsideSlotProps(left, 'left'))
-
-  const rightAsideSlotProps = computed<LayoutAsideSlotProps>(() => createAsideSlotProps(right, 'right'))
 
   const layoutStyle = computed<Record<string, string>>(() => {
     const style: Record<string, string> = {}

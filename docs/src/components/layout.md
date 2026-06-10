@@ -50,6 +50,20 @@ outline: [1, 3]
 
 配置详见：[Layout Props](#layout-props)、[Layout Slots](#layout-slots)、[Layout Events](#layout-layout-events)、[CSS 变量](#layout-css-content)
 
+## Slot Props 驱动
+
+推荐把 `leftAside` / `rightAside` 作为根状态入口，把 `left-aside` / `right-aside` 当成纯消费层。
+
+- 根组件持有 `open` / `expandedWidth`
+- slot props 负责读取状态和发起更新
+- `Layout.Aside` / `Layout.AsideToggle` 是可选辅助组件，不是主状态入口
+
+<demo
+  vue="../../demos/layout/aside-slot-props.vue"
+  title="slot props 驱动侧栏"
+  description="直接消费 slot props 控制 dock 与 drawer，不依赖 Layout.AsideToggle。"
+/>
+
 ## 侧栏拖拽
 
 `resizable` 用来开启 `dock` 侧栏的拖拽改宽，宽度范围由 `minExpandedWidth` 和 `maxExpandedWidth` 约束。
@@ -57,6 +71,16 @@ outline: [1, 3]
 <demo vue="../../demos/layout/aside-resizable.vue" title="侧栏宽度调整" description="拖动分隔线调整 dock 侧栏宽度。" />
 
 配置详见：[Layout Props](#layout-props)、[Layout Events](#layout-layout-events)
+
+## 受控侧栏宽度
+
+受控写法下，侧栏不会直接改自己的真值；拖拽和按钮操作只会触发 `update:leftAside` / `update:rightAside`，外部回写后才会生效。
+
+<demo
+  vue="../../demos/layout/aside-controlled-width.vue"
+  title="受控侧栏宽度"
+  description="通过 expandedWidth + update:leftAside 回写侧栏宽度，同时展示不回写时的表现。"
+/>
 
 ## 主区滚动
 
@@ -92,15 +116,11 @@ outline: [1, 3]
 
 ## 浮层模式
 
-浮层模式适合临时工作区、对话框式页面或可移动面板。
+适合临时面板、对话工作区等悬浮场景。
 
 :::warning 生效前提
 `defaultFloating` 和 `floating` 只会在 `mode="floating"` 时生效。
-
-只传 `defaultFloating` 或 `floating`，不会自动切到浮层模式。
 :::
-
-`defaultFloating` 和 `floating` 对外都使用同一套 `LayoutFloating` 字段：`placement + offsetX + offsetY + width + height + ...`。
 
 - 非受控：传 `defaultFloating`，只在首次挂载时读取一次；后续位置和尺寸由组件内部维护，同时持续触发 `update:floating`
 - 受控：传 `floating`，组件内部拖拽和 resize 只触发 `update:floating` / `floating-*`；外部不回写就不会生效
@@ -117,7 +137,21 @@ outline: [1, 3]
 - `width` / `height` 默认分别为 `420` / `560`
 :::
 
-<demo vue="../../demos/layout/floating.vue" title="浮层模式" description="基于 anchor model 的浮层示例。" />
+<demo vue="../../demos/layout/floating.vue" title="非受控浮层" description="通过 defaultFloating 初始化，后续位置和尺寸由组件内部维护。" />
+
+当前示例通过 `v-if` 打开和关闭，因此重新打开时会重新按 `defaultFloating` 初始化。
+
+<demo
+  vue="../../demos/layout/floating-controlled.vue"
+  title="受控浮层"
+  description="通过 floating + update:floating 回写浮层状态，右侧实时展示 prop 和 emitted 数据。"
+/>
+
+<demo
+  vue="../../demos/layout/floating-center.vue"
+  title="center 锚点转角"
+  description="初始 placement 为 center，首次拖拽后会转成最近角锚点。"
+/>
 
 配置详见：[Layout Props](#layout-props)、[Types](#types)、[Layout Events](#layout-layout-events)、[CSS 变量](#layout-css-basics)
 
@@ -128,7 +162,7 @@ outline: [1, 3]
 
 | 属性名 | 说明 | 类型 | 默认值 |
 | ------ | ---- | ---- | ------ |
-| `mode` | 布局模式，设为 `floating` 时启用浮层交互 | `'normal' \| 'floating'` | `'normal'` |
+| `mode` | 布局模式；`normal` 参与普通布局，`floating` 会脱离普通布局并 Teleport 到 `body` | `'normal' \| 'floating'` | `'normal'` |
 | `leftAside` | 左侧栏配置 | `LayoutAsideProps` | `-` |
 | `rightAside` | 右侧栏配置 | `LayoutAsideProps` | `-` |
 | `defaultFloating` | 非受控浮层的初始化配置，仅首次挂载读取一次 | `LayoutFloating` | `-` |
@@ -144,7 +178,7 @@ outline: [1, 3]
 <a id="layout-aside-props"></a>
 ### Layout.Aside
 
-`Layout.Aside` 更适合作为侧栏内容容器使用，实际开关和宽度由根组件的 `leftAside` / `rightAside` 管理。
+推荐入口是根组件的 `leftAside` / `rightAside` + slot props；`Layout.Aside` 更适合作为可选的侧栏内容容器使用，实际开关和宽度仍由根组件管理。
 
 | 属性名 | 说明 | 类型 | 默认值 |
 | ------ | ---- | ---- | ------ |
@@ -174,8 +208,12 @@ outline: [1, 3]
 
 `left-aside` / `right-aside` 会暴露：
 
+- `placement`
+- `mode`
 - `open`
 - `expandedWidth`
+- `collapsedWidth`
+- `resizable`
 - `toggle`
 - `setOpen`
 - `setExpandedWidth`
@@ -199,7 +237,6 @@ outline: [1, 3]
 
 | 事件名 | 说明 | 回调参数 |
 | ------ | ---- | -------- |
-| `update:mode` | 布局模式变化 | `(value: LayoutMode)` |
 | `update:leftAside` | 左侧栏运行时状态变化 | `(value: LayoutAsideValue)` |
 | `update:rightAside` | 右侧栏运行时状态变化 | `(value: LayoutAsideValue)` |
 | `update:floating` | 浮层位置或尺寸变化 | `(value: LayoutFloating)` |
@@ -212,6 +249,8 @@ outline: [1, 3]
 | `floating-resize-start` | 开始调整浮层尺寸 | `(detail: LayoutFloatingResizeEventDetail)` |
 | `floating-resize` | 调整浮层尺寸时持续触发 | `(detail: LayoutFloatingResizeEventDetail)` |
 | `floating-resize-end` | 结束调整浮层尺寸 | `(detail: LayoutFloatingResizeEventDetail)` |
+
+`update:leftAside` / `update:rightAside` 只回传 `LayoutAsideValue`，也就是当前运行时可控字段 `open` 和 `expandedWidth`。受控写法下，需要外部把它合并回 `leftAside` / `rightAside`。
 
 #### 侧栏 resize 事件字段
 

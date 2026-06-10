@@ -14,9 +14,7 @@ import { TrLayout } from '@opentiny/tiny-robot'
       }"
     >
       <template #left-aside>
-        <TrLayout.Aside placement="left">
-          <div class="layout-aside-resizable-demo__aside">拖动右侧分隔线</div>
-        </TrLayout.Aside>
+        <div class="layout-aside-resizable-demo__aside">拖动右侧分隔线</div>
       </template>
 
       <template #main>

@@ -1,12 +1,5 @@
 import type { ComponentPublicInstance, ComputedRef, MaybeRefOrGetter, VNode } from 'vue'
-import type {
-  LayoutAsideMode,
-  LayoutAsideProps,
-  LayoutFloating,
-  LayoutProps,
-  LayoutMode,
-  LayoutPlacement,
-} from './index.type'
+import type { LayoutAsideMode, LayoutFloating, LayoutProps, LayoutMode, LayoutPlacement } from './index.type'
 
 export type LayoutAsideCollapseEffect = 'overlay' | 'slide'
 
@@ -18,8 +11,6 @@ export interface LayoutFloatingRect extends LayoutFloatingBase {
   height: number
 }
 
-export type LayoutDefaultFloatingConfig = LayoutFloating
-
 // Keep runtime props flat for defineProps().
 // Vue's type-to-runtime conversion is AST-based and does not reliably support
 // full props-object conditional / exclusive unions here.
@@ -29,18 +20,9 @@ export type LayoutMainScrollHostComponent = Pick<ComponentPublicInstance, '$el'>
 
 export type LayoutMainScrollHost = HTMLElement | LayoutMainScrollHostComponent | null | undefined
 
-export interface LayoutAsideInternalProps extends LayoutAsideProps {
+export interface LayoutAsideInternalProps {
   placement: LayoutPlacement
-  minWidth?: number
-  maxWidth?: number
   collapseEffect?: LayoutAsideCollapseEffect
-  width?: number
-  defaultWidth?: number
-}
-
-export interface LayoutAsideEmits {
-  'update:open': [value: boolean]
-  'update:width': [value: number]
 }
 
 export interface LayoutAsideToggleProps {
@@ -60,44 +42,41 @@ export interface LayoutAsideToggleSlots {
   default?: (slotProps: { isOpen: boolean }) => VNode | VNode[]
 }
 
-export interface LayoutPanelState {
-  placement: LayoutPlacement
-  layoutMode: MaybeRefOrGetter<LayoutAsideMode>
-  isOpen: MaybeRefOrGetter<boolean>
-  isDock: MaybeRefOrGetter<boolean>
-  isDrawer: MaybeRefOrGetter<boolean>
-  isRail: MaybeRefOrGetter<boolean>
-  isHidden: MaybeRefOrGetter<boolean>
-  canResize: MaybeRefOrGetter<boolean>
-  width: MaybeRefOrGetter<number | undefined>
-  collapsedWidth: MaybeRefOrGetter<number | undefined>
-  minWidth: MaybeRefOrGetter<number>
-  maxWidth: MaybeRefOrGetter<number>
-  resizable: MaybeRefOrGetter<boolean>
-  setOpen: (nextOpen: boolean) => void
-  setWidth: (nextWidth: number) => void
+type ToMaybeRefFields<T> = {
+  [K in keyof T]: MaybeRefOrGetter<T[K]>
 }
 
-export interface LayoutPanelApi {
+interface LayoutPanelValue {
   placement: LayoutPlacement
-  isRegistered: boolean
   layoutMode: LayoutAsideMode
   isOpen: boolean
-  isDock: boolean
-  isDrawer: boolean
-  isRail: boolean
-  isHidden: boolean
-  canResize: boolean
   width: number | undefined
   collapsedWidth: number | undefined
   minWidth: number
   maxWidth: number
   resizable: boolean
+}
+
+interface LayoutPanelMutations {
+  setOpen: (nextOpen: boolean) => void
+  setWidth: (nextWidth: number) => void
+}
+
+interface LayoutPanelDerived {
+  isDock: boolean
+  isDrawer: boolean
+  isRail: boolean
+  isHidden: boolean
+  canResize: boolean
+}
+
+export type LayoutPanelState = ToMaybeRefFields<LayoutPanelValue> & LayoutPanelMutations
+
+export interface LayoutPanelApi extends LayoutPanelValue, LayoutPanelDerived, LayoutPanelMutations {
+  isRegistered: boolean
   open: () => void
   close: () => void
   toggle: () => void
-  setOpen: (nextOpen: boolean) => void
-  setWidth: (nextWidth: number) => void
 }
 
 export interface LayoutContext {

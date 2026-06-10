@@ -1,9 +1,5 @@
 import { Comment, Fragment, Text, isVNode, type Slot } from 'vue'
 
-export function toPx(value: number | undefined): string | undefined {
-  return value === undefined ? undefined : `${value}px`
-}
-
 function hasRenderableValue(value: unknown): boolean {
   if (value == null) {
     return false
@@ -42,6 +38,6 @@ function hasRenderableChildren(children: unknown): boolean {
   })
 }
 
-export function hasRenderableSlot(slot?: Slot): boolean {
-  return hasRenderableChildren(slot?.())
+export function hasRenderableSlot(slot?: Slot, slotProps?: object): boolean {
+  return hasRenderableChildren(slot?.(slotProps))
 }

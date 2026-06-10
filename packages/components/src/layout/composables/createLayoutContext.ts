@@ -1,7 +1,7 @@
 import { toValue } from 'vue'
 import type { LayoutPlacement } from '../index.type'
 import type { LayoutContext, LayoutPanelApi, LayoutPanelState } from '../internal.type'
-import { getDefaultAsideMaxWidth, getDefaultAsideMinWidth } from '../utils/layoutAsideDefaults'
+import { getDefaultAsideMaxWidth, getDefaultAsideMinWidth } from '../utils/asideDefaults'
 
 function createDefaultPanelState(placement: LayoutPlacement): LayoutPanelState {
   const minWidth = getDefaultAsideMinWidth(placement)
@@ -11,11 +11,6 @@ function createDefaultPanelState(placement: LayoutPlacement): LayoutPanelState {
     placement,
     layoutMode: 'dock',
     isOpen: false,
-    isDock: true,
-    isDrawer: false,
-    isRail: false,
-    isHidden: true,
-    canResize: false,
     width: undefined,
     collapsedWidth: undefined,
     minWidth,
@@ -48,12 +43,60 @@ export function createLayoutContext(leftState?: LayoutPanelState, rightState?: L
     const defaultMinWidth = getDefaultAsideMinWidth(placement)
     const defaultMaxWidth = getDefaultAsideMaxWidth(placement)
 
+    function getLayoutMode(): LayoutPanelApi['layoutMode'] {
+      return toValue(source.layoutMode)
+    }
+
+    function getIsOpen(): boolean {
+      return toValue(source.isOpen)
+    }
+
+    function getWidth(): number | undefined {
+      return toValue(source.width)
+    }
+
+    function getCollapsedWidth(): number | undefined {
+      return toValue(source.collapsedWidth)
+    }
+
+    function getMinWidth(): number {
+      return toValue(source.minWidth) ?? defaultMinWidth
+    }
+
+    function getMaxWidth(): number {
+      return toValue(source.maxWidth) ?? defaultMaxWidth
+    }
+
+    function getResizable(): boolean {
+      return toValue(source.resizable)
+    }
+
+    function getIsDock(): boolean {
+      return getLayoutMode() === 'dock'
+    }
+
+    function getIsDrawer(): boolean {
+      return getLayoutMode() === 'drawer'
+    }
+
+    function getIsRail(): boolean {
+      return getIsDock() && !getIsOpen() && (getCollapsedWidth() ?? 0) > 0
+    }
+
+    function getIsHidden(): boolean {
+      return !getIsOpen() && (getIsDrawer() || !getIsRail())
+    }
+
+    function getCanResize(): boolean {
+      return getIsDock() && getIsOpen() && getResizable()
+    }
+
     function open(): void {
       if (!isRegistered) {
         return
       }
 
-      if (toValue(source.isDrawer)) {
+      if (getIsDrawer()) {
         const sibling = getSiblingPanel(placement)
         if (sibling.isDrawer && sibling.isOpen) {
           sibling.close()
@@ -105,40 +148,40 @@ export function createLayoutContext(leftState?: LayoutPanelState, rightState?: L
         return isRegistered
       },
       get layoutMode() {
-        return toValue(source.layoutMode)
+        return getLayoutMode()
       },
       get isOpen() {
-        return toValue(source.isOpen)
+        return getIsOpen()
       },
       get isDock() {
-        return toValue(source.isDock)
+        return getIsDock()
       },
       get isDrawer() {
-        return toValue(source.isDrawer)
+        return getIsDrawer()
       },
       get isRail() {
-        return toValue(source.isRail)
+        return getIsRail()
       },
       get isHidden() {
-        return toValue(source.isHidden)
+        return getIsHidden()
       },
       get canResize() {
-        return toValue(source.canResize)
+        return getCanResize()
       },
       get width() {
-        return toValue(source.width)
+        return getWidth()
       },
       get collapsedWidth() {
-        return toValue(source.collapsedWidth)
+        return getCollapsedWidth()
       },
       get minWidth() {
-        return toValue(source.minWidth) ?? defaultMinWidth
+        return getMinWidth()
       },
       get maxWidth() {
-        return toValue(source.maxWidth) ?? defaultMaxWidth
+        return getMaxWidth()
       },
       get resizable() {
-        return toValue(source.resizable)
+        return getResizable()
       },
       open,
       close,

@@ -41,6 +41,7 @@ const defaultFloating: LayoutFloating = {
             这个示例只传 `defaultFloating`，首次挂载时按 `placement + offsetX + offsetY`
             初始化，后续位置和尺寸由组件自己维护。
           </p>
+          <p>当前通过 `v-if` 控制挂载，所以重新打开时会重新按 `defaultFloating` 初始化。</p>
           <p>受控写法时，`floating` 和 `update:floating` 也使用同一套 `LayoutFloating` 字段。</p>
         </div>
       </template>

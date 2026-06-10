@@ -10,6 +10,10 @@ export function toCssLength(value: number | string | undefined, fallback: string
   return fallback
 }
 
+export function toPx(value: number | undefined): string | undefined {
+  return value === undefined ? undefined : `${value}px`
+}
+
 const PX_LENGTH_RE = /^(-?(?:\d+|\d*\.\d+))px$/i
 const ZERO_LENGTH_RE = /^0(?:\.0+)?(?:[a-z%]+)?$/i
 

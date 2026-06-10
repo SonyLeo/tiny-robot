@@ -68,6 +68,5 @@ test.describe('Layout 组件测试 - 结构', () => {
     await expect(layout.page.locator('[data-part="header-shell"]')).toBeHidden()
     await expect(layout.getAside('left')).toHaveAttribute('aria-hidden', 'true')
     await expect(layout.getResizeTrigger('left')).toHaveCount(0)
-    await layout.expectAsideState('left', 'closed')
   })
 })

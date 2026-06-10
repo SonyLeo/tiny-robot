@@ -28,8 +28,8 @@ import {
   normalizeFloatingRect,
   resolveFloatingSnapshot,
   toCommittedFloatingConfig,
-} from '../utils/layoutSurfaceGeometry'
-import { resolveFloatingResizeRect } from '../utils/layoutSurfaceResize'
+} from '../utils/surfaceGeometry'
+import { resolveFloatingResizeRect } from '../utils/surfaceResize'
 import { lockBodyInteraction, restoreBodyInteraction, type BodyInteractionState } from '../utils/domInteraction'
 
 interface UseLayoutFloatingSurfaceOptions {

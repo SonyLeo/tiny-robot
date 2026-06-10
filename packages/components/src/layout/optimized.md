@@ -111,7 +111,6 @@ export type LayoutFloatingResizeEventDetail = LayoutFloating & {
 }
 
 export interface LayoutEmits {
-  'update:mode': [value: LayoutMode]
   'update:leftAside': [value: LayoutAsideValue]
   'update:rightAside': [value: LayoutAsideValue]
   'update:floating': [value: LayoutFloating]

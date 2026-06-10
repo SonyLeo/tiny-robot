@@ -1,5 +1,5 @@
 import type { LayoutFloating, LayoutFloatingPlacement, LayoutFloatingResizeHandle } from '../index.type'
-import type { LayoutDefaultFloatingConfig, LayoutFloatingBase, LayoutFloatingRect } from '../internal.type'
+import type { LayoutFloatingBase, LayoutFloatingRect } from '../internal.type'
 import { clamp } from './math'
 
 export interface FloatingBounds {
@@ -49,7 +49,7 @@ function resolveFloatingPlacement(config: Pick<LayoutFloating, 'placement'> | un
   return config?.placement ?? 'center'
 }
 
-function isFloatingRect(value: LayoutFloatingRect | LayoutDefaultFloatingConfig): value is LayoutFloatingRect {
+function isFloatingRect(value: LayoutFloatingRect | LayoutFloating): value is LayoutFloatingRect {
   return value !== undefined && 'x' in value && 'y' in value
 }
 
@@ -113,7 +113,7 @@ function getPlacementPosition(
   }
 }
 
-function resolveFloatingOffset(config: LayoutDefaultFloatingConfig | undefined): ResolvedFloatingOffset {
+function resolveFloatingOffset(config: LayoutFloating | undefined): ResolvedFloatingOffset {
   return {
     x: config?.offsetX ?? DEFAULT_FLOATING_OFFSET,
     y: config?.offsetY ?? DEFAULT_FLOATING_OFFSET,
@@ -174,9 +174,7 @@ export function resolveViewportBounds(gap = DEFAULT_FLOATING_GAP, topGap = DEFAU
   }
 }
 
-export function resolveFloatingConstraints(
-  source?: Partial<LayoutFloatingRect | LayoutDefaultFloatingConfig>,
-): FloatingConstraints {
+export function resolveFloatingConstraints(source?: Partial<LayoutFloatingRect | LayoutFloating>): FloatingConstraints {
   const bounds = resolveViewportBounds()
   const maxWidth = Math.max(1, bounds.right - bounds.left)
   const maxHeight = Math.max(1, bounds.bottom - bounds.top)
@@ -279,7 +277,7 @@ export function clampFloatingRectByHandle(
 }
 
 export function resolveDefaultFloatingRect(
-  config?: LayoutDefaultFloatingConfig,
+  config?: LayoutFloating,
   bounds = resolveViewportBounds(),
 ): LayoutFloatingRect {
   const constraints = resolveFloatingConstraints(config)
@@ -307,9 +305,7 @@ export function resolveDefaultFloatingRect(
   )
 }
 
-export function normalizeFloatingRect(
-  rectLike: LayoutFloatingRect | LayoutDefaultFloatingConfig | undefined,
-): LayoutFloatingRect {
+export function normalizeFloatingRect(rectLike: LayoutFloatingRect | LayoutFloating | undefined): LayoutFloatingRect {
   if (!rectLike) {
     return resolveDefaultFloatingRect()
   }
@@ -336,7 +332,7 @@ export function normalizeFloatingRect(
 }
 
 export function resolveFloatingSnapshot(
-  config: LayoutFloatingRect | LayoutDefaultFloatingConfig | undefined,
+  config: LayoutFloatingRect | LayoutFloating | undefined,
   source?: Pick<LayoutFloating, 'placement'>,
 ): FloatingSnapshot {
   const bounds = resolveViewportBounds()
