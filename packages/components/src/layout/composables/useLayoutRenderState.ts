@@ -29,15 +29,10 @@ export function useLayoutRenderState({ slots, left, right, isResizing }: UseLayo
   const leftAsideSlotProps = computed<LayoutAsideSlotProps>(() => createAsideSlotProps(left, 'left'))
   const rightAsideSlotProps = computed<LayoutAsideSlotProps>(() => createAsideSlotProps(right, 'right'))
 
-  const hasLeftAside = () => hasRenderableSlot(slots['left-aside'], leftAsideSlotProps.value)
-  const hasHeader = () => hasRenderableSlot(slots.header)
-  const hasFooter = () => hasRenderableSlot(slots.footer)
-  const hasRightAside = () => hasRenderableSlot(slots['right-aside'], rightAsideSlotProps.value)
-
-  const leftAsideHidden = () => !hasLeftAside() || left.isHidden
-  const rightAsideHidden = () => !hasRightAside() || right.isHidden
-  const leftResizeVisible = () => hasLeftAside() && left.canResize
-  const rightResizeVisible = () => hasRightAside() && right.canResize
+  const hasLeftAside = computed(() => hasRenderableSlot(slots['left-aside'], leftAsideSlotProps.value))
+  const hasHeader = computed(() => hasRenderableSlot(slots.header))
+  const hasFooter = computed(() => hasRenderableSlot(slots.footer))
+  const hasRightAside = computed(() => hasRenderableSlot(slots['right-aside'], rightAsideSlotProps.value))
 
   const layoutStyle = computed<Record<string, string>>(() => {
     const style: Record<string, string> = {}
@@ -66,47 +61,25 @@ export function useLayoutRenderState({ slots, left, right, isResizing }: UseLayo
   })
 
   const layoutClass = computed(() => ({
-    'tr-layout--left-dock': hasLeftAside() && left.isDock,
-    'tr-layout--left-drawer': hasLeftAside() && left.isDrawer,
-    'tr-layout--left-expanded': hasLeftAside() && left.isOpen,
-    'tr-layout--left-rail': hasLeftAside() && left.isRail,
-    'tr-layout--right-dock': hasRightAside() && right.isDock,
-    'tr-layout--right-drawer': hasRightAside() && right.isDrawer,
-    'tr-layout--right-expanded': hasRightAside() && right.isOpen,
-    'tr-layout--right-rail': hasRightAside() && right.isRail,
+    'tr-layout--left-dock': hasLeftAside.value && left.isDock,
+    'tr-layout--left-drawer': hasLeftAside.value && left.isDrawer,
+    'tr-layout--left-expanded': hasLeftAside.value && left.isOpen,
+    'tr-layout--left-rail': hasLeftAside.value && left.isRail,
+    'tr-layout--right-dock': hasRightAside.value && right.isDock,
+    'tr-layout--right-drawer': hasRightAside.value && right.isDrawer,
+    'tr-layout--right-expanded': hasRightAside.value && right.isOpen,
+    'tr-layout--right-rail': hasRightAside.value && right.isRail,
     'tr-layout--resizing': toValue(isResizing),
-  }))
-
-  const leftAsideClass = computed(() => ({
-    'tr-layout__aside--active': hasLeftAside(),
-    'tr-layout__aside--dock': left.isDock,
-    'tr-layout__aside--drawer': left.isDrawer,
-    'tr-layout__aside--expanded': left.isOpen,
-    'tr-layout__aside--rail': left.isRail,
-    'tr-layout__aside--hidden': left.isHidden,
-  }))
-
-  const rightAsideClass = computed(() => ({
-    'tr-layout__aside--active': hasRightAside(),
-    'tr-layout__aside--dock': right.isDock,
-    'tr-layout__aside--drawer': right.isDrawer,
-    'tr-layout__aside--expanded': right.isOpen,
-    'tr-layout__aside--rail': right.isRail,
-    'tr-layout__aside--hidden': right.isHidden,
   }))
 
   return {
     hasHeader,
     hasFooter,
-    leftAsideHidden,
-    rightAsideHidden,
-    leftResizeVisible,
-    rightResizeVisible,
+    hasLeftAside,
+    hasRightAside,
     leftAsideSlotProps,
     rightAsideSlotProps,
     layoutStyle,
     layoutClass,
-    leftAsideClass,
-    rightAsideClass,
   }
 }

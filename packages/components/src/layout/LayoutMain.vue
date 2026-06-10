@@ -23,22 +23,11 @@ const { showScrollbar, rootClass, thumbStyle, setHovering, startThumbDrag } = us
 </script>
 
 <template>
-  <main
-    class="tr-layout-main"
-    :class="rootClass"
-    data-part="main"
-    @mouseenter="setHovering(true)"
-    @mouseleave="setHovering(false)"
-  >
+  <main class="tr-layout-main" :class="rootClass" @mouseenter="setHovering(true)" @mouseleave="setHovering(false)">
     <slot />
 
-    <div v-if="showScrollbar" class="tr-layout-main__scrollbar" data-part="scrollbar" aria-hidden="true">
-      <div
-        class="tr-layout-main__scrollbar-thumb"
-        data-part="scrollbar-thumb"
-        :style="thumbStyle"
-        @pointerdown="startThumbDrag"
-      />
+    <div v-if="showScrollbar" class="tr-layout-main__scrollbar" aria-hidden="true">
+      <div class="tr-layout-main__scrollbar-thumb" :style="thumbStyle" @pointerdown="startThumbDrag" />
     </div>
   </main>
 </template>

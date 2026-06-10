@@ -1,20 +1,34 @@
-import type { ComponentPublicInstance, ComputedRef, MaybeRefOrGetter, VNode } from 'vue'
-import type { LayoutAsideMode, LayoutFloating, LayoutProps, LayoutMode, LayoutPlacement } from './index.type'
+import type { ComponentPublicInstance, ComputedRef, MaybeRefOrGetter } from 'vue'
+import type {
+  LayoutAsideCollapseEffect,
+  LayoutAsideMode,
+  LayoutAsideProps,
+  LayoutFloatingOptions,
+  LayoutFloatingState,
+  LayoutMode,
+  LayoutPlacement,
+} from './index.type'
 
-export type LayoutAsideCollapseEffect = 'overlay' | 'slide'
+export type LayoutResolvedFloating = LayoutFloatingState & LayoutFloatingOptions
 
-export type LayoutFloatingBase = Omit<LayoutFloating, 'placement' | 'offsetX' | 'offsetY'>
-export interface LayoutFloatingRect extends LayoutFloatingBase {
+export type LayoutFloatingRect = Omit<
+  LayoutResolvedFloating,
+  'placement' | 'offsetX' | 'offsetY' | 'width' | 'height'
+> & {
   x: number
   y: number
   width: number
   height: number
 }
 
-// Keep runtime props flat for defineProps().
-// Vue's type-to-runtime conversion is AST-based and does not reliably support
-// full props-object conditional / exclusive unions here.
-export type LayoutRuntimeProps = LayoutProps
+export interface LayoutRuntimeProps {
+  mode: LayoutMode
+  leftAside?: LayoutAsideProps
+  rightAside?: LayoutAsideProps
+  floatingState?: LayoutFloatingState
+  defaultFloatingState?: LayoutFloatingState
+  floatingOptions?: LayoutFloatingOptions
+}
 
 export type LayoutMainScrollHostComponent = Pick<ComponentPublicInstance, '$el'>
 
@@ -32,14 +46,6 @@ export interface LayoutAsideToggleProps {
 
 export interface LayoutMainProps {
   scrollHost: LayoutMainScrollHost
-}
-
-export interface LayoutAsideSlots {
-  default?: (slotProps: { isOpen: boolean }) => VNode | VNode[]
-}
-
-export interface LayoutAsideToggleSlots {
-  default?: (slotProps: { isOpen: boolean }) => VNode | VNode[]
 }
 
 type ToMaybeRefFields<T> = {
@@ -88,9 +94,10 @@ export interface LayoutContext {
 
 export interface UseLayoutRootStateResult {
   resolvedMode: ComputedRef<LayoutMode>
-  resolvedFloating: ComputedRef<LayoutFloating | undefined>
-  commitFloating: (nextFloating: LayoutFloating) => void
-  initializeFloating: (nextFloating: LayoutFloating) => void
+  resolvedFloatingState: ComputedRef<LayoutFloatingState | undefined>
+  resolvedFloating: ComputedRef<LayoutResolvedFloating | undefined>
+  commitFloatingState: (nextFloating: LayoutFloatingState) => void
+  initializeFloatingState: (nextFloating: LayoutFloatingState) => void
   leftAside: LayoutPanelState
   rightAside: LayoutPanelState
 }

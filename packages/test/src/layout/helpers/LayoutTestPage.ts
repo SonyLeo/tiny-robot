@@ -84,12 +84,8 @@ export class LayoutTestPage {
     return this.page.locator('#layout-demo-surface')
   }
 
-  get surfaceHost() {
-    return this.page.locator(layoutSelectors.surfaceHost)
-  }
-
   get root() {
-    return this.page.locator(layoutSelectors.root)
+    return this.page.locator(layoutSelectors.root).first()
   }
 
   get main() {
@@ -153,23 +149,23 @@ export class LayoutTestPage {
     return within(scope, placement === 'left' ? layoutSelectors.leftResizeTrigger : layoutSelectors.rightResizeTrigger)
   }
 
-  getSurfaceResizeTrigger(handle: LayoutFloatingHandle, scope: ScopedTarget = this.surface) {
+  getFloatingResizeTrigger(handle: LayoutFloatingHandle, scope: ScopedTarget = this.surface) {
     const selectorMap: Record<LayoutFloatingHandle, string> = {
-      n: layoutSelectors.surfaceResizeTriggerN,
-      s: layoutSelectors.surfaceResizeTriggerS,
-      e: layoutSelectors.surfaceResizeTriggerE,
-      w: layoutSelectors.surfaceResizeTriggerW,
-      ne: layoutSelectors.surfaceResizeTriggerNE,
-      nw: layoutSelectors.surfaceResizeTriggerNW,
-      se: layoutSelectors.surfaceResizeTriggerSE,
-      sw: layoutSelectors.surfaceResizeTriggerSW,
+      n: layoutSelectors.floatingResizeTriggerN,
+      s: layoutSelectors.floatingResizeTriggerS,
+      e: layoutSelectors.floatingResizeTriggerE,
+      w: layoutSelectors.floatingResizeTriggerW,
+      ne: layoutSelectors.floatingResizeTriggerNE,
+      nw: layoutSelectors.floatingResizeTriggerNW,
+      se: layoutSelectors.floatingResizeTriggerSE,
+      sw: layoutSelectors.floatingResizeTriggerSW,
     }
 
     return within(scope, selectorMap[handle])
   }
 
-  getSurfaceDragBar(scope: ScopedTarget = this.surface) {
-    return within(scope, layoutSelectors.surfaceDragBar)
+  getFloatingDragBar(scope: ScopedTarget = this.surface) {
+    return within(scope, layoutSelectors.floatingDragBar)
   }
 
   getBackdrop(scope: ScopedTarget = this.page) {
@@ -249,16 +245,38 @@ export class LayoutTestPage {
   }
 
   async expectSurfaceMode(mode: LayoutMode, scope: ScopedTarget = this.page) {
-    const target = isPage(scope) ? within(scope, layoutSelectors.surface) : scope
-    await expect(target).toHaveAttribute('data-mode', mode)
+    const target = isPage(scope) ? this.root : scope
+
+    if (mode === 'floating') {
+      await expect(target).toHaveClass(/tr-layout--floating/)
+      return
+    }
+
+    await expect(target).not.toHaveClass(/tr-layout--floating/)
   }
 
   async expectAsideMode(placement: LayoutPlacement, mode: LayoutAsideMode, scope: ScopedTarget = this.page) {
-    await expect(this.getAside(placement, scope)).toHaveAttribute('data-mode', mode)
+    await expect(this.getAside(placement, scope)).toHaveClass(new RegExp(`tr-layout__aside--${mode}`))
   }
 
   async expectAsideState(placement: LayoutPlacement, state: LayoutAsideState, scope: ScopedTarget = this.page) {
-    await expect(this.getAside(placement, scope)).toHaveAttribute('data-state', state)
+    const target = this.getAside(placement, scope)
+
+    await expect
+      .poll(async () =>
+        target.evaluate((element) => {
+          if (element.classList.contains('tr-layout__aside--expanded')) {
+            return 'open'
+          }
+
+          if (element.classList.contains('tr-layout__aside--rail')) {
+            return 'rail'
+          }
+
+          return 'closed'
+        }),
+      )
+      .toBe(state)
   }
 
   async expectCollapseEffect(
@@ -266,11 +284,16 @@ export class LayoutTestPage {
     effect: LayoutCollapseEffect,
     scope: ScopedTarget = this.page,
   ) {
-    await expect(this.getAsideContent(placement, scope)).toHaveAttribute('data-collapse-effect', effect)
+    await expect(this.getAsideContent(placement, scope)).toHaveClass(new RegExp(`tr-layout-aside--effect-${effect}`))
   }
 
   async expectBackdropState(state: 'open' | 'closed', scope: ScopedTarget = this.page) {
-    await expect(this.getBackdrop(scope)).toHaveAttribute('data-state', state)
+    if (state === 'open') {
+      await expect(this.getBackdrop(scope)).toBeVisible()
+      return
+    }
+
+    await expect(this.getBackdrop(scope)).toHaveCount(0)
   }
 
   async readHarness() {
@@ -294,11 +317,11 @@ export class LayoutTestPage {
   }
 
   async dragSurface(deltaX: number, deltaY: number, scope: ScopedTarget = this.surface) {
-    await this.dragBy(this.getSurfaceDragBar(scope), deltaX, deltaY)
+    await this.dragBy(this.getFloatingDragBar(scope), deltaX, deltaY)
   }
 
   async resizeSurface(handle: LayoutFloatingHandle, deltaX: number, deltaY = 0, scope: ScopedTarget = this.surface) {
-    await this.dragSurfaceResizeHandle(this.getSurfaceResizeTrigger(handle, scope), handle, deltaX, deltaY)
+    await this.dragFloatingResizeHandle(this.getFloatingResizeTrigger(handle, scope), handle, deltaX, deltaY)
   }
 
   async resizeAside(placement: LayoutPlacement, deltaX: number, scope: ScopedTarget = this.page) {
@@ -341,7 +364,7 @@ export class LayoutTestPage {
     await this.page.mouse.up()
   }
 
-  async dragSurfaceResizeHandle(locator: Locator, handle: LayoutFloatingHandle, deltaX: number, deltaY: number) {
+  async dragFloatingResizeHandle(locator: Locator, handle: LayoutFloatingHandle, deltaX: number, deltaY: number) {
     await expect(locator).toBeVisible()
     await locator.hover()
     const box = await locator.boundingBox()

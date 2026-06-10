@@ -165,6 +165,78 @@ injector 通过这些方法表达意图，而不是自己直接改状态
 非受控：穿进去的只会是初始值，组件内可以改，但是有事件返回，
 受控：穿进去的什么，渲染什么。组件内部改了，必须通过双向绑定才能生效
 
+### 260610
+
+#### 1. layout 结构元素以及样式打薄
+
+- [ ] a. 首先使用 if-else, 再去考虑 teleport 下 floating 的效果
+- [ ] b. header + main + footer -> 三行
+- [ ] c. 移除 data-part、 :data-state、:data-mode、:inert、:aria-hidden :data-resizable
+   待明确 :data-dragging="draggingPlacement ?? undefined"
+- [ ] d.  <button class="tr-layout__backdrop" /> 使用 vueuse clickOutside 方法替换
+- [ ] e. 抽一个 AsideContent 内置组件， <div class="tr-layout__aside-clip" data-part="aside-clip"> 使用 expandedWidth cWidth 做动画效果
+
+
+#### 2 类型优化
+
+##### a. 组件通用 props 分类
+i. options 配置：配置一次、组件内测不动
+ii. state 状态：组件内部会改动，需要双向绑定（受控）
+
+export interface LayoutFloatingState {
+  placement?: LayoutFloatingPlacement
+  offsetX?: number
+  offsetY?: number
+  width?: number
+  height?: number
+}
+
+export interface LayoutFloatingOptions {
+  draggable?: boolean
+  resizable?: boolean
+  minWidth?: number
+  maxWidth?: number
+  minHeight?: number
+  maxHeight?: number
+}
+export interface LayoutNormalProps {
+  mode?: "normal"
+  leftAside?: LayoutAsideProps
+  rightAside?: LayoutAsideProps
+}
+
+export interface LayoutFloatingProps {
+  mode?: "floating"
+  leftAside?: LayoutAsideProps
+  rightAside?: LayoutAsideProps
+  floatingState?: LayoutFloatingState
+  defaultFloatingState?: LayoutFloatingState
+  floatingOptions?: LayoutFloatingOptions
+}
+
+export type LayoutProps = LayoutNormalProps | LayoutFloatingProps
+
+layoutMode = 'floating' 时生效
+
+floatingState (受控)
+defaultFloatingState (非受控)
+floatingOptions （初始化配置）
+
+##### b. LayoutAsideProps 增加   collapseEffect?: 'slide' | 'overlay'
+
+##### c. 不能这么写，实际更新的只有 open 和 expandedWidth 
+      // 'update:leftAside': [value: LayoutAsideValue]      
+      // 'update:rightAside': [value: LayoutAsideValue]
+
+      
+
+#### 3. 【待定】layout 外部辅助侧组件快速实现动画效果 placement、expandedWidth, collapsedWidth, open 
+
+
+#### 4. 判断 defaultFloating 是否为 undefined，判断非受控的反，就能确定受控了
+
+
+
 ## 二、Todo List
 
 ### floating 主线

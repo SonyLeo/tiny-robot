@@ -11,13 +11,13 @@ test.describe('Layout 组件测试 - 结构', () => {
     await expect(layout.page.getByTestId('right-aside-slot')).toBeVisible()
   })
 
-  test('Stable hooks - 应输出关键 data-part / data-placement / data-state', async ({ layout }) => {
+  test('Stable structure - 应能稳定识别关键区域和侧栏状态', async ({ layout }) => {
     await expect(layout.surface).toBeVisible()
     await expect(layout.main).toBeVisible()
-    await expect(layout.getAside('left')).toHaveAttribute('data-placement', 'left')
-    await expect(layout.getAside('right')).toHaveAttribute('data-placement', 'right')
-    await expect(layout.getAsideContent('left')).toHaveAttribute('data-placement', 'left')
-    await expect(layout.getAsideContent('right')).toHaveAttribute('data-placement', 'right')
+    await expect(layout.getAside('left')).toHaveClass(/tr-layout__aside--left/)
+    await expect(layout.getAside('right')).toHaveClass(/tr-layout__aside--right/)
+    await expect(layout.getAsideContent('left')).toHaveClass(/tr-layout-aside--left/)
+    await expect(layout.getAsideContent('right')).toHaveClass(/tr-layout-aside--right/)
     await layout.expectAsideState('left', 'open')
     await layout.expectAsideState('right', 'closed')
   })
@@ -33,13 +33,11 @@ test.describe('Layout 组件测试 - 结构', () => {
   })
 
   test('Fallthrough attrs: class / id / data-* - 应始终落在 surface', async ({ layout }) => {
-    const { surface, surfaceHost } = layout
+    const { surface } = layout
 
     await expect(surface).toHaveAttribute('id', 'layout-demo-surface')
     await expect(surface).toHaveAttribute('data-surface-marker', 'layout-demo-surface')
     await expect(surface).toHaveClass(/layout-demo__layout--surface-marker/)
-    await expect(surfaceHost).not.toHaveAttribute('id', 'layout-demo-surface')
-    await expect(surfaceHost).not.toHaveAttribute('data-surface-marker', 'layout-demo-surface')
 
     await layout.setMode('floating')
 
@@ -65,8 +63,8 @@ test.describe('Layout 组件测试 - 结构', () => {
   }) => {
     await layout.emptyConditionalSlots()
 
-    await expect(layout.page.locator('[data-part="header-shell"]')).toBeHidden()
-    await expect(layout.getAside('left')).toHaveAttribute('aria-hidden', 'true')
+    await expect(layout.page.locator('.tr-layout__header-shell')).toHaveCount(0)
+    await expect(layout.getAside('left')).toHaveClass(/tr-layout__aside--hidden/)
     await expect(layout.getResizeTrigger('left')).toHaveCount(0)
   })
 })

@@ -23,9 +23,6 @@ const collapseEffect = computed(() => props.collapseEffect ?? 'overlay')
   <aside
     v-bind="attrs"
     class="tr-layout-aside"
-    data-part="aside-content"
-    :data-placement="props.placement"
-    :data-collapse-effect="collapseEffect"
     :class="{
       'tr-layout-aside--left': props.placement === 'left',
       'tr-layout-aside--right': props.placement === 'right',

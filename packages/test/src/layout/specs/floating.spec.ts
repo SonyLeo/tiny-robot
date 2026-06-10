@@ -200,7 +200,7 @@ test.describe('Layout 组件测试 - Floating', () => {
     await layout.disableFloatingResizable()
 
     for (const handle of ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'] as const) {
-      await expect(layout.getSurfaceResizeTrigger(handle)).toHaveCount(0)
+      await expect(layout.getFloatingResizeTrigger(handle)).toHaveCount(0)
     }
   })
 

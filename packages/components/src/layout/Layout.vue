@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed, ref, useAttrs, useSlots } from 'vue'
-import AsideResizeTrigger from './components/AsideResizeTrigger.vue'
-import SurfaceResizeTrigger from './components/SurfaceResizeTrigger.vue'
+import { computed, ref, useAttrs, useSlots, type ComponentPublicInstance, type Ref } from 'vue'
+import AsideContent from './components/AsideContent.vue'
+import FloatingResizeTrigger from './components/FloatingResizeTrigger.vue'
 import { createLayoutContext } from './composables/createLayoutContext'
 import { useLayoutAsideInteractions } from './composables/useLayoutAsideInteractions'
 import { provideLayoutContext } from './composables/useLayoutContext'
@@ -16,17 +16,33 @@ defineOptions({
 })
 
 const props = defineProps<LayoutProps>()
-
 const emit = defineEmits<LayoutEmits>()
 const attrs = useAttrs()
 
-const { resolvedMode, resolvedFloating, commitFloating, initializeFloating, leftAside, rightAside } =
-  useLayoutRootState(props, emit)
-const surfaceFrameRef = ref<HTMLElement | null>(null)
-const surfaceDragHandleRef = ref<HTMLElement | null>(null)
+const {
+  resolvedMode,
+  resolvedFloatingState,
+  resolvedFloating,
+  commitFloatingState,
+  initializeFloatingState,
+  leftAside,
+  rightAside,
+} = useLayoutRootState(props, emit)
+
 const layoutRootRef = ref<HTMLElement | null>(null)
+const surfaceDragHandleRef = ref<HTMLElement | null>(null)
 const leftAsideRef = ref<HTMLElement | null>(null)
 const rightAsideRef = ref<HTMLElement | null>(null)
+
+function assignElementRef(target: Ref<HTMLElement | null>) {
+  return (element: Element | ComponentPublicInstance | null) => {
+    target.value = element as HTMLElement | null
+  }
+}
+
+const leftAsideVNodeRef = assignElementRef(leftAsideRef)
+const rightAsideVNodeRef = assignElementRef(rightAsideRef)
+
 const layoutContext = createLayoutContext(leftAside, rightAside)
 
 provideLayoutContext(layoutContext)
@@ -34,6 +50,7 @@ provideLayoutContext(layoutContext)
 const slots = useSlots()
 const { closeDrawers, left, right } = layoutContext
 const isDrawerVisible = computed(() => layoutContext.isDrawerVisible)
+
 const {
   isResizing: isAsideResizing,
   draggingPlacement,
@@ -55,16 +72,12 @@ const {
 const {
   hasHeader,
   hasFooter,
-  leftAsideHidden,
-  rightAsideHidden,
-  leftResizeVisible,
-  rightResizeVisible,
+  hasLeftAside,
+  hasRightAside,
   leftAsideSlotProps,
   rightAsideSlotProps,
   layoutStyle,
   layoutClass,
-  leftAsideClass,
-  rightAsideClass,
 } = useLayoutRenderState({
   slots,
   left,
@@ -72,220 +85,168 @@ const {
   isResizing: isAsideResizing,
 })
 
-const {
-  isFloating,
-  showDragBar,
-  showResizeHandles,
-  surfaceClass,
-  surfaceStyle,
-  dragBarClass,
-  activeResizeHandle,
-  resizeHandles,
-} = useLayoutFloatingSurface({
-  mode: resolvedMode,
-  floating: resolvedFloating,
-  commitFloating,
-  initializeFloating,
-  frameRef: surfaceFrameRef,
-  dragHandleRef: surfaceDragHandleRef,
-  onFloatingDragStart: (detail) => emit('floating-drag-start', detail),
-  onFloatingDrag: (detail) => emit('floating-drag', detail),
-  onFloatingDragEnd: (detail) => emit('floating-drag-end', detail),
-  onFloatingResizeStart: (detail) => emit('floating-resize-start', detail),
-  onFloatingResize: (detail) => emit('floating-resize', detail),
-  onFloatingResizeEnd: (detail) => emit('floating-resize-end', detail),
-})
-
-const layoutRootStyle = computed(() => ({
-  ...layoutStyle.value,
-  '--tr-layout-height': '100%',
-}))
-
-const surfaceMode = computed(() => (isFloating.value ? 'floating' : 'normal'))
-
-const resolveAsideMode = (isDrawer: boolean) => (isDrawer ? 'drawer' : 'dock')
-
-const resolveAsideState = (isOpen: boolean, isRail: boolean) => {
-  if (isOpen) {
-    return 'open'
-  }
-
-  if (isRail) {
-    return 'rail'
-  }
-
-  return 'closed'
-}
-
-const toAriaHidden = (hidden: boolean) => (hidden ? 'true' : undefined)
+const { isFloating, showDragBar, showResizeHandles, floatingClass, floatingStyle, dragBarClass, resizeHandles } =
+  useLayoutFloatingSurface({
+    mode: resolvedMode,
+    floatingState: resolvedFloatingState,
+    floating: resolvedFloating,
+    commitFloatingState,
+    initializeFloatingState,
+    rootRef: layoutRootRef,
+    dragHandleRef: surfaceDragHandleRef,
+    onFloatingDragStart: (detail) => emit('floating-drag-start', detail),
+    onFloatingDrag: (detail) => emit('floating-drag', detail),
+    onFloatingDragEnd: (detail) => emit('floating-drag-end', detail),
+    onFloatingResizeStart: (detail) => emit('floating-resize-start', detail),
+    onFloatingResize: (detail) => emit('floating-resize', detail),
+    onFloatingResizeEnd: (detail) => emit('floating-resize-end', detail),
+  })
 </script>
 
 <template>
-  <div v-show="!isFloating" class="tr-layout-host" data-part="surface-host">
-    <Teleport to="body" :disabled="!isFloating">
-      <div
-        v-bind="attrs"
-        ref="surfaceFrameRef"
-        class="tr-layout-surface"
-        :class="surfaceClass"
-        :style="surfaceStyle"
-        data-part="surface"
-        :data-mode="surfaceMode"
-        :data-resizing-handle="activeResizeHandle ?? undefined"
+  <Teleport to="body" :disabled="!isFloating">
+    <div
+      v-bind="attrs"
+      ref="layoutRootRef"
+      class="tr-layout"
+      :class="[layoutClass, floatingClass]"
+      :style="[layoutStyle, floatingStyle]"
+    >
+      <div v-if="showDragBar" ref="surfaceDragHandleRef" class="tr-layout__drag-bar" :class="dragBarClass" />
+
+      <FloatingResizeTrigger
+        v-for="resizeHandle in showResizeHandles ? resizeHandles : []"
+        :key="resizeHandle.handle"
+        :handle="resizeHandle.handle"
+        :active="resizeHandle.active"
+        @pointerdown="resizeHandle.onPointerdown"
+      />
+
+      <AsideContent
+        v-if="hasLeftAside"
+        :panel="left"
+        :aside-ref="leftAsideVNodeRef"
+        :dragging-placement="draggingPlacement"
+        @resize-pointerdown="leftHandleProps.onPointerdown"
       >
-        <div
-          v-if="showDragBar"
-          ref="surfaceDragHandleRef"
-          class="tr-layout-surface__drag-bar"
-          :class="dragBarClass"
-          data-part="surface-drag-bar"
-        />
+        <slot name="left-aside" v-bind="leftAsideSlotProps" />
+      </AsideContent>
 
-        <SurfaceResizeTrigger
-          v-for="resizeHandle in showResizeHandles ? resizeHandles : []"
-          :key="resizeHandle.handle"
-          :handle="resizeHandle.handle"
-          :active="resizeHandle.active"
-          @pointerdown="resizeHandle.onPointerdown"
-        />
-
-        <div
-          ref="layoutRootRef"
-          class="tr-layout"
-          :style="layoutRootStyle"
-          :class="layoutClass"
-          data-part="root"
-          :data-dragging="draggingPlacement ?? undefined"
-        >
-          <div
-            ref="leftAsideRef"
-            class="tr-layout__aside tr-layout__aside--left"
-            :class="leftAsideClass"
-            data-part="aside"
-            data-placement="left"
-            :data-mode="resolveAsideMode(left.isDrawer)"
-            :data-state="resolveAsideState(left.isOpen, left.isRail)"
-            :data-resizable="leftResizeVisible() ? '' : undefined"
-            :aria-hidden="toAriaHidden(leftAsideHidden())"
-            :inert="leftAsideHidden()"
-          >
-            <AsideResizeTrigger
-              v-if="leftResizeVisible()"
-              placement="left"
-              :dragging-placement="draggingPlacement"
-              @pointerdown="leftHandleProps.onPointerdown"
-            />
-            <div class="tr-layout__aside-clip" data-part="aside-clip">
-              <slot name="left-aside" v-bind="leftAsideSlotProps" />
-            </div>
-          </div>
-
-          <div
-            class="tr-layout__header-shell"
-            :class="{ 'tr-layout__header-shell--active': hasHeader() }"
-            data-part="header-shell"
-          >
-            <div class="tr-layout__header-inner" data-part="header-inner">
-              <header class="tr-layout__header">
-                <slot name="header" />
-              </header>
-            </div>
-          </div>
-
-          <div class="tr-layout__main-shell" data-part="main-shell">
-            <div class="tr-layout__main-inner" data-part="main-inner">
-              <slot name="main" />
-            </div>
-          </div>
-
-          <div
-            class="tr-layout__footer-shell"
-            :class="{ 'tr-layout__footer-shell--active': hasFooter() }"
-            data-part="footer-shell"
-          >
-            <div class="tr-layout__footer-inner" data-part="footer-inner">
-              <footer class="tr-layout__footer">
-                <slot name="footer" />
-              </footer>
-            </div>
-          </div>
-
-          <div
-            ref="rightAsideRef"
-            class="tr-layout__aside tr-layout__aside--right"
-            :class="rightAsideClass"
-            data-part="aside"
-            data-placement="right"
-            :data-mode="resolveAsideMode(right.isDrawer)"
-            :data-state="resolveAsideState(right.isOpen, right.isRail)"
-            :data-resizable="rightResizeVisible() ? '' : undefined"
-            :aria-hidden="toAriaHidden(rightAsideHidden())"
-            :inert="rightAsideHidden()"
-          >
-            <AsideResizeTrigger
-              v-if="rightResizeVisible()"
-              placement="right"
-              :dragging-placement="draggingPlacement"
-              @pointerdown="rightHandleProps.onPointerdown"
-            />
-            <div class="tr-layout__aside-clip" data-part="aside-clip">
-              <slot name="right-aside" v-bind="rightAsideSlotProps" />
-            </div>
-          </div>
-
-          <button
-            class="tr-layout__backdrop"
-            :class="{ 'tr-layout__backdrop--active': isDrawerVisible }"
-            data-part="backdrop"
-            :data-state="isDrawerVisible ? 'open' : 'closed'"
-            type="button"
-            :tabindex="isDrawerVisible ? 0 : -1"
-            :aria-hidden="toAriaHidden(!isDrawerVisible)"
-            @click="closeDrawers"
-          />
+      <header v-if="hasHeader" class="tr-layout__header-shell">
+        <div class="tr-layout__header-inner">
+          <slot name="header" />
         </div>
-      </div>
-    </Teleport>
-  </div>
+      </header>
+
+      <main class="tr-layout__main-shell">
+        <div class="tr-layout__main-inner">
+          <slot name="main" />
+        </div>
+      </main>
+
+      <footer v-if="hasFooter" class="tr-layout__footer-shell">
+        <div class="tr-layout__footer-inner">
+          <slot name="footer" />
+        </div>
+      </footer>
+
+      <AsideContent
+        v-if="hasRightAside"
+        :panel="right"
+        :aside-ref="rightAsideVNodeRef"
+        :dragging-placement="draggingPlacement"
+        @resize-pointerdown="rightHandleProps.onPointerdown"
+      >
+        <slot name="right-aside" v-bind="rightAsideSlotProps" />
+      </AsideContent>
+
+      <div v-if="isDrawerVisible" class="tr-layout__backdrop" @pointerdown="closeDrawers" />
+    </div>
+  </Teleport>
 </template>
 
 <style lang="less" scoped>
-.tr-layout-host {
-  display: contents;
-}
+.tr-layout {
+  --left-width: 0px;
+  --right-width: 0px;
+  --left-collapsed-width: 0px;
+  --right-collapsed-width: 0px;
 
-.tr-layout-surface {
   position: relative;
+  display: grid;
   box-sizing: border-box;
   width: 100%;
   min-height: 0;
   height: var(--tr-layout-height, 100vh);
   height: var(--tr-layout-height, 100dvh);
+  grid-template-columns:
+    var(--left-width)
+    minmax(var(--tr-layout-main-min-width, 320px), 1fr)
+    var(--right-width);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    'left header right'
+    'left main right'
+    'left footer right';
+  isolation: isolate;
+  overflow: hidden;
   background: var(--tr-layout-bg);
+  color: var(--tr-text-primary);
+  transition: grid-template-columns var(--transition-duration) var(--transition-easing);
 
-  &--normal {
-    overflow: hidden;
-    border-radius: 0;
-    box-shadow: none;
+  &--resizing {
+    cursor: col-resize;
+    transition: none;
+
+    &,
+    * {
+      user-select: none;
+    }
   }
 
   &--floating {
     position: fixed;
-    overflow: visible;
-    background: var(--tr-layout-bg);
-    border-radius: var(--tr-layout-surface-radius);
     border: 1px solid var(--border-color);
+    border-radius: var(--tr-layout-surface-radius);
     box-shadow: var(--tr-layout-surface-shadow);
     z-index: var(--tr-layout-surface-z-index);
     outline: 1px solid var(--outline-color);
     outline-offset: -1px;
+    padding-top: calc(var(--drag-hit-height) + var(--drag-bar-top));
+  }
 
-    > .tr-layout {
-      box-sizing: border-box;
-      overflow: hidden;
-      border-radius: inherit;
-      padding-top: calc(var(--drag-hit-height) + var(--drag-bar-top));
+  &--floating-dragging {
+    :deep(.tr-layout__floating-resize-trigger) {
+      pointer-events: none;
     }
+  }
+
+  &--floating-resizing {
+    &,
+    * {
+      user-select: none;
+    }
+
+    .tr-layout__drag-bar--draggable {
+      cursor: default;
+      pointer-events: none;
+    }
+  }
+
+  &--left-dock&--left-expanded {
+    --left-width: var(--left-dock-width);
+  }
+
+  &--left-dock&--left-rail {
+    --left-width: var(--left-collapsed-width);
+  }
+
+  &--right-dock&--right-expanded {
+    --right-width: var(--right-dock-width);
+  }
+
+  &--right-dock&--right-rail {
+    --right-width: var(--right-collapsed-width);
   }
 
   &__drag-bar {
@@ -306,10 +267,8 @@ const toAriaHidden = (hidden: boolean) => (hidden ? 'true' : undefined)
       content: '';
       position: absolute;
       inset: 1px 3px;
-      border-radius: 999px;
-      background: transparent;
       border: 1px solid transparent;
-      box-shadow: none;
+      border-radius: 999px;
       transition:
         background-color 180ms ease,
         border-color 180ms ease,
@@ -318,8 +277,6 @@ const toAriaHidden = (hidden: boolean) => (hidden ? 'true' : undefined)
 
     &::after {
       content: '';
-      position: relative;
-      display: block;
       width: var(--drag-pill-width);
       height: var(--drag-pill-height);
       border-radius: 999px;
@@ -338,126 +295,20 @@ const toAriaHidden = (hidden: boolean) => (hidden ? 'true' : undefined)
     }
   }
 
-  &--dragging &__drag-bar--draggable {
+  &--floating-dragging &__drag-bar--draggable {
     cursor: grabbing;
   }
 
-  &--resizing {
-    &,
-    * {
-      user-select: none;
-    }
-
-    .tr-layout-surface__drag-bar--draggable {
-      cursor: default;
-      pointer-events: none;
-
-      &::before {
-        background: transparent;
-        border-color: transparent;
-        box-shadow: none;
-      }
-    }
-  }
-
-  &--dragging {
-    .tr-layout-surface__drag-bar--draggable::before {
-      background: transparent;
-      border-color: transparent;
-      box-shadow: none;
-    }
-
-    :deep(.tr-layout-surface__resize-trigger) {
-      pointer-events: none;
-    }
-  }
-}
-
-.tr-layout {
-  /* 组件局部桥接变量 */
-  --left-width: 0px;
-  --right-width: 0px;
-  --left-collapsed-width: 0px;
-  --right-collapsed-width: 0px;
-}
-
-.tr-layout {
-  display: grid;
-  grid-template-columns:
-    var(--left-width)
-    minmax(var(--tr-layout-main-min-width, 320px), 1fr)
-    var(--right-width);
-  grid-template-rows: auto minmax(0, 1fr) auto;
-  grid-template-areas:
-    'left header right'
-    'left main right'
-    'left footer right';
-  position: relative;
-  isolation: isolate;
-  min-height: 0;
-  width: 100%;
-  height: var(--tr-layout-height, 100vh);
-  height: var(--tr-layout-height, 100dvh);
-  overflow: hidden;
-  background: var(--tr-layout-bg);
-  color: var(--tr-text-primary);
-  transition: grid-template-columns var(--transition-duration) var(--transition-easing);
-
-  &--resizing {
-    cursor: col-resize;
-    transition: none;
-
-    &,
-    * {
-      user-select: none;
-    }
-  }
-
-  &--left-dock&--left-expanded {
-    --left-width: var(--left-dock-width);
-  }
-
-  &--left-dock&--left-rail {
-    --left-width: var(--left-collapsed-width);
-  }
-
-  &--right-dock&--right-expanded {
-    --right-width: var(--right-dock-width);
-  }
-
-  &--right-dock&--right-rail {
-    --right-width: var(--right-collapsed-width);
-  }
-
-  &__aside,
   &__header-shell,
-  &__footer-shell,
-  &__main-shell {
+  &__main-shell,
+  &__footer-shell {
     min-width: 0;
     min-height: 0;
-  }
-
-  &__header-shell,
-  &__footer-shell {
-    display: none;
   }
 
   &__header-shell {
     grid-area: header;
     background: var(--tr-layout-header-bg);
-
-    &--active {
-      display: block;
-    }
-  }
-
-  &__footer-shell {
-    grid-area: footer;
-    background: var(--tr-layout-footer-bg);
-
-    &--active {
-      display: block;
-    }
   }
 
   &__main-shell {
@@ -466,36 +317,31 @@ const toAriaHidden = (hidden: boolean) => (hidden ? 'true' : undefined)
     background: var(--tr-layout-main-bg);
   }
 
+  &__footer-shell {
+    grid-area: footer;
+    background: var(--tr-layout-footer-bg);
+  }
+
   &__header-inner,
   &__main-inner,
   &__footer-inner {
-    width: 100%;
     box-sizing: border-box;
+    max-width: var(--tr-layout-content-max-width, 960px);
+    margin-inline: auto;
+    padding-inline: var(--tr-layout-inner-padding-inline);
   }
 
   &__header-inner {
-    max-width: var(--tr-layout-content-max-width, 960px);
-    margin-inline-start: auto;
-    margin-inline-end: auto;
-    padding-inline: var(--tr-layout-inner-padding-inline);
     padding-top: max(var(--tr-layout-inner-padding-block), env(safe-area-inset-top));
     padding-bottom: var(--tr-layout-inner-padding-block);
   }
 
   &__main-inner {
-    max-width: var(--tr-layout-content-max-width, 960px);
-    margin-inline-start: auto;
-    margin-inline-end: auto;
-    padding-inline: var(--tr-layout-inner-padding-inline);
-    min-height: 100%;
     height: 100%;
+    min-height: 100%;
   }
 
   &__footer-inner {
-    max-width: var(--tr-layout-content-max-width, 960px);
-    margin-inline-start: auto;
-    margin-inline-end: auto;
-    padding-inline: var(--tr-layout-inner-padding-inline);
     padding-top: var(--tr-layout-inner-padding-block);
     padding-bottom: max(var(--tr-layout-inner-padding-block), env(safe-area-inset-bottom));
   }
@@ -504,100 +350,8 @@ const toAriaHidden = (hidden: boolean) => (hidden ? 'true' : undefined)
     position: absolute;
     inset: 0;
     z-index: calc(var(--overlay-z-index) - 1);
-    border: 0;
     background: var(--tr-layout-overlay-bg);
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
     cursor: pointer;
-    transition:
-      opacity var(--transition-duration) var(--transition-easing),
-      visibility var(--transition-duration) var(--transition-easing);
-
-    &--active {
-      opacity: 1;
-      visibility: visible;
-      pointer-events: auto;
-    }
-  }
-
-  &__header,
-  &__footer {
-    min-width: 0;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-  }
-
-  &__aside {
-    position: relative;
-    overflow: visible;
-
-    &--left {
-      grid-area: left;
-      background: var(--tr-layout-left-bg);
-      border-inline-end: 1px solid var(--tr-layout-divider-color);
-    }
-
-    &--right {
-      grid-area: right;
-      background: var(--tr-layout-right-bg);
-      border-inline-start: 1px solid var(--tr-layout-divider-color);
-    }
-
-    &:not(.tr-layout__aside--active),
-    &--hidden {
-      border-color: transparent;
-    }
-
-    &--dock {
-      position: relative;
-      z-index: 1;
-
-      &.tr-layout__aside--rail {
-        overflow: visible;
-      }
-    }
-
-    &--drawer {
-      position: absolute;
-      grid-area: auto;
-      top: 0;
-      bottom: 0;
-      z-index: var(--overlay-z-index);
-      max-width: 100%;
-      overflow: hidden;
-      visibility: hidden;
-      pointer-events: none;
-      box-shadow: var(--tr-layout-panel-shadow);
-      will-change: transform;
-      transition:
-        transform var(--transition-duration) var(--transition-easing),
-        visibility var(--transition-duration) var(--transition-easing);
-
-      &.tr-layout__aside--left {
-        left: 0;
-        transform: translateX(-100%);
-      }
-
-      &.tr-layout__aside--right {
-        right: 0;
-        transform: translateX(100%);
-      }
-
-      &.tr-layout__aside--expanded {
-        visibility: visible;
-        pointer-events: auto;
-        transform: translateX(0);
-      }
-    }
-  }
-
-  &__aside-clip {
-    min-width: 0;
-    min-height: 0;
-    height: 100%;
-    overflow: hidden;
   }
 }
 </style>

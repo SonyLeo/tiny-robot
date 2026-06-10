@@ -2,15 +2,19 @@ import type { VNode } from 'vue'
 
 export type LayoutPlacement = 'left' | 'right'
 export type LayoutAsideMode = 'dock' | 'drawer'
+export type LayoutAsideCollapseEffect = 'overlay' | 'slide'
 export type LayoutMode = 'normal' | 'floating'
 export type LayoutFloatingPlacement = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'center'
 
-export interface LayoutFloating {
+export interface LayoutFloatingState {
   placement?: LayoutFloatingPlacement
   offsetX?: number
   offsetY?: number
   width?: number
   height?: number
+}
+
+export interface LayoutFloatingOptions {
   draggable?: boolean
   resizable?: boolean
   minWidth?: number
@@ -26,9 +30,9 @@ export interface LayoutAsideResizeEventDetail {
   width: number
 }
 
-export type LayoutFloatingDragEventDetail = LayoutFloating
+export type LayoutFloatingDragEventDetail = LayoutFloatingState
 
-export type LayoutFloatingResizeEventDetail = LayoutFloating & {
+export type LayoutFloatingResizeEventDetail = LayoutFloatingState & {
   handle: LayoutFloatingResizeHandle
 }
 
@@ -41,26 +45,34 @@ export interface LayoutAsideProps {
   minExpandedWidth?: number
   maxExpandedWidth?: number
   collapsedWidth?: number
+  collapseEffect?: LayoutAsideCollapseEffect
   resizable?: boolean
 }
 
-export interface LayoutAsideValue {
+export interface LayoutAsideState {
   open: boolean
   expandedWidth: number | undefined
 }
 
-export interface LayoutProps {
-  mode?: LayoutMode
-  leftAside?: LayoutAsideProps
-  rightAside?: LayoutAsideProps
-  floating?: LayoutFloating
-  defaultFloating?: LayoutFloating
-}
+export type LayoutProps =
+  | {
+      mode?: 'normal'
+      leftAside?: LayoutAsideProps
+      rightAside?: LayoutAsideProps
+    }
+  | {
+      mode: 'floating'
+      leftAside?: LayoutAsideProps
+      rightAside?: LayoutAsideProps
+      floatingState?: LayoutFloatingState
+      defaultFloatingState?: LayoutFloatingState
+      floatingOptions?: LayoutFloatingOptions
+    }
 
 export interface LayoutEmits {
-  'update:leftAside': [value: LayoutAsideValue]
-  'update:rightAside': [value: LayoutAsideValue]
-  'update:floating': [value: LayoutFloating]
+  'update:leftAside': [value: LayoutAsideState]
+  'update:rightAside': [value: LayoutAsideState]
+  'update:floatingState': [value: LayoutFloatingState]
   'floating-drag-start': [detail: LayoutFloatingDragEventDetail]
   'floating-drag': [detail: LayoutFloatingDragEventDetail]
   'floating-drag-end': [detail: LayoutFloatingDragEventDetail]

@@ -3,15 +3,15 @@ import { computed } from 'vue'
 import type { LayoutFloatingResizeHandle } from '../index.type'
 
 defineOptions({
-  name: 'LayoutSurfaceResizeTrigger',
+  name: 'FloatingResizeTrigger',
 })
 
-interface LayoutSurfaceResizeTriggerProps {
+interface FloatingResizeTriggerProps {
   handle: LayoutFloatingResizeHandle
   active?: boolean
 }
 
-const props = defineProps<LayoutSurfaceResizeTriggerProps>()
+const props = defineProps<FloatingResizeTriggerProps>()
 
 const emit = defineEmits<{
   (event: 'pointerdown', value: PointerEvent): void
@@ -30,18 +30,18 @@ const ariaLabelMap: Record<LayoutFloatingResizeHandle, string> = {
 
 const cursorClass = computed(() => {
   if (props.handle === 'n' || props.handle === 's') {
-    return 'tr-layout-surface__resize-trigger--ns'
+    return 'tr-layout__floating-resize-trigger--ns'
   }
 
   if (props.handle === 'e' || props.handle === 'w') {
-    return 'tr-layout-surface__resize-trigger--ew'
+    return 'tr-layout__floating-resize-trigger--ew'
   }
 
   if (props.handle === 'ne' || props.handle === 'sw') {
-    return 'tr-layout-surface__resize-trigger--nesw'
+    return 'tr-layout__floating-resize-trigger--nesw'
   }
 
-  return 'tr-layout-surface__resize-trigger--nwse'
+  return 'tr-layout__floating-resize-trigger--nwse'
 })
 
 const ariaLabel = computed(() => ariaLabelMap[props.handle])
@@ -50,25 +50,18 @@ const ariaLabel = computed(() => ariaLabelMap[props.handle])
 <template>
   <button
     type="button"
-    class="tr-layout-surface__resize-trigger"
-    :class="[`tr-layout-surface__resize-trigger--${handle}`, cursorClass]"
-    data-part="surface-resize-trigger"
-    :data-handle="handle"
-    :data-active="active ? '' : undefined"
+    class="tr-layout__floating-resize-trigger"
+    :class="[`tr-layout__floating-resize-trigger--${handle}`, cursorClass, { 'is-active': active }]"
     :aria-label="ariaLabel"
     tabindex="-1"
     @pointerdown="emit('pointerdown', $event)"
   >
-    <span
-      class="tr-layout-surface__resize-trigger-indicator"
-      data-part="surface-resize-trigger-indicator"
-      aria-hidden="true"
-    />
+    <span class="tr-layout__floating-resize-trigger-indicator" aria-hidden="true" />
   </button>
 </template>
 
 <style lang="less" scoped>
-.tr-layout-surface__resize-trigger {
+.tr-layout__floating-resize-trigger {
   position: absolute;
   padding: 0;
   outline: 0;
@@ -104,39 +97,39 @@ const ariaLabel = computed(() => ariaLabelMap[props.handle])
   }
 
   &--n {
-    top: calc(var(--hit-area-size) / -2);
+    top: 0;
   }
 
   &--s {
-    bottom: calc(var(--hit-area-size) / -2);
+    bottom: 0;
   }
 
   &--e {
-    right: calc(var(--hit-area-size) / -2);
+    right: 0;
   }
 
   &--w {
-    left: calc(var(--hit-area-size) / -2);
+    left: 0;
   }
 
   &--ne {
-    top: calc(var(--hit-area-size) / -2);
-    right: calc(var(--hit-area-size) / -2);
+    top: 0;
+    right: 0;
   }
 
   &--nw {
-    top: calc(var(--hit-area-size) / -2);
-    left: calc(var(--hit-area-size) / -2);
+    top: 0;
+    left: 0;
   }
 
   &--se {
-    right: calc(var(--hit-area-size) / -2);
-    bottom: calc(var(--hit-area-size) / -2);
+    right: 0;
+    bottom: 0;
   }
 
   &--sw {
-    left: calc(var(--hit-area-size) / -2);
-    bottom: calc(var(--hit-area-size) / -2);
+    left: 0;
+    bottom: 0;
   }
 
   &--ns {
@@ -174,36 +167,36 @@ const ariaLabel = computed(() => ariaLabelMap[props.handle])
     z-index: 1;
   }
 
-  &--n .tr-layout-surface__resize-trigger-indicator,
-  &--s .tr-layout-surface__resize-trigger-indicator {
+  &--n .tr-layout__floating-resize-trigger-indicator,
+  &--s .tr-layout__floating-resize-trigger-indicator {
     width: 28px;
     height: 6px;
   }
 
-  &--e .tr-layout-surface__resize-trigger-indicator,
-  &--w .tr-layout-surface__resize-trigger-indicator {
+  &--e .tr-layout__floating-resize-trigger-indicator,
+  &--w .tr-layout__floating-resize-trigger-indicator {
     width: 6px;
     height: 28px;
   }
 
-  &--ne .tr-layout-surface__resize-trigger-indicator,
-  &--nw .tr-layout-surface__resize-trigger-indicator,
-  &--se .tr-layout-surface__resize-trigger-indicator,
-  &--sw .tr-layout-surface__resize-trigger-indicator {
+  &--ne .tr-layout__floating-resize-trigger-indicator,
+  &--nw .tr-layout__floating-resize-trigger-indicator,
+  &--se .tr-layout__floating-resize-trigger-indicator,
+  &--sw .tr-layout__floating-resize-trigger-indicator {
     width: 10px;
     height: 10px;
     border-radius: 3px;
   }
 
   &:hover {
-    .tr-layout-surface__resize-trigger-indicator {
+    .tr-layout__floating-resize-trigger-indicator {
       opacity: var(--indicator-hover-opacity);
     }
   }
 
-  &[data-active],
+  &.is-active,
   &:focus-visible {
-    .tr-layout-surface__resize-trigger-indicator {
+    .tr-layout__floating-resize-trigger-indicator {
       opacity: 1;
       background: var(--indicator-active-bg);
       border-color: var(--indicator-active-border);

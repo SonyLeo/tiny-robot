@@ -10,13 +10,13 @@ import {
   type Ref,
 } from 'vue'
 import type {
-  LayoutFloating,
   LayoutFloatingDragEventDetail,
   LayoutFloatingResizeEventDetail,
   LayoutFloatingResizeHandle,
+  LayoutFloatingState,
   LayoutMode,
 } from '../index.type'
-import type { LayoutFloatingRect } from '../internal.type'
+import type { LayoutFloatingRect, LayoutResolvedFloating } from '../internal.type'
 import {
   areFloatingGeometryEqual,
   clampFloatingRect,
@@ -27,17 +27,18 @@ import {
   DEFAULT_FLOATING_WIDTH,
   normalizeFloatingRect,
   resolveFloatingSnapshot,
-  toCommittedFloatingConfig,
+  toCommittedFloatingState,
 } from '../utils/surfaceGeometry'
 import { resolveFloatingResizeRect } from '../utils/surfaceResize'
 import { lockBodyInteraction, restoreBodyInteraction, type BodyInteractionState } from '../utils/domInteraction'
 
 interface UseLayoutFloatingSurfaceOptions {
   mode: MaybeRefOrGetter<LayoutMode>
-  floating: MaybeRefOrGetter<LayoutFloating | undefined>
-  commitFloating: (nextFloating: LayoutFloating) => void
-  initializeFloating: (nextFloating: LayoutFloating) => void
-  frameRef: Ref<HTMLElement | null>
+  floatingState: MaybeRefOrGetter<LayoutFloatingState | undefined>
+  floating: MaybeRefOrGetter<LayoutResolvedFloating | undefined>
+  commitFloatingState: (nextFloating: LayoutFloatingState) => void
+  initializeFloatingState: (nextFloating: LayoutFloatingState) => void
+  rootRef: Ref<HTMLElement | null>
   dragHandleRef: Ref<HTMLElement | null>
   onFloatingDragStart?: (detail: LayoutFloatingDragEventDetail) => void
   onFloatingDrag?: (detail: LayoutFloatingDragEventDetail) => void
@@ -88,6 +89,7 @@ export function useLayoutFloatingSurface(options: UseLayoutFloatingSurfaceOption
   const mode = computed<LayoutMode>(() => toValue(options.mode))
   const isFloating = computed(() => mode.value === 'floating')
   const isNormal = computed(() => mode.value === 'normal')
+  const floatingStateValue = computed(() => toValue(options.floatingState))
   const floatingValue = computed(() => toValue(options.floating))
   const floatingRect = computed(() => normalizeFloatingRect(floatingValue.value))
   const isFloatingDraggable = computed(() => floatingRect.value.draggable ?? true)
@@ -96,12 +98,12 @@ export function useLayoutFloatingSurface(options: UseLayoutFloatingSurfaceOption
   const activeResizeHandle = computed<LayoutFloatingResizeHandle | null>(() => activeResize.value?.handle ?? null)
   const canDragFloating = computed(() => isFloating.value && isFloatingDraggable.value && !isResizing.value)
 
-  function toFloatingConfig(rect: LayoutFloatingRect): LayoutFloating {
-    return toCommittedFloatingConfig(resolveFloatingSnapshot(rect, floatingValue.value), floatingValue.value)
+  function toFloatingState(rect: LayoutFloatingRect): LayoutFloatingState {
+    return toCommittedFloatingState(resolveFloatingSnapshot(rect, floatingValue.value), floatingStateValue.value)
   }
 
   function toDragDetail(rect: LayoutFloatingRect): LayoutFloatingDragEventDetail {
-    return toFloatingConfig(rect)
+    return toFloatingState(rect)
   }
 
   function toResizeDetail(
@@ -121,7 +123,7 @@ export function useLayoutFloatingSurface(options: UseLayoutFloatingSurfaceOption
       return normalizedRect
     }
 
-    options.commitFloating(toFloatingConfig(normalizedRect))
+    options.commitFloatingState(toFloatingState(normalizedRect))
 
     return normalizedRect
   }
@@ -131,8 +133,8 @@ export function useLayoutFloatingSurface(options: UseLayoutFloatingSurfaceOption
       return
     }
 
-    if (!floatingValue.value) {
-      options.initializeFloating(toFloatingConfig(floatingRect.value))
+    if (!floatingStateValue.value) {
+      options.initializeFloatingState(toFloatingState(floatingRect.value))
     }
 
     const nextRect = commitRect(floatingRect.value)
@@ -153,7 +155,7 @@ export function useLayoutFloatingSurface(options: UseLayoutFloatingSurfaceOption
     return nextRect
   }
 
-  const { x, y, isDragging } = useDraggable(options.frameRef, {
+  const { x, y, isDragging } = useDraggable(options.rootRef, {
     handle: options.dragHandleRef,
     initialValue: { x: DEFAULT_FLOATING_GAP, y: DEFAULT_FLOATING_TOP },
     preventDefault: true,
@@ -280,17 +282,14 @@ export function useLayoutFloatingSurface(options: UseLayoutFloatingSurfaceOption
     { immediate: true },
   )
 
-  const surfaceClass = computed(() => ({
-    'tr-layout-surface--normal': isNormal.value,
-    'tr-layout-surface--floating': isFloating.value,
-    'tr-layout-surface--dragging': isDragging.value,
-    'tr-layout-surface--draggable': canDragFloating.value,
-    'tr-layout-surface--resizable': isFloating.value && isFloatingResizable.value,
-    'tr-layout-surface--resizing': isResizing.value,
+  const floatingClass = computed(() => ({
+    'tr-layout--floating': isFloating.value,
+    'tr-layout--floating-dragging': isDragging.value,
+    'tr-layout--floating-resizing': isResizing.value,
   }))
 
-  const surfaceStyle = computed<CSSProperties>(() => {
-    if (!isFloating.value) {
+  const floatingStyle = computed<CSSProperties>(() => {
+    if (isNormal.value) {
       return {}
     }
 
@@ -303,7 +302,7 @@ export function useLayoutFloatingSurface(options: UseLayoutFloatingSurfaceOption
   })
 
   const dragBarClass = computed(() => ({
-    'tr-layout-surface__drag-bar--draggable': canDragFloating.value,
+    'tr-layout__drag-bar--draggable': canDragFloating.value,
   }))
 
   const resizeHandles = computed(() =>
@@ -318,10 +317,9 @@ export function useLayoutFloatingSurface(options: UseLayoutFloatingSurfaceOption
     isFloating,
     showDragBar: computed(() => isFloating.value),
     showResizeHandles: computed(() => isFloating.value && isFloatingResizable.value),
-    surfaceClass,
-    surfaceStyle,
+    floatingClass,
+    floatingStyle,
     dragBarClass,
-    activeResizeHandle,
     resizeHandles,
   }
 }

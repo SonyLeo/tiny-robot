@@ -24,14 +24,11 @@ const isDragging = computed(() => props.draggingPlacement === props.placement)
   <button
     type="button"
     class="tr-layout__resize-trigger"
-    :class="`tr-layout__resize-trigger--${placement}`"
-    data-part="resize-trigger"
-    :data-placement="placement"
-    :data-dragging="isDragging ? '' : undefined"
+    :class="[`tr-layout__resize-trigger--${placement}`, { 'is-dragging': isDragging }]"
     tabindex="-1"
     @pointerdown="emit('pointerdown', $event)"
   >
-    <span class="tr-layout__resize-trigger-indicator" data-part="resize-trigger-indicator" aria-hidden="true" />
+    <span class="tr-layout__resize-trigger-indicator" aria-hidden="true" />
   </button>
 </template>
 
@@ -98,7 +95,7 @@ const isDragging = computed(() => props.draggingPlacement === props.placement)
 
   &:hover,
   &:focus-visible,
-  &[data-dragging] {
+  &.is-dragging {
     .tr-layout__resize-trigger-indicator {
       opacity: 1;
       transform: translateX(0) scale(1);
@@ -106,11 +103,11 @@ const isDragging = computed(() => props.draggingPlacement === props.placement)
   }
 
   &:hover::before,
-  &[data-dragging]::before {
+  &.is-dragging::before {
     background: var(--line-hover-color);
   }
 
-  &[data-dragging] {
+  &.is-dragging {
     &::before {
       background: var(--line-active-color);
     }
