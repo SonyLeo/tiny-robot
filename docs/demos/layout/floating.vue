@@ -1,16 +1,19 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { TrLayout } from '@opentiny/tiny-robot'
-import type { LayoutFloating } from '@opentiny/tiny-robot'
+import type { LayoutFloatingOptions, LayoutFloatingState } from '@opentiny/tiny-robot'
 
 const open = ref(false)
 
-const defaultFloating: LayoutFloating = {
+const defaultFloatingState: LayoutFloatingState = {
   placement: 'top-right',
   offsetX: 24,
   offsetY: 32,
   width: 520,
   height: 360,
+}
+
+const floatingOptions: LayoutFloatingOptions = {
   draggable: true,
   resizable: true,
   minWidth: 360,
@@ -20,13 +23,20 @@ const defaultFloating: LayoutFloating = {
 
 <template>
   <div class="layout-floating-demo">
-    <button type="button" class="layout-floating-demo__trigger" @click="open = !open">
-      {{ open ? '关闭浮层' : '打开浮层' }}
-    </button>
+    <div class="layout-floating-demo__toolbar">
+      <button type="button" class="layout-floating-demo__trigger" @click="open = !open">
+        {{ open ? '关闭浮层' : '打开浮层' }}
+      </button>
+      <span class="layout-floating-demo__tip">拖动顶部横条或边缘手柄调整位置和大小。</span>
+    </div>
 
-    <p class="layout-floating-demo__tip">打开后可直接拖动顶部横条，或拖动 8 个方向手柄调整尺寸。</p>
-
-    <TrLayout v-if="open" class="layout-floating-demo__layout" mode="floating" :default-floating="defaultFloating">
+    <TrLayout
+      v-if="open"
+      class="layout-floating-demo__layout"
+      mode="floating"
+      :default-floating-state="defaultFloatingState"
+      :floating-options="floatingOptions"
+    >
       <template #header>
         <div class="layout-floating-demo__header">
           <strong>浮层布局</strong>
@@ -36,13 +46,8 @@ const defaultFloating: LayoutFloating = {
 
       <template #main>
         <div class="layout-floating-demo__main">
-          <h3>初始值写法</h3>
-          <p>
-            这个示例只传 `defaultFloating`，首次挂载时按 `placement + offsetX + offsetY`
-            初始化，后续位置和尺寸由组件自己维护。
-          </p>
-          <p>当前通过 `v-if` 控制挂载，所以重新打开时会重新按 `defaultFloating` 初始化。</p>
-          <p>受控写法时，`floating` 和 `update:floating` 也使用同一套 `LayoutFloating` 字段。</p>
+          <div class="layout-floating-demo__card">`defaultFloatingState` 设置初始位置和大小。</div>
+          <div class="layout-floating-demo__card">`floatingOptions` 控制拖动、缩放和尺寸范围。</div>
         </div>
       </template>
     </TrLayout>
@@ -61,6 +66,13 @@ const defaultFloating: LayoutFloating = {
   gap: 8px;
 }
 
+.layout-floating-demo__toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .layout-floating-demo__trigger,
 .layout-floating-demo__close {
   height: 36px;
@@ -73,7 +85,19 @@ const defaultFloating: LayoutFloating = {
 }
 
 .layout-floating-demo__tip {
-  margin: 0 0 8px;
+  color: var(--vp-c-text-2, var(--tr-text-secondary, #4e5969));
+}
+
+.layout-floating-demo__main {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+
+.layout-floating-demo__card {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--vp-c-bg-soft, #f6f8fa);
   color: var(--vp-c-text-2, var(--tr-text-secondary, #4e5969));
 }
 
@@ -85,16 +109,5 @@ const defaultFloating: LayoutFloating = {
   padding: 12px 16px;
   border-bottom: 1px solid var(--vp-c-divider, var(--tr-border-color, #dcdfe6));
   color: var(--vp-c-text-1, var(--tr-text-primary, #1f2329));
-}
-
-.layout-floating-demo__main {
-  padding: 16px;
-  color: var(--vp-c-text-1, var(--tr-text-primary, #1f2329));
-}
-
-.layout-floating-demo__main p {
-  margin: 8px 0 0;
-  line-height: 1.6;
-  color: var(--vp-c-text-2, var(--tr-text-secondary, #4e5969));
 }
 </style>

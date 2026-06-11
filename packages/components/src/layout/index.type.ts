@@ -49,26 +49,28 @@ export interface LayoutAsideProps {
   resizable?: boolean
 }
 
+export interface LayoutAsidePanelsProps {
+  leftAside?: LayoutAsideProps
+  rightAside?: LayoutAsideProps
+}
+
+export interface LayoutNormalProps extends LayoutAsidePanelsProps {
+  mode?: 'normal'
+}
+
+export interface LayoutFloatingProps extends LayoutAsidePanelsProps {
+  mode: 'floating'
+  floatingState?: LayoutFloatingState
+  defaultFloatingState?: LayoutFloatingState
+  floatingOptions?: LayoutFloatingOptions
+}
+
+export type LayoutProps = LayoutNormalProps | LayoutFloatingProps
+
 export interface LayoutAsideState {
   open: boolean
   expandedWidth: number | undefined
 }
-
-export type LayoutProps =
-  | {
-      mode?: 'normal'
-      leftAside?: LayoutAsideProps
-      rightAside?: LayoutAsideProps
-    }
-  | {
-      mode: 'floating'
-      leftAside?: LayoutAsideProps
-      rightAside?: LayoutAsideProps
-      floatingState?: LayoutFloatingState
-      defaultFloatingState?: LayoutFloatingState
-      floatingOptions?: LayoutFloatingOptions
-    }
-
 export interface LayoutEmits {
   'update:leftAside': [value: LayoutAsideState]
   'update:rightAside': [value: LayoutAsideState]

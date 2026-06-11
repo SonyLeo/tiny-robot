@@ -1,41 +1,42 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { TrLayout } from '@opentiny/tiny-robot'
-import type { LayoutFloating } from '@opentiny/tiny-robot'
+import type { LayoutFloatingOptions, LayoutFloatingState } from '@opentiny/tiny-robot'
 
-function createFloating(): LayoutFloating {
+function createFloatingState(): LayoutFloatingState {
   return {
-    placement: 'top-right',
-    offsetX: 0,
-    offsetY: 88,
-    width: 360,
-    height: 420,
-    draggable: true,
-    resizable: true,
-    minWidth: 320,
-    minHeight: 240,
+    placement: 'center',
+    width: 420,
+    height: 320,
   }
 }
 
 const open = ref(false)
 const writebackEnabled = ref(true)
-const floating = ref<LayoutFloating>(createFloating())
-const lastEmittedFloating = ref<LayoutFloating | null>(null)
+const floatingState = ref<LayoutFloatingState>(createFloatingState())
+const lastEmittedFloatingState = ref<LayoutFloatingState | null>(null)
 
-const floatingText = computed(() => JSON.stringify(floating.value, null, 2))
-const emittedText = computed(() => JSON.stringify(lastEmittedFloating.value, null, 2))
+const floatingOptions: LayoutFloatingOptions = {
+  draggable: true,
+  resizable: true,
+  minWidth: 320,
+  minHeight: 240,
+}
 
-function updateFloating(nextFloating: LayoutFloating) {
-  lastEmittedFloating.value = nextFloating
+const floatingStateText = computed(() => JSON.stringify(floatingState.value, null, 2))
+const emittedText = computed(() => JSON.stringify(lastEmittedFloatingState.value, null, 2))
+
+function updateFloatingState(nextFloatingState: LayoutFloatingState) {
+  lastEmittedFloatingState.value = nextFloatingState
 
   if (writebackEnabled.value) {
-    floating.value = nextFloating
+    floatingState.value = nextFloatingState
   }
 }
 
 function reset() {
-  floating.value = createFloating()
-  lastEmittedFloating.value = null
+  floatingState.value = createFloatingState()
+  lastEmittedFloatingState.value = null
   open.value = true
 }
 </script>
@@ -57,13 +58,13 @@ function reset() {
     </div>
 
     <p class="layout-floating-controlled-demo__tip">
-      关闭回写后，拖拽和 resize 仍会触发 `update:floating`，但浮层会保持 `floating` prop 当前的值。
+      关闭回写后，拖拽和 resize 仍会触发 `update:floatingState`，但浮层会保持 `floatingState` prop 当前的值。
     </p>
 
     <div class="layout-floating-controlled-demo__grid">
       <div class="layout-floating-controlled-demo__card">
-        <div class="layout-floating-controlled-demo__card-title">floating prop</div>
-        <pre>{{ floatingText }}</pre>
+        <div class="layout-floating-controlled-demo__card-title">floatingState prop</div>
+        <pre>{{ floatingStateText }}</pre>
       </div>
 
       <div class="layout-floating-controlled-demo__card">
@@ -76,23 +77,22 @@ function reset() {
       v-if="open"
       class="layout-floating-controlled-demo__layout"
       mode="floating"
-      :floating="floating"
-      @update:floating="updateFloating"
+      :floating-state="floatingState"
+      :floating-options="floatingOptions"
+      @update:floating-state="updateFloatingState"
     >
       <template #header>
         <div class="layout-floating-controlled-demo__header">
-          <strong>受控聊天浮层</strong>
+          <strong>受控浮层</strong>
           <button type="button" class="layout-floating-controlled-demo__button" @click="open = false">关闭</button>
         </div>
       </template>
 
       <template #main>
         <div class="layout-floating-controlled-demo__main">
-          <div class="layout-floating-controlled-demo__bubble layout-floating-controlled-demo__bubble--assistant">
-            默认贴右侧边缘，`offsetX: 0`，更接近聊天面板场景。
-          </div>
-          <div class="layout-floating-controlled-demo__bubble layout-floating-controlled-demo__bubble--user">
-            拖动顶部横条或 8 个方向手柄，观察右侧 JSON 是否回写。
+          <div class="layout-floating-controlled-demo__note">开启回写后，拖动或缩放会直接同步到 `floatingState`。</div>
+          <div class="layout-floating-controlled-demo__note">
+            初始 `placement` 为 `center`，第一次拖动或缩放后会自动换成最近的角位置。
           </div>
         </div>
       </template>
@@ -173,21 +173,11 @@ function reset() {
   padding: 16px;
 }
 
-.layout-floating-controlled-demo__bubble {
-  max-width: 88%;
+.layout-floating-controlled-demo__note {
   padding: 12px 14px;
-  border-radius: 14px;
-  line-height: 1.6;
-}
-
-.layout-floating-controlled-demo__bubble--assistant {
-  background: var(--vp-c-bg-soft, #f6f8fa);
-  color: var(--vp-c-text-1, var(--tr-text-primary, #1f2329));
-}
-
-.layout-floating-controlled-demo__bubble--user {
-  margin-inline-start: auto;
+  border-radius: 12px;
   background: var(--vp-c-brand-soft, #e6f4ff);
   color: var(--vp-c-text-1, var(--tr-text-primary, #1f2329));
+  line-height: 1.6;
 }
 </style>

@@ -87,6 +87,7 @@ function createLayoutAsideState(
   const asideValue = computed(() => aside())
   const layoutMode = computed(() => asideValue.value?.mode ?? 'dock')
   const collapsedWidth = computed(() => asideValue.value?.collapsedWidth)
+  const collapseEffect = computed(() => asideValue.value?.collapseEffect ?? 'overlay')
   const resizable = computed(() => asideValue.value?.resizable ?? false)
   const minWidth = computed(() => asideValue.value?.minExpandedWidth ?? getDefaultAsideMinWidth(placement))
   const maxWidth = computed(() => asideValue.value?.maxExpandedWidth ?? getDefaultAsideMaxWidth(placement))
@@ -141,6 +142,7 @@ function createLayoutAsideState(
     isOpen: resolvedOpen,
     width: resolvedWidth,
     collapsedWidth,
+    collapseEffect,
     minWidth,
     maxWidth,
     resizable,

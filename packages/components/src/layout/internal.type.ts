@@ -2,7 +2,7 @@ import type { ComponentPublicInstance, ComputedRef, MaybeRefOrGetter } from 'vue
 import type {
   LayoutAsideCollapseEffect,
   LayoutAsideMode,
-  LayoutAsideProps,
+  LayoutAsidePanelsProps,
   LayoutFloatingOptions,
   LayoutFloatingState,
   LayoutMode,
@@ -21,10 +21,8 @@ export type LayoutFloatingRect = Omit<
   height: number
 }
 
-export interface LayoutRuntimeProps {
+export interface LayoutRuntimeProps extends LayoutAsidePanelsProps {
   mode: LayoutMode
-  leftAside?: LayoutAsideProps
-  rightAside?: LayoutAsideProps
   floatingState?: LayoutFloatingState
   defaultFloatingState?: LayoutFloatingState
   floatingOptions?: LayoutFloatingOptions
@@ -58,6 +56,7 @@ interface LayoutPanelValue {
   isOpen: boolean
   width: number | undefined
   collapsedWidth: number | undefined
+  collapseEffect: LayoutAsideCollapseEffect
   minWidth: number
   maxWidth: number
   resizable: boolean

@@ -13,6 +13,7 @@ function createDefaultPanelState(placement: LayoutPlacement): LayoutPanelState {
     isOpen: false,
     width: undefined,
     collapsedWidth: undefined,
+    collapseEffect: 'overlay',
     minWidth,
     maxWidth,
     resizable: false,
@@ -57,6 +58,10 @@ export function createLayoutContext(leftState?: LayoutPanelState, rightState?: L
 
     function getCollapsedWidth(): number | undefined {
       return toValue(source.collapsedWidth)
+    }
+
+    function getCollapseEffect(): LayoutPanelApi['collapseEffect'] {
+      return toValue(source.collapseEffect)
     }
 
     function getMinWidth(): number {
@@ -173,6 +178,9 @@ export function createLayoutContext(leftState?: LayoutPanelState, rightState?: L
       },
       get collapsedWidth() {
         return getCollapsedWidth()
+      },
+      get collapseEffect() {
+        return getCollapseEffect()
       },
       get minWidth() {
         return getMinWidth()

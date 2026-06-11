@@ -284,7 +284,7 @@ export class LayoutTestPage {
     effect: LayoutCollapseEffect,
     scope: ScopedTarget = this.page,
   ) {
-    await expect(this.getAsideContent(placement, scope)).toHaveClass(new RegExp(`tr-layout-aside--effect-${effect}`))
+    await expect(this.getAsideContent(placement, scope)).toHaveClass(new RegExp(`tr-layout__aside--effect-${effect}`))
   }
 
   async expectBackdropState(state: 'open' | 'closed', scope: ScopedTarget = this.page) {

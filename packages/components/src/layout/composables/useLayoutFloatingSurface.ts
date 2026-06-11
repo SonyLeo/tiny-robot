@@ -38,7 +38,7 @@ interface UseLayoutFloatingSurfaceOptions {
   floating: MaybeRefOrGetter<LayoutResolvedFloating | undefined>
   commitFloatingState: (nextFloating: LayoutFloatingState) => void
   initializeFloatingState: (nextFloating: LayoutFloatingState) => void
-  rootRef: Ref<HTMLElement | null>
+  frameRef: Ref<HTMLElement | null>
   dragHandleRef: Ref<HTMLElement | null>
   onFloatingDragStart?: (detail: LayoutFloatingDragEventDetail) => void
   onFloatingDrag?: (detail: LayoutFloatingDragEventDetail) => void
@@ -155,7 +155,7 @@ export function useLayoutFloatingSurface(options: UseLayoutFloatingSurfaceOption
     return nextRect
   }
 
-  const { x, y, isDragging } = useDraggable(options.rootRef, {
+  const { x, y, isDragging } = useDraggable(options.frameRef, {
     handle: options.dragHandleRef,
     initialValue: { x: DEFAULT_FLOATING_GAP, y: DEFAULT_FLOATING_TOP },
     preventDefault: true,
@@ -282,13 +282,13 @@ export function useLayoutFloatingSurface(options: UseLayoutFloatingSurfaceOption
     { immediate: true },
   )
 
-  const floatingClass = computed(() => ({
-    'tr-layout--floating': isFloating.value,
-    'tr-layout--floating-dragging': isDragging.value,
-    'tr-layout--floating-resizing': isResizing.value,
+  const frameClass = computed(() => ({
+    'tr-layout-frame--floating': isFloating.value,
+    'tr-layout-frame--floating-dragging': isDragging.value,
+    'tr-layout-frame--floating-resizing': isResizing.value,
   }))
 
-  const floatingStyle = computed<CSSProperties>(() => {
+  const frameStyle = computed<CSSProperties>(() => {
     if (isNormal.value) {
       return {}
     }
@@ -302,23 +302,26 @@ export function useLayoutFloatingSurface(options: UseLayoutFloatingSurfaceOption
   })
 
   const dragBarClass = computed(() => ({
-    'tr-layout__drag-bar--draggable': canDragFloating.value,
+    'tr-layout-frame__drag-bar--draggable': canDragFloating.value,
   }))
 
-  const resizeHandles = computed(() =>
-    RESIZE_HANDLES.map((handle) => ({
+  const resizeHandles = computed(() => {
+    if (!isFloating.value || !isFloatingResizable.value) {
+      return []
+    }
+
+    return RESIZE_HANDLES.map((handle) => ({
       handle,
       active: activeResizeHandle.value === handle,
       onPointerdown: (event: PointerEvent) => startResize(handle, event),
-    })),
-  )
+    }))
+  })
 
   return {
     isFloating,
     showDragBar: computed(() => isFloating.value),
-    showResizeHandles: computed(() => isFloating.value && isFloatingResizable.value),
-    floatingClass,
-    floatingStyle,
+    frameClass,
+    frameStyle,
     dragBarClass,
     resizeHandles,
   }
