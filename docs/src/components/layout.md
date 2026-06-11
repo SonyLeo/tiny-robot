@@ -14,27 +14,18 @@ outline: [1, 3]
 
 ## 基础布局
 
-基础布局适合最常见的桌面端页面：
-
-- 顶部放工具栏或标题
-- 中间放主内容
-- 左右两侧按需放导航或信息栏
-- 底部放状态栏或操作栏
-
-`Layout` 本身只负责分区，不限制各区域的内容。
+`Layout` 用于定义页面结构，区域中的具体内容可按需配置。
 
 <demo vue="../../demos/layout/basic.vue" title="基础布局" description="最小布局示例。" />
-
-配置详见：[Layout Props](#layout-props)、[Layout Slots](#layout-slots)
 
 ## 侧栏
 
 ### 展示形态
 
-侧栏由 `leftAside` / `rightAside` 配置，支持两种显示方式：
+用 `leftAside` / `rightAside` 配置侧栏。
 
-- `dock`：占据页面空间，适合常驻导航、工具栏或信息栏
-- `drawer`：覆盖在内容上方，适合临时面板
+- `dock`：占据页面空间
+- `drawer`：覆盖在内容上方
 
 `drawer` 的宽度通过 `--tr-layout-drawer-width` 控制。
 
@@ -42,12 +33,12 @@ outline: [1, 3]
 
 ### 收起行为
 
-`dock` 侧栏关闭时，可以完全隐藏，也可以保留一条窄栏。
+`collapsedWidth` 控制收起后还保留多少宽度，`collapseEffect` 控制收起时的动画效果。
 
 - `collapsedWidth > 0`：收起后保留一条窄栏
 - `collapsedWidth = 0`：收起后完全隐藏
-- `overlay`：内容基本留在原位
-- `slide`：内容会跟着一起移动
+- `overlay`：内容留在原位
+- `slide`：内容跟着一起移动
 
 <demo
   vue="../../demos/layout/aside-collapse-effect.vue"
@@ -57,17 +48,19 @@ outline: [1, 3]
 
 ### 状态控制
 
-推荐把 `leftAside` / `rightAside` 作为侧栏状态入口。插槽参数可以读取当前状态，也可以在插槽内部触发操作。
+用 `leftAside` / `rightAside` 控制开关和宽度。
 
-受控写法下，外部不回写，界面不会变化。
+插槽里可以读当前状态，也可以直接触发操作。
+
+由外部控制时，状态变化后要同步更新传入值。
 
 <demo
   vue="../../demos/layout/aside-slot-props.vue"
   title="状态控制"
-  description="通过 leftAside、rightAside 受控回写，并在插槽中读取侧栏状态。"
+  description="通过 leftAside、rightAside 同步侧栏状态，并在插槽中读取当前状态。"
 />
 
-插槽参数字段详见 [LayoutAsideSlotProps](#layoutasideslotprops)。
+插槽里可用的字段见 [LayoutAsideSlotProps](#layoutasideslotprops)。
 
 ### 宽度调整
 
@@ -75,28 +68,14 @@ outline: [1, 3]
 
 <demo vue="../../demos/layout/aside-resizable.vue" title="宽度调整" description="拖动分隔线查看当前宽度和边界。" />
 
-配置详见：[Layout Props](#layout-props)、[Layout Slots](#layout-slots)、[Layout Events](#layout-layout-events)、[CSS 变量](#layout-css-content)
-
 ## 主区滚动
 
-`Layout.Main` 用来接管主区滚动条，但它不制造滚动。真正发生滚动的仍然是你传入的 `scrollHost`。
+`Layout.Main` 用来处理主区滚动条，`scrollHost` 指向实际滚动的元素。
 
-不传 `scrollHost` 也可以正常显示，只是不会接管滚动条。
-
-:::tip `scrollHost` 怎么理解
-把 `scrollHost` 当成“真实出现滚动条的那个元素”。
-
-- 如果你自己写的是 `div`，就把 `div` 的 `ref` 传进来
-- 如果你传的是组件 `ref`，这个组件的根元素需要就是滚动容器
-:::
-
-使用时注意三点：
-
-- `scrollHost` 必须指向真实滚动容器
-- 滚动容器本身需要设置 `overflow: auto` 或 `overflow-y: auto`
+- 传滚动元素的 `ref`
+- `scrollHost` 必须指向实际滚动的元素
+- 这个元素需要设置 `overflow: auto` 或 `overflow-y: auto`
 - 建议同时设置 `width: 100%`、`height: 100%`、`box-sizing: border-box`
-
-`Layout.Main` 会统一处理主区滚动条的展示，因此不建议再额外定制 `scrollHost` 的滚动条样式。
 
 <demo
   vue="../../demos/layout/main-scroll.vue"
@@ -109,20 +88,16 @@ outline: [1, 3]
   description="切换查看 BubbleList 和普通 div 两种 scrollHost 写法。"
 />
 
-配置详见：[Layout.Main Props](#layout-main-props)、[CSS 变量](#layout-css-content)
-
 ## 浮层
 
-适合临时面板、对话工作区等悬浮场景。相关配置只在 `mode="floating"` 时生效。
+适合临时面板或悬浮工作区，只在 `mode="floating"` 时生效。
 
 ### 基本用法
 
-`defaultFloatingState` 用来设置初始位置和大小，`floatingOptions` 用来控制是否可拖动、是否可缩放，以及尺寸范围。
+`defaultFloatingState` 设置初始位置和大小，`floatingOptions` 设置拖动、缩放和尺寸范围。
 
-同一个浮层只需要选一种写法：
-
-- 想让组件自己记住位置和大小，用 `defaultFloatingState`
-- 想让外部控制位置和大小，用 `floatingState`
+- `defaultFloatingState`：只设置初始值
+- `floatingState`：由外部控制位置和大小
 
 <demo
   vue="../../demos/layout/floating.vue"
@@ -130,23 +105,17 @@ outline: [1, 3]
   description="打开时通过 defaultFloatingState 设置初始位置和大小。"
 />
 
-示例通过 `v-if` 控制挂载，关闭后重新打开会重新读取 `defaultFloatingState`。
+示例通过 `v-if` 控制挂载，重新打开后会按 `defaultFloatingState` 重新初始化。
 
 ### 状态控制
 
-`floatingState` 配合 `update:floatingState` 可以从外部控制浮层的位置和大小。外部不回写，界面不会变化。
-
-是否使用 `floatingState`，会在第一次渲染时确定。不要在已经显示出来之后，再切换成另一种写法。
-
-`placement` 为 `center` 时，第一次拖动或缩放后，会自动换成最近的角位置。
+用 `floatingState` 时，位置和大小由外部控制；它和 `defaultFloatingState` 二选一即可。
 
 <demo
   vue="../../demos/layout/floating-controlled.vue"
   title="状态控制"
   description="通过 floatingState 和 update:floatingState 回写浮层状态。"
 />
-
-配置详见：[Layout Props](#layout-props)、[Types](#types)、[Layout Events](#layout-layout-events)、[CSS 变量](#layout-css-basics)
 
 ## Props
 
@@ -155,7 +124,7 @@ outline: [1, 3]
 
 | 属性名 | 说明 | 类型 | 默认值 |
 | ------ | ---- | ---- | ------ |
-| `mode` | 布局模式；`normal` 参与普通布局，`floating` 会脱离普通布局并 Teleport 到 `body` | `'normal' \| 'floating'` | `'normal'` |
+| `mode` | 布局模式；`normal` 参与普通布局，`floating` 会脱离普通布局，不占原来的位置空间 | `'normal' \| 'floating'` | `'normal'` |
 | `leftAside` | 左侧栏配置 | `LayoutAsideProps` | `-` |
 | `rightAside` | 右侧栏配置 | `LayoutAsideProps` | `-` |
 | `floatingState` | 受控浮层状态，需配合 `update:floatingState` 回写 | `LayoutFloatingState` | `-` |
@@ -176,7 +145,7 @@ outline: [1, 3]
 | ------ | ---- | ---- | ------ |
 | `placement` | 控制的侧栏位置 | `'left' \| 'right'` | `-` |
 
-它只是一个现成的开关按钮。需要展示更多状态或自定义交互时，优先用 `left-aside` / `right-aside` 插槽。
+它是一个现成的开关按钮。需要自己控制侧栏内容和交互时，优先用 `left-aside` / `right-aside` 插槽。
 
 ## Slots
 
@@ -217,9 +186,7 @@ outline: [1, 3]
 | `floating-resize` | 调整浮层尺寸时持续触发 | `(detail: LayoutFloatingResizeEventDetail)` |
 | `floating-resize-end` | 结束调整浮层尺寸 | `(detail: LayoutFloatingResizeEventDetail)` |
 
-`left-aside-state-change` / `right-aside-state-change` 只回传运行时状态字段 `open` 和 `expandedWidth`。受控写法下，需要外部把它合并回 `leftAside` / `rightAside`。
-
-这两个事件只是告诉你“侧栏现在变成了什么状态”，不会把整个 `leftAside` / `rightAside` 对象原样回传回来。
+`left-aside-state-change` / `right-aside-state-change` 会带上最新的 `open` 和 `expandedWidth`；如果由外部控制，需要把新值更新回 `leftAside` / `rightAside`。
 
 #### 侧栏 resize 事件字段
 
@@ -230,7 +197,7 @@ outline: [1, 3]
 
 #### 浮层 drag 事件字段
 
-`floating-drag-start` / `floating-drag` / `floating-drag-end` 直接返回 `LayoutFloatingState`。
+`floating-drag-start` / `floating-drag` / `floating-drag-end` 会返回当前浮层的位置和大小。
 
 #### 浮层 resize 事件字段
 
@@ -290,7 +257,7 @@ outline: [1, 3]
 
 | 字段 | 说明 | 类型 | 默认值 |
 | ---- | ---- | ---- | ------ |
-| `placement` | 浮层锚点位置 | `'top-left' \| 'top-right' \| 'bottom-left' \| 'bottom-right' \| 'center'` | `'center'` |
+| `placement` | 浮层位置 | `'top-left' \| 'top-right' \| 'bottom-left' \| 'bottom-right' \| 'center'` | `'center'` |
 | `offsetX` | 横向偏移；`center` 下不参与定位 | `number` | `24` |
 | `offsetY` | 纵向偏移；`center` 下不参与定位 | `number` | `24` |
 | `width` | 浮层宽度；非受控时表示初始值，受控时表示当前值 | `number` | `420` |
