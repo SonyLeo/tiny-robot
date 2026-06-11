@@ -21,15 +21,14 @@ const isDragging = computed(() => props.draggingPlacement === props.placement)
 </script>
 
 <template>
-  <button
-    type="button"
+  <div
     class="tr-layout__resize-trigger"
     :class="[`tr-layout__resize-trigger--${placement}`, { 'is-dragging': isDragging }]"
-    tabindex="-1"
+    aria-hidden="true"
     @pointerdown="emit('pointerdown', $event)"
   >
     <span class="tr-layout__resize-trigger-indicator" aria-hidden="true" />
-  </button>
+  </div>
 </template>
 
 <style lang="less" scoped>
@@ -94,7 +93,6 @@ const isDragging = computed(() => props.draggingPlacement === props.placement)
   }
 
   &:hover,
-  &:focus-visible,
   &.is-dragging {
     .tr-layout__resize-trigger-indicator {
       opacity: 1;

@@ -37,7 +37,7 @@ const rightAsideRef = ref<HTMLElement | null>(null)
 
 function assignElementRef(target: Ref<HTMLElement | null>) {
   return (element: Element | ComponentPublicInstance | null) => {
-    target.value = element as HTMLElement | null
+    target.value = element instanceof HTMLElement ? element : null
   }
 }
 
@@ -160,7 +160,7 @@ const { isFloating, showDragBar, frameClass, frameStyle, dragBarClass, resizeHan
           <slot name="right-aside" v-bind="rightAsideSlotProps" />
         </AsideContent>
 
-        <div v-if="isDrawerVisible" class="tr-layout__backdrop" @pointerdown="closeDrawers" />
+        <div v-if="isDrawerVisible" class="tr-layout__backdrop" aria-hidden="true" @pointerdown="closeDrawers" />
       </div>
     </div>
   </Teleport>
@@ -186,9 +186,9 @@ const { isFloating, showDragBar, frameClass, frameStyle, dragBarClass, resizeHan
     position: fixed;
     overflow: visible;
     border: 1px solid var(--border-color);
-    border-radius: var(--tr-layout-surface-radius);
-    box-shadow: var(--tr-layout-surface-shadow);
-    z-index: var(--tr-layout-surface-z-index);
+    border-radius: var(--tr-layout-frame-radius);
+    box-shadow: var(--tr-layout-frame-shadow);
+    z-index: var(--tr-layout-frame-z-index);
     outline: 1px solid var(--outline-color);
     outline-offset: -1px;
 

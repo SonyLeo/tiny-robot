@@ -17,17 +17,6 @@ const emit = defineEmits<{
   (event: 'pointerdown', value: PointerEvent): void
 }>()
 
-const ariaLabelMap: Record<LayoutFloatingResizeHandle, string> = {
-  n: 'Resize floating panel from top edge',
-  s: 'Resize floating panel from bottom edge',
-  e: 'Resize floating panel from right edge',
-  w: 'Resize floating panel from left edge',
-  ne: 'Resize floating panel from top right corner',
-  nw: 'Resize floating panel from top left corner',
-  se: 'Resize floating panel from bottom right corner',
-  sw: 'Resize floating panel from bottom left corner',
-}
-
 const cursorClass = computed(() => {
   if (props.handle === 'n' || props.handle === 's') {
     return 'tr-layout-frame__resize-trigger--ns'
@@ -43,21 +32,17 @@ const cursorClass = computed(() => {
 
   return 'tr-layout-frame__resize-trigger--nwse'
 })
-
-const ariaLabel = computed(() => ariaLabelMap[props.handle])
 </script>
 
 <template>
-  <button
-    type="button"
+  <div
     class="tr-layout-frame__resize-trigger"
     :class="[`tr-layout-frame__resize-trigger--${handle}`, cursorClass, { 'is-active': active }]"
-    :aria-label="ariaLabel"
-    tabindex="-1"
+    aria-hidden="true"
     @pointerdown="emit('pointerdown', $event)"
   >
     <span class="tr-layout-frame__resize-trigger-indicator" aria-hidden="true" />
-  </button>
+  </div>
 </template>
 
 <style lang="less" scoped>
@@ -194,8 +179,7 @@ const ariaLabel = computed(() => ariaLabelMap[props.handle])
     }
   }
 
-  &.is-active,
-  &:focus-visible {
+  &.is-active {
     .tr-layout-frame__resize-trigger-indicator {
       opacity: 1;
       background: var(--indicator-active-bg);

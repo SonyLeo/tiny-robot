@@ -246,13 +246,14 @@ export class LayoutTestPage {
 
   async expectSurfaceMode(mode: LayoutMode, scope: ScopedTarget = this.page) {
     const target = isPage(scope) ? this.root : scope
+    const floatingClassPattern = /(^|\s)(tr-layout--floating|tr-layout-frame--floating)(\s|$)/
 
     if (mode === 'floating') {
-      await expect(target).toHaveClass(/tr-layout--floating/)
+      await expect(target).toHaveClass(floatingClassPattern)
       return
     }
 
-    await expect(target).not.toHaveClass(/tr-layout--floating/)
+    await expect(target).not.toHaveClass(floatingClassPattern)
   }
 
   async expectAsideMode(placement: LayoutPlacement, mode: LayoutAsideMode, scope: ScopedTarget = this.page) {

@@ -12,7 +12,7 @@ import DropdownMenu from './dropdown-menu'
 import Feedback from './feedback'
 import History from './history'
 import IconButton from './icon-button'
-import { Layout, LayoutAside, LayoutAsideToggle, LayoutMain } from './layout'
+import { Layout, LayoutAsideToggle, LayoutMain } from './layout'
 import { Prompt, Prompts } from './prompts'
 import Sender from './sender'
 import SenderCompat from './sender-compat'
@@ -85,7 +85,6 @@ const components = [
   IconButton,
   Layout,
   LayoutMain,
-  LayoutAside,
   LayoutAsideToggle,
   Prompt,
   Prompts,
@@ -145,8 +144,6 @@ export {
   Layout as TrLayout,
   LayoutMain,
   LayoutMain as TrLayoutMain,
-  LayoutAside,
-  LayoutAside as TrLayoutAside,
   LayoutAsideToggle,
   LayoutAsideToggle as TrLayoutAsideToggle,
   Prompt,

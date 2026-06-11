@@ -1,19 +1,22 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { TrLayout } from '@opentiny/tiny-robot'
-import type { LayoutFloating } from '@opentiny/tiny-robot'
+import type { LayoutFloatingOptions, LayoutFloatingState } from '@opentiny/tiny-robot'
 
-const blockedFloating = ref<LayoutFloating>({
+const blockedFloatingState = ref<LayoutFloatingState>({
   placement: 'top-left',
   offsetX: 64,
   offsetY: 96,
   width: 420,
   height: 300,
+})
+
+const blockedFloatingOptions: LayoutFloatingOptions = {
   draggable: true,
   resizable: true,
   minWidth: 320,
   maxWidth: 480,
-})
+}
 
 const blockedFloatingUpdates = ref(0)
 const blockedFloatingLastPlacement = ref('')
@@ -21,17 +24,20 @@ const blockedFloatingLastOffsetX = ref(-1)
 const blockedFloatingLastOffsetY = ref(-1)
 const blockedFloatingLastWidth = ref(420)
 
-const uncontrolledDefaultFloating = ref<LayoutFloating>({
+const uncontrolledDefaultFloatingState = ref<LayoutFloatingState>({
   placement: 'top-right',
   offsetX: 24,
   offsetY: 32,
   width: 420,
   height: 300,
+})
+
+const uncontrolledFloatingOptions: LayoutFloatingOptions = {
   draggable: true,
   resizable: true,
   minWidth: 320,
   maxWidth: 480,
-})
+}
 
 const uncontrolledFloatingUpdates = ref(0)
 const uncontrolledFloatingLastPlacement = ref('')
@@ -40,7 +46,12 @@ const uncontrolledFloatingLastOffsetY = ref(-1)
 const uncontrolledFloatingLastWidth = ref(420)
 const showPlacementFixtures = ref(false)
 
-const placementDefaults: Array<{ marker: string; config: LayoutFloating }> = [
+const placementOptions: LayoutFloatingOptions = {
+  draggable: false,
+  resizable: false,
+}
+
+const placementDefaults: Array<{ marker: string; config: LayoutFloatingState }> = [
   {
     marker: 'placement-top-left',
     config: {
@@ -49,8 +60,6 @@ const placementDefaults: Array<{ marker: string; config: LayoutFloating }> = [
       offsetY: 16,
       width: 320,
       height: 220,
-      draggable: false,
-      resizable: false,
     },
   },
   {
@@ -61,8 +70,6 @@ const placementDefaults: Array<{ marker: string; config: LayoutFloating }> = [
       offsetY: 36,
       width: 340,
       height: 230,
-      draggable: false,
-      resizable: false,
     },
   },
   {
@@ -73,8 +80,6 @@ const placementDefaults: Array<{ marker: string; config: LayoutFloating }> = [
       offsetY: 44,
       width: 300,
       height: 210,
-      draggable: false,
-      resizable: false,
     },
   },
   {
@@ -85,8 +90,6 @@ const placementDefaults: Array<{ marker: string; config: LayoutFloating }> = [
       offsetY: 32,
       width: 280,
       height: 200,
-      draggable: false,
-      resizable: false,
     },
   },
   {
@@ -97,13 +100,11 @@ const placementDefaults: Array<{ marker: string; config: LayoutFloating }> = [
       offsetY: 96,
       width: 360,
       height: 240,
-      draggable: false,
-      resizable: false,
     },
   },
 ]
 
-function handleBlockedFloating(next: LayoutFloating) {
+function handleBlockedFloating(next: LayoutFloatingState) {
   blockedFloatingUpdates.value += 1
   blockedFloatingLastPlacement.value = next.placement ?? ''
   blockedFloatingLastOffsetX.value = next.offsetX ?? -1
@@ -113,7 +114,7 @@ function handleBlockedFloating(next: LayoutFloating) {
   }
 }
 
-function handleUncontrolledFloating(next: LayoutFloating) {
+function handleUncontrolledFloating(next: LayoutFloatingState) {
   uncontrolledFloatingUpdates.value += 1
   uncontrolledFloatingLastPlacement.value = next.placement ?? ''
   uncontrolledFloatingLastOffsetX.value = next.offsetX ?? -1
@@ -124,8 +125,8 @@ function handleUncontrolledFloating(next: LayoutFloating) {
 }
 
 function updateUncontrolledDefaultFloating() {
-  uncontrolledDefaultFloating.value = {
-    ...uncontrolledDefaultFloating.value,
+  uncontrolledDefaultFloatingState.value = {
+    ...uncontrolledDefaultFloatingState.value,
     placement: 'bottom-left',
     offsetX: 40,
     offsetY: 48,
@@ -167,8 +168,9 @@ function openPlacementFixtures() {
       data-surface-marker="blocked-floating"
       class="floating-state-fixtures__layout"
       :mode="'floating'"
-      :floating="blockedFloating"
-      @update:floating="handleBlockedFloating"
+      :floating-state="blockedFloatingState"
+      :floating-options="blockedFloatingOptions"
+      @update:floating-state="handleBlockedFloating"
     >
       <template #main>
         <div class="floating-state-fixtures__panel">blocked controlled floating</div>
@@ -180,8 +182,9 @@ function openPlacementFixtures() {
       data-surface-marker="uncontrolled-floating"
       class="floating-state-fixtures__layout"
       mode="floating"
-      :default-floating="uncontrolledDefaultFloating"
-      @update:floating="handleUncontrolledFloating"
+      :default-floating-state="uncontrolledDefaultFloatingState"
+      :floating-options="uncontrolledFloatingOptions"
+      @update:floating-state="handleUncontrolledFloating"
     >
       <template #main>
         <div class="floating-state-fixtures__panel">
@@ -205,7 +208,8 @@ function openPlacementFixtures() {
         :data-surface-marker="placementFixture.marker"
         class="floating-state-fixtures__layout"
         mode="floating"
-        :default-floating="placementFixture.config"
+        :default-floating-state="placementFixture.config"
+        :floating-options="placementOptions"
       >
         <template #main>
           <div class="floating-state-fixtures__panel">{{ placementFixture.marker }}</div>

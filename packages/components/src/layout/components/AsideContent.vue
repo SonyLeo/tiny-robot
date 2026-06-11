@@ -102,6 +102,7 @@ const asideClass = computed(() => [
     top: 0;
     bottom: 0;
     z-index: var(--overlay-z-index);
+    width: var(--tr-layout-drawer-width, var(--tr-layout-aside-expanded-width));
     max-width: 100%;
     overflow: hidden;
     visibility: hidden;
@@ -145,6 +146,10 @@ const asideClass = computed(() => [
   height: 100%;
   transition: var(--tr-layout-aside-body-transition);
   will-change: width, transform;
+}
+
+.tr-layout__aside--drawer .tr-layout__aside-body {
+  width: var(--tr-layout-drawer-width, var(--tr-layout-aside-expanded-width));
 }
 
 .tr-layout__aside--dock .tr-layout__aside-body {

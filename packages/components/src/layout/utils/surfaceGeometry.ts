@@ -356,13 +356,13 @@ export function resolveFloatingSnapshot(
 export function toCommittedFloatingState(
   snapshot: FloatingSnapshot,
   source?: Partial<LayoutFloatingState>,
+  options?: { normalizeCenter?: boolean },
 ): LayoutFloatingState {
+  const sourcePlacement = source?.placement ?? snapshot.placement
   const placement =
-    source?.placement === undefined
-      ? 'center'
-      : source.placement === 'center'
-        ? resolveNearestCornerPlacement(snapshot.rect, snapshot.bounds)
-        : source.placement
+    options?.normalizeCenter && sourcePlacement === 'center'
+      ? resolveNearestCornerPlacement(snapshot.rect, snapshot.bounds)
+      : sourcePlacement
   const offset = resolveFloatingOffsetFromRect(snapshot.rect, snapshot.bounds, placement)
 
   return {

@@ -192,6 +192,8 @@ export function useLayoutAsideInteractions(options: UseLayoutAsideInteractionsOp
       return
     }
 
+    event.preventDefault()
+    event.stopPropagation()
     options.closeDrawers()
   })
 

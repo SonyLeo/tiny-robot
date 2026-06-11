@@ -15,21 +15,17 @@ function updateRightAside(next: LayoutAsideState) {
     <TrLayout
       :left-aside="{ defaultOpen: true, defaultExpandedWidth: 156, collapsedWidth: 56 }"
       :right-aside="{ mode: 'drawer', open: rightOpen }"
-      @update:rightAside="updateRightAside"
+      @right-aside-state-change="updateRightAside"
     >
-      <template #left-aside>
-        <TrLayout.Aside placement="left">
-          <template #default="{ isOpen }">
-            <div v-if="isOpen" class="layout-aside-demo__aside">
-              <TrLayout.AsideToggle placement="left" class="layout-aside-demo__chip">收起侧栏</TrLayout.AsideToggle>
-              <div class="layout-aside-demo__chip">collapsedWidth: 56px</div>
-            </div>
-            <div v-else class="layout-aside-demo__rail">
-              <TrLayout.AsideToggle placement="left" class="layout-aside-demo__rail-chip">栏</TrLayout.AsideToggle>
-              <div class="layout-aside-demo__rail-chip">56</div>
-            </div>
-          </template>
-        </TrLayout.Aside>
+      <template #left-aside="{ open }">
+        <div v-if="open" class="layout-aside-demo__aside">
+          <TrLayout.AsideToggle placement="left" class="layout-aside-demo__chip">收起侧栏</TrLayout.AsideToggle>
+          <div class="layout-aside-demo__chip">collapsedWidth: 56px</div>
+        </div>
+        <div v-else class="layout-aside-demo__rail">
+          <TrLayout.AsideToggle placement="left" class="layout-aside-demo__rail-chip">栏</TrLayout.AsideToggle>
+          <div class="layout-aside-demo__rail-chip">56</div>
+        </div>
       </template>
 
       <template #header>
@@ -44,13 +40,11 @@ function updateRightAside(next: LayoutAsideState) {
       </template>
 
       <template #right-aside>
-        <TrLayout.Aside placement="right" class="layout-aside-demo__drawer-panel">
-          <div class="layout-aside-demo__drawer">
-            <div>Drawer</div>
-            <div>点击遮罩、按 `Esc` 或按钮关闭。</div>
-            <TrLayout.AsideToggle placement="right" class="layout-aside-demo__chip">关闭抽屉</TrLayout.AsideToggle>
-          </div>
-        </TrLayout.Aside>
+        <div class="layout-aside-demo__drawer layout-aside-demo__drawer-panel">
+          <div>Drawer</div>
+          <div>点击遮罩、按 `Esc` 或按钮关闭。</div>
+          <TrLayout.AsideToggle placement="right" class="layout-aside-demo__chip">关闭抽屉</TrLayout.AsideToggle>
+        </div>
       </template>
     </TrLayout>
   </div>
@@ -63,6 +57,7 @@ function updateRightAside(next: LayoutAsideState) {
   --tr-layout-inner-padding-inline: 0;
   --tr-layout-inner-padding-block: 0;
   --tr-layout-left-bg: var(--vp-c-bg-alt, #f8fafc);
+  --tr-layout-drawer-width: 240px;
   height: 400px;
   overflow: hidden;
   border: 1px solid var(--vp-c-divider, var(--tr-border-color, #dcdfe6));
@@ -71,7 +66,7 @@ function updateRightAside(next: LayoutAsideState) {
 }
 
 .layout-aside-demo__drawer-panel {
-  --tr-layout-drawer-width: 240px;
+  height: 100%;
 }
 
 .layout-aside-demo__header,
@@ -106,6 +101,7 @@ function updateRightAside(next: LayoutAsideState) {
 
 .layout-aside-demo__rail {
   width: 56px;
+  height: 100%;
   padding: 12px 8px;
   box-sizing: border-box;
   justify-items: center;

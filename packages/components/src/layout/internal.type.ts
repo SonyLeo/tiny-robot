@@ -32,18 +32,12 @@ export type LayoutMainScrollHostComponent = Pick<ComponentPublicInstance, '$el'>
 
 export type LayoutMainScrollHost = HTMLElement | LayoutMainScrollHostComponent | null | undefined
 
-export interface LayoutAsideInternalProps {
-  placement: LayoutPlacement
-  collapseEffect?: LayoutAsideCollapseEffect
-}
-
 export interface LayoutAsideToggleProps {
   placement: LayoutPlacement
-  ariaLabel?: string
 }
 
 export interface LayoutMainProps {
-  scrollHost: LayoutMainScrollHost
+  scrollHost?: LayoutMainScrollHost
 }
 
 type ToMaybeRefFields<T> = {

@@ -98,20 +98,28 @@ export function useLayoutFloatingSurface(options: UseLayoutFloatingSurfaceOption
   const activeResizeHandle = computed<LayoutFloatingResizeHandle | null>(() => activeResize.value?.handle ?? null)
   const canDragFloating = computed(() => isFloating.value && isFloatingDraggable.value && !isResizing.value)
 
-  function toFloatingState(rect: LayoutFloatingRect): LayoutFloatingState {
-    return toCommittedFloatingState(resolveFloatingSnapshot(rect, floatingValue.value), floatingStateValue.value)
+  function toFloatingState(rect: LayoutFloatingRect, options?: { normalizeCenter?: boolean }): LayoutFloatingState {
+    return toCommittedFloatingState(
+      resolveFloatingSnapshot(rect, floatingValue.value),
+      floatingStateValue.value,
+      options,
+    )
   }
 
-  function toDragDetail(rect: LayoutFloatingRect): LayoutFloatingDragEventDetail {
-    return toFloatingState(rect)
+  function toDragDetail(
+    rect: LayoutFloatingRect,
+    options?: { normalizeCenter?: boolean },
+  ): LayoutFloatingDragEventDetail {
+    return toFloatingState(rect, options)
   }
 
   function toResizeDetail(
     handle: LayoutFloatingResizeHandle,
     rect: LayoutFloatingRect,
+    options?: { normalizeCenter?: boolean },
   ): LayoutFloatingResizeEventDetail {
     return {
-      ...toDragDetail(rect),
+      ...toDragDetail(rect, options),
       handle,
     }
   }
@@ -123,7 +131,7 @@ export function useLayoutFloatingSurface(options: UseLayoutFloatingSurfaceOption
       return normalizedRect
     }
 
-    options.commitFloatingState(toFloatingState(normalizedRect))
+    options.commitFloatingState(toFloatingState(normalizedRect, { normalizeCenter: true }))
 
     return normalizedRect
   }
@@ -169,15 +177,15 @@ export function useLayoutFloatingSurface(options: UseLayoutFloatingSurfaceOption
       const rect = floatingRect.value
       x.value = rect.x
       y.value = rect.y
-      options.onFloatingDragStart?.(toDragDetail(rect))
+      options.onFloatingDragStart?.(toDragDetail(rect, { normalizeCenter: true }))
     },
     onMove: (position) => {
       const nextRect = applyDraggedPosition(position.x, position.y)
-      options.onFloatingDrag?.(toDragDetail(nextRect))
+      options.onFloatingDrag?.(toDragDetail(nextRect, { normalizeCenter: true }))
     },
     onEnd: (position) => {
       const nextRect = applyDraggedPosition(position.x, position.y)
-      options.onFloatingDragEnd?.(toDragDetail(nextRect))
+      options.onFloatingDragEnd?.(toDragDetail(nextRect, { normalizeCenter: true }))
     },
   })
 
@@ -195,7 +203,7 @@ export function useLayoutFloatingSurface(options: UseLayoutFloatingSurfaceOption
     }
 
     restoreBodyInteraction(state.handleEl.ownerDocument.body, state.bodyState)
-    options.onFloatingResizeEnd?.(toResizeDetail(state.handle, state.currentRect))
+    options.onFloatingResizeEnd?.(toResizeDetail(state.handle, state.currentRect, { normalizeCenter: true }))
     activeResize.value = null
   }
 
@@ -225,7 +233,7 @@ export function useLayoutFloatingSurface(options: UseLayoutFloatingSurfaceOption
       bodyState: lockBodyInteraction(handleEl.ownerDocument.body, resolveResizeCursor(handle)),
     }
 
-    options.onFloatingResizeStart?.(toResizeDetail(handle, startRect))
+    options.onFloatingResizeStart?.(toResizeDetail(handle, startRect, { normalizeCenter: true }))
   }
 
   function applyResize(state: FloatingResizeState, pointerX: number, pointerY: number): void {
@@ -245,7 +253,7 @@ export function useLayoutFloatingSurface(options: UseLayoutFloatingSurfaceOption
     state.lastPointerX = pointerX
     state.lastPointerY = pointerY
 
-    options.onFloatingResize?.(toResizeDetail(state.handle, nextRect))
+    options.onFloatingResize?.(toResizeDetail(state.handle, nextRect, { normalizeCenter: true }))
   }
 
   useEventListener(pointerTarget, 'pointermove', (event: PointerEvent) => {

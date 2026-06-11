@@ -23,17 +23,16 @@ type EmitFn = <K extends keyof LayoutEmits>(event: K, ...args: LayoutEmits[K]) =
 const hasAsideField = (aside: LayoutAsideProps | undefined, field: keyof LayoutAsideProps): boolean =>
   aside !== undefined && Object.prototype.hasOwnProperty.call(aside, field)
 
-function hasRawProp(name: string): boolean {
+function hasFloatingStateProp(): boolean {
   const rawProps = getCurrentInstance()?.vnode.props as Record<string, unknown> | null | undefined
 
   if (!rawProps) {
     return false
   }
 
-  const kebabName = name.replace(/[A-Z]/g, (char) => `-${char.toLowerCase()}`)
-
   return (
-    Object.prototype.hasOwnProperty.call(rawProps, name) || Object.prototype.hasOwnProperty.call(rawProps, kebabName)
+    Object.prototype.hasOwnProperty.call(rawProps, 'floatingState') ||
+    Object.prototype.hasOwnProperty.call(rawProps, 'floating-state')
   )
 }
 
@@ -60,13 +59,13 @@ function resolveLayoutRuntimeProps(props: LayoutProps): LayoutRuntimeProps {
   }
 }
 
-function emitAsideValue(emit: EmitFn, placement: LayoutPlacement, value: LayoutAsideState): void {
+function emitAsideStateChange(emit: EmitFn, placement: LayoutPlacement, value: LayoutAsideState): void {
   if (placement === 'left') {
-    emit('update:leftAside', value)
+    emit('left-aside-state-change', value)
     return
   }
 
-  emit('update:rightAside', value)
+  emit('right-aside-state-change', value)
 }
 
 function isFloatingStateEqual(left: LayoutFloatingState | undefined, right: LayoutFloatingState | undefined): boolean {
@@ -79,6 +78,10 @@ function isFloatingStateEqual(left: LayoutFloatingState | undefined, right: Layo
   )
 }
 
+function resolveFiniteNumber(value: number | undefined, fallback: number): number {
+  return value === undefined || !Number.isFinite(value) ? fallback : value
+}
+
 function createLayoutAsideState(
   placement: LayoutPlacement,
   aside: () => LayoutAsideProps | undefined,
@@ -89,15 +92,21 @@ function createLayoutAsideState(
   const collapsedWidth = computed(() => asideValue.value?.collapsedWidth)
   const collapseEffect = computed(() => asideValue.value?.collapseEffect ?? 'overlay')
   const resizable = computed(() => asideValue.value?.resizable ?? false)
-  const minWidth = computed(() => asideValue.value?.minExpandedWidth ?? getDefaultAsideMinWidth(placement))
-  const maxWidth = computed(() => asideValue.value?.maxExpandedWidth ?? getDefaultAsideMaxWidth(placement))
+  const minWidth = computed(() =>
+    resolveFiniteNumber(asideValue.value?.minExpandedWidth, getDefaultAsideMinWidth(placement)),
+  )
+  const maxWidth = computed(() => {
+    const nextMaxWidth = resolveFiniteNumber(asideValue.value?.maxExpandedWidth, getDefaultAsideMaxWidth(placement))
+    return Math.max(minWidth.value, nextMaxWidth)
+  })
 
   const openState = useControllableState<boolean>({
     value: () => asideValue.value?.open,
     defaultValue: () =>
       hasAsideField(asideValue.value, 'defaultOpen') ? asideValue.value?.defaultOpen : getDefaultAsideOpen(placement),
     isControlled: () => hasAsideField(asideValue.value, 'open'),
-    onChange: (nextOpen) => emitAsideValue(emit, placement, { open: nextOpen, expandedWidth: resolvedWidth.value }),
+    onChange: (nextOpen) =>
+      emitAsideStateChange(emit, placement, { open: nextOpen, expandedWidth: resolvedWidth.value }),
   })
 
   const widthState = useControllableState<number | undefined>({
@@ -105,7 +114,8 @@ function createLayoutAsideState(
     defaultValue: () =>
       hasAsideField(asideValue.value, 'defaultExpandedWidth') ? asideValue.value?.defaultExpandedWidth : undefined,
     isControlled: () => hasAsideField(asideValue.value, 'expandedWidth'),
-    onChange: (nextWidth) => emitAsideValue(emit, placement, { open: resolvedOpen.value, expandedWidth: nextWidth }),
+    onChange: (nextWidth) =>
+      emitAsideStateChange(emit, placement, { open: resolvedOpen.value, expandedWidth: nextWidth }),
   })
 
   const resolvedOpen = computed(() => openState.resolvedState.value ?? getDefaultAsideOpen(placement))
@@ -153,7 +163,7 @@ function createLayoutAsideState(
 
 export function useLayoutRootState(props: LayoutProps, emit: EmitFn): UseLayoutRootStateResult {
   const runtimeProps = resolveLayoutRuntimeProps(props)
-  const floatingStateProvided = hasRawProp('floatingState')
+  const floatingStateProvided = hasFloatingStateProp()
 
   const floatingState = useControllableState<LayoutFloatingState | undefined>({
     value: () => runtimeProps.floatingState,

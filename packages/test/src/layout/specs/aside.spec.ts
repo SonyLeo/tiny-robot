@@ -1,7 +1,7 @@
 import { expect, test } from '../helpers'
 
 test.describe('Layout 组件测试 - Aside', () => {
-  test('Props: Layout.Aside mode - 应支持 dock 与 drawer 切换', async ({ layout }) => {
+  test('Props: leftAside / rightAside mode - 应支持 dock 与 drawer 切换', async ({ layout }) => {
     await layout.setAsideMode('left', 'drawer')
     await layout.expectAsideMode('left', 'drawer')
 
@@ -106,7 +106,7 @@ test.describe('Layout 组件测试 - Aside', () => {
     await layout.collapseAside('left')
 
     await layout.expectAsideState('left', 'closed')
-    await expect(layout.getAside('left')).toHaveAttribute('aria-hidden', 'true')
+    await expect(layout.getAside('left')).toHaveAttribute('inert', '')
   })
 
   test('Props: resizable=false - 应隐藏 resize trigger', async ({ layout }) => {
@@ -157,15 +157,12 @@ test.describe('Layout 组件测试 - Aside', () => {
     expect(Math.abs(afterWidth - beforeWidth)).toBeLessThan(2)
   })
 
-  test('Default props: defaultOpen / defaultWidth - 非受控 aside 应以内建状态启动，并支持自定义 ariaLabel', async ({
-    layout,
-  }) => {
+  test('Default props: defaultOpen / defaultExpandedWidth - 非受控 aside 应以内建状态启动', async ({ layout }) => {
     await layout.showAsideFixtures()
 
     const fixture = layout.uncontrolledAsideFixture
     const leftAside = layout.getAside('left', fixture)
 
-    await expect(fixture.getByTestId('uncontrolled-toggle')).toHaveAttribute('aria-label', 'Uncontrolled custom toggle')
     await expect(fixture.getByTestId('uncontrolled-open-state')).toHaveText('open')
 
     await layout.expectAsideState('left', 'open', fixture)
@@ -191,7 +188,7 @@ test.describe('Layout 组件测试 - Aside', () => {
     await expect.poll(async () => await layout.getWidth(leftAside)).toBeLessThanOrEqual(56)
   })
 
-  test('Default props: 初始化后更新 defaultOpen / defaultWidth 不应重新同步', async ({ layout }) => {
+  test('Default props: 初始化后更新 defaultOpen / defaultExpandedWidth 不应重新同步', async ({ layout }) => {
     await layout.showAsideFixtures()
 
     const fixture = layout.uncontrolledAsideFixture
@@ -208,7 +205,7 @@ test.describe('Layout 组件测试 - Aside', () => {
     expect(Math.abs(afterWidth - beforeWidth)).toBeLessThan(2)
   })
 
-  test('Default props: defaultWidth / minWidth / maxWidth - 非受控 resize 应更新内部宽度并 obey clamp', async ({
+  test('Default props: defaultExpandedWidth / minExpandedWidth / maxExpandedWidth - 非受控 resize 应更新内部宽度并 obey clamp', async ({
     layout,
   }) => {
     await layout.showAsideFixtures()
@@ -238,8 +235,6 @@ test.describe('Layout 组件测试 - Aside', () => {
     const leftAside = layout.getAside('left', fixture)
     const rightAside = layout.getAside('right', fixture)
 
-    await expect(fixture.getByTestId('drawer-left-toggle')).toHaveAttribute('aria-label', 'Custom drawer left label')
-
     await fixture.getByTestId('drawer-left-toggle').click()
     await expect(fixture.getByTestId('drawer-left-state')).toHaveText('open')
     await layout.expectBackdropState('open', fixture)
@@ -254,7 +249,7 @@ test.describe('Layout 组件测试 - Aside', () => {
     await expect(fixture.getByTestId('drawer-left-state')).toHaveText('closed')
     await layout.expectAsideState('left', 'closed', fixture)
     await layout.expectAsideState('right', 'open', fixture)
-    await expect(leftAside).toHaveAttribute('aria-hidden', 'true')
+    await expect(leftAside).toHaveAttribute('inert', '')
 
     const rightWidth = await layout.getWidth(rightAside)
     expect(rightWidth).toBeGreaterThanOrEqual(384)

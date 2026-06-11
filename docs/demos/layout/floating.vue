@@ -48,6 +48,7 @@ const floatingOptions: LayoutFloatingOptions = {
         <div class="layout-floating-demo__main">
           <div class="layout-floating-demo__card">`defaultFloatingState` 设置初始位置和大小。</div>
           <div class="layout-floating-demo__card">`floatingOptions` 控制拖动、缩放和尺寸范围。</div>
+          <div class="layout-floating-demo__card">关闭后重新打开，会重新读取默认位置。</div>
         </div>
       </template>
     </TrLayout>
@@ -56,7 +57,7 @@ const floatingOptions: LayoutFloatingOptions = {
 
 <style>
 .layout-floating-demo__layout {
-  --tr-layout-surface-radius: 12px;
+  --tr-layout-frame-radius: 12px;
 }
 </style>
 

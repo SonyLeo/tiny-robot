@@ -1,15 +1,3 @@
-export function toCssLength(value: number | string | undefined, fallback: string): string {
-  if (typeof value === 'number') {
-    return `${value}px`
-  }
-
-  if (typeof value === 'string' && value.trim()) {
-    return value
-  }
-
-  return fallback
-}
-
 export function toPx(value: number | undefined): string | undefined {
   return value === undefined ? undefined : `${value}px`
 }

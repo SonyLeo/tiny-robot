@@ -58,12 +58,21 @@ export interface LayoutNormalProps extends LayoutAsidePanelsProps {
   mode?: 'normal'
 }
 
-export interface LayoutFloatingProps extends LayoutAsidePanelsProps {
-  mode: 'floating'
-  floatingState?: LayoutFloatingState
-  defaultFloatingState?: LayoutFloatingState
-  floatingOptions?: LayoutFloatingOptions
-}
+type LayoutFloatingStateControlProps =
+  | {
+      floatingState: LayoutFloatingState | undefined
+      defaultFloatingState?: never
+    }
+  | {
+      floatingState?: undefined
+      defaultFloatingState?: LayoutFloatingState
+    }
+
+export type LayoutFloatingProps = LayoutAsidePanelsProps &
+  LayoutFloatingStateControlProps & {
+    mode: 'floating'
+    floatingOptions?: LayoutFloatingOptions
+  }
 
 export type LayoutProps = LayoutNormalProps | LayoutFloatingProps
 
@@ -72,8 +81,8 @@ export interface LayoutAsideState {
   expandedWidth: number | undefined
 }
 export interface LayoutEmits {
-  'update:leftAside': [value: LayoutAsideState]
-  'update:rightAside': [value: LayoutAsideState]
+  'left-aside-state-change': [value: LayoutAsideState]
+  'right-aside-state-change': [value: LayoutAsideState]
   'update:floatingState': [value: LayoutFloatingState]
   'floating-drag-start': [detail: LayoutFloatingDragEventDetail]
   'floating-drag': [detail: LayoutFloatingDragEventDetail]
@@ -93,6 +102,9 @@ export interface LayoutAsideSlotProps {
   expandedWidth: number | undefined
   collapsedWidth: number | undefined
   resizable: boolean
+  isRail: boolean
+  isHidden: boolean
+  canResize: boolean
   toggle: () => void
   setOpen: (next: boolean) => void
   setExpandedWidth: (next: number) => void

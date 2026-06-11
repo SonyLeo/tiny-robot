@@ -1,24 +1,38 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { TrLayout } from '@opentiny/tiny-robot'
-import type { LayoutAsideSlotProps, LayoutAsideState } from '@opentiny/tiny-robot'
+import type { LayoutAsideProps, LayoutAsideState } from '@opentiny/tiny-robot'
 
+const leftOpen = ref(true)
+const leftExpandedWidth = ref(220)
 const rightOpen = ref(false)
-const leftAsideApi = ref<LayoutAsideSlotProps | null>(null)
-const rightAsideApi = ref<LayoutAsideSlotProps | null>(null)
+
+const leftAside = computed<LayoutAsideProps>(() => ({
+  open: leftOpen.value,
+  expandedWidth: leftExpandedWidth.value,
+  collapsedWidth: 88,
+  minExpandedWidth: 160,
+  maxExpandedWidth: 320,
+  resizable: true,
+}))
+
+const rightAside = computed<LayoutAsideProps>(() => ({
+  mode: 'drawer',
+  open: rightOpen.value,
+}))
+
+function updateLeftAside(nextAside: LayoutAsideState) {
+  leftOpen.value = nextAside.open
+  leftExpandedWidth.value = nextAside.expandedWidth ?? leftExpandedWidth.value
+}
 
 function updateRightAside(nextAside: LayoutAsideState) {
   rightOpen.value = nextAside.open
 }
 
-function bindLeftAside(api: LayoutAsideSlotProps) {
-  leftAsideApi.value = api
-  return null
-}
-
-function bindRightAside(api: LayoutAsideSlotProps) {
-  rightAsideApi.value = api
-  return null
+function setLeftExpandedWidth(nextWidth: number) {
+  leftOpen.value = true
+  leftExpandedWidth.value = nextWidth
 }
 </script>
 
@@ -26,111 +40,53 @@ function bindRightAside(api: LayoutAsideSlotProps) {
   <div class="layout-slot-props-demo">
     <div class="layout-slot-props-demo__controls">
       <div class="layout-slot-props-demo__group">
-        <span class="layout-slot-props-demo__group-label">左侧 slot props</span>
-        <button
-          type="button"
-          class="layout-slot-props-demo__button"
-          :disabled="!leftAsideApi"
-          @click="leftAsideApi?.toggle()"
-        >
-          {{ leftAsideApi?.open ? '收起左侧栏' : '展开左侧栏' }}
+        <span class="layout-slot-props-demo__group-label">左侧栏</span>
+        <button type="button" class="layout-slot-props-demo__button" @click="leftOpen = !leftOpen">
+          {{ leftOpen ? '收起左侧栏' : '展开左侧栏' }}
         </button>
-        <button
-          type="button"
-          class="layout-slot-props-demo__button"
-          :disabled="!leftAsideApi"
-          @click="leftAsideApi?.setOpen(true)"
-        >
-          展开
+        <button type="button" class="layout-slot-props-demo__button" @click="leftOpen = true">展开</button>
+        <button type="button" class="layout-slot-props-demo__button" @click="leftOpen = false">收起</button>
+        <button type="button" class="layout-slot-props-demo__button" @click="setLeftExpandedWidth(160)">
+          宽度 160
         </button>
-        <button
-          type="button"
-          class="layout-slot-props-demo__button"
-          :disabled="!leftAsideApi"
-          @click="leftAsideApi?.setOpen(false)"
-        >
-          收起
+        <button type="button" class="layout-slot-props-demo__button" @click="setLeftExpandedWidth(240)">
+          宽度 240
         </button>
-        <button
-          type="button"
-          class="layout-slot-props-demo__button"
-          :disabled="!leftAsideApi?.resizable || leftAsideApi?.mode !== 'dock'"
-          @click="leftAsideApi?.setExpandedWidth(150)"
-        >
-          宽度 150
-        </button>
-        <button
-          type="button"
-          class="layout-slot-props-demo__button"
-          :disabled="!leftAsideApi?.resizable || leftAsideApi?.mode !== 'dock'"
-          @click="leftAsideApi?.setExpandedWidth(260)"
-        >
-          宽度 260
-        </button>
-        <button
-          type="button"
-          class="layout-slot-props-demo__button"
-          :disabled="!leftAsideApi?.resizable || leftAsideApi?.mode !== 'dock'"
-          @click="leftAsideApi?.setExpandedWidth(300)"
-        >
-          宽度 300
+        <button type="button" class="layout-slot-props-demo__button" @click="setLeftExpandedWidth(320)">
+          宽度 320
         </button>
       </div>
 
       <div class="layout-slot-props-demo__group">
-        <span class="layout-slot-props-demo__group-label">右侧 slot props</span>
-        <button
-          type="button"
-          class="layout-slot-props-demo__button"
-          :disabled="!rightAsideApi"
-          @click="rightAsideApi?.setOpen(true)"
-        >
-          打开抽屉
-        </button>
-        <button
-          type="button"
-          class="layout-slot-props-demo__button"
-          :disabled="!rightAsideApi"
-          @click="rightAsideApi?.setOpen(false)"
-        >
-          关闭抽屉
-        </button>
+        <span class="layout-slot-props-demo__group-label">右侧栏</span>
+        <button type="button" class="layout-slot-props-demo__button" @click="rightOpen = true">打开抽屉</button>
+        <button type="button" class="layout-slot-props-demo__button" @click="rightOpen = false">关闭抽屉</button>
       </div>
     </div>
 
     <TrLayout
       class="layout-slot-props-demo__layout"
-      :left-aside="{
-        defaultOpen: true,
-        defaultExpandedWidth: 220,
-        collapsedWidth: 100,
-        minExpandedWidth: 80,
-        maxExpandedWidth: 320,
-        resizable: true,
-      }"
-      :right-aside="{ mode: 'drawer', open: rightOpen }"
-      @update:rightAside="updateRightAside"
+      :left-aside="leftAside"
+      :right-aside="rightAside"
+      @left-aside-state-change="updateLeftAside"
+      @right-aside-state-change="updateRightAside"
     >
       <template #left-aside="slotProps">
-        <span class="layout-slot-props-demo__sync" aria-hidden="true">{{ bindLeftAside(slotProps) }}</span>
-
         <div class="layout-slot-props-demo__aside">
-          <div class="layout-slot-props-demo__meta">
-            <span>{{ slotProps.placement }}</span>
-            <span>{{ slotProps.mode }}</span>
-            <span>{{ slotProps.open ? 'open' : 'closed' }}</span>
-          </div>
+          <p class="layout-slot-props-demo__summary">
+            {{ slotProps.placement }} / {{ slotProps.mode }} / {{ slotProps.open ? 'open' : 'closed' }}
+          </p>
 
           <dl class="layout-slot-props-demo__list">
-            <div>
+            <div class="layout-slot-props-demo__row">
               <dt>expandedWidth</dt>
               <dd>{{ slotProps.expandedWidth ?? '-' }}</dd>
             </div>
-            <div>
+            <div class="layout-slot-props-demo__row">
               <dt>collapsedWidth</dt>
               <dd>{{ slotProps.collapsedWidth ?? '-' }}</dd>
             </div>
-            <div>
+            <div class="layout-slot-props-demo__row">
               <dt>resizable</dt>
               <dd>{{ slotProps.resizable }}</dd>
             </div>
@@ -139,26 +95,21 @@ function bindRightAside(api: LayoutAsideSlotProps) {
       </template>
 
       <template #header>
-        <div class="layout-slot-props-demo__header">外层控制区直接调用 slot props 暴露出的 action。</div>
+        <div class="layout-slot-props-demo__header">外层更新 leftAside / rightAside，插槽内读取当前状态。</div>
       </template>
 
       <template #main>
         <div class="layout-slot-props-demo__main">
-          <p>左侧和右侧的按钮都已经提到布局外层。</p>
-          <p>插槽内部只保留状态展示，操作仍然直接来自 slot props。</p>
+          <p>受控写法下，update 事件回传新状态，外部合并后再传回组件。</p>
+          <p>插槽参数适合展示当前状态，也可以在插槽内部直接调用操作方法。</p>
         </div>
       </template>
 
       <template #right-aside="slotProps">
-        <span class="layout-slot-props-demo__sync" aria-hidden="true">{{ bindRightAside(slotProps) }}</span>
-
         <div class="layout-slot-props-demo__drawer">
-          <div class="layout-slot-props-demo__meta">
-            <span>{{ slotProps.placement }}</span>
-            <span>{{ slotProps.mode }}</span>
-            <span>{{ slotProps.open ? 'open' : 'closed' }}</span>
-          </div>
-
+          <p class="layout-slot-props-demo__summary">
+            {{ slotProps.placement }} / {{ slotProps.mode }} / {{ slotProps.open ? 'open' : 'closed' }}
+          </p>
           <p>右侧抽屉也只展示状态。</p>
         </div>
       </template>
@@ -188,7 +139,7 @@ function bindRightAside(api: LayoutAsideSlotProps) {
 
 .layout-slot-props-demo__controls {
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .layout-slot-props-demo__group {
@@ -199,8 +150,8 @@ function bindRightAside(api: LayoutAsideSlotProps) {
 }
 
 .layout-slot-props-demo__group-label {
-  color: var(--vp-c-text-2, var(--tr-text-secondary, #4e5969));
   font-size: 12px;
+  font-weight: 600;
 }
 
 .layout-slot-props-demo__button {
@@ -213,96 +164,49 @@ function bindRightAside(api: LayoutAsideSlotProps) {
   cursor: pointer;
 }
 
-.layout-slot-props-demo__button:disabled {
-  cursor: not-allowed;
-  opacity: 0.48;
-}
-
-.layout-slot-props-demo__header,
-.layout-slot-props-demo__main,
-.layout-slot-props-demo__drawer {
-  background: var(--vp-c-bg, #ffffff);
-}
-
 .layout-slot-props-demo__header {
   padding: 12px 16px;
   border-bottom: 1px solid var(--vp-c-divider, var(--tr-border-color, #dcdfe6));
+  background: var(--vp-c-bg, #ffffff);
 }
 
 .layout-slot-props-demo__aside,
 .layout-slot-props-demo__drawer,
 .layout-slot-props-demo__main {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  display: grid;
+  align-content: start;
+  gap: 10px;
   box-sizing: border-box;
   height: 100%;
   min-height: 0;
   padding: 16px;
-}
-
-.layout-slot-props-demo__aside {
-  container-type: inline-size;
-}
-
-.layout-slot-props-demo__meta {
-  display: flex;
-  align-items: flex-start;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.layout-slot-props-demo__meta span {
-  padding: 4px 10px;
-  border-radius: 999px;
   background: var(--vp-c-bg, #ffffff);
-  border: 1px solid var(--vp-c-divider, var(--tr-border-color, #dcdfe6));
-  font-size: 12px;
 }
 
-.layout-slot-props-demo__list {
-  display: grid;
-  gap: 8px;
-  margin: 0;
-}
-
-.layout-slot-props-demo__list div {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-@container (max-width: 140px) {
-  .layout-slot-props-demo__meta {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .layout-slot-props-demo__meta span {
-    text-align: center;
-  }
-
-  .layout-slot-props-demo__list div {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 2px;
-  }
-}
-
-.layout-slot-props-demo__list dt,
-.layout-slot-props-demo__list dd,
+.layout-slot-props-demo__summary,
 .layout-slot-props-demo__main p,
-.layout-slot-props-demo__drawer p {
+.layout-slot-props-demo__drawer p,
+.layout-slot-props-demo__list dt,
+.layout-slot-props-demo__list dd {
   margin: 0;
 }
 
+.layout-slot-props-demo__summary,
 .layout-slot-props-demo__main,
 .layout-slot-props-demo__drawer {
   color: var(--vp-c-text-2, var(--tr-text-secondary, #4e5969));
 }
 
-.layout-slot-props-demo__sync {
-  display: none;
+.layout-slot-props-demo__list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+}
+
+.layout-slot-props-demo__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 </style>

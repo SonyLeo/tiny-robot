@@ -2,12 +2,13 @@
 import { computed, onBeforeUnmount, ref, watchEffect } from 'vue'
 import { BubbleList, TrLayout } from '@opentiny/tiny-robot'
 import type {
-  LayoutAsideValue,
+  LayoutAsideState,
   LayoutAsideResizeEventDetail,
-  LayoutFloating,
   LayoutFloatingDragEventDetail,
+  LayoutFloatingOptions,
   LayoutFloatingResizeEventDetail,
   LayoutFloatingResizeHandle,
+  LayoutFloatingState,
 } from '@opentiny/tiny-robot'
 import AsideStateFixtures from './fixtures/AsideStateFixtures.vue'
 import FloatingStateFixtures from './fixtures/FloatingStateFixtures.vue'
@@ -79,12 +80,15 @@ const showAsideStateFixtures = ref(false)
 const showFloatingStateFixtures = ref(false)
 const showCssVarFixtures = ref(false)
 
-const floating = ref<LayoutFloating>({
+const floatingState = ref<LayoutFloatingState>({
   placement: 'top-left',
   offsetX: 96,
   offsetY: 72,
   width: 520,
   height: 620,
+})
+
+const floatingOptions = ref<LayoutFloatingOptions>({
   draggable: true,
   resizable: true,
   minWidth: 360,
@@ -96,6 +100,7 @@ const leftAside = computed(() => ({
   open: leftOpen.value,
   expandedWidth: leftWidth.value,
   collapsedWidth: leftCollapsedWidth.value,
+  collapseEffect: leftCollapseEffect.value,
   minExpandedWidth: 220,
   maxExpandedWidth: 420,
   resizable: leftResizable.value,
@@ -106,6 +111,7 @@ const rightAside = computed(() => ({
   open: rightOpen.value,
   expandedWidth: rightWidth.value,
   collapsedWidth: rightCollapsedWidth.value,
+  collapseEffect: rightCollapseEffect.value,
   minExpandedWidth: 240,
   maxExpandedWidth: 420,
   resizable: rightResizable.value,
@@ -207,11 +213,11 @@ function setLeftCollapsedWidth(nextWidth: number) {
 }
 
 function disableFloatingResizable() {
-  floating.value = { ...floating.value, resizable: false }
+  floatingOptions.value = { ...floatingOptions.value, resizable: false }
 }
 
 function disableFloatingDraggable() {
-  floating.value = { ...floating.value, draggable: false }
+  floatingOptions.value = { ...floatingOptions.value, draggable: false }
 }
 
 function emptyConditionalSlots() {
@@ -219,7 +225,7 @@ function emptyConditionalSlots() {
   showLeftAsideSlot.value = false
 }
 
-function updateLeftAside(next: LayoutAsideValue) {
+function updateLeftAside(next: LayoutAsideState) {
   leftOpen.value = next.open
 
   if (next.expandedWidth !== undefined) {
@@ -228,7 +234,7 @@ function updateLeftAside(next: LayoutAsideValue) {
   }
 }
 
-function updateRightAside(next: LayoutAsideValue) {
+function updateRightAside(next: LayoutAsideState) {
   rightOpen.value = next.open
 
   if (next.expandedWidth !== undefined) {
@@ -237,8 +243,8 @@ function updateRightAside(next: LayoutAsideValue) {
   }
 }
 
-function updateFloating(next: LayoutFloating) {
-  floating.value = next
+function updateFloatingState(next: LayoutFloatingState) {
+  floatingState.value = next
 }
 
 function appendMessages() {
@@ -253,7 +259,14 @@ function appendMessages() {
 }
 
 function resetFloating() {
-  floating.value = { ...floating.value, placement: 'top-left', offsetX: 96, offsetY: 72, width: 520, height: 620 }
+  floatingState.value = {
+    ...floatingState.value,
+    placement: 'top-left',
+    offsetX: 96,
+    offsetY: 72,
+    width: 520,
+    height: 620,
+  }
   widths.value.floating = 520
 }
 
@@ -425,10 +438,11 @@ onBeforeUnmount(() => {
         :mode="mode"
         :left-aside="leftAside"
         :right-aside="rightAside"
-        :floating="floating"
-        @update:leftAside="updateLeftAside"
-        @update:rightAside="updateRightAside"
-        @update:floating="updateFloating"
+        :floating-state="floatingState"
+        :floating-options="floatingOptions"
+        @left-aside-state-change="updateLeftAside"
+        @right-aside-state-change="updateRightAside"
+        @update:floating-state="updateFloatingState"
         @aside-resize-start="handleAsideResizeStart"
         @aside-resize="handleAsideResize"
         @aside-resize-end="handleAsideResizeEnd"
@@ -439,24 +453,19 @@ onBeforeUnmount(() => {
         @floating-resize="handleFloatingResize"
         @floating-resize-end="handleFloatingResizeEnd"
       >
-        <template #left-aside>
-          <TrLayout.Aside
-            v-if="showLeftAsideSlot"
-            placement="left"
-            :collapse-effect="leftCollapseEffect"
-            class="layout-demo__aside layout-demo__aside--left"
-          >
+        <template #left-aside="{ open }">
+          <div v-if="showLeftAsideSlot" class="layout-demo__aside layout-demo__aside--left">
             <div class="layout-demo__aside-content" data-testid="left-aside-slot">
               <div class="layout-demo__aside-header">
                 <TrLayout.AsideToggle placement="left" data-testid="left-aside-toggle">
                   <template #default="{ isOpen }">
-                    <span data-testid="left-toggle-slot">{{ isOpen ? 'left-open' : 'left-close' }}</span>
+                    <span data-testid="left-toggle-slot">{{ isOpen && open ? 'left-open' : 'left-close' }}</span>
                   </template>
                 </TrLayout.AsideToggle>
               </div>
               <div class="layout-demo__aside-body">left aside content</div>
             </div>
-          </TrLayout.Aside>
+          </div>
         </template>
 
         <template #header>
@@ -474,18 +483,14 @@ onBeforeUnmount(() => {
         </template>
 
         <template #right-aside>
-          <TrLayout.Aside
-            placement="right"
-            :collapse-effect="rightCollapseEffect"
-            class="layout-demo__aside layout-demo__aside--right"
-          >
+          <div class="layout-demo__aside layout-demo__aside--right">
             <div class="layout-demo__aside-content" data-testid="right-aside-slot">
               <div class="layout-demo__aside-header">
                 <TrLayout.AsideToggle placement="right" data-testid="right-aside-toggle" />
               </div>
               <div class="layout-demo__aside-body">right aside content</div>
             </div>
-          </TrLayout.Aside>
+          </div>
         </template>
       </TrLayout>
     </div>
@@ -545,6 +550,11 @@ onBeforeUnmount(() => {
 
 .layout-demo__aside--right {
   --tr-layout-drawer-width: min(88vw, 360px);
+}
+
+.layout-demo__aside {
+  width: 100%;
+  height: 100%;
 }
 
 .layout-demo__aside-content {

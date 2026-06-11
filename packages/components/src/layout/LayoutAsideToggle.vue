@@ -15,11 +15,6 @@ const slotProps = computed(() => ({
   isOpen: isOpen.value,
 }))
 
-const defaultAriaLabels = {
-  left: 'Toggle left panel',
-  right: 'Toggle right panel',
-} as const
-
 const fallbackTexts = {
   left: {
     expanded: 'Collapse navigation',
@@ -31,8 +26,6 @@ const fallbackTexts = {
   },
 } as const
 
-const ariaLabel = computed(() => props.ariaLabel ?? defaultAriaLabels[props.placement])
-
 const fallbackText = computed(() => {
   const text = fallbackTexts[props.placement]
   return isOpen.value ? text.expanded : text.collapsed
@@ -40,7 +33,7 @@ const fallbackText = computed(() => {
 </script>
 
 <template>
-  <button class="tr-layout-aside-toggle" type="button" :aria-expanded="isOpen" :aria-label="ariaLabel" @click="toggle">
+  <button class="tr-layout-aside-toggle" type="button" @click="toggle">
     <slot v-bind="slotProps">
       {{ fallbackText }}
     </slot>

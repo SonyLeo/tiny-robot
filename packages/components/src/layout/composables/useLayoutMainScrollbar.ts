@@ -1,5 +1,6 @@
 import { useEventListener, useMutationObserver, useResizeObserver } from '@vueuse/core'
 import { computed, onBeforeUnmount, shallowRef, watch, type CSSProperties, type Ref } from 'vue'
+import { resolveCssLengthToPx } from '../utils/cssLength'
 import { lockBodyInteraction, restoreBodyInteraction, type BodyInteractionState } from '../utils/domInteraction'
 import { clamp } from '../utils/math'
 
@@ -47,7 +48,12 @@ function resolveTrackHeight(scrollHost: HTMLElement, clientHeight: number): numb
   }
 
   const styles = window.getComputedStyle(mainEl)
-  const insetBlock = Number.parseFloat(styles.getPropertyValue('--tr-layout-inner-padding-block')) || 0
+  const insetBlock = resolveCssLengthToPx(
+    styles.getPropertyValue('--tr-layout-inner-padding-block').trim(),
+    mainEl,
+    0,
+    'height',
+  )
   return Math.max(clientHeight - insetBlock * 2, 0)
 }
 
@@ -191,7 +197,7 @@ export function useLayoutMainScrollbar(options: UseLayoutMainScrollbarOptions) {
     () => {
       scheduleSync()
     },
-    { childList: true, subtree: true, characterData: true },
+    { childList: true, subtree: true },
   )
 
   watch(

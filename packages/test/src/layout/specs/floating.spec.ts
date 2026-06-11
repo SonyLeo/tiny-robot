@@ -108,7 +108,7 @@ test.describe('Layout 组件测试 - Floating', () => {
     await layout.expectSurfaceMode('normal')
   })
 
-  test('Props: defaultFloating - 5 种 placement 初始化应正确', async ({ layout }) => {
+  test('Props: defaultFloatingState - 5 种 placement 初始化应正确', async ({ layout }) => {
     await layout.showFloatingPlacementFixtures()
 
     const viewport = layout.page.viewportSize()
@@ -264,7 +264,7 @@ test.describe('Layout 组件测试 - Floating', () => {
       .toBe(true)
   })
 
-  test('Controlled props: floating - 受控父级不回写时应只发事件，不自改位置和尺寸', async ({ layout }) => {
+  test('Controlled props: floatingState - 受控父级不回写时应只发事件，不自改位置和尺寸', async ({ layout }) => {
     await layout.showFloatingFixtures()
 
     const surface = layout.blockedFloatingSurface
@@ -301,7 +301,7 @@ test.describe('Layout 组件测试 - Floating', () => {
     expect(Math.abs(afterResize.height - before.height)).toBeLessThan(2)
   })
 
-  test('Default props: defaultFloating - 非受控 floating 应按 placement 初始化，并在交互后更新内部 rect', async ({
+  test('Default props: defaultFloatingState - 非受控 floating 应按 placement 初始化，并在交互后更新内部 rect', async ({
     layout,
   }) => {
     await layout.showFloatingFixtures()
@@ -334,7 +334,7 @@ test.describe('Layout 组件测试 - Floating', () => {
     expect(after.y).toBeGreaterThan(before.y + 20)
   })
 
-  test('Default props: 初始化后更新 defaultFloating 不应重新同步', async ({ layout }) => {
+  test('Default props: 初始化后更新 defaultFloatingState 不应重新同步', async ({ layout }) => {
     await layout.showFloatingFixtures()
 
     const surface = layout.uncontrolledFloatingSurface
@@ -348,7 +348,7 @@ test.describe('Layout 组件测试 - Floating', () => {
     expect(Math.abs(after.width - before.width)).toBeLessThan(2)
   })
 
-  test('Default props: minWidth / maxWidth - 非受控 floating resize 应 obey clamp', async ({ layout }) => {
+  test('floatingOptions: minWidth / maxWidth - 非受控 floating resize 应 obey clamp', async ({ layout }) => {
     await layout.showFloatingFixtures()
 
     const surface = layout.uncontrolledFloatingSurface

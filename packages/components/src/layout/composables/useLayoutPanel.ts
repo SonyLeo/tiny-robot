@@ -20,16 +20,32 @@ export function useLayoutPanel(placement: MaybeRefOrGetter<LayoutPlacement>) {
     panel.value.toggle()
   }
 
+  function setOpen(nextOpen: boolean): void {
+    panel.value.setOpen(nextOpen)
+  }
+
+  function setWidth(nextWidth: number): void {
+    panel.value.setWidth(nextWidth)
+  }
+
   return {
+    placement: computed(() => panel.value.placement),
     layoutMode: computed(() => panel.value.layoutMode),
     isOpen: computed(() => panel.value.isOpen),
     isDock: computed(() => panel.value.isDock),
     isDrawer: computed(() => panel.value.isDrawer),
     isRail: computed(() => panel.value.isRail),
     isHidden: computed(() => panel.value.isHidden),
+    canResize: computed(() => panel.value.canResize),
     width: computed(() => panel.value.width),
+    collapsedWidth: computed(() => panel.value.collapsedWidth),
+    collapseEffect: computed(() => panel.value.collapseEffect),
+    resizable: computed(() => panel.value.resizable),
     open,
     close,
     toggle,
+    setOpen,
+    setWidth,
+    setExpandedWidth: setWidth,
   }
 }

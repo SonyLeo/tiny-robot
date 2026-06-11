@@ -191,12 +191,4 @@ const collapsedHint = computed(() =>
   font-style: normal;
   font-size: 12px;
 }
-
-.layout-collapse-effect-demo__field :deep(.tiny-radio) {
-  --tv-Radio-text-color: var(--vp-c-text-1, var(--tr-text-primary, #1f2329));
-}
-
-.layout-collapse-effect-demo__field :deep(.tiny-switch) {
-  vertical-align: middle;
-}
 </style>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { TrLayout } from '@opentiny/tiny-robot'
-import type { LayoutAsideValue } from '@opentiny/tiny-robot'
+import type { LayoutAsideState } from '@opentiny/tiny-robot'
 
 const baseLayoutStyle = {
   '--tr-layout-height': '100%',
@@ -53,14 +53,16 @@ const uncontrolledLeftAside = computed(() => ({
 const drawerLeftAside = computed(() => ({
   mode: 'drawer' as const,
   open: drawerLeftOpen.value,
+  expandedWidth: 344,
 }))
 
 const drawerRightAside = computed(() => ({
   mode: 'drawer' as const,
   open: drawerRightOpen.value,
+  expandedWidth: 388,
 }))
 
-function handleBlockedAside(next: LayoutAsideValue) {
+function handleBlockedAside(next: LayoutAsideState) {
   if (blockedLastOpen.value !== String(next.open)) {
     blockedOpenEvents.value += 1
     blockedLastOpen.value = String(next.open)
@@ -72,7 +74,7 @@ function handleBlockedAside(next: LayoutAsideValue) {
   }
 }
 
-function handleUncontrolledAside(next: LayoutAsideValue) {
+function handleUncontrolledAside(next: LayoutAsideState) {
   if (next.open !== uncontrolledLastOpen.value) {
     uncontrolledOpenEvents.value += 1
     uncontrolledLastOpen.value = next.open
@@ -89,11 +91,11 @@ function updateUncontrolledDefaults() {
   uncontrolledDefaultWidth.value = 332
 }
 
-function updateDrawerLeftAside(next: LayoutAsideValue) {
+function updateDrawerLeftAside(next: LayoutAsideState) {
   drawerLeftOpen.value = next.open
 }
 
-function updateDrawerRightAside(next: LayoutAsideValue) {
+function updateDrawerRightAside(next: LayoutAsideState) {
   drawerRightOpen.value = next.open
 }
 </script>
@@ -117,21 +119,13 @@ function updateDrawerRightAside(next: LayoutAsideValue) {
           class="aside-state-fixtures__layout"
           :style="baseLayoutStyle"
           :left-aside="blockedLeftAside"
-          @update:leftAside="handleBlockedAside"
+          @left-aside-state-change="handleBlockedAside"
         >
-          <template #left-aside>
-            <TrLayout.Aside placement="left">
-              <template #default="{ isOpen }">
-                <div class="aside-state-fixtures__panel">
-                  <span data-testid="blocked-open-state">{{ isOpen ? 'open' : 'closed' }}</span>
-                  <TrLayout.AsideToggle
-                    placement="left"
-                    aria-label="Blocked controlled toggle"
-                    data-testid="blocked-toggle"
-                  />
-                </div>
-              </template>
-            </TrLayout.Aside>
+          <template #left-aside="{ open }">
+            <div class="aside-state-fixtures__panel">
+              <span data-testid="blocked-open-state">{{ open ? 'open' : 'closed' }}</span>
+              <TrLayout.AsideToggle placement="left" data-testid="blocked-toggle" />
+            </div>
           </template>
 
           <template #main>
@@ -148,28 +142,16 @@ function updateDrawerRightAside(next: LayoutAsideValue) {
           class="aside-state-fixtures__layout"
           :style="baseLayoutStyle"
           :left-aside="uncontrolledLeftAside"
-          @update:leftAside="handleUncontrolledAside"
+          @left-aside-state-change="handleUncontrolledAside"
         >
-          <template #left-aside>
-            <TrLayout.Aside placement="left">
-              <template #default="{ isOpen }">
-                <div class="aside-state-fixtures__panel">
-                  <span data-testid="uncontrolled-open-state">{{ isOpen ? 'open' : 'closed' }}</span>
-                  <TrLayout.AsideToggle
-                    placement="left"
-                    aria-label="Uncontrolled custom toggle"
-                    data-testid="uncontrolled-toggle"
-                  />
-                  <button
-                    type="button"
-                    data-testid="uncontrolled-default-update-btn"
-                    @click="updateUncontrolledDefaults"
-                  >
-                    update defaults
-                  </button>
-                </div>
-              </template>
-            </TrLayout.Aside>
+          <template #left-aside="{ open }">
+            <div class="aside-state-fixtures__panel">
+              <span data-testid="uncontrolled-open-state">{{ open ? 'open' : 'closed' }}</span>
+              <TrLayout.AsideToggle placement="left" data-testid="uncontrolled-toggle" />
+              <button type="button" data-testid="uncontrolled-default-update-btn" @click="updateUncontrolledDefaults">
+                update defaults
+              </button>
+            </div>
           </template>
 
           <template #main>
@@ -187,42 +169,30 @@ function updateDrawerRightAside(next: LayoutAsideValue) {
           :style="baseLayoutStyle"
           :left-aside="drawerLeftAside"
           :right-aside="drawerRightAside"
-          @update:leftAside="updateDrawerLeftAside"
-          @update:rightAside="updateDrawerRightAside"
+          @left-aside-state-change="updateDrawerLeftAside"
+          @right-aside-state-change="updateDrawerRightAside"
         >
           <template #left-aside>
-            <TrLayout.Aside
-              placement="left"
-              class="aside-state-fixtures__drawer"
-              style="--tr-layout-drawer-width: 344px"
-            >
+            <div class="aside-state-fixtures__drawer">
               <div class="aside-state-fixtures__panel">
                 <span data-testid="drawer-left-state">{{ drawerLeftOpen ? 'open' : 'closed' }}</span>
               </div>
-            </TrLayout.Aside>
+            </div>
           </template>
 
           <template #main>
             <div class="aside-state-fixtures__drawer-controls">
-              <TrLayout.AsideToggle
-                placement="left"
-                aria-label="Custom drawer left label"
-                data-testid="drawer-left-toggle"
-              />
+              <TrLayout.AsideToggle placement="left" data-testid="drawer-left-toggle" />
               <TrLayout.AsideToggle placement="right" data-testid="drawer-right-toggle" />
             </div>
           </template>
 
           <template #right-aside>
-            <TrLayout.Aside
-              placement="right"
-              class="aside-state-fixtures__drawer"
-              style="--tr-layout-drawer-width: 388px"
-            >
+            <div class="aside-state-fixtures__drawer">
               <div class="aside-state-fixtures__panel">
                 <span data-testid="drawer-right-state">{{ drawerRightOpen ? 'open' : 'closed' }}</span>
               </div>
-            </TrLayout.Aside>
+            </div>
           </template>
         </TrLayout>
       </div>
@@ -266,5 +236,10 @@ function updateDrawerRightAside(next: LayoutAsideValue) {
 .aside-state-fixtures__drawer-controls {
   justify-content: center;
   gap: 12px;
+}
+
+.aside-state-fixtures__drawer {
+  width: 100%;
+  height: 100%;
 }
 </style>

@@ -57,14 +57,14 @@ outline: [1, 3]
 
 ### 状态控制
 
-推荐把 `leftAside` / `rightAside` 作为侧栏状态入口。`left-aside` / `right-aside` 插槽会提供当前状态和操作方法。
+推荐把 `leftAside` / `rightAside` 作为侧栏状态入口。插槽参数可以读取当前状态，也可以在插槽内部触发操作。
 
 受控写法下，外部不回写，界面不会变化。
 
 <demo
   vue="../../demos/layout/aside-slot-props.vue"
   title="状态控制"
-  description="通过 leftAside、rightAside 和插槽控制侧栏状态。"
+  description="通过 leftAside、rightAside 受控回写，并在插槽中读取侧栏状态。"
 />
 
 插槽参数字段详见 [LayoutAsideSlotProps](#layoutasideslotprops)。
@@ -73,13 +73,15 @@ outline: [1, 3]
 
 `resizable` 可以开启 `dock` 侧栏的拖拽改宽，宽度范围由 `minExpandedWidth` 和 `maxExpandedWidth` 控制。
 
-<demo vue="../../demos/layout/aside-resizable.vue" title="宽度调整" description="拖动分隔线调整 dock 侧栏宽度。" />
+<demo vue="../../demos/layout/aside-resizable.vue" title="宽度调整" description="拖动分隔线查看当前宽度和边界。" />
 
 配置详见：[Layout Props](#layout-props)、[Layout Slots](#layout-slots)、[Layout Events](#layout-layout-events)、[CSS 变量](#layout-css-content)
 
 ## 主区滚动
 
 `Layout.Main` 用来接管主区滚动条，但它不制造滚动。真正发生滚动的仍然是你传入的 `scrollHost`。
+
+不传 `scrollHost` 也可以正常显示，只是不会接管滚动条。
 
 :::tip `scrollHost` 怎么理解
 把 `scrollHost` 当成“真实出现滚动条的那个元素”。
@@ -117,15 +119,24 @@ outline: [1, 3]
 
 `defaultFloatingState` 用来设置初始位置和大小，`floatingOptions` 用来控制是否可拖动、是否可缩放，以及尺寸范围。
 
+同一个浮层只需要选一种写法：
+
+- 想让组件自己记住位置和大小，用 `defaultFloatingState`
+- 想让外部控制位置和大小，用 `floatingState`
+
 <demo
   vue="../../demos/layout/floating.vue"
   title="基本用法"
-  description="通过 defaultFloatingState 设置初始位置和大小，通过 floatingOptions 控制拖动和缩放。"
+  description="打开时通过 defaultFloatingState 设置初始位置和大小。"
 />
+
+示例通过 `v-if` 控制挂载，关闭后重新打开会重新读取 `defaultFloatingState`。
 
 ### 状态控制
 
 `floatingState` 配合 `update:floatingState` 可以从外部控制浮层的位置和大小。外部不回写，界面不会变化。
+
+是否使用 `floatingState`，会在第一次渲染时确定。不要在已经显示出来之后，再切换成另一种写法。
 
 `placement` 为 `center` 时，第一次拖动或缩放后，会自动换成最近的角位置。
 
@@ -158,23 +169,14 @@ outline: [1, 3]
 | ------ | ---- | ---- | ------ |
 | `scrollHost` | 真实滚动容器的元素或组件实例 ref | `HTMLElement \| ComponentPublicInstance \| null` | `-` |
 
-<a id="layout-aside-props"></a>
-### Layout.Aside
-
-推荐入口是根组件的 `leftAside` / `rightAside` + slot props；`Layout.Aside` 更适合作为可选的侧栏内容容器使用，实际开关、宽度和收起效果仍建议由根组件管理。
-
-| 属性名 | 说明 | 类型 | 默认值 |
-| ------ | ---- | ---- | ------ |
-| `placement` | 当前容器对应的侧栏位置 | `'left' \| 'right'` | `-` |
-| `collapseEffect` | 可选内容容器的收起动画；通常优先使用 `leftAside` / `rightAside` 上的同名配置 | `'overlay' \| 'slide'` | `'overlay'` |
-
 <a id="layout-aside-toggle-props"></a>
 ### Layout.AsideToggle
 
 | 属性名 | 说明 | 类型 | 默认值 |
 | ------ | ---- | ---- | ------ |
 | `placement` | 控制的侧栏位置 | `'left' \| 'right'` | `-` |
-| `ariaLabel` | 切换按钮的无障碍文本 | `string` | `left: 'Toggle left panel'` / `right: 'Toggle right panel'` |
+
+它只是一个现成的开关按钮。需要展示更多状态或自定义交互时，优先用 `left-aside` / `right-aside` 插槽。
 
 ## Slots
 
@@ -189,12 +191,6 @@ outline: [1, 3]
 | `footer` | 底部区域 | `-` |
 | `right-aside` | 右侧栏内容 | `LayoutAsideSlotProps` |
 
-### Layout.Aside
-
-| 插槽名 | 说明 | 作用域参数 |
-| ------ | ---- | ---------- |
-| `default` | 侧栏内容 | `{ isOpen: boolean }` |
-
 ### Layout.AsideToggle
 
 | 插槽名 | 说明 | 作用域参数 |
@@ -208,8 +204,8 @@ outline: [1, 3]
 
 | 事件名 | 说明 | 回调参数 |
 | ------ | ---- | -------- |
-| `update:leftAside` | 左侧栏运行时状态变化 | `(value: LayoutAsideState)` |
-| `update:rightAside` | 右侧栏运行时状态变化 | `(value: LayoutAsideState)` |
+| `left-aside-state-change` | 左侧栏运行时状态变化 | `(value: LayoutAsideState)` |
+| `right-aside-state-change` | 右侧栏运行时状态变化 | `(value: LayoutAsideState)` |
 | `update:floatingState` | 浮层位置或尺寸变化 | `(value: LayoutFloatingState)` |
 | `aside-resize-start` | 开始调整侧栏宽度 | `(detail: LayoutAsideResizeEventDetail)` |
 | `aside-resize` | 调整侧栏宽度时持续触发 | `(detail: LayoutAsideResizeEventDetail)` |
@@ -221,7 +217,9 @@ outline: [1, 3]
 | `floating-resize` | 调整浮层尺寸时持续触发 | `(detail: LayoutFloatingResizeEventDetail)` |
 | `floating-resize-end` | 结束调整浮层尺寸 | `(detail: LayoutFloatingResizeEventDetail)` |
 
-`update:leftAside` / `update:rightAside` 只回传 `LayoutAsideState`，也就是当前运行时可控字段 `open` 和 `expandedWidth`。受控写法下，需要外部把它合并回 `leftAside` / `rightAside`。
+`left-aside-state-change` / `right-aside-state-change` 只回传运行时状态字段 `open` 和 `expandedWidth`。受控写法下，需要外部把它合并回 `leftAside` / `rightAside`。
+
+这两个事件只是告诉你“侧栏现在变成了什么状态”，不会把整个 `leftAside` / `rightAside` 对象原样回传回来。
 
 #### 侧栏 resize 事件字段
 
@@ -280,6 +278,9 @@ outline: [1, 3]
 | `expandedWidth` | 当前展开宽度 | `number \| undefined` |
 | `collapsedWidth` | 收起后窄栏宽度 | `number \| undefined` |
 | `resizable` | 是否允许拖拽改宽 | `boolean` |
+| `isRail` | 当前是否处于窄栏状态 | `boolean` |
+| `isHidden` | 当前是否处于隐藏状态 | `boolean` |
+| `canResize` | 当前是否可以拖拽改宽 | `boolean` |
 | `toggle` | 切换开关 | `() => void` |
 | `setOpen` | 直接设置开关状态 | `(next: boolean) => void` |
 | `setExpandedWidth` | 直接设置展开宽度 | `(next: number) => void` |
@@ -323,16 +324,16 @@ outline: [1, 3]
 | `--tr-layout-divider-color` | 分隔线颜色 |
 | `--tr-layout-overlay-bg` | drawer 遮罩颜色 |
 | `--tr-layout-panel-shadow` | drawer 阴影 |
-| `--tr-layout-surface-radius` | 浮层圆角 |
-| `--tr-layout-surface-shadow` | 浮层阴影 |
-| `--tr-layout-surface-z-index` | 浮层层级 |
+| `--tr-layout-frame-radius` | 浮层圆角 |
+| `--tr-layout-frame-shadow` | 浮层阴影 |
+| `--tr-layout-frame-z-index` | 浮层层级 |
 
 <a id="layout-css-content"></a>
 ### 内容与交互
 
 | 变量名 | 说明 |
 | ------ | ---- |
-| `--tr-layout-content-max-width` | 内容最大宽度 |
+| `--tr-layout-content-max-width` | header、main、footer 内容区的最大宽度 |
 | `--tr-layout-inner-padding-inline` | 横向内边距 |
 | `--tr-layout-inner-padding-block` | 纵向内边距 |
 | `--tr-layout-main-min-width` | 主区最小宽度 |

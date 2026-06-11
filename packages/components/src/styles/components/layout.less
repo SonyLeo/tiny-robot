@@ -1,6 +1,6 @@
 .tr-layout-vars() {
   @layout-prefix: tr-layout;
-  @floating-prefix: tr-layout-surface;
+  @floating-prefix: tr-layout-frame;
   @main-prefix: tr-layout-main;
 
   @layout-vars: {
@@ -38,12 +38,6 @@
     transition-easing: ease;
     left-dock-width: 300px;
     right-dock-width: 320px;
-    left-drawer-width: 300px;
-    right-drawer-width: 320px;
-  };
-
-  @aside-private-vars: {
-    hidden-offset: 12px;
   };
 
   @floating-frame-private-vars: {
@@ -68,10 +62,18 @@
     line-active-color: color-mix(in srgb, var(--tr-color-primary, #1476ff) 66%, transparent);
     indicator-width: 6px;
     indicator-height: 22px;
-    indicator-bg: #ffffff;
+    indicator-bg: var(--tr-container-bg-default, #ffffff);
     indicator-border: color-mix(in srgb, var(--tr-text-primary, #111827) 10%, transparent);
-    indicator-active-bg: color-mix(in srgb, var(--tr-color-primary, #1476ff) 72%, #ffffff);
-    indicator-active-border: color-mix(in srgb, var(--tr-color-primary, #1476ff) 88%, #ffffff);
+    indicator-active-bg: color-mix(
+      in srgb,
+      var(--tr-color-primary, #1476ff) 72%,
+      var(--tr-container-bg-default, #ffffff)
+    );
+    indicator-active-border: color-mix(
+      in srgb,
+      var(--tr-color-primary, #1476ff) 88%,
+      var(--tr-container-bg-default, #ffffff)
+    );
     indicator-active-shadow: 0 0 0 4px color-mix(in srgb, var(--tr-color-primary-light, #deecff) 56%, transparent);
     indicator-idle-opacity: 0;
     indicator-idle-offset: 4px;
@@ -81,10 +83,18 @@
     hit-area-size: 12px;
     indicator-width: 6px;
     indicator-height: 22px;
-    indicator-bg: #ffffff;
+    indicator-bg: var(--tr-container-bg-default, #ffffff);
     indicator-border: color-mix(in srgb, var(--tr-text-primary, #111827) 10%, transparent);
-    indicator-active-bg: color-mix(in srgb, var(--tr-color-primary, #1476ff) 72%, #ffffff);
-    indicator-active-border: color-mix(in srgb, var(--tr-color-primary, #1476ff) 88%, #ffffff);
+    indicator-active-bg: color-mix(
+      in srgb,
+      var(--tr-color-primary, #1476ff) 72%,
+      var(--tr-container-bg-default, #ffffff)
+    );
+    indicator-active-border: color-mix(
+      in srgb,
+      var(--tr-color-primary, #1476ff) 88%,
+      var(--tr-container-bg-default, #ffffff)
+    );
     indicator-active-shadow: 0 0 0 4px color-mix(in srgb, var(--tr-color-primary-light, #deecff) 56%, transparent);
     indicator-idle-opacity: 0;
     indicator-hover-opacity: 1;
@@ -113,16 +123,6 @@
 
   .tr-layout {
     each(@layout-private-vars, {
-      --@{key}: @value;
-    });
-
-    each(@floating-frame-private-vars, {
-      --@{key}: @value;
-    });
-  }
-
-  .tr-layout-aside {
-    each(@aside-private-vars, {
       --@{key}: @value;
     });
   }
