@@ -2,7 +2,33 @@ import { resolve } from 'path'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 
-const testPort = Number(process.env.TINY_ROBOT_TEST_PORT || 3340)
+const testPort = Number(process.env.TINY_ROBOT_TEST_PORT || 3341)
+
+const manualChunks = (id: string) => {
+  const normalizedId = id.replace(/\\/g, '/')
+
+  if (normalizedId.includes('/node_modules/mermaid/')) {
+    return 'vendor-mermaid'
+  }
+
+  if (normalizedId.includes('/node_modules/katex/')) {
+    return 'vendor-katex'
+  }
+
+  if (normalizedId.includes('/node_modules/shiki/') || normalizedId.includes('/node_modules/@shikijs/')) {
+    return 'vendor-shiki'
+  }
+
+  if (normalizedId.includes('/node_modules/markdown-it')) {
+    return 'vendor-markdown-it'
+  }
+
+  if (normalizedId.includes('/node_modules/dompurify/')) {
+    return 'vendor-dompurify'
+  }
+
+  return undefined
+}
 
 export default defineConfig({
   plugins: [vue()],
@@ -29,5 +55,11 @@ export default defineConfig({
     outDir: 'dist',
     assetsDir: 'assets',
     sourcemap: true,
+    chunkSizeWarningLimit: 3000,
+    rollupOptions: {
+      output: {
+        manualChunks,
+      },
+    },
   },
 })

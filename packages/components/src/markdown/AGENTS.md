@@ -90,32 +90,35 @@ Treat these as high-risk areas:
 - `index.ts` / `index.type.ts`
   - every export here is effectively public
 - `useMarkdownContext`
-  - exported publicly, but not currently a stable reactive contract
+  - exported publicly; treat it as a reactive read contract and keep CT coverage when changing context fields
 - `TrMarkdownParserAdapter`
   - public in type shape, but current renderer still assumes the existing internal node protocol
 - `actionsRender`
-  - currently exposes internal toolbar/VNode-oriented details
+  - keep the stable `defaultActions` / `renderDefaultActions()` path working; `originalNode` is legacy compatibility
 - Bubble markdown config passed through `contentAttributes`
   - current boundary is workable but still too leaky
 - Bubble source edits
   - treat as out of scope for normal markdown tasks
 - root `data-stream-*` telemetry in `TrMarkdown.vue`
-  - heavily used by tests and demos, so DOM-level refactors can break regression coverage
+  - summary attrs plus `data-stream-snapshot` / `data-stream-profiler-debug` are used by CT/E2E; avoid re-expanding low-level profiler attrs
+- package build boundaries
+  - Mermaid, KaTeX, Shiki, @shikijs, and highlight.js subpaths should stay external in `packages/components/vite.config.ts`
+  - keep advanced Markdown runtimes behind dynamic imports unless a user explicitly accepts the publish-size cost
 
 If a change touches one of these areas, update docs in the same task unless the user explicitly scopes you away from docs.
 
-## Known Current Gaps
+## Current Contract Notes
 
-Do not assume the following are already solved:
+Do not regress these recently closed contracts:
 
 - `features.html` / `parserOptions.html`
-  - public flags exist, but generic raw HTML is not yet a real stable HTML renderer path
+  - generic raw HTML now has a real sanitized render path and CT coverage
 - `useMarkdownContext`
-  - provided context is currently a setup-time snapshot rather than a truly reactive public injection contract
+  - injected consumers must observe prop updates; CT covers this
 - HTML Preview source fidelity
-  - preview/source/copy/download currently do not preserve the exact original fenced HTML source
+  - fenced HTML source must remain exact for preview/source/copy/download
 - HTML Preview streaming parity
-  - base `auto / live / defer` semantics exist, but the full `streaming.active -> HtmlPreviewBlock` chain is still a sensitive area
+  - `streaming.active -> HtmlPreviewBlock` is covered through CodeFenceResolver and CT streaming mode cases
 - parser replacement boundary
   - parser swapping is not fully decoupled from the current render-node protocol
 
@@ -145,8 +148,9 @@ For behavior changes, inspect these surfaces:
   - `docs/src/guide/markdown-rendering-roadmap.md`
 - demo and manual regression surface:
   - `packages/test/src/markdown/index.vue`
-- automated regression surface:
-  - `packages/test/src/markdown/index.spec.ts`
+- automated regression surfaces:
+  - `packages/test/src/markdown-ct/*.spec.ts` for `TrMarkdown` single-component contracts
+  - `packages/test/src/markdown/index.spec.ts` for demo page, Bubble, iframe, and streaming integration smoke
 - markdown-specific fixtures:
   - `packages/components/src/markdown/fixtures/streaming.ts`
 

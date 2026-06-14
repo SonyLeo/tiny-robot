@@ -17,12 +17,12 @@ outline: deep
 
 配套文档：
 
-- 调研文档： [Markdown 渲染调研](/guide/markdown-rendering-research)
 - 路线图： [Markdown 渲染 Roadmap](/guide/markdown-rendering-roadmap)
+- 历史调研与迁移记录： [Markdown 归档](/guide/archive/markdown/)
 
 ## 文档职责与维护约定
 
-为了减少 `markdown-rendering-*` 文档之间的重复维护，当前约定收口为下面三类主文档：
+为了减少 `markdown-rendering-*` 文档之间的重复维护，当前约定收口为两类主文档和一组历史归档：
 
 - `markdown-rendering-design.md`
   - 负责维护 `TrMarkdown` 的架构边界、模块分层、公共 API 语义与当前已知设计偏差
@@ -30,48 +30,57 @@ outline: deep
 - `markdown-rendering-roadmap.md`
   - 负责维护实现进度、阶段状态、当前收口任务与后续优先级
   - 不再重复承担完整设计说明
-- `markdown-rendering-research.md`
-  - 负责保留外部方案调研、历史判断和对标背景
-  - 不作为当前实现真相源
+- `archive/markdown/*`
+  - 负责保留外部调研、spike、迁移、fixtures、codeblock 对标和过程 checklist
+  - 只作为历史材料，不作为当前实现真相源
 
-其余文档当前降级为参考附录：
+以下文档已移动到 `docs/src/guide/archive/markdown/`：
 
+- `markdown-codeblock-lobeui-report.md`
+- `markdown-component-testing-migration.md`
 - `markdown-rendering-checklist.md`
-- `markdown-rendering-process.md`
-- `markdown-rendering-spike.md`
 - `markdown-rendering-fixtures.md`
+- `markdown-rendering-process.md`
+- `markdown-rendering-research.md`
+- `markdown-rendering-spike.md`
 
 这些附录继续保留，但不再各自维护一份“最新实现快照”。
 
-## 当前已知问题与设计偏差（2026-06-08）
+## 当前已知问题与设计偏差（2026-06-14）
 
-下面这些问题已在代码审视中确认，当前应视为 `TrMarkdown` 的正式收口项，而不是边角优化：
-
-### P1：公共能力与真实行为不一致
+上一轮代码审视发现的公共契约问题已经完成主线修复，并迁入 CT / E2E smoke 验证。当前这部分不再按 blocker 管理：
 
 - `features.html` / `parserOptions.html`
-  - 当前已作为公共开关暴露，但通用 raw HTML 实际不会进入稳定的 HTML 渲染能力，而是回落成纯文本渲染
-  - 在修复前，不应把它视为已完成的 public contract
+  - generic raw HTML 已进入 sanitizer 后的 inline / block render path
+  - 默认仍保持关闭，开启后必须继续走安全渲染边界
 - `features.htmlPreview.streamingMode`
-  - HTML Preview 基础能力已经落地，但 `streaming.active -> HtmlPreviewBlock` 的主链路仍未完全做实
-  - `auto / live / defer` 当前不应再被文档表述为“完全封口”
-
-### P2：公共边界仍有未封口契约
-
+  - `streaming.active -> context -> CodeFenceResolver -> HtmlPreviewBlock` 主链路已接通
+  - `auto / live / defer` 语义由 CT 覆盖
 - `useMarkdownContext`
-  - 虽已公开导出，但当前注入的是 setup 时快照，不是稳定的响应式上下文
+  - 对外仍保持对象读取形态，但底层读取已跟随 `computed` context 更新
 - HTML Preview 源码保真
-  - preview / source / copy / download 仍会对原始 fenced HTML 做 `trim()`，不满足源码保真要求
-- `TrMarkdownParserAdapter`
-  - 名义上支持替换 parser，但当前 renderer 实际仍绑定 `markdown-it` 风格节点协议，内部 IR 还不够独立
+  - preview / source / copy / download 不再主动 `trim()` fenced HTML source
+  - `CodeFenceResolver` 会把 HTML Preview 源码按 resolver 收到的内容原样传给预览层；如果后续要做到 markdown 文档 byte-for-byte 级保真，需要 parser source range 专项支持
+- HTML Preview streaming tail 边界
+  - closed trailing HTML fence 不再被 streaming tail 切分到不稳定路径，避免完整 HTML 预览在 streaming 时退化成普通 code / tail
 - `actionsRender`
-  - 当前通过 `originalNode: VNodeChild` 暴露内部 toolbar 节点协议，API 形态仍偏实现细节
+  - 已新增 `defaultActions` / `renderDefaultActions()` 稳定入口
+  - `originalNode` 仅作为 legacy compatibility 保留
+- streaming / profiler telemetry
+  - root DOM 已收缩到 summary attrs
+  - profiler 细节通过 `data-stream-snapshot` / `data-stream-profiler-debug` 结构化输出
 
-### P2：容器层与 internal 实现暴露面偏大
+当前仍需要长期保持清醒的边界：
 
-- Bubble 当前仍通过通用 `contentAttributes` 透传 Markdown 私有配置，边界不够干净
-- streaming / profiler 的大量内部 telemetry 已通过 DOM `data-*` 与测试断言固化成事实契约
-- `TrMarkdown` 作为独立组件已经公开导出，但当前仍缺少独立的一等公民文档入口
+- `TrMarkdownParserAdapter`
+  - 名义上支持替换 parser，但当前 renderer 仍要求产出 TinyRobot 当前 render-node 协议
+  - 在做真正通用 IR 之前，文档不应把它表述成完全解耦的 parser 插槽
+- Bubble markdown 配置
+  - 当前推荐通过 `contentAttributes.markdown` 命名空间传递 Markdown 私有配置
+  - 不应继续修改 Bubble 通用核心来承载 Markdown 私有协议
+- 发布体积边界
+  - Mermaid / KaTeX / Shiki 属于高级能力运行时
+  - 组件包构建阶段必须保持 external + dynamic import 边界，避免基础发布产物重新打入这些重依赖
 
 ## 设计目标
 
@@ -82,7 +91,7 @@ outline: deep
 - 独立组件使用
 - 作为 `Bubble` 的 Markdown 内容渲染内核
 
-## 当前实现快照（截至 2026-06-07）
+## 当前实现快照（截至 2026-06-14）
 
 当前实现已经从“方案草图”进入到“可运行的第一版基座”：
 
@@ -158,7 +167,7 @@ outline: deep
   - 直接复用现有 `@vueuse/core` 与 `unicode-segmenter`
   - 仅把 `fast-array-diff` 保留为可选小依赖备选
   - 已补 `streaming.mode/preset`、block `position`、stable top-level key、`useStreamBlockDiff`、`useStreamRevealQueue`、`useStreamTextAnimation`、`StreamAnimatedText`
-  - `TrMarkdown` root 已补 `stream state / scheduler phase / queueLength / blockCount / activeIndex / animatingIndex / streamingIndex / charDelay / fadeDuration / settleHoldMs / activeBlockCount / revealedCount / pendingCount / rewriteCount / resetCount / parseCount` telemetry
+  - `TrMarkdown` root telemetry 已收缩为稳定 summary attrs，并通过 `data-stream-snapshot` / `data-stream-profiler-debug` 暴露结构化调试快照
   - 已补第一方 stream profiler 事件模型，当前覆盖 `input / parse / block-diff / queue-transition / animation-frame / token-schedule / root-commit / block-commit`
   - 已补 token scheduler，当前把 token patch 结果收敛为 `idle / append / patch / reset` 调度动作与 preserved / inserted / deleted / replaced 计数
   - profiler 面板已补 `timeline / FPS / frame duration / root commit cost / block commit cost` 观察面
@@ -172,6 +181,10 @@ outline: deep
   - parser 级 token diff
   - 跨 block 或 parser 级 token diff
   - React Profiler 等价的底层 commit 事件流和 DevTools 级 profiler 可视化
+- 发布构建边界当前已完成一轮体积治理：
+  - `packages/components` build 将 `mermaid`、`katex`、`shiki`、`@shikijs/*`、`highlight.js/*` 等高级 Markdown 运行时保持为 external
+  - `TrMarkdown` 源码中的 Mermaid / KaTeX / Shiki 仍通过动态 import 命中，不进入组件包发布产物的默认静态 chunk
+  - 这条边界只治理发布产物，不改变 consumer 运行时的功能开关语义
 
 ## 命名规则
 
@@ -1078,8 +1091,8 @@ packages/components/src/markdown/
 ### 目标
 
 - 接收原始 Markdown 字符串
-- 产出 TinyRobot 自己的 Markdown IR
-- 允许替换 parser adapter
+- 产出 TinyRobot 当前 render-node 协议
+- 允许替换 parser adapter，但替换方必须遵守当前 render-node 约定
 
 ### 推荐默认路线
 
@@ -1090,6 +1103,7 @@ packages/components/src/markdown/
 - 当前 TinyRobot 已经在 `Bubble` 中使用 `markdown-it`
 - 迁移成本较低
 - 先解决“结构化渲染”比“换 parser 生态”更优先
+- 对齐 LobeUI 时优先学习 provider、组件映射、受控扩展和 streaming 编排，不在当前阶段自研完整 Markdown parser
 
 ### 接口草图
 
@@ -1102,13 +1116,13 @@ export interface TrMarkdownParseContext {
 
 export interface TrMarkdownParserAdapter {
   name: string
-  parse: (source: string, context: TrMarkdownParseContext) => TrMarkdownDocument
+  parse: (source: string, context: TrMarkdownParseContext) => TrMarkdownRenderNode[]
 }
 ```
 
-### 内部 IR 建议
+### 内部 render-node 协议建议
 
-建议定义一个轻量的内部节点树，而不是让业务层直接感知 `markdown-it` token 或 unified AST。
+当前建议维护一个轻量的内部 render-node 协议，而不是让业务层直接感知 `markdown-it` token 或 unified AST。它还不是完全稳定的通用 IR；在真正抽象通用 IR 之前，文档和 API 都不应承诺任意 parser 生态可以无成本接入。
 
 例如：
 
@@ -1543,6 +1557,9 @@ export interface TrMarkdownCodeConfig {
 export type TrMarkdownCodeActionsRender = (context: {
   code: string
   language?: string
+  defaultActions: VNodeChild
+  renderDefaultActions: () => VNodeChild
+  /** @deprecated Use `defaultActions` or `renderDefaultActions()` instead. */
   originalNode: VNodeChild
 }) => VNodeChild
 ```
@@ -2393,7 +2410,7 @@ export interface TrMarkdownProps {
 - `TrMarkdownProps`
 - `useMarkdownContext`
 
-> 注：`useMarkdownContext` 虽已导出，但当前响应式契约尚未封口；在问题修复前，不应把它视为稳定扩展点。
+> 注：`useMarkdownContext` 已按响应式读取契约收口；后续新增 context 字段时，需要同步 CT 覆盖 prop update 后的注入读取结果。
 
 ## Bubble 集成设计
 
@@ -2718,5 +2735,5 @@ Image Gallery：
 
 对应职责为：
 
-- 调研： [Markdown 渲染调研](/guide/markdown-rendering-research)
 - 跟踪： [Markdown 渲染 Roadmap](/guide/markdown-rendering-roadmap)
+- 历史调研： [Markdown 归档](/guide/archive/markdown/)

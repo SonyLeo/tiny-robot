@@ -14,9 +14,9 @@ outline: deep
 
 配套文档：
 
-- 调研： [Markdown 渲染调研](/guide/markdown-rendering-research)
+- 调研： [Markdown 渲染调研](/guide/archive/markdown/markdown-rendering-research)
 - 设计： [TrMarkdown 设计方案](/guide/markdown-rendering-design)
-- 流程： [Markdown 渲染开发流程](/guide/markdown-rendering-process)
+- 流程： [Markdown 渲染开发流程](/guide/archive/markdown/markdown-rendering-process)
 - 路线图： [Markdown 渲染 Roadmap](/guide/markdown-rendering-roadmap)
 
 > 维护说明（2026-06-08）

@@ -1,10 +1,11 @@
-# Tiny Robot E2E 测试
+# Tiny Robot 测试
 
-这是 Tiny Robot 组件库的端到端（E2E）测试项目，使用 Playwright 进行自动化测试。
+这是 Tiny Robot 组件库的测试项目，使用 Playwright 覆盖 E2E 与 Component Testing。
 
 ## 功能特性
 
 - ✅ 基于 Playwright 的 E2E 测试
+- ✅ 基于 Playwright Component Testing 的 `TrMarkdown` 单组件契约测试
 - ✅ 只使用 Chromium 内核进行测试
 - ✅ 包含完整的 Container 组件测试用例
 - ✅ 支持 CI/CD 集成
@@ -28,7 +29,8 @@ cd packages/test
 pnpm dev
 ```
 
-应用默认将在 http://127.0.0.1:3340 启动；如需覆盖，可设置 `TINY_ROBOT_TEST_PORT`。
+应用默认将在 http://127.0.0.1:3341 启动；如需覆盖，可设置 `TINY_ROBOT_TEST_PORT`。
+Playwright 配置会自动为 `127.0.0.1` / `localhost` 补充 `NO_PROXY`，避免本地代理把 webServer 探活误判为可用服务。
 
 ### 在 packages/test 目录运行
 
@@ -52,6 +54,16 @@ npx playwright install --with-deps --only-shell chromium
 ### 运行测试
 ```bash
 pnpm test
+```
+
+### 运行 Component Testing
+```bash
+pnpm test:ct
+```
+
+### 运行 Component Testing UI
+```bash
+pnpm test:ct:ui
 ```
 
 ### 运行带界面的测试
@@ -153,6 +165,17 @@ pnpm test
 3. **独立的测试用例**：每个测试应该独立，不依赖其他测试的状态
 4. **清晰的测试描述**：使用中文描述测试用例的目的
 5. **合理的测试粒度**：既要覆盖主要功能，又要避免过度测试
+
+## Markdown 测试分层
+
+`TrMarkdown` 的单组件契约优先写在 `src/markdown-ct`：
+
+- 静态渲染、props、feature flags、custom components、context 更新使用 CT。
+- Code / HTML Preview / Math / Mermaid / Video / Image Gallery 使用 CT。
+- Streaming 的 incomplete hold、summary telemetry、rewrite/reset 使用 CT。
+- E2E `src/markdown/index.spec.ts` 只保留 demo 页面、Bubble 集成、HTML Preview iframe、animated streaming 的 smoke。
+
+新增 markdown 能力时，默认先补 CT；只有涉及真实页面导航、Bubble 组合、iframe 集成或跨组件 wiring 时再补 E2E。
 
 ## 故障排除
 

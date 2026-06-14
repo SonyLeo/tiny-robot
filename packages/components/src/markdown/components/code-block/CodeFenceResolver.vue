@@ -42,18 +42,15 @@ const props = withDefaults(
   },
 )
 
-const normalizedCode = computed(() => {
-  return (props.code || '').replace(/\n$/, '')
-})
+const sourceCode = computed(() => props.code || '')
+const normalizedCode = computed(() => sourceCode.value.replace(/\n$/, ''))
 
 const htmlPreviewConfig = computed(() => resolveHtmlPreviewConfig(props.htmlPreview))
 const mermaidConfig = computed(() => resolveMermaidConfig(props.mermaid))
 const normalizedLanguage = computed(() => (props.language || '').trim().toLowerCase())
 
 const shouldRenderHtmlPreview = computed(() => {
-  return (
-    htmlPreviewConfig.value.enabled && normalizedLanguage.value === 'html' && isFullHtmlDocument(normalizedCode.value)
-  )
+  return htmlPreviewConfig.value.enabled && normalizedLanguage.value === 'html' && isFullHtmlDocument(sourceCode.value)
 })
 
 const shouldRenderMermaid = computed(() => {
@@ -69,7 +66,7 @@ const isSingleLine = computed(() => {
 <template>
   <HtmlPreviewBlock
     v-if="shouldRenderHtmlPreview"
-    :code="normalizedCode"
+    :code="sourceCode"
     :copyable="htmlPreviewConfig.copyable ?? copyable"
     :default-height="htmlPreviewConfig.defaultHeight"
     :default-mode="htmlPreviewConfig.defaultMode"

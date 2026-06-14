@@ -12,9 +12,9 @@ outline: deep
 
 配套文档：
 
-- 流程： [Markdown 渲染开发流程](/guide/markdown-rendering-process)
+- 流程： [Markdown 渲染开发流程](/guide/archive/markdown/markdown-rendering-process)
 - 设计： [TrMarkdown 设计方案](/guide/markdown-rendering-design)
-- Spike： [Markdown 渲染 Spike 结论](/guide/markdown-rendering-spike)
+- Spike： [Markdown 渲染 Spike 结论](/guide/archive/markdown/markdown-rendering-spike)
 - 路线图： [Markdown 渲染 Roadmap](/guide/markdown-rendering-roadmap)
 
 > 维护说明（2026-06-08）

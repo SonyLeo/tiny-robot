@@ -31,7 +31,7 @@ const entries = {
   index: './src/index.ts',
 }
 
-const componentWhitelist = ['assets', 'shared', 'styles']
+const componentWhitelist = ['assets', 'shared', 'styles', 'types']
 
 // 为每个组件添加入口
 const components = readdirSync(resolve(__dirname, 'src'), { withFileTypes: true })
@@ -72,7 +72,14 @@ export default defineConfig({
         '@opentiny/tiny-robot-svgs',
         'markdown-it',
         'dompurify',
+        // Keep heavy Markdown feature runtimes out of the published package build.
+        // They are resolved by consumers only when the corresponding dynamic path runs.
+        'katex',
+        'mermaid',
         /^highlight\.js(\/.*)?$/,
+        /^katex\/.*$/,
+        /^shiki(\/.*)?$/,
+        /^@shikijs\/.*$/,
         /^@tiptap.*/,
       ],
       input: entries,

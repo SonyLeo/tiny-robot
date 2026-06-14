@@ -8,8 +8,10 @@
     "build": "vue-tsc && vite build",
     "preview": "vite preview",
     "test": "playwright test",
+    "test:ct": "playwright test -c playwright-ct.config.ts",
+    "test:ct:ui": "playwright test -c playwright-ct.config.ts --ui",
     "test:ui": "playwright test --ui",
-    "test:codegen": "playwright codegen http://127.0.0.1:3340",
+    "test:codegen": "playwright codegen http://127.0.0.1:3341",
     "test:headed": "playwright test --headed",
     "test:debug": "playwright test --debug",
     "test:report": "playwright show-report"
@@ -21,8 +23,10 @@
     "vue": "^3.3.11"
   },
   "devDependencies": {
+    "@playwright/experimental-ct-vue": "^1.40.0",
     "@playwright/test": "^1.40.0",
     "@types/node": "^22.13.17",
+    "@vue/compiler-dom": "^3.3.11",
     "@vitejs/plugin-vue": "^4.5.2",
     "typescript": "^5.2.2",
     "vite": "^5.0.8",

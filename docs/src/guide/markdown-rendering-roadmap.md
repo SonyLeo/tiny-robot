@@ -12,7 +12,7 @@ outline: deep
 - 作为阶段拆分和优先级排序依据
 - 作为团队对齐“先做什么、后做什么、做成什么算完成”的跟踪板
 
-配套调研请参考 [Markdown 渲染调研与 TrMarkdown 方案草图](/guide/markdown-rendering-research)。
+历史调研、Spike 和测试迁移过程已归档到 [Markdown 归档](/guide/archive/markdown/)。
 
 ## 文档职责与维护约定
 
@@ -20,26 +20,90 @@ outline: deep
 
 - 设计真相源： [TrMarkdown 设计方案](/guide/markdown-rendering-design)
 - 进度与任务真相源：当前这份 roadmap
-- 调研与历史判断： [Markdown 渲染调研](/guide/markdown-rendering-research)
+- 调研与历史判断： [Markdown 归档](/guide/archive/markdown/)
 
-`checklist / process / spike / fixtures` 继续保留，但降级为附录参考，不再各自维护一份最新进度快照。
+`checklist / process / spike / fixtures / testing migration / codeblock report` 继续保留在归档目录，但不再各自维护一份最新进度快照。
 
-## 当前阻塞与收口优先级（2026-06-08）
+## 当前阻塞与收口优先级（2026-06-14）
 
-在最新一轮实现审视后，当前最优先的收口项已经从“继续扩高级能力”切回“先修公共契约”：
+在最新一轮修复与测试迁移后，上一批公共契约问题已经完成代码与 CT / E2E smoke 验证。当前不再把 raw HTML、HTML Preview streaming 主链路、context 响应式、HTML Preview source fidelity 视为阻塞项。
 
-1. `P1` 公共能力失真
-   - `features.html` / `parserOptions.html` 已暴露，但通用 raw HTML 实际仍只会回落成文本
-   - HTML Preview 的 `streamingMode` 基础语义已落地，但 `streaming.active -> HtmlPreviewBlock` 主链路仍未完全做实
-2. `P2` 公共边界未封口
-   - `useMarkdownContext` 当前仍是 setup 时快照，而不是稳定响应式上下文
-   - HTML Preview 仍会对 preview / source / copy / download 源码做 `trim()`
-   - `TrMarkdownParserAdapter` 名义可替换，实际 IR 仍绑定当前内部节点协议
-   - `actionsRender` 当前仍暴露内部 `VNode` 组装协议
-3. `P2` 容器与测试边界过宽
-   - Bubble 仍通过通用 `contentAttributes` 透传 Markdown 私有配置
-   - streaming / profiler 的内部 telemetry 已被 DOM `data-*` 和 Playwright 断言固化
-   - `TrMarkdown` 已正式公开导出，但当前缺少独立组件文档契约
+补充对齐项：对照 LobeUI 后，当前继续保留 `markdown-it -> TinyRobot render-node -> Vue renderer` 路线，不在本阶段自研 Markdown parser。后续对齐优先学习 provider、组件映射、受控扩展点和 streaming 编排，而不是重写底层 Markdown 语法解析。
+
+1. `P1` 体积与按需加载边界
+   - `packages/components` 发布构建已把 Mermaid / KaTeX / Shiki / @shikijs / highlight.js 高级运行时 external 化，避免发布产物生成巨型高级能力 chunk
+   - CT / demo 仍可以按 consumer 视角拆分 vendor chunks；临时 bundle budget 脚本已按提交前约定移除，后续如需门禁应另行升级为正式 CI 检查
+2. `P2` parser adapter 文档契约
+   - `TrMarkdownParserAdapter` 仍应明确为“产出当前 render-node 协议”的 adapter，而不是完全稳定的通用 IR
+   - 这轮不建议做大规模 IR 抽象重构，优先保持文档诚实
+3. `P2` 公开文档与测试入口维护
+   - `TrMarkdown` 已具备独立组件文档入口与 AGENTS 结构说明
+   - 后续新增能力时必须同步 CT、E2E smoke 与文档状态，避免再次漂移
+4. `P2` 提交边界清理
+   - 临时 bundle budget 脚本与 root script 已按提交前约定移除；除非团队决定把它升级成正式 CI 门禁，否则不放入本次提交
+   - 提交前需要复核 staged 文件，避免把非 markdown 任务改动混进本次 markdown 收口提交
+
+## 提交前 Checklist（当前收口批次）
+
+- [x] 复核 staged / unstaged diff，把 markdown CT 迁移、LobeUI 对齐修复、文档更新和无关改动分组确认
+- [x] 移除临时 `scripts/check-markdown-bundle-budget.js`
+- [x] 移除 root `package.json` 中的临时 `check:markdown-bundle`
+- [x] 确认非 markdown 文件是否属于本次提交；`packages/components/src/mcp-server-picker/components/PluginModal.vue` 已从 staged 集合排除，仅保留为工作区改动
+- [ ] 重新运行 `pnpm -F @opentiny/tiny-robot type-check`
+- [ ] 重新运行 `pnpm -F tiny-robot-test test:ct`
+- [ ] 重新运行 `pnpm -F tiny-robot-test test src/markdown/index.spec.ts`
+- [ ] 重新运行 `pnpm -F @opentiny/tiny-robot build`
+
+## 后续架构执行计划
+
+这些任务不阻塞当前提交前收口，但需要在后续迭代中按独立 PR / 独立验证推进，避免在当前批次里同时扩大 parser、props、debug 和 CI 边界。
+
+### Phase A：结构性 props 稳定化
+
+目标：参考 LobeUI `useStableValue` 的收益，降低调用方传 inline object 时导致的无意义 parse / render / iframe remount。
+
+- [ ] 盘点高频复杂 props：`features / parserOptions / componentProps / components / renderOptions / code / link / streaming`
+- [ ] 先做 profiling / CT 观测，确认哪些 prop identity 变化会触发真实额外成本
+- [ ] 设计 Vue 侧 `useStableStruct` 或局部 computed key 策略，避免把函数型 prop 做深比较
+- [ ] 先从 HTML Preview iframe remount 和 parse runtime 两条高价值路径试点
+- [ ] 补 CT：inline object rerender 不应造成 HTML Preview iframe 重建或 parse count 异常上涨
+
+### Phase B：受控 transform pipeline
+
+目标：不自研 parser，也不直接开放 `remarkPlugins / rehypePlugins`，而是在 `markdown-it -> render-node` 后提供 TinyRobot 可控的 node transform 层。
+
+- [ ] 定义 transform 输入输出：`TrMarkdownRenderNode[] -> TrMarkdownRenderNode[]`
+- [ ] 明确安全边界：transform 不能绕过 HTML sanitizer、不能直接写 DOM、不能访问 Bubble 私有状态
+- [ ] 先把内部 `citations / custom semantic blocks` 作为 transform pipeline 的试点候选
+- [ ] 设计失败回退：transform 抛错时保留原始节点并输出 dev warning
+- [ ] 补 CT：transform 顺序、错误回退、code/math/html boundary 不被误改
+
+### Phase C：parser adapter 边界升级
+
+目标：短期保持文档诚实，长期再评估是否从当前 render-node 协议抽象出稳定 IR。
+
+- [ ] 先冻结当前 `TrMarkdownRenderNode` 字段语义：`type / tag / text / attrs / children / position / meta`
+- [ ] 给每类节点补最小 contract fixture，避免 parser adapter 变更时 renderer 被隐式打破
+- [ ] 评估是否需要新增 `version` 或 `capabilities` 字段表达 adapter 能力
+- [ ] 如果未来接 unified/remark/rehype，只作为 adapter 实验，不替换默认 markdown-it 主线
+
+### Phase D：debug / profiler 边界迁移
+
+目标：继续收窄 root DOM dataset，把 profiler/debug 从 DOM attrs 迁到更清晰的 debug panel / provider 机制。
+
+- [ ] 保留当前 summary attrs 和 `data-stream-snapshot` 作为 CT/E2E 稳定入口
+- [ ] 设计内部 debug provider，让 demo panel 从 provider 读取 profiler 细节
+- [ ] 逐步减少 demo 对 root dataset debug JSON 的直接依赖
+- [ ] 补 CT/E2E：用户可见 streaming 行为不依赖 profiler debug 字段
+
+### Phase E：正式 bundle budget 门禁评估
+
+目标：把临时脚本经验沉淀成正式 CI 方案，而不是把一次性检查脚本直接塞进当前提交。
+
+- [ ] 确定预算指标：entry raw/gzip、advanced runtime chunk、dynamic import marker
+- [ ] 确定运行时机：release build 后、CI nightly、或 PR check
+- [ ] 确定失败策略：blocking check 还是 warning report
+- [ ] 重新引入正式脚本时补 README / AGENTS / CI 文档，而不是只加 root script
 
 ## Roadmap 目标
 
@@ -62,7 +126,27 @@ Roadmap 以 `TrMarkdown` 为核心能力对象，覆盖两类落地场景：
 
 当前这版 roadmap 的状态判断已结合代码现状与最新一轮 demo / build / test 验证结果维护。
 
-## 当前进度快照（截至 2026-06-07 的实现盘点）
+## 测试策略快照（2026-06-14）
+
+Markdown 自动化验证已从“巨型 E2E harness”迁移为“CT 契约测试 + 少量 E2E smoke”：
+
+- `packages/test/src/markdown-ct/*.spec.ts` 覆盖 `TrMarkdown` 单组件契约：
+  - static structure / variants / links / task list / componentProps / custom components / citations / alerts / footnotes
+  - code block / Shiki transformer / custom actions / HTML Preview / HTML Preview streaming mode
+  - Math / Mermaid / Video / Image Gallery
+  - streaming incomplete hold / smoothing parse count / animated summary telemetry / rewrite reset / hard reset / skip matrix
+- `packages/test/src/markdown/index.spec.ts` 只保留真实集成 smoke：
+  - markdown demo page smoke
+  - Bubble fallback renderer
+  - Bubble explicit markdown content type
+  - HTML Preview iframe
+  - animated markdown + Bubble streaming smoke
+- 新增 markdown 能力时，默认先补 CT；只有涉及页面导航、Bubble 组合、iframe 集成或跨组件 wiring 时再补 E2E。
+- `packages/test` 与 `packages/markdown-demo` 已在 Vite consumer 配置层拆分 `Mermaid / KaTeX / Shiki / markdown-it / DOMPurify` vendor chunks，并使用 demo/test 专属 chunk warning budget，当前 build 不再出现 large chunk warning。
+- `packages/components` 发布构建已把 Mermaid / KaTeX / Shiki / @shikijs / highlight.js 高级运行时保留为 external dynamic imports，当前不再生成 `katex.min.css`、`mermaid.core.js`、`cytoscape.esm.js`、`wardley*.js` 等高级能力 chunk。
+- 当前剩余治理重点是把构建体积指标接入可重复的回归检查，避免后续新增高级 case 时绕过 external / dynamic import 边界。
+
+## 当前进度快照（截至 2026-06-14 的实现盘点）
 
 - markdown 验证入口已完成一轮“源码直连”硬化：
   - `packages/test` 与 `packages/markdown-demo` 现已显式把 `@opentiny/tiny-robot` / `@opentiny/tiny-robot-svgs` 指向 workspace `src`
@@ -106,7 +190,7 @@ Roadmap 以 `TrMarkdown` 为核心能力对象，覆盖两类落地场景：
   - `fast-array-diff` 仅作为小依赖备选，不默认引入
   - 当前不采用通用动画框架、`Splitting.js` 或第二 markdown parser
   - 已补 `streaming.mode/preset`、markdown-it block `position`、stable top-level key、`useStreamBlockDiff`、`useStreamRevealQueue`、`useStreamTextAnimation`、`StreamAnimatedText`
-  - `TrMarkdown` root 已补 `stream state / scheduler phase / queueLength / blockCount / activeIndex / animatingIndex / streamingIndex / charDelay / fadeDuration / settleHoldMs / activeBlockCount / revealedCount / pendingCount / rewriteCount / resetCount / parseCount` telemetry
+  - `TrMarkdown` root 已收缩为稳定 summary telemetry，并通过 `data-stream-snapshot` / `data-stream-profiler-debug` 暴露结构化调试快照
   - 已新增第一方 stream profiler 事件模型，覆盖 `input / parse / block-diff / queue-transition / animation-frame / token-schedule`
   - 已新增 token scheduler，把原先 token patch 提升为可观测的 `idle / append / patch / reset` 调度结果，并暴露 preserved / inserted / deleted / replaced 计数
 - 当前剩余项已经收敛为一个 P0 闭环，并已进入“可验证收口”状态：
@@ -122,12 +206,11 @@ Roadmap 以 `TrMarkdown` 为核心能力对象，覆盖两类落地场景：
   - `streaming.active = false` 当前正式策略已收敛为 `visible settling -> finalized plain text DOM`
   - `append during settling` 已正式纳入 scheduler 契约，并验证 finalize timer 会被撤销后恢复到 streaming 队列
   - `token-level rewrite patch` 与 token scheduler 已进入正式 P0：同 block rewrite 时复用未变 grapheme birth，结构变化才 hard reset
-- `M5` 已进入局部实现阶段，但仍未完成对标收口：
+- `M5` 已完成本轮高级能力与公共契约收口：
   - `HTML Preview` 基础能力已落地：`html` fenced block 分流、iframe sandbox + srcdoc、Preview / Code 切换、copy / download、fragment fallback、dark mode 已进入代码、demo 与 Playwright 回归
-  - `HTML Preview streaming parity` 的基础语义已落地：`streamingMode = auto / live / defer`、无 `<script>` 文档的 live mount、`auto` 下的 script-lock / defer、demo 与 Playwright case 都已补齐
-  - `HTML Preview` 当前仍有两项正式 blocker：
-    - `streaming.active -> HtmlPreviewBlock` 主链路尚未完全做实
-    - preview / source / copy / download 仍会对源码做 `trim()`，不满足保真要求
+  - `HTML Preview streaming parity` 已完成主链路收口：`streaming.active -> context -> CodeFenceResolver -> HtmlPreviewBlock` 已接通，`streamingMode = auto / live / defer`、script-lock / defer 语义与 CT 覆盖已补齐
+  - `HTML Preview` 源码保真已修复：preview / source / copy / download 不再主动 `trim()` 用户 fenced HTML source；`CodeFenceResolver` 对 HTML Preview 会保留 resolver 收到的源码，parser source range 级 byte-for-byte 保真继续作为后续专项
+  - `HTML Preview` streaming tail 边界已补回归：closed trailing HTML fence 不再被切入 unstable tail，完整 HTML fence 在 streaming 下仍留在稳定 parser 路径
   - `Mermaid block` 已完成最小闭环收口：`mermaid` fenced block 分流、动态 import、light/dark theme 映射、loading/error/retry/source copy 已进入代码；公开 demo 已新增 `Math and Diagrams` section，覆盖 `flowchart / sequence / invalid syntax`，并已通过类型检查与 Playwright 回归
   - `KaTeX / LaTeX` 已完成最小闭环收口：第一方 `math-inline / math-block` 节点、`$...$ / $$...$$` 语法、按需加载 `katex` runtime 与 CSS、错误 fallback 已进入代码；公开 demo 已补 `inline / block / invalid formula`，并已通过类型检查与 Playwright 回归
   - `Footnotes` 已完成最小闭环收口：`markdown-it-footnote` 仅负责 token 化，脚注 ref / list / backref 全部映射到第一方节点；公开 demo 已新增 `Footnotes` section，覆盖 `single / repeated / inline` 三条主路径，并已通过类型检查与 Playwright 回归
@@ -161,19 +244,19 @@ Roadmap 以 `TrMarkdown` 为核心能力对象，覆盖两类落地场景：
 | 基础 Markdown 语法 | 完整 | 已覆盖静态基础语法与基础 demo | Done |
 | 标签级组件映射 | 有 | 已实现 | Done |
 | 统一 Markdown 入口组件 | 有 | `TrMarkdown` 已实现 | Done |
-| Markdown Provider / 上下文 | 有 | 基础上下文已实现，但 `useMarkdownContext` 的响应式契约仍未封口 | Partial |
+| Markdown Provider / 上下文 | 有 | `useMarkdownContext` 已改为响应式读取契约，并有 prop update CT 覆盖 | Done |
 | 静态与流式分支拆分 | 有 | 静态完成，流式第一阶段已实现 | Done |
 | 代码块独立子系统 | 有 | 已实现 | Done |
 | Mermaid 代码块 | 有 | 已完成最小闭环，支持 fenced block 分流、动态加载、theme/loading/error/retry/source copy，demo 与 test 已补公开 case | Done |
-| HTML Preview 代码块 | 有 | 基础预览已落地，但 streaming 主链路与源码保真仍待收口 | Partial |
-| 原始 HTML 能力 | 有 | public flag 已暴露，但通用 raw HTML 仍未形成稳定能力 | Blocked |
+| HTML Preview 代码块 | 有 | 已完成基础预览、source fidelity、fragment fallback、streaming auto/live/defer 与 iframe smoke | Done |
+| 原始 HTML 能力 | 有 | `features.html` 已具备 sanitizer 后的 inline / block render path，并有 disabled/enabled 与安全回归 CT | Done |
 | 公式支持 | 有 | 已完成最小闭环，支持 `$...$ / $$...$$`、第一方 math node、KaTeX 动态加载与错误 fallback | Done |
 | Footnotes | 有 | 已完成最小闭环，支持定义式 / 行内脚注、重复引用、第一方锚点与 backref | Done |
 | GitHub Alert | 有 | 已完成最小闭环，支持五类 GitHub alert、第一方 AlertBlock 与 demo / test 对照回归 | Done |
 | 图片 Gallery | 有 | 已完成 markdown 自持的独立 gallery 预览链路 | Done |
 | chat variant | 有 | `bubble` / `article` 已落地，Bubble markdown 集成已收口 | Done |
-| 插件扩展点 | 完整 | 已暴露最小公开边界，但 `actionsRender` / 上下文 / adapter 等契约仍需继续收口 | Partial |
-| 安全层 | 完整 | 基础 HTML 关闭与链接策略已具备，但 raw HTML 与 preview 边界仍需继续收紧 | Partial |
+| 插件扩展点 | 完整 | `actionsRender` 已新增 `defaultActions / renderDefaultActions` 稳定入口；parser adapter 仍按当前 render-node 协议维护 | Partial |
+| 安全层 | 完整 | 默认关闭 HTML，raw HTML 走 DOMPurify sanitizer，HTML Preview 走 sandbox iframe；仍需长期关注高级依赖与新节点安全回归 | Done |
 | 流式 smoothing / tail hold | 有 | 已实现 smoothing / tail / incomplete hold / scheduler 契约 | Done |
 | 字符级 streaming 动画 / reveal queue | 有 | 已实现 animated queue、token scheduler、profiler telemetry 与回归闭环 | Done |
 
@@ -812,7 +895,7 @@ TinyRobot 当前的问题不是完全缺能力，而是 Markdown 逻辑分散在
   - markdown-it block 已补 `position.charStart/charEnd`
   - animated 路径已切换到稳定 top-level key
   - `block diff / reveal queue / text animation` 首轮基座已落地
-  - `TrMarkdown` root 已补 `stream state / scheduler phase / queueLength / blockCount / activeIndex / animatingIndex / streamingIndex / charDelay / fadeDuration / settleHoldMs / activeBlockCount / revealedCount / pendingCount / rewriteCount / resetCount / parseCount` telemetry
+  - `TrMarkdown` root telemetry 已收缩为稳定 summary attrs，并通过 `data-stream-snapshot` / `data-stream-profiler-debug` 暴露结构化调试快照；低层 profiler 字段不再作为 root dataset 稳定契约扩散
   - demo 已补 `large append / paragraph burst / fast chunks / high TPS burst / heading + list / quote + paragraph / settling append / rewrite-reset` animated repro、预览侧/控制侧观测面板，以及 finalized 后再 loop 的自动回放
   - demo 已新增 `Streaming rewrite patch` 专项 case，root telemetry 可观察 `updateKind / hardReset / skippedCharCount / skippedNodeCount`
   - `packages/test` 已补 `large append / paragraph burst / fast chunks / high TPS / heading + list / quote + paragraph / settling append / rewrite-reset / hard reset / skip matrix / finalized cleanup` 回归
@@ -1066,8 +1149,8 @@ TinyRobot 当前的问题不是完全缺能力，而是 Markdown 逻辑分散在
   - public：`components / componentProps / parserOptions / renderOptions / features`
   - internal：`plugins / remarkPlugins / rehypePlugins / customRender / stream scheduler / token patch / profiler raw events`
 - 当前仍待继续收口的边界问题：
-  - `useMarkdownContext` 虽已导出，但响应式契约未封口
-  - `actionsRender` 当前仍暴露内部 `VNode` 协议
+  - `useMarkdownContext` 响应式契约已完成主线修复并由 CT 覆盖，后续新增 context 字段时需要继续补 prop update 回归
+  - `actionsRender` 已新增 `defaultActions / renderDefaultActions()` 稳定入口，`originalNode` 仅保留为 legacy compatibility
   - `TrMarkdownParserAdapter` 的可替换边界仍偏文档承诺，未完全成为稳定 IR
 
 ### 当前阶段非目标
@@ -1268,15 +1351,17 @@ TinyRobot 当前的问题不是完全缺能力，而是 Markdown 逻辑分散在
 
 结合本轮前后构建日志，对体积收敛可以继续确认：
 
-- `packages/components` 从上一轮的 `803 modules transformed` 收敛到当前 `527`
+- `packages/components` 在发布构建层继续收口：高级 Markdown 运行时 external 化后，从本轮优化前的 `2661 modules transformed` 收敛到 `522 modules transformed`
+- `packages/components/dist/markdown/index.js` 当前约 `164.02 kB`，`gzip 39.75 kB`；dist 不再输出 `katex.min.css`、`mermaid.core.js`、`cytoscape.esm.js`、`wardley*.js` 等高级能力 chunk
 - `packages/markdown-demo` 从上一轮的 `3960 modules transformed` 收敛到当前 `365`
 - 之前由整包 `Shiki` 与错误 demo 入口带来的异常膨胀，当前已收回到显式白名单 + 专项入口模式
 
 当前这一轮仍需关注的风险：
 
-- `Shiki` 高级路径仍会生成若干按需 chunk，但已从“全量语言 / 主题扩散”收缩为“显式白名单集合”
-- 若后续新增语言或主题时绕过白名单约束，组件包与 demo 体积都可能再次回涨
-- 当前还没有把 Markdown 构建指标接进自动预算门禁，后续若持续演进，建议补体积回归检查
+- consumer 侧使用 Mermaid / KaTeX / Shiki 时仍会按实际功能路径加载对应依赖；这是能力增量成本，不应被误判为默认路径成本
+- `katex/dist/katex.min.css?url` 仍要求 consumer 构建器能处理 CSS URL import；当前 Vite consumer 已验证，非 Vite bundler 需要后续单独说明或适配
+- 若后续新增语言、主题或高级 runtime 时绕过白名单 / external / dynamic import 约束，组件包与 demo 体积都可能再次回涨
+- 临时 `check:markdown-bundle` 脚本已按提交前约定移除；当前仍未接入正式 CI 预算门禁，后续若持续演进再评估是否升级为正式检查
 
 基于本轮 `M4` streaming 收口的最新验证，可以继续确认：
 
@@ -1333,5 +1418,5 @@ TinyRobot 当前的问题不是完全缺能力，而是 Markdown 逻辑分散在
 
 ## 配套文档
 
-- 研究与方案： [Markdown 渲染调研与 TrMarkdown 方案草图](/guide/markdown-rendering-research)
+- 历史调研与迁移记录： [Markdown 归档](/guide/archive/markdown/)
 - 当前 Bubble 文档：`docs/src/components/bubble.md`

@@ -1,6 +1,23 @@
 import { defineConfig, devices } from '@playwright/test'
 
-const testPort = Number(process.env.TINY_ROBOT_TEST_PORT || 3340)
+const appendNoProxy = (value: string | undefined) => {
+  const entries = new Set(
+    (value || '')
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean),
+  )
+
+  entries.add('127.0.0.1')
+  entries.add('localhost')
+
+  return [...entries].join(',')
+}
+
+process.env.NO_PROXY = appendNoProxy(process.env.NO_PROXY)
+process.env.no_proxy = appendNoProxy(process.env.no_proxy)
+
+const testPort = Number(process.env.TINY_ROBOT_TEST_PORT || 3341)
 const baseURL = `http://127.0.0.1:${testPort}`
 const localBrowserChannel = process.env.PLAYWRIGHT_BROWSER_CHANNEL || (!process.env.CI ? 'chrome' : '')
 const disableVideo = process.env.PLAYWRIGHT_DISABLE_VIDEO === '1' || Boolean(localBrowserChannel)
@@ -47,7 +64,7 @@ export default defineConfig({
   webServer: {
     command: `npm run dev -- --force --port ${testPort}`,
     url: baseURL,
-    reuseExistingServer: false,
+    reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
   },
 })
