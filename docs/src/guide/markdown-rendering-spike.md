@@ -19,6 +19,11 @@ outline: deep
 - 流程： [Markdown 渲染开发流程](/guide/markdown-rendering-process)
 - 路线图： [Markdown 渲染 Roadmap](/guide/markdown-rendering-roadmap)
 
+> 维护说明（2026-06-08）
+>
+> 这份文档当前降级为历史 Spike 参考。
+> 若 Spike 结论与现行实现冲突，应以 design / roadmap 中的最新收口结论为准。
+
 ## Spike 范围
 
 本轮 Spike 不做正式集成实现，只做底层能力验证和推进建议。

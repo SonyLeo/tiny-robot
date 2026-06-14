@@ -5,7 +5,7 @@ export const markdownComponentsCase: MarkdownDemoCase = {
   id: 'markdown-components',
   title: 'Markdown components',
   description:
-    '对齐 LobeUI 的 custom components 方向，用最小可运行案例展示 `components` 覆写如何接管 heading / link / inline code。',
+    '对齐 LobeUI 的 custom components 方向，用最小可运行案例展示 `components + componentProps` 如何同时驱动覆写节点和默认节点。',
   previewComponent: MarkdownComponentsPreview,
   controls: {
     variant: false,
@@ -25,6 +25,16 @@ Use a [custom link](https://docs.opentiny.design/tiny-robot/) and a custom \`inl
   heading: DemoHeading,
   link: DemoLink,
   inlineCode: DemoInlineCode,
+}
+
+const componentProps = {
+  heading: { badge: 'M5.7' },
+  link: { iconLabel: 'DOCS', tone: 'brand' },
+  inlineCode: { label: 'TOKEN', tone: 'brand' },
+  paragraph: {
+    class: 'demo-markdown-paragraph',
+    'data-component-props-paragraph': 'true',
+  },
 }`,
   },
 }

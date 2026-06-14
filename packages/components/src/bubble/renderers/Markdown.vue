@@ -25,8 +25,45 @@ const markdownVariant = computed<NonNullable<TrMarkdownProps['variant']>>(() => 
   return variant === 'default' || variant === 'article' || variant === 'bubble' ? variant : 'bubble'
 })
 
+const markdownPropsKeys = new Set<keyof TrMarkdownProps>([
+  'citations',
+  'components',
+  'componentProps',
+  'content',
+  'code',
+  'features',
+  'link',
+  'parser',
+  'parserOptions',
+  'renderOptions',
+  'streaming',
+  'variant',
+])
+
+const markdownScopedAttrs = computed<Partial<TrMarkdownProps>>(() => {
+  const resolvedScopedAttrs = attrs.markdown
+
+  if (!resolvedScopedAttrs || typeof resolvedScopedAttrs !== 'object' || Array.isArray(resolvedScopedAttrs)) {
+    return {}
+  }
+
+  return resolvedScopedAttrs as Partial<TrMarkdownProps>
+})
+
+const legacyMarkdownAttrs = computed(() => {
+  return Object.entries(attrs).reduce<Record<string, unknown>>((resolvedAttrs, [key, value]) => {
+    if (key === 'markdown' || key === 'variant' || !markdownPropsKeys.has(key as keyof TrMarkdownProps)) {
+      return resolvedAttrs
+    }
+
+    resolvedAttrs[key] = value
+    return resolvedAttrs
+  }, {})
+})
+
 const markdownAttrs = computed(() => ({
-  ...attrs,
+  ...legacyMarkdownAttrs.value,
+  ...markdownScopedAttrs.value,
   variant: markdownVariant.value,
 }))
 

@@ -37,6 +37,7 @@ export const renderCodeNode = (
           mermaid: helpers.context.features.mermaid,
           enableTransformer: Boolean(highlightConfig.enableTransformer),
           actionsRender: codeConfig.actionsRender,
+          streamingActive: helpers.context.streaming.active,
         }),
       )
     default:

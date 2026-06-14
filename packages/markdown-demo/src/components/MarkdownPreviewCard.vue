@@ -1,15 +1,22 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { TrMarkdown } from '@opentiny/tiny-robot'
-import type { MarkdownDemoCase, MarkdownDemoControls, MarkdownStreamingTelemetry } from '../types/markdownDemo'
+import type {
+  MarkdownDemoCase,
+  MarkdownDemoControls,
+  MarkdownDemoView,
+  MarkdownStreamingTelemetry,
+} from '../types/markdownDemo'
 
 const props = defineProps<{
   demoCase: MarkdownDemoCase
+  viewMode: MarkdownDemoView
 }>()
 
 const cardRef = ref<HTMLElement | null>(null)
 const previewRef = ref<HTMLElement | null>(null)
 const previewReady = ref(!props.demoCase.deferPreview)
+const controlsExpanded = ref(props.viewMode === 'internal')
 let previewObserver: IntersectionObserver | null = null
 let telemetryObserver: MutationObserver | null = null
 
@@ -189,84 +196,107 @@ const readStreamingTelemetry = () => {
     return
   }
 
+  const snapshot = (() => {
+    const raw = root.dataset.streamSnapshot
+    if (!raw) {
+      return null
+    }
+
+    try {
+      return JSON.parse(raw) as Record<string, unknown>
+    } catch {
+      return null
+    }
+  })()
+  const profilerDebug = (() => {
+    const raw = root.dataset.streamProfilerDebug
+    if (!raw) {
+      return null
+    }
+
+    try {
+      return JSON.parse(raw) as Record<string, unknown>
+    } catch {
+      return null
+    }
+  })()
+
   Object.assign(streamingTelemetry, {
-    state: (root.dataset.streamState as MarkdownStreamingTelemetry['state']) || 'idle',
-    schedulerPhase: (root.dataset.streamSchedulerPhase as MarkdownStreamingTelemetry['schedulerPhase']) || 'idle',
-    updateKind: (root.dataset.streamUpdateKind as MarkdownStreamingTelemetry['updateKind']) || 'init',
-    hardReset: root.dataset.streamHardReset === 'true',
-    skippedCharCount: Number(root.dataset.streamSkippedCharCount || 0),
-    skippedNodeCount: Number(root.dataset.streamSkippedNodeCount || 0),
-    skippedBuckets: root.dataset.streamSkippedBuckets || '[]',
-    queueLength: Number(root.dataset.streamQueueLength || 0),
-    blockCount: Number(root.dataset.streamBlockCount || 0),
-    activeIndex: Number(root.dataset.streamActiveIndex || -1),
-    animatingIndex: Number(root.dataset.streamAnimatingIndex || -1),
-    streamingIndex: Number(root.dataset.streamStreamingIndex || -1),
-    charDelay: Number(root.dataset.streamCharDelay || 0),
-    fadeDuration: Number(root.dataset.streamFadeDuration || 0),
-    settleHoldMs: Number(root.dataset.streamSettleHoldMs || 0),
-    activeBlockCount: Number(root.dataset.streamActiveBlockCount || 0),
-    revealedCount: Number(root.dataset.streamRevealedCount || 0),
-    pendingCount: Number(root.dataset.streamPendingCount || 0),
+    state: (snapshot?.phase as MarkdownStreamingTelemetry['state']) || 'idle',
+    schedulerPhase: (snapshot?.schedulerPhase as MarkdownStreamingTelemetry['schedulerPhase']) || 'idle',
+    updateKind: (snapshot?.updateKind as MarkdownStreamingTelemetry['updateKind']) || 'init',
+    hardReset: Boolean(snapshot?.hardReset),
+    skippedCharCount: Number(snapshot?.skippedCharCount || 0),
+    skippedNodeCount: Number(snapshot?.skippedNodeCount || 0),
+    skippedBuckets: JSON.stringify(snapshot?.skippedBuckets || []),
+    queueLength: Number(snapshot?.queueLength || 0),
+    blockCount: Number(snapshot?.blockCount || 0),
+    activeIndex: Number(snapshot?.activeIndex || -1),
+    animatingIndex: Number(snapshot?.animatingIndex || -1),
+    streamingIndex: Number(snapshot?.streamingIndex || -1),
+    charDelay: 0,
+    fadeDuration: 0,
+    settleHoldMs: 0,
+    activeBlockCount: Number(snapshot?.activeBlockCount || 0),
+    revealedCount: 0,
+    pendingCount: Number(snapshot?.pendingCount || 0),
     liveCharCount: root.querySelectorAll('.tr-markdown__stream-char').length,
-    rewriteCount: Number(root.dataset.streamRewriteCount || 0),
-    resetCount: Number(root.dataset.streamResetCount || 0),
-    parseCount: Number(root.dataset.streamParseCount || 0),
-    profilerEnabled: root.dataset.streamProfilerEnabled === 'true',
-    profilerEventCount: Number(root.dataset.streamProfilerEventCount || 0),
-    profilerLastEvent: root.dataset.streamProfilerLastEvent || 'none',
-    profilerTimeline: root.dataset.streamProfilerTimeline
-      ? root.dataset.streamProfilerTimeline.split('|').filter(Boolean)
-      : [],
-    profilerInputCount: Number(root.dataset.streamProfilerInputCount || 0),
-    profilerInputAppendChars: Number(root.dataset.streamProfilerInputAppendChars || 0),
-    profilerInputRewriteCount: Number(root.dataset.streamProfilerInputRewriteCount || 0),
-    profilerParseCount: Number(root.dataset.streamProfilerParseCount || 0),
-    profilerParseAvgMs: Number(root.dataset.streamProfilerParseAvgMs || 0),
-    profilerBlockDiffCount: Number(root.dataset.streamProfilerBlockDiffCount || 0),
-    profilerBlockDiffAvgMs: Number(root.dataset.streamProfilerBlockDiffAvgMs || 0),
-    profilerQueueTransitionCount: Number(root.dataset.streamProfilerQueueTransitionCount || 0),
-    profilerSettleCount: Number(root.dataset.streamProfilerSettleCount || 0),
-    profilerFinalizeCount: Number(root.dataset.streamProfilerFinalizeCount || 0),
-    profilerAnimationFrameCount: Number(root.dataset.streamProfilerAnimationFrameCount || 0),
-    profilerRevealFrameCount: Number(root.dataset.streamProfilerRevealFrameCount || 0),
-    profilerSkippedFrameCount: Number(root.dataset.streamProfilerSkippedFrameCount || 0),
-    profilerSlowFrameCount: Number(root.dataset.streamProfilerSlowFrameCount || 0),
-    profilerFrameAvgMs: Number(root.dataset.streamProfilerFrameAvgMs || 0),
-    profilerFrameLastMs: Number(root.dataset.streamProfilerFrameLastMs || 0),
-    profilerFrameMaxMs: Number(root.dataset.streamProfilerFrameMaxMs || 0),
-    profilerFrameIntervalAvgMs: Number(root.dataset.streamProfilerFrameIntervalAvgMs || 0),
-    profilerFpsSampleCount: Number(root.dataset.streamProfilerFpsSampleCount || 0),
-    profilerFpsCurrent: Number(root.dataset.streamProfilerFpsCurrent || 0),
-    profilerFpsAvg: Number(root.dataset.streamProfilerFpsAvg || 0),
-    profilerFpsMin: Number(root.dataset.streamProfilerFpsMin || 0),
-    profilerFpsMax: Number(root.dataset.streamProfilerFpsMax || 0),
-    profilerFpsIndex: Number(root.dataset.streamProfilerFpsIndex || 0),
-    profilerMaxBacklog: Number(root.dataset.streamProfilerMaxBacklog || 0),
-    profilerLastBacklog: Number(root.dataset.streamProfilerLastBacklog || 0),
-    profilerRootCommitCount: Number(root.dataset.streamProfilerRootCommitCount || 0),
-    profilerRootCommitAvgMs: Number(root.dataset.streamProfilerRootCommitAvgMs || 0),
-    profilerRootCommitLastMs: Number(root.dataset.streamProfilerRootCommitLastMs || 0),
-    profilerRootCommitMaxMs: Number(root.dataset.streamProfilerRootCommitMaxMs || 0),
-    profilerRootCommitLastPhase: root.dataset.streamProfilerRootCommitLastPhase || 'none',
-    profilerRootCommitLastBlockCount: Number(root.dataset.streamProfilerRootCommitLastBlockCount || 0),
-    profilerRootCommitLastTextLength: Number(root.dataset.streamProfilerRootCommitLastTextLength || 0),
-    profilerRootCommitMountCount: Number(root.dataset.streamProfilerRootCommitMountCount || 0),
-    profilerRootCommitUpdateCount: Number(root.dataset.streamProfilerRootCommitUpdateCount || 0),
-    profilerBlockCommitCount: Number(root.dataset.streamProfilerBlockCommitCount || 0),
-    profilerBlockCommitAvgMs: Number(root.dataset.streamProfilerBlockCommitAvgMs || 0),
-    profilerBlockCommitLastMs: Number(root.dataset.streamProfilerBlockCommitLastMs || 0),
-    profilerBlockCommitMaxMs: Number(root.dataset.streamProfilerBlockCommitMaxMs || 0),
-    profilerBlockCommitLastState: root.dataset.streamProfilerBlockCommitLastState || 'none',
-    profilerTrackedBlockCount: Number(root.dataset.streamProfilerBlockCommitTrackedCount || 0),
-    profilerBlockCommitMountCount: Number(root.dataset.streamProfilerBlockCommitMountCount || 0),
-    profilerBlockCommitUpdateCount: Number(root.dataset.streamProfilerBlockCommitUpdateCount || 0),
-    profilerTokenScheduleCount: Number(root.dataset.streamProfilerTokenScheduleCount || 0),
-    profilerTokenScheduleAvgMs: Number(root.dataset.streamProfilerTokenScheduleAvgMs || 0),
-    profilerTokenPreservedCount: Number(root.dataset.streamProfilerTokenPreservedCount || 0),
-    profilerTokenInsertedCount: Number(root.dataset.streamProfilerTokenInsertedCount || 0),
-    profilerTokenDeletedCount: Number(root.dataset.streamProfilerTokenDeletedCount || 0),
-    profilerTokenReplacedCount: Number(root.dataset.streamProfilerTokenReplacedCount || 0),
+    rewriteCount: Number(snapshot?.rewriteCount || 0),
+    resetCount: Number(snapshot?.resetCount || 0),
+    parseCount: Number(snapshot?.parseCount || 0),
+    profilerEnabled: Boolean(snapshot?.profilerEnabled),
+    profilerEventCount: Number(snapshot?.profilerEventCount || 0),
+    profilerLastEvent: String(profilerDebug?.lastEventName || 'none'),
+    profilerTimeline: Array.isArray(profilerDebug?.timeline) ? (profilerDebug.timeline as string[]) : [],
+    profilerInputCount: Number(profilerDebug?.inputCount || 0),
+    profilerInputAppendChars: Number(profilerDebug?.inputAppendChars || 0),
+    profilerInputRewriteCount: Number(profilerDebug?.inputRewriteCount || 0),
+    profilerParseCount: Number(profilerDebug?.parseCount || 0),
+    profilerParseAvgMs: Number(profilerDebug?.parseAvgMs || 0),
+    profilerBlockDiffCount: Number(profilerDebug?.blockDiffCount || 0),
+    profilerBlockDiffAvgMs: Number(profilerDebug?.blockDiffAvgMs || 0),
+    profilerQueueTransitionCount: Number(profilerDebug?.queueTransitionCount || 0),
+    profilerSettleCount: Number(profilerDebug?.settleCount || 0),
+    profilerFinalizeCount: Number(profilerDebug?.finalizeCount || 0),
+    profilerAnimationFrameCount: Number(profilerDebug?.animationFrameCount || 0),
+    profilerRevealFrameCount: Number(profilerDebug?.revealFrameCount || 0),
+    profilerSkippedFrameCount: Number(profilerDebug?.skippedFrameCount || 0),
+    profilerSlowFrameCount: Number(profilerDebug?.slowFrameCount || 0),
+    profilerFrameAvgMs: Number(profilerDebug?.frameAvgMs || 0),
+    profilerFrameLastMs: Number(profilerDebug?.frameLastMs || 0),
+    profilerFrameMaxMs: Number(profilerDebug?.frameMaxMs || 0),
+    profilerFrameIntervalAvgMs: Number(profilerDebug?.frameIntervalAvgMs || 0),
+    profilerFpsSampleCount: Number(profilerDebug?.fpsSampleCount || 0),
+    profilerFpsCurrent: Number(profilerDebug?.fpsCurrent || 0),
+    profilerFpsAvg: Number(profilerDebug?.fpsAvg || 0),
+    profilerFpsMin: Number(profilerDebug?.fpsMin || 0),
+    profilerFpsMax: Number(profilerDebug?.fpsMax || 0),
+    profilerFpsIndex: Number(profilerDebug?.fpsIndex || 0),
+    profilerMaxBacklog: Number(profilerDebug?.maxBacklog || 0),
+    profilerLastBacklog: Number(profilerDebug?.lastBacklog || 0),
+    profilerRootCommitCount: Number(profilerDebug?.rootCommitCount || 0),
+    profilerRootCommitAvgMs: Number(profilerDebug?.rootCommitAvgMs || 0),
+    profilerRootCommitLastMs: Number(profilerDebug?.rootCommitLastMs || 0),
+    profilerRootCommitMaxMs: Number(profilerDebug?.rootCommitMaxMs || 0),
+    profilerRootCommitLastPhase: String(profilerDebug?.rootCommitLastPhase || 'none'),
+    profilerRootCommitLastBlockCount: Number(profilerDebug?.rootCommitLastBlockCount || 0),
+    profilerRootCommitLastTextLength: Number(profilerDebug?.rootCommitLastTextLength || 0),
+    profilerRootCommitMountCount: Number(profilerDebug?.rootCommitMountCount || 0),
+    profilerRootCommitUpdateCount: Number(profilerDebug?.rootCommitUpdateCount || 0),
+    profilerBlockCommitCount: Number(profilerDebug?.blockCommitCount || 0),
+    profilerBlockCommitAvgMs: Number(profilerDebug?.blockCommitAvgMs || 0),
+    profilerBlockCommitLastMs: Number(profilerDebug?.blockCommitLastMs || 0),
+    profilerBlockCommitMaxMs: Number(profilerDebug?.blockCommitMaxMs || 0),
+    profilerBlockCommitLastState: String(profilerDebug?.blockCommitLastState || 'none'),
+    profilerTrackedBlockCount: Number(profilerDebug?.trackedBlockCount || 0),
+    profilerBlockCommitMountCount: Number(profilerDebug?.blockCommitMountCount || 0),
+    profilerBlockCommitUpdateCount: Number(profilerDebug?.blockCommitUpdateCount || 0),
+    profilerTokenScheduleCount: Number(profilerDebug?.tokenScheduleCount || 0),
+    profilerTokenScheduleAvgMs: Number(profilerDebug?.tokenScheduleAvgMs || 0),
+    profilerTokenPreservedCount: Number(profilerDebug?.tokenPreservedCount || 0),
+    profilerTokenInsertedCount: Number(profilerDebug?.tokenInsertedCount || 0),
+    profilerTokenDeletedCount: Number(profilerDebug?.tokenDeletedCount || 0),
+    profilerTokenReplacedCount: Number(profilerDebug?.tokenReplacedCount || 0),
   })
 }
 
@@ -297,10 +327,18 @@ watch(
   async () => {
     Object.assign(controls, createControls(props.demoCase))
     previewReady.value = !props.demoCase.deferPreview
+    controlsExpanded.value = props.viewMode === 'internal'
     resetStreamingTelemetry()
     await nextTick()
     setupPreviewObserver()
     setupTelemetryObserver()
+  },
+)
+
+watch(
+  () => props.viewMode,
+  (viewMode) => {
+    controlsExpanded.value = viewMode === 'internal'
   },
 )
 
@@ -326,6 +364,37 @@ const visibleControls = computed(() => ({
   ...props.demoCase.controls,
 }))
 
+const hasControlsContent = computed(() => {
+  return (
+    Boolean(props.demoCase.controlsComponent) ||
+    visibleControls.value.content ||
+    visibleControls.value.variant ||
+    visibleControls.value.fontSize ||
+    visibleControls.value.headerMultiple ||
+    visibleControls.value.lineHeight ||
+    visibleControls.value.marginMultiple ||
+    visibleControls.value.blockMode ||
+    visibleControls.value.highlightEngine ||
+    visibleControls.value.copyable ||
+    visibleControls.value.showLanguage ||
+    visibleControls.value.inlineColorPreview ||
+    visibleControls.value.enableTransformer ||
+    visibleControls.value.defaultExpand
+  )
+})
+
+const controlsSummary = computed(() => {
+  if (props.viewMode === 'internal') {
+    return 'Regression controls'
+  }
+
+  if (hasStreamingTelemetry.value) {
+    return 'Playground and telemetry'
+  }
+
+  return 'Open playground controls'
+})
+
 const hasStreamingTelemetry = computed(() => {
   const streaming = props.demoCase.markdownProps?.streaming
   return typeof streaming === 'boolean' ? streaming : Boolean(streaming && streaming.enabled !== false)
@@ -334,6 +403,8 @@ const hasStreamingTelemetry = computed(() => {
 const showStreamingTelemetry = computed(() => {
   return hasStreamingTelemetry.value && props.demoCase.showStreamingTelemetry !== false
 })
+
+const isPublicView = computed(() => props.viewMode === 'public')
 
 const codeFontSize = computed(() => `${(controls.fontSize * 0.85).toFixed(2)}px`)
 
@@ -411,7 +482,7 @@ const setStreamingActive = (active: boolean) => {
       <span class="demo-card__dot demo-card__dot--green"></span>
     </div>
 
-    <div class="demo-card__body">
+    <div class="demo-card__body" :class="{ 'demo-card__body--stacked': isPublicView }">
       <div ref="previewRef" class="demo-card__preview">
         <component
           :is="demoCase.previewComponent"
@@ -431,143 +502,157 @@ const setStreamingActive = (active: boolean) => {
         </div>
       </div>
 
-      <aside class="demo-card__controls">
-        <component
-          :is="demoCase.controlsComponent"
-          v-if="demoCase.controlsComponent"
-          :controls="controls"
-          :demo-case="demoCase"
-          :markdown-props="markdownProps"
-          :markdown-style="markdownStyle"
-          :set-content="setContent"
-          :set-streaming-active="setStreamingActive"
-          :streaming-telemetry="showStreamingTelemetry ? streamingTelemetry : undefined"
-        />
+      <aside
+        v-if="hasControlsContent"
+        class="demo-card__controls"
+        :class="{
+          'demo-card__controls--collapsed': !controlsExpanded,
+          'demo-card__controls--stacked': isPublicView,
+        }"
+      >
+        <button type="button" class="demo-card__controls-toggle" @click="controlsExpanded = !controlsExpanded">
+          <span>{{ controlsSummary }}</span>
+          <strong>{{ controlsExpanded ? 'Hide' : 'Show' }}</strong>
+        </button>
 
-        <label v-if="visibleControls.content" class="control-group control-group--textarea">
-          <span>children</span>
-          <textarea v-model="controls.content" />
-        </label>
+        <div v-if="controlsExpanded" class="demo-card__controls-body">
+          <component
+            :is="demoCase.controlsComponent"
+            v-if="demoCase.controlsComponent"
+            :controls="controls"
+            :demo-case="demoCase"
+            :markdown-props="markdownProps"
+            :markdown-style="markdownStyle"
+            :set-content="setContent"
+            :set-streaming-active="setStreamingActive"
+            :streaming-telemetry="showStreamingTelemetry ? streamingTelemetry : undefined"
+          />
 
-        <label v-if="visibleControls.variant" class="control-group">
-          <span>variant</span>
-          <select v-model="controls.variant">
-            <option value="default">default</option>
-            <option value="bubble">bubble</option>
-            <option value="article">article</option>
-          </select>
-        </label>
+          <label v-if="visibleControls.content" class="control-group control-group--textarea">
+            <span>children</span>
+            <textarea v-model="controls.content" />
+          </label>
 
-        <label v-if="visibleControls.fontSize" class="control-group">
-          <span>fontSize</span>
-          <div class="control-row">
-            <input
-              :value="controls.fontSize"
-              type="range"
-              min="12"
-              max="28"
-              step="1"
-              @input="updateNumber('fontSize', ($event.target as HTMLInputElement).value)"
-            />
-            <output>{{ controls.fontSize }}</output>
-          </div>
-        </label>
+          <label v-if="visibleControls.variant" class="control-group">
+            <span>variant</span>
+            <select v-model="controls.variant">
+              <option value="default">default</option>
+              <option value="bubble">bubble</option>
+              <option value="article">article</option>
+            </select>
+          </label>
 
-        <label v-if="visibleControls.headerMultiple" class="control-group">
-          <span>headerMultiple</span>
-          <div class="control-row">
-            <input
-              :value="controls.headerMultiple"
-              type="range"
-              min="0"
-              max="3"
-              step="0.1"
-              @input="updateNumber('headerMultiple', ($event.target as HTMLInputElement).value)"
-            />
-            <output>{{ controls.headerMultiple.toFixed(1) }}</output>
-          </div>
-        </label>
+          <label v-if="visibleControls.fontSize" class="control-group">
+            <span>fontSize</span>
+            <div class="control-row">
+              <input
+                :value="controls.fontSize"
+                type="range"
+                min="12"
+                max="28"
+                step="1"
+                @input="updateNumber('fontSize', ($event.target as HTMLInputElement).value)"
+              />
+              <output>{{ controls.fontSize }}</output>
+            </div>
+          </label>
 
-        <label v-if="visibleControls.lineHeight" class="control-group">
-          <span>lineHeight</span>
-          <div class="control-row">
-            <input
-              :value="controls.lineHeight"
-              type="range"
-              min="1"
-              max="3"
-              step="0.1"
-              @input="updateNumber('lineHeight', ($event.target as HTMLInputElement).value)"
-            />
-            <output>{{ controls.lineHeight.toFixed(1) }}</output>
-          </div>
-        </label>
+          <label v-if="visibleControls.headerMultiple" class="control-group">
+            <span>headerMultiple</span>
+            <div class="control-row">
+              <input
+                :value="controls.headerMultiple"
+                type="range"
+                min="0"
+                max="3"
+                step="0.1"
+                @input="updateNumber('headerMultiple', ($event.target as HTMLInputElement).value)"
+              />
+              <output>{{ controls.headerMultiple.toFixed(1) }}</output>
+            </div>
+          </label>
 
-        <label v-if="visibleControls.marginMultiple" class="control-group">
-          <span>marginMultiple</span>
-          <div class="control-row">
-            <input
-              :value="controls.marginMultiple"
-              type="range"
-              min="0"
-              max="4"
-              step="0.1"
-              @input="updateNumber('marginMultiple', ($event.target as HTMLInputElement).value)"
-            />
-            <output>{{ controls.marginMultiple.toFixed(1) }}</output>
-          </div>
-        </label>
+          <label v-if="visibleControls.lineHeight" class="control-group">
+            <span>lineHeight</span>
+            <div class="control-row">
+              <input
+                :value="controls.lineHeight"
+                type="range"
+                min="1"
+                max="3"
+                step="0.1"
+                @input="updateNumber('lineHeight', ($event.target as HTMLInputElement).value)"
+              />
+              <output>{{ controls.lineHeight.toFixed(1) }}</output>
+            </div>
+          </label>
 
-        <label v-if="visibleControls.blockMode" class="control-group">
-          <span>blockMode</span>
-          <select v-model="controls.blockMode">
-            <option value="overlay">overlay</option>
-            <option value="full">full</option>
-          </select>
-        </label>
+          <label v-if="visibleControls.marginMultiple" class="control-group">
+            <span>marginMultiple</span>
+            <div class="control-row">
+              <input
+                :value="controls.marginMultiple"
+                type="range"
+                min="0"
+                max="4"
+                step="0.1"
+                @input="updateNumber('marginMultiple', ($event.target as HTMLInputElement).value)"
+              />
+              <output>{{ controls.marginMultiple.toFixed(1) }}</output>
+            </div>
+          </label>
 
-        <label v-if="visibleControls.highlightEngine" class="control-group">
-          <span>highlightEngine</span>
-          <select v-model="controls.highlightEngine">
-            <option value="highlightjs">highlightjs</option>
-            <option value="shiki">shiki</option>
-          </select>
-        </label>
+          <label v-if="visibleControls.blockMode" class="control-group">
+            <span>blockMode</span>
+            <select v-model="controls.blockMode">
+              <option value="overlay">overlay</option>
+              <option value="full">full</option>
+            </select>
+          </label>
 
-        <label
-          v-if="
-            visibleControls.copyable ||
-            visibleControls.showLanguage ||
-            visibleControls.inlineColorPreview ||
-            visibleControls.enableTransformer ||
-            visibleControls.defaultExpand
-          "
-          class="control-group"
-        >
-          <span>code options</span>
-          <div class="control-stack">
-            <label v-if="visibleControls.copyable" class="control-check">
-              <input v-model="controls.copyable" type="checkbox" />
-              <span>copyable</span>
-            </label>
-            <label v-if="visibleControls.showLanguage" class="control-check">
-              <input v-model="controls.showLanguage" type="checkbox" />
-              <span>showLanguage</span>
-            </label>
-            <label v-if="visibleControls.inlineColorPreview" class="control-check">
-              <input v-model="controls.inlineColorPreview" type="checkbox" />
-              <span>inlineColorPreview</span>
-            </label>
-            <label v-if="visibleControls.enableTransformer" class="control-check">
-              <input v-model="controls.enableTransformer" type="checkbox" />
-              <span>enableTransformer</span>
-            </label>
-            <label v-if="visibleControls.defaultExpand" class="control-check">
-              <input v-model="controls.defaultExpand" type="checkbox" />
-              <span>defaultExpand</span>
-            </label>
-          </div>
-        </label>
+          <label v-if="visibleControls.highlightEngine" class="control-group">
+            <span>highlightEngine</span>
+            <select v-model="controls.highlightEngine">
+              <option value="highlightjs">highlightjs</option>
+              <option value="shiki">shiki</option>
+            </select>
+          </label>
+
+          <label
+            v-if="
+              visibleControls.copyable ||
+              visibleControls.showLanguage ||
+              visibleControls.inlineColorPreview ||
+              visibleControls.enableTransformer ||
+              visibleControls.defaultExpand
+            "
+            class="control-group"
+          >
+            <span>code options</span>
+            <div class="control-stack">
+              <label v-if="visibleControls.copyable" class="control-check">
+                <input v-model="controls.copyable" type="checkbox" />
+                <span>copyable</span>
+              </label>
+              <label v-if="visibleControls.showLanguage" class="control-check">
+                <input v-model="controls.showLanguage" type="checkbox" />
+                <span>showLanguage</span>
+              </label>
+              <label v-if="visibleControls.inlineColorPreview" class="control-check">
+                <input v-model="controls.inlineColorPreview" type="checkbox" />
+                <span>inlineColorPreview</span>
+              </label>
+              <label v-if="visibleControls.enableTransformer" class="control-check">
+                <input v-model="controls.enableTransformer" type="checkbox" />
+                <span>enableTransformer</span>
+              </label>
+              <label v-if="visibleControls.defaultExpand" class="control-check">
+                <input v-model="controls.defaultExpand" type="checkbox" />
+                <span>defaultExpand</span>
+              </label>
+            </div>
+          </label>
+        </div>
       </aside>
     </div>
   </section>
@@ -614,6 +699,11 @@ const setStreamingActive = (active: boolean) => {
   min-height: 560px;
 }
 
+.demo-card__body--stacked {
+  grid-template-columns: 1fr;
+  min-height: auto;
+}
+
 .demo-card__preview {
   display: grid;
   align-content: start;
@@ -622,6 +712,11 @@ const setStreamingActive = (active: boolean) => {
   border-right: 1px solid color-mix(in srgb, var(--tr-border-color-default) 16%, transparent);
   min-width: 0;
   overflow: auto;
+}
+
+.demo-card__body--stacked .demo-card__preview {
+  border-right: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--tr-border-color-default) 16%, transparent);
 }
 
 .demo-card__preview-placeholder {
@@ -649,6 +744,50 @@ const setStreamingActive = (active: boolean) => {
   padding: 18px 16px;
   overflow: auto;
   background: color-mix(in srgb, var(--tr-container-bg-default) 68%, var(--tr-page-bg-default) 32%);
+}
+
+.demo-card__controls--stacked {
+  max-height: none;
+  padding: 14px 16px 16px;
+}
+
+.demo-card__controls--collapsed {
+  align-content: start;
+}
+
+.demo-card__controls-toggle {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid color-mix(in srgb, var(--tr-border-color-default) 24%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--tr-container-bg-default) 84%, transparent);
+  color: var(--tr-text-primary);
+  font: inherit;
+  cursor: pointer;
+}
+
+.demo-card__controls-toggle span,
+.demo-card__controls-toggle strong {
+  font-size: 12px;
+}
+
+.demo-card__controls-toggle span {
+  color: var(--tr-text-secondary);
+  font-weight: 600;
+}
+
+.demo-card__controls-toggle strong {
+  color: var(--tr-text-primary);
+  font-weight: 700;
+}
+
+.demo-card__controls-body {
+  display: grid;
+  gap: 12px;
 }
 
 .control-group {

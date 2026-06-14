@@ -191,7 +191,7 @@ export const buildStaticSrcDoc = ({
   content: string
   frameId: string
 }) => {
-  const source = content.trim()
+  const source = content
   const injectedHead = createInjectedHead(frameId, background)
 
   if (/<head(\s[^>]*)?>/i.test(source)) {

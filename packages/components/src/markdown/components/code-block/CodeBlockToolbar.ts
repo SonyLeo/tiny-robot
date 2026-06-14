@@ -32,14 +32,17 @@ export default defineComponent({
   },
   setup(props) {
     return () => {
-      const originalNode = props.copyable ? h(CopyButton, { code: props.code, size: props.size }) : null
+      const renderDefaultActions = () => (props.copyable ? h(CopyButton, { code: props.code, size: props.size }) : null)
+      const defaultActions = renderDefaultActions()
       const actionNodes = props.actionsRender
         ? props.actionsRender({
             code: props.code || '',
             language: props.language || undefined,
-            originalNode,
+            defaultActions,
+            renderDefaultActions,
+            originalNode: defaultActions,
           })
-        : originalNode
+        : defaultActions
       const normalizedChildren =
         actionNodes == null || actionNodes === false
           ? undefined

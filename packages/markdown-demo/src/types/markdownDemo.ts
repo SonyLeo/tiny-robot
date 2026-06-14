@@ -9,6 +9,8 @@ type TrMarkdownCodeHighlightEngine = NonNullable<NonNullable<MarkdownCodeConfig[
 export interface TrMarkdownCodeActionContext {
   code: string
   language?: string
+  defaultActions: VNodeChild
+  renderDefaultActions: () => VNodeChild
   originalNode: VNodeChild
 }
 
@@ -142,6 +144,15 @@ export interface MarkdownDemoSection {
   title: string
   description: string
   cases: MarkdownDemoCase[]
+  publicNarrative?: MarkdownDemoSectionPublicNarrative
+}
+
+export interface MarkdownDemoSectionPublicNarrative {
+  title: string
+  description: string
+  featuredCaseIds: string[]
+  stepCaseIds?: string[]
+  stepLabels?: Record<string, string>
 }
 
 export interface MarkdownDemoApiRow {
@@ -150,6 +161,8 @@ export interface MarkdownDemoApiRow {
   type: string
   defaultValue: string
 }
+
+export type MarkdownDemoView = 'public' | 'internal'
 
 export interface MarkdownDemoControls {
   content: string

@@ -32,9 +32,11 @@ const resolveMarkdownLink = () => ({
 })
 
 const fallbackMarkdownAttributes: BubbleContentAttributesConfig = () => ({
-  ...props.markdownProps,
+  markdown: {
+    ...props.markdownProps,
+    link: resolveMarkdownLink(),
+  },
   style: props.markdownStyle,
-  link: resolveMarkdownLink(),
   'data-bubble-markdown-mode': 'fallback',
 })
 
@@ -44,9 +46,11 @@ const contentTypeMarkdownAttributes: BubbleContentAttributesConfig = (_, content
   }
 
   return {
-    ...props.markdownProps,
+    markdown: {
+      ...props.markdownProps,
+      link: resolveMarkdownLink(),
+    },
     style: props.markdownStyle,
-    link: resolveMarkdownLink(),
     'data-bubble-markdown-mode': 'content-type',
   }
 }

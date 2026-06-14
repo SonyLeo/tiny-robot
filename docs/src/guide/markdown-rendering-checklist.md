@@ -17,11 +17,17 @@ outline: deep
 - Spike： [Markdown 渲染 Spike 结论](/guide/markdown-rendering-spike)
 - 路线图： [Markdown 渲染 Roadmap](/guide/markdown-rendering-roadmap)
 
+> 维护说明（2026-06-08）
+>
+> 这份文档当前降级为阶段执行附录，只保留 checklist 参考价值。
+> 最新实现进度请以 [Markdown 渲染 Roadmap](/guide/markdown-rendering-roadmap) 为准；
+> 公共 API、架构边界与已知问题请以 [TrMarkdown 设计方案](/guide/markdown-rendering-design) 为准。
+
 ## 使用方式
 
 建议在真正开始 `M0` 和 `M1` 时，把这份清单作为逐项打勾的执行表。
 
-## 当前进度更新（2026-05-31）
+## 历史进度更新（截至 2026-06-07）
 
 - [x] markdown 验证入口已补一轮“源码直连”硬化：
   - `packages/test` 与 `packages/markdown-demo` 现在都显式为 `@opentiny/tiny-robot` / `@opentiny/tiny-robot-svgs` 配置了 workspace `src` alias
@@ -31,8 +37,23 @@ outline: deep
 - [x] `markdown-demo` 已拆成两层：
   - `Public parity`：公开对标层，按 LobeUI section 心智组织
   - `Internal regression`：内部回归层，保留 article / Bubble 集成等实现验收 case
+- [x] `markdown-demo` 公开浏览路径已补第一轮可用性收口：
+  - 顶部 case browser 支持 section 切换与单 case focus
+  - 右侧导航已从长 TOC 收敛为 section + case 两级浏览
+  - `Public parity` 视图默认落到首个公开 section，并把 playground controls 收到预览下方按需展开
+  - `Public parity` 仅在单 case focus 时展示源码，`Internal regression` 继续保持更直接的源码 / controls 回归视图
+- [x] `markdown-demo` 复杂与扩展型公开 section 已补第二轮叙事收口：
+  - `Media` 默认只展示基础图片节点，`Image gallery` 改为 narrative chips 进入
+  - `Code` 默认只展示 `inline code + code blocks`，`Color preview / Transformers / Custom actions` 改为 narrative chips 进入
+  - `HTML Preview` 默认只展示 `document preview + fragment fallback`
+  - `Streamdown` 默认只展示可阅读主回答
+  - `Custom` 默认只展示 `components + componentProps`
+  - `Math and Diagrams` 默认只展示公式与图表主路径，错误态改为 narrative chips 进入
+  - `Footnotes` 默认只展示 `single footnote + inline footnote`
+  - `Alerts` 默认只展示五类官方 alert
+  - gallery / transformer / streaming / profiler / render hook 等复杂 case 统一下沉到 section narrative chips 进入
 - [x] 公开 demo section 已收敛为：
-  - `Basic / Media / Lists / Code / Variants / Streamdown / Custom / APIs`
+  - `Basic / Media / Lists / Code / HTML Preview / Math and Diagrams / Footnotes / Alerts / Variants / Streamdown / Custom / APIs`
 - [x] `Long article` 与 `Bubble integration` 已从公开主路径移出，不再和基础 typography / 公开 code 案例重复展示
 - [x] 公开 streaming 已拆成三段职责：
   - `Streamdown`
@@ -120,16 +141,19 @@ outline: deep
   - profiler 面板的可视化时间轴、FPS / frame duration / commit cost 已拆分
   - token patch 回归已补齐同块 rewrite / 插删改 / hard reset / finalized cleanup
   - 跨 block / parser 级 token diff 继续保留为后续 Spike，不进入当前默认主线
-- [x] `M5` 仍仅完成目标冻结，尚未进入正式实现：
-  - 先冻结起手顺序、非目标和门禁
-  - 暂不直接进入 Mermaid / KaTeX 正式实现
-- [ ] `M5` 起步任务待确认：
-  - HTML Preview 最小方案与 demo / fixture
-  - Mermaid 最小方案与 demo / fixture
-  - KaTeX / LaTeX 最小方案
-  - Footnotes 最小 parser / render 方案
-  - Alert / Gallery 优先级
-  - 插件与扩展点公开边界
+- [x] `M5` 已进入局部实现：
+  - `HTML Preview` 基础静态路径已落地：完整 HTML 文档识别、iframe sandbox + srcdoc、Preview / Code、copy / download、fragment fallback、dark mode 都已进入实现、demo 与 Playwright
+  - `HTML Preview streaming parity` 已完成：`streamingMode = auto / live / defer` 已接入运行时分流，无 `<script>` 文档支持 live mount，`auto` 下的 script-lock / defer 语义、demo 与 Playwright 已补齐
+  - `Mermaid` 已完成最小闭环收口：`mermaid` fenced block 分流、动态 import、theme/loading/error/retry/source copy 已进入代码，公开 `Math and Diagrams` 已补 `flowchart / sequence / invalid syntax`，并已通过类型检查与 Playwright 回归
+  - `KaTeX / LaTeX` 已完成最小闭环收口：第一方 `math-inline / math-block` 节点、`$...$ / $$...$$` 语法、KaTeX runtime/CSS 按需加载、错误 fallback 已进入代码，公开 `Math and Diagrams` 已补 `inline / block / invalid formula`，并已通过类型检查与 Playwright 回归
+  - `Footnotes` 已完成最小闭环收口：第一方 footnote ref / list / backref、单脚注 / 重复引用 / 行内脚注 demo，以及 Playwright 回归都已补齐
+  - `Alerts` 已完成最小闭环收口：五类 GitHub alert、第一方 `AlertBlock`、公开 demo 与 Playwright 对照回归已补齐
+  - `Videos` 已完成最小闭环收口：独立 `<video ... />` block 已进入第一方媒体节点路径，公开 `Media` section、测试页与 Playwright 回归都已补齐
+  - `Citations` 已完成最小闭环收口：`citations` 第一方数据入口、正文 `[1]` 引用节点化、来源卡片 demo、代码边界 case 与 Playwright 回归都已补齐
+  - `Custom Plugins` 已完成第一方语义块收口：`tr-thinking / tr-artifact` 已进入 parser -> render -> demo -> Playwright 链路，用来对齐 LobeUI 公开 custom plugins 的展示结果，同时继续冻结 `remarkPlugins / rehypePlugins / plugins`
+  - markdown 内部容器层已完成本阶段收口：`html-preview / mermaid / math` 的 floating toolbar、preview/source toggle、loading surface、status surface、source block 与共享样式骨架已统一到内部 shared 层
+- [x] `M5` 剩余起步任务待确认：
+  - 插件与扩展点公开边界已按“第一方语义块公开、通用插件接口继续 internal”收口
 
 ## LobeUI Public Demo Checklist
 
@@ -140,7 +164,7 @@ outline: deep
 ## Checklist
 
 - [x] 公开层与内部回归层拆分
-- [x] 公开层 section 顺序对齐为 `Basic / Media / Lists / Code / Variants / Streamdown / Custom / APIs`
+- [x] 公开层 section 顺序对齐为 `Basic / Media / Lists / Code / HTML Preview / Math and Diagrams / Footnotes / Alerts / Variants / Streamdown / Custom / APIs`
 - [x] 基础列表从 `Basic` 中拆出，避免和段落/标题重复混排展示
 - [x] `Long article` 不再作为公开 `Basic` 案例重复出现
 - [x] `Bubble integration` 不再作为公开主路径 case 重复出现
@@ -148,14 +172,16 @@ outline: deep
 - [x] `heading + list` animated fixture 已补到 demo / test
 - [x] `quote + paragraph` animated fixture 已补到 demo / test
 - [x] 已补 `Images` 公开 case
+- [x] 已补 `HTML Preview` 公开 case
+- [x] 已补 `Math and Diagrams` 公开 case（当前覆盖 KaTeX + Mermaid）
+- [x] 已补 `Footnotes` 公开 case
 - [x] 已补 `Variants` 公开 case
 - [x] 已补 `Markdown Components` 公开 case
-- [ ] `Videos` 公开 case
-- [ ] `Math and Diagrams` 公开 case
-- [ ] `Footnotes` 公开 case
-- [ ] `Alerts` 公开 case
-- [ ] `Custom / Citations / Custom Plugins` 完整公开 case
-- [ ] 达到与 LobeUI 公开 Markdown docs 的完整能力一致
+- [x] `Videos` 公开 case
+- [x] `Alerts` 公开 case
+- [x] `Custom / Citations` 完整公开 case
+- [x] `Custom Plugins` 完整公开 case
+- [x] 达到与 LobeUI 公开 Markdown docs 的完整能力一致（当前公开 gap 已收口为零）
 
 ## M0 Checklist
 
@@ -576,13 +602,13 @@ outline: deep
 - [x] 已确认 `M5` 不再和 `M4` / `M2` 混做
 - [x] 已确认先冻结顺序，再决定具体能力的最小切入面
 - [x] 已确认当前推荐起手顺序：
-  - `HTML Preview`
   - `Mermaid`
   - `KaTeX / LaTeX`
   - `Footnotes`
   - `GitHub Alert`
   - `Image Gallery`
   - 插件与扩展点
+  - 公开 docs parity 收口
 
 ## 阶段门禁
 
@@ -601,25 +627,109 @@ outline: deep
 
 ## 起步任务
 
-- [ ] `HTML Preview` 的目标冻结 / 最小方案确认
-- [ ] `HTML Preview` 的 demo / fixture / 验收基线
-- [ ] `Mermaid` 的目标冻结 / 最小方案确认
-- [ ] `Mermaid` 的 demo / fixture / 验收基线
-- [ ] `KaTeX / LaTeX` 的目标冻结 / 最小方案确认
-- [ ] `Footnotes` 的最小 parser / render 方案确认
-- [ ] `Alert / Gallery` 的优先级再排序
-- [ ] 插件与扩展点的最小公开边界确认
+- [x] `HTML Preview streaming parity` 的目标冻结 / 最小方案确认
+- [x] `HTML Preview streaming parity` 的 demo / fixture / 验收基线
+- [x] `Mermaid` 的目标冻结 / 最小方案确认
+- [x] `Mermaid` 的 demo / fixture / 验收基线
+- [x] `KaTeX / LaTeX` 的目标冻结 / 最小方案确认
+- [x] `Footnotes` 的最小 parser / render 方案确认
+- [x] 插件与扩展点的最小公开边界确认
 
-## M5 Tasklist（待确认后实现）
+## M5 Tasklist（持续更新）
 
 ### M5.0 阶段准备
 
-- [ ] 冻结 `features.htmlPreview / mermaid / math / footnotes / alerts / imageGallery`
-- [ ] 冻结默认关闭、按需加载、Bubble 普通路径不承载高级能力的门禁
-- [ ] 新增 M5 fixture 命名规则与 demo 分组
-- [ ] 补 M5 验证命令与体积记录模板
+- [x] 冻结 `features.htmlPreview / mermaid / math / footnotes / alerts / imageGallery`
+- [x] 冻结默认关闭、按需加载、Bubble 普通路径不承载高级能力的门禁
+- [x] 新增 M5 fixture 命名规则与 demo 分组
+- [x] 补 M5 验证命令与体积记录模板
 
-### M5.1 HTML Preview
+#### M5.0 冻结结果
+
+- `features.htmlPreview`
+  - 默认关闭
+  - 仅 `html` fenced block 且命中完整 HTML 文档时进入 `HtmlPreviewBlock`
+  - 公开配置保持 `enabled / copyable / downloadable / defaultHeight / defaultMode / fileName / sandbox / streamingMode`
+- `features.mermaid`
+  - 默认关闭
+  - 仅 `mermaid` fenced block 命中时进入 `MermaidBlock`
+  - 公开配置保持 `enabled / copyable / defaultMode`
+- `features.math`
+  - 默认关闭
+  - 仅 `$...$ / $$...$$` 第一方 math 节点命中时启用
+  - 当前公开配置保持 `enabled / copyable`
+- `features.footnotes`
+  - 默认关闭
+  - 仅 parser token 命中脚注结构时启用第一方脚注节点
+  - 当前公开配置仅冻结 `enabled`
+- `features.alerts`
+  - 默认关闭
+  - 仅 blockquote render 命中 GitHub alert marker 时启用第一方 alert 外壳
+  - 当前公开配置仅冻结 `enabled`
+- `features.imageGallery`
+  - 默认关闭
+  - 默认图片节点继续轻量渲染；仅显式开启后才建立 gallery 索引、预览层与键盘交互
+  - 当前公开配置保持 `enabled / showCaption / closeOnEscape`
+
+#### M5.0 共同门禁
+
+- 所有高级能力默认关闭
+- 所有重能力只在命中对应 markdown 节点后按需加载，不进入普通静态文本路径
+- Bubble 普通主路径不默认承载高级 markdown 能力；仅 `fallbackContentRenderer` 或 provider-level `contentRendererMatches` 显式接入
+- 高级能力不得通过整段 `v-html` 回退实现
+- 当前发布门禁仍以 `packages/components` 产物为准；`packages/test` 的大 chunk warning 不作为对外发布阻断
+
+#### M5.0 demo 分组与命名
+
+- 公开 demo 分组冻结为：
+  - `Basic`
+  - `Media`
+  - `Lists`
+  - `Code`
+  - `HTML Preview`
+  - `Math and Diagrams`
+  - `Footnotes`
+  - `Alerts`
+  - `Variants`
+  - `Streamdown`
+  - `Custom`
+- 内部回归分组冻结为：
+  - `Internal Regression`
+- `packages/markdown-demo/src/data/cases/*.ts` 继续按能力域一文件一组 case 维护
+- `data-testid` 命名冻结为 `markdown-<domain>-<scenario>`
+  - 例如 `markdown-html-preview-enabled`
+  - `markdown-mermaid-flowchart`
+  - `markdown-image-gallery-enabled`
+- streaming / animated 场景继续沿用 `markdown-stream-*`、`markdown-stream-animated-*` 前缀，不与 M5 高级节点 case 混名
+
+#### M5.0 验证命令模板
+
+- 类型检查：
+  - `pnpm -F @opentiny/tiny-robot type-check`
+  - `pnpm -F @opentiny/tiny-robot-markdown-demo type-check`
+- markdown 回归：
+  - `pnpm -F tiny-robot-test test -- src/markdown/index.spec.ts`
+- 体积记录：
+  - `pnpm -F @opentiny/tiny-robot build`
+  - `pnpm -F @opentiny/tiny-robot-markdown-demo build`
+  - `pnpm -F tiny-robot-test build`
+
+#### M5.0 体积记录模板
+
+- `packages/components`
+  - `modules transformed`
+  - `dist/markdown/index.js`
+  - gzip 体积
+- `packages/markdown-demo`
+  - `modules transformed`
+  - 主入口 chunk 与 gzip 体积
+  - 是否出现 large chunk warning
+- `packages/test`
+  - `modules transformed`
+  - 主入口 chunk 与 gzip 体积
+  - 仅作为 harness 参考，不作为发布门禁
+
+### M5.1 HTML Preview streaming parity
 
 - [x] `html` fenced code 识别并分流到 `HtmlPreviewBlock`
 - [x] HTML Preview 使用 iframe sandbox + srcdoc 隔离渲染
@@ -627,55 +737,62 @@ outline: deep
 - [x] 支持 copy code、download code、fallback、dark mode
 - [x] demo 覆盖完整文档预览、fragment 回退和显式开关
 - [x] test 覆盖默认关闭、显式开启、sandbox 属性与 Preview / Code 切换
+- [x] 将 `streamingMode = auto / live / defer` 真正接入运行时分流
+- [x] 补齐无 `<script>` 文档的 live streaming iframe 挂载
+- [x] 补齐含 `<script>` 文档在 `auto` 下的 defer / script-lock 语义
+- [x] demo 补齐 `HTML Preview` 公开 case与 `auto / live / defer` streaming case
+- [x] test 补齐 live commit / defer fallback / completion flush 断言
 
 ### M5.2 Mermaid block
 
-- [ ] 识别 `mermaid` fenced code block
-- [ ] code 子系统分流到 `MermaidBlock`
-- [ ] `mermaid` 运行时动态加载
-- [ ] 支持 light / dark theme 映射
-- [ ] 支持 loading / error / retry / copy source
-- [ ] demo 覆盖 flowchart / sequence / state / error
-- [ ] test 覆盖默认关闭、显式开启、非 mermaid code 不加载 mermaid
+- [x] 识别 `mermaid` fenced code block
+- [x] code 子系统分流到 `MermaidBlock`
+- [x] `mermaid` 运行时动态加载
+- [x] 支持 light / dark theme 映射
+- [x] 支持 loading / error / retry / copy source
+- [x] demo 覆盖 flowchart / sequence / invalid syntax
+- [x] test 覆盖默认关闭、显式开启、非 mermaid code 不加载 mermaid
 
 ### M5.3 KaTeX / LaTeX
 
-- [ ] 冻结 inline math 与 block math 语法范围
-- [ ] 评估并选定 `markdown-it` 侧公式插件
-- [ ] 公式能力动态加载并受 `features.math` 控制
-- [ ] 新增 `MathInline` / `MathBlock` 节点组件
-- [ ] demo 覆盖 inline formula、block formula、错误公式
-- [ ] test 覆盖开关、错误 fallback、普通 `$` 文本不误判
+- [x] 冻结 inline math 与 block math 语法范围：`$...$ / $$...$$`
+- [x] 沿当前 `markdown-it` adapter 扩展第一方 math parser，不回退到插件直接产出的 HTML 主路径
+- [x] 公式能力动态加载并受 `features.math` 控制
+- [x] 新增 `MathInline` / `MathBlock` 节点组件
+- [x] demo 覆盖 inline formula、block formula、错误公式
+- [x] test 覆盖开关、错误 fallback、普通 `$` 文本不误判
 
 ### M5.4 Footnotes
 
-- [ ] 选定 `markdown-it-footnote` 或等价轻量插件
-- [ ] footnote ref / footnote list 映射为第一方 Vue 节点
-- [ ] 统一锚点、返回链接、编号样式和可访问性
-- [ ] demo 覆盖单脚注、多脚注、脚注内 link / code
-- [ ] test 覆盖 parser token、render node、主题样式
+- [x] 选定 `markdown-it-footnote` 作为轻量 token 插件
+- [x] footnote ref / footnote list 映射为第一方 Vue 节点
+- [x] 统一锚点、返回链接、编号样式和可访问性
+- [x] demo 覆盖单脚注、多脚注、脚注内 link / code
+- [x] test 覆盖 parser token、render node、主题样式
 
 ### M5.5 GitHub Alert
 
-- [ ] 支持 `NOTE / TIP / IMPORTANT / WARNING / CAUTION`
-- [ ] 优先在 blockquote render 阶段轻量识别
-- [ ] 新增 `AlertBlock` 并走主题 token
-- [ ] demo 覆盖五类 alert 与普通 blockquote 对照
-- [ ] test 覆盖普通 blockquote 不被误判
+- [x] 支持 `NOTE / TIP / IMPORTANT / WARNING / CAUTION`
+- [x] 优先在 blockquote render 阶段轻量识别
+- [x] 新增 `AlertBlock` 并走主题 token
+- [x] demo 覆盖五类 alert 与普通 blockquote 对照
+- [x] test 覆盖普通 blockquote 不被误判
 
 ### M5.6 Image Gallery
 
-- [ ] Image Gallery 仅在 `features.imageGallery` 开启时启用
-- [ ] Image Gallery 支持多图浏览、caption、alt、键盘关闭
-- [ ] demo 覆盖 gallery 多图、暗色模式
-- [ ] test 覆盖默认关闭、sandbox 属性、图片点击行为
+- [x] Image Gallery 仅在 `features.imageGallery` 开启时启用
+- [x] Image Gallery 支持多图浏览、caption、alt、键盘关闭
+- [x] demo 覆盖 gallery 多图、暗色模式
+- [x] test 覆盖默认关闭、显式开启、多图切换、caption 与键盘关闭
 
 ### M5.7 插件与扩展点
 
-- [ ] 至少两类高级节点落地后再冻结 public API
-- [ ] 冻结 `components / componentProps / parserOptions / renderOptions / features`
-- [ ] 明确 public API 与 internal hook 边界
-- [ ] demo 覆盖 custom component / custom code action / custom alert render
+- [x] 至少两类高级节点落地后再冻结 public API
+- [x] 冻结 `components / componentProps / parserOptions / renderOptions / features`
+- [x] 先完成 `componentProps` 的最小公开边界
+- [x] 完成 `renderOptions` 的最小公开边界，并以 `alerts.render` 作为首个真实 render hook
+- [x] 明确 public API 与 internal hook 边界
+- [x] demo 覆盖 custom component / custom code action / custom alert render
 
 ## M5 进入实现前通过条件
 

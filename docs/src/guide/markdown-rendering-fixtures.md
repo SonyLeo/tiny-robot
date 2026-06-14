@@ -19,6 +19,11 @@ outline: deep
 - 路线图： [Markdown 渲染 Roadmap](/guide/markdown-rendering-roadmap)
 - Spike： [Markdown 渲染 Spike 结论](/guide/markdown-rendering-spike)
 
+> 维护说明（2026-06-08）
+>
+> 这份文档当前只保留 fixture / benchmark 规划参考。
+> 活跃中的 demo、fixture 与测试 reality 以 `packages/components/src/markdown/fixtures`、`packages/test/src/markdown` 以及 roadmap 中的最新说明为准。
+
 ## 规划目标
 
 `TrMarkdown` 的 fixtures 不只是为了测试“能不能渲染”，还要覆盖：

@@ -1,3 +1,5 @@
+import MarkdownStreamingControls from '../../components/MarkdownStreamingControls.vue'
+import { trMarkdownStreamingFixtures } from '../../../../components/src/markdown/fixtures/streaming'
 import type { MarkdownDemoCase } from '../../types/markdownDemo'
 
 const htmlPreviewDocument = `<!doctype html>
@@ -77,6 +79,47 @@ const createHtmlFence = (content: string) => `\`\`\`html
 ${content}
 \`\`\``
 
+const getStreamingScenario = (id: string) => {
+  const scenario = trMarkdownStreamingFixtures.find((item) => item.id === id)
+  if (!scenario) {
+    throw new Error(`Missing html preview streaming scenario: ${id}`)
+  }
+
+  return scenario
+}
+
+const htmlPreviewStreamingControls = {
+  content: false,
+  variant: false,
+  fontSize: false,
+  headerMultiple: false,
+  lineHeight: false,
+  marginMultiple: false,
+  copyable: false,
+  showLanguage: false,
+  inlineColorPreview: false,
+  blockMode: false,
+  highlightEngine: false,
+  enableTransformer: false,
+  defaultExpand: false,
+} as const
+
+const htmlPreviewStreamingSourceCode = `const markdownProps = {
+  streaming: {
+    enabled: true,
+    active: true,
+    showTail: true,
+    showCursor: true,
+    smoothingChars: 48,
+  },
+  features: {
+    htmlPreview: {
+      enabled: true,
+      streamingMode: 'auto',
+    },
+  },
+}`
+
 export const htmlPreviewCase: MarkdownDemoCase = {
   id: 'html-preview',
   title: 'HTML preview',
@@ -148,5 +191,107 @@ export const htmlPreviewFragmentCase: MarkdownDemoCase = {
   sourceCode: {
     language: 'html',
     code: htmlPreviewFragment,
+  },
+}
+
+export const htmlPreviewStreamingAutoCase: MarkdownDemoCase = {
+  id: 'html-preview-streaming-auto',
+  title: 'HTML preview streaming auto',
+  description:
+    '对齐 LobeUI 的 `auto` 模式：无脚本文档在样式头闭合后提前 live mount，带脚本的文档则继续等待 `</html>`。',
+  deferPreview: true,
+  initialContent: getStreamingScenario('html-preview-auto-noscript').steps[0]?.content || '',
+  streamingScenarioIds: ['html-preview-auto-noscript', 'html-preview-auto-script'],
+  controlsComponent: MarkdownStreamingControls,
+  controls: htmlPreviewStreamingControls,
+  markdownProps: {
+    streaming: {
+      enabled: true,
+      active: true,
+      showTail: true,
+      showCursor: true,
+      smoothingChars: 48,
+    },
+    features: {
+      htmlPreview: {
+        enabled: true,
+        defaultMode: 'preview',
+        defaultHeight: 420,
+        fileName: 'html-preview-stream-auto.html',
+        streamingMode: 'auto',
+      },
+    },
+  },
+  sourceCode: {
+    language: 'ts',
+    code: htmlPreviewStreamingSourceCode,
+  },
+}
+
+export const htmlPreviewStreamingLiveCase: MarkdownDemoCase = {
+  id: 'html-preview-streaming-live',
+  title: 'HTML preview streaming live override',
+  description:
+    '对齐 LobeUI 的 `live` override：即使流式 HTML 里已经出现 `<script>`，在样式头闭合后也会立即进入 iframe 预览。',
+  deferPreview: true,
+  initialContent: getStreamingScenario('html-preview-auto-script').steps[0]?.content || '',
+  streamingScenarioIds: ['html-preview-auto-script'],
+  controlsComponent: MarkdownStreamingControls,
+  controls: htmlPreviewStreamingControls,
+  markdownProps: {
+    streaming: {
+      enabled: true,
+      active: true,
+      showTail: true,
+      showCursor: true,
+      smoothingChars: 48,
+    },
+    features: {
+      htmlPreview: {
+        enabled: true,
+        defaultMode: 'preview',
+        defaultHeight: 420,
+        fileName: 'html-preview-stream-live.html',
+        streamingMode: 'live',
+      },
+    },
+  },
+  sourceCode: {
+    language: 'ts',
+    code: htmlPreviewStreamingSourceCode.replace("streamingMode: 'auto'", "streamingMode: 'live'"),
+  },
+}
+
+export const htmlPreviewStreamingDeferCase: MarkdownDemoCase = {
+  id: 'html-preview-streaming-defer',
+  title: 'HTML preview streaming defer override',
+  description:
+    '对齐 LobeUI 的 `defer` override：即使当前流式 HTML 不含脚本，也统一等到 `</html>` 到齐后再挂载 iframe。',
+  deferPreview: true,
+  initialContent: getStreamingScenario('html-preview-auto-noscript').steps[0]?.content || '',
+  streamingScenarioIds: ['html-preview-auto-noscript'],
+  controlsComponent: MarkdownStreamingControls,
+  controls: htmlPreviewStreamingControls,
+  markdownProps: {
+    streaming: {
+      enabled: true,
+      active: true,
+      showTail: true,
+      showCursor: true,
+      smoothingChars: 48,
+    },
+    features: {
+      htmlPreview: {
+        enabled: true,
+        defaultMode: 'preview',
+        defaultHeight: 420,
+        fileName: 'html-preview-stream-defer.html',
+        streamingMode: 'defer',
+      },
+    },
+  },
+  sourceCode: {
+    language: 'ts',
+    code: htmlPreviewStreamingSourceCode.replace("streamingMode: 'auto'", "streamingMode: 'defer'"),
   },
 }

@@ -3,14 +3,14 @@ import type { MarkdownDemoCase, TrMarkdownProps } from '../../types/markdownDemo
 
 const renderCustomActions = ({
   code,
+  defaultActions,
   language,
-  originalNode,
 }: {
   code: string
+  defaultActions: unknown
   language?: string
-  originalNode: unknown
 }) => [
-  originalNode,
+  defaultActions,
   h(
     'button',
     {

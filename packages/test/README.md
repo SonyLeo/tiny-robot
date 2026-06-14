@@ -28,7 +28,7 @@ cd packages/test
 pnpm dev
 ```
 
-应用将在 http://localhost:3333 启动。
+应用默认将在 http://127.0.0.1:3340 启动；如需覆盖，可设置 `TINY_ROBOT_TEST_PORT`。
 
 ### 在 packages/test 目录运行
 
@@ -36,7 +36,8 @@ pnpm dev
 cd packages/test
 ```
 
-> 初次需要安装 Playwright 环境
+> 本地非 CI 默认通过 Playwright 的 `channel: 'chrome'` 直接使用系统 Chrome。
+> 只有在需要 bundled browser / CI 环境时，才需要额外安装 Playwright 浏览器。
 
 ```bash
 # 仅安装chromium

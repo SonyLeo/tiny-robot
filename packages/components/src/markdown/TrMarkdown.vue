@@ -94,6 +94,10 @@ const markdownContext = computed(() => ({
   features: props.features,
   code: resolvedCode.value,
   link: props.link,
+  streaming: {
+    active: streamState.value.active,
+    enabled: streamingConfig.value.enabled,
+  },
   citations: props.citations,
   components: props.components,
   componentProps: props.componentProps,
@@ -101,18 +105,7 @@ const markdownContext = computed(() => ({
   imageGalleryIndexMap: imageGalleryEnabled.value ? imageGallery.indexMap.value : undefined,
   openImageGallery: imageGalleryEnabled.value ? imageGallery.openAt : undefined,
 }))
-provideMarkdownContext({
-  variant: props.variant,
-  features: props.features,
-  code: resolvedCode.value,
-  link: props.link,
-  citations: props.citations,
-  components: props.components,
-  componentProps: props.componentProps,
-  renderOptions: props.renderOptions,
-  imageGalleryIndexMap: imageGalleryEnabled.value ? imageGallery.indexMap.value : undefined,
-  openImageGallery: imageGalleryEnabled.value ? imageGallery.openAt : undefined,
-})
+provideMarkdownContext(markdownContext)
 const {
   handleStreamBlockSettled,
   streamActiveBlockCount,
@@ -120,17 +113,13 @@ const {
   streamAnimatingIndex,
   streamBlockCount,
   streamBlockDiff,
-  streamCharDelay,
-  streamFadeDuration,
   streamPendingCount,
   streamPhase,
   streamQueueItems,
   streamQueueLength,
   streamResetCount,
   streamResetRevision,
-  streamRevealedCount,
   streamSchedulerPhase,
-  streamSettleHoldMs,
   streamStreamingIndex,
   streamingPreset,
 } = useMarkdownAnimatedStreamRuntime({
@@ -141,6 +130,34 @@ const {
   streamState: () => streamState.value,
   streamingConfig: () => streamingConfig.value,
 })
+
+const streamSnapshot = computed(() => ({
+  active: streamState.value.active,
+  activeBlockCount: streamActiveBlockCount.value,
+  activeIndex: streamActiveIndex.value,
+  animatingIndex: streamAnimatingIndex.value,
+  blockCount: streamBlockCount.value,
+  hardReset: streamBlockDiff.value.hardReset,
+  mode: streamingConfig.value.mode,
+  parseCount: streamParseCount.value,
+  pendingCount: streamPendingCount.value,
+  phase: streamPhase.value,
+  profilerEnabled: streamProfilerSnapshot.value.enabled,
+  profilerEventCount: streamProfilerSnapshot.value.eventCount,
+  queueLength: streamQueueLength.value,
+  resetCount: streamResetCount.value,
+  rewriteCount: streamBlockDiff.value.rewriteCount,
+  schedulerPhase: streamSchedulerPhase.value,
+  skippedBuckets: streamBlockDiff.value.skippedBuckets,
+  skippedCharCount: streamBlockDiff.value.skippedCharCount,
+  skippedNodeCount: streamBlockDiff.value.skippedNodeCount,
+  streamingIndex: streamStreamingIndex.value,
+  tailKind: streamState.value.tailKind,
+  updateKind: streamBlockDiff.value.updateKind,
+}))
+const streamProfilerDebug = computed(() =>
+  streamProfilerSnapshot.value.enabled ? streamProfilerSnapshot.value : undefined,
+)
 
 const rootClass = computed(() => [
   `tr-markdown`,
@@ -180,68 +197,15 @@ useMarkdownRootCommitRuntime({
     :data-stream-active-index="streamActiveIndex"
     :data-stream-animating-index="streamAnimatingIndex"
     :data-stream-streaming-index="streamStreamingIndex"
-    :data-stream-char-delay="streamCharDelay.toFixed(2)"
-    :data-stream-fade-duration="streamFadeDuration"
-    :data-stream-settle-hold-ms="streamSettleHoldMs"
     :data-stream-active-block-count="streamActiveBlockCount"
-    :data-stream-revealed-count="streamRevealedCount"
     :data-stream-pending-count="streamPendingCount"
     :data-stream-rewrite-count="streamBlockDiff.rewriteCount"
     :data-stream-reset-count="streamResetCount"
     :data-stream-parse-count="streamParseCount"
     :data-stream-profiler-enabled="String(streamProfilerSnapshot.enabled)"
     :data-stream-profiler-event-count="streamProfilerSnapshot.eventCount"
-    :data-stream-profiler-last-event="streamProfilerSnapshot.lastEventName"
-    :data-stream-profiler-timeline="streamProfilerSnapshot.timeline.join('|')"
-    :data-stream-profiler-input-count="streamProfilerSnapshot.inputCount"
-    :data-stream-profiler-input-append-chars="streamProfilerSnapshot.inputAppendChars"
-    :data-stream-profiler-input-rewrite-count="streamProfilerSnapshot.inputRewriteCount"
-    :data-stream-profiler-parse-count="streamProfilerSnapshot.parseCount"
-    :data-stream-profiler-parse-avg-ms="streamProfilerSnapshot.parseAvgMs.toFixed(2)"
-    :data-stream-profiler-block-diff-count="streamProfilerSnapshot.blockDiffCount"
-    :data-stream-profiler-block-diff-avg-ms="streamProfilerSnapshot.blockDiffAvgMs.toFixed(2)"
-    :data-stream-profiler-queue-transition-count="streamProfilerSnapshot.queueTransitionCount"
-    :data-stream-profiler-settle-count="streamProfilerSnapshot.settleCount"
-    :data-stream-profiler-finalize-count="streamProfilerSnapshot.finalizeCount"
-    :data-stream-profiler-animation-frame-count="streamProfilerSnapshot.animationFrameCount"
-    :data-stream-profiler-reveal-frame-count="streamProfilerSnapshot.revealFrameCount"
-    :data-stream-profiler-skipped-frame-count="streamProfilerSnapshot.skippedFrameCount"
-    :data-stream-profiler-slow-frame-count="streamProfilerSnapshot.slowFrameCount"
-    :data-stream-profiler-frame-avg-ms="streamProfilerSnapshot.frameAvgMs.toFixed(2)"
-    :data-stream-profiler-frame-last-ms="streamProfilerSnapshot.frameLastMs.toFixed(2)"
-    :data-stream-profiler-frame-max-ms="streamProfilerSnapshot.frameMaxMs.toFixed(2)"
-    :data-stream-profiler-frame-interval-avg-ms="streamProfilerSnapshot.frameIntervalAvgMs.toFixed(2)"
-    :data-stream-profiler-fps-sample-count="streamProfilerSnapshot.fpsSampleCount"
-    :data-stream-profiler-fps-current="streamProfilerSnapshot.fpsCurrent.toFixed(2)"
-    :data-stream-profiler-fps-avg="streamProfilerSnapshot.fpsAvg.toFixed(2)"
-    :data-stream-profiler-fps-min="streamProfilerSnapshot.fpsMin.toFixed(2)"
-    :data-stream-profiler-fps-max="streamProfilerSnapshot.fpsMax.toFixed(2)"
-    :data-stream-profiler-fps-index="streamProfilerSnapshot.fpsIndex"
-    :data-stream-profiler-max-backlog="streamProfilerSnapshot.maxBacklog"
-    :data-stream-profiler-last-backlog="streamProfilerSnapshot.lastBacklog"
-    :data-stream-profiler-root-commit-count="streamProfilerSnapshot.rootCommitCount"
-    :data-stream-profiler-root-commit-avg-ms="streamProfilerSnapshot.rootCommitAvgMs.toFixed(2)"
-    :data-stream-profiler-root-commit-last-ms="streamProfilerSnapshot.rootCommitLastMs.toFixed(2)"
-    :data-stream-profiler-root-commit-max-ms="streamProfilerSnapshot.rootCommitMaxMs.toFixed(2)"
-    :data-stream-profiler-root-commit-last-phase="streamProfilerSnapshot.rootCommitLastPhase"
-    :data-stream-profiler-root-commit-last-block-count="streamProfilerSnapshot.rootCommitLastBlockCount"
-    :data-stream-profiler-root-commit-last-text-length="streamProfilerSnapshot.rootCommitLastTextLength"
-    :data-stream-profiler-root-commit-mount-count="streamProfilerSnapshot.rootCommitMountCount"
-    :data-stream-profiler-root-commit-update-count="streamProfilerSnapshot.rootCommitUpdateCount"
-    :data-stream-profiler-block-commit-count="streamProfilerSnapshot.blockCommitCount"
-    :data-stream-profiler-block-commit-avg-ms="streamProfilerSnapshot.blockCommitAvgMs.toFixed(2)"
-    :data-stream-profiler-block-commit-last-ms="streamProfilerSnapshot.blockCommitLastMs.toFixed(2)"
-    :data-stream-profiler-block-commit-max-ms="streamProfilerSnapshot.blockCommitMaxMs.toFixed(2)"
-    :data-stream-profiler-block-commit-last-state="streamProfilerSnapshot.blockCommitLastState"
-    :data-stream-profiler-block-commit-tracked-count="streamProfilerSnapshot.trackedBlockCount"
-    :data-stream-profiler-block-commit-mount-count="streamProfilerSnapshot.blockCommitMountCount"
-    :data-stream-profiler-block-commit-update-count="streamProfilerSnapshot.blockCommitUpdateCount"
-    :data-stream-profiler-token-schedule-count="streamProfilerSnapshot.tokenScheduleCount"
-    :data-stream-profiler-token-schedule-avg-ms="streamProfilerSnapshot.tokenScheduleAvgMs.toFixed(2)"
-    :data-stream-profiler-token-preserved-count="streamProfilerSnapshot.tokenPreservedCount"
-    :data-stream-profiler-token-inserted-count="streamProfilerSnapshot.tokenInsertedCount"
-    :data-stream-profiler-token-deleted-count="streamProfilerSnapshot.tokenDeletedCount"
-    :data-stream-profiler-token-replaced-count="streamProfilerSnapshot.tokenReplacedCount"
+    :data-stream-snapshot="JSON.stringify(streamSnapshot)"
+    :data-stream-profiler-debug="streamProfilerDebug ? JSON.stringify(streamProfilerDebug) : undefined"
     :data-image-gallery-enabled="String(imageGalleryEnabled)"
     :data-image-gallery-count="imageGalleryItems.length"
   >

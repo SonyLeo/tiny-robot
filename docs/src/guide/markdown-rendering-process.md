@@ -17,6 +17,11 @@ outline: deep
 - Spike： [Markdown 渲染 Spike 结论](/guide/markdown-rendering-spike)
 - 路线图： [Markdown 渲染 Roadmap](/guide/markdown-rendering-roadmap)
 
+> 维护说明（2026-06-08）
+>
+> 这份文档当前只保留“开发流程模板”的职责，不再维护实现状态或阶段完成度。
+> 最新实现进度请以 roadmap 为准，当前架构与公共 API 边界请以 design 文档为准。
+
 ## 使用方式
 
 把这份文档当作 `TrMarkdown` 的开发作业流程。

@@ -1,6 +1,7 @@
 import MarkdownIt from 'markdown-it'
 import footnotePlugin from 'markdown-it-footnote'
 import type { TrMarkdownParserAdapter, TrMarkdownParserOptions, TrMarkdownRenderNode } from '../index.type'
+import { parseInlineHtmlTagToken } from '../utils/html'
 import { resolveFootnoteConfig } from '../utils/footnotes'
 import { customTagPlugin } from './customTagPlugin'
 import { mathPlugin } from './mathPlugin'
@@ -43,6 +44,7 @@ const supportedInlineHtmlTagMap: Record<string, { type: string; tag: string }> =
 
 const supportedInlineHtmlTagPattern = /<(\/?)(ins|sub|sup|kbd|br)\s*\/?>/gi
 const taskListMarkerPattern = /^\[( |x|X)\]\s*/
+const genericInlineHtmlTagPattern = /<[a-zA-Z][\w:-]*(\s[^<>]*)?>|<\/[a-zA-Z][\w:-]*\s*>/i
 
 const isMathEnabled = (options?: TrMarkdownParserOptions) => {
   if (!options?.math) {
@@ -206,6 +208,39 @@ const parseInlineChildren = (tokens: MarkdownItToken[]): TrMarkdownRenderNode[] 
     pushText(content.slice(lastIndex))
   }
 
+  const parseGenericInlineHtml = (content: string) => {
+    const htmlTag = parseInlineHtmlTagToken(content)
+    if (!htmlTag) {
+      pushText(content)
+      return
+    }
+
+    if (htmlTag.closing) {
+      for (let index = stack.length - 1; index >= 0; index -= 1) {
+        const currentNode = stack[index]
+        if (currentNode.type === 'html-inline' && currentNode.tag === htmlTag.name) {
+          stack.splice(index)
+          return
+        }
+      }
+
+      pushText(content)
+      return
+    }
+
+    const node: TrMarkdownRenderNode = {
+      type: 'html-inline',
+      tag: htmlTag.name,
+      attrs: htmlTag.attrs,
+      children: [],
+    }
+    pushNode(node)
+
+    if (!htmlTag.selfClosing) {
+      stack.push(node)
+    }
+  }
+
   for (const token of tokens) {
     if (token.type === 'text') {
       parseSupportedInlineHtml(token.content)
@@ -213,7 +248,23 @@ const parseInlineChildren = (tokens: MarkdownItToken[]): TrMarkdownRenderNode[] 
     }
 
     if (token.type === 'html_inline') {
-      parseSupportedInlineHtml(token.content)
+      if (supportedInlineHtmlTagPattern.test(token.content)) {
+        supportedInlineHtmlTagPattern.lastIndex = 0
+        parseSupportedInlineHtml(token.content)
+        continue
+      }
+
+      supportedInlineHtmlTagPattern.lastIndex = 0
+
+      if (genericInlineHtmlTagPattern.test(token.content)) {
+        parseGenericInlineHtml(token.content)
+        continue
+      }
+
+      pushNode({
+        type: 'html-inline-raw',
+        text: token.content,
+      })
       continue
     }
 
@@ -481,7 +532,7 @@ const parseTokens = (
     }
 
     if (token.type === 'html_block' || token.type === 'html_inline') {
-      pushNode({ type: 'html', text: token.content })
+      pushNode({ type: token.type === 'html_block' ? 'html-block' : 'html-inline-raw', text: token.content })
       continue
     }
 

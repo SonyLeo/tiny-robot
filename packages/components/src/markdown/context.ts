@@ -1,5 +1,5 @@
-import { inject, provide } from 'vue'
-import type { InjectionKey } from 'vue'
+import { computed, inject, provide, toValue } from 'vue'
+import type { ComputedRef, InjectionKey, MaybeRefOrGetter } from 'vue'
 import type {
   TrMarkdownCitationItem,
   TrMarkdownComponentMap,
@@ -17,6 +17,10 @@ export interface TrMarkdownContext {
   features: TrMarkdownFeatureFlags
   code: TrMarkdownCodeConfig
   link: TrMarkdownLinkConfig
+  streaming: {
+    active: boolean
+    enabled: boolean
+  }
   citations: TrMarkdownCitationItem[]
   components: Partial<TrMarkdownComponentMap>
   componentProps: TrMarkdownComponentPropsMap
@@ -25,12 +29,55 @@ export interface TrMarkdownContext {
   openImageGallery?: (index: number) => void
 }
 
-export const TR_MARKDOWN_CONTEXT_KEY: InjectionKey<TrMarkdownContext> = Symbol('TR_MARKDOWN_CONTEXT_KEY')
+export type TrMarkdownContextSource = MaybeRefOrGetter<TrMarkdownContext>
 
-export const provideMarkdownContext = (context: TrMarkdownContext) => {
-  provide(TR_MARKDOWN_CONTEXT_KEY, context)
+export const TR_MARKDOWN_CONTEXT_KEY: InjectionKey<ComputedRef<TrMarkdownContext>> = Symbol('TR_MARKDOWN_CONTEXT_KEY')
+
+const contextProxyCache = new WeakMap<ComputedRef<TrMarkdownContext>, TrMarkdownContext>()
+
+const createMarkdownContextProxy = (context: ComputedRef<TrMarkdownContext>) => {
+  return new Proxy({} as TrMarkdownContext, {
+    get(_, property) {
+      return context.value[property as keyof TrMarkdownContext]
+    },
+    getOwnPropertyDescriptor(_, property) {
+      return {
+        configurable: true,
+        enumerable: true,
+        value: context.value[property as keyof TrMarkdownContext],
+      }
+    },
+    has(_, property) {
+      return property in context.value
+    },
+    ownKeys() {
+      return Reflect.ownKeys(context.value)
+    },
+  })
+}
+
+export const provideMarkdownContext = (context: TrMarkdownContextSource) => {
+  const resolvedContext = computed(() => toValue(context))
+  provide(TR_MARKDOWN_CONTEXT_KEY, resolvedContext)
+}
+
+export const useMarkdownContextRef = () => {
+  return inject(TR_MARKDOWN_CONTEXT_KEY)
 }
 
 export const useMarkdownContext = () => {
-  return inject(TR_MARKDOWN_CONTEXT_KEY)
+  const context = useMarkdownContextRef()
+
+  if (!context) {
+    return
+  }
+
+  const cachedContext = contextProxyCache.get(context)
+  if (cachedContext) {
+    return cachedContext
+  }
+
+  const proxyContext = createMarkdownContextProxy(context)
+  contextProxyCache.set(context, proxyContext)
+  return proxyContext
 }

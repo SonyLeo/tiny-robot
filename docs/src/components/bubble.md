@@ -66,7 +66,22 @@ Bubble 组件提供了 `markdown` 渲染器。当前 `BubbleRenderers.Markdown` 
 - string content：通过 `fallback-content-renderer="BubbleRenderers.Markdown"` 接入
 - `{ type: 'markdown', text }`：通过 provider-level `content-renderer-matches` 显式启用
 
-如果需要统一控制 bubble 内 markdown 的链接、代码块或排版参数，优先通过 `content-attributes` 向 `BubbleRenderers.Markdown` 透传 `style / code / link / parserOptions / features`。
+如果需要统一控制 bubble 内 markdown 的链接、代码块或排版参数，优先通过 `content-attributes` 里的 `markdown` 命名空间向 `BubbleRenderers.Markdown` 透传 `code / link / parserOptions / features / streaming`，把通用外层样式仍留在顶层 `style`。
+
+```ts
+const contentAttributes = () => ({
+  markdown: {
+    code: { copyable: false },
+    link: { target: '_self', rel: 'nofollow noopener' },
+    features: { htmlPreview: { enabled: true } },
+  },
+  style: {
+    '--tr-markdown-font-size': '15px',
+  },
+})
+```
+
+旧的“直接把 markdown props 平铺到 `content-attributes` 顶层”目前仍兼容，但它会继续污染 Bubble 通用 attributes 边界，后续应逐步迁移到 `markdown: { ... }`。
 
 <demo vue="../../demos/bubble/markdown.vue" />
 

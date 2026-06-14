@@ -81,6 +81,11 @@ export interface TrMarkdownCodeHighlightConfig {
 export interface TrMarkdownCodeActionContext {
   code: string
   language?: string
+  defaultActions: VNodeChild
+  renderDefaultActions: () => VNodeChild
+  /**
+   * @deprecated Use `defaultActions` or `renderDefaultActions()` instead.
+   */
   originalNode: VNodeChild
 }
 

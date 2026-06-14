@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { defineComponent, h, useSlots } from 'vue'
+import { computed, defineComponent, h, useSlots } from 'vue'
 import TrMarkdown from '../../../components/src/markdown'
 import type { MarkdownDemoPreviewProps } from '../types/markdownDemo'
 
-defineProps<MarkdownDemoPreviewProps>()
+const props = defineProps<MarkdownDemoPreviewProps>()
 
 const DemoHeading = defineComponent({
   name: 'DemoMarkdownHeading',
@@ -11,6 +11,10 @@ const DemoHeading = defineComponent({
     level: {
       type: Number,
       required: true,
+    },
+    badge: {
+      type: String,
+      default: '',
     },
   },
   setup(componentProps) {
@@ -22,7 +26,10 @@ const DemoHeading = defineComponent({
         {
           class: ['demo-markdown-heading', `demo-markdown-heading--${componentProps.level}`],
         },
-        slots.default?.(),
+        [
+          componentProps.badge ? h('span', { class: 'demo-markdown-heading__badge' }, componentProps.badge) : undefined,
+          slots.default?.(),
+        ],
       )
   },
 })
@@ -42,6 +49,14 @@ const DemoLink = defineComponent({
       type: String,
       default: undefined,
     },
+    iconLabel: {
+      type: String,
+      default: '',
+    },
+    tone: {
+      type: String,
+      default: '',
+    },
   },
   setup(componentProps) {
     const slots = useSlots()
@@ -50,12 +65,16 @@ const DemoLink = defineComponent({
       h(
         'a',
         {
-          class: 'demo-markdown-link',
+          class: ['demo-markdown-link', componentProps.tone ? `demo-markdown-link--${componentProps.tone}` : undefined],
           href: componentProps.href,
           rel: componentProps.rel,
           target: componentProps.target,
+          'data-link-tone': componentProps.tone || undefined,
         },
-        [h('span', { class: 'demo-markdown-link__icon', 'aria-hidden': 'true' }, '->'), slots.default?.()],
+        [
+          h('span', { class: 'demo-markdown-link__icon', 'aria-hidden': 'true' }, componentProps.iconLabel || '->'),
+          slots.default?.(),
+        ],
       )
   },
 })
@@ -67,13 +86,31 @@ const DemoInlineCode = defineComponent({
       type: String,
       default: '',
     },
+    label: {
+      type: String,
+      default: '',
+    },
+    tone: {
+      type: String,
+      default: '',
+    },
   },
   setup(componentProps) {
     return () =>
-      h('code', { class: 'demo-markdown-inline-code' }, [
-        h('span', { class: 'demo-markdown-inline-code__label' }, 'TOKEN'),
-        h('span', componentProps.code),
-      ])
+      h(
+        'code',
+        {
+          class: [
+            'demo-markdown-inline-code',
+            componentProps.tone ? `demo-markdown-inline-code--${componentProps.tone}` : undefined,
+          ],
+          'data-inline-tone': componentProps.tone || undefined,
+        },
+        [
+          h('span', { class: 'demo-markdown-inline-code__label' }, componentProps.label || 'TOKEN'),
+          h('span', componentProps.code),
+        ],
+      )
   },
 })
 
@@ -82,18 +119,44 @@ const components = {
   link: DemoLink,
   inlineCode: DemoInlineCode,
 }
+
+const componentProps = computed(() => ({
+  ...(props.markdownProps.componentProps || {}),
+  heading: {
+    badge: 'M5.7',
+  },
+  link: {
+    iconLabel: 'DOCS',
+    tone: 'brand',
+  },
+  inlineCode: {
+    label: 'TOKEN',
+    tone: 'brand',
+  },
+  paragraph: {
+    class: 'demo-markdown-paragraph',
+    'data-component-props-paragraph': 'true',
+  },
+}))
 </script>
 
 <template>
   <div class="components-preview">
     <div class="components-preview__meta">
-      <strong>components override</strong>
+      <strong>components + componentProps</strong>
       <p>
-        这个案例直接走 `components` 覆写，验证标题、链接和 inline code 可以在不动 parser 的前提下替换成第一方 Vue 组件。
+        这个案例同时走 `components` 和 `componentProps`，验证覆写组件与默认节点组件都能在不动 parser
+        的前提下接到公开扩展参数。
       </p>
     </div>
 
-    <TrMarkdown :content="controls.content" :style="markdownStyle" v-bind="markdownProps" :components="components" />
+    <TrMarkdown
+      :content="controls.content"
+      :style="markdownStyle"
+      v-bind="markdownProps"
+      :components="components"
+      :component-props="componentProps"
+    />
   </div>
 </template>
 
@@ -144,6 +207,19 @@ const components = {
   );
 }
 
+:deep(.demo-markdown-heading__badge) {
+  display: inline-flex;
+  margin-right: 10px;
+  padding: 0.16em 0.46em;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--tr-color-primary) 14%, transparent);
+  color: var(--tr-color-primary);
+  font-size: 11px;
+  font-weight: var(--tr-font-weight-bold);
+  letter-spacing: 0.04em;
+  vertical-align: middle;
+}
+
 :deep(.demo-markdown-link) {
   display: inline-flex;
   gap: 6px;
@@ -157,9 +233,18 @@ const components = {
   text-decoration: underline;
 }
 
+:deep(.demo-markdown-link--brand) {
+  text-decoration-thickness: 0.08em;
+}
+
 :deep(.demo-markdown-link__icon) {
   font-size: 11px;
   opacity: 0.72;
+}
+
+:deep(.demo-markdown-paragraph) {
+  padding-left: 12px;
+  border-left: 2px solid color-mix(in srgb, var(--tr-color-primary) 20%, transparent);
 }
 
 :deep(.demo-markdown-inline-code) {
@@ -172,6 +257,10 @@ const components = {
   background: color-mix(in srgb, var(--tr-color-primary) 12%, transparent);
   color: var(--tr-text-primary);
   font-size: 0.84em;
+}
+
+:deep(.demo-markdown-inline-code--brand) {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tr-color-primary) 8%, transparent);
 }
 
 :deep(.demo-markdown-inline-code__label) {

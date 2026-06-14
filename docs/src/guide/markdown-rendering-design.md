@@ -20,6 +20,59 @@ outline: deep
 - 调研文档： [Markdown 渲染调研](/guide/markdown-rendering-research)
 - 路线图： [Markdown 渲染 Roadmap](/guide/markdown-rendering-roadmap)
 
+## 文档职责与维护约定
+
+为了减少 `markdown-rendering-*` 文档之间的重复维护，当前约定收口为下面三类主文档：
+
+- `markdown-rendering-design.md`
+  - 负责维护 `TrMarkdown` 的架构边界、模块分层、公共 API 语义与当前已知设计偏差
+  - 当代码行为与文档冲突时，应优先修正这里的描述
+- `markdown-rendering-roadmap.md`
+  - 负责维护实现进度、阶段状态、当前收口任务与后续优先级
+  - 不再重复承担完整设计说明
+- `markdown-rendering-research.md`
+  - 负责保留外部方案调研、历史判断和对标背景
+  - 不作为当前实现真相源
+
+其余文档当前降级为参考附录：
+
+- `markdown-rendering-checklist.md`
+- `markdown-rendering-process.md`
+- `markdown-rendering-spike.md`
+- `markdown-rendering-fixtures.md`
+
+这些附录继续保留，但不再各自维护一份“最新实现快照”。
+
+## 当前已知问题与设计偏差（2026-06-08）
+
+下面这些问题已在代码审视中确认，当前应视为 `TrMarkdown` 的正式收口项，而不是边角优化：
+
+### P1：公共能力与真实行为不一致
+
+- `features.html` / `parserOptions.html`
+  - 当前已作为公共开关暴露，但通用 raw HTML 实际不会进入稳定的 HTML 渲染能力，而是回落成纯文本渲染
+  - 在修复前，不应把它视为已完成的 public contract
+- `features.htmlPreview.streamingMode`
+  - HTML Preview 基础能力已经落地，但 `streaming.active -> HtmlPreviewBlock` 的主链路仍未完全做实
+  - `auto / live / defer` 当前不应再被文档表述为“完全封口”
+
+### P2：公共边界仍有未封口契约
+
+- `useMarkdownContext`
+  - 虽已公开导出，但当前注入的是 setup 时快照，不是稳定的响应式上下文
+- HTML Preview 源码保真
+  - preview / source / copy / download 仍会对原始 fenced HTML 做 `trim()`，不满足源码保真要求
+- `TrMarkdownParserAdapter`
+  - 名义上支持替换 parser，但当前 renderer 实际仍绑定 `markdown-it` 风格节点协议，内部 IR 还不够独立
+- `actionsRender`
+  - 当前通过 `originalNode: VNodeChild` 暴露内部 toolbar 节点协议，API 形态仍偏实现细节
+
+### P2：容器层与 internal 实现暴露面偏大
+
+- Bubble 当前仍通过通用 `contentAttributes` 透传 Markdown 私有配置，边界不够干净
+- streaming / profiler 的大量内部 telemetry 已通过 DOM `data-*` 与测试断言固化成事实契约
+- `TrMarkdown` 作为独立组件已经公开导出，但当前仍缺少独立的一等公民文档入口
+
 ## 设计目标
 
 `TrMarkdown` 的目标不是只替换当前 `BubbleRenderers.Markdown`，而是成为 TinyRobot 的 Markdown rendering base。
@@ -29,7 +82,7 @@ outline: deep
 - 独立组件使用
 - 作为 `Bubble` 的 Markdown 内容渲染内核
 
-## 当前实现快照（2026-05-31）
+## 当前实现快照（截至 2026-06-07）
 
 当前实现已经从“方案草图”进入到“可运行的第一版基座”：
 
@@ -39,8 +92,31 @@ outline: deep
 - `markdown-demo` 当前已拆成两层：
   - `Public parity`：公开对标层，按 LobeUI section 心智组织
   - `Internal regression`：内部回归层，保留 article / Bubble 集成等实现验收 case
+- `markdown-demo` 当前浏览路径也已收口成两套心智：
+  - `Public parity` 视图默认更像文档页：初始先落到首个公开 section，顶部 case browser 与右侧 case navigation 先服务 section 浏览，按 case 聚焦后再按需展开 source / playground
+  - `Internal regression` 视图继续保留偏工程化的整页回归浏览与默认展开 controls，便于做实现验收
+- `markdown-demo` 的复杂与扩展型公开 section 也已补第二轮叙事收口：
+  - `Media` 默认先展示基础图片与视频节点，`Image gallery` 改为显式增强入口
+  - `Code` 默认先展示 `inline code + code blocks` 两条主路径，`Color preview / Transformers / Custom actions` 改为进阶入口
+  - `HTML Preview` 默认先展示 `document preview + fragment fallback` 两条主路径，`auto / live / defer` streaming 差异改为 narrative chips 下的进阶入口
+  - `Streamdown` 默认只展示可阅读的主回答，`Profiler / Character Animation Loss Repro` 作为第二层诊断入口
+  - `Custom` 默认先展示 `components + componentProps`、`citations` 与第一方 semantic blocks 主路径，`renderOptions.alerts.render` 与 citation code boundary 改为进阶入口
+- `Math and Diagrams` 也已按同一套公开叙事收口：
+  - 默认先展示 `inline formula / block formula / flowchart / sequence diagram`
+  - `invalid formula / invalid mermaid syntax` 改为 narrative chips 下的异常态入口
+- `Footnotes / Alerts` 也已统一到同一套 section narrative 心智：
+  - `Footnotes` 默认先展示 `single footnote / inline footnote` 两条主语法，`repeated footnote` 作为引用稳定性入口
+  - `Alerts` 默认先展示五类官方 GitHub alert，`Alert vs blockquote` 改为边界对照入口
+- `Citations` 当前已作为第一方子能力收口：
+  - 通过 `citations` 数据入口把正文 `[1] / [2]` 升级成 citation 节点
+  - 保持 parser 输入不改写，沿现有 IR 做 post-parse node transform
+  - `inline code / fenced code / math / html` 继续保持非 citation 区域，避免把普通代码索引误判为引用
+- `Custom Plugins` 当前已按第一方语义块收口：
+  - 通过 `tr-thinking / tr-artifact` 两个受控标签对齐 LobeUI custom plugins 的公开展示结果
+  - parser 直接产出 `thinking-block / artifact-block` 内部节点，不公开 `rehypePlugins / remarkPlugins`
+  - 损坏或不支持的标签继续回退到普通文本 / HTML fallback，不扩大默认 API 面
 - 公开 demo 当前 section 已收敛为：
-  - `Basic / Media / Lists / Code / Variants / Streamdown / Custom / APIs`
+  - `Basic / Media / Lists / Code / HTML Preview / Math and Diagrams / Footnotes / Alerts / Variants / Streamdown / Custom / APIs`
 - 基础排版当前已覆盖：
   - `headings`
   - `paragraph`
@@ -66,6 +142,7 @@ outline: deep
   - `{ type: 'markdown', text }` 可通过 provider-level `contentRendererMatches` 显式启用
   - provider `contentAttributes` / renderer attributes 已可继续透传 `style / code / link / parserOptions / features`
   - 默认不把 markdown content type 放进 Bubble 内建匹配，避免未启用 markdown 的 Bubble 主路径承担额外运行时代价
+  - 当前仍需继续收口的一点是：`contentAttributes` 还承担了 Markdown 私有协议透传，Bubble 通用层与 Markdown 私有配置层的边界还不够干净
 - `M4` 第一阶段的 streaming 分支也已落地：
   - `TrMarkdown` 已补 `streaming` 配置入口
   - 静态 parser 只消费 `stableContent`
@@ -91,8 +168,7 @@ outline: deep
   - `useStreamTextAnimation` 已补 backlog cap，避免 stream 速度快于 fade 时积压出长时间不可见尾队列
   - `useStreamRevealQueue` 已显式区分 `animatingIndex / streamingIndex`，并对 `streaming.active = false -> settling -> finalized`、`append during settling` 做正式收口
 - 当前仍明确不在默认主路径中的能力：
-  - footnotes / alerts
-  - math / mermaid / html preview
+  - 通用 custom plugins API / remarkPlugins / rehypePlugins
   - parser 级 token diff
   - 跨 block 或 parser 级 token diff
   - React Profiler 等价的底层 commit 事件流和 DevTools 级 profiler 可视化
@@ -2317,6 +2393,8 @@ export interface TrMarkdownProps {
 - `TrMarkdownProps`
 - `useMarkdownContext`
 
+> 注：`useMarkdownContext` 虽已导出，但当前响应式契约尚未封口；在问题修复前，不应把它视为稳定扩展点。
+
 ## Bubble 集成设计
 
 ### 第一阶段
@@ -2597,7 +2675,7 @@ Image Gallery：
 
 插件与扩展点不建议先行抽象。至少完成两类高级节点后，再冻结 public API。
 
-候选公开边界：
+当前正式冻结的公开边界：
 
 - `components`
 - `componentProps`
@@ -2605,12 +2683,20 @@ Image Gallery：
 - `renderOptions`
 - `features`
 
+其中 `renderOptions` 当前只开放已经有真实实现支撑的第一条子能力：
+
+- `renderOptions.alerts.render`
+
 仍保持 internal 的内容：
 
 - stream scheduler 内部状态
 - token patch segment
 - profiler 原始事件数组
 - 高级节点内部 lazy-loader
+- `plugins`
+- `remarkPlugins`
+- `rehypePlugins`
+- 通用 `customRender`
 
 ### 推荐开工顺序
 

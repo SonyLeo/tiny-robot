@@ -29,6 +29,7 @@ const props = withDefaults(
     language?: string
     mermaid?: boolean | TrMarkdownMermaidConfig
     showLanguage?: boolean
+    streamingActive?: boolean
   }>(),
   {
     blockMode: 'overlay',
@@ -78,6 +79,7 @@ const isSingleLine = computed(() => {
     :highlight="highlight"
     :highlight-engine="highlightEngine"
     :sandbox="htmlPreviewConfig.sandbox"
+    :streaming-active="streamingActive"
     :streaming-mode="htmlPreviewConfig.streamingMode"
   />
   <MermaidBlock

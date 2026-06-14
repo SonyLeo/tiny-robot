@@ -15,6 +15,7 @@ const sharedSidebarItems = [
     items: [
       { text: 'Container 容器', link: 'container' },
       { text: 'Bubble 气泡', link: 'bubble' },
+      { text: 'Markdown 渲染', link: 'markdown' },
       { text: 'Sender 消息输入框', link: 'sender' },
       { text: 'Prompts 提示集', link: 'prompts' },
       { text: 'Welcome 欢迎', link: 'welcome' },

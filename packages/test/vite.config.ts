@@ -2,6 +2,8 @@ import { resolve } from 'path'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 
+const testPort = Number(process.env.TINY_ROBOT_TEST_PORT || 3340)
+
 export default defineConfig({
   plugins: [vue()],
   resolve: {
@@ -20,7 +22,7 @@ export default defineConfig({
     exclude: ['@opentiny/tiny-robot', '@opentiny/tiny-robot-svgs'],
   },
   server: {
-    port: 3333,
+    port: testPort,
     host: true,
   },
   build: {

@@ -52,7 +52,7 @@ const { mode, setMode } = useDefaultModeState<TrMarkdownHtmlPreviewMode>(() => p
 const toolbarActive = ref(false)
 const { resolvedColorMode } = useTheme()
 
-const codeText = computed(() => (props.code || '').trim())
+const codeText = computed(() => props.code || '')
 const { copy: copySource, state: copyState } = useClipboardState({
   value: codeText,
 })

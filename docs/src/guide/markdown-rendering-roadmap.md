@@ -14,6 +14,33 @@ outline: deep
 
 配套调研请参考 [Markdown 渲染调研与 TrMarkdown 方案草图](/guide/markdown-rendering-research)。
 
+## 文档职责与维护约定
+
+当前这组 markdown 文档按下面方式收口维护：
+
+- 设计真相源： [TrMarkdown 设计方案](/guide/markdown-rendering-design)
+- 进度与任务真相源：当前这份 roadmap
+- 调研与历史判断： [Markdown 渲染调研](/guide/markdown-rendering-research)
+
+`checklist / process / spike / fixtures` 继续保留，但降级为附录参考，不再各自维护一份最新进度快照。
+
+## 当前阻塞与收口优先级（2026-06-08）
+
+在最新一轮实现审视后，当前最优先的收口项已经从“继续扩高级能力”切回“先修公共契约”：
+
+1. `P1` 公共能力失真
+   - `features.html` / `parserOptions.html` 已暴露，但通用 raw HTML 实际仍只会回落成文本
+   - HTML Preview 的 `streamingMode` 基础语义已落地，但 `streaming.active -> HtmlPreviewBlock` 主链路仍未完全做实
+2. `P2` 公共边界未封口
+   - `useMarkdownContext` 当前仍是 setup 时快照，而不是稳定响应式上下文
+   - HTML Preview 仍会对 preview / source / copy / download 源码做 `trim()`
+   - `TrMarkdownParserAdapter` 名义可替换，实际 IR 仍绑定当前内部节点协议
+   - `actionsRender` 当前仍暴露内部 `VNode` 组装协议
+3. `P2` 容器与测试边界过宽
+   - Bubble 仍通过通用 `contentAttributes` 透传 Markdown 私有配置
+   - streaming / profiler 的内部 telemetry 已被 DOM `data-*` 和 Playwright 断言固化
+   - `TrMarkdown` 已正式公开导出，但当前缺少独立组件文档契约
+
 ## Roadmap 目标
 
 TinyRobot 的目标不是复刻 `LobeUI` 的 React 实现，而是对标它的能力完整度，并在 Vue 3 架构下形成自己的第一方 Markdown 基座。
@@ -35,7 +62,7 @@ Roadmap 以 `TrMarkdown` 为核心能力对象，覆盖两类落地场景：
 
 当前这版 roadmap 的状态判断已结合代码现状与最新一轮 demo / build / test 验证结果维护。
 
-## 当前进度快照（2026-05-31）
+## 当前进度快照（截至 2026-06-07 的实现盘点）
 
 - markdown 验证入口已完成一轮“源码直连”硬化：
   - `packages/test` 与 `packages/markdown-demo` 现已显式把 `@opentiny/tiny-robot` / `@opentiny/tiny-robot-svgs` 指向 workspace `src`
@@ -48,8 +75,23 @@ Roadmap 以 `TrMarkdown` 为核心能力对象，覆盖两类落地场景：
 - `markdown-demo` 当前已拆成两层：
   - `Public parity`：公开对标层，按 LobeUI section 心智组织
   - `Internal regression`：内部回归层，保留 article / Bubble 集成等实现验收 case
+- `markdown-demo` 当前浏览器结构也已收口：
+  - `Public parity` 视图补了顶部 case browser、右侧 case navigation 与单 case focus；默认先落到首个公开 section，预览优先，source / playground 改为按需展开
+  - `Internal regression` 视图继续保留更直接的整页回归浏览与默认展开 controls，优先服务实现验收
+- `Media / Code / HTML Preview / Streamdown / Custom` 五个复杂或扩展型公开 section 已补第二轮 docs parity 收口：
+  - `Media` 先讲普通图片节点，再把 `Image gallery` 下沉为显式增强入口
+  - `Code` 先讲 `inline code / code blocks`，再把 `Color preview / Transformers / Custom actions` 下沉为进阶入口
+  - `HTML Preview` 先讲完整文档预览和 fragment fallback，再把 `auto / live / defer` streaming 差异收进 narrative chips
+  - `Streamdown` 先讲可阅读主回答，再把 `Profiler / Character Animation Loss Repro` 下沉为进阶诊断入口
+  - `Custom` 先讲 `components + componentProps`，再把 `renderOptions.alerts.render` 作为进阶 render hook 暴露
+- `Math and Diagrams` 也已统一到同一套 section narrative 心智：
+  - 默认只展示公式与图表主路径
+  - 错误公式与 Mermaid 异常语法下沉到进阶入口
+- `Footnotes / Alerts` 也已按同样方式完成 docs parity 收口：
+  - `Footnotes` 先讲单脚注与行内脚注，再把重复引用稳定性下沉为进阶入口
+  - `Alerts` 先讲五类官方 alert，再把普通 blockquote 对照与 same-line 边界下沉为进阶入口
 - 公开 demo 当前 section 已收敛为：
-  - `Basic / Media / Lists / Code / Variants / Streamdown / Custom / APIs`
+  - `Basic / Media / Lists / Code / HTML Preview / Math and Diagrams / Footnotes / Alerts / Variants / Streamdown / Custom / APIs`
 - `M1` 的基础排版收尾已进入封口阶段：`Basic` 区已覆盖 `headings / paragraph / long article / styling text / break lines / quoting text / links / lists / task lists / bubble variant / tables`
 - task list 已进入默认静态路径，当前实现未额外引入 task-list parser 插件，而是沿用现有 `markdown-it -> IR -> render` 链路做轻量识别
 - `M4` 已完成第一阶段与第二阶段收口：
@@ -80,16 +122,30 @@ Roadmap 以 `TrMarkdown` 为核心能力对象，覆盖两类落地场景：
   - `streaming.active = false` 当前正式策略已收敛为 `visible settling -> finalized plain text DOM`
   - `append during settling` 已正式纳入 scheduler 契约，并验证 finalize timer 会被撤销后恢复到 streaming 队列
   - `token-level rewrite patch` 与 token scheduler 已进入正式 P0：同 block rewrite 时复用未变 grapheme birth，结构变化才 hard reset
-- `M5` 目前仅完成下一阶段目标冻结，仍停留在 `Planned`，尚未进入正式实现：
-  - 先冻结起手顺序与非目标，再决定具体能力的最小切入面
-  - 不允许把 Mermaid / KaTeX / Footnotes / Alert / Preview / Gallery 一次性并行塞进默认路径
+- `M5` 已进入局部实现阶段，但仍未完成对标收口：
+  - `HTML Preview` 基础能力已落地：`html` fenced block 分流、iframe sandbox + srcdoc、Preview / Code 切换、copy / download、fragment fallback、dark mode 已进入代码、demo 与 Playwright 回归
+  - `HTML Preview streaming parity` 的基础语义已落地：`streamingMode = auto / live / defer`、无 `<script>` 文档的 live mount、`auto` 下的 script-lock / defer、demo 与 Playwright case 都已补齐
+  - `HTML Preview` 当前仍有两项正式 blocker：
+    - `streaming.active -> HtmlPreviewBlock` 主链路尚未完全做实
+    - preview / source / copy / download 仍会对源码做 `trim()`，不满足保真要求
+  - `Mermaid block` 已完成最小闭环收口：`mermaid` fenced block 分流、动态 import、light/dark theme 映射、loading/error/retry/source copy 已进入代码；公开 demo 已新增 `Math and Diagrams` section，覆盖 `flowchart / sequence / invalid syntax`，并已通过类型检查与 Playwright 回归
+  - `KaTeX / LaTeX` 已完成最小闭环收口：第一方 `math-inline / math-block` 节点、`$...$ / $$...$$` 语法、按需加载 `katex` runtime 与 CSS、错误 fallback 已进入代码；公开 demo 已补 `inline / block / invalid formula`，并已通过类型检查与 Playwright 回归
+  - `Footnotes` 已完成最小闭环收口：`markdown-it-footnote` 仅负责 token 化，脚注 ref / list / backref 全部映射到第一方节点；公开 demo 已新增 `Footnotes` section，覆盖 `single / repeated / inline` 三条主路径，并已通过类型检查与 Playwright 回归
+  - `GitHub Alert` 已完成最小闭环收口：沿现有 blockquote render 路径轻量识别 `NOTE / TIP / IMPORTANT / WARNING / CAUTION`，第一方 `AlertBlock`、公开 demo 与 Playwright 对照回归已补齐
+  - `Videos` 已完成最小闭环收口：保持 `html: false` 默认边界不变，仅把独立 `<video ... />` block 收敛为第一方媒体节点；公开 `Media` section、测试页与 Playwright 回归已补齐
+  - `Image Gallery` 已完成最小闭环收口：默认图片节点继续保持轻量，`features.imageGallery` 开启后由 markdown 自己持有多图预览、caption、缩略图与键盘关闭；公开 demo 与 Playwright 回归已补齐
+  - `Citations` 已完成最小闭环收口：新增 `citations` 第一方数据入口，正文 `[1] / [2]` 会在普通文本节点中升级成 citation node；公开 `Custom` section 已补 `Citations + code boundary` 两条 case，测试页与 Playwright 回归已补齐
+  - `Custom Plugins` 已完成第一方语义块收口：`tr-thinking / tr-artifact` 会作为内建 custom semantic block 进入 parser 与 render 链路，公开 `Custom` section、测试页与 Playwright 回归都已补齐，同时继续保持 `remarkPlugins / rehypePlugins / plugins` 为 internal
+  - markdown 内部容器层本轮已完成冻结：`TrMarkdown.vue` 运行时已拆分到独立 composables，`render.ts` 已拆成分域 renderer，`HTML Preview / Mermaid` 的 `Preview / Code` 切换器与 default-mode 本地同步逻辑已收口到 markdown 内部共用子组件 / composable；`html-preview / mermaid / math` 的 floating toolbar、loading surface、status header、status surface、source block 以及共享样式骨架都已收口到 markdown 内部 shared 子组件 / shared selectors
+  - 公开 demo 已与 LobeUI 当前公开 Markdown docs 完整对齐；`Custom Plugins` 的公开目标已收敛为“第一方语义块效果对齐”，而不是通用插件平台
+  - 后续仍应避免把通用 `Custom Plugins` API 直接并行塞进默认路径；当前正式边界仍是继续冻结第一方扩展能力
 - `Bubble` 与 markdown 的当前正式边界已明确：
   - string content 可通过 `fallbackContentRenderer={BubbleRenderers.Markdown}` 接入
   - `{ type: 'markdown', text }` 推荐通过 provider-level `contentRendererMatches` 显式启用
   - `contentAttributes` / renderer attributes 可继续向 `TrMarkdown` 透传 `style / code / link / parserOptions / features`
   - 显式 markdown content type 暂不进入 Bubble 默认匹配，避免普通 Bubble 主路径承担 markdown 运行时代价
 - 本轮仍未进入的范围：
-  - footnotes / alerts / mermaid / math
+  - 通用 custom plugins API
 - `M4.5` 后续剩余项已收敛为 P0 闭环：
   - root / block / frame / token 事件语义已统一到同一 profiler 事件模型
   - profiler 面板已拆分 timeline、FPS、frame duration、root commit cost、block commit cost 观察面
@@ -105,20 +161,21 @@ Roadmap 以 `TrMarkdown` 为核心能力对象，覆盖两类落地场景：
 | 基础 Markdown 语法 | 完整 | 已覆盖静态基础语法与基础 demo | Done |
 | 标签级组件映射 | 有 | 已实现 | Done |
 | 统一 Markdown 入口组件 | 有 | `TrMarkdown` 已实现 | Done |
-| Markdown Provider / 上下文 | 有 | 基础上下文已实现 | Partial |
+| Markdown Provider / 上下文 | 有 | 基础上下文已实现，但 `useMarkdownContext` 的响应式契约仍未封口 | Partial |
 | 静态与流式分支拆分 | 有 | 静态完成，流式第一阶段已实现 | Done |
 | 代码块独立子系统 | 有 | 已实现 | Done |
-| Mermaid 代码块 | 有 | 无 | Not Started |
-| HTML Preview 代码块 | 有 | 无 | Not Started |
-| 公式支持 | 有 | 无 | Not Started |
-| Footnotes | 有 | 无 | Not Started |
-| GitHub Alert | 有 | 无 | Not Started |
-| 图片 Gallery | 有 | 无 | Not Started |
+| Mermaid 代码块 | 有 | 已完成最小闭环，支持 fenced block 分流、动态加载、theme/loading/error/retry/source copy，demo 与 test 已补公开 case | Done |
+| HTML Preview 代码块 | 有 | 基础预览已落地，但 streaming 主链路与源码保真仍待收口 | Partial |
+| 原始 HTML 能力 | 有 | public flag 已暴露，但通用 raw HTML 仍未形成稳定能力 | Blocked |
+| 公式支持 | 有 | 已完成最小闭环，支持 `$...$ / $$...$$`、第一方 math node、KaTeX 动态加载与错误 fallback | Done |
+| Footnotes | 有 | 已完成最小闭环，支持定义式 / 行内脚注、重复引用、第一方锚点与 backref | Done |
+| GitHub Alert | 有 | 已完成最小闭环，支持五类 GitHub alert、第一方 AlertBlock 与 demo / test 对照回归 | Done |
+| 图片 Gallery | 有 | 已完成 markdown 自持的独立 gallery 预览链路 | Done |
 | chat variant | 有 | `bubble` / `article` 已落地，Bubble markdown 集成已收口 | Done |
-| 插件扩展点 | 完整 | 很弱 | Not Started |
-| 安全层 | 完整 | 基础 HTML 关闭与链接策略已具备 | Partial |
-| 流式 smoothing / tail hold | 有 | 已实现 smoothing / tail / incomplete hold，尚未做 queue 调度 | Done |
-| 字符级 streaming 动画 / reveal queue | 有 | 已进入第一轮实现，基础 queue + text reveal 已接通，观测与回落策略待补完 | In Progress |
+| 插件扩展点 | 完整 | 已暴露最小公开边界，但 `actionsRender` / 上下文 / adapter 等契约仍需继续收口 | Partial |
+| 安全层 | 完整 | 基础 HTML 关闭与链接策略已具备，但 raw HTML 与 preview 边界仍需继续收紧 | Partial |
+| 流式 smoothing / tail hold | 有 | 已实现 smoothing / tail / incomplete hold / scheduler 契约 | Done |
+| 字符级 streaming 动画 / reveal queue | 有 | 已实现 animated queue、token scheduler、profiler telemetry 与回归闭环 | Done |
 
 ## 实现原则
 
@@ -832,28 +889,31 @@ TinyRobot 当前的问题不是完全缺能力，而是 Markdown 逻辑分散在
 - LaTeX / KaTeX
 - Footnotes
 - GitHub Alert
-- HTML Preview
+- HTML Preview streaming parity
 - 图片 Gallery
 - 自定义语义块
 
 ### 扩展点
 
-建议暴露：
-
-- `components`
-- `componentProps`
-- `plugins`
-- `customRender`
-- `variant`
-
-在 Vue 下可等价设计为：
+当前正式冻结的公开扩展点为：
 
 - `components`
 - `componentProps`
 - `parserOptions`
 - `renderOptions`
-- `slots`（必要时）
-- `provide/inject` provider 配置
+- `features`
+
+其中 `renderOptions` 当前先只开放首个真实子能力：
+
+- `renderOptions.alerts.render`
+
+以下能力继续保持 internal / research，不进入当前公开冻结：
+
+- `plugins`
+- `remarkPlugins`
+- `rehypePlugins`
+- 通用 `customRender`
+- stream scheduler / token patch / profiler raw events
 
 ### 验收标准
 
@@ -862,30 +922,32 @@ TinyRobot 当前的问题不是完全缺能力，而是 Markdown 逻辑分散在
 
 ### 当前状态
 
-- 状态：`Planned`
+- 状态：`In Progress`
 - 依赖：`M1`，部分能力依赖 `M2` / `M4`
 
-### 当前建议起手顺序（2026-05-31）
+### 当前建议起手顺序（2026-06-08）
 
-当前不建议把 `M5` 视为“一次性做完所有高级能力”的阶段，而建议拆成下面这条顺序：
+当前最自然的推进顺序已经调整为先修 public contract，再继续扩展点收口：
 
-1. `HTML Preview`
-2. `Mermaid`
-3. `KaTeX / LaTeX`
-4. `Footnotes`
-5. `GitHub Alert`
-6. `Image Gallery`
-7. 插件与扩展点
+1. 修复 `P1` / `P2` 契约问题
+   - `features.html` 的真实语义
+   - `useMarkdownContext` 响应式上下文
+   - HTML Preview 的 streaming 主链路与源码保真
+2. 收紧架构边界
+   - `parser adapter -> IR -> renderer` 的真实可替换边界
+   - Bubble `contentAttributes` 与 Markdown 私有协议的分层
+   - `actionsRender` 与 streaming telemetry 的暴露面
+3. 收口公开文档与 contract-level 测试
+   - 为 `TrMarkdown` 建立独立组件文档入口
+   - 补齐 `features.html`、`useMarkdownContext`、HTML Preview fidelity 的专项回归
 
 这样做的原因是：
 
-- `HTML Preview` 能最早验证“显式开关 + iframe sandbox + 默认路径零污染”这条约束，而且复用现有 code 子系统，切入面最小
-- `Mermaid` 和 `KaTeX` 是最典型的重运行时，适合在 preview 安全门禁跑通后再验证“动态加载 + 默认路径零污染”
-- `Footnotes` 相对更轻，适合在重能力主路径稳定后补入
-- `Alert / Gallery` 更偏节点体验和交互层，建立在前面基础能力稳定之后更合适
-- 插件与扩展点应建立在至少一批高级节点已经落地后，否则容易先抽象、后补实现
+- 当前高级能力的大面已经落地，但公共契约仍有明显失真
+- 继续扩 API 或扩文档，只会放大现有边界问题
+- 先把 public contract 和 internal boundary 做实，后续扩展点才不容易返工
 
-### M5 推荐 Tasklist（待确认后实现）
+### M5 推荐 Tasklist（持续更新）
 
 #### M5.0：阶段准备与门禁
 
@@ -901,23 +963,43 @@ TinyRobot 当前的问题不是完全缺能力，而是 Markdown 逻辑分散在
   - 仅命中文档节点时按需加载
   - 不进入 Bubble 普通主路径
   - 不回退到整段 `v-html`
-- 补 fixture / demo / test 命名规则：
-  - `m5-html-preview`
-  - `m5-mermaid`
-  - `m5-math`
-  - `m5-footnotes`
-  - `m5-alerts`
-  - `m5-image-gallery`
+- 当前公开 `features` 语义已冻结为：
+  - `features.htmlPreview` 仅作用于完整 HTML 文档 fenced block，保留 `streamingMode`
+  - `features.mermaid` 仅作用于 `mermaid` fenced block
+  - `features.math` 仅作用于 `$...$ / $$...$$` 第一方 math 节点
+  - `features.footnotes` 仅作用于 parser token 命中的脚注节点
+  - `features.alerts` 仅作用于 blockquote render 命中的 GitHub alerts
+  - `features.imageGallery` 仅在显式开启后建立 gallery runtime，不改变默认图片轻量路径
+- demo 分组已冻结为：
+  - 公开层：`Basic / Media / Lists / Code / HTML Preview / Math and Diagrams / Footnotes / Alerts / Variants / Streamdown / Custom`
+  - 内部层：`Internal Regression`
+- fixture / demo / test 命名规则已冻结为：
+  - demo case 文件继续按能力域维护在 `packages/markdown-demo/src/data/cases/*.ts`
+  - `data-testid` 统一采用 `markdown-<domain>-<scenario>`
+  - streaming / animated 场景继续采用 `markdown-stream-*`、`markdown-stream-animated-*`
+- 验证命令模板已冻结为：
+  - `pnpm -F @opentiny/tiny-robot type-check`
+  - `pnpm -F @opentiny/tiny-robot-markdown-demo type-check`
+  - `pnpm -F tiny-robot-test test -- src/markdown/index.spec.ts`
+- 体积记录模板已冻结为：
+  - `packages/components` 记录 `modules transformed`、`dist/markdown/index.js` 与 gzip
+  - `packages/markdown-demo` 记录 `modules transformed`、主入口 chunk 与 large chunk warning
+  - `packages/test` 仅记录 harness 体积，不作为对外发布门禁
 
-#### M5.1：HTML Preview
+#### M5.1：HTML Preview streaming parity
 
-- 识别 `html` fenced code block
-- 在 code 子系统中分流到 `HtmlPreviewBlock`
-- 通过 iframe sandbox + srcdoc 进行隔离渲染
-- 支持 Preview / Code 切换
-- 支持 copy code、download code、fallback、dark mode
-- demo 覆盖安全预览、样式预览、错误兜底
-- test 覆盖默认关闭、显式开启、sandbox 属性与 Preview / Code 切换
+- 保留现有 `html` fenced code block -> `HtmlPreviewBlock` 分流主路径
+- 保留现有 iframe sandbox + srcdoc、Preview / Code、copy / download、fragment fallback、dark mode 能力
+- `features.htmlPreview.streamingMode = auto / live / defer` 的基础运行时分流已落地
+- 已对齐 LobeUI 的三段语义：
+  - 无 `<script>` 的完整 HTML 文档可在 streaming 过程中提前 live 挂载 iframe
+  - 含 `<script>` 的 HTML 文档在 `auto` 下退回 defer，等待 `</html>` 后只启动一次
+  - `live / defer` 可显式覆盖自动判定
+- demo 已补齐 `HTML Preview` 公开 case 与 `auto / live / defer` streaming case
+- test 已补齐 script-lock、`</html>` completion、live commit、defer fallback 与 streamingMode 切换断言
+- 当前仍待收口的 blocker：
+  - `streaming.active -> HtmlPreviewBlock` 主链路尚未完全做实
+  - preview / source / copy / download 仍会对源码做 `trim()`，不满足保真要求
 
 #### M5.2：Mermaid block
 
@@ -926,13 +1008,13 @@ TinyRobot 当前的问题不是完全缺能力，而是 Markdown 逻辑分散在
 - 通过动态 import 加载 `mermaid`
 - 支持 light / dark theme 映射
 - 支持 loading / error / retry / copy source
-- demo 覆盖 flowchart / sequence / state / error
+- demo 覆盖 flowchart / sequence / invalid syntax
 - test 覆盖默认关闭、显式开启、非 mermaid code 不加载 mermaid
 
 #### M5.3：KaTeX / LaTeX
 
-- 冻结 inline math 与 block math 语法范围
-- 评估当前 `markdown-it` adapter 下使用 `markdown-it-katex` 或 `markdown-it-texmath`
+- 冻结 inline math 与 block math 语法范围：`$...$ / $$...$$`
+- 沿当前 `markdown-it` adapter 扩展第一方 math parser，不回退到插件直接产出的 HTML 主路径
 - 仅在 `features.math` 开启且文档包含公式时加载样式与运行时
 - 提供 `MathInline` / `MathBlock` 两类节点组件
 - demo 覆盖 inline formula、block formula、错误公式
@@ -960,8 +1042,8 @@ TinyRobot 当前的问题不是完全缺能力，而是 Markdown 逻辑分散在
   - 普通 image 默认仍轻量
   - `features.imageGallery` 开启后接入预览层
   - 支持多图浏览、caption、alt、键盘关闭
-- demo 覆盖 gallery 多图、暗色模式
-- test 覆盖默认关闭、sandbox 属性、图片点击行为
+- demo 已覆盖 gallery 多图预览路径，并保持暗色主题友好的 overlay 表现
+- test 已覆盖默认关闭、显式开启、多图切换、caption 与键盘关闭
 
 #### M5.7：插件与扩展点
 
@@ -972,8 +1054,21 @@ TinyRobot 当前的问题不是完全缺能力，而是 Markdown 逻辑分散在
   - `parserOptions`
   - `renderOptions`
   - `features`
-- 明确哪些扩展点是 public API，哪些仍是 internal
-- demo 覆盖 custom component / custom code action / custom alert render
+- 当前第一步已完成：
+  - `componentProps` 已作为正式 `TrMarkdownProps` API 打通到 render 层
+  - 公开 demo 已补 `components + componentProps` 案例
+  - Playwright 已补“覆写组件 + 默认节点组件”共同接收 props 的回归
+- 当前第二步已完成：
+  - `renderOptions` 已作为正式 `TrMarkdownProps` API 打通到 render 层
+  - 首个冻结子能力为 `renderOptions.alerts.render`
+  - 公开 demo 与 Playwright 已补 `custom alert render` 案例
+- 已明确 public API 与 internal hook 边界：
+  - public：`components / componentProps / parserOptions / renderOptions / features`
+  - internal：`plugins / remarkPlugins / rehypePlugins / customRender / stream scheduler / token patch / profiler raw events`
+- 当前仍待继续收口的边界问题：
+  - `useMarkdownContext` 虽已导出，但响应式契约未封口
+  - `actionsRender` 当前仍暴露内部 `VNode` 协议
+  - `TrMarkdownParserAdapter` 的可替换边界仍偏文档承诺，未完全成为稳定 IR
 
 ### 当前阶段非目标
 
@@ -1033,7 +1128,7 @@ TinyRobot 当前的问题不是完全缺能力，而是 Markdown 逻辑分散在
 | --- | --- | --- | --- | --- |
 | 独立 `TrMarkdown` 模块 | M0 | Done | - | 独立导出入口存在，已通过基础构建验证 |
 | `TrMarkdown` 静态入口组件 | M0 | Done | M0 | 可单独渲染 markdown，已通过基础构建验证 |
-| Markdown IR / parser adapter | M1 | Done | M0 | 不依赖最终 `v-html`，已通过 type-check/build |
+| Markdown IR / parser adapter | M1 | Partial | M0 | 已脱离最终 `v-html` 主路径，但 adapter 可替换边界与内部 IR 仍需继续做实 |
 | 标签级组件映射 | M1 | Done | M1 | `p/link/image/code/table` 可被第一方组件接管 |
 | 基础样式变量体系 | M1 | Done | M1 | 建立 `--tr-markdown-*` |
 | `bubble` variant | M1 | Done | M1 | Bubble 内排版和默认态可区分 |
@@ -1044,19 +1139,21 @@ TinyRobot 当前的问题不是完全缺能力，而是 Markdown 逻辑分散在
 | 代码块交互结构 | M2/M3 | Done | M2 | overlay / full 双模式并存，docs 与 bubble 形态分离 |
 | 默认高亮方案 | M2/M3 | Done | M2 | 默认采用 `highlight.js/core`，已通过 type-check/build/test 验证 |
 | 高级高亮路径（Shiki） | M2/M5 | Done | M2 | 已接到高级 code case，承接 transformer 与 custom actions |
-| Mermaid block | M2/M5 | Not Started | M2 | Mermaid 代码块单独处理 |
-| HTML Preview block | M2/M5 | Not Started | M2 | HTML 文档可预览 |
+| Mermaid block | M2/M5 | Done | M2 | 已完成 `mermaid` fenced block 分流、动态 import、theme/loading/error/retry/source copy，公开 demo 与 Playwright Mermaid case 已补齐 |
+| HTML Preview block | M2/M5 | Partial | M2 | 基础预览已落地，但 streaming 主链路与源码保真仍待收口 |
 | Bubble 内部接入 `TrMarkdown` | M3 | Done | M1 | `BubbleRenderers.Markdown` 已消费 `TrMarkdown` |
 | 显式 markdown 内容类型 | M3 | Done | M3 | `{ type: 'markdown', text }` 可通过 provider-level match 显式启用 |
+| Bubble markdown 配置边界 | M3/M5 | Partial | M3 | `contentAttributes` 当前仍承担 markdown 私有配置透传，边界需继续收紧 |
 | 流式 smoothing | M4 | Done | M1 | `stableContent + tailContent` 分支已落地，tail 更新不再默认 re-parse 前序内容 |
 | 不完整 token 展示策略 | M4 | Done | M4 | link / image / table / code fence 已可控 |
 | Streaming block diff / reveal queue | M4.5 | Done | M4 | 已落地并补齐 telemetry、rewrite/reset、visible settling 与 finalized fallback 策略 |
 | Text-only stream animation | M4.5 | In Progress | M4.5 | P0 已封口：paragraph / heading / list / blockquote 文本淡入、demo/test/profiler 观测闭环已补；token-level rewrite patch、token scheduler、root/block commit profiler 已进入 P0，剩余为跨 block / parser 级 token diff 后续 Spike |
-| LaTeX | M5 | Not Started | M1 | 数学公式支持 |
-| Footnotes | M5 | Not Started | M1 | 脚注渲染支持 |
-| GitHub Alert | M5 | Not Started | M1 | alert block 支持 |
-| Image Gallery | M5 | Not Started | M1 | 图片浏览能力接入 |
-| 插件与组件扩展点 | M5 | Not Started | M1 | 外部覆写节点与配置能力 |
+| KaTeX / LaTeX | M5 | Done | M1 | 已完成 `$...$ / $$...$$`、第一方 math node、KaTeX 按需加载与错误 fallback 的最小闭环 |
+| Footnotes | M5 | Done | M1 | 已完成第一方 footnote ref / list / backref 渲染，公开 demo 与 Playwright 回归已补齐 |
+| GitHub Alert | M5 | Done | M1 | 已完成五类 GitHub alert、第一方 AlertBlock、公开 demo 与 Playwright 对照回归 |
+| Image Gallery | M5 | Done | M1 | 已完成 markdown 自持的图片浏览能力接入，并补齐 demo / test |
+| 插件与组件扩展点 | M5 | Partial | M1 | 最小边界已暴露，但 `useMarkdownContext` / `actionsRender` / adapter contract 仍需继续收口 |
+| 独立 `TrMarkdown` 文档契约 | M5 | Partial | M3 | 组件已正式导出，但当前仍主要依附 Bubble 文档与内部方案文，需补独立公开入口 |
 
 ## 指标记录建议
 
