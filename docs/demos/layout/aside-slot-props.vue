@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { TrLayout } from '@opentiny/tiny-robot'
-import type { LayoutAsideProps, LayoutAsideState } from '@opentiny/tiny-robot'
+import type {
+  LayoutAsideProps,
+  LayoutAsideSideOpenEventDetail,
+  LayoutAsideSideResizeEventDetail,
+} from '@opentiny/tiny-robot'
 
 const leftOpen = ref(true)
 const leftExpandedWidth = ref(220)
@@ -21,13 +25,16 @@ const rightAside = computed<LayoutAsideProps>(() => ({
   open: rightOpen.value,
 }))
 
-function updateLeftAside(nextAside: LayoutAsideState) {
-  leftOpen.value = nextAside.open
-  leftExpandedWidth.value = nextAside.expandedWidth ?? leftExpandedWidth.value
+function updateLeftAsideOpen(detail: LayoutAsideSideOpenEventDetail) {
+  leftOpen.value = detail.open
 }
 
-function updateRightAside(nextAside: LayoutAsideState) {
-  rightOpen.value = nextAside.open
+function updateLeftAsideWidth(detail: LayoutAsideSideResizeEventDetail) {
+  leftExpandedWidth.value = detail.expandedWidth
+}
+
+function updateRightAsideOpen(detail: LayoutAsideSideOpenEventDetail) {
+  rightOpen.value = detail.open
 }
 
 function setLeftExpandedWidth(nextWidth: number) {
@@ -68,8 +75,9 @@ function setLeftExpandedWidth(nextWidth: number) {
       class="layout-slot-props-demo__layout"
       :left-aside="leftAside"
       :right-aside="rightAside"
-      @left-aside-state-change="updateLeftAside"
-      @right-aside-state-change="updateRightAside"
+      @left-aside-open-change="updateLeftAsideOpen"
+      @left-aside-resize="updateLeftAsideWidth"
+      @right-aside-open-change="updateRightAsideOpen"
     >
       <template #left-aside="slotProps">
         <div class="layout-slot-props-demo__aside">
@@ -100,7 +108,7 @@ function setLeftExpandedWidth(nextWidth: number) {
 
       <template #main>
         <div class="layout-slot-props-demo__main">
-          <p>受控写法下，update 事件回传新状态，外部合并后再传回组件。</p>
+          <p>外层控制 open 和 expandedWidth，状态变化后再传回组件。</p>
           <p>插槽参数适合展示当前状态，也可以在插槽内部直接调用操作方法。</p>
         </div>
       </template>
@@ -120,9 +128,6 @@ function setLeftExpandedWidth(nextWidth: number) {
 <style>
 .layout-slot-props-demo__layout {
   --tr-layout-height: 360px;
-  --tr-layout-content-max-width: none;
-  --tr-layout-inner-padding-inline: 0;
-  --tr-layout-inner-padding-block: 0;
   --tr-layout-left-bg: var(--vp-c-bg-alt, #f8fafc);
   overflow: hidden;
   border: 1px solid var(--vp-c-divider, var(--tr-border-color, #dcdfe6));

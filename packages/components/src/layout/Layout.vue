@@ -8,6 +8,7 @@ import { useLayoutFloating } from './composables/useLayoutFloating'
 import { useLayoutRenderState } from './composables/useLayoutRenderState'
 import { useLayoutRootState } from './composables/useLayoutRootState'
 import type { LayoutAsideResizeEventDetail, LayoutEmits, LayoutProps } from './index.type'
+import { emitAsideResizeEvent } from './utils/asideEvents'
 
 defineOptions({
   name: 'Layout',
@@ -36,16 +37,16 @@ const isAsideResizing = ref(false)
 
 function onAsideResizeStart(detail: LayoutAsideResizeEventDetail): void {
   isAsideResizing.value = true
-  emit('aside-resize-start', detail)
+  emitAsideResizeEvent(emit, 'start', detail)
 }
 
 function onAsideResize(detail: LayoutAsideResizeEventDetail): void {
-  emit('aside-resize', detail)
+  emitAsideResizeEvent(emit, 'progress', detail)
 }
 
 function onAsideResizeEnd(detail: LayoutAsideResizeEventDetail): void {
   isAsideResizing.value = false
-  emit('aside-resize-end', detail)
+  emitAsideResizeEvent(emit, 'end', detail)
 }
 
 const {
@@ -312,8 +313,22 @@ onKeyDown('Escape', (event) => {
 
   &__main {
     grid-area: main;
+    position: relative;
     overflow: hidden;
     background: var(--tr-layout-main-bg);
+
+    :deep([data-tr-layout-scroll-target]) {
+      width: 100%;
+      height: 100%;
+      min-height: 100%;
+      box-sizing: border-box;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+
+      &::-webkit-scrollbar {
+        display: none;
+      }
+    }
   }
 
   &__footer {

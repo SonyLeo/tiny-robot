@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { TrLayout } from '@opentiny/tiny-robot'
-import type { LayoutAsideState } from '@opentiny/tiny-robot'
+import type { LayoutAsideSideOpenEventDetail } from '@opentiny/tiny-robot'
 
 const rightOpen = ref(false)
 
-function updateRightAside(next: LayoutAsideState) {
-  rightOpen.value = next.open
+function updateRightAside(detail: LayoutAsideSideOpenEventDetail) {
+  rightOpen.value = detail.open
 }
 </script>
 
@@ -15,7 +15,7 @@ function updateRightAside(next: LayoutAsideState) {
     <TrLayout
       :left-aside="{ defaultOpen: true, defaultExpandedWidth: 156, collapsedWidth: 56 }"
       :right-aside="{ mode: 'drawer', open: rightOpen }"
-      @right-aside-state-change="updateRightAside"
+      @right-aside-open-change="updateRightAside"
     >
       <template #left-aside="{ open }">
         <div v-if="open" class="layout-aside-demo__aside">
@@ -53,9 +53,6 @@ function updateRightAside(next: LayoutAsideState) {
 <style scoped>
 .layout-aside-demo {
   --tr-layout-height: 100%;
-  --tr-layout-content-max-width: none;
-  --tr-layout-inner-padding-inline: 0;
-  --tr-layout-inner-padding-block: 0;
   --tr-layout-left-bg: var(--vp-c-bg-alt, #f8fafc);
   --tr-layout-drawer-width: 240px;
   height: 400px;

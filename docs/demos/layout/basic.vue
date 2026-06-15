@@ -34,9 +34,6 @@ import { TrLayout } from '@opentiny/tiny-robot'
 <style scoped>
 .layout-basic-demo {
   --tr-layout-height: 100%;
-  --tr-layout-content-max-width: none;
-  --tr-layout-inner-padding-inline: 0;
-  --tr-layout-inner-padding-block: 0;
   --tr-layout-main-min-width: 0;
   --tr-layout-header-bg: var(--vp-c-bg-soft, #f6f8fa);
   --tr-layout-main-bg: var(--vp-c-bg, #ffffff);

@@ -1,12 +1,5 @@
 import { computed, getCurrentInstance, shallowRef } from 'vue'
-import type {
-  LayoutAsideProps,
-  LayoutAsideState,
-  LayoutEmits,
-  LayoutFloatingState,
-  LayoutPlacement,
-  LayoutProps,
-} from '../index.type'
+import type { LayoutAsideProps, LayoutEmits, LayoutFloatingState, LayoutPlacement, LayoutProps } from '../index.type'
 import type {
   LayoutFloatingContext,
   LayoutPanelContext,
@@ -35,13 +28,15 @@ function hasFloatingStateProp(): boolean {
   )
 }
 
-function emitAsideStateChange(emit: EmitFn, placement: LayoutPlacement, value: LayoutAsideState): void {
+function emitAsideOpenChange(emit: EmitFn, placement: LayoutPlacement, open: boolean): void {
+  emit('aside-open-change', { placement, open })
+
   if (placement === 'left') {
-    emit('left-aside-state-change', value)
+    emit('left-aside-open-change', { open })
     return
   }
 
-  emit('right-aside-state-change', value)
+  emit('right-aside-open-change', { open })
 }
 
 function isFloatingStateEqual(left: LayoutFloatingState | undefined, right: LayoutFloatingState | undefined): boolean {
@@ -81,8 +76,7 @@ function createPanelContext(
     defaultValue: () =>
       hasAsideField(asideValue.value, 'defaultOpen') ? asideValue.value?.defaultOpen : getDefaultAsideOpen(placement),
     isControlled: () => hasAsideField(asideValue.value, 'open'),
-    onChange: (nextOpen) =>
-      emitAsideStateChange(emit, placement, { open: nextOpen, expandedWidth: resolvedWidth.value }),
+    onChange: (nextOpen) => emitAsideOpenChange(emit, placement, nextOpen),
   })
 
   const widthState = useControllableState<number | undefined>({
@@ -90,8 +84,6 @@ function createPanelContext(
     defaultValue: () =>
       hasAsideField(asideValue.value, 'defaultExpandedWidth') ? asideValue.value?.defaultExpandedWidth : undefined,
     isControlled: () => hasAsideField(asideValue.value, 'expandedWidth'),
-    onChange: (nextWidth) =>
-      emitAsideStateChange(emit, placement, { open: resolvedOpen.value, expandedWidth: nextWidth }),
   })
 
   const resolvedOpen = computed(() => openState.resolvedState.value ?? getDefaultAsideOpen(placement))

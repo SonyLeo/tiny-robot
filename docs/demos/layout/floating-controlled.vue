@@ -102,7 +102,7 @@ function reset() {
 
 <style>
 .layout-floating-controlled-demo__layout {
-  --tr-layout-frame-radius: 16px;
+  --tr-layout-floating-radius: 16px;
 }
 </style>
 

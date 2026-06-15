@@ -57,7 +57,7 @@ const floatingOptions: LayoutFloatingOptions = {
 
 <style>
 .layout-floating-demo__layout {
-  --tr-layout-frame-radius: 12px;
+  --tr-layout-floating-radius: 12px;
 }
 </style>
 

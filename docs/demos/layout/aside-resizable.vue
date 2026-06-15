@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { TrLayout } from '@opentiny/tiny-robot'
-import type { LayoutAsideProps, LayoutAsideState } from '@opentiny/tiny-robot'
+import type { LayoutAsideProps, LayoutAsideSideResizeEventDetail } from '@opentiny/tiny-robot'
 
 const minExpandedWidth = 160
 const maxExpandedWidth = 320
@@ -15,14 +15,14 @@ const leftAside = computed<LayoutAsideProps>(() => ({
   resizable: true,
 }))
 
-function updateLeftAside(nextAside: LayoutAsideState) {
-  expandedWidth.value = nextAside.expandedWidth ?? expandedWidth.value
+function updateLeftAsideWidth(detail: LayoutAsideSideResizeEventDetail) {
+  expandedWidth.value = detail.expandedWidth
 }
 </script>
 
 <template>
   <div class="layout-aside-resizable-demo">
-    <TrLayout :left-aside="leftAside" @left-aside-state-change="updateLeftAside">
+    <TrLayout :left-aside="leftAside" @left-aside-resize="updateLeftAsideWidth">
       <template #left-aside>
         <div class="layout-aside-resizable-demo__aside">
           <strong>{{ expandedWidth }}px</strong>
@@ -53,9 +53,6 @@ function updateLeftAside(nextAside: LayoutAsideState) {
 <style scoped>
 .layout-aside-resizable-demo {
   --tr-layout-height: 100%;
-  --tr-layout-content-max-width: none;
-  --tr-layout-inner-padding-inline: 0;
-  --tr-layout-inner-padding-block: 0;
   --tr-layout-main-min-width: 0;
   --tr-layout-left-bg: var(--vp-c-bg-alt, #f8fafc);
   height: 400px;

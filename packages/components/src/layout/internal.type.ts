@@ -23,16 +23,16 @@ export type LayoutFloatingRect = Omit<
 
 export type LayoutRuntimeProps = LayoutProps
 
-export type LayoutMainScrollHostComponent = Pick<ComponentPublicInstance, '$el'>
+export type LayoutScrollTargetComponent = Pick<ComponentPublicInstance, '$el'>
 
-export type LayoutMainScrollHost = HTMLElement | LayoutMainScrollHostComponent | null | undefined
+export type LayoutScrollTarget = HTMLElement | LayoutScrollTargetComponent | null | undefined
 
 export interface LayoutAsideToggleProps {
   placement: LayoutPlacement
 }
 
-export interface LayoutMainProps {
-  scrollHost?: LayoutMainScrollHost
+export interface LayoutProxyScrollbarProps {
+  scrollTarget?: LayoutScrollTarget
 }
 
 export interface LayoutPanelState {

@@ -89,9 +89,6 @@ const collapsedHint = computed(() =>
     var(--vp-c-bg, #ffffff)
   );
   --tr-layout-height: 216px;
-  --tr-layout-content-max-width: none;
-  --tr-layout-inner-padding-inline: 0;
-  --tr-layout-inner-padding-block: 0;
   --tr-layout-main-min-width: 0;
   --tr-layout-left-bg: var(--layout-collapse-effect-demo-aside-bg);
   --tr-layout-main-bg: var(--vp-c-bg, #ffffff);

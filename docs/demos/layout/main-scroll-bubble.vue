@@ -1,34 +1,59 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { BubbleList, TrLayout } from '@opentiny/tiny-robot'
+import type { BubbleListProps, BubbleRoleConfig } from '@opentiny/tiny-robot'
 
-type LayoutMainScrollHost = HTMLElement | { $el: Element | null } | null | undefined
+const props = defineProps<{
+  centered: boolean
+}>()
 
-const scrollHostRef = ref<LayoutMainScrollHost>(null)
+type LayoutScrollTarget = HTMLElement | { $el: Element | null } | null | undefined
 
-const messages = Array.from({ length: 24 }, (_, index) => ({
-  role: index % 2 === 0 ? 'assistant' : 'user',
-  content: `layout message ${index + 1}`,
-}))
+const scrollTargetRef = ref<LayoutScrollTarget>(null)
+
+const roles: Record<string, BubbleRoleConfig> = {
+  user: { placement: 'end' },
+  assistant: { placement: 'start' },
+}
+
+const messages: BubbleListProps['messages'] = Array.from({ length: 12 }, (_, index) => [
+  {
+    role: 'user',
+    content: `第 ${index + 1} 轮：帮我整理一下当前布局的滚动区。`,
+  },
+  {
+    role: 'assistant',
+    content: '可以。内容区可以居中显示，滚动条仍然贴着 Layout 主区右侧。',
+  },
+]).flat()
 </script>
 
 <template>
-  <TrLayout class="layout-main-scroll-example layout-main-scroll-example--bubble">
+  <TrLayout>
     <template #main>
-      <TrLayout.Main :scroll-host="scrollHostRef">
-        <BubbleList ref="scrollHostRef" :messages="messages" />
-      </TrLayout.Main>
+      <BubbleList
+        ref="scrollTargetRef"
+        class="layout-main-scroll-bubble"
+        :class="{ 'is-centered': props.centered }"
+        :messages="messages"
+        :role-configs="roles"
+      />
+      <TrLayout.ProxyScrollbar :scroll-target="scrollTargetRef" />
     </template>
   </TrLayout>
 </template>
 
 <style scoped>
-.layout-main-scroll-example {
-  height: 100%;
-  --tr-layout-height: 100%;
+.layout-main-scroll-bubble {
+  --tr-bubble-list-padding: 16px;
 }
 
-.layout-main-scroll-example--bubble {
+.layout-main-scroll-bubble.is-centered {
+  max-width: 450px;
+  margin: 0 auto;
+}
+
+:deep([data-role='user']) {
   --tr-bubble-box-bg: var(--tr-color-primary-light);
 }
 </style>

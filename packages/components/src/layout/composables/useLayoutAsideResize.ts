@@ -72,7 +72,7 @@ export function useLayoutAsideResize(options: UseLayoutAsideResizeOptions) {
       current.panel.actions.setWidth(current.pendingWidth)
       options.onResize?.({
         placement: current.placement,
-        width: current.pendingWidth,
+        expandedWidth: current.pendingWidth,
       })
       current.pendingWidth = null
     })
@@ -93,7 +93,7 @@ export function useLayoutAsideResize(options: UseLayoutAsideResizeOptions) {
       state.panel.actions.setWidth(state.pendingWidth)
       options.onResize?.({
         placement: state.placement,
-        width: state.pendingWidth,
+        expandedWidth: state.pendingWidth,
       })
       state.pendingWidth = null
     }
@@ -106,7 +106,7 @@ export function useLayoutAsideResize(options: UseLayoutAsideResizeOptions) {
 
     options.onResizeEnd?.({
       placement: state.placement,
-      width: state.currentWidth,
+      expandedWidth: state.currentWidth,
     })
 
     activeResize.value = null
@@ -162,7 +162,7 @@ export function useLayoutAsideResize(options: UseLayoutAsideResizeOptions) {
 
     options.onResizeStart?.({
       placement: panel.state.placement,
-      width: startWidth,
+      expandedWidth: startWidth,
     })
   }
 
