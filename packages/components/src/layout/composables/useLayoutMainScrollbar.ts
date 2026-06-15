@@ -49,7 +49,7 @@ function resolveTrackHeight(scrollHost: HTMLElement, clientHeight: number): numb
 
   const styles = window.getComputedStyle(mainEl)
   const insetBlock = resolveCssLengthToPx(
-    styles.getPropertyValue('--tr-layout-inner-padding-block').trim(),
+    styles.getPropertyValue('--scrollbar-block-inset').trim(),
     mainEl,
     0,
     'height',

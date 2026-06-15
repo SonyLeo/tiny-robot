@@ -60,11 +60,11 @@ export interface LayoutNormalProps extends LayoutAsidePanelsProps {
 
 type LayoutFloatingStateControlProps =
   | {
-      floatingState: LayoutFloatingState | undefined
-      defaultFloatingState?: never
+      floatingState: LayoutFloatingState
+      defaultFloatingState: never
     }
   | {
-      floatingState?: undefined
+      floatingState: never
       defaultFloatingState?: LayoutFloatingState
     }
 

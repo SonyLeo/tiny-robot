@@ -57,9 +57,9 @@ const { showScrollbar, rootClass, thumbStyle, setHovering, startThumbDrag } = us
 
   &__scrollbar {
     position: absolute;
-    top: var(--tr-layout-inner-padding-block);
+    top: var(--scrollbar-block-inset);
     right: var(--scrollbar-inline-end);
-    bottom: var(--tr-layout-inner-padding-block);
+    bottom: var(--scrollbar-block-inset);
     width: var(--tr-layout-main-scrollbar-width);
     border-radius: 999px;
     opacity: 0;

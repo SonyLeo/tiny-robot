@@ -1,19 +1,16 @@
 .tr-layout-vars() {
   @layout-prefix: tr-layout;
-  @floating-prefix: tr-layout-frame;
+  @floating-prefix: tr-layout-floating;
   @main-prefix: tr-layout-main;
 
   @layout-vars: {
     bg: var(--tr-container-bg-default);
-    left-bg: var(--tr-container-bg-default);
-    right-bg: var(--tr-container-bg-default);
-    header-bg: var(--tr-container-bg-default);
-    main-bg: var(--tr-container-bg-default);
-    footer-bg: var(--tr-container-bg-default);
+    left-bg: var(--tr-layout-bg);
+    right-bg: var(--tr-layout-bg);
+    header-bg: var(--tr-layout-bg);
+    main-bg: var(--tr-layout-bg);
+    footer-bg: var(--tr-layout-bg);
     divider-color: var(--tr-border-color-disabled);
-    content-max-width: 960px;
-    inner-padding-inline: 16px;
-    inner-padding-block: 12px;
     main-min-width: 320px;
     panel-shadow: 0 20px 48px rgba(15, 23, 42, 0.18);
     overlay-bg: rgba(15, 23, 42, 0.42);
@@ -40,7 +37,7 @@
     right-dock-width: 320px;
   };
 
-  @floating-frame-private-vars: {
+  @floating-private-vars: {
     border-color: color-mix(in srgb, var(--tr-text-primary, #111827) 6%, transparent);
     outline-color: color-mix(in srgb, var(--tr-container-bg-default, #ffffff) 52%, transparent);
     drag-bar-top: 8px;
@@ -102,6 +99,7 @@
   };
 
   @main-private-vars: {
+    scrollbar-block-inset: 4px;
     scrollbar-inline-end: 4px;
     scrollbar-thumb-inset: 2px;
   };
@@ -125,10 +123,8 @@
     each(@layout-private-vars, {
       --@{key}: @value;
     });
-  }
 
-  .tr-layout-frame {
-    each(@floating-frame-private-vars, {
+    each(@floating-private-vars, {
       --@{key}: @value;
     });
   }
@@ -139,7 +135,7 @@
     });
   }
 
-  .tr-layout-frame__resize-trigger {
+  .tr-layout__floating-resize-trigger {
     each(@floating-resize-private-vars, {
       --@{key}: @value;
     });
