@@ -8,7 +8,7 @@ import { useLayoutFloating } from './composables/useLayoutFloating'
 import { useLayoutRenderState } from './composables/useLayoutRenderState'
 import { useLayoutRootState } from './composables/useLayoutRootState'
 import type { LayoutAsideResizeEventDetail, LayoutEmits, LayoutProps } from './index.type'
-import { emitAsideResizeEvent } from './utils/asideEvents'
+import { emitAsideResizeEvent } from './utils/emitAsideEvents'
 
 defineOptions({
   name: 'Layout',
@@ -102,7 +102,6 @@ onKeyDown('Escape', (event) => {
           @aside-resize-start="onAsideResizeStart"
           @aside-resize="onAsideResize"
           @aside-resize-end="onAsideResizeEnd"
-          @resize-state-change="isAsideResizing = $event"
         >
           <slot name="left-aside" v-bind="leftAsideSlotProps" />
         </AsideContent>
@@ -125,7 +124,6 @@ onKeyDown('Escape', (event) => {
           @aside-resize-start="onAsideResizeStart"
           @aside-resize="onAsideResize"
           @aside-resize-end="onAsideResizeEnd"
-          @resize-state-change="isAsideResizing = $event"
         >
           <slot name="right-aside" v-bind="rightAsideSlotProps" />
         </AsideContent>

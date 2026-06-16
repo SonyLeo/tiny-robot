@@ -44,6 +44,15 @@ const uncontrolledFloatingLastPlacement = ref('')
 const uncontrolledFloatingLastOffsetX = ref(-1)
 const uncontrolledFloatingLastOffsetY = ref(-1)
 const uncontrolledFloatingLastWidth = ref(420)
+
+const undefinedFloatingDefaultState = ref<LayoutFloatingState>({
+  placement: 'bottom-right',
+  offsetX: 48,
+  offsetY: 56,
+  width: 388,
+  height: 276,
+})
+
 const showPlacementFixtures = ref(false)
 
 const placementOptions: LayoutFloatingOptions = {
@@ -113,6 +122,13 @@ const blockedFloatingLayoutProps = computed<Record<string, unknown>>(() => ({
 const uncontrolledFloatingLayoutProps = computed<Record<string, unknown>>(() => ({
   mode: 'floating',
   defaultFloatingState: uncontrolledDefaultFloatingState.value,
+  floatingOptions: uncontrolledFloatingOptions,
+}))
+
+const undefinedFloatingLayoutProps = computed<Record<string, unknown>>(() => ({
+  mode: 'floating',
+  floatingState: undefined,
+  defaultFloatingState: undefinedFloatingDefaultState.value,
   floatingOptions: uncontrolledFloatingOptions,
 }))
 
@@ -213,6 +229,17 @@ function openPlacementFixtures() {
             update default floating
           </button>
         </div>
+      </template>
+    </TrLayout>
+
+    <TrLayout
+      id="undefined-floating-surface"
+      data-surface-marker="undefined-floating"
+      class="floating-state-fixtures__layout"
+      v-bind="undefinedFloatingLayoutProps"
+    >
+      <template #main>
+        <div class="floating-state-fixtures__panel">undefined controlled keys floating</div>
       </template>
     </TrLayout>
 

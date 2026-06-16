@@ -1,9 +1,20 @@
-import type { LayoutAsideResizeEventDetail, LayoutEmits } from '../index.type'
+import type { LayoutAsideOpenEventDetail, LayoutAsideResizeEventDetail, LayoutEmits } from '../index.type'
 
-type EmitFn = <K extends keyof LayoutEmits>(event: K, ...args: LayoutEmits[K]) => void
+export type LayoutEmitFn = <K extends keyof LayoutEmits>(event: K, ...args: LayoutEmits[K]) => void
+
+export function emitAsideOpenChange(emit: LayoutEmitFn, detail: LayoutAsideOpenEventDetail): void {
+  emit('aside-open-change', detail)
+
+  if (detail.placement === 'left') {
+    emit('left-aside-open-change', { open: detail.open })
+    return
+  }
+
+  emit('right-aside-open-change', { open: detail.open })
+}
 
 export function emitAsideResizeEvent(
-  emit: EmitFn,
+  emit: LayoutEmitFn,
   phase: 'start' | 'progress' | 'end',
   detail: LayoutAsideResizeEventDetail,
 ): void {

@@ -39,7 +39,7 @@ export interface LayoutPanelState {
   placement: LayoutPlacement
   layoutMode: ComputedRef<LayoutAsideMode>
   isOpen: ComputedRef<boolean>
-  width: ComputedRef<number | undefined>
+  width: ComputedRef<number>
   collapsedWidth: ComputedRef<number>
   collapseEffect: ComputedRef<LayoutAsideCollapseEffect>
   minWidth: ComputedRef<number>

@@ -116,7 +116,7 @@ export interface LayoutAsideSlotProps {
   placement: LayoutPlacement
   mode: LayoutAsideMode
   open: boolean
-  expandedWidth: number | undefined
+  expandedWidth: number
   collapsedWidth: number | undefined
   resizable: boolean
   isRail: boolean

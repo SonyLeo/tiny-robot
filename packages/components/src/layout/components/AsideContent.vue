@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, watch, type ComponentPublicInstance } from 'vue'
+import { computed, type ComponentPublicInstance } from 'vue'
 import AsideResizeTrigger from './AsideResizeTrigger.vue'
 import { useLayoutContext } from '../composables/useLayoutContext'
 import { useLayoutAsideResize } from '../composables/useLayoutAsideResize'
@@ -19,7 +19,6 @@ const emit = defineEmits<{
   (event: 'aside-resize-start', value: LayoutAsideResizeEventDetail): void
   (event: 'aside-resize', value: LayoutAsideResizeEventDetail): void
   (event: 'aside-resize-end', value: LayoutAsideResizeEventDetail): void
-  (event: 'resize-state-change', value: boolean): void
 }>()
 
 const layout = useLayoutContext()
@@ -41,16 +40,12 @@ function setAsideElement(element: Element | ComponentPublicInstance | null): voi
   panel.value.el.value = element instanceof HTMLElement ? element : null
 }
 
-const { isResizing, draggingPlacement, startResize } = useLayoutAsideResize({
+const { draggingPlacement, startResize } = useLayoutAsideResize({
   context: layout,
   panel: panel.value,
   onResizeStart: (detail) => emit('aside-resize-start', detail),
   onResize: (detail) => emit('aside-resize', detail),
   onResizeEnd: (detail) => emit('aside-resize-end', detail),
-})
-
-watch(isResizing, (nextIsResizing) => {
-  emit('resize-state-change', nextIsResizing)
 })
 </script>
 

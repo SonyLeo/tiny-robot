@@ -228,6 +228,26 @@ test.describe('Layout 组件测试 - Aside', () => {
     expect(minClampedWidth).toBeLessThanOrEqual(244)
   })
 
+  test('Controlled 判定: open / expandedWidth = undefined 时应退回 default* 非受控语义', async ({ layout }) => {
+    await layout.showAsideFixtures()
+
+    const fixture = layout.page.getByTestId('undefined-aside-fixture')
+    const leftAside = layout.getAside('left', fixture)
+
+    await expect(fixture.getByTestId('undefined-open-state')).toHaveText('open')
+    await expect(fixture.getByTestId('undefined-last-open')).toHaveText('open')
+
+    const beforeWidth = await layout.getWidth(leftAside)
+    expect(beforeWidth).toBeGreaterThanOrEqual(302)
+    expect(beforeWidth).toBeLessThanOrEqual(310)
+
+    await fixture.getByTestId('undefined-toggle').click()
+
+    await expect(fixture.getByTestId('undefined-open-state')).toHaveText('closed')
+    await expect(fixture.getByTestId('undefined-last-open')).toHaveText('closed')
+    await layout.expectAsideState('left', 'rail', fixture)
+  })
+
   test('CSS vars: drawer width - 应按实例变量生效，且双 drawer 打开时保持互斥', async ({ layout }) => {
     await layout.showAsideFixtures()
 

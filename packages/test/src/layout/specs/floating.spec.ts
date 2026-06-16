@@ -348,6 +348,25 @@ test.describe('Layout 组件测试 - Floating', () => {
     expect(Math.abs(after.width - before.width)).toBeLessThan(2)
   })
 
+  test('Controlled 判定: floatingState = undefined 时应退回 defaultFloatingState 非受控语义', async ({ layout }) => {
+    await layout.showFloatingFixtures()
+
+    const surface = layout.getFloatingSurfaceByMarker('undefined-floating')
+    const before = await layout.getBox(surface)
+
+    await layout.expectSurfaceMode('floating', surface)
+    expect(before.width).toBeGreaterThanOrEqual(384)
+    expect(before.width).toBeLessThanOrEqual(392)
+    expect(before.height).toBeGreaterThanOrEqual(272)
+    expect(before.height).toBeLessThanOrEqual(280)
+
+    await layout.dragSurface(-80, -60, surface)
+
+    const after = await layout.getBox(surface)
+    expect(after.x).toBeLessThan(before.x - 20)
+    expect(after.y).toBeLessThan(before.y - 20)
+  })
+
   test('floatingOptions: minWidth / maxWidth - 非受控 floating resize 应 obey clamp', async ({ layout }) => {
     await layout.showFloatingFixtures()
 

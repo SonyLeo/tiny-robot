@@ -24,6 +24,8 @@ const uncontrolledLastOpen = ref(true)
 const uncontrolledDefaultOpen = ref(true)
 const uncontrolledDefaultWidth = ref(290)
 
+const undefinedOpenLastState = ref(true)
+
 const drawerLeftOpen = ref(false)
 const drawerRightOpen = ref(false)
 
@@ -41,6 +43,18 @@ const uncontrolledLeftAside = computed(() => ({
   mode: 'dock' as const,
   defaultOpen: uncontrolledDefaultOpen.value,
   defaultExpandedWidth: uncontrolledDefaultWidth.value,
+  collapsedWidth: 52,
+  minExpandedWidth: 240,
+  maxExpandedWidth: 340,
+  resizable: true,
+}))
+
+const undefinedLeftAside = computed(() => ({
+  mode: 'dock' as const,
+  open: undefined,
+  expandedWidth: undefined,
+  defaultOpen: true,
+  defaultExpandedWidth: 306,
   collapsedWidth: 52,
   minExpandedWidth: 240,
   maxExpandedWidth: 340,
@@ -93,6 +107,10 @@ function handleUncontrolledResize(detail: LayoutAsideSideResizeEventDetail) {
 function updateUncontrolledDefaults() {
   uncontrolledDefaultOpen.value = false
   uncontrolledDefaultWidth.value = 332
+}
+
+function handleUndefinedOpen(detail: LayoutAsideSideOpenEventDetail) {
+  undefinedOpenLastState.value = detail.open
 }
 
 function updateDrawerLeftOpen(detail: LayoutAsideSideOpenEventDetail) {
@@ -199,6 +217,30 @@ function updateDrawerRightOpen(detail: LayoutAsideSideOpenEventDetail) {
                 <span data-testid="drawer-right-state">{{ drawerRightOpen ? 'open' : 'closed' }}</span>
               </div>
             </div>
+          </template>
+        </TrLayout>
+      </div>
+    </section>
+
+    <section class="aside-state-fixtures__section" data-testid="undefined-aside-fixture">
+      <h3>Undefined Controlled Keys Aside</h3>
+      <div class="aside-state-fixtures__host">
+        <TrLayout
+          class="aside-state-fixtures__layout"
+          :style="baseLayoutStyle"
+          :left-aside="undefinedLeftAside"
+          @left-aside-open-change="handleUndefinedOpen"
+        >
+          <template #left-aside="{ open }">
+            <div class="aside-state-fixtures__panel">
+              <span data-testid="undefined-open-state">{{ open ? 'open' : 'closed' }}</span>
+              <span data-testid="undefined-last-open">{{ undefinedOpenLastState ? 'open' : 'closed' }}</span>
+              <TrLayout.AsideToggle placement="left" data-testid="undefined-toggle" />
+            </div>
+          </template>
+
+          <template #main>
+            <div class="aside-state-fixtures__main">undefined controlled keys aside</div>
           </template>
         </TrLayout>
       </div>
