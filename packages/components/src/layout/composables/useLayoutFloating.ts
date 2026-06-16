@@ -20,6 +20,8 @@ import {
   toCommittedFloatingState,
 } from '../utils/surfaceGeometry'
 
+type FloatingInteraction = 'drag' | 'resize'
+
 interface UseLayoutFloatingOptions {
   context: LayoutContext
   onFloatingDragStart?: (detail: LayoutFloatingDragEventDetail) => void
@@ -45,7 +47,15 @@ export function useLayoutFloating(options: UseLayoutFloatingOptions) {
   const floatingRect = computed(() => normalizeFloatingRect(floatingValue.value))
   const isFloatingDraggable = computed(() => floatingRect.value.draggable ?? true)
   const isFloatingResizable = computed(() => floatingRect.value.resizable === true)
-  const isResizingFloating = shallowRef(false)
+  const activeInteraction = shallowRef<FloatingInteraction | null>(null)
+  const canStartDrag = computed(() => isFloating.value && isFloatingDraggable.value && activeInteraction.value === null)
+  const canStartResize = computed(
+    () => isFloating.value && isFloatingResizable.value && activeInteraction.value === null,
+  )
+  const isDragEnabled = computed(
+    () => isFloating.value && isFloatingDraggable.value && activeInteraction.value !== 'resize',
+  )
+  const isResizeVisible = computed(() => isFloating.value && isFloatingResizable.value)
 
   function toFloatingState(rect: LayoutFloatingRect, normalizeCenter = false): LayoutFloatingState {
     return toCommittedFloatingState(resolveFloatingSnapshot(rect, floatingValue.value), floatingStateValue.value, {
@@ -85,12 +95,25 @@ export function useLayoutFloating(options: UseLayoutFloatingOptions) {
     return nextRect
   }
 
+  function startInteraction(type: FloatingInteraction): void {
+    activeInteraction.value = type
+  }
+
+  function endInteraction(type: FloatingInteraction): void {
+    if (activeInteraction.value === type) {
+      activeInteraction.value = null
+    }
+  }
+
   const drag = useLayoutFloatingDrag({
     context: options.context,
     floatingRect,
-    canDrag: computed(() => isFloating.value && isFloatingDraggable.value && !isResizingFloating.value),
+    canStart: canStartDrag,
+    isEnabled: isDragEnabled,
     toFloatingState,
     applyPosition: applyDraggedPosition,
+    onInteractionStart: () => startInteraction('drag'),
+    onInteractionEnd: () => endInteraction('drag'),
     onFloatingDragStart: options.onFloatingDragStart,
     onFloatingDrag: options.onFloatingDrag,
     onFloatingDragEnd: options.onFloatingDragEnd,
@@ -99,22 +122,19 @@ export function useLayoutFloating(options: UseLayoutFloatingOptions) {
   const resize = useLayoutFloatingResize({
     context: options.context,
     floatingRect,
-    isFloating,
-    isResizable: isFloatingResizable,
-    isDragging: drag.isDragging,
+    canStart: canStartResize,
+    isVisible: isResizeVisible,
     commitRect,
     toResizeDetail,
+    onInteractionStart: () => startInteraction('resize'),
+    onInteractionEnd: () => endInteraction('resize'),
     onFloatingResizeStart: options.onFloatingResizeStart,
     onFloatingResize: options.onFloatingResize,
     onFloatingResizeEnd: options.onFloatingResizeEnd,
   })
 
-  watch(resize.isResizing, (isResizing) => {
-    isResizingFloating.value = isResizing
-  })
-
   function syncFloatingRect(): void {
-    if (!isFloating.value || drag.isDragging.value || resize.isResizing.value) {
+    if (!isFloating.value || activeInteraction.value !== null) {
       return
     }
 

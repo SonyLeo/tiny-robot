@@ -7,9 +7,12 @@ import { DEFAULT_FLOATING_GAP, DEFAULT_FLOATING_TOP } from '../utils/surfaceGeom
 interface UseLayoutFloatingDragOptions {
   context: LayoutContext
   floatingRect: ComputedRef<LayoutFloatingRect>
-  canDrag: ComputedRef<boolean>
+  canStart: ComputedRef<boolean>
+  isEnabled: ComputedRef<boolean>
   toFloatingState: (rect: LayoutFloatingRect, normalizeCenter?: boolean) => LayoutFloatingState
   applyPosition: (nextX: number, nextY: number) => LayoutFloatingRect
+  onInteractionStart?: () => void
+  onInteractionEnd?: () => void
   onFloatingDragStart?: (detail: LayoutFloatingDragEventDetail) => void
   onFloatingDrag?: (detail: LayoutFloatingDragEventDetail) => void
   onFloatingDragEnd?: (detail: LayoutFloatingDragEventDetail) => void
@@ -21,14 +24,15 @@ export function useLayoutFloatingDrag(options: UseLayoutFloatingDragOptions) {
     initialValue: { x: DEFAULT_FLOATING_GAP, y: DEFAULT_FLOATING_TOP },
     preventDefault: true,
     buttons: [0],
-    disabled: computed(() => !options.canDrag.value),
+    disabled: computed(() => !options.isEnabled.value),
     onStart: () => {
-      if (!options.canDrag.value) {
+      if (!options.canStart.value) {
         return false
       }
 
       const rect = options.floatingRect.value
       setPosition(rect.x, rect.y)
+      options.onInteractionStart?.()
       options.onFloatingDragStart?.(options.toFloatingState(rect, true))
     },
     onMove: (position) => {
@@ -38,6 +42,7 @@ export function useLayoutFloatingDrag(options: UseLayoutFloatingDragOptions) {
     onEnd: (position) => {
       const nextRect = options.applyPosition(position.x, position.y)
       options.onFloatingDragEnd?.(options.toFloatingState(nextRect, true))
+      options.onInteractionEnd?.()
     },
   })
 
@@ -47,7 +52,7 @@ export function useLayoutFloatingDrag(options: UseLayoutFloatingDragOptions) {
   }
 
   const dragBarClass = computed(() => ({
-    'tr-layout__drag-bar--draggable': options.canDrag.value,
+    'tr-layout__drag-bar--draggable': options.isEnabled.value,
   }))
 
   return {

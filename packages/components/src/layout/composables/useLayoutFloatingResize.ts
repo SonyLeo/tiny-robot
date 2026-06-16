@@ -9,11 +9,12 @@ import { resolveFloatingResizeRect } from '../utils/surfaceResize'
 interface UseLayoutFloatingResizeOptions {
   context: LayoutContext
   floatingRect: ComputedRef<LayoutFloatingRect>
-  isFloating: ComputedRef<boolean>
-  isResizable: ComputedRef<boolean>
-  isDragging: ComputedRef<boolean>
+  canStart: ComputedRef<boolean>
+  isVisible: ComputedRef<boolean>
   commitRect: (nextRect: LayoutFloatingRect) => LayoutFloatingRect
   toResizeDetail: (handle: LayoutFloatingResizeHandle, rect: LayoutFloatingRect) => LayoutFloatingResizeEventDetail
+  onInteractionStart?: () => void
+  onInteractionEnd?: () => void
   onFloatingResizeStart?: (detail: LayoutFloatingResizeEventDetail) => void
   onFloatingResize?: (detail: LayoutFloatingResizeEventDetail) => void
   onFloatingResizeEnd?: (detail: LayoutFloatingResizeEventDetail) => void
@@ -52,7 +53,6 @@ export function useLayoutFloatingResize(options: UseLayoutFloatingResizeOptions)
   const pointerTarget = typeof window === 'undefined' ? undefined : window
   const isResizing = computed(() => activeResize.value !== null)
   const activeResizeHandle = computed<LayoutFloatingResizeHandle | null>(() => activeResize.value?.handle ?? null)
-  const canResize = computed(() => options.isFloating.value && options.isResizable.value && !options.isDragging.value)
 
   function stopResize(pointerId?: number): void {
     const state = activeResize.value
@@ -68,10 +68,11 @@ export function useLayoutFloatingResize(options: UseLayoutFloatingResizeOptions)
     restoreBodyInteraction(state.handleEl.ownerDocument.body, state.bodyState)
     options.onFloatingResizeEnd?.(options.toResizeDetail(state.handle, state.currentRect))
     activeResize.value = null
+    options.onInteractionEnd?.()
   }
 
   function startResize(handle: LayoutFloatingResizeHandle, event: PointerEvent): void {
-    if (activeResize.value || options.isDragging.value || !event.isPrimary || event.button !== 0 || !canResize.value) {
+    if (activeResize.value || !event.isPrimary || event.button !== 0 || !options.canStart.value) {
       return
     }
 
@@ -96,6 +97,7 @@ export function useLayoutFloatingResize(options: UseLayoutFloatingResizeOptions)
       bodyState: lockBodyInteraction(handleEl.ownerDocument.body, resolveResizeCursor(handle)),
     }
 
+    options.onInteractionStart?.()
     options.onFloatingResizeStart?.(options.toResizeDetail(handle, startRect))
   }
 
@@ -146,7 +148,7 @@ export function useLayoutFloatingResize(options: UseLayoutFloatingResizeOptions)
   })
 
   const resizeHandles = computed(() => {
-    if (!options.isFloating.value || !options.isResizable.value) {
+    if (!options.isVisible.value) {
       return []
     }
 

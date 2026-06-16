@@ -195,6 +195,29 @@ test.describe('Layout 组件测试 - Floating', () => {
     expect(Math.abs(after.y - before.y)).toBeLessThan(2)
   })
 
+  test('Interaction lock - resize 时 drag bar 应暂时失去 draggable 状态并在结束后恢复', async ({ layout }) => {
+    await layout.setMode('floating')
+
+    const dragBar = layout.getFloatingDragBar()
+    const resizeHandle = layout.getFloatingResizeTrigger('e')
+    const resizeBox = await layout.getBox(resizeHandle)
+
+    await expect(dragBar).toHaveClass(/tr-layout__drag-bar--draggable/)
+
+    const startX = resizeBox.x + 1
+    const startY = resizeBox.y + resizeBox.height / 2
+
+    await layout.page.mouse.move(startX, startY)
+    await layout.page.mouse.down()
+    await layout.page.mouse.move(startX + 40, startY, { steps: 12 })
+
+    await expect(dragBar).not.toHaveClass(/tr-layout__drag-bar--draggable/)
+
+    await layout.page.mouse.up()
+
+    await expect(dragBar).toHaveClass(/tr-layout__drag-bar--draggable/)
+  })
+
   test('Props: resizable=false - 应隐藏 8 个 floating resize trigger', async ({ layout }) => {
     await layout.setMode('floating')
     await layout.disableFloatingResizable()
