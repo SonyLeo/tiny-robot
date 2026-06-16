@@ -45,15 +45,6 @@ const resizeCases: Array<{
     },
   },
   {
-    handle: 'n',
-    deltaX: 0,
-    deltaY: 80,
-    assert: (before, after) => {
-      expect(after.height).toBeLessThan(before.height)
-      expect(after.y).toBeGreaterThan(before.y)
-    },
-  },
-  {
     handle: 'ne',
     deltaX: 80,
     deltaY: 80,
@@ -218,16 +209,16 @@ test.describe('Layout 组件测试 - Floating', () => {
     await expect(dragBar).toHaveClass(/tr-layout__drag-bar--draggable/)
   })
 
-  test('Props: resizable=false - 应隐藏 8 个 floating resize trigger', async ({ layout }) => {
+  test('Props: resizable=false - 应隐藏 7 个 floating resize trigger', async ({ layout }) => {
     await layout.setMode('floating')
     await layout.disableFloatingResizable()
 
-    for (const handle of ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'] as const) {
+    for (const handle of ['s', 'e', 'w', 'ne', 'nw', 'se', 'sw'] as const) {
       await expect(layout.getFloatingResizeTrigger(handle)).toHaveCount(0)
     }
   })
 
-  test('Props: resizable / floating-resize* - 8 方向 resize 应生效，并保证 end 与最后一次 progress 对齐', async ({
+  test('Props: resizable / floating-resize* - 7 方向 resize 应生效，并保证 end 与最后一次 progress 对齐', async ({
     layout,
   }) => {
     await layout.setMode('floating')

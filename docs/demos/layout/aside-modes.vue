@@ -53,7 +53,7 @@ function updateRightAside(detail: LayoutAsideSideOpenEventDetail) {
 <style scoped>
 .layout-aside-demo {
   --tr-layout-height: 100%;
-  --tr-layout-left-bg: var(--vp-c-bg-alt, #f8fafc);
+  --tr-layout-left-aside-bg: var(--vp-c-bg-alt, #f8fafc);
   --tr-layout-drawer-width: 240px;
   height: 400px;
   overflow: hidden;

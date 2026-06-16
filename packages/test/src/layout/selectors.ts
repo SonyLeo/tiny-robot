@@ -17,7 +17,6 @@ export const layoutSelectors = {
   backdrop: '.tr-layout__backdrop',
   leftResizeTrigger: '.tr-layout__resize-trigger--left',
   rightResizeTrigger: '.tr-layout__resize-trigger--right',
-  floatingResizeTriggerN: '.tr-layout__floating-resize-trigger--n',
   floatingResizeTriggerS: '.tr-layout__floating-resize-trigger--s',
   floatingResizeTriggerE: '.tr-layout__floating-resize-trigger--e',
   floatingResizeTriggerW: '.tr-layout__floating-resize-trigger--w',

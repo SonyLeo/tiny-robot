@@ -216,8 +216,8 @@ const scrollItems = Array.from({ length: 80 }, (_, index) => `css var item ${ind
 .layout-css-vars__layout--normal {
   --tr-layout-height: 420px;
   --tr-layout-bg: rgb(244, 246, 251);
-  --tr-layout-left-bg: rgb(255, 244, 229);
-  --tr-layout-right-bg: rgb(232, 245, 255);
+  --tr-layout-left-aside-bg: rgb(255, 244, 229);
+  --tr-layout-right-aside-bg: rgb(232, 245, 255);
   --tr-layout-header-bg: rgb(224, 242, 254);
   --tr-layout-main-bg: rgb(245, 250, 255);
   --tr-layout-footer-bg: rgb(232, 245, 233);
@@ -285,6 +285,12 @@ const scrollItems = Array.from({ length: 80 }, (_, index) => `css var item ${ind
   overflow: auto;
   padding: 16px;
   box-sizing: border-box;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.layout-css-vars__scroll-host::-webkit-scrollbar {
+  display: none;
 }
 
 .layout-css-vars__scroll-item {

@@ -54,7 +54,7 @@ function updateLeftAsideWidth(detail: LayoutAsideSideResizeEventDetail) {
 .layout-aside-resizable-demo {
   --tr-layout-height: 100%;
   --tr-layout-main-min-width: 0;
-  --tr-layout-left-bg: var(--vp-c-bg-alt, #f8fafc);
+  --tr-layout-left-aside-bg: var(--vp-c-bg-alt, #f8fafc);
   height: 400px;
   overflow: hidden;
   border: 1px solid var(--vp-c-divider, var(--tr-border-color, #dcdfe6));

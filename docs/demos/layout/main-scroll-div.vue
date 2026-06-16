@@ -29,10 +29,19 @@ const sections = Array.from({ length: 12 }, (_, index) => index + 1)
 
 <style scoped>
 .layout-main-scroll-div {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
   display: grid;
   gap: 12px;
   padding: 16px;
   overflow: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.layout-main-scroll-div::-webkit-scrollbar {
+  display: none;
 }
 
 .layout-main-scroll-div.is-centered {

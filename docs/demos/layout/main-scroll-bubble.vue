@@ -46,6 +46,16 @@ const messages: BubbleListProps['messages'] = Array.from({ length: 12 }, (_, ind
 <style scoped>
 .layout-main-scroll-bubble {
   --tr-bubble-list-padding: 16px;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  overflow: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.layout-main-scroll-bubble::-webkit-scrollbar {
+  display: none;
 }
 
 .layout-main-scroll-bubble.is-centered {

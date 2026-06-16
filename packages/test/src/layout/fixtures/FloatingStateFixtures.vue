@@ -270,8 +270,8 @@ function openPlacementFixtures() {
 }
 
 .floating-state-fixtures__layout {
-  --tr-layout-left-bg: #f8fafc;
-  --tr-layout-right-bg: #f8fafc;
+  --tr-layout-left-aside-bg: #f8fafc;
+  --tr-layout-right-aside-bg: #f8fafc;
   --tr-layout-main-bg: #ffffff;
 }
 

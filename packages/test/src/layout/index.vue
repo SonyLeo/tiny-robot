@@ -143,7 +143,6 @@ const metrics = ref<LayoutMetrics>({
   floatingDrag: 0,
   floatingDragEnd: 0,
   floatingResizeStartByHandle: {
-    n: 0,
     s: 0,
     e: 0,
     w: 0,
@@ -153,7 +152,6 @@ const metrics = ref<LayoutMetrics>({
     sw: 0,
   },
   floatingResizeEndByHandle: {
-    n: 0,
     s: 0,
     e: 0,
     w: 0,
@@ -537,8 +535,8 @@ onBeforeUnmount(() => {
 
 .layout-demo__layout {
   --tr-layout-height: 100%;
-  --tr-layout-left-bg: #f8fafc;
-  --tr-layout-right-bg: #f8fafc;
+  --tr-layout-left-aside-bg: #f8fafc;
+  --tr-layout-right-aside-bg: #f8fafc;
   --tr-layout-header-bg: #ffffff;
   --tr-layout-main-bg: #ffffff;
   --tr-layout-footer-bg: #ffffff;
@@ -594,5 +592,11 @@ onBeforeUnmount(() => {
   overflow: auto;
   padding: 16px;
   box-sizing: border-box;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.layout-demo__bubble-list::-webkit-scrollbar {
+  display: none;
 }
 </style>

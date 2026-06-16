@@ -128,7 +128,7 @@ function setLeftExpandedWidth(nextWidth: number) {
 <style>
 .layout-slot-props-demo__layout {
   --tr-layout-height: 360px;
-  --tr-layout-left-bg: var(--vp-c-bg-alt, #f8fafc);
+  --tr-layout-left-aside-bg: var(--vp-c-bg-alt, #f8fafc);
   overflow: hidden;
   border: 1px solid var(--vp-c-divider, var(--tr-border-color, #dcdfe6));
   border-radius: 16px;

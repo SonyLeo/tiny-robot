@@ -6,8 +6,8 @@ import type { LayoutAsideSideOpenEventDetail, LayoutAsideSideResizeEventDetail }
 const baseLayoutStyle = {
   '--tr-layout-height': '100%',
   '--tr-layout-main-min-width': '120px',
-  '--tr-layout-left-bg': '#f8fafc',
-  '--tr-layout-right-bg': '#f8fafc',
+  '--tr-layout-left-aside-bg': '#f8fafc',
+  '--tr-layout-right-aside-bg': '#f8fafc',
   '--tr-layout-main-bg': '#ffffff',
   height: '100%',
 } as const

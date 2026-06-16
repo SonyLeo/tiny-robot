@@ -70,12 +70,28 @@ outline: [1, 3]
 
 ## 主区滚动
 
-`Layout.ProxyScrollbar` 用来显示主区滚动条，`scrollTarget` 指向实际滚动的元素。
+`Layout.ProxyScrollbar` 用来显示主区滚动条，`scrollTarget` 指向实际滚动的内容区域。
 
 > 适合消息区居中的对话页：内容可以居中，滚动条仍固定在主区右侧，视觉更整齐。
 
-- `scrollTarget` 传实际滚动元素的 `ref`
-- 这个元素需要设置 `overflow: auto` 或 `overflow-y: auto`
+- `scrollTarget` 传实际滚动元素，或对应组件实例的 `ref`
+- 该元素需自行设置尺寸、`box-sizing` 和滚动样式
+- 使用 `Layout.ProxyScrollbar` 时，建议同时隐藏该元素的原生滚动条，例如：
+
+```css
+.scroll-host {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  overflow: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scroll-host::-webkit-scrollbar {
+  display: none;
+}
+```
 
 <demo
   vue="../../demos/layout/main-scroll.vue"
@@ -99,22 +115,22 @@ outline: [1, 3]
 - `defaultFloatingState`：只设置初始值
 - `floatingState`：由外部控制位置和大小
 
+传 `floatingState` 时，需要在 `update:floatingState` 中同步最新值。
+
 <demo
   vue="../../demos/layout/floating.vue"
   title="基本用法"
   description="打开时通过 defaultFloatingState 设置初始位置和大小。"
 />
 
-示例通过 `v-if` 控制挂载，重新打开后会按 `defaultFloatingState` 重新初始化。
+### 浮层工作区
 
-### 状态控制
-
-用 `floatingState` 时，位置和大小由外部控制；它和 `defaultFloatingState` 二选一即可。
+浮层里同样可以放入侧栏、头部和主区。常见用法是把左右两侧都做成按需展开的 drawer。
 
 <demo
-  vue="../../demos/layout/floating-controlled.vue"
-  title="状态控制"
-  description="通过 floatingState 和 update:floatingState 回写浮层状态。"
+  vue="../../demos/layout/floating-panels.vue"
+  title="浮层工作区"
+  description="在浮层里组合左右 drawer，适合临时工作区、对话面板或侧边操作台。"
 />
 
 ## Props
@@ -136,7 +152,7 @@ outline: [1, 3]
 
 | 属性名 | 说明 | 类型 | 默认值 |
 | ------ | ---- | ---- | ------ |
-| `scrollTarget` | 真实滚动容器的元素或组件实例 ref | `HTMLElement \| ComponentPublicInstance \| null` | `-` |
+| `scrollTarget` | 真实滚动容器的元素，或对应组件实例的 ref | `HTMLElement \| ComponentPublicInstance \| null` | `-` |
 
 <a id="layout-aside-toggle-props"></a>
 ### Layout.AsideToggle
@@ -145,7 +161,7 @@ outline: [1, 3]
 | ------ | ---- | ---- | ------ |
 | `placement` | 控制的侧栏位置 | `'left' \| 'right'` | `-` |
 
-它是一个现成的开关按钮。需要自己控制侧栏内容和交互时，优先用 `left-aside` / `right-aside` 插槽。
+它是一个现成的开关按钮，只能在 `Layout` 内部使用，通常放在 `left-aside` / `right-aside` 插槽中。需要自己控制侧栏内容和交互时，优先用 `left-aside` / `right-aside` 插槽。
 
 ## Slots
 
@@ -215,10 +231,10 @@ outline: [1, 3]
 
 | 字段 | 说明 | 类型 |
 | ---- | ---- | ---- |
-| `handle` | 当前拖动的边或角 | `'n' \| 's' \| 'e' \| 'w' \| 'ne' \| 'nw' \| 'se' \| 'sw'` |
+| `handle` | 当前拖动的边或角 | `'s' \| 'e' \| 'w' \| 'ne' \| 'nw' \| 'se' \| 'sw'` |
 | `placement` | 当前锚点位置 | `'top-left' \| 'top-right' \| 'bottom-left' \| 'bottom-right' \| 'center'` |
-| `offsetX` | 横向偏移；`center` 下不参与定位 | `number` |
-| `offsetY` | 纵向偏移；`center` 下不参与定位 | `number` |
+| `offsetX` | 横向偏移；`placement` 为 `center` 时不生效 | `number` |
+| `offsetY` | 纵向偏移；`placement` 为 `center` 时不生效 | `number` |
 | `width` | 当前宽度 | `number` |
 | `height` | 当前高度 | `number` |
 
@@ -273,7 +289,7 @@ outline: [1, 3]
 | `placement` | 侧栏位置 | `'left' \| 'right'` |
 | `mode` | 当前侧栏模式 | `'dock' \| 'drawer'` |
 | `open` | 当前是否展开 | `boolean` |
-| `expandedWidth` | 当前展开宽度 | `number \| undefined` |
+| `expandedWidth` | 当前展开宽度 | `number` |
 | `collapsedWidth` | 收起后窄栏宽度 | `number \| undefined` |
 | `resizable` | 是否允许拖拽改宽 | `boolean` |
 | `isRail` | 当前是否处于窄栏状态 | `boolean` |
@@ -289,8 +305,8 @@ outline: [1, 3]
 | 字段 | 说明 | 类型 | 默认值 |
 | ---- | ---- | ---- | ------ |
 | `placement` | 浮层位置 | `'top-left' \| 'top-right' \| 'bottom-left' \| 'bottom-right' \| 'center'` | `'center'` |
-| `offsetX` | 横向偏移；`center` 下不参与定位 | `number` | `24` |
-| `offsetY` | 纵向偏移；`center` 下不参与定位 | `number` | `24` |
+| `offsetX` | 横向偏移；`placement` 为 `center` 时不生效 | `number` | `24` |
+| `offsetY` | 纵向偏移；`placement` 为 `center` 时不生效 | `number` | `24` |
 | `width` | 浮层宽度；非受控时表示初始值，受控时表示当前值 | `number` | `420` |
 | `height` | 浮层高度；非受控时表示初始值，受控时表示当前值 | `number` | `560` |
 
@@ -299,7 +315,7 @@ outline: [1, 3]
 | 字段 | 说明 | 类型 | 默认值 |
 | ---- | ---- | ---- | ------ |
 | `draggable` | 是否允许拖动浮层 | `boolean` | `true` |
-| `resizable` | 是否允许通过 8 个方向手柄调整尺寸 | `boolean` | `false` |
+| `resizable` | 是否允许通过浮层边缘手柄调整尺寸 | `boolean` | `false` |
 | `minWidth` | 最小宽度 | `number` | `320` |
 | `maxWidth` | 最大宽度 | `number` | `视口宽度` |
 | `minHeight` | 最小高度 | `number` | `240` |
@@ -314,8 +330,8 @@ outline: [1, 3]
 | ------ | ---- |
 | `--tr-layout-height` | 布局高度 |
 | `--tr-layout-bg` | 容器背景 |
-| `--tr-layout-left-bg` | 左侧栏背景 |
-| `--tr-layout-right-bg` | 右侧栏背景 |
+| `--tr-layout-left-aside-bg` | 左侧栏背景 |
+| `--tr-layout-right-aside-bg` | 右侧栏背景 |
 | `--tr-layout-header-bg` | 顶部背景 |
 | `--tr-layout-main-bg` | 主区背景 |
 | `--tr-layout-footer-bg` | 底部背景 |

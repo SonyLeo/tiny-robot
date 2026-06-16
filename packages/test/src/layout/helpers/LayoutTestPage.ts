@@ -9,7 +9,7 @@ export type LayoutAsideMode = 'dock' | 'drawer'
 export type LayoutCollapseEffect = 'overlay' | 'slide'
 export type LayoutAsideState = 'open' | 'rail' | 'closed'
 export type LayoutEventPhase = 'start' | 'progress' | 'end'
-export type LayoutFloatingHandle = 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw'
+export type LayoutFloatingHandle = 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw'
 export type LayoutFloatingPlacement = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'center'
 
 export interface LayoutAsideResizeLogEntry {
@@ -151,7 +151,6 @@ export class LayoutTestPage {
 
   getFloatingResizeTrigger(handle: LayoutFloatingHandle, scope: ScopedTarget = this.surface) {
     const selectorMap: Record<LayoutFloatingHandle, string> = {
-      n: layoutSelectors.floatingResizeTriggerN,
       s: layoutSelectors.floatingResizeTriggerS,
       e: layoutSelectors.floatingResizeTriggerE,
       w: layoutSelectors.floatingResizeTriggerW,

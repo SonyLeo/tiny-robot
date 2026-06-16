@@ -38,8 +38,8 @@ import { TrLayout } from '@opentiny/tiny-robot'
   --tr-layout-header-bg: var(--vp-c-bg-soft, #f6f8fa);
   --tr-layout-main-bg: var(--vp-c-bg, #ffffff);
   --tr-layout-footer-bg: var(--vp-c-bg-soft, #f6f8fa);
-  --tr-layout-left-bg: var(--vp-c-bg-alt, #f8fafc);
-  --tr-layout-right-bg: var(--vp-c-bg-alt, #f8fafc);
+  --tr-layout-left-aside-bg: var(--vp-c-bg-alt, #f8fafc);
+  --tr-layout-right-aside-bg: var(--vp-c-bg-alt, #f8fafc);
   height: 400px;
   overflow: hidden;
   border: 1px solid var(--vp-c-divider, var(--tr-border-color, #dcdfe6));

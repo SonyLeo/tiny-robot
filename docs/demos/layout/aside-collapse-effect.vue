@@ -90,7 +90,7 @@ const collapsedHint = computed(() =>
   );
   --tr-layout-height: 216px;
   --tr-layout-main-min-width: 0;
-  --tr-layout-left-bg: var(--layout-collapse-effect-demo-aside-bg);
+  --tr-layout-left-aside-bg: var(--layout-collapse-effect-demo-aside-bg);
   --tr-layout-main-bg: var(--vp-c-bg, #ffffff);
   overflow: hidden;
   border: 1px solid var(--vp-c-divider, var(--tr-border-color, #dcdfe6));
