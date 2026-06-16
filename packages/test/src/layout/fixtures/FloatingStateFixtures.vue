@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { TrLayout } from '@opentiny/tiny-robot'
 import type { LayoutFloatingOptions, LayoutFloatingState } from '@opentiny/tiny-robot'
 
@@ -104,6 +104,26 @@ const placementDefaults: Array<{ marker: string; config: LayoutFloatingState }> 
   },
 ]
 
+const blockedFloatingLayoutProps = computed<Record<string, unknown>>(() => ({
+  mode: 'floating',
+  floatingState: blockedFloatingState.value,
+  floatingOptions: blockedFloatingOptions,
+}))
+
+const uncontrolledFloatingLayoutProps = computed<Record<string, unknown>>(() => ({
+  mode: 'floating',
+  defaultFloatingState: uncontrolledDefaultFloatingState.value,
+  floatingOptions: uncontrolledFloatingOptions,
+}))
+
+function getPlacementLayoutProps(config: LayoutFloatingState): Record<string, unknown> {
+  return {
+    mode: 'floating',
+    defaultFloatingState: config,
+    floatingOptions: placementOptions,
+  }
+}
+
 function handleBlockedFloating(next: LayoutFloatingState) {
   blockedFloatingUpdates.value += 1
   blockedFloatingLastPlacement.value = next.placement ?? ''
@@ -167,9 +187,7 @@ function openPlacementFixtures() {
       id="blocked-floating-surface"
       data-surface-marker="blocked-floating"
       class="floating-state-fixtures__layout"
-      :mode="'floating'"
-      :floating-state="blockedFloatingState"
-      :floating-options="blockedFloatingOptions"
+      v-bind="blockedFloatingLayoutProps"
       @update:floating-state="handleBlockedFloating"
     >
       <template #main>
@@ -181,9 +199,7 @@ function openPlacementFixtures() {
       id="uncontrolled-floating-surface"
       data-surface-marker="uncontrolled-floating"
       class="floating-state-fixtures__layout"
-      mode="floating"
-      :default-floating-state="uncontrolledDefaultFloatingState"
-      :floating-options="uncontrolledFloatingOptions"
+      v-bind="uncontrolledFloatingLayoutProps"
       @update:floating-state="handleUncontrolledFloating"
     >
       <template #main>
@@ -207,9 +223,7 @@ function openPlacementFixtures() {
         :key="placementFixture.marker"
         :data-surface-marker="placementFixture.marker"
         class="floating-state-fixtures__layout"
-        mode="floating"
-        :default-floating-state="placementFixture.config"
-        :floating-options="placementOptions"
+        v-bind="getPlacementLayoutProps(placementFixture.config)"
       >
         <template #main>
           <div class="floating-state-fixtures__panel">{{ placementFixture.marker }}</div>

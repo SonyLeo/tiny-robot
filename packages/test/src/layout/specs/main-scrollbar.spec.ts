@@ -1,17 +1,18 @@
 import { expect, test } from '../helpers'
 
 test.describe('Layout 组件测试 - Main Scrollbar', () => {
-  test('Props: scrollHost - 应解析真实滚动宿主并挂上标记', async ({ layout }) => {
-    await expect(layout.scrollHost).toHaveAttribute('data-tr-layout-scroll-host', '')
+  test('Props: scrollTarget - 应解析真实滚动宿主并挂上标记', async ({ layout }) => {
+    await expect(layout.scrollTarget).toHaveAttribute('data-tr-layout-scroll-target', '')
   })
 
   test('虚拟滚动条 - 长列表时应显示并随滚动同步', async ({ layout }) => {
-    const { scrollHost, scrollbarThumb: thumb, scrollbar } = layout
+    const { scrollTarget, scrollbarThumb: thumb, scrollbar } = layout
 
+    await scrollTarget.hover()
     await expect(scrollbar).toBeVisible()
 
     const before = await thumb.evaluate((node) => window.getComputedStyle(node).transform)
-    await scrollHost.evaluate((node) => {
+    await scrollTarget.evaluate((node) => {
       node.scrollTop = 320
       node.dispatchEvent(new Event('scroll'))
     })
@@ -19,15 +20,15 @@ test.describe('Layout 组件测试 - Main Scrollbar', () => {
     await expect.poll(async () => thumb.evaluate((node) => window.getComputedStyle(node).transform)).not.toBe(before)
   })
 
-  test('thumb 拖拽 - 应驱动 scrollHost 滚动', async ({ layout }) => {
-    await layout.main.hover()
+  test('thumb 拖拽 - 应驱动 scrollTarget 滚动', async ({ layout }) => {
+    await layout.scrollTarget.hover()
     await layout.dragBy(layout.scrollbarThumb, 0, 120)
 
-    await expect.poll(async () => layout.scrollHost.evaluate((node) => node.scrollTop)).toBeGreaterThan(0)
+    await expect.poll(async () => layout.scrollTarget.evaluate((node) => node.scrollTop)).toBeGreaterThan(0)
   })
 
   test('thumb 拖拽 - 应锁定并恢复 body 交互', async ({ layout }) => {
-    await layout.main.hover()
+    await layout.scrollTarget.hover()
     const thumb = layout.scrollbarThumb
     const box = await thumb.boundingBox()
 
@@ -63,9 +64,9 @@ test.describe('Layout 组件测试 - Main Scrollbar', () => {
   })
 
   test('滚动条下边界 - thumb 不应越出轨道', async ({ layout }) => {
-    const { scrollHost, scrollbar: track, scrollbarThumb: thumb } = layout
+    const { scrollTarget, scrollbar: track, scrollbarThumb: thumb } = layout
 
-    await scrollHost.evaluate((node) => {
+    await scrollTarget.evaluate((node) => {
       node.scrollTop = node.scrollHeight
       node.dispatchEvent(new Event('scroll'))
     })

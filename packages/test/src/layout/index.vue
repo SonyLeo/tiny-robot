@@ -2,8 +2,9 @@
 import { computed, onBeforeUnmount, ref, watchEffect } from 'vue'
 import { BubbleList, TrLayout } from '@opentiny/tiny-robot'
 import type {
-  LayoutAsideState,
   LayoutAsideResizeEventDetail,
+  LayoutAsideSideOpenEventDetail,
+  LayoutAsideSideResizeEventDetail,
   LayoutFloatingDragEventDetail,
   LayoutFloatingOptions,
   LayoutFloatingResizeEventDetail,
@@ -117,6 +118,22 @@ const rightAside = computed(() => ({
   resizable: rightResizable.value,
 }))
 
+const layoutProps = computed<Record<string, unknown>>(() =>
+  mode.value === 'floating'
+    ? {
+        mode: 'floating',
+        leftAside: leftAside.value,
+        rightAside: rightAside.value,
+        floatingState: floatingState.value,
+        floatingOptions: floatingOptions.value,
+      }
+    : {
+        mode: 'normal',
+        leftAside: leftAside.value,
+        rightAside: rightAside.value,
+      },
+)
+
 const metrics = ref<LayoutMetrics>({
   leftResizeStart: 0,
   leftResizeEnd: 0,
@@ -225,22 +242,22 @@ function emptyConditionalSlots() {
   showLeftAsideSlot.value = false
 }
 
-function updateLeftAside(next: LayoutAsideState) {
-  leftOpen.value = next.open
-
-  if (next.expandedWidth !== undefined) {
-    leftWidth.value = next.expandedWidth
-    widths.value.left = next.expandedWidth
-  }
+function updateLeftAsideOpen(detail: LayoutAsideSideOpenEventDetail) {
+  leftOpen.value = detail.open
 }
 
-function updateRightAside(next: LayoutAsideState) {
-  rightOpen.value = next.open
+function updateRightAsideOpen(detail: LayoutAsideSideOpenEventDetail) {
+  rightOpen.value = detail.open
+}
 
-  if (next.expandedWidth !== undefined) {
-    rightWidth.value = next.expandedWidth
-    widths.value.right = next.expandedWidth
-  }
+function updateLeftAsideWidth(detail: LayoutAsideSideResizeEventDetail) {
+  leftWidth.value = detail.expandedWidth
+  widths.value.left = detail.expandedWidth
+}
+
+function updateRightAsideWidth(detail: LayoutAsideSideResizeEventDetail) {
+  rightWidth.value = detail.expandedWidth
+  widths.value.right = detail.expandedWidth
 }
 
 function updateFloatingState(next: LayoutFloatingState) {
@@ -299,10 +316,10 @@ function handleAsideResize(detail: LayoutAsideResizeEventDetail) {
 function handleAsideResizeEnd(detail: LayoutAsideResizeEventDetail) {
   if (detail.placement === 'left') {
     metrics.value.leftResizeEnd += 1
-    widths.value.left = detail.width
+    widths.value.left = detail.expandedWidth
   } else {
     metrics.value.rightResizeEnd += 1
-    widths.value.right = detail.width
+    widths.value.right = detail.expandedWidth
   }
 
   pushAsideResizeLog('end', detail)
@@ -432,16 +449,15 @@ onBeforeUnmount(() => {
     </div>
     <div class="layout-demo__host" data-testid="layout-demo-host">
       <TrLayout
+        :key="mode"
         id="layout-demo-surface"
         class="layout-demo__layout layout-demo__layout--surface-marker"
         data-surface-marker="layout-demo-surface"
-        :mode="mode"
-        :left-aside="leftAside"
-        :right-aside="rightAside"
-        :floating-state="floatingState"
-        :floating-options="floatingOptions"
-        @left-aside-state-change="updateLeftAside"
-        @right-aside-state-change="updateRightAside"
+        v-bind="layoutProps"
+        @left-aside-open-change="updateLeftAsideOpen"
+        @left-aside-resize="updateLeftAsideWidth"
+        @right-aside-open-change="updateRightAsideOpen"
+        @right-aside-resize="updateRightAsideWidth"
         @update:floating-state="updateFloatingState"
         @aside-resize-start="handleAsideResizeStart"
         @aside-resize="handleAsideResize"
@@ -473,9 +489,8 @@ onBeforeUnmount(() => {
         </template>
 
         <template #main>
-          <TrLayout.Main :scroll-host="scrollHostRef">
-            <BubbleList ref="scrollHostRef" class="layout-demo__bubble-list" :messages="messages" />
-          </TrLayout.Main>
+          <BubbleList ref="scrollHostRef" class="layout-demo__bubble-list" :messages="messages" />
+          <TrLayout.ProxyScrollbar :scroll-target="scrollHostRef" />
         </template>
 
         <template #footer>
@@ -522,9 +537,6 @@ onBeforeUnmount(() => {
 
 .layout-demo__layout {
   --tr-layout-height: 100%;
-  --tr-layout-content-max-width: none;
-  --tr-layout-inner-padding-inline: 0;
-  --tr-layout-inner-padding-block: 0;
   --tr-layout-left-bg: #f8fafc;
   --tr-layout-right-bg: #f8fafc;
   --tr-layout-header-bg: #ffffff;

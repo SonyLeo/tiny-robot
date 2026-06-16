@@ -15,7 +15,7 @@ export type LayoutFloatingPlacement = 'top-left' | 'top-right' | 'bottom-left' |
 export interface LayoutAsideResizeLogEntry {
   phase: LayoutEventPhase
   placement: LayoutPlacement
-  width: number
+  expandedWidth: number
 }
 
 export interface LayoutFloatingDragLogEntry {
@@ -85,15 +85,15 @@ export class LayoutTestPage {
   }
 
   get root() {
-    return this.page.locator(layoutSelectors.root).first()
+    return this.surface
   }
 
   get main() {
     return this.page.locator(layoutSelectors.main)
   }
 
-  get scrollHost() {
-    return this.page.locator(layoutSelectors.scrollHost)
+  get scrollTarget() {
+    return this.page.locator(layoutSelectors.scrollTarget)
   }
 
   get scrollbar() {
@@ -246,7 +246,7 @@ export class LayoutTestPage {
 
   async expectSurfaceMode(mode: LayoutMode, scope: ScopedTarget = this.page) {
     const target = isPage(scope) ? this.root : scope
-    const floatingClassPattern = /(^|\s)(tr-layout--floating|tr-layout-frame--floating)(\s|$)/
+    const floatingClassPattern = /(^|\s)tr-layout--floating(\s|$)/
 
     if (mode === 'floating') {
       await expect(target).toHaveClass(floatingClassPattern)
@@ -285,7 +285,7 @@ export class LayoutTestPage {
     effect: LayoutCollapseEffect,
     scope: ScopedTarget = this.page,
   ) {
-    await expect(this.getAsideContent(placement, scope)).toHaveClass(new RegExp(`tr-layout__aside--effect-${effect}`))
+    await expect(this.getAside(placement, scope)).toHaveClass(new RegExp(`tr-layout__aside--effect-${effect}`))
   }
 
   async expectBackdropState(state: 'open' | 'closed', scope: ScopedTarget = this.page) {

@@ -71,7 +71,7 @@ test.describe('Layout 组件测试 - Aside', () => {
     expect(harness.widths.left).toBeGreaterThanOrEqual(beforeLeft)
     expect(leftLogs[0]?.phase).toBe('start')
     expect(leftEndLog?.phase).toBe('end')
-    expect(leftEndLog?.width).toBe(leftProgressLogs.at(-1)?.width)
+    expect(leftEndLog?.expandedWidth).toBe(leftProgressLogs.at(-1)?.expandedWidth)
 
     const beforeRight = harness.widths.right
     await layout.resizeAside('right', -160)
@@ -86,7 +86,7 @@ test.describe('Layout 组件测试 - Aside', () => {
     expect(harness.widths.right).toBeGreaterThanOrEqual(beforeRight)
     expect(rightLogs[0]?.phase).toBe('start')
     expect(rightEndLog?.phase).toBe('end')
-    expect(rightEndLog?.width).toBe(rightProgressLogs.at(-1)?.width)
+    expect(rightEndLog?.expandedWidth).toBe(rightProgressLogs.at(-1)?.expandedWidth)
   })
 
   test('Dock: main min width - 双侧展开时主区不应被压穿', async ({ layout }) => {
@@ -134,7 +134,7 @@ test.describe('Layout 组件测试 - Aside', () => {
     await layout.expectAsideState('left', 'open', fixture)
   })
 
-  test('Controlled props: width - 受控父级不回写时应只发事件，并保持 prop 宽度优先', async ({ layout }) => {
+  test('Controlled props: expandedWidth - 受控父级不回写时应只发事件，并保持 prop 宽度优先', async ({ layout }) => {
     await layout.showAsideFixtures()
 
     const fixture = layout.blockedAsideFixture
@@ -252,7 +252,7 @@ test.describe('Layout 组件测试 - Aside', () => {
     await expect(leftAside).toHaveAttribute('inert', '')
 
     const rightWidth = await layout.getWidth(rightAside)
-    expect(rightWidth).toBeGreaterThanOrEqual(384)
-    expect(rightWidth).toBeLessThanOrEqual(392)
+    expect(rightWidth).toBeGreaterThanOrEqual(340)
+    expect(rightWidth).toBeLessThanOrEqual(348)
   })
 })

@@ -20,6 +20,12 @@ const floatingOptions: LayoutFloatingOptions = {
   resizable: false,
 }
 
+const floatingLayoutProps: Record<string, unknown> = {
+  mode: 'floating',
+  floatingState,
+  floatingOptions,
+}
+
 const scrollItems = Array.from({ length: 80 }, (_, index) => `css var item ${index + 1}`)
 </script>
 
@@ -122,13 +128,26 @@ const scrollItems = Array.from({ length: 80 }, (_, index) => `css var item ${ind
         data-testid="css-vars-legacy-surface"
         class="layout-css-vars__layout layout-css-vars__layout--legacy"
         :left-aside="{ mode: 'dock', open: true, expandedWidth: 280 }"
+        :right-aside="{ mode: 'dock', open: true, expandedWidth: 240 }"
       >
         <template #left-aside>
           <div class="layout-css-vars__panel">legacy left dock</div>
         </template>
 
+        <template #header>
+          <div class="layout-css-vars__slot">legacy header</div>
+        </template>
+
         <template #main>
           <div class="layout-css-vars__slot">legacy guard</div>
+        </template>
+
+        <template #footer>
+          <div class="layout-css-vars__slot">legacy footer</div>
+        </template>
+
+        <template #right-aside>
+          <div class="layout-css-vars__panel">legacy right dock</div>
         </template>
       </TrLayout>
     </div>
@@ -136,9 +155,7 @@ const scrollItems = Array.from({ length: 80 }, (_, index) => `css var item ${ind
     <TrLayout
       data-testid="css-vars-floating-surface"
       class="layout-css-vars__layout layout-css-vars__layout--floating"
-      mode="floating"
-      :floating-state="floatingState"
-      :floating-options="floatingOptions"
+      v-bind="floatingLayoutProps"
     >
       <template #main>
         <div class="layout-css-vars__slot">floating surface</div>
@@ -151,13 +168,12 @@ const scrollItems = Array.from({ length: 80 }, (_, index) => `css var item ${ind
         class="layout-css-vars__layout layout-css-vars__layout--scrollbar"
       >
         <template #main>
-          <TrLayout.Main :scroll-host="scrollbarHostRef">
-            <div ref="scrollbarHostRef" class="layout-css-vars__scroll-host">
-              <div v-for="item in scrollItems" :key="item" class="layout-css-vars__scroll-item">
-                {{ item }}
-              </div>
+          <div ref="scrollbarHostRef" class="layout-css-vars__scroll-host">
+            <div v-for="item in scrollItems" :key="item" class="layout-css-vars__scroll-item">
+              {{ item }}
             </div>
-          </TrLayout.Main>
+          </div>
+          <TrLayout.ProxyScrollbar :scroll-target="scrollbarHostRef" />
         </template>
       </TrLayout>
     </div>
@@ -206,9 +222,6 @@ const scrollItems = Array.from({ length: 80 }, (_, index) => `css var item ${ind
   --tr-layout-main-bg: rgb(245, 250, 255);
   --tr-layout-footer-bg: rgb(232, 245, 233);
   --tr-layout-divider-color: rgb(123, 134, 156);
-  --tr-layout-content-max-width: 420px;
-  --tr-layout-inner-padding-inline: 24px;
-  --tr-layout-inner-padding-block: 18px;
 }
 
 .layout-css-vars__layout--main-min {
@@ -224,16 +237,21 @@ const scrollItems = Array.from({ length: 80 }, (_, index) => `css var item ${ind
 
 .layout-css-vars__layout--legacy {
   --tr-layout-height: 280px;
-  --tr-layout-content-max-width: none;
+  --tr-layout-content-max-width: 320px;
+  --tr-layout-inner-padding-inline: 48px;
+  --tr-layout-inner-padding-block: 32px;
   --tr-layout-left-dock-width: 420px;
   --tr-layout-main-max-width: 320px;
+  --tr-layout-frame-radius: 99px;
+  --tr-layout-frame-shadow: 0 0 0 6px rgb(66, 77, 88);
+  --tr-layout-frame-z-index: 4096;
 }
 
 .layout-css-vars__layout--floating {
   --tr-layout-bg: rgb(252, 248, 240);
-  --tr-layout-frame-radius: 18px;
-  --tr-layout-frame-shadow: 0 0 0 4px rgb(11, 22, 33);
-  --tr-layout-frame-z-index: 2048;
+  --tr-layout-floating-radius: 18px;
+  --tr-layout-floating-shadow: 0 0 0 4px rgb(11, 22, 33);
+  --tr-layout-floating-z-index: 2048;
 }
 
 .layout-css-vars__layout--scrollbar {

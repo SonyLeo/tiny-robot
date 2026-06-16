@@ -1,13 +1,10 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { TrLayout } from '@opentiny/tiny-robot'
-import type { LayoutAsideState } from '@opentiny/tiny-robot'
+import type { LayoutAsideSideOpenEventDetail, LayoutAsideSideResizeEventDetail } from '@opentiny/tiny-robot'
 
 const baseLayoutStyle = {
   '--tr-layout-height': '100%',
-  '--tr-layout-content-max-width': 'none',
-  '--tr-layout-inner-padding-inline': '0',
-  '--tr-layout-inner-padding-block': '0',
   '--tr-layout-main-min-width': '120px',
   '--tr-layout-left-bg': '#f8fafc',
   '--tr-layout-right-bg': '#f8fafc',
@@ -53,36 +50,43 @@ const uncontrolledLeftAside = computed(() => ({
 const drawerLeftAside = computed(() => ({
   mode: 'drawer' as const,
   open: drawerLeftOpen.value,
-  expandedWidth: 344,
 }))
 
 const drawerRightAside = computed(() => ({
   mode: 'drawer' as const,
   open: drawerRightOpen.value,
-  expandedWidth: 388,
 }))
 
-function handleBlockedAside(next: LayoutAsideState) {
-  if (blockedLastOpen.value !== String(next.open)) {
-    blockedOpenEvents.value += 1
-    blockedLastOpen.value = String(next.open)
-  }
+const drawerLayoutStyle = {
+  ...baseLayoutStyle,
+  '--tr-layout-drawer-width': '344px',
+} as const
 
-  if (next.expandedWidth !== undefined && next.expandedWidth !== blockedLastWidth.value) {
-    blockedWidthEvents.value += 1
-    blockedLastWidth.value = next.expandedWidth
+function handleBlockedOpen(detail: LayoutAsideSideOpenEventDetail) {
+  if (blockedLastOpen.value !== String(detail.open)) {
+    blockedOpenEvents.value += 1
+    blockedLastOpen.value = String(detail.open)
   }
 }
 
-function handleUncontrolledAside(next: LayoutAsideState) {
-  if (next.open !== uncontrolledLastOpen.value) {
-    uncontrolledOpenEvents.value += 1
-    uncontrolledLastOpen.value = next.open
+function handleBlockedResize(detail: LayoutAsideSideResizeEventDetail) {
+  if (detail.expandedWidth !== blockedLastWidth.value) {
+    blockedWidthEvents.value += 1
+    blockedLastWidth.value = detail.expandedWidth
   }
+}
 
-  if (next.expandedWidth !== undefined && next.expandedWidth !== uncontrolledLastWidth.value) {
+function handleUncontrolledOpen(detail: LayoutAsideSideOpenEventDetail) {
+  if (detail.open !== uncontrolledLastOpen.value) {
+    uncontrolledOpenEvents.value += 1
+    uncontrolledLastOpen.value = detail.open
+  }
+}
+
+function handleUncontrolledResize(detail: LayoutAsideSideResizeEventDetail) {
+  if (detail.expandedWidth !== uncontrolledLastWidth.value) {
     uncontrolledWidthEvents.value += 1
-    uncontrolledLastWidth.value = next.expandedWidth
+    uncontrolledLastWidth.value = detail.expandedWidth
   }
 }
 
@@ -91,12 +95,12 @@ function updateUncontrolledDefaults() {
   uncontrolledDefaultWidth.value = 332
 }
 
-function updateDrawerLeftAside(next: LayoutAsideState) {
-  drawerLeftOpen.value = next.open
+function updateDrawerLeftOpen(detail: LayoutAsideSideOpenEventDetail) {
+  drawerLeftOpen.value = detail.open
 }
 
-function updateDrawerRightAside(next: LayoutAsideState) {
-  drawerRightOpen.value = next.open
+function updateDrawerRightOpen(detail: LayoutAsideSideOpenEventDetail) {
+  drawerRightOpen.value = detail.open
 }
 </script>
 
@@ -119,7 +123,8 @@ function updateDrawerRightAside(next: LayoutAsideState) {
           class="aside-state-fixtures__layout"
           :style="baseLayoutStyle"
           :left-aside="blockedLeftAside"
-          @left-aside-state-change="handleBlockedAside"
+          @left-aside-open-change="handleBlockedOpen"
+          @left-aside-resize="handleBlockedResize"
         >
           <template #left-aside="{ open }">
             <div class="aside-state-fixtures__panel">
@@ -142,7 +147,8 @@ function updateDrawerRightAside(next: LayoutAsideState) {
           class="aside-state-fixtures__layout"
           :style="baseLayoutStyle"
           :left-aside="uncontrolledLeftAside"
-          @left-aside-state-change="handleUncontrolledAside"
+          @left-aside-open-change="handleUncontrolledOpen"
+          @left-aside-resize="handleUncontrolledResize"
         >
           <template #left-aside="{ open }">
             <div class="aside-state-fixtures__panel">
@@ -166,11 +172,11 @@ function updateDrawerRightAside(next: LayoutAsideState) {
       <div class="aside-state-fixtures__host">
         <TrLayout
           class="aside-state-fixtures__layout"
-          :style="baseLayoutStyle"
+          :style="drawerLayoutStyle"
           :left-aside="drawerLeftAside"
           :right-aside="drawerRightAside"
-          @left-aside-state-change="updateDrawerLeftAside"
-          @right-aside-state-change="updateDrawerRightAside"
+          @left-aside-open-change="updateDrawerLeftOpen"
+          @right-aside-open-change="updateDrawerRightOpen"
         >
           <template #left-aside>
             <div class="aside-state-fixtures__drawer">

@@ -45,7 +45,7 @@ test.describe('Layout 组件测试 - 结构', () => {
   }) => {
     await layout.emptyConditionalSlots()
 
-    await expect(layout.page.locator('.tr-layout__header-shell')).toHaveCount(0)
+    await expect(layout.page.locator('.tr-layout__header')).toHaveCount(0)
     await expect(layout.getAside('left')).toHaveCount(0)
     await expect(layout.getResizeTrigger('left')).toHaveCount(0)
   })
