@@ -8,7 +8,11 @@
 
 ## Current Status
 
-- `packages/chat` exists but is not scaffolded yet.
+- `packages/chat` is implementing the MVP plan under `docs/mvp-plan.md`.
+- Stage 1 scaffolding defines package metadata, public protocol types, context keys, and `useChatContext`.
+- Stage 2 adds `Root.vue` as the provider-only white-box entry foundation.
+- Stage 3 adds `Composer.vue` as the `ChatRuntime -> TrSender` adapter.
+- Stages 4-7 add `Messages`, `Conversations`, `Header`, `Chat.vue`, `useKitChatRuntime`, and `useManagedChatRuntime`.
 - The chat suite should be designed from existing workspace packages, not copied from the CLI template.
 
 ## Relevant Workspace Packages

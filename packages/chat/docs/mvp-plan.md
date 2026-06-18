@@ -37,8 +37,9 @@ MVP 暂不接入：
 packages/chat/
   package.json
   AGENTS.md
-  architecture.md
-  mvp-plan.md
+  docs/
+    architecture.md
+    mvp-plan.md
   src/
     index.ts
     Chat.vue
@@ -55,10 +56,6 @@ packages/chat/
       Conversations.vue
       Header.vue
       Messages.vue
-    __tests__/
-      chat-runtime.types.test-d.ts
-      external-runtime.spec.ts
-      managed-runtime.spec.ts
   demos/
     basic.vue
     external-runtime.vue
@@ -388,7 +385,17 @@ TrChat
 - `kit` 只在 managed runtime 层出现，UI 组件不直接依赖 `kit` 返回结构。
 - MVP 能覆盖发送、取消、消息渲染、空状态、Prompt 回填、会话切换、黑盒装配、白盒装配。
 
-## 11. E2E 验证注意
+## 11. 后续测试沉淀
+
+MVP 初期先用 `type-check + build + demo` 验证架构，不在第一轮强制引入完整自动化测试目录。
+
+协议和实现稳定后，再沉淀以下测试：
+
+- `chat-runtime` 类型约束验证：确认 `parts` 不能传入被 runtime 接管的字段，例如 `sender.modelValue`、`bubbleList.messages`、`history.data`。
+- external runtime 交互验证：建议放到现有 `packages/test/src` 体系，验证用户自有 runtime 只接 UI 时能展示、输入和发送。
+- managed runtime 集成验证：验证 `useManagedChatRuntime` 基于 `kit` 完成发送、流式更新、取消和首次自动建会话。
+
+## 12. E2E 验证注意
 
 任何 e2e / Playwright 测试前必须先构建 components 包。
 
