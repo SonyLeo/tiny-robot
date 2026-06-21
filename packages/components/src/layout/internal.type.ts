@@ -1,12 +1,11 @@
-import type { ComponentPublicInstance, ComputedRef, ShallowRef } from 'vue'
+import type { ComputedRef } from 'vue'
 import type {
   LayoutAsideCollapseEffect,
   LayoutAsideMode,
   LayoutFloatingOptions,
   LayoutFloatingState,
   LayoutMode,
-  LayoutPlacement,
-  LayoutProps,
+  LayoutSide,
 } from './index.type'
 
 export type LayoutResolvedFloating = LayoutFloatingState & LayoutFloatingOptions
@@ -21,22 +20,13 @@ export type LayoutFloatingRect = Omit<
   height: number
 }
 
-export type LayoutRuntimeProps = LayoutProps
-
-export type LayoutScrollTargetComponent = Pick<ComponentPublicInstance, '$el'>
-
-export type LayoutScrollTarget = HTMLElement | LayoutScrollTargetComponent | null | undefined
-
-export interface LayoutAsideToggleProps {
-  placement: LayoutPlacement
-}
-
-export interface LayoutProxyScrollbarProps {
-  scrollTarget?: LayoutScrollTarget
+export interface LayoutFloatingDragPosition {
+  x: number
+  y: number
 }
 
 export interface LayoutPanelState {
-  placement: LayoutPlacement
+  side: LayoutSide
   layoutMode: ComputedRef<LayoutAsideMode>
   isOpen: ComputedRef<boolean>
   width: ComputedRef<number>
@@ -61,7 +51,6 @@ export interface LayoutPanelActions {
 }
 
 export interface LayoutPanelContext {
-  el: ShallowRef<HTMLElement | null>
   state: LayoutPanelState
   actions: LayoutPanelActions
 }
@@ -82,21 +71,17 @@ export interface LayoutFloatingContext {
   actions: LayoutFloatingActions
 }
 
-export interface LayoutContext {
-  rootEl: ShallowRef<HTMLElement | null>
-  dragHandleEl: ShallowRef<HTMLElement | null>
-  left: LayoutPanelContext
-  right: LayoutPanelContext
-  floating: LayoutFloatingContext
-  ui: {
-    isDrawerVisible: ComputedRef<boolean>
-  }
-  actions: {
-    closeDrawers: () => void
-  }
+export interface LayoutAsideToggleContext {
+  isOpen: ComputedRef<boolean>
+  toggle: () => void
 }
 
-export interface UseLayoutRootStateResult {
+export interface LayoutContext {
+  left: LayoutAsideToggleContext
+  right: LayoutAsideToggleContext
+}
+
+export interface LayoutState {
   leftPanel: LayoutPanelContext
   rightPanel: LayoutPanelContext
   floating: LayoutFloatingContext

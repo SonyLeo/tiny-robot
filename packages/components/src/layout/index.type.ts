@@ -1,6 +1,6 @@
-import type { VNode } from 'vue'
+import type { ComponentPublicInstance, VNode } from 'vue'
 
-export type LayoutPlacement = 'left' | 'right'
+export type LayoutSide = 'left' | 'right'
 export type LayoutAsideMode = 'dock' | 'drawer'
 export type LayoutAsideCollapseEffect = 'overlay' | 'slide'
 export type LayoutMode = 'normal' | 'floating'
@@ -26,7 +26,7 @@ export interface LayoutFloatingOptions {
 export type LayoutFloatingResizeHandle = 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw'
 
 export interface LayoutAsideOpenEventDetail {
-  placement: LayoutPlacement
+  side: LayoutSide
   open: boolean
 }
 
@@ -35,7 +35,7 @@ export interface LayoutAsideSideOpenEventDetail {
 }
 
 export interface LayoutAsideResizeEventDetail {
-  placement: LayoutPlacement
+  side: LayoutSide
   expandedWidth: number
 }
 
@@ -74,10 +74,10 @@ export interface LayoutNormalProps extends LayoutAsidePanelsProps {
 type LayoutFloatingStateControlProps =
   | {
       floatingState?: LayoutFloatingState
-      defaultFloatingState: never
+      defaultFloatingState?: never
     }
   | {
-      floatingState: never
+      floatingState?: never
       defaultFloatingState?: LayoutFloatingState
     }
 
@@ -88,6 +88,18 @@ export type LayoutFloatingProps = LayoutAsidePanelsProps &
   }
 
 export type LayoutProps = LayoutNormalProps | LayoutFloatingProps
+
+export type LayoutScrollTargetComponent = Pick<ComponentPublicInstance, '$el'>
+
+export type LayoutScrollTarget = HTMLElement | LayoutScrollTargetComponent | null | undefined
+
+export interface LayoutProxyScrollbarProps {
+  scrollTarget?: LayoutScrollTarget
+}
+
+export interface LayoutAsideToggleProps {
+  side: LayoutSide
+}
 
 export interface LayoutEmits {
   'update:floatingState': [value: LayoutFloatingState]
@@ -112,25 +124,10 @@ export interface LayoutEmits {
   'right-aside-resize-end': [detail: LayoutAsideSideResizeEventDetail]
 }
 
-export interface LayoutAsideSlotProps {
-  placement: LayoutPlacement
-  mode: LayoutAsideMode
-  open: boolean
-  expandedWidth: number
-  collapsedWidth: number | undefined
-  resizable: boolean
-  isRail: boolean
-  isHidden: boolean
-  canResize: boolean
-  toggle: () => void
-  setOpen: (next: boolean) => void
-  setExpandedWidth: (next: number) => void
-}
-
 export interface LayoutSlots {
-  'left-aside'?: (slotProps: LayoutAsideSlotProps) => VNode | VNode[]
+  'left-aside'?: () => VNode | VNode[]
   header?: () => VNode | VNode[]
   main?: () => VNode | VNode[]
   footer?: () => VNode | VNode[]
-  'right-aside'?: (slotProps: LayoutAsideSlotProps) => VNode | VNode[]
+  'right-aside'?: () => VNode | VNode[]
 }

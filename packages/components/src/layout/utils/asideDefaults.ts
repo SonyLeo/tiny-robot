@@ -1,4 +1,4 @@
-import type { LayoutPlacement } from '../index.type'
+import type { LayoutSide } from '../index.type'
 
 const DEFAULT_ASIDE_OPEN = {
   left: true,
@@ -20,18 +20,18 @@ const DEFAULT_ASIDE_MAX_WIDTH = {
   right: 640,
 } as const
 
-export function getDefaultAsideOpen(placement: LayoutPlacement): boolean {
-  return DEFAULT_ASIDE_OPEN[placement]
+export function getDefaultAsideOpen(side: LayoutSide): boolean {
+  return DEFAULT_ASIDE_OPEN[side]
 }
 
-export function getDefaultAsideMinWidth(placement: LayoutPlacement): number {
-  return DEFAULT_ASIDE_MIN_WIDTH[placement]
+export function getDefaultAsideMinWidth(side: LayoutSide): number {
+  return DEFAULT_ASIDE_MIN_WIDTH[side]
 }
 
-export function getDefaultAsideExpandedWidth(placement: LayoutPlacement): number {
-  return DEFAULT_ASIDE_EXPANDED_WIDTH[placement]
+export function getDefaultAsideExpandedWidth(side: LayoutSide): number {
+  return DEFAULT_ASIDE_EXPANDED_WIDTH[side]
 }
 
-export function getDefaultAsideMaxWidth(placement: LayoutPlacement): number {
-  return DEFAULT_ASIDE_MAX_WIDTH[placement]
+export function getDefaultAsideMaxWidth(side: LayoutSide): number {
+  return DEFAULT_ASIDE_MAX_WIDTH[side]
 }

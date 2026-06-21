@@ -5,7 +5,7 @@ export type LayoutEmitFn = <K extends keyof LayoutEmits>(event: K, ...args: Layo
 export function emitAsideOpenChange(emit: LayoutEmitFn, detail: LayoutAsideOpenEventDetail): void {
   emit('aside-open-change', detail)
 
-  if (detail.placement === 'left') {
+  if (detail.side === 'left') {
     emit('left-aside-open-change', { open: detail.open })
     return
   }
@@ -21,7 +21,7 @@ export function emitAsideResizeEvent(
   if (phase === 'start') {
     emit('aside-resize-start', detail)
 
-    if (detail.placement === 'left') {
+    if (detail.side === 'left') {
       emit('left-aside-resize-start', { expandedWidth: detail.expandedWidth })
       return
     }
@@ -33,7 +33,7 @@ export function emitAsideResizeEvent(
   if (phase === 'end') {
     emit('aside-resize-end', detail)
 
-    if (detail.placement === 'left') {
+    if (detail.side === 'left') {
       emit('left-aside-resize-end', { expandedWidth: detail.expandedWidth })
       return
     }
@@ -44,7 +44,7 @@ export function emitAsideResizeEvent(
 
   emit('aside-resize', detail)
 
-  if (detail.placement === 'left') {
+  if (detail.side === 'left') {
     emit('left-aside-resize', { expandedWidth: detail.expandedWidth })
     return
   }
