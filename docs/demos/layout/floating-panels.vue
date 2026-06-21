@@ -55,9 +55,7 @@ function updateRightAside(detail: LayoutAsideSideOpenEventDetail) {
         <div class="layout-floating-panels-demo__drawer">
           <div class="layout-floating-panels-demo__drawer-title">左侧抽屉</div>
           <div>适合放筛选、导航或补充信息。</div>
-          <TrLayout.AsideToggle placement="left" class="layout-floating-panels-demo__chip"
-            >关闭抽屉</TrLayout.AsideToggle
-          >
+          <TrLayout.AsideToggle side="left" class="layout-floating-panels-demo__chip">关闭抽屉</TrLayout.AsideToggle>
         </div>
       </template>
 
@@ -86,9 +84,7 @@ function updateRightAside(detail: LayoutAsideSideOpenEventDetail) {
         <div class="layout-floating-panels-demo__drawer">
           <div class="layout-floating-panels-demo__drawer-title">右侧抽屉</div>
           <div>点击遮罩、按 `Esc` 或按钮都可以关闭。</div>
-          <TrLayout.AsideToggle placement="right" class="layout-floating-panels-demo__chip"
-            >关闭抽屉</TrLayout.AsideToggle
-          >
+          <TrLayout.AsideToggle side="right" class="layout-floating-panels-demo__chip">关闭抽屉</TrLayout.AsideToggle>
         </div>
       </template>
     </TrLayout>

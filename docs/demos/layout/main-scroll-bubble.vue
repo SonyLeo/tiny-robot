@@ -1,13 +1,11 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { BubbleList, TrLayout } from '@opentiny/tiny-robot'
-import type { BubbleListProps, BubbleRoleConfig } from '@opentiny/tiny-robot'
+import type { BubbleListProps, BubbleRoleConfig, LayoutScrollTarget } from '@opentiny/tiny-robot'
 
 const props = defineProps<{
   centered: boolean
 }>()
-
-type LayoutScrollTarget = HTMLElement | { $el: Element | null } | null | undefined
 
 const scrollTargetRef = ref<LayoutScrollTarget>(null)
 

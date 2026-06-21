@@ -144,10 +144,10 @@ function updateDrawerRightOpen(detail: LayoutAsideSideOpenEventDetail) {
           @left-aside-open-change="handleBlockedOpen"
           @left-aside-resize="handleBlockedResize"
         >
-          <template #left-aside="{ open }">
+          <template #left-aside>
             <div class="aside-state-fixtures__panel">
-              <span data-testid="blocked-open-state">{{ open ? 'open' : 'closed' }}</span>
-              <TrLayout.AsideToggle placement="left" data-testid="blocked-toggle" />
+              <span data-testid="blocked-open-state">{{ blockedLeftAside.open ? 'open' : 'closed' }}</span>
+              <TrLayout.AsideToggle side="left" data-testid="blocked-toggle" />
             </div>
           </template>
 
@@ -168,10 +168,13 @@ function updateDrawerRightOpen(detail: LayoutAsideSideOpenEventDetail) {
           @left-aside-open-change="handleUncontrolledOpen"
           @left-aside-resize="handleUncontrolledResize"
         >
-          <template #left-aside="{ open }">
+          <template #left-aside>
             <div class="aside-state-fixtures__panel">
-              <span data-testid="uncontrolled-open-state">{{ open ? 'open' : 'closed' }}</span>
-              <TrLayout.AsideToggle placement="left" data-testid="uncontrolled-toggle" />
+              <TrLayout.AsideToggle side="left" data-testid="uncontrolled-toggle">
+                <template #default="{ isOpen }">
+                  <span data-testid="uncontrolled-open-state">{{ isOpen ? 'open' : 'closed' }}</span>
+                </template>
+              </TrLayout.AsideToggle>
               <button type="button" data-testid="uncontrolled-default-update-btn" @click="updateUncontrolledDefaults">
                 update defaults
               </button>
@@ -206,8 +209,8 @@ function updateDrawerRightOpen(detail: LayoutAsideSideOpenEventDetail) {
 
           <template #main>
             <div class="aside-state-fixtures__drawer-controls">
-              <TrLayout.AsideToggle placement="left" data-testid="drawer-left-toggle" />
-              <TrLayout.AsideToggle placement="right" data-testid="drawer-right-toggle" />
+              <TrLayout.AsideToggle side="left" data-testid="drawer-left-toggle" />
+              <TrLayout.AsideToggle side="right" data-testid="drawer-right-toggle" />
             </div>
           </template>
 
@@ -231,11 +234,14 @@ function updateDrawerRightOpen(detail: LayoutAsideSideOpenEventDetail) {
           :left-aside="undefinedLeftAside"
           @left-aside-open-change="handleUndefinedOpen"
         >
-          <template #left-aside="{ open }">
+          <template #left-aside>
             <div class="aside-state-fixtures__panel">
-              <span data-testid="undefined-open-state">{{ open ? 'open' : 'closed' }}</span>
+              <TrLayout.AsideToggle side="left" data-testid="undefined-toggle">
+                <template #default="{ isOpen }">
+                  <span data-testid="undefined-open-state">{{ isOpen ? 'open' : 'closed' }}</span>
+                </template>
+              </TrLayout.AsideToggle>
               <span data-testid="undefined-last-open">{{ undefinedOpenLastState ? 'open' : 'closed' }}</span>
-              <TrLayout.AsideToggle placement="left" data-testid="undefined-toggle" />
             </div>
           </template>
 

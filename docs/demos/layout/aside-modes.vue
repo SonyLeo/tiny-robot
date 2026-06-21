@@ -3,7 +3,12 @@ import { ref } from 'vue'
 import { TrLayout } from '@opentiny/tiny-robot'
 import type { LayoutAsideSideOpenEventDetail } from '@opentiny/tiny-robot'
 
+const leftOpen = ref(true)
 const rightOpen = ref(false)
+
+function updateLeftAside(detail: LayoutAsideSideOpenEventDetail) {
+  leftOpen.value = detail.open
+}
 
 function updateRightAside(detail: LayoutAsideSideOpenEventDetail) {
   rightOpen.value = detail.open
@@ -13,17 +18,18 @@ function updateRightAside(detail: LayoutAsideSideOpenEventDetail) {
 <template>
   <div class="layout-aside-demo">
     <TrLayout
-      :left-aside="{ defaultOpen: true, defaultExpandedWidth: 156, collapsedWidth: 56 }"
+      :left-aside="{ open: leftOpen, expandedWidth: 156, collapsedWidth: 56 }"
       :right-aside="{ mode: 'drawer', open: rightOpen }"
+      @left-aside-open-change="updateLeftAside"
       @right-aside-open-change="updateRightAside"
     >
-      <template #left-aside="{ open }">
-        <div v-if="open" class="layout-aside-demo__aside">
-          <TrLayout.AsideToggle placement="left" class="layout-aside-demo__chip">收起侧栏</TrLayout.AsideToggle>
+      <template #left-aside>
+        <div v-if="leftOpen" class="layout-aside-demo__aside">
+          <TrLayout.AsideToggle side="left" class="layout-aside-demo__chip">收起侧栏</TrLayout.AsideToggle>
           <div class="layout-aside-demo__chip">collapsedWidth: 56px</div>
         </div>
         <div v-else class="layout-aside-demo__rail">
-          <TrLayout.AsideToggle placement="left" class="layout-aside-demo__rail-chip">栏</TrLayout.AsideToggle>
+          <TrLayout.AsideToggle side="left" class="layout-aside-demo__rail-chip">栏</TrLayout.AsideToggle>
           <div class="layout-aside-demo__rail-chip">56</div>
         </div>
       </template>
@@ -43,7 +49,7 @@ function updateRightAside(detail: LayoutAsideSideOpenEventDetail) {
         <div class="layout-aside-demo__drawer layout-aside-demo__drawer-panel">
           <div>Drawer</div>
           <div>点击遮罩、按 `Esc` 或按钮关闭。</div>
-          <TrLayout.AsideToggle placement="right" class="layout-aside-demo__chip">关闭抽屉</TrLayout.AsideToggle>
+          <TrLayout.AsideToggle side="right" class="layout-aside-demo__chip">关闭抽屉</TrLayout.AsideToggle>
         </div>
       </template>
     </TrLayout>

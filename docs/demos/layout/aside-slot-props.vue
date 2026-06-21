@@ -79,46 +79,57 @@ function setLeftExpandedWidth(nextWidth: number) {
       @left-aside-resize="updateLeftAsideWidth"
       @right-aside-open-change="updateRightAsideOpen"
     >
-      <template #left-aside="slotProps">
-        <div class="layout-slot-props-demo__aside">
-          <p class="layout-slot-props-demo__summary">
-            {{ slotProps.placement }} / {{ slotProps.mode }} / {{ slotProps.open ? 'open' : 'closed' }}
-          </p>
+      <template #left-aside>
+        <div v-if="leftOpen" class="layout-slot-props-demo__aside">
+          <p class="layout-slot-props-demo__summary">left / dock / {{ leftOpen ? 'open' : 'closed' }}</p>
 
           <dl class="layout-slot-props-demo__list">
             <div class="layout-slot-props-demo__row">
               <dt>expandedWidth</dt>
-              <dd>{{ slotProps.expandedWidth ?? '-' }}</dd>
+              <dd>{{ leftExpandedWidth }}</dd>
             </div>
             <div class="layout-slot-props-demo__row">
               <dt>collapsedWidth</dt>
-              <dd>{{ slotProps.collapsedWidth ?? '-' }}</dd>
+              <dd>{{ leftAside.collapsedWidth }}</dd>
             </div>
             <div class="layout-slot-props-demo__row">
               <dt>resizable</dt>
-              <dd>{{ slotProps.resizable }}</dd>
+              <dd>{{ leftAside.resizable }}</dd>
             </div>
           </dl>
+
+          <TrLayout.AsideToggle side="left" class="layout-slot-props-demo__button">
+            <template #default="{ isOpen }">
+              {{ isOpen ? '收起侧栏' : '展开侧栏' }}
+            </template>
+          </TrLayout.AsideToggle>
+        </div>
+
+        <div v-else class="layout-slot-props-demo__rail">
+          <TrLayout.AsideToggle side="left" class="layout-slot-props-demo__button">
+            <template #default="{ isOpen }">
+              {{ isOpen ? '收起' : '展开' }}
+            </template>
+          </TrLayout.AsideToggle>
         </div>
       </template>
 
       <template #header>
-        <div class="layout-slot-props-demo__header">外层更新 leftAside / rightAside，插槽内读取当前状态。</div>
+        <div class="layout-slot-props-demo__header">外层更新 leftAside / rightAside，并通过事件回写状态。</div>
       </template>
 
       <template #main>
         <div class="layout-slot-props-demo__main">
           <p>外层控制 open 和 expandedWidth，状态变化后再传回组件。</p>
-          <p>插槽参数适合展示当前状态，也可以在插槽内部直接调用操作方法。</p>
+          <p>侧栏内部可以使用 Layout.AsideToggle，它的默认插槽会提供当前开关状态。</p>
         </div>
       </template>
 
-      <template #right-aside="slotProps">
+      <template #right-aside>
         <div class="layout-slot-props-demo__drawer">
-          <p class="layout-slot-props-demo__summary">
-            {{ slotProps.placement }} / {{ slotProps.mode }} / {{ slotProps.open ? 'open' : 'closed' }}
-          </p>
-          <p>右侧抽屉也只展示状态。</p>
+          <p class="layout-slot-props-demo__summary">right / drawer / {{ rightOpen ? 'open' : 'closed' }}</p>
+          <p>右侧抽屉由 rightAside.open 控制。</p>
+          <TrLayout.AsideToggle side="right" class="layout-slot-props-demo__button"> 关闭抽屉 </TrLayout.AsideToggle>
         </div>
       </template>
     </TrLayout>
@@ -185,6 +196,15 @@ function setLeftExpandedWidth(nextWidth: number) {
   height: 100%;
   min-height: 0;
   padding: 16px;
+  background: var(--vp-c-bg, #ffffff);
+}
+
+.layout-slot-props-demo__rail {
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  height: 100%;
+  padding: 12px;
   background: var(--vp-c-bg, #ffffff);
 }
 

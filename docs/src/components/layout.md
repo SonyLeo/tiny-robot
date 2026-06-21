@@ -50,17 +50,15 @@ outline: [1, 3]
 
 用 `leftAside` / `rightAside` 控制开关和宽度。
 
-插槽里可以读当前状态，也可以直接触发操作。
+侧栏内容通过 `left-aside` / `right-aside` 提供，插槽本身不暴露侧栏状态。
 
-由外部控制时，状态变化后要同步更新传入值。
+由外部控制时，状态变化后要同步更新传入值。侧栏内部需要切换开关时，可以使用 `Layout.AsideToggle`，它的默认插槽会提供当前开关状态。
 
 <demo
   vue="../../demos/layout/aside-slot-props.vue"
   title="状态控制"
-  description="通过 leftAside、rightAside 同步侧栏状态，并在插槽中读取当前状态。"
+  description="通过 leftAside、rightAside 和事件同步侧栏状态。"
 />
-
-插槽里可用的字段见 [LayoutAsideSlotProps](#layoutasideslotprops)。
 
 ### 宽度调整
 
@@ -152,14 +150,14 @@ outline: [1, 3]
 
 | 属性名 | 说明 | 类型 | 默认值 |
 | ------ | ---- | ---- | ------ |
-| `scrollTarget` | 真实滚动容器的元素，或对应组件实例的 ref | `HTMLElement \| ComponentPublicInstance \| null` | `-` |
+| `scrollTarget` | 真实滚动容器的元素，或对应组件实例的 ref | `LayoutScrollTarget` | `-` |
 
 <a id="layout-aside-toggle-props"></a>
 ### Layout.AsideToggle
 
 | 属性名 | 说明 | 类型 | 默认值 |
 | ------ | ---- | ---- | ------ |
-| `placement` | 控制的侧栏位置 | `'left' \| 'right'` | `-` |
+| `side` | 控制的侧栏位置 | `'left' \| 'right'` | `-` |
 
 它是一个现成的开关按钮，只能在 `Layout` 内部使用，通常放在 `left-aside` / `right-aside` 插槽中。需要自己控制侧栏内容和交互时，优先用 `left-aside` / `right-aside` 插槽。
 
@@ -170,11 +168,11 @@ outline: [1, 3]
 
 | 插槽名 | 说明 | 作用域参数 |
 | ------ | ---- | ---------- |
-| `left-aside` | 左侧栏内容 | `LayoutAsideSlotProps` |
+| `left-aside` | 左侧栏内容 | `-` |
 | `header` | 顶部区域 | `-` |
 | `main` | 主区内容 | `-` |
 | `footer` | 底部区域 | `-` |
-| `right-aside` | 右侧栏内容 | `LayoutAsideSlotProps` |
+| `right-aside` | 右侧栏内容 | `-` |
 
 ### Layout.AsideToggle
 
@@ -213,14 +211,14 @@ outline: [1, 3]
 
 | 字段 | 说明 | 类型 |
 | ---- | ---- | ---- |
-| `placement` | 当前侧栏位置，仅 `aside-open-change` 返回 | `'left' \| 'right'` |
+| `side` | 当前侧栏位置，仅 `aside-open-change` 返回 | `'left' \| 'right'` |
 | `open` | 当前是否展开 | `boolean` |
 
 #### 侧栏 resize 事件字段
 
 | 字段 | 说明 | 类型 |
 | ---- | ---- | ---- |
-| `placement` | 当前被调整的侧栏位置，仅 `aside-resize-*` 返回 | `'left' \| 'right'` |
+| `side` | 当前被调整的侧栏位置，仅 `aside-resize-*` 返回 | `'left' \| 'right'` |
 | `expandedWidth` | 当前侧栏宽度 | `number` |
 
 #### 浮层 drag 事件字段
@@ -260,7 +258,7 @@ outline: [1, 3]
 
 | 字段 | 说明 | 类型 |
 | ---- | ---- | ---- |
-| `placement` | 当前侧栏位置 | `'left' \| 'right'` |
+| `side` | 当前侧栏位置 | `'left' \| 'right'` |
 | `open` | 当前是否展开 | `boolean` |
 
 ### LayoutAsideSideOpenEventDetail
@@ -273,7 +271,7 @@ outline: [1, 3]
 
 | 字段 | 说明 | 类型 |
 | ---- | ---- | ---- |
-| `placement` | 当前侧栏位置 | `'left' \| 'right'` |
+| `side` | 当前侧栏位置 | `'left' \| 'right'` |
 | `expandedWidth` | 当前侧栏宽度 | `number` |
 
 ### LayoutAsideSideResizeEventDetail
@@ -282,22 +280,9 @@ outline: [1, 3]
 | ---- | ---- | ---- |
 | `expandedWidth` | 当前侧栏宽度 | `number` |
 
-### LayoutAsideSlotProps
+### LayoutScrollTarget
 
-| 字段 | 说明 | 类型 |
-| ---- | ---- | ---- |
-| `placement` | 侧栏位置 | `'left' \| 'right'` |
-| `mode` | 当前侧栏模式 | `'dock' \| 'drawer'` |
-| `open` | 当前是否展开 | `boolean` |
-| `expandedWidth` | 当前展开宽度 | `number` |
-| `collapsedWidth` | 收起后窄栏宽度 | `number \| undefined` |
-| `resizable` | 是否允许拖拽改宽 | `boolean` |
-| `isRail` | 当前是否处于窄栏状态 | `boolean` |
-| `isHidden` | 当前是否处于隐藏状态 | `boolean` |
-| `canResize` | 当前是否可以拖拽改宽 | `boolean` |
-| `toggle` | 切换开关 | `() => void` |
-| `setOpen` | 直接设置开关状态 | `(next: boolean) => void` |
-| `setExpandedWidth` | 直接设置展开宽度 | `(next: number) => void` |
+`HTMLElement | Pick<ComponentPublicInstance, '$el'> | null | undefined`
 
 <a id="layout-floating-fields"></a>
 ### LayoutFloatingState

@@ -9,7 +9,7 @@ export type {
   LayoutFloatingHandle,
   LayoutHarnessSnapshot,
   LayoutMode,
-  LayoutPlacement,
+  LayoutSide,
 } from './LayoutTestPage'
 
 export const test = base.extend<{ layout: LayoutTestPage }>({

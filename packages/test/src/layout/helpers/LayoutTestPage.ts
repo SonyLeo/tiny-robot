@@ -3,7 +3,7 @@ import { layoutSelectors } from '../selectors'
 
 type ScopedTarget = Page | Locator
 
-export type LayoutPlacement = 'left' | 'right'
+export type LayoutSide = 'left' | 'right'
 export type LayoutMode = 'normal' | 'floating'
 export type LayoutAsideMode = 'dock' | 'drawer'
 export type LayoutCollapseEffect = 'overlay' | 'slide'
@@ -14,7 +14,7 @@ export type LayoutFloatingPlacement = 'top-left' | 'top-right' | 'bottom-left' |
 
 export interface LayoutAsideResizeLogEntry {
   phase: LayoutEventPhase
-  placement: LayoutPlacement
+  side: LayoutSide
   expandedWidth: number
 }
 
@@ -137,16 +137,16 @@ export class LayoutTestPage {
     await expect(this.page.getByRole('heading', { level: 2, name: 'Layout 组件测试' })).toBeVisible()
   }
 
-  getAside(placement: LayoutPlacement, scope: ScopedTarget = this.page) {
-    return within(scope, placement === 'left' ? layoutSelectors.leftAside : layoutSelectors.rightAside)
+  getAside(side: LayoutSide, scope: ScopedTarget = this.page) {
+    return within(scope, side === 'left' ? layoutSelectors.leftAside : layoutSelectors.rightAside)
   }
 
-  getAsideContent(placement: LayoutPlacement, scope: ScopedTarget = this.page) {
-    return within(scope, placement === 'left' ? layoutSelectors.leftAsideContent : layoutSelectors.rightAsideContent)
+  getAsideContent(side: LayoutSide, scope: ScopedTarget = this.page) {
+    return within(scope, side === 'left' ? layoutSelectors.leftAsideContent : layoutSelectors.rightAsideContent)
   }
 
-  getResizeTrigger(placement: LayoutPlacement, scope: ScopedTarget = this.page) {
-    return within(scope, placement === 'left' ? layoutSelectors.leftResizeTrigger : layoutSelectors.rightResizeTrigger)
+  getResizeTrigger(side: LayoutSide, scope: ScopedTarget = this.page) {
+    return within(scope, side === 'left' ? layoutSelectors.leftResizeTrigger : layoutSelectors.rightResizeTrigger)
   }
 
   getFloatingResizeTrigger(handle: LayoutFloatingHandle, scope: ScopedTarget = this.surface) {
@@ -199,24 +199,24 @@ export class LayoutTestPage {
     await this.page.getByTestId(`mode-${mode}-btn`).click()
   }
 
-  async setAsideMode(placement: LayoutPlacement, mode: LayoutAsideMode) {
-    await this.page.getByTestId(`${placement}-mode-${mode}-btn`).click()
+  async setAsideMode(side: LayoutSide, mode: LayoutAsideMode) {
+    await this.page.getByTestId(`${side}-mode-${mode}-btn`).click()
   }
 
-  async toggleAside(placement: LayoutPlacement) {
-    await this.page.getByTestId(`${placement}-toggle-btn`).click()
+  async toggleAside(side: LayoutSide) {
+    await this.page.getByTestId(`${side}-toggle-btn`).click()
   }
 
-  async collapseAside(placement: LayoutPlacement) {
-    await this.page.getByTestId(`${placement}-collapse-btn`).click()
+  async collapseAside(side: LayoutSide) {
+    await this.page.getByTestId(`${side}-collapse-btn`).click()
   }
 
-  async setCollapseEffect(placement: LayoutPlacement, effect: LayoutCollapseEffect) {
-    await this.page.getByTestId(`${placement}-effect-${effect}-btn`).click()
+  async setCollapseEffect(side: LayoutSide, effect: LayoutCollapseEffect) {
+    await this.page.getByTestId(`${side}-effect-${effect}-btn`).click()
   }
 
-  async disableAsideResizable(placement: LayoutPlacement) {
-    await this.page.getByTestId(`${placement}-resizable-off-btn`).click()
+  async disableAsideResizable(side: LayoutSide) {
+    await this.page.getByTestId(`${side}-resizable-off-btn`).click()
   }
 
   async setLeftCollapsedWidthZero() {
@@ -255,12 +255,12 @@ export class LayoutTestPage {
     await expect(target).not.toHaveClass(floatingClassPattern)
   }
 
-  async expectAsideMode(placement: LayoutPlacement, mode: LayoutAsideMode, scope: ScopedTarget = this.page) {
-    await expect(this.getAside(placement, scope)).toHaveClass(new RegExp(`tr-layout__aside--${mode}`))
+  async expectAsideMode(side: LayoutSide, mode: LayoutAsideMode, scope: ScopedTarget = this.page) {
+    await expect(this.getAside(side, scope)).toHaveClass(new RegExp(`tr-layout__aside--${mode}`))
   }
 
-  async expectAsideState(placement: LayoutPlacement, state: LayoutAsideState, scope: ScopedTarget = this.page) {
-    const target = this.getAside(placement, scope)
+  async expectAsideState(side: LayoutSide, state: LayoutAsideState, scope: ScopedTarget = this.page) {
+    const target = this.getAside(side, scope)
 
     await expect
       .poll(async () =>
@@ -279,12 +279,8 @@ export class LayoutTestPage {
       .toBe(state)
   }
 
-  async expectCollapseEffect(
-    placement: LayoutPlacement,
-    effect: LayoutCollapseEffect,
-    scope: ScopedTarget = this.page,
-  ) {
-    await expect(this.getAside(placement, scope)).toHaveClass(new RegExp(`tr-layout__aside--effect-${effect}`))
+  async expectCollapseEffect(side: LayoutSide, effect: LayoutCollapseEffect, scope: ScopedTarget = this.page) {
+    await expect(this.getAside(side, scope)).toHaveClass(new RegExp(`tr-layout__aside--effect-${effect}`))
   }
 
   async expectBackdropState(state: 'open' | 'closed', scope: ScopedTarget = this.page) {
@@ -324,8 +320,8 @@ export class LayoutTestPage {
     await this.dragFloatingResizeHandle(this.getFloatingResizeTrigger(handle, scope), handle, deltaX, deltaY)
   }
 
-  async resizeAside(placement: LayoutPlacement, deltaX: number, scope: ScopedTarget = this.page) {
-    await this.dragResizeHandle(this.getResizeTrigger(placement, scope), placement, deltaX)
+  async resizeAside(side: LayoutSide, deltaX: number, scope: ScopedTarget = this.page) {
+    await this.dragResizeHandle(this.getResizeTrigger(side, scope), side, deltaX)
   }
 
   async dragBy(locator: Locator, deltaX: number, deltaY = 0) {
@@ -346,7 +342,7 @@ export class LayoutTestPage {
     await this.page.mouse.up()
   }
 
-  async dragResizeHandle(locator: Locator, side: LayoutPlacement, deltaX: number) {
+  async dragResizeHandle(locator: Locator, side: LayoutSide, deltaX: number) {
     await expect(locator).toBeVisible()
     await locator.hover()
     const box = await locator.boundingBox()

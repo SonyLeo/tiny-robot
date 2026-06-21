@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { TrLayout } from '@opentiny/tiny-robot'
+import type { LayoutScrollTarget } from '@opentiny/tiny-robot'
 
 const props = defineProps<{
   centered: boolean
 }>()
-
-type LayoutScrollTarget = HTMLElement | { $el: Element | null } | null | undefined
 
 const scrollTargetRef = ref<LayoutScrollTarget>(null)
 

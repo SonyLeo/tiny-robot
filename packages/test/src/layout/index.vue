@@ -10,12 +10,11 @@ import type {
   LayoutFloatingResizeEventDetail,
   LayoutFloatingResizeHandle,
   LayoutFloatingState,
+  LayoutScrollTarget,
 } from '@opentiny/tiny-robot'
 import AsideStateFixtures from './fixtures/AsideStateFixtures.vue'
 import FloatingStateFixtures from './fixtures/FloatingStateFixtures.vue'
 import LayoutCssVarFixtures from './fixtures/LayoutCssVarFixtures.vue'
-
-type LayoutMainScrollHost = HTMLElement | { $el: Element | null } | null | undefined
 
 interface LayoutMetrics {
   leftResizeStart: number
@@ -62,7 +61,7 @@ declare global {
 }
 
 const mode = ref<'normal' | 'floating'>('normal')
-const scrollHostRef = ref<LayoutMainScrollHost>(null)
+const scrollHostRef = ref<LayoutScrollTarget>(null)
 const leftCollapseEffect = ref<'overlay' | 'slide'>('overlay')
 const rightCollapseEffect = ref<'overlay' | 'slide'>('overlay')
 const showHeaderSlot = ref(true)
@@ -298,7 +297,7 @@ function pushFloatingResizeLog(phase: LayoutEventPhase, detail: LayoutFloatingRe
 }
 
 function handleAsideResizeStart(detail: LayoutAsideResizeEventDetail) {
-  if (detail.placement === 'left') {
+  if (detail.side === 'left') {
     metrics.value.leftResizeStart += 1
   } else {
     metrics.value.rightResizeStart += 1
@@ -312,7 +311,7 @@ function handleAsideResize(detail: LayoutAsideResizeEventDetail) {
 }
 
 function handleAsideResizeEnd(detail: LayoutAsideResizeEventDetail) {
-  if (detail.placement === 'left') {
+  if (detail.side === 'left') {
     metrics.value.leftResizeEnd += 1
     widths.value.left = detail.expandedWidth
   } else {
@@ -467,13 +466,13 @@ onBeforeUnmount(() => {
         @floating-resize="handleFloatingResize"
         @floating-resize-end="handleFloatingResizeEnd"
       >
-        <template #left-aside="{ open }">
+        <template #left-aside>
           <div v-if="showLeftAsideSlot" class="layout-demo__aside layout-demo__aside--left">
             <div class="layout-demo__aside-content" data-testid="left-aside-slot">
               <div class="layout-demo__aside-header">
-                <TrLayout.AsideToggle placement="left" data-testid="left-aside-toggle">
+                <TrLayout.AsideToggle side="left" data-testid="left-aside-toggle">
                   <template #default="{ isOpen }">
-                    <span data-testid="left-toggle-slot">{{ isOpen && open ? 'left-open' : 'left-close' }}</span>
+                    <span data-testid="left-toggle-slot">{{ isOpen ? 'left-open' : 'left-close' }}</span>
                   </template>
                 </TrLayout.AsideToggle>
               </div>
@@ -499,7 +498,7 @@ onBeforeUnmount(() => {
           <div class="layout-demo__aside layout-demo__aside--right">
             <div class="layout-demo__aside-content" data-testid="right-aside-slot">
               <div class="layout-demo__aside-header">
-                <TrLayout.AsideToggle placement="right" data-testid="right-aside-toggle" />
+                <TrLayout.AsideToggle side="right" data-testid="right-aside-toggle" />
               </div>
               <div class="layout-demo__aside-body">right aside content</div>
             </div>

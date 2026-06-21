@@ -62,7 +62,7 @@ test.describe('Layout 组件测试 - Aside', () => {
     await layout.resizeAside('left', 160)
 
     let harness = await layout.readHarness()
-    const leftLogs = harness.logs.asideResize.filter((entry) => entry.placement === 'left')
+    const leftLogs = harness.logs.asideResize.filter((entry) => entry.side === 'left')
     const leftProgressLogs = leftLogs.filter((entry) => entry.phase === 'progress')
     const leftEndLog = leftLogs.at(-1)
 
@@ -77,7 +77,7 @@ test.describe('Layout 组件测试 - Aside', () => {
     await layout.resizeAside('right', -160)
 
     harness = await layout.readHarness()
-    const rightLogs = harness.logs.asideResize.filter((entry) => entry.placement === 'right')
+    const rightLogs = harness.logs.asideResize.filter((entry) => entry.side === 'right')
     const rightProgressLogs = rightLogs.filter((entry) => entry.phase === 'progress')
     const rightEndLog = rightLogs.at(-1)
 
