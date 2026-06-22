@@ -2,8 +2,8 @@
 import { useWindowSize } from '@vueuse/core'
 import { computed, shallowRef, useAttrs, watch, type CSSProperties } from 'vue'
 import type {
-  LayoutFloatingDragEventDetail,
-  LayoutFloatingResizeEventDetail,
+  LayoutFloatingDragDetail,
+  LayoutFloatingResizeDetail,
   LayoutFloatingResizeHandle,
   LayoutFloatingState,
   LayoutMode,
@@ -44,12 +44,12 @@ const props = defineProps<LayoutSurfaceProps>()
 const emit = defineEmits<{
   'floating-state-initialize': [value: LayoutFloatingState]
   'floating-state-change': [value: LayoutFloatingState]
-  'floating-drag-start': [detail: LayoutFloatingDragEventDetail]
-  'floating-drag': [detail: LayoutFloatingDragEventDetail]
-  'floating-drag-end': [detail: LayoutFloatingDragEventDetail]
-  'floating-resize-start': [detail: LayoutFloatingResizeEventDetail]
-  'floating-resize': [detail: LayoutFloatingResizeEventDetail]
-  'floating-resize-end': [detail: LayoutFloatingResizeEventDetail]
+  'floating-drag-start': [detail: LayoutFloatingDragDetail]
+  'floating-drag': [detail: LayoutFloatingDragDetail]
+  'floating-drag-end': [detail: LayoutFloatingDragDetail]
+  'floating-resize-start': [detail: LayoutFloatingResizeDetail]
+  'floating-resize': [detail: LayoutFloatingResizeDetail]
+  'floating-resize-end': [detail: LayoutFloatingResizeDetail]
 }>()
 
 const attrs = useAttrs()
@@ -106,7 +106,7 @@ function toFloatingState(rect: LayoutFloatingRect, normalizeCenter = false): Lay
 function toFloatingResizeDetail(
   handle: LayoutFloatingResizeHandle,
   rect: LayoutFloatingRect,
-): LayoutFloatingResizeEventDetail {
+): LayoutFloatingResizeDetail {
   return {
     ...toFloatingState(rect, true),
     handle,

@@ -1,8 +1,8 @@
-import type { LayoutAsideOpenEventDetail, LayoutAsideResizeEventDetail, LayoutEmits } from '../index.type'
+import type { LayoutAsideOpenDetail, LayoutAsideResizeDetail, LayoutEmits } from '../index.type'
 
 export type LayoutEmitFn = <K extends keyof LayoutEmits>(event: K, ...args: LayoutEmits[K]) => void
 
-function emitSideOpenChange(emit: LayoutEmitFn, detail: LayoutAsideOpenEventDetail): void {
+function emitSideOpenChange(emit: LayoutEmitFn, detail: LayoutAsideOpenDetail): void {
   if (detail.side === 'left') {
     emit('left-aside-open-change', { open: detail.open })
     return
@@ -11,7 +11,7 @@ function emitSideOpenChange(emit: LayoutEmitFn, detail: LayoutAsideOpenEventDeta
   emit('right-aside-open-change', { open: detail.open })
 }
 
-export function emitAsideOpenChange(emit: LayoutEmitFn, detail: LayoutAsideOpenEventDetail): void {
+export function emitAsideOpenChange(emit: LayoutEmitFn, detail: LayoutAsideOpenDetail): void {
   emit('aside-open-change', detail)
   emitSideOpenChange(emit, detail)
 }
@@ -19,7 +19,7 @@ export function emitAsideOpenChange(emit: LayoutEmitFn, detail: LayoutAsideOpenE
 function emitSideResizeEvent(
   emit: LayoutEmitFn,
   phase: 'start' | 'progress' | 'end',
-  detail: LayoutAsideResizeEventDetail,
+  detail: LayoutAsideResizeDetail,
 ): void {
   if (detail.side === 'left') {
     if (phase === 'start') {
@@ -52,7 +52,7 @@ function emitSideResizeEvent(
 export function emitAsideResizeEvent(
   emit: LayoutEmitFn,
   phase: 'start' | 'progress' | 'end',
-  detail: LayoutAsideResizeEventDetail,
+  detail: LayoutAsideResizeDetail,
 ): void {
   if (phase === 'start') {
     emit('aside-resize-start', detail)

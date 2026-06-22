@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, toRefs } from 'vue'
 import AsideResizeTrigger from './AsideResizeTrigger.vue'
-import type { LayoutAsideCollapseEffect, LayoutAsideResizeEventDetail, LayoutSide } from '../index.type'
+import type { LayoutAsideCollapseEffect, LayoutAsideResizeDetail, LayoutSide } from '../index.type'
 
 defineOptions({
   name: 'LayoutAsideContent',
@@ -38,9 +38,9 @@ const {
 
 const emit = defineEmits<{
   (event: 'width-change', value: number): void
-  (event: 'aside-resize-start', value: LayoutAsideResizeEventDetail): void
-  (event: 'aside-resize', value: LayoutAsideResizeEventDetail): void
-  (event: 'aside-resize-end', value: LayoutAsideResizeEventDetail): void
+  (event: 'aside-resize-start', value: LayoutAsideResizeDetail): void
+  (event: 'aside-resize', value: LayoutAsideResizeDetail): void
+  (event: 'aside-resize-end', value: LayoutAsideResizeDetail): void
 }>()
 
 const asideClass = computed(() => [

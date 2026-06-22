@@ -27,7 +27,7 @@ outline: [1, 3]
 - `dock`：占据页面空间
 - `drawer`：覆盖在内容上方
 
-`drawer` 的宽度通过 `--tr-layout-drawer-width` 控制。
+`drawer` 的宽度优先通过 `--tr-layout-drawer-width` 控制，未设置时回退到侧栏展开宽度。
 
 <demo vue="../../demos/layout/aside-modes.vue" title="显示模式" description="左侧占据页面空间，右侧覆盖在内容上方。" />
 
@@ -50,9 +50,9 @@ outline: [1, 3]
 
 用 `leftAside` / `rightAside` 控制开关和宽度。
 
-侧栏内容通过 `left-aside` / `right-aside` 提供，插槽本身不暴露侧栏状态。
+侧栏内容通过 `left-aside` / `right-aside` 提供。
 
-由外部控制时，状态变化后要同步更新传入值。侧栏内部需要切换开关时，可以使用 `Layout.AsideToggle`，它的默认插槽会提供当前开关状态。
+受控用法下，状态变化后需要同步回写。侧栏内部切换可使用 `Layout.AsideToggle`，默认插槽提供 `{ isOpen }`。
 
 <demo
   vue="../../demos/layout/aside-slot-props.vue"
@@ -133,38 +133,34 @@ outline: [1, 3]
 
 ## Props
 
-<a id="layout-props"></a>
-### Layout
+### Layout {#layout-props}
 
 | 属性名 | 说明 | 类型 | 默认值 |
 | ------ | ---- | ---- | ------ |
 | `mode` | 布局模式；`normal` 参与普通布局，`floating` 会脱离普通布局，不占原来的位置空间 | `'normal' \| 'floating'` | `'normal'` |
-| `leftAside` | 左侧栏配置 | `LayoutAsideProps` | `-` |
-| `rightAside` | 右侧栏配置 | `LayoutAsideProps` | `-` |
-| `floatingState` | 受控浮层状态，需配合 `update:floatingState` 回写 | `LayoutFloatingState` | `-` |
-| `defaultFloatingState` | 非受控浮层初始状态，仅首次挂载读取一次 | `LayoutFloatingState` | `-` |
-| `floatingOptions` | 浮层拖拽、缩放和尺寸约束配置 | `LayoutFloatingOptions` | `-` |
+| `leftAside` | 左侧栏配置 | [`LayoutAsideProps`](#layout-aside-props) | `-` |
+| `rightAside` | 右侧栏配置 | [`LayoutAsideProps`](#layout-aside-props) | `-` |
+| `floatingState` | 受控浮层状态，需配合 `update:floatingState` 回写 | [`LayoutFloatingState`](#layout-floating-state) | `-` |
+| `defaultFloatingState` | 非受控浮层初始状态，仅首次挂载读取一次 | [`LayoutFloatingState`](#layout-floating-state) | `-` |
+| `floatingOptions` | 浮层拖拽、缩放和尺寸约束配置 | [`LayoutFloatingOptions`](#layout-floating-options) | `-` |
 
-<a id="layout-proxy-scrollbar-props"></a>
-### Layout.ProxyScrollbar
+### Layout.ProxyScrollbar {#layout-proxy-scrollbar-props}
 
 | 属性名 | 说明 | 类型 | 默认值 |
 | ------ | ---- | ---- | ------ |
-| `scrollTarget` | 真实滚动容器的元素，或对应组件实例的 ref | `LayoutScrollTarget` | `-` |
+| `scrollTarget` | 真实滚动容器的元素，或对应组件实例的 ref | [`LayoutScrollTarget`](#layout-scroll-target) | `-` |
 
-<a id="layout-aside-toggle-props"></a>
-### Layout.AsideToggle
+### Layout.AsideToggle {#layout-aside-toggle-props}
 
 | 属性名 | 说明 | 类型 | 默认值 |
 | ------ | ---- | ---- | ------ |
 | `side` | 控制的侧栏位置 | `'left' \| 'right'` | `-` |
 
-它是一个现成的开关按钮，只能在 `Layout` 内部使用，通常放在 `left-aside` / `right-aside` 插槽中。需要自己控制侧栏内容和交互时，优先用 `left-aside` / `right-aside` 插槽。
+它是一个现成的开关按钮，只能在 `Layout` 内部使用，通常放在 `left-aside` / `right-aside` 插槽中。
 
 ## Slots
 
-<a id="layout-slots"></a>
-### Layout
+### Layout {#layout-slots}
 
 | 插槽名 | 说明 | 作用域参数 |
 | ------ | ---- | ---------- |
@@ -182,110 +178,78 @@ outline: [1, 3]
 
 ## Events
 
-<a id="layout-layout-events"></a>
-### Layout
+### Layout {#layout-layout-events}
 
 | 事件名 | 说明 | 回调参数 |
 | ------ | ---- | -------- |
-| `update:floatingState` | 浮层位置或尺寸变化 | `(value: LayoutFloatingState)` |
-| `aside-open-change` | 侧栏开关变化 | `(detail: LayoutAsideOpenEventDetail)` |
-| `left-aside-open-change` | 左侧栏开关变化 | `(detail: LayoutAsideSideOpenEventDetail)` |
-| `right-aside-open-change` | 右侧栏开关变化 | `(detail: LayoutAsideSideOpenEventDetail)` |
-| `aside-resize-start` | 开始调整侧栏宽度 | `(detail: LayoutAsideResizeEventDetail)` |
-| `aside-resize` | 调整侧栏宽度时持续触发 | `(detail: LayoutAsideResizeEventDetail)` |
-| `aside-resize-end` | 结束调整侧栏宽度 | `(detail: LayoutAsideResizeEventDetail)` |
-| `left-aside-resize-start` | 开始调整左侧栏宽度 | `(detail: LayoutAsideSideResizeEventDetail)` |
-| `left-aside-resize` | 调整左侧栏宽度时持续触发 | `(detail: LayoutAsideSideResizeEventDetail)` |
-| `left-aside-resize-end` | 结束调整左侧栏宽度 | `(detail: LayoutAsideSideResizeEventDetail)` |
-| `right-aside-resize-start` | 开始调整右侧栏宽度 | `(detail: LayoutAsideSideResizeEventDetail)` |
-| `right-aside-resize` | 调整右侧栏宽度时持续触发 | `(detail: LayoutAsideSideResizeEventDetail)` |
-| `right-aside-resize-end` | 结束调整右侧栏宽度 | `(detail: LayoutAsideSideResizeEventDetail)` |
-| `floating-drag-start` | 开始拖动浮层 | `(detail: LayoutFloatingDragEventDetail)` |
-| `floating-drag` | 拖动浮层时持续触发 | `(detail: LayoutFloatingDragEventDetail)` |
-| `floating-drag-end` | 结束拖动浮层 | `(detail: LayoutFloatingDragEventDetail)` |
-| `floating-resize-start` | 开始调整浮层尺寸 | `(detail: LayoutFloatingResizeEventDetail)` |
-| `floating-resize` | 调整浮层尺寸时持续触发 | `(detail: LayoutFloatingResizeEventDetail)` |
-| `floating-resize-end` | 结束调整浮层尺寸 | `(detail: LayoutFloatingResizeEventDetail)` |
+| `update:floatingState` | 浮层位置或尺寸变化 | (value: [`LayoutFloatingState`](#layout-floating-state)) |
+| `aside-open-change` | 侧栏开关变化 | (detail: [`LayoutAsideOpenDetail`](#layout-aside-open-detail)) |
+| `left-aside-open-change` | 左侧栏开关变化 | (detail: [`LayoutAsideOpenValue`](#layout-aside-open-value)) |
+| `right-aside-open-change` | 右侧栏开关变化 | (detail: [`LayoutAsideOpenValue`](#layout-aside-open-value)) |
+| `aside-resize-start` | 开始调整侧栏宽度 | (detail: [`LayoutAsideResizeDetail`](#layout-aside-resize-detail)) |
+| `aside-resize` | 调整侧栏宽度时持续触发 | (detail: [`LayoutAsideResizeDetail`](#layout-aside-resize-detail)) |
+| `aside-resize-end` | 结束调整侧栏宽度 | (detail: [`LayoutAsideResizeDetail`](#layout-aside-resize-detail)) |
+| `left-aside-resize-start` | 开始调整左侧栏宽度 | (detail: [`LayoutAsideResizeValue`](#layout-aside-resize-value)) |
+| `left-aside-resize` | 调整左侧栏宽度时持续触发 | (detail: [`LayoutAsideResizeValue`](#layout-aside-resize-value)) |
+| `left-aside-resize-end` | 结束调整左侧栏宽度 | (detail: [`LayoutAsideResizeValue`](#layout-aside-resize-value)) |
+| `right-aside-resize-start` | 开始调整右侧栏宽度 | (detail: [`LayoutAsideResizeValue`](#layout-aside-resize-value)) |
+| `right-aside-resize` | 调整右侧栏宽度时持续触发 | (detail: [`LayoutAsideResizeValue`](#layout-aside-resize-value)) |
+| `right-aside-resize-end` | 结束调整右侧栏宽度 | (detail: [`LayoutAsideResizeValue`](#layout-aside-resize-value)) |
+| `floating-drag-start` | 开始拖动浮层 | (detail: [`LayoutFloatingDragDetail`](#layout-floating-drag-detail)) |
+| `floating-drag` | 拖动浮层时持续触发 | (detail: [`LayoutFloatingDragDetail`](#layout-floating-drag-detail)) |
+| `floating-drag-end` | 结束拖动浮层 | (detail: [`LayoutFloatingDragDetail`](#layout-floating-drag-detail)) |
+| `floating-resize-start` | 开始调整浮层尺寸 | (detail: [`LayoutFloatingResizeDetail`](#layout-floating-resize-detail)) |
+| `floating-resize` | 调整浮层尺寸时持续触发 | (detail: [`LayoutFloatingResizeDetail`](#layout-floating-resize-detail)) |
+| `floating-resize-end` | 结束调整浮层尺寸 | (detail: [`LayoutFloatingResizeDetail`](#layout-floating-resize-detail)) |
 
-#### 侧栏 open 事件字段
+## Types {#types}
 
-| 字段 | 说明 | 类型 |
-| ---- | ---- | ---- |
-| `side` | 当前侧栏位置，仅 `aside-open-change` 返回 | `'left' \| 'right'` |
-| `open` | 当前是否展开 | `boolean` |
-
-#### 侧栏 resize 事件字段
-
-| 字段 | 说明 | 类型 |
-| ---- | ---- | ---- |
-| `side` | 当前被调整的侧栏位置，仅 `aside-resize-*` 返回 | `'left' \| 'right'` |
-| `expandedWidth` | 当前侧栏宽度 | `number` |
-
-#### 浮层 drag 事件字段
-
-`floating-drag-start` / `floating-drag` / `floating-drag-end` 会返回当前浮层的位置和大小。
-
-#### 浮层 resize 事件字段
-
-| 字段 | 说明 | 类型 |
-| ---- | ---- | ---- |
-| `handle` | 当前拖动的边或角 | `'s' \| 'e' \| 'w' \| 'ne' \| 'nw' \| 'se' \| 'sw'` |
-| `placement` | 当前锚点位置 | `'top-left' \| 'top-right' \| 'bottom-left' \| 'bottom-right' \| 'center'` |
-| `offsetX` | 横向偏移；`placement` 为 `center` 时不生效 | `number` |
-| `offsetY` | 纵向偏移；`placement` 为 `center` 时不生效 | `number` |
-| `width` | 当前宽度 | `number` |
-| `height` | 当前高度 | `number` |
-
-<a id="types"></a>
-## Types
-
-### LayoutAsideProps
+### LayoutAsideProps {#layout-aside-props}
 
 | 字段 | 说明 | 类型 | 默认值 |
 | ---- | ---- | ---- | ------ |
 | `mode` | 侧栏模式 | `'dock' \| 'drawer'` | `'dock'` |
 | `open` | 受控开关状态 | `boolean` | `-` |
 | `defaultOpen` | 非受控初始开关状态 | `boolean` | `left: true` / `right: false` |
-| `expandedWidth` | 受控展开宽度，仅 `dock` 生效 | `number` | `-` |
-| `defaultExpandedWidth` | 非受控初始展开宽度，仅 `dock` 生效 | `number` | `-` |
-| `minExpandedWidth` | 最小展开宽度，仅 `dock` 生效 | `number` | `left: 200` / `right: 240` |
-| `maxExpandedWidth` | 最大展开宽度，仅 `dock` 生效 | `number` | `left: 560` / `right: 640` |
+| `expandedWidth` | 受控展开宽度；`drawer` 未设置 `--tr-layout-drawer-width` 时会回退使用该宽度 | `number` | `-` |
+| `defaultExpandedWidth` | 非受控初始展开宽度；`drawer` 宽度回退值 | `number` | `left: 300` / `right: 320` |
+| `minExpandedWidth` | 最小展开宽度边界 | `number` | `left: 200` / `right: 240` |
+| `maxExpandedWidth` | 最大展开宽度边界 | `number` | `left: 560` / `right: 640` |
 | `collapsedWidth` | 收起后保留的窄栏宽度，仅 `dock` 生效 | `number` | `0` |
 | `collapseEffect` | `dock` 收起到窄栏时的内容动画 | `'overlay' \| 'slide'` | `'overlay'` |
 | `resizable` | 是否允许拖拽改宽，仅 `dock` 生效 | `boolean` | `false` |
 
-### LayoutAsideOpenEventDetail
+### LayoutAsideOpenDetail {#layout-aside-open-detail}
 
 | 字段 | 说明 | 类型 |
 | ---- | ---- | ---- |
 | `side` | 当前侧栏位置 | `'left' \| 'right'` |
 | `open` | 当前是否展开 | `boolean` |
 
-### LayoutAsideSideOpenEventDetail
+### LayoutAsideOpenValue {#layout-aside-open-value}
 
 | 字段 | 说明 | 类型 |
 | ---- | ---- | ---- |
 | `open` | 当前是否展开 | `boolean` |
 
-### LayoutAsideResizeEventDetail
+### LayoutAsideResizeDetail {#layout-aside-resize-detail}
 
 | 字段 | 说明 | 类型 |
 | ---- | ---- | ---- |
 | `side` | 当前侧栏位置 | `'left' \| 'right'` |
 | `expandedWidth` | 当前侧栏宽度 | `number` |
 
-### LayoutAsideSideResizeEventDetail
+### LayoutAsideResizeValue {#layout-aside-resize-value}
 
 | 字段 | 说明 | 类型 |
 | ---- | ---- | ---- |
 | `expandedWidth` | 当前侧栏宽度 | `number` |
 
-### LayoutScrollTarget
+### LayoutScrollTarget {#layout-scroll-target}
 
 `HTMLElement | Pick<ComponentPublicInstance, '$el'> | null | undefined`
 
-<a id="layout-floating-fields"></a>
-### LayoutFloatingState
+### LayoutFloatingState {#layout-floating-state}
 
 | 字段 | 说明 | 类型 | 默认值 |
 | ---- | ---- | ---- | ------ |
@@ -295,7 +259,7 @@ outline: [1, 3]
 | `width` | 浮层宽度；非受控时表示初始值，受控时表示当前值 | `number` | `420` |
 | `height` | 浮层高度；非受控时表示初始值，受控时表示当前值 | `number` | `560` |
 
-### LayoutFloatingOptions
+### LayoutFloatingOptions {#layout-floating-options}
 
 | 字段 | 说明 | 类型 | 默认值 |
 | ---- | ---- | ---- | ------ |
@@ -306,10 +270,21 @@ outline: [1, 3]
 | `minHeight` | 最小高度 | `number` | `240` |
 | `maxHeight` | 最大高度 | `number` | `视口高度` |
 
+### LayoutFloatingDragDetail {#layout-floating-drag-detail}
+
+与 [`LayoutFloatingState`](#layout-floating-state) 一致。
+
+### LayoutFloatingResizeDetail {#layout-floating-resize-detail}
+
+在 [`LayoutFloatingState`](#layout-floating-state) 基础上增加以下字段：
+
+| 字段 | 说明 | 类型 |
+| ---- | ---- | ---- |
+| `handle` | 当前拖动的边或角 | `'s' \| 'e' \| 'w' \| 'ne' \| 'nw' \| 'se' \| 'sw'` |
+
 ## CSS 变量
 
-<a id="layout-css-basics"></a>
-### 布局基础
+### 布局基础 {#layout-css-basics}
 
 | 变量名 | 说明 |
 | ------ | ---- |
@@ -327,8 +302,7 @@ outline: [1, 3]
 | `--tr-layout-floating-shadow` | 浮层阴影 |
 | `--tr-layout-floating-z-index` | 浮层层级 |
 
-<a id="layout-css-content"></a>
-### 内容与交互
+### 内容与交互 {#layout-css-content}
 
 | 变量名 | 说明 |
 | ------ | ---- |

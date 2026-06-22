@@ -25,27 +25,27 @@ export interface LayoutFloatingOptions {
 
 export type LayoutFloatingResizeHandle = 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw'
 
-export interface LayoutAsideOpenEventDetail {
+export interface LayoutAsideOpenDetail {
   side: LayoutSide
   open: boolean
 }
 
-export interface LayoutAsideSideOpenEventDetail {
+export interface LayoutAsideOpenValue {
   open: boolean
 }
 
-export interface LayoutAsideResizeEventDetail {
+export interface LayoutAsideResizeDetail {
   side: LayoutSide
   expandedWidth: number
 }
 
-export interface LayoutAsideSideResizeEventDetail {
+export interface LayoutAsideResizeValue {
   expandedWidth: number
 }
 
-export type LayoutFloatingDragEventDetail = LayoutFloatingState
+export type LayoutFloatingDragDetail = LayoutFloatingState
 
-export type LayoutFloatingResizeEventDetail = LayoutFloatingState & {
+export type LayoutFloatingResizeDetail = LayoutFloatingState & {
   handle: LayoutFloatingResizeHandle
 }
 
@@ -103,25 +103,25 @@ export interface LayoutAsideToggleProps {
 
 export interface LayoutEmits {
   'update:floatingState': [value: LayoutFloatingState]
-  'floating-drag-start': [detail: LayoutFloatingDragEventDetail]
-  'floating-drag': [detail: LayoutFloatingDragEventDetail]
-  'floating-drag-end': [detail: LayoutFloatingDragEventDetail]
-  'floating-resize-start': [detail: LayoutFloatingResizeEventDetail]
-  'floating-resize': [detail: LayoutFloatingResizeEventDetail]
-  'floating-resize-end': [detail: LayoutFloatingResizeEventDetail]
+  'floating-drag-start': [detail: LayoutFloatingDragDetail]
+  'floating-drag': [detail: LayoutFloatingDragDetail]
+  'floating-drag-end': [detail: LayoutFloatingDragDetail]
+  'floating-resize-start': [detail: LayoutFloatingResizeDetail]
+  'floating-resize': [detail: LayoutFloatingResizeDetail]
+  'floating-resize-end': [detail: LayoutFloatingResizeDetail]
 
-  'aside-open-change': [detail: LayoutAsideOpenEventDetail]
-  'aside-resize-start': [detail: LayoutAsideResizeEventDetail]
-  'aside-resize': [detail: LayoutAsideResizeEventDetail]
-  'aside-resize-end': [detail: LayoutAsideResizeEventDetail]
-  'left-aside-open-change': [detail: LayoutAsideSideOpenEventDetail]
-  'left-aside-resize-start': [detail: LayoutAsideSideResizeEventDetail]
-  'left-aside-resize': [detail: LayoutAsideSideResizeEventDetail]
-  'left-aside-resize-end': [detail: LayoutAsideSideResizeEventDetail]
-  'right-aside-open-change': [detail: LayoutAsideSideOpenEventDetail]
-  'right-aside-resize-start': [detail: LayoutAsideSideResizeEventDetail]
-  'right-aside-resize': [detail: LayoutAsideSideResizeEventDetail]
-  'right-aside-resize-end': [detail: LayoutAsideSideResizeEventDetail]
+  'aside-open-change': [detail: LayoutAsideOpenDetail]
+  'aside-resize-start': [detail: LayoutAsideResizeDetail]
+  'aside-resize': [detail: LayoutAsideResizeDetail]
+  'aside-resize-end': [detail: LayoutAsideResizeDetail]
+  'left-aside-open-change': [detail: LayoutAsideOpenValue]
+  'left-aside-resize-start': [detail: LayoutAsideResizeValue]
+  'left-aside-resize': [detail: LayoutAsideResizeValue]
+  'left-aside-resize-end': [detail: LayoutAsideResizeValue]
+  'right-aside-open-change': [detail: LayoutAsideOpenValue]
+  'right-aside-resize-start': [detail: LayoutAsideResizeValue]
+  'right-aside-resize': [detail: LayoutAsideResizeValue]
+  'right-aside-resize-end': [detail: LayoutAsideResizeValue]
 }
 
 export interface LayoutSlots {

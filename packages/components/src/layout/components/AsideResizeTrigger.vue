@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { usePointerDragSession } from '../composables/usePointerDragSession'
-import type { LayoutAsideResizeEventDetail, LayoutSide } from '../index.type'
+import type { LayoutAsideResizeDetail, LayoutSide } from '../index.type'
 import { resolveCssLengthToPx } from '../utils/cssLength'
 import { lockBodyInteraction, restoreBodyInteraction, type BodyInteractionState } from '../utils/domInteraction'
 import { getLayoutAsideElement, getLayoutRootElement, isHTMLElement } from '../utils/layoutElements'
@@ -22,9 +22,9 @@ const props = defineProps<LayoutAsideResizeTriggerProps>()
 
 const emit = defineEmits<{
   (event: 'width-change', value: number): void
-  (event: 'aside-resize-start', value: LayoutAsideResizeEventDetail): void
-  (event: 'aside-resize', value: LayoutAsideResizeEventDetail): void
-  (event: 'aside-resize-end', value: LayoutAsideResizeEventDetail): void
+  (event: 'aside-resize-start', value: LayoutAsideResizeDetail): void
+  (event: 'aside-resize', value: LayoutAsideResizeDetail): void
+  (event: 'aside-resize-end', value: LayoutAsideResizeDetail): void
 }>()
 
 interface ResizeState {

@@ -5,7 +5,7 @@ import AsideContent from './components/AsideContent.vue'
 import LayoutSurface from './components/LayoutSurface.vue'
 import { provideLayoutContext } from './composables/useLayoutContext'
 import { createLayoutState } from './composables/useLayoutRootState'
-import type { LayoutAsideResizeEventDetail, LayoutEmits, LayoutProps, LayoutSlots } from './index.type'
+import type { LayoutAsideResizeDetail, LayoutEmits, LayoutProps, LayoutSlots } from './index.type'
 import type { LayoutPanel } from './internal.type'
 import { toPx } from './utils/cssLength'
 import { emitAsideResizeEvent } from './utils/asideEventEmitters'
@@ -77,16 +77,16 @@ provideLayoutContext({
 
 const isAsideResizing = ref(false)
 
-function onAsideResizeStart(detail: LayoutAsideResizeEventDetail): void {
+function onAsideResizeStart(detail: LayoutAsideResizeDetail): void {
   isAsideResizing.value = true
   emitAsideResizeEvent(emit, 'start', detail)
 }
 
-function onAsideResize(detail: LayoutAsideResizeEventDetail): void {
+function onAsideResize(detail: LayoutAsideResizeDetail): void {
   emitAsideResizeEvent(emit, 'progress', detail)
 }
 
-function onAsideResizeEnd(detail: LayoutAsideResizeEventDetail): void {
+function onAsideResizeEnd(detail: LayoutAsideResizeDetail): void {
   isAsideResizing.value = false
   emitAsideResizeEvent(emit, 'end', detail)
 }
