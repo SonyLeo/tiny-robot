@@ -12,7 +12,7 @@ import {
 import { usePointerDragSession } from './composables/usePointerDragSession'
 import type { LayoutProxyScrollbarProps, LayoutScrollTarget } from './index.type'
 import { lockBodyInteraction, restoreBodyInteraction, type BodyInteractionState } from './utils/domInteraction'
-import { clamp } from './utils/math'
+import { clamp } from './utils/number'
 
 interface ScrollMetrics {
   clientHeight: number

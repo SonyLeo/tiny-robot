@@ -1,14 +1,14 @@
 import { computed } from 'vue'
 import type { LayoutAsideProps, LayoutFloatingState, LayoutSide, LayoutProps } from '../index.type'
-import type { LayoutFloatingContext, LayoutPanelContext, LayoutResolvedFloating, LayoutState } from '../internal.type'
-import { clamp } from '../utils/math'
+import type { LayoutFloatingContext, LayoutPanel, LayoutResolvedFloating, LayoutState } from '../internal.type'
+import { clamp } from '../utils/number'
 import {
   getDefaultAsideExpandedWidth,
   getDefaultAsideMaxWidth,
   getDefaultAsideMinWidth,
   getDefaultAsideOpen,
-} from '../utils/asideDefaults'
-import { emitAsideOpenChange, type LayoutEmitFn } from '../utils/emitAsideEvents'
+} from '../utils/asidePresets'
+import { emitAsideOpenChange, type LayoutEmitFn } from '../utils/asideEventEmitters'
 import { useControllableState } from '../../shared/composables/useControllableState'
 
 function isFloatingStateEqual(left: LayoutFloatingState | undefined, right: LayoutFloatingState | undefined): boolean {
@@ -25,11 +25,11 @@ function resolveFiniteNumber(value: number | undefined, fallback: number): numbe
   return value === undefined || !Number.isFinite(value) ? fallback : value
 }
 
-function createPanelContext(
+function createAsidePanel(
   side: LayoutSide,
   aside: () => LayoutAsideProps | undefined,
   emit: LayoutEmitFn,
-): LayoutPanelContext {
+): LayoutPanel {
   const asideValue = computed(() => aside())
   const layoutMode = computed(() => asideValue.value?.mode ?? 'dock')
   const collapsedWidth = computed(() => resolveFiniteNumber(asideValue.value?.collapsedWidth, 0))
@@ -86,29 +86,19 @@ function createPanelContext(
   }
 
   return {
-    state: {
-      side,
-      layoutMode,
-      isOpen: resolvedOpen,
-      width: resolvedWidth,
-      collapsedWidth,
-      collapseEffect,
-      minWidth,
-      maxWidth,
-      resizable,
-      isDock,
-      isDrawer,
-      isRail,
-      isHidden,
-      canResize,
-    },
-    actions: {
-      open: () => setOpen(true),
-      close: () => setOpen(false),
-      toggle: () => setOpen(!resolvedOpen.value),
-      setOpen,
-      setWidth,
-    },
+    isOpen: resolvedOpen,
+    width: resolvedWidth,
+    collapsedWidth,
+    collapseEffect,
+    minWidth,
+    maxWidth,
+    isDock,
+    isDrawer,
+    isRail,
+    isHidden,
+    canResize,
+    setOpen,
+    setWidth,
   }
 }
 
@@ -161,8 +151,8 @@ export function createLayoutState(props: LayoutProps, emit: LayoutEmitFn): Layou
   }
 
   return {
-    leftPanel: createPanelContext('left', () => props.leftAside, emit),
-    rightPanel: createPanelContext('right', () => props.rightAside, emit),
+    leftPanel: createAsidePanel('left', () => props.leftAside, emit),
+    rightPanel: createAsidePanel('right', () => props.rightAside, emit),
     floating,
   }
 }

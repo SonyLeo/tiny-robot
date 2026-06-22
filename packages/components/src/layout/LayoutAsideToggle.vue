@@ -9,11 +9,10 @@ defineOptions({
 
 const props = defineProps<LayoutAsideToggleProps>()
 
-const layout = useLayoutContext()
-const panel = computed(() => (props.side === 'left' ? layout.left : layout.right))
+const panel = useLayoutContext()[props.side]
 
 const slotProps = computed(() => ({
-  isOpen: panel.value.isOpen.value,
+  isOpen: panel.isOpen.value,
 }))
 
 const fallbackTexts = {
@@ -29,7 +28,7 @@ const fallbackTexts = {
 
 const fallbackText = computed(() => {
   const text = fallbackTexts[props.side]
-  return panel.value.isOpen.value ? text.expanded : text.collapsed
+  return panel.isOpen.value ? text.expanded : text.collapsed
 })
 </script>
 

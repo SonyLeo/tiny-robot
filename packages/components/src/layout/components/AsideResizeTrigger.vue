@@ -4,8 +4,8 @@ import { usePointerDragSession } from '../composables/usePointerDragSession'
 import type { LayoutAsideResizeEventDetail, LayoutSide } from '../index.type'
 import { resolveCssLengthToPx } from '../utils/cssLength'
 import { lockBodyInteraction, restoreBodyInteraction, type BodyInteractionState } from '../utils/domInteraction'
-import { getLayoutAsideElement, getLayoutRootElement, isHTMLElement } from '../utils/layoutDom'
-import { clamp } from '../utils/math'
+import { getLayoutAsideElement, getLayoutRootElement, isHTMLElement } from '../utils/layoutElements'
+import { clamp } from '../utils/number'
 
 defineOptions({
   name: 'LayoutAsideResizeTrigger',
@@ -70,7 +70,10 @@ const { activeSession: activeResize, startSession } = usePointerDragSession<Resi
     }
 
     restoreBodyInteraction(state.handleEl.ownerDocument.body, state.bodyState)
-    emitResizeEnd(state.side, state.currentWidth)
+    emit('aside-resize-end', {
+      side: props.side,
+      expandedWidth: state.currentWidth,
+    })
   },
 })
 const isDragging = computed(() => activeResize.value?.side === props.side)
@@ -80,28 +83,6 @@ const triggerClass = computed(() => [
     'is-dragging': isDragging.value,
   },
 ])
-
-function emitResizeStart(side: LayoutSide, expandedWidth: number): void {
-  emit('aside-resize-start', {
-    side,
-    expandedWidth,
-  })
-}
-
-function emitWidthChange(side: LayoutSide, expandedWidth: number): void {
-  emit('width-change', expandedWidth)
-  emit('aside-resize', {
-    side,
-    expandedWidth,
-  })
-}
-
-function emitResizeEnd(side: LayoutSide, expandedWidth: number): void {
-  emit('aside-resize-end', {
-    side,
-    expandedWidth,
-  })
-}
 
 function resolveResizeElements(event: PointerEvent): ResizeElements | null {
   const handleEl = isHTMLElement(event.currentTarget) ? event.currentTarget : null
@@ -197,7 +178,11 @@ function queueWidthChange(nextWidth: number): void {
       return
     }
 
-    emitWidthChange(current.side, current.pendingWidth)
+    emit('width-change', current.pendingWidth)
+    emit('aside-resize', {
+      side: props.side,
+      expandedWidth: current.pendingWidth,
+    })
     current.pendingWidth = null
   })
 }
@@ -207,7 +192,11 @@ function flushWidthChange(state: ResizeState): void {
     return
   }
 
-  emitWidthChange(state.side, state.pendingWidth)
+  emit('width-change', state.pendingWidth)
+  emit('aside-resize', {
+    side: props.side,
+    expandedWidth: state.pendingWidth,
+  })
   state.pendingWidth = null
 }
 
@@ -228,7 +217,10 @@ function startResize(event: PointerEvent): void {
   })
 
   if (session) {
-    emitResizeStart(session.side, session.startWidth)
+    emit('aside-resize-start', {
+      side: props.side,
+      expandedWidth: session.startWidth,
+    })
   }
 }
 </script>

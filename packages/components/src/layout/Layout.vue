@@ -6,9 +6,9 @@ import LayoutSurface from './components/LayoutSurface.vue'
 import { provideLayoutContext } from './composables/useLayoutContext'
 import { createLayoutState } from './composables/useLayoutRootState'
 import type { LayoutAsideResizeEventDetail, LayoutEmits, LayoutProps, LayoutSlots } from './index.type'
-import type { LayoutPanelActions, LayoutPanelContext } from './internal.type'
+import type { LayoutPanel } from './internal.type'
 import { toPx } from './utils/cssLength'
-import { emitAsideResizeEvent } from './utils/emitAsideEvents'
+import { emitAsideResizeEvent } from './utils/asideEventEmitters'
 import { hasNonEmptySlotContent } from './utils/slots'
 
 defineOptions({
@@ -23,91 +23,55 @@ const slots = defineSlots<LayoutSlots>()
 
 const { leftPanel, rightPanel, floating } = createLayoutState(props, emit)
 
-function createDrawerPanelActions(panel: LayoutPanelContext, getSibling: () => LayoutPanelContext): LayoutPanelActions {
-  function open(): void {
-    if (panel.state.isDrawer.value) {
-      const sibling = getSibling()
-      if (sibling.state.isDrawer.value && sibling.state.isOpen.value) {
-        sibling.actions.close()
-      }
-    }
-
-    panel.actions.setOpen(true)
+function setDrawerOpen(panel: LayoutPanel, sibling: LayoutPanel, nextOpen: boolean): void {
+  if (nextOpen && panel.isDrawer.value && sibling.isDrawer.value && sibling.isOpen.value) {
+    sibling.setOpen(false)
   }
 
-  function close(): void {
-    panel.actions.setOpen(false)
-  }
-
-  function toggle(): void {
-    if (panel.state.isOpen.value) {
-      close()
-      return
-    }
-
-    open()
-  }
-
-  return {
-    open,
-    close,
-    toggle,
-    setOpen: (nextOpen) => {
-      if (nextOpen) {
-        open()
-        return
-      }
-
-      close()
-    },
-    setWidth: panel.actions.setWidth,
-  }
+  panel.setOpen(nextOpen)
 }
 
-let leftDrawerPanel: LayoutPanelContext = leftPanel
-let rightDrawerPanel: LayoutPanelContext = rightPanel
-
-leftDrawerPanel = {
-  ...leftPanel,
-  actions: createDrawerPanelActions(leftPanel, () => rightDrawerPanel),
+function toggleDrawer(panel: LayoutPanel, sibling: LayoutPanel): void {
+  setDrawerOpen(panel, sibling, !panel.isOpen.value)
 }
 
-rightDrawerPanel = {
-  ...rightPanel,
-  actions: createDrawerPanelActions(rightPanel, () => leftDrawerPanel),
+function toggleLeftDrawer(): void {
+  toggleDrawer(leftPanel, rightPanel)
+}
+
+function toggleRightDrawer(): void {
+  toggleDrawer(rightPanel, leftPanel)
 }
 
 const isDrawerVisible = computed(
-  () =>
-    (leftDrawerPanel.state.isDrawer.value && leftDrawerPanel.state.isOpen.value) ||
-    (rightDrawerPanel.state.isDrawer.value && rightDrawerPanel.state.isOpen.value),
+  () => (leftPanel.isDrawer.value && leftPanel.isOpen.value) || (rightPanel.isDrawer.value && rightPanel.isOpen.value),
 )
 
 function closeDrawers(): void {
-  if (leftDrawerPanel.state.isDrawer.value && leftDrawerPanel.state.isOpen.value) {
-    leftDrawerPanel.actions.close()
+  if (leftPanel.isDrawer.value && leftPanel.isOpen.value) {
+    leftPanel.setOpen(false)
   }
 
-  if (rightDrawerPanel.state.isDrawer.value && rightDrawerPanel.state.isOpen.value) {
-    rightDrawerPanel.actions.close()
+  if (rightPanel.isDrawer.value && rightPanel.isOpen.value) {
+    rightPanel.setOpen(false)
   }
 }
 
 const drawer = {
-  left: leftDrawerPanel,
-  right: rightDrawerPanel,
+  left: leftPanel,
+  right: rightPanel,
   isDrawerVisible,
   closeDrawers,
 }
 
 provideLayoutContext({
   left: {
-    isOpen: drawer.left.state.isOpen,
-    toggle: drawer.left.actions.toggle,
+    isOpen: leftPanel.isOpen,
+    toggle: toggleLeftDrawer,
   },
   right: {
-    isOpen: drawer.right.state.isOpen,
-    toggle: drawer.right.actions.toggle,
+    isOpen: rightPanel.isOpen,
+    toggle: toggleRightDrawer,
   },
 })
 
@@ -128,19 +92,19 @@ function onAsideResizeEnd(detail: LayoutAsideResizeEventDetail): void {
 }
 
 function setLeftAsideWidth(width: number): void {
-  drawer.left.actions.setWidth(width)
+  drawer.left.setWidth(width)
 }
 
 function setRightAsideWidth(width: number): void {
-  drawer.right.actions.setWidth(width)
+  drawer.right.setWidth(width)
 }
 
-function getDockedAsideWidth(panel: LayoutPanelContext): number {
-  if (!panel.state.isDock.value || panel.state.isHidden.value) {
+function getDockedAsideWidth(panel: LayoutPanel): number {
+  if (!panel.isDock.value || panel.isHidden.value) {
     return 0
   }
 
-  return panel.state.isRail.value ? panel.state.collapsedWidth.value : panel.state.width.value
+  return panel.isRail.value ? panel.collapsedWidth.value : panel.width.value
 }
 
 const leftDockWidth = computed(() => getDockedAsideWidth(drawer.left))
@@ -153,10 +117,10 @@ const hasRightAside = computed(() => hasNonEmptySlotContent(slots['right-aside']
 
 const layoutStyle = computed<Record<string, string>>(() => {
   const style: Record<string, string> = {}
-  const leftDockWidth = toPx(drawer.left.state.width.value)
-  const leftCollapsedWidth = toPx(drawer.left.state.collapsedWidth.value)
-  const rightDockWidth = toPx(drawer.right.state.width.value)
-  const rightCollapsedWidth = toPx(drawer.right.state.collapsedWidth.value)
+  const leftDockWidth = toPx(drawer.left.width.value)
+  const leftCollapsedWidth = toPx(drawer.left.collapsedWidth.value)
+  const rightDockWidth = toPx(drawer.right.width.value)
+  const rightCollapsedWidth = toPx(drawer.right.collapsedWidth.value)
 
   if (leftDockWidth) {
     style['--left-dock-width'] = leftDockWidth
@@ -178,14 +142,14 @@ const layoutStyle = computed<Record<string, string>>(() => {
 })
 
 const layoutClass = computed(() => ({
-  'tr-layout--left-dock': hasLeftAside.value && drawer.left.state.isDock.value,
-  'tr-layout--left-drawer': hasLeftAside.value && drawer.left.state.isDrawer.value,
-  'tr-layout--left-expanded': hasLeftAside.value && drawer.left.state.isOpen.value,
-  'tr-layout--left-rail': hasLeftAside.value && drawer.left.state.isRail.value,
-  'tr-layout--right-dock': hasRightAside.value && drawer.right.state.isDock.value,
-  'tr-layout--right-drawer': hasRightAside.value && drawer.right.state.isDrawer.value,
-  'tr-layout--right-expanded': hasRightAside.value && drawer.right.state.isOpen.value,
-  'tr-layout--right-rail': hasRightAside.value && drawer.right.state.isRail.value,
+  'tr-layout--left-dock': hasLeftAside.value && drawer.left.isDock.value,
+  'tr-layout--left-drawer': hasLeftAside.value && drawer.left.isDrawer.value,
+  'tr-layout--left-expanded': hasLeftAside.value && drawer.left.isOpen.value,
+  'tr-layout--left-rail': hasLeftAside.value && drawer.left.isRail.value,
+  'tr-layout--right-dock': hasRightAside.value && drawer.right.isDock.value,
+  'tr-layout--right-drawer': hasRightAside.value && drawer.right.isDrawer.value,
+  'tr-layout--right-expanded': hasRightAside.value && drawer.right.isOpen.value,
+  'tr-layout--right-rail': hasRightAside.value && drawer.right.isRail.value,
   'tr-layout--resizing': isAsideResizing.value,
 }))
 
@@ -226,15 +190,15 @@ onKeyDown('Escape', (event) => {
         v-if="hasLeftAside"
         side="left"
         :opposite-dock-width="rightDockWidth"
-        :collapse-effect="drawer.left.state.collapseEffect.value"
-        :is-dock="drawer.left.state.isDock.value"
-        :is-drawer="drawer.left.state.isDrawer.value"
-        :is-open="drawer.left.state.isOpen.value"
-        :is-rail="drawer.left.state.isRail.value"
-        :is-hidden="drawer.left.state.isHidden.value"
-        :can-resize="drawer.left.state.canResize.value"
-        :min-width="drawer.left.state.minWidth.value"
-        :max-width="drawer.left.state.maxWidth.value"
+        :collapse-effect="drawer.left.collapseEffect.value"
+        :is-dock="drawer.left.isDock.value"
+        :is-drawer="drawer.left.isDrawer.value"
+        :is-open="drawer.left.isOpen.value"
+        :is-rail="drawer.left.isRail.value"
+        :is-hidden="drawer.left.isHidden.value"
+        :can-resize="drawer.left.canResize.value"
+        :min-width="drawer.left.minWidth.value"
+        :max-width="drawer.left.maxWidth.value"
         @width-change="setLeftAsideWidth"
         @aside-resize-start="onAsideResizeStart"
         @aside-resize="onAsideResize"
@@ -259,15 +223,15 @@ onKeyDown('Escape', (event) => {
         v-if="hasRightAside"
         side="right"
         :opposite-dock-width="leftDockWidth"
-        :collapse-effect="drawer.right.state.collapseEffect.value"
-        :is-dock="drawer.right.state.isDock.value"
-        :is-drawer="drawer.right.state.isDrawer.value"
-        :is-open="drawer.right.state.isOpen.value"
-        :is-rail="drawer.right.state.isRail.value"
-        :is-hidden="drawer.right.state.isHidden.value"
-        :can-resize="drawer.right.state.canResize.value"
-        :min-width="drawer.right.state.minWidth.value"
-        :max-width="drawer.right.state.maxWidth.value"
+        :collapse-effect="drawer.right.collapseEffect.value"
+        :is-dock="drawer.right.isDock.value"
+        :is-drawer="drawer.right.isDrawer.value"
+        :is-open="drawer.right.isOpen.value"
+        :is-rail="drawer.right.isRail.value"
+        :is-hidden="drawer.right.isHidden.value"
+        :can-resize="drawer.right.canResize.value"
+        :min-width="drawer.right.minWidth.value"
+        :max-width="drawer.right.maxWidth.value"
         @width-change="setRightAsideWidth"
         @aside-resize-start="onAsideResizeStart"
         @aside-resize="onAsideResize"

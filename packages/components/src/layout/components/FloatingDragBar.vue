@@ -2,7 +2,7 @@
 import { useDraggable } from '@vueuse/core'
 import { computed, shallowRef, watch } from 'vue'
 import type { LayoutFloatingDragPosition, LayoutFloatingRect } from '../internal.type'
-import { getLayoutRootElement } from '../utils/layoutDom'
+import { getLayoutRootElement } from '../utils/layoutElements'
 import { DEFAULT_FLOATING_GAP, DEFAULT_FLOATING_TOP } from '../utils/surfaceGeometry'
 
 defineOptions({
