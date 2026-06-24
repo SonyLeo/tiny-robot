@@ -3,21 +3,28 @@ import { useWindowSize } from '@vueuse/core'
 import { computed, shallowRef, useAttrs, watch, type CSSProperties } from 'vue'
 import type {
   LayoutFloatingDragDetail,
+  LayoutFloatingOptions,
   LayoutFloatingResizeDetail,
   LayoutFloatingResizeHandle,
   LayoutFloatingState,
   LayoutMode,
 } from '../index.type'
-import type { LayoutFloatingDragPosition, LayoutFloatingRect, LayoutResolvedFloating } from '../internal.type'
+import type {
+  LayoutAsideView,
+  LayoutFloatingDragPosition,
+  LayoutFloatingRect,
+  LayoutResolvedFloating,
+} from '../internal.type'
+import { toPx } from '../utils/cssLength'
 import {
   areFloatingGeometryEqual,
   clampFloatingRect,
   DEFAULT_FLOATING_GAP,
   DEFAULT_FLOATING_HEIGHT,
   DEFAULT_FLOATING_WIDTH,
-  normalizeFloatingRect,
-  resolveFloatingSnapshot,
-  toCommittedFloatingState,
+  createFloatingSnapshot,
+  resolveFloatingRect,
+  toFloatingState as toFloatingStateFromSnapshot,
 } from '../utils/surfaceGeometry'
 import FloatingDragBar from './FloatingDragBar.vue'
 import FloatingResizeTriggers from './FloatingResizeTriggers.vue'
@@ -34,16 +41,16 @@ defineOptions({
 interface LayoutSurfaceProps {
   mode: LayoutMode
   floatingState?: LayoutFloatingState
-  resolvedFloating?: LayoutResolvedFloating
-  surfaceClass?: Record<string, boolean>
-  surfaceStyle?: Record<string, string>
+  floatingOptions?: LayoutFloatingOptions
+  leftAside?: LayoutAsideView
+  rightAside?: LayoutAsideView
+  asideResizing?: boolean
 }
 
 const props = defineProps<LayoutSurfaceProps>()
 
 const emit = defineEmits<{
-  'floating-state-initialize': [value: LayoutFloatingState]
-  'floating-state-change': [value: LayoutFloatingState]
+  'update:floatingState': [value: LayoutFloatingState]
   'floating-drag-start': [detail: LayoutFloatingDragDetail]
   'floating-drag': [detail: LayoutFloatingDragDetail]
   'floating-drag-end': [detail: LayoutFloatingDragDetail]
@@ -63,7 +70,17 @@ const { width: viewportWidth, height: viewportHeight } = useWindowSize({
 const activeFloatingInteraction = shallowRef<FloatingInteraction | null>(null)
 
 const isFloating = computed(() => props.mode === 'floating')
-const floatingRect = computed(() => normalizeFloatingRect(props.resolvedFloating))
+const resolvedFloating = computed<LayoutResolvedFloating | undefined>(() => {
+  if (!isFloating.value || !props.floatingState) {
+    return undefined
+  }
+
+  return {
+    ...props.floatingOptions,
+    ...props.floatingState,
+  }
+})
+const floatingRect = computed(() => resolveFloatingRect(resolvedFloating.value))
 const isFloatingDraggable = computed(() => floatingRect.value.draggable ?? true)
 const isFloatingResizable = computed(() => floatingRect.value.resizable === true)
 const canDragFloating = computed(
@@ -84,6 +101,42 @@ const floatingClass = computed(() => ({
   'tr-layout--floating-dragging': activeFloatingInteraction.value === 'drag',
   'tr-layout--floating-resizing': activeFloatingInteraction.value === 'resize',
 }))
+const surfaceClass = computed(() => ({
+  'tr-layout--left-dock': props.leftAside?.present.value && props.leftAside.isDock.value,
+  'tr-layout--left-drawer': props.leftAside?.present.value && props.leftAside.isDrawer.value,
+  'tr-layout--left-expanded': props.leftAside?.present.value && props.leftAside.isOpen.value,
+  'tr-layout--left-rail': props.leftAside?.present.value && props.leftAside.isRail.value,
+  'tr-layout--right-dock': props.rightAside?.present.value && props.rightAside.isDock.value,
+  'tr-layout--right-drawer': props.rightAside?.present.value && props.rightAside.isDrawer.value,
+  'tr-layout--right-expanded': props.rightAside?.present.value && props.rightAside.isOpen.value,
+  'tr-layout--right-rail': props.rightAside?.present.value && props.rightAside.isRail.value,
+  'tr-layout--resizing': props.asideResizing === true,
+}))
+const surfaceStyle = computed<Record<string, string>>(() => {
+  const style: Record<string, string> = {}
+  const leftDockWidth = toPx(props.leftAside?.width.value)
+  const leftCollapsedWidth = toPx(props.leftAside?.collapsedWidth.value)
+  const rightDockWidth = toPx(props.rightAside?.width.value)
+  const rightCollapsedWidth = toPx(props.rightAside?.collapsedWidth.value)
+
+  if (leftDockWidth) {
+    style['--left-dock-width'] = leftDockWidth
+  }
+
+  if (leftCollapsedWidth) {
+    style['--left-collapsed-width'] = leftCollapsedWidth
+  }
+
+  if (rightDockWidth) {
+    style['--right-dock-width'] = rightDockWidth
+  }
+
+  if (rightCollapsedWidth) {
+    style['--right-collapsed-width'] = rightCollapsedWidth
+  }
+
+  return style
+})
 const floatingStyle = computed<CSSProperties>(() => {
   if (!isFloating.value) {
     return {}
@@ -98,7 +151,10 @@ const floatingStyle = computed<CSSProperties>(() => {
 })
 
 function toFloatingState(rect: LayoutFloatingRect, normalizeCenter = false): LayoutFloatingState {
-  return toCommittedFloatingState(resolveFloatingSnapshot(rect, props.resolvedFloating), props.floatingState, {
+  const sourceState = props.floatingState
+  const snapshot = createFloatingSnapshot(rect, sourceState)
+
+  return toFloatingStateFromSnapshot(snapshot, sourceState, {
     normalizeCenter,
   })
 }
@@ -120,7 +176,7 @@ function commitFloatingRect(nextRect: LayoutFloatingRect): LayoutFloatingRect {
     return normalizedRect
   }
 
-  emit('floating-state-change', toFloatingState(normalizedRect, true))
+  emit('update:floatingState', toFloatingState(normalizedRect, true))
 
   return normalizedRect
 }
@@ -146,10 +202,6 @@ function endFloatingInteraction(type: FloatingInteraction): void {
 function syncFloatingRect(): void {
   if (!isFloating.value || activeFloatingInteraction.value !== null) {
     return
-  }
-
-  if (!props.floatingState) {
-    emit('floating-state-initialize', toFloatingState(floatingRect.value))
   }
 
   commitFloatingRect(floatingRect.value)
@@ -192,7 +244,7 @@ function endFloatingResize(handle: LayoutFloatingResizeHandle, rect: LayoutFloat
 }
 
 watch(
-  [() => props.mode, () => props.resolvedFloating, viewportWidth, viewportHeight],
+  [() => props.mode, resolvedFloating, viewportWidth, viewportHeight],
   () => {
     syncFloatingRect()
   },
@@ -202,14 +254,9 @@ watch(
 
 <template>
   <Teleport to="body" :disabled="!isFloating">
-    <div
-      v-bind="attrs"
-      class="tr-layout"
-      :class="[props.surfaceClass, floatingClass]"
-      :style="[props.surfaceStyle, floatingStyle]"
-    >
+    <div v-bind="attrs" class="tr-layout" :class="[surfaceClass, floatingClass]" :style="[surfaceStyle, floatingStyle]">
       <FloatingDragBar
-        v-if="isFloating"
+        v-if="canDragFloating"
         :floating-rect="floatingRect"
         :can-drag="canDragFloating"
         @drag-start="startFloatingDrag"

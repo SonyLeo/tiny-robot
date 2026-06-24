@@ -1,40 +1,18 @@
 <script setup lang="ts">
-import { computed, toRefs } from 'vue'
+import { computed } from 'vue'
 import AsideResizeTrigger from './AsideResizeTrigger.vue'
-import type { LayoutAsideCollapseEffect, LayoutAsideResizeDetail, LayoutSide } from '../index.type'
+import type { LayoutAsideResizeDetail } from '../index.type'
+import type { LayoutAsideView } from '../internal.type'
 
 defineOptions({
   name: 'LayoutAsideContent',
 })
 
 interface LayoutAsideContentProps {
-  side: LayoutSide
-  oppositeDockWidth: number
-  collapseEffect: LayoutAsideCollapseEffect
-  isDock: boolean
-  isDrawer: boolean
-  isOpen: boolean
-  isRail: boolean
-  isHidden: boolean
-  canResize: boolean
-  minWidth: number
-  maxWidth: number
+  aside: LayoutAsideView
 }
 
 const props = defineProps<LayoutAsideContentProps>()
-const {
-  side,
-  oppositeDockWidth,
-  collapseEffect,
-  isDock,
-  isDrawer,
-  isOpen,
-  isRail,
-  isHidden,
-  canResize,
-  minWidth,
-  maxWidth,
-} = toRefs(props)
 
 const emit = defineEmits<{
   (event: 'width-change', value: number): void
@@ -44,26 +22,26 @@ const emit = defineEmits<{
 }>()
 
 const asideClass = computed(() => [
-  `tr-layout__aside--${side.value}`,
-  `tr-layout__aside--effect-${collapseEffect.value}`,
+  `tr-layout__aside--${props.aside.side.value}`,
+  `tr-layout__aside--effect-${props.aside.collapseEffect.value}`,
   {
-    'tr-layout__aside--dock': isDock.value,
-    'tr-layout__aside--drawer': isDrawer.value,
-    'tr-layout__aside--expanded': isOpen.value,
-    'tr-layout__aside--rail': isRail.value,
-    'tr-layout__aside--hidden': isHidden.value,
+    'tr-layout__aside--dock': props.aside.isDock.value,
+    'tr-layout__aside--drawer': props.aside.isDrawer.value,
+    'tr-layout__aside--expanded': props.aside.isOpen.value,
+    'tr-layout__aside--rail': props.aside.isRail.value,
+    'tr-layout__aside--hidden': props.aside.isHidden.value,
   },
 ])
 </script>
 
 <template>
-  <aside class="tr-layout__aside" :class="asideClass" :inert="isHidden || undefined">
+  <aside class="tr-layout__aside" :class="asideClass" :inert="props.aside.isHidden.value || undefined">
     <AsideResizeTrigger
-      v-if="canResize"
-      :side="side"
-      :min-width="minWidth"
-      :max-width="maxWidth"
-      :opposite-dock-width="oppositeDockWidth"
+      v-if="props.aside.canResize.value"
+      :side="props.aside.side.value"
+      :min-width="props.aside.minWidth.value"
+      :max-width="props.aside.maxWidth.value"
+      :opposite-dock-width="props.aside.oppositeDockWidth.value"
       @width-change="emit('width-change', $event)"
       @aside-resize-start="emit('aside-resize-start', $event)"
       @aside-resize="emit('aside-resize', $event)"

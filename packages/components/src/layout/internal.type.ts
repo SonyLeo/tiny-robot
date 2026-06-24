@@ -1,5 +1,5 @@
 import type { ComputedRef } from 'vue'
-import type { LayoutAsideCollapseEffect, LayoutFloatingOptions, LayoutFloatingState, LayoutMode } from './index.type'
+import type { LayoutAsideCollapseEffect, LayoutFloatingOptions, LayoutFloatingState, LayoutSide } from './index.type'
 
 export type LayoutResolvedFloating = LayoutFloatingState & LayoutFloatingOptions
 
@@ -34,20 +34,21 @@ export interface LayoutPanel {
   setWidth: (nextWidth: number) => void
 }
 
-export interface LayoutFloatingStateContext {
-  mode: ComputedRef<LayoutMode>
-  value: ComputedRef<LayoutFloatingState | undefined>
-  resolved: ComputedRef<LayoutResolvedFloating | undefined>
-}
-
-export interface LayoutFloatingActions {
-  initialize: (nextFloating: LayoutFloatingState) => void
-  commit: (nextFloating: LayoutFloatingState) => void
-}
-
-export interface LayoutFloatingContext {
-  state: LayoutFloatingStateContext
-  actions: LayoutFloatingActions
+export interface LayoutAsideView {
+  side: ComputedRef<LayoutSide>
+  present: ComputedRef<boolean>
+  oppositeDockWidth: ComputedRef<number>
+  collapseEffect: ComputedRef<LayoutAsideCollapseEffect>
+  isDock: ComputedRef<boolean>
+  isDrawer: ComputedRef<boolean>
+  isOpen: ComputedRef<boolean>
+  isRail: ComputedRef<boolean>
+  isHidden: ComputedRef<boolean>
+  canResize: ComputedRef<boolean>
+  minWidth: ComputedRef<number>
+  maxWidth: ComputedRef<number>
+  width: ComputedRef<number>
+  collapsedWidth: ComputedRef<number>
 }
 
 export interface LayoutAsideToggleContext {
@@ -63,5 +64,6 @@ export interface LayoutContext {
 export interface LayoutState {
   leftPanel: LayoutPanel
   rightPanel: LayoutPanel
-  floating: LayoutFloatingContext
+  leftAsideView: LayoutAsideView
+  rightAsideView: LayoutAsideView
 }

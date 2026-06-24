@@ -16,13 +16,10 @@ export interface FloatingConstraints {
   maxHeight: number
 }
 
-export interface FloatingSnapshot {
+export interface FloatingGeometrySnapshot {
   placement: LayoutFloatingPlacement
   rect: LayoutFloatingRect
   bounds: FloatingBounds
-  constraints: FloatingConstraints
-  xMax: number
-  yMax: number
 }
 
 export const DEFAULT_FLOATING_WIDTH = 420
@@ -33,29 +30,46 @@ export const DEFAULT_FLOATING_OFFSET = 24
 export const DEFAULT_MIN_FLOATING_WIDTH = 320
 export const DEFAULT_MIN_FLOATING_HEIGHT = 240
 
-type FloatingRectLike = Pick<LayoutFloatingRect, 'x' | 'y' | 'width' | 'height'> &
-  Partial<Omit<LayoutFloatingRect, 'x' | 'y' | 'width' | 'height'>>
-type FloatingConfig = LayoutFloatingState &
+type FloatingStateInput = LayoutFloatingState &
   Partial<Pick<LayoutResolvedFloating, 'draggable' | 'resizable' | 'minWidth' | 'maxWidth' | 'minHeight' | 'maxHeight'>>
+
+type FloatingRectInput = Pick<LayoutFloatingRect, 'x' | 'y' | 'width' | 'height'> &
+  Partial<Pick<LayoutFloatingRect, 'draggable' | 'resizable' | 'minWidth' | 'maxWidth' | 'minHeight' | 'maxHeight'>>
+
+type FloatingInput = LayoutFloatingRect | FloatingStateInput | undefined
 
 interface ViewportSize {
   width: number
   height: number
 }
 
-interface ResolvedFloatingOffset {
+interface FloatingOffset {
   x: number
   y: number
 }
 
-function resolveFloatingPlacement(config: Pick<LayoutFloatingState, 'placement'> | undefined): LayoutFloatingPlacement {
-  return config?.placement ?? 'center'
+/**
+ * 返回浮层 placement，未提供时默认 center。
+ * @param source 浮层状态输入。
+ * @returns 当前 placement。
+ */
+function resolveFloatingPlacement(source: Pick<LayoutFloatingState, 'placement'> | undefined): LayoutFloatingPlacement {
+  return source?.placement ?? 'center'
 }
 
-function isFloatingRect(value: LayoutFloatingRect | FloatingConfig): value is LayoutFloatingRect {
+/**
+ * 判断输入是否已经是 rect 形态。
+ * @param value 浮层输入。
+ * @returns 是否为 rect。
+ */
+function isFloatingRect(value: FloatingInput): value is LayoutFloatingRect {
   return value !== undefined && 'x' in value && 'y' in value
 }
 
+/**
+ * 返回当前视口尺寸。
+ * @returns 视口宽高。
+ */
 function resolveViewportSize(): ViewportSize {
   if (typeof window === 'undefined') {
     return {
@@ -79,13 +93,22 @@ function resolveViewportSize(): ViewportSize {
   }
 }
 
+/**
+ * 根据 placement 和 offset 计算浮层左上角坐标。
+ * @param placement 浮层锚点位置。
+ * @param bounds 视口边界。
+ * @param width 浮层宽度。
+ * @param height 浮层高度。
+ * @param offset 锚点偏移量。
+ * @returns 浮层左上角坐标。
+ */
 function getPlacementPosition(
   placement: LayoutFloatingPlacement,
   bounds: FloatingBounds,
   width: number,
   height: number,
-  offset: ResolvedFloatingOffset,
-) {
+  offset: FloatingOffset,
+): { x: number; y: number } {
   switch (placement) {
     case 'top-left':
       return {
@@ -116,18 +139,30 @@ function getPlacementPosition(
   }
 }
 
-function resolveFloatingOffset(config: LayoutFloatingState | undefined): ResolvedFloatingOffset {
+/**
+ * 从浮层状态读取 offset，未提供时回退默认值。
+ * @param source 浮层状态输入。
+ * @returns 锚点偏移量。
+ */
+function resolveFloatingOffset(source: Partial<LayoutFloatingState> | undefined): FloatingOffset {
   return {
-    x: config?.offsetX ?? DEFAULT_FLOATING_OFFSET,
-    y: config?.offsetY ?? DEFAULT_FLOATING_OFFSET,
+    x: source?.offsetX ?? DEFAULT_FLOATING_OFFSET,
+    y: source?.offsetY ?? DEFAULT_FLOATING_OFFSET,
   }
 }
 
+/**
+ * 根据 rect 反推当前 placement 下的 offset。
+ * @param rect 浮层 rect。
+ * @param bounds 视口边界。
+ * @param placement 浮层锚点位置。
+ * @returns 锚点偏移量；center 无 offset 时返回 null。
+ */
 function resolveFloatingOffsetFromRect(
   rect: LayoutFloatingRect,
   bounds: FloatingBounds,
   placement: LayoutFloatingPlacement,
-): ResolvedFloatingOffset | null {
+): FloatingOffset | null {
   switch (placement) {
     case 'top-left':
       return {
@@ -155,6 +190,12 @@ function resolveFloatingOffsetFromRect(
   }
 }
 
+/**
+ * 根据 rect 中心点推断最近的角落 placement。
+ * @param rect 浮层 rect。
+ * @param bounds 视口边界。
+ * @returns 最近的角落 placement。
+ */
 function resolveNearestCornerPlacement(rect: LayoutFloatingRect, bounds: FloatingBounds): LayoutFloatingPlacement {
   const centerX = rect.x + rect.width / 2
   const centerY = rect.y + rect.height / 2
@@ -166,6 +207,62 @@ function resolveNearestCornerPlacement(rect: LayoutFloatingRect, bounds: Floatin
   return `${vertical}-${horizontal}` as Exclude<LayoutFloatingPlacement, 'center'>
 }
 
+/**
+ * 提取 rect 上附带的交互和尺寸约束信息。
+ * @param source rect 输入。
+ * @returns rect 元信息。
+ */
+function pickFloatingRectMeta(source: Partial<LayoutFloatingRect> | undefined) {
+  return {
+    draggable: source?.draggable,
+    resizable: source?.resizable,
+    minWidth: source?.minWidth,
+    maxWidth: source?.maxWidth,
+    minHeight: source?.minHeight,
+    maxHeight: source?.maxHeight,
+  }
+}
+
+/**
+ * 构造一个完整的浮层 rect。
+ * @param x 浮层横坐标。
+ * @param y 浮层纵坐标。
+ * @param width 浮层宽度。
+ * @param height 浮层高度。
+ * @param constraints 浮层尺寸约束。
+ * @param source rect 元信息来源。
+ * @returns 完整的浮层 rect。
+ */
+function createFloatingRect(
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  constraints: FloatingConstraints,
+  source?: Partial<LayoutFloatingRect>,
+): LayoutFloatingRect {
+  const meta = pickFloatingRectMeta(source)
+
+  return {
+    x,
+    y,
+    width,
+    height,
+    draggable: meta.draggable ?? true,
+    resizable: meta.resizable ?? false,
+    minWidth: constraints.minWidth,
+    maxWidth: constraints.maxWidth,
+    minHeight: constraints.minHeight,
+    maxHeight: constraints.maxHeight,
+  }
+}
+
+/**
+ * 返回可用视口边界。
+ * @param gap 视口左右边距。
+ * @param topGap 视口顶部边距。
+ * @returns 视口边界。
+ */
 export function resolveViewportBounds(gap = DEFAULT_FLOATING_GAP, topGap = DEFAULT_FLOATING_TOP): FloatingBounds {
   const viewport = resolveViewportSize()
 
@@ -177,7 +274,14 @@ export function resolveViewportBounds(gap = DEFAULT_FLOATING_GAP, topGap = DEFAU
   }
 }
 
-export function resolveFloatingConstraints(source?: Partial<LayoutFloatingRect | FloatingConfig>): FloatingConstraints {
+/**
+ * 根据浮层输入计算尺寸约束。
+ * @param source 浮层 state 或 rect 输入。
+ * @returns 浮层尺寸约束。
+ */
+export function resolveFloatingConstraints(
+  source?: Partial<LayoutFloatingRect | FloatingStateInput>,
+): FloatingConstraints {
   const bounds = resolveViewportBounds()
   const maxWidth = Math.max(1, bounds.right - bounds.left)
   const maxHeight = Math.max(1, bounds.bottom - bounds.top)
@@ -192,8 +296,15 @@ export function resolveFloatingConstraints(source?: Partial<LayoutFloatingRect |
   }
 }
 
+/**
+ * 对 rect 做尺寸和位置裁剪，返回完整 rect。
+ * @param rect 浮层 rect 输入。
+ * @param constraints 浮层尺寸约束。
+ * @param bounds 视口边界。
+ * @returns 规范化后的浮层 rect。
+ */
 export function clampFloatingRect(
-  rect: FloatingRectLike,
+  rect: FloatingRectInput,
   constraints = resolveFloatingConstraints(rect),
   bounds = resolveViewportBounds(),
 ): LayoutFloatingRect {
@@ -201,23 +312,22 @@ export function clampFloatingRect(
   const height = clamp(rect.height, constraints.minHeight, constraints.maxHeight)
   const xMax = Math.max(bounds.left, bounds.right - width)
   const yMax = Math.max(bounds.top, bounds.bottom - height)
+  const x = clamp(rect.x, bounds.left, xMax)
+  const y = clamp(rect.y, bounds.top, yMax)
 
-  return {
-    x: clamp(rect.x, bounds.left, xMax),
-    y: clamp(rect.y, bounds.top, yMax),
-    width,
-    height,
-    draggable: rect.draggable ?? true,
-    resizable: rect.resizable ?? false,
-    minWidth: constraints.minWidth,
-    maxWidth: constraints.maxWidth,
-    minHeight: constraints.minHeight,
-    maxHeight: constraints.maxHeight,
-  }
+  return createFloatingRect(x, y, width, height, constraints, rect)
 }
 
+/**
+ * 根据拖拽的边或角裁剪 rect。
+ * @param rect 浮层 rect 输入。
+ * @param handle 当前 resize handle。
+ * @param constraints 浮层尺寸约束。
+ * @param bounds 视口边界。
+ * @returns 裁剪后的浮层 rect。
+ */
 export function clampFloatingRectByHandle(
-  rect: FloatingRectLike,
+  rect: FloatingRectInput,
   handle: LayoutFloatingResizeHandle,
   constraints = resolveFloatingConstraints(rect),
   bounds = resolveViewportBounds(),
@@ -234,145 +344,149 @@ export function clampFloatingRectByHandle(
 
   if (handle.includes('w')) {
     if (availableWidthFromLeft >= constraints.minWidth) {
-      width = clamp(rect.width, constraints.minWidth, Math.min(constraints.maxWidth, availableWidthFromLeft))
+      const maxWidth = Math.min(constraints.maxWidth, availableWidthFromLeft)
+      width = clamp(rect.width, constraints.minWidth, maxWidth)
       x = right - width
     } else {
       width = constraints.minWidth
       x = bounds.left
     }
   } else if (handle.includes('e')) {
-    width = clamp(
-      rect.width,
-      constraints.minWidth,
-      Math.min(constraints.maxWidth, Math.max(constraints.minWidth, bounds.right - rect.x)),
-    )
+    const maxWidth = Math.min(constraints.maxWidth, Math.max(constraints.minWidth, bounds.right - rect.x))
+    width = clamp(rect.width, constraints.minWidth, maxWidth)
     x = rect.x
   }
 
   if (handle.includes('n')) {
     if (availableHeightFromTop >= constraints.minHeight) {
-      height = clamp(rect.height, constraints.minHeight, Math.min(constraints.maxHeight, availableHeightFromTop))
+      const maxHeight = Math.min(constraints.maxHeight, availableHeightFromTop)
+      height = clamp(rect.height, constraints.minHeight, maxHeight)
       y = bottom - height
     } else {
       height = constraints.minHeight
       y = bounds.top
     }
   } else if (handle.includes('s')) {
-    height = clamp(
-      rect.height,
-      constraints.minHeight,
-      Math.min(constraints.maxHeight, Math.max(constraints.minHeight, bounds.bottom - rect.y)),
-    )
+    const maxHeight = Math.min(constraints.maxHeight, Math.max(constraints.minHeight, bounds.bottom - rect.y))
+    height = clamp(rect.height, constraints.minHeight, maxHeight)
     y = rect.y
   }
 
-  return clampFloatingRect(
-    {
-      ...rect,
-      x,
-      y,
-      width,
-      height,
-    },
-    constraints,
-    bounds,
-  )
+  const nextRect: FloatingRectInput = {
+    ...rect,
+    x,
+    y,
+    width,
+    height,
+  }
+
+  return clampFloatingRect(nextRect, constraints, bounds)
 }
 
-export function resolveDefaultFloatingRect(
-  config?: FloatingConfig,
+/**
+ * 根据 floatingState 和 floatingOptions 生成初始 rect。
+ * @param source 浮层状态输入。
+ * @param bounds 视口边界。
+ * @returns 初始浮层 rect。
+ */
+export function createFloatingRectFromState(
+  source?: FloatingStateInput,
   bounds = resolveViewportBounds(),
 ): LayoutFloatingRect {
-  const constraints = resolveFloatingConstraints(config)
-  const width = clamp(config?.width ?? DEFAULT_FLOATING_WIDTH, constraints.minWidth, constraints.maxWidth)
-  const height = clamp(config?.height ?? DEFAULT_FLOATING_HEIGHT, constraints.minHeight, constraints.maxHeight)
-  const placement = resolveFloatingPlacement(config)
-  const offset = resolveFloatingOffset(config)
+  const constraints = resolveFloatingConstraints(source)
+  const width = clamp(source?.width ?? DEFAULT_FLOATING_WIDTH, constraints.minWidth, constraints.maxWidth)
+  const height = clamp(source?.height ?? DEFAULT_FLOATING_HEIGHT, constraints.minHeight, constraints.maxHeight)
+  const placement = resolveFloatingPlacement(source)
+  const offset = resolveFloatingOffset(source)
   const position = getPlacementPosition(placement, bounds, width, height, offset)
 
-  return clampFloatingRect(
-    {
-      x: position.x,
-      y: position.y,
-      width,
-      height,
-      draggable: config?.draggable ?? true,
-      resizable: config?.resizable ?? false,
-      minWidth: config?.minWidth,
-      maxWidth: config?.maxWidth,
-      minHeight: config?.minHeight,
-      maxHeight: config?.maxHeight,
-    },
-    constraints,
-    bounds,
-  )
+  return createFloatingRect(position.x, position.y, width, height, constraints, source)
 }
 
-export function normalizeFloatingRect(rectLike: LayoutFloatingRect | FloatingConfig | undefined): LayoutFloatingRect {
-  if (!rectLike) {
-    return resolveDefaultFloatingRect()
+/**
+ * 把 state 或 rect 输入整理成可继续参与几何计算的完整 rect。
+ * @param input 浮层输入。
+ * @returns 规范化后的浮层 rect。
+ */
+export function resolveFloatingRect(input: FloatingInput): LayoutFloatingRect {
+  if (!input) {
+    return createFloatingRectFromState()
   }
 
-  if (isFloatingRect(rectLike)) {
-    return clampFloatingRect(
-      {
-        x: rectLike.x,
-        y: rectLike.y,
-        width: rectLike.width,
-        height: rectLike.height,
-        draggable: rectLike.draggable,
-        resizable: rectLike.resizable,
-        minWidth: rectLike.minWidth,
-        maxWidth: rectLike.maxWidth,
-        minHeight: rectLike.minHeight,
-        maxHeight: rectLike.maxHeight,
-      },
-      resolveFloatingConstraints(rectLike),
-    )
+  if (isFloatingRect(input)) {
+    const constraints = resolveFloatingConstraints(input)
+    const rect: FloatingRectInput = {
+      x: input.x,
+      y: input.y,
+      width: input.width,
+      height: input.height,
+      ...pickFloatingRectMeta(input),
+    }
+
+    return clampFloatingRect(rect, constraints)
   }
 
-  return resolveDefaultFloatingRect(rectLike)
+  return createFloatingRectFromState(input)
 }
 
-export function resolveFloatingSnapshot(
-  config: LayoutFloatingRect | FloatingConfig | undefined,
+/**
+ * 计算当前 rect 所在的几何上下文。
+ * @param input 浮层输入。
+ * @param source 当输入为 rect 时，用于提供 placement 来源。
+ * @returns 浮层快照。
+ */
+export function createFloatingSnapshot(
+  input: FloatingInput,
   source?: Pick<LayoutFloatingState, 'placement'>,
-): FloatingSnapshot {
+): FloatingGeometrySnapshot {
   const bounds = resolveViewportBounds()
-  const rect = normalizeFloatingRect(config)
-  const constraints = resolveFloatingConstraints(rect)
-  const normalizedRect = clampFloatingRect(rect, constraints, bounds)
+  const rect = resolveFloatingRect(input)
+  const normalizedRect = clampFloatingRect(rect, undefined, bounds)
+  const placementSource = input && isFloatingRect(input) ? source : input
+  const placement = resolveFloatingPlacement(placementSource)
 
   return {
-    placement: config && isFloatingRect(config) ? resolveFloatingPlacement(source) : resolveFloatingPlacement(config),
+    placement,
     rect: normalizedRect,
     bounds,
-    constraints,
-    xMax: Math.max(bounds.left, bounds.right - normalizedRect.width),
-    yMax: Math.max(bounds.top, bounds.bottom - normalizedRect.height),
   }
 }
 
-export function toCommittedFloatingState(
-  snapshot: FloatingSnapshot,
+/**
+ * 根据 rect 快照反推出对外的 floatingState。
+ * @param snapshot 浮层快照。
+ * @param source 浮层状态来源。
+ * @param options 状态提交选项。
+ * @returns 对外 floatingState。
+ */
+export function toFloatingState(
+  snapshot: FloatingGeometrySnapshot,
   source?: Partial<LayoutFloatingState>,
   options?: { normalizeCenter?: boolean },
 ): LayoutFloatingState {
   const sourcePlacement = source?.placement ?? snapshot.placement
-  const placement =
-    options?.normalizeCenter && sourcePlacement === 'center'
-      ? resolveNearestCornerPlacement(snapshot.rect, snapshot.bounds)
-      : sourcePlacement
+  const shouldNormalizeCenter = options?.normalizeCenter && sourcePlacement === 'center'
+  const placement = shouldNormalizeCenter
+    ? resolveNearestCornerPlacement(snapshot.rect, snapshot.bounds)
+    : sourcePlacement
   const offset = resolveFloatingOffsetFromRect(snapshot.rect, snapshot.bounds, placement)
+  const fallbackOffset = resolveFloatingOffset(source)
 
   return {
     placement,
-    ...(offset ? { offsetX: offset.x, offsetY: offset.y } : {}),
+    offsetX: offset?.x ?? fallbackOffset.x,
+    offsetY: offset?.y ?? fallbackOffset.y,
     width: snapshot.rect.width,
     height: snapshot.rect.height,
   }
 }
 
+/**
+ * 比较两个 rect 的几何信息是否一致。
+ * @param left 左侧 rect。
+ * @param right 右侧 rect。
+ * @returns 两者几何信息是否一致。
+ */
 export function areFloatingGeometryEqual(
   left: Pick<LayoutFloatingRect, 'x' | 'y' | 'width' | 'height'> | undefined,
   right: Pick<LayoutFloatingRect, 'x' | 'y' | 'width' | 'height'> | undefined,
