@@ -1,6 +1,6 @@
-import { computed, type ComputedRef } from 'vue'
+import { computed } from 'vue'
 import type { LayoutAsideProps, LayoutSide, LayoutProps } from '../index.type'
-import type { LayoutAsideView, LayoutPanel, LayoutState } from '../internal.type'
+import type { LayoutAsidePanel } from '../internal.type'
 import { clamp } from '../utils/number'
 import {
   getDefaultAsideExpandedWidth,
@@ -19,7 +19,7 @@ function createAsidePanel(
   side: LayoutSide,
   aside: () => LayoutAsideProps | undefined,
   emit: LayoutEmitFn,
-): LayoutPanel {
+): LayoutAsidePanel {
   const asideValue = computed(() => aside())
   const layoutMode = computed(() => asideValue.value?.mode ?? 'dock')
   const collapsedWidth = computed(() => resolveFiniteNumber(asideValue.value?.collapsedWidth, 0))
@@ -64,6 +64,7 @@ function createAsidePanel(
   }
 
   return {
+    side,
     isOpen: computed(() => openState.value),
     width: computed(() => widthState.value),
     collapsedWidth,
@@ -80,53 +81,12 @@ function createAsidePanel(
   }
 }
 
-function createAsideView(
-  side: LayoutSide,
-  panel: LayoutPanel,
-  present: ComputedRef<boolean>,
-  oppositeDockWidth: ComputedRef<number>,
-): LayoutAsideView {
-  return {
-    side: computed(() => side),
-    present,
-    oppositeDockWidth,
-    collapseEffect: panel.collapseEffect,
-    isDock: panel.isDock,
-    isDrawer: panel.isDrawer,
-    isOpen: panel.isOpen,
-    isRail: panel.isRail,
-    isHidden: panel.isHidden,
-    canResize: panel.canResize,
-    minWidth: panel.minWidth,
-    maxWidth: panel.maxWidth,
-    width: panel.width,
-    collapsedWidth: panel.collapsedWidth,
-  }
-}
-
-function getDockedAsideWidth(panel: LayoutPanel, present: boolean): number {
-  if (!present || !panel.isDock.value || panel.isHidden.value) {
-    return 0
-  }
-
-  return panel.isRail.value ? panel.collapsedWidth.value : panel.width.value
-}
-
-export interface LayoutAsidePresence {
-  left: ComputedRef<boolean>
-  right: ComputedRef<boolean>
-}
-
-export function createLayoutState(props: LayoutProps, emit: LayoutEmitFn, present: LayoutAsidePresence): LayoutState {
+export function useLayoutAsidePanels(props: LayoutProps, emit: LayoutEmitFn) {
   const leftPanel = createAsidePanel('left', () => props.leftAside, emit)
   const rightPanel = createAsidePanel('right', () => props.rightAside, emit)
-  const leftDockWidth = computed(() => getDockedAsideWidth(leftPanel, present.left.value))
-  const rightDockWidth = computed(() => getDockedAsideWidth(rightPanel, present.right.value))
 
   return {
     leftPanel,
     rightPanel,
-    leftAsideView: createAsideView('left', leftPanel, present.left, rightDockWidth),
-    rightAsideView: createAsideView('right', rightPanel, present.right, leftDockWidth),
   }
 }

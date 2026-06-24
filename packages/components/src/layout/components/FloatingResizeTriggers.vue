@@ -1,10 +1,8 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { usePointerDragSession } from '../composables/usePointerDragSession'
 import type { LayoutFloatingResizeHandle } from '../index.type'
-import type { LayoutFloatingRect } from '../internal.type'
 import { lockBodyInteraction, restoreBodyInteraction, type BodyInteractionState } from '../utils/domInteraction'
-import { clampFloatingRectByHandle } from '../utils/surfaceGeometry'
-import { resolveFloatingResizeRect } from '../utils/surfaceResize'
 
 defineOptions({
   name: 'FloatingResizeTriggers',
@@ -24,26 +22,34 @@ const HANDLE_RESIZE_CURSOR = {
 
 interface FloatingResizeTriggersProps {
   handles: LayoutFloatingResizeHandle[]
-  floatingRect: LayoutFloatingRect
-  canStart: boolean
 }
 
 const props = defineProps<FloatingResizeTriggersProps>()
 
 const emit = defineEmits<{
-  (event: 'resize-start', handle: LayoutFloatingResizeHandle, value: LayoutFloatingRect): void
-  (event: 'resize', handle: LayoutFloatingResizeHandle, value: LayoutFloatingRect): void
-  (event: 'resize-end', handle: LayoutFloatingResizeHandle, value: LayoutFloatingRect): void
+  (event: 'resize-start', handle: LayoutFloatingResizeHandle): void
+  (event: 'resize', handle: LayoutFloatingResizeHandle, deltaX: number, deltaY: number): void
+  (event: 'resize-end', handle: LayoutFloatingResizeHandle, deltaX: number, deltaY: number): void
 }>()
 
 interface FloatingResizeState {
   pointerId: number
   handleEl: HTMLElement
   handle: LayoutFloatingResizeHandle
-  currentRect: LayoutFloatingRect
+  startX: number
+  startY: number
   lastPointerX: number
   lastPointerY: number
   bodyState: BodyInteractionState
+}
+
+interface ResizeTriggerView {
+  handle: LayoutFloatingResizeHandle
+  class: Array<string | Record<string, boolean>>
+}
+
+function resolveResizeDirection(handle: LayoutFloatingResizeHandle): ResizeCursorDirection {
+  return HANDLE_RESIZE_CURSOR[handle]
 }
 
 const { activeSession: activeResize, startSession } = usePointerDragSession<FloatingResizeState>({
@@ -52,7 +58,7 @@ const { activeSession: activeResize, startSession } = usePointerDragSession<Floa
       return
     }
 
-    applyResize(state, event.clientX, event.clientY)
+    emitResizeDelta(state, event.clientX, event.clientY, 'resize')
   },
   onStop: (state) => {
     if (state.handleEl.hasPointerCapture(state.pointerId)) {
@@ -60,32 +66,30 @@ const { activeSession: activeResize, startSession } = usePointerDragSession<Floa
     }
 
     restoreBodyInteraction(state.handleEl.ownerDocument.body, state.bodyState)
-    emit('resize-end', state.handle, state.currentRect)
+    emitResizeDelta(state, state.lastPointerX, state.lastPointerY, 'resize-end')
   },
 })
 
-function resolveCursorClass(handle: LayoutFloatingResizeHandle): string {
-  return `tr-layout__floating-resize-trigger--${HANDLE_RESIZE_CURSOR[handle]}`
-}
+const resizeTriggerViews = computed<ResizeTriggerView[]>(() =>
+  props.handles.map((handle) => {
+    const direction = resolveResizeDirection(handle)
+    const isActive = activeResize.value?.handle === handle
 
-function resolveResizeCursor(handle: LayoutFloatingResizeHandle): string {
-  return `${HANDLE_RESIZE_CURSOR[handle]}-resize`
-}
-
-function isResizeHandleActive(handle: LayoutFloatingResizeHandle): boolean {
-  return activeResize.value?.handle === handle
-}
-
-function resolveHandleClass(handle: LayoutFloatingResizeHandle) {
-  return [
-    `tr-layout__floating-resize-trigger--${handle}`,
-    resolveCursorClass(handle),
-    { 'is-active': isResizeHandleActive(handle) },
-  ]
-}
+    return {
+      handle,
+      class: [
+        `tr-layout__floating-resize-trigger--${handle}`,
+        `tr-layout__floating-resize-trigger--${direction}`,
+        {
+          'is-active': isActive,
+        },
+      ],
+    }
+  }),
+)
 
 function startResize(handle: LayoutFloatingResizeHandle, event: PointerEvent): void {
-  if (!props.canStart) {
+  if (activeResize.value) {
     return
   }
 
@@ -103,45 +107,48 @@ function startResize(handle: LayoutFloatingResizeHandle, event: PointerEvent): v
       pointerId: event.pointerId,
       handleEl,
       handle,
-      currentRect: props.floatingRect,
+      startX: event.clientX,
+      startY: event.clientY,
       lastPointerX: event.clientX,
       lastPointerY: event.clientY,
-      bodyState: lockBodyInteraction(handleEl.ownerDocument.body, resolveResizeCursor(handle)),
+      bodyState: lockBodyInteraction(handleEl.ownerDocument.body, `${resolveResizeDirection(handle)}-resize`),
     }
   })
 
   if (session) {
-    emit('resize-start', session.handle, session.currentRect)
+    emit('resize-start', session.handle)
   }
 }
 
-function applyResize(state: FloatingResizeState, pointerX: number, pointerY: number): void {
-  const nextRect = clampFloatingRectByHandle(
-    resolveFloatingResizeRect({
-      handle: state.handle,
-      deltaX: pointerX - state.lastPointerX,
-      deltaY: pointerY - state.lastPointerY,
-      startRect: state.currentRect,
-    }),
-    state.handle,
-  )
+function emitResizeDelta(
+  state: FloatingResizeState,
+  pointerX: number,
+  pointerY: number,
+  event: 'resize' | 'resize-end',
+): void {
+  const deltaX = pointerX - state.startX
+  const deltaY = pointerY - state.startY
 
-  state.currentRect = nextRect
   state.lastPointerX = pointerX
   state.lastPointerY = pointerY
 
-  emit('resize', state.handle, nextRect)
+  if (event === 'resize-end') {
+    emit('resize-end', state.handle, deltaX, deltaY)
+    return
+  }
+
+  emit('resize', state.handle, deltaX, deltaY)
 }
 </script>
 
 <template>
   <div
-    v-for="resizeHandle in handles"
-    :key="resizeHandle"
+    v-for="trigger in resizeTriggerViews"
+    :key="trigger.handle"
     class="tr-layout__floating-resize-trigger"
-    :class="resolveHandleClass(resizeHandle)"
+    :class="trigger.class"
     aria-hidden="true"
-    @pointerdown="startResize(resizeHandle, $event)"
+    @pointerdown="startResize(trigger.handle, $event)"
   >
     <span class="tr-layout__floating-resize-trigger-indicator" aria-hidden="true" />
   </div>

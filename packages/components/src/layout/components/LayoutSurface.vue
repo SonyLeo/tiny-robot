@@ -9,27 +9,21 @@ import type {
   LayoutFloatingState,
   LayoutMode,
 } from '../index.type'
-import type {
-  LayoutAsideView,
-  LayoutFloatingDragPosition,
-  LayoutFloatingRect,
-  LayoutResolvedFloating,
-} from '../internal.type'
-import { toPx } from '../utils/cssLength'
+import type { LayoutFloatingDragPosition, LayoutFloatingRect, LayoutResolvedFloating } from '../internal.type'
 import {
   areFloatingGeometryEqual,
   clampFloatingRect,
+  clampFloatingRectByHandle,
   DEFAULT_FLOATING_GAP,
   DEFAULT_FLOATING_HEIGHT,
   DEFAULT_FLOATING_WIDTH,
-  createFloatingSnapshot,
+  resolveViewportBounds,
   resolveFloatingRect,
-  toFloatingState as toFloatingStateFromSnapshot,
+  resolveFloatingStateFromRect,
 } from '../utils/surfaceGeometry'
+import { resolveFloatingResizeRect } from '../utils/surfaceResize'
 import FloatingDragBar from './FloatingDragBar.vue'
 import FloatingResizeTriggers from './FloatingResizeTriggers.vue'
-
-type FloatingInteraction = 'drag' | 'resize'
 
 const FLOATING_RESIZE_HANDLES: LayoutFloatingResizeHandle[] = ['s', 'e', 'w', 'ne', 'nw', 'se', 'sw']
 
@@ -42,9 +36,6 @@ interface LayoutSurfaceProps {
   mode: LayoutMode
   floatingState?: LayoutFloatingState
   floatingOptions?: LayoutFloatingOptions
-  leftAside?: LayoutAsideView
-  rightAside?: LayoutAsideView
-  asideResizing?: boolean
 }
 
 const props = defineProps<LayoutSurfaceProps>()
@@ -66,8 +57,7 @@ const { width: viewportWidth, height: viewportHeight } = useWindowSize({
   initialWidth: DEFAULT_FLOATING_WIDTH + DEFAULT_FLOATING_GAP * 2,
   initialHeight: DEFAULT_FLOATING_HEIGHT + DEFAULT_FLOATING_GAP * 2,
 })
-
-const activeFloatingInteraction = shallowRef<FloatingInteraction | null>(null)
+const floatingBounds = computed(() => resolveViewportBounds(viewportWidth.value, viewportHeight.value))
 
 const isFloating = computed(() => props.mode === 'floating')
 const resolvedFloating = computed<LayoutResolvedFloating | undefined>(() => {
@@ -80,15 +70,15 @@ const resolvedFloating = computed<LayoutResolvedFloating | undefined>(() => {
     ...props.floatingState,
   }
 })
-const floatingRect = computed(() => resolveFloatingRect(resolvedFloating.value))
+const floatingRect = computed(() => resolveFloatingRect(resolvedFloating.value, floatingBounds.value))
 const isFloatingDraggable = computed(() => floatingRect.value.draggable ?? true)
 const isFloatingResizable = computed(() => floatingRect.value.resizable === true)
-const canDragFloating = computed(
-  () => isFloating.value && isFloatingDraggable.value && activeFloatingInteraction.value !== 'resize',
-)
-const canStartFloatingResize = computed(
-  () => isFloating.value && isFloatingResizable.value && activeFloatingInteraction.value === null,
-)
+const activeDragRect = shallowRef<LayoutFloatingRect | null>(null)
+const activeResizeRect = shallowRef<LayoutFloatingRect | null>(null)
+const isFloatingDragging = computed(() => activeDragRect.value !== null)
+const isFloatingResizing = computed(() => activeResizeRect.value !== null)
+const isFloatingInteracting = computed(() => isFloatingDragging.value || isFloatingResizing.value)
+const canDragFloating = computed(() => isFloating.value && isFloatingDraggable.value && !isFloatingResizing.value)
 const resizeHandles = computed<LayoutFloatingResizeHandle[]>(() => {
   if (!isFloating.value || !isFloatingResizable.value) {
     return []
@@ -96,47 +86,7 @@ const resizeHandles = computed<LayoutFloatingResizeHandle[]>(() => {
 
   return FLOATING_RESIZE_HANDLES
 })
-const floatingClass = computed(() => ({
-  'tr-layout--floating': isFloating.value,
-  'tr-layout--floating-dragging': activeFloatingInteraction.value === 'drag',
-  'tr-layout--floating-resizing': activeFloatingInteraction.value === 'resize',
-}))
-const surfaceClass = computed(() => ({
-  'tr-layout--left-dock': props.leftAside?.present.value && props.leftAside.isDock.value,
-  'tr-layout--left-drawer': props.leftAside?.present.value && props.leftAside.isDrawer.value,
-  'tr-layout--left-expanded': props.leftAside?.present.value && props.leftAside.isOpen.value,
-  'tr-layout--left-rail': props.leftAside?.present.value && props.leftAside.isRail.value,
-  'tr-layout--right-dock': props.rightAside?.present.value && props.rightAside.isDock.value,
-  'tr-layout--right-drawer': props.rightAside?.present.value && props.rightAside.isDrawer.value,
-  'tr-layout--right-expanded': props.rightAside?.present.value && props.rightAside.isOpen.value,
-  'tr-layout--right-rail': props.rightAside?.present.value && props.rightAside.isRail.value,
-  'tr-layout--resizing': props.asideResizing === true,
-}))
-const surfaceStyle = computed<Record<string, string>>(() => {
-  const style: Record<string, string> = {}
-  const leftDockWidth = toPx(props.leftAside?.width.value)
-  const leftCollapsedWidth = toPx(props.leftAside?.collapsedWidth.value)
-  const rightDockWidth = toPx(props.rightAside?.width.value)
-  const rightCollapsedWidth = toPx(props.rightAside?.collapsedWidth.value)
 
-  if (leftDockWidth) {
-    style['--left-dock-width'] = leftDockWidth
-  }
-
-  if (leftCollapsedWidth) {
-    style['--left-collapsed-width'] = leftCollapsedWidth
-  }
-
-  if (rightDockWidth) {
-    style['--right-dock-width'] = rightDockWidth
-  }
-
-  if (rightCollapsedWidth) {
-    style['--right-collapsed-width'] = rightCollapsedWidth
-  }
-
-  return style
-})
 const floatingStyle = computed<CSSProperties>(() => {
   if (!isFloating.value) {
     return {}
@@ -150,103 +100,132 @@ const floatingStyle = computed<CSSProperties>(() => {
   }
 })
 
-function toFloatingState(rect: LayoutFloatingRect, normalizeCenter = false): LayoutFloatingState {
-  const sourceState = props.floatingState
-  const snapshot = createFloatingSnapshot(rect, sourceState)
-
-  return toFloatingStateFromSnapshot(snapshot, sourceState, {
-    normalizeCenter,
-  })
+/**
+ * 从 rect 反推出 floatingState。
+ * @param rect 矩形位置。
+ * @param normalizeCenter 是否标准化中心位置。
+ * @returns 解析后的浮动状态。
+ */
+function createFloatingState(rect: LayoutFloatingRect, normalizeCenter = false): LayoutFloatingState {
+  return resolveFloatingStateFromRect(rect, floatingBounds.value, props.floatingState, { normalizeCenter })
 }
 
-function toFloatingResizeDetail(
-  handle: LayoutFloatingResizeHandle,
-  rect: LayoutFloatingRect,
-): LayoutFloatingResizeDetail {
-  return {
-    ...toFloatingState(rect, true),
-    handle,
-  }
-}
-
-function commitFloatingRect(nextRect: LayoutFloatingRect): LayoutFloatingRect {
-  const normalizedRect = clampFloatingRect(nextRect)
+/**
+ * 规范化 rect 并同步状态。
+ * @param nextRect 下一个矩形位置。
+ * @returns 更新后的矩形位置。
+ */
+function updateFloatingRect(nextRect: LayoutFloatingRect): LayoutFloatingRect {
+  const normalizedRect = clampFloatingRect(nextRect, floatingBounds.value)
 
   if (areFloatingGeometryEqual(floatingRect.value, normalizedRect)) {
     return normalizedRect
   }
 
-  emit('update:floatingState', toFloatingState(normalizedRect, true))
+  emit('update:floatingState', createFloatingState(normalizedRect, true))
 
   return normalizedRect
 }
 
-function applyFloatingDragPosition(position: LayoutFloatingDragPosition): LayoutFloatingRect {
-  return commitFloatingRect({
-    ...floatingRect.value,
+/**
+ * 只更新位置，尺寸继续沿用当前 rect。
+ * @param position 当前拖拽位置。
+ * @param sourceRect 拖拽前的 rect。
+ * @returns 更新后的 rect。
+ */
+function updateFloatingDragRect(
+  position: LayoutFloatingDragPosition,
+  sourceRect: LayoutFloatingRect,
+): LayoutFloatingRect {
+  return updateFloatingRect({
+    ...sourceRect,
     x: position.x,
     y: position.y,
   })
 }
 
-function startFloatingInteraction(type: FloatingInteraction): void {
-  activeFloatingInteraction.value = type
+/**
+ * 先计算 resize 结果，再做边界裁剪，最后统一提交。
+ * @param handle 当前 resize 方向。
+ * @param deltaX 水平位移。
+ * @param deltaY 垂直位移。
+ * @param sourceRect resize 起始 rect。
+ * @returns 更新后的 rect。
+ */
+function updateFloatingResizeRect(
+  handle: LayoutFloatingResizeHandle,
+  deltaX: number,
+  deltaY: number,
+  sourceRect: LayoutFloatingRect,
+): LayoutFloatingRect {
+  const resizedRect = resolveFloatingResizeRect({
+    handle,
+    deltaX,
+    deltaY,
+    startRect: sourceRect,
+  })
+  const clampedRect = clampFloatingRectByHandle(resizedRect, handle, floatingBounds.value)
+
+  return updateFloatingRect(clampedRect)
 }
 
-function endFloatingInteraction(type: FloatingInteraction): void {
-  if (activeFloatingInteraction.value === type) {
-    activeFloatingInteraction.value = null
-  }
-}
-
-function syncFloatingRect(): void {
-  if (!isFloating.value || activeFloatingInteraction.value !== null) {
-    return
-  }
-
-  commitFloatingRect(floatingRect.value)
-}
-
-function startFloatingDrag(rect: LayoutFloatingRect): void {
-  startFloatingInteraction('drag')
-  emit('floating-drag-start', toFloatingState(rect, true))
+function startFloatingDrag(): void {
+  activeDragRect.value = floatingRect.value
+  emit('floating-drag-start', createFloatingState(activeDragRect.value, true))
 }
 
 function moveFloatingDrag(position: LayoutFloatingDragPosition): void {
-  const nextRect = applyFloatingDragPosition(position)
+  const sourceRect = activeDragRect.value ?? floatingRect.value
+  const nextRect = updateFloatingDragRect(position, sourceRect)
 
-  emit('floating-drag', toFloatingState(nextRect, true))
+  emit('floating-drag', createFloatingState(nextRect, true))
 }
 
 function endFloatingDrag(position: LayoutFloatingDragPosition): void {
-  const nextRect = applyFloatingDragPosition(position)
+  const sourceRect = activeDragRect.value ?? floatingRect.value
+  const nextRect = updateFloatingDragRect(position, sourceRect)
 
-  emit('floating-drag-end', toFloatingState(nextRect, true))
-  endFloatingInteraction('drag')
+  emit('floating-drag-end', createFloatingState(nextRect, true))
+  activeDragRect.value = null
 }
 
-function startFloatingResize(handle: LayoutFloatingResizeHandle, rect: LayoutFloatingRect): void {
-  startFloatingInteraction('resize')
-  emit('floating-resize-start', toFloatingResizeDetail(handle, rect))
+function startFloatingResize(handle: LayoutFloatingResizeHandle): void {
+  activeResizeRect.value = floatingRect.value
+  emit('floating-resize-start', {
+    ...createFloatingState(floatingRect.value, true),
+    handle,
+  })
 }
 
-function moveFloatingResize(handle: LayoutFloatingResizeHandle, rect: LayoutFloatingRect): void {
-  const nextRect = commitFloatingRect(rect)
+function moveFloatingResize(handle: LayoutFloatingResizeHandle, deltaX: number, deltaY: number): void {
+  const sourceRect = activeResizeRect.value ?? floatingRect.value
+  const nextRect = updateFloatingResizeRect(handle, deltaX, deltaY, sourceRect)
 
-  emit('floating-resize', toFloatingResizeDetail(handle, nextRect))
+  emit('floating-resize', {
+    ...createFloatingState(nextRect, true),
+    handle,
+  })
 }
 
-function endFloatingResize(handle: LayoutFloatingResizeHandle, rect: LayoutFloatingRect): void {
-  const nextRect = commitFloatingRect(rect)
+function endFloatingResize(handle: LayoutFloatingResizeHandle, deltaX: number, deltaY: number): void {
+  const sourceRect = activeResizeRect.value ?? floatingRect.value
+  const nextRect = updateFloatingResizeRect(handle, deltaX, deltaY, sourceRect)
 
-  emit('floating-resize-end', toFloatingResizeDetail(handle, nextRect))
-  endFloatingInteraction('resize')
+  emit('floating-resize-end', {
+    ...createFloatingState(nextRect, true),
+    handle,
+  })
+  activeResizeRect.value = null
 }
 
 watch(
-  [() => props.mode, resolvedFloating, viewportWidth, viewportHeight],
+  [resolvedFloating, viewportWidth, viewportHeight],
   () => {
-    syncFloatingRect()
+    if (!isFloating.value || isFloatingInteracting.value) {
+      return
+    }
+
+    updateFloatingRect(floatingRect.value)
   },
   { immediate: true },
 )
@@ -254,10 +233,19 @@ watch(
 
 <template>
   <Teleport to="body" :disabled="!isFloating">
-    <div v-bind="attrs" class="tr-layout" :class="[surfaceClass, floatingClass]" :style="[surfaceStyle, floatingStyle]">
+    <div
+      v-bind="attrs"
+      class="tr-layout"
+      :class="{
+        'tr-layout--floating': isFloating,
+        'tr-layout--no-select': isFloatingInteracting,
+      }"
+      :style="floatingStyle"
+    >
       <FloatingDragBar
-        v-if="canDragFloating"
-        :floating-rect="floatingRect"
+        v-if="isFloating"
+        :x="floatingRect.x"
+        :y="floatingRect.y"
         :can-drag="canDragFloating"
         @drag-start="startFloatingDrag"
         @drag="moveFloatingDrag"
@@ -268,8 +256,6 @@ watch(
 
       <FloatingResizeTriggers
         :handles="resizeHandles"
-        :floating-rect="floatingRect"
-        :can-start="canStartFloatingResize"
         @resize-start="startFloatingResize"
         @resize="moveFloatingResize"
         @resize-end="endFloatingResize"
@@ -334,14 +320,8 @@ watch(
   }
 }
 
-:global(.tr-layout--floating-dragging .tr-layout__floating-resize-trigger) {
-  pointer-events: none;
-}
-
-:global(.tr-layout--floating-resizing),
-:global(.tr-layout--floating-resizing *),
-:global(.tr-layout--resizing),
-:global(.tr-layout--resizing *) {
+.tr-layout--no-select,
+.tr-layout--no-select * {
   user-select: none;
 }
 </style>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useDraggable } from '@vueuse/core'
 import { computed, shallowRef, watch } from 'vue'
-import type { LayoutFloatingDragPosition, LayoutFloatingRect } from '../internal.type'
+import type { LayoutFloatingDragPosition } from '../internal.type'
 import { getLayoutRootElement } from '../utils/layoutElements'
 import { DEFAULT_FLOATING_GAP, DEFAULT_FLOATING_TOP } from '../utils/surfaceGeometry'
 
@@ -10,14 +10,15 @@ defineOptions({
 })
 
 interface FloatingDragBarProps {
-  floatingRect: LayoutFloatingRect
+  x: number
+  y: number
   canDrag: boolean
 }
 
 const props = defineProps<FloatingDragBarProps>()
 
 const emit = defineEmits<{
-  (event: 'drag-start', value: LayoutFloatingRect): void
+  (event: 'drag-start', value: LayoutFloatingDragPosition): void
   (event: 'drag', value: LayoutFloatingDragPosition): void
   (event: 'drag-end', value: LayoutFloatingDragPosition): void
 }>()
@@ -26,21 +27,22 @@ const dragBarEl = shallowRef<HTMLElement | null>(null)
 const dragStarted = shallowRef(false)
 
 const rootEl = computed(() => getLayoutRootElement(dragBarEl.value))
+const isDraggable = computed(() => props.canDrag)
 
 const { x, y, isDragging } = useDraggable(rootEl, {
   handle: dragBarEl,
   initialValue: { x: DEFAULT_FLOATING_GAP, y: DEFAULT_FLOATING_TOP },
   preventDefault: true,
   buttons: [0],
-  disabled: computed(() => !props.canDrag),
+  disabled: computed(() => !isDraggable.value),
   onStart: () => {
-    if (!props.canDrag || dragStarted.value) {
+    if (!isDraggable.value || dragStarted.value) {
       return false
     }
 
     dragStarted.value = true
-    setPosition(props.floatingRect.x, props.floatingRect.y)
-    emit('drag-start', props.floatingRect)
+    setPosition(props.x, props.y)
+    emit('drag-start', { x: props.x, y: props.y })
   },
   onMove: (position) => {
     if (!dragStarted.value) {
@@ -60,7 +62,8 @@ const { x, y, isDragging } = useDraggable(rootEl, {
 })
 
 const dragBarClass = computed(() => ({
-  'tr-layout__drag-bar--draggable': props.canDrag,
+  'tr-layout__drag-bar--draggable': isDraggable.value,
+  'tr-layout__drag-bar--dragging': isDragging.value,
 }))
 
 function setPosition(nextX: number, nextY: number): void {
@@ -69,7 +72,7 @@ function setPosition(nextX: number, nextY: number): void {
 }
 
 watch(
-  () => [props.floatingRect.x, props.floatingRect.y] as const,
+  () => [props.x, props.y] as const,
   ([nextX, nextY]) => {
     if (!isDragging.value) {
       setPosition(nextX, nextY)
@@ -130,14 +133,9 @@ watch(
       box-shadow: var(--drag-hover-shadow);
     }
   }
-}
 
-:global(.tr-layout--floating-dragging) .tr-layout__drag-bar--draggable {
-  cursor: grabbing;
-}
-
-:global(.tr-layout--floating-resizing) .tr-layout__drag-bar--draggable {
-  cursor: default;
-  pointer-events: none;
+  &--dragging {
+    cursor: grabbing;
+  }
 }
 </style>

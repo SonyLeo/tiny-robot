@@ -4,10 +4,11 @@ import { computed, ref } from 'vue'
 import AsideContent from './components/AsideContent.vue'
 import LayoutSurface from './components/LayoutSurface.vue'
 import { provideLayoutContext } from './composables/useLayoutContext'
-import { createLayoutState } from './composables/useLayoutRootState'
+import { useLayoutAsidePanels } from './composables/useLayoutAsidePanels'
 import type { LayoutAsideResizeDetail, LayoutEmits, LayoutProps, LayoutSlots, LayoutFloatingState } from './index.type'
-import type { LayoutAsideView, LayoutPanel } from './internal.type'
+import type { LayoutAsidePanel } from './internal.type'
 import { emitAsideResizeEvent } from './utils/asideEventEmitters'
+import { toPx } from './utils/cssLength'
 import { hasNonEmptySlotContent } from './utils/slots'
 import { useControllableState } from '../shared/composables'
 import { DEFAULT_FLOATING_HEIGHT, DEFAULT_FLOATING_OFFSET, DEFAULT_FLOATING_WIDTH } from './utils/surfaceGeometry'
@@ -24,12 +25,9 @@ const hasHeader = computed(() => hasNonEmptySlotContent(slots.header))
 const hasFooter = computed(() => hasNonEmptySlotContent(slots.footer))
 const hasRightAside = computed(() => hasNonEmptySlotContent(slots['right-aside']))
 
-const { leftPanel, rightPanel, leftAsideView, rightAsideView } = createLayoutState(props, emit, {
-  left: hasLeftAside,
-  right: hasRightAside,
-})
+const { leftPanel, rightPanel } = useLayoutAsidePanels(props, emit)
 
-function setDrawerOpen(panel: LayoutPanel, sibling: LayoutPanel, nextOpen: boolean): void {
+function setDrawerOpen(panel: LayoutAsidePanel, sibling: LayoutAsidePanel, nextOpen: boolean): void {
   if (nextOpen && panel.isDrawer.value && sibling.isDrawer.value && sibling.isOpen.value) {
     sibling.setOpen(false)
   }
@@ -37,7 +35,7 @@ function setDrawerOpen(panel: LayoutPanel, sibling: LayoutPanel, nextOpen: boole
   panel.setOpen(nextOpen)
 }
 
-function toggleDrawer(panel: LayoutPanel, sibling: LayoutPanel): void {
+function toggleDrawer(panel: LayoutAsidePanel, sibling: LayoutAsidePanel): void {
   setDrawerOpen(panel, sibling, !panel.isOpen.value)
 }
 
@@ -107,8 +105,12 @@ function setRightAsideWidth(width: number): void {
   drawer.right.setWidth(width)
 }
 
-function isAsidePresent(aside: LayoutAsideView): boolean {
-  return aside.present.value
+function getDockedAsideWidth(panel: LayoutAsidePanel, present: boolean): number {
+  if (!present || !panel.isDock.value || panel.isHidden.value) {
+    return 0
+  }
+
+  return panel.isRail.value ? panel.collapsedWidth.value : panel.width.value
 }
 
 const DEFAULT_FLOATING_STATE: LayoutFloatingState = {
@@ -125,6 +127,47 @@ const floatingState = useControllableState<LayoutFloatingState>({
   onChange: (nextState) => emit('update:floatingState', nextState),
 })
 
+const leftDockWidth = computed(() => getDockedAsideWidth(leftPanel, hasLeftAside.value))
+const rightDockWidth = computed(() => getDockedAsideWidth(rightPanel, hasRightAside.value))
+
+const surfaceClass = computed(() => ({
+  'tr-layout--left-dock': hasLeftAside.value && leftPanel.isDock.value,
+  'tr-layout--left-drawer': hasLeftAside.value && leftPanel.isDrawer.value,
+  'tr-layout--left-expanded': hasLeftAside.value && leftPanel.isOpen.value,
+  'tr-layout--left-rail': hasLeftAside.value && leftPanel.isRail.value,
+  'tr-layout--right-dock': hasRightAside.value && rightPanel.isDock.value,
+  'tr-layout--right-drawer': hasRightAside.value && rightPanel.isDrawer.value,
+  'tr-layout--right-expanded': hasRightAside.value && rightPanel.isOpen.value,
+  'tr-layout--right-rail': hasRightAside.value && rightPanel.isRail.value,
+  'tr-layout--resizing': isAsideResizing.value,
+}))
+
+const surfaceStyle = computed<Record<string, string>>(() => {
+  const style: Record<string, string> = {}
+  const leftDockWidthPx = toPx(leftPanel.width.value)
+  const leftCollapsedWidth = toPx(leftPanel.collapsedWidth.value)
+  const rightDockWidthPx = toPx(rightPanel.width.value)
+  const rightCollapsedWidth = toPx(rightPanel.collapsedWidth.value)
+
+  if (leftDockWidthPx) {
+    style['--left-dock-width'] = leftDockWidthPx
+  }
+
+  if (leftCollapsedWidth) {
+    style['--left-collapsed-width'] = leftCollapsedWidth
+  }
+
+  if (rightDockWidthPx) {
+    style['--right-dock-width'] = rightDockWidthPx
+  }
+
+  if (rightCollapsedWidth) {
+    style['--right-collapsed-width'] = rightCollapsedWidth
+  }
+
+  return style
+})
+
 onKeyDown('Escape', (event) => {
   if (event.defaultPrevented || !drawer.isDrawerVisible.value) {
     return
@@ -138,12 +181,11 @@ onKeyDown('Escape', (event) => {
 
 <template>
   <LayoutSurface
-    :mode="props.mode"
+    :mode="mode"
+    :class="surfaceClass"
+    :style="surfaceStyle"
     v-model:floating-state="floatingState"
     :floating-options="floatingOptions"
-    :left-aside="leftAsideView"
-    :right-aside="rightAsideView"
-    :aside-resizing="isAsideResizing"
     @floating-drag-start="emit('floating-drag-start', $event)"
     @floating-drag="emit('floating-drag', $event)"
     @floating-drag-end="emit('floating-drag-end', $event)"
@@ -153,8 +195,10 @@ onKeyDown('Escape', (event) => {
   >
     <div class="tr-layout__body">
       <AsideContent
-        v-if="isAsidePresent(leftAsideView)"
-        :aside="leftAsideView"
+        v-if="hasLeftAside"
+        side="left"
+        :panel="leftPanel"
+        :opposite-dock-width="rightDockWidth"
         @width-change="setLeftAsideWidth"
         @aside-resize-start="onAsideResizeStart"
         @aside-resize="onAsideResize"
@@ -176,8 +220,10 @@ onKeyDown('Escape', (event) => {
       </footer>
 
       <AsideContent
-        v-if="isAsidePresent(rightAsideView)"
-        :aside="rightAsideView"
+        v-if="hasRightAside"
+        side="right"
+        :panel="rightPanel"
+        :opposite-dock-width="leftDockWidth"
         @width-change="setRightAsideWidth"
         @aside-resize-start="onAsideResizeStart"
         @aside-resize="onAsideResize"

@@ -2,14 +2,16 @@
 import { computed } from 'vue'
 import AsideResizeTrigger from './AsideResizeTrigger.vue'
 import type { LayoutAsideResizeDetail } from '../index.type'
-import type { LayoutAsideView } from '../internal.type'
+import type { LayoutAsidePanel } from '../internal.type'
 
 defineOptions({
   name: 'LayoutAsideContent',
 })
 
 interface LayoutAsideContentProps {
-  aside: LayoutAsideView
+  side: 'left' | 'right'
+  panel: LayoutAsidePanel
+  oppositeDockWidth: number
 }
 
 const props = defineProps<LayoutAsideContentProps>()
@@ -22,26 +24,26 @@ const emit = defineEmits<{
 }>()
 
 const asideClass = computed(() => [
-  `tr-layout__aside--${props.aside.side.value}`,
-  `tr-layout__aside--effect-${props.aside.collapseEffect.value}`,
+  `tr-layout__aside--${props.side}`,
+  `tr-layout__aside--effect-${props.panel.collapseEffect.value}`,
   {
-    'tr-layout__aside--dock': props.aside.isDock.value,
-    'tr-layout__aside--drawer': props.aside.isDrawer.value,
-    'tr-layout__aside--expanded': props.aside.isOpen.value,
-    'tr-layout__aside--rail': props.aside.isRail.value,
-    'tr-layout__aside--hidden': props.aside.isHidden.value,
+    'tr-layout__aside--dock': props.panel.isDock.value,
+    'tr-layout__aside--drawer': props.panel.isDrawer.value,
+    'tr-layout__aside--expanded': props.panel.isOpen.value,
+    'tr-layout__aside--rail': props.panel.isRail.value,
+    'tr-layout__aside--hidden': props.panel.isHidden.value,
   },
 ])
 </script>
 
 <template>
-  <aside class="tr-layout__aside" :class="asideClass" :inert="props.aside.isHidden.value || undefined">
+  <aside class="tr-layout__aside" :class="asideClass" :inert="props.panel.isHidden.value || undefined">
     <AsideResizeTrigger
-      v-if="props.aside.canResize.value"
-      :side="props.aside.side.value"
-      :min-width="props.aside.minWidth.value"
-      :max-width="props.aside.maxWidth.value"
-      :opposite-dock-width="props.aside.oppositeDockWidth.value"
+      v-if="panel.canResize.value"
+      :side="side"
+      :min-width="panel.minWidth.value"
+      :max-width="panel.maxWidth.value"
+      :opposite-dock-width="oppositeDockWidth"
       @width-change="emit('width-change', $event)"
       @aside-resize-start="emit('aside-resize-start', $event)"
       @aside-resize="emit('aside-resize', $event)"

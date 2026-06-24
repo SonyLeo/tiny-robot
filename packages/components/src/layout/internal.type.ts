@@ -18,7 +18,8 @@ export interface LayoutFloatingDragPosition {
   y: number
 }
 
-export interface LayoutPanel {
+export interface LayoutAsidePanel {
+  side: LayoutSide
   isOpen: ComputedRef<boolean>
   width: ComputedRef<number>
   collapsedWidth: ComputedRef<number>
@@ -34,23 +35,6 @@ export interface LayoutPanel {
   setWidth: (nextWidth: number) => void
 }
 
-export interface LayoutAsideView {
-  side: ComputedRef<LayoutSide>
-  present: ComputedRef<boolean>
-  oppositeDockWidth: ComputedRef<number>
-  collapseEffect: ComputedRef<LayoutAsideCollapseEffect>
-  isDock: ComputedRef<boolean>
-  isDrawer: ComputedRef<boolean>
-  isOpen: ComputedRef<boolean>
-  isRail: ComputedRef<boolean>
-  isHidden: ComputedRef<boolean>
-  canResize: ComputedRef<boolean>
-  minWidth: ComputedRef<number>
-  maxWidth: ComputedRef<number>
-  width: ComputedRef<number>
-  collapsedWidth: ComputedRef<number>
-}
-
 export interface LayoutAsideToggleContext {
   isOpen: ComputedRef<boolean>
   toggle: () => void
@@ -59,11 +43,4 @@ export interface LayoutAsideToggleContext {
 export interface LayoutContext {
   left: LayoutAsideToggleContext
   right: LayoutAsideToggleContext
-}
-
-export interface LayoutState {
-  leftPanel: LayoutPanel
-  rightPanel: LayoutPanel
-  leftAsideView: LayoutAsideView
-  rightAsideView: LayoutAsideView
 }
