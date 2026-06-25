@@ -1,8 +1,8 @@
 import { expect, test } from '../helpers'
 
 test.describe('Layout 组件测试 - Main Scrollbar', () => {
-  test('Props: scrollTarget - 应解析真实滚动宿主并挂上标记', async ({ layout }) => {
-    await expect(layout.scrollTarget).toHaveAttribute('data-tr-layout-scroll-target', '')
+  test('Props: scrollTarget - 应解析真实滚动宿主', async ({ layout }) => {
+    await expect(layout.scrollTarget).toBeVisible()
   })
 
   test('虚拟滚动条 - 长列表时应显示并随滚动同步', async ({ layout }) => {

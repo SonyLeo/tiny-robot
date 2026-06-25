@@ -9,7 +9,6 @@ defineOptions({
 })
 
 interface LayoutAsideContentProps {
-  side: 'left' | 'right'
   panel: LayoutAsidePanel
   oppositeDockWidth: number
 }
@@ -24,7 +23,7 @@ const emit = defineEmits<{
 }>()
 
 const asideClass = computed(() => [
-  `tr-layout__aside--${props.side}`,
+  `tr-layout__aside--${props.panel.side}`,
   `tr-layout__aside--effect-${props.panel.collapseEffect.value}`,
   {
     'tr-layout__aside--dock': props.panel.isDock.value,
@@ -40,7 +39,7 @@ const asideClass = computed(() => [
   <aside class="tr-layout__aside" :class="asideClass" :inert="props.panel.isHidden.value || undefined">
     <AsideResizeTrigger
       v-if="panel.canResize.value"
-      :side="side"
+      :side="panel.side"
       :min-width="panel.minWidth.value"
       :max-width="panel.maxWidth.value"
       :opposite-dock-width="oppositeDockWidth"

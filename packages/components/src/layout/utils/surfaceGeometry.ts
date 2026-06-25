@@ -1,5 +1,10 @@
-import type { LayoutFloatingPlacement, LayoutFloatingResizeHandle, LayoutFloatingState } from '../index.type'
-import type { LayoutFloatingRect, LayoutResolvedFloating } from '../internal.type'
+import type {
+  LayoutFloatingOptions,
+  LayoutFloatingPlacement,
+  LayoutFloatingResizeHandle,
+  LayoutFloatingState,
+} from '../index.type'
+import type { LayoutFloatingRect } from '../internal.type'
 import { clamp } from './number'
 
 export interface FloatingBounds {
@@ -24,11 +29,9 @@ export const DEFAULT_FLOATING_OFFSET = 24
 export const DEFAULT_MIN_FLOATING_WIDTH = 320
 export const DEFAULT_MIN_FLOATING_HEIGHT = 240
 
-type FloatingStateInput = LayoutFloatingState &
-  Partial<Pick<LayoutResolvedFloating, 'draggable' | 'resizable' | 'minWidth' | 'maxWidth' | 'minHeight' | 'maxHeight'>>
+type FloatingStateInput = LayoutFloatingState & Partial<LayoutFloatingOptions>
 
-type FloatingRectInput = Pick<LayoutFloatingRect, 'x' | 'y' | 'width' | 'height'> &
-  Partial<Pick<LayoutFloatingRect, 'draggable' | 'resizable' | 'minWidth' | 'maxWidth' | 'minHeight' | 'maxHeight'>>
+type FloatingRectInput = Pick<LayoutFloatingRect, 'x' | 'y' | 'width' | 'height'>
 
 type FloatingInput = LayoutFloatingRect | FloatingStateInput | undefined
 
@@ -175,29 +178,14 @@ function resolveNearestCornerPlacement(rect: LayoutFloatingRect, bounds: Floatin
  * @param y 浮层纵坐标。
  * @param width 浮层宽度。
  * @param height 浮层高度。
- * @param constraints 浮层尺寸约束。
- * @param source rect 元信息来源。
  * @returns 完整的浮层 rect。
  */
-function createFloatingRect(
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  constraints: FloatingConstraints,
-  source?: Partial<LayoutFloatingRect>,
-): LayoutFloatingRect {
+function createFloatingRect(x: number, y: number, width: number, height: number): LayoutFloatingRect {
   return {
     x,
     y,
     width,
     height,
-    draggable: source?.draggable ?? true,
-    resizable: source?.resizable ?? false,
-    minWidth: constraints.minWidth,
-    maxWidth: constraints.maxWidth,
-    minHeight: constraints.minHeight,
-    maxHeight: constraints.maxHeight,
   }
 }
 
@@ -224,14 +212,13 @@ export function resolveViewportBounds(
 }
 
 /**
- * 根据浮层输入计算尺寸约束。
- * @param source 浮层 state 或 rect 输入。
  * @param bounds 视口边界。
+ * @param source 浮层尺寸配置。
  * @returns 浮层尺寸约束。
  */
 export function resolveFloatingConstraints(
   bounds: FloatingBounds,
-  source?: Partial<LayoutFloatingRect | FloatingStateInput>,
+  source?: Partial<LayoutFloatingOptions>,
 ): FloatingConstraints {
   const maxWidth = Math.max(1, bounds.right - bounds.left)
   const maxHeight = Math.max(1, bounds.bottom - bounds.top)
@@ -249,14 +236,14 @@ export function resolveFloatingConstraints(
 /**
  * 对 rect 做尺寸和位置裁剪，返回完整 rect。
  * @param rect 浮层 rect 输入。
- * @param constraints 浮层尺寸约束。
  * @param bounds 视口边界。
+ * @param constraints 浮层尺寸约束。
  * @returns 规范化后的浮层 rect。
  */
 export function clampFloatingRect(
   rect: FloatingRectInput,
   bounds: FloatingBounds,
-  constraints = resolveFloatingConstraints(bounds, rect),
+  constraints = resolveFloatingConstraints(bounds),
 ): LayoutFloatingRect {
   const width = clamp(rect.width, constraints.minWidth, constraints.maxWidth)
   const height = clamp(rect.height, constraints.minHeight, constraints.maxHeight)
@@ -265,22 +252,22 @@ export function clampFloatingRect(
   const x = clamp(rect.x, bounds.left, xMax)
   const y = clamp(rect.y, bounds.top, yMax)
 
-  return createFloatingRect(x, y, width, height, constraints, rect)
+  return createFloatingRect(x, y, width, height)
 }
 
 /**
  * 根据拖拽的边或角裁剪 rect。
  * @param rect 浮层 rect 输入。
  * @param handle 当前 resize handle。
- * @param constraints 浮层尺寸约束。
  * @param bounds 视口边界。
+ * @param constraints 浮层尺寸约束。
  * @returns 裁剪后的浮层 rect。
  */
 export function clampFloatingRectByHandle(
   rect: FloatingRectInput,
   handle: LayoutFloatingResizeHandle,
   bounds: FloatingBounds,
-  constraints = resolveFloatingConstraints(bounds, rect),
+  constraints = resolveFloatingConstraints(bounds),
 ): LayoutFloatingRect {
   const right = rect.x + rect.width
   const bottom = rect.y + rect.height
@@ -335,8 +322,8 @@ export function clampFloatingRectByHandle(
 
 /**
  * 根据 floatingState 和 floatingOptions 生成初始 rect。
- * @param source 浮层状态输入。
  * @param bounds 视口边界。
+ * @param source 浮层状态和配置输入。
  * @returns 初始浮层 rect。
  */
 export function createFloatingRectFromState(bounds: FloatingBounds, source?: FloatingStateInput): LayoutFloatingRect {
@@ -347,7 +334,7 @@ export function createFloatingRectFromState(bounds: FloatingBounds, source?: Flo
   const offset = resolveFloatingOffset(source)
   const position = getPlacementPosition(placement, bounds, width, height, offset)
 
-  return createFloatingRect(position.x, position.y, width, height, constraints, source)
+  return createFloatingRect(position.x, position.y, width, height)
 }
 
 /**
@@ -362,21 +349,7 @@ export function resolveFloatingRect(input: FloatingInput, bounds: FloatingBounds
   }
 
   if (isFloatingRect(input)) {
-    const constraints = resolveFloatingConstraints(bounds, input)
-    const rect: FloatingRectInput = {
-      x: input.x,
-      y: input.y,
-      width: input.width,
-      height: input.height,
-      draggable: input.draggable,
-      resizable: input.resizable,
-      minWidth: input.minWidth,
-      maxWidth: input.maxWidth,
-      minHeight: input.minHeight,
-      maxHeight: input.maxHeight,
-    }
-
-    return clampFloatingRect(rect, bounds, constraints)
+    return clampFloatingRect(input, bounds)
   }
 
   return createFloatingRectFromState(bounds, input)
@@ -385,20 +358,21 @@ export function resolveFloatingRect(input: FloatingInput, bounds: FloatingBounds
 /**
  * 根据 rect 反推出对外的 floatingState。
  * @param rect 浮层 rect。
- * @param source 浮层状态来源。
- * @param options 状态提交选项。
  * @param bounds 视口边界。
+ * @param source 浮层状态来源。
+ * @param normalizeCenter 是否把 center 转为最近角落。
  * @returns 对外 floatingState。
  */
 export function resolveFloatingStateFromRect(
   rect: LayoutFloatingRect,
   bounds: FloatingBounds,
-  source?: Partial<LayoutFloatingState>,
-  options?: { normalizeCenter?: boolean },
+  source?: Partial<FloatingStateInput>,
+  normalizeCenter = true,
 ): LayoutFloatingState {
-  const normalizedRect = clampFloatingRect(rect, bounds)
+  const constraints = resolveFloatingConstraints(bounds, source)
+  const normalizedRect = clampFloatingRect(rect, bounds, constraints)
   const sourcePlacement = source?.placement ?? 'center'
-  const shouldNormalizeCenter = options?.normalizeCenter && sourcePlacement === 'center'
+  const shouldNormalizeCenter = normalizeCenter && sourcePlacement === 'center'
   const placement = shouldNormalizeCenter ? resolveNearestCornerPlacement(normalizedRect, bounds) : sourcePlacement
   const offset = resolveFloatingOffsetFromRect(normalizedRect, bounds, placement)
   const fallbackOffset = resolveFloatingOffset(source)

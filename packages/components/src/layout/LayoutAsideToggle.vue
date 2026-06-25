@@ -9,10 +9,10 @@ defineOptions({
 
 const props = defineProps<LayoutAsideToggleProps>()
 
-const panel = useLayoutContext()[props.side]
+const { isOpen, toggle } = useLayoutContext()[props.side]
 
 const slotProps = computed(() => ({
-  isOpen: panel.isOpen.value,
+  isOpen: isOpen.value,
 }))
 
 const fallbackTexts = {
@@ -28,12 +28,12 @@ const fallbackTexts = {
 
 const fallbackText = computed(() => {
   const text = fallbackTexts[props.side]
-  return panel.isOpen.value ? text.expanded : text.collapsed
+  return isOpen.value ? text.expanded : text.collapsed
 })
 </script>
 
 <template>
-  <button class="tr-layout-aside-toggle" type="button" @click="panel.toggle">
+  <button class="tr-layout-aside-toggle" type="button" @click="toggle">
     <slot v-bind="slotProps">
       {{ fallbackText }}
     </slot>

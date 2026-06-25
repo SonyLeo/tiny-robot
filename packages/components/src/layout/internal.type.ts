@@ -3,10 +3,7 @@ import type { LayoutAsideCollapseEffect, LayoutFloatingOptions, LayoutFloatingSt
 
 export type LayoutResolvedFloating = LayoutFloatingState & LayoutFloatingOptions
 
-export type LayoutFloatingRect = Omit<
-  LayoutResolvedFloating,
-  'placement' | 'offsetX' | 'offsetY' | 'width' | 'height'
-> & {
+export interface LayoutFloatingRect {
   x: number
   y: number
   width: number

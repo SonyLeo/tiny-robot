@@ -17,6 +17,7 @@ import {
   DEFAULT_FLOATING_GAP,
   DEFAULT_FLOATING_HEIGHT,
   DEFAULT_FLOATING_WIDTH,
+  resolveFloatingConstraints,
   resolveViewportBounds,
   resolveFloatingRect,
   resolveFloatingStateFromRect,
@@ -70,9 +71,10 @@ const resolvedFloating = computed<LayoutResolvedFloating | undefined>(() => {
     ...props.floatingState,
   }
 })
+const floatingConstraints = computed(() => resolveFloatingConstraints(floatingBounds.value, resolvedFloating.value))
 const floatingRect = computed(() => resolveFloatingRect(resolvedFloating.value, floatingBounds.value))
-const isFloatingDraggable = computed(() => floatingRect.value.draggable ?? true)
-const isFloatingResizable = computed(() => floatingRect.value.resizable === true)
+const isFloatingDraggable = computed(() => resolvedFloating.value?.draggable ?? true)
+const isFloatingResizable = computed(() => resolvedFloating.value?.resizable === true)
 const activeDragRect = shallowRef<LayoutFloatingRect | null>(null)
 const activeResizeRect = shallowRef<LayoutFloatingRect | null>(null)
 const isFloatingDragging = computed(() => activeDragRect.value !== null)
@@ -101,13 +103,12 @@ const floatingStyle = computed<CSSProperties>(() => {
 })
 
 /**
- * 从 rect 反推出 floatingState。
+ * 从 rect 反推出对外提交的 floatingState。
  * @param rect 矩形位置。
- * @param normalizeCenter 是否标准化中心位置。
  * @returns 解析后的浮动状态。
  */
-function createFloatingState(rect: LayoutFloatingRect, normalizeCenter = false): LayoutFloatingState {
-  return resolveFloatingStateFromRect(rect, floatingBounds.value, props.floatingState, { normalizeCenter })
+function createFloatingState(rect: LayoutFloatingRect): LayoutFloatingState {
+  return resolveFloatingStateFromRect(rect, floatingBounds.value, resolvedFloating.value)
 }
 
 /**
@@ -116,13 +117,13 @@ function createFloatingState(rect: LayoutFloatingRect, normalizeCenter = false):
  * @returns 更新后的矩形位置。
  */
 function updateFloatingRect(nextRect: LayoutFloatingRect): LayoutFloatingRect {
-  const normalizedRect = clampFloatingRect(nextRect, floatingBounds.value)
+  const normalizedRect = clampFloatingRect(nextRect, floatingBounds.value, floatingConstraints.value)
 
   if (areFloatingGeometryEqual(floatingRect.value, normalizedRect)) {
     return normalizedRect
   }
 
-  emit('update:floatingState', createFloatingState(normalizedRect, true))
+  emit('update:floatingState', createFloatingState(normalizedRect))
 
   return normalizedRect
 }
@@ -164,35 +165,35 @@ function updateFloatingResizeRect(
     deltaY,
     startRect: sourceRect,
   })
-  const clampedRect = clampFloatingRectByHandle(resizedRect, handle, floatingBounds.value)
+  const clampedRect = clampFloatingRectByHandle(resizedRect, handle, floatingBounds.value, floatingConstraints.value)
 
   return updateFloatingRect(clampedRect)
 }
 
 function startFloatingDrag(): void {
   activeDragRect.value = floatingRect.value
-  emit('floating-drag-start', createFloatingState(activeDragRect.value, true))
+  emit('floating-drag-start', createFloatingState(activeDragRect.value))
 }
 
 function moveFloatingDrag(position: LayoutFloatingDragPosition): void {
   const sourceRect = activeDragRect.value ?? floatingRect.value
   const nextRect = updateFloatingDragRect(position, sourceRect)
 
-  emit('floating-drag', createFloatingState(nextRect, true))
+  emit('floating-drag', createFloatingState(nextRect))
 }
 
 function endFloatingDrag(position: LayoutFloatingDragPosition): void {
   const sourceRect = activeDragRect.value ?? floatingRect.value
   const nextRect = updateFloatingDragRect(position, sourceRect)
 
-  emit('floating-drag-end', createFloatingState(nextRect, true))
+  emit('floating-drag-end', createFloatingState(nextRect))
   activeDragRect.value = null
 }
 
 function startFloatingResize(handle: LayoutFloatingResizeHandle): void {
   activeResizeRect.value = floatingRect.value
   emit('floating-resize-start', {
-    ...createFloatingState(floatingRect.value, true),
+    ...createFloatingState(floatingRect.value),
     handle,
   })
 }
@@ -202,7 +203,7 @@ function moveFloatingResize(handle: LayoutFloatingResizeHandle, deltaX: number, 
   const nextRect = updateFloatingResizeRect(handle, deltaX, deltaY, sourceRect)
 
   emit('floating-resize', {
-    ...createFloatingState(nextRect, true),
+    ...createFloatingState(nextRect),
     handle,
   })
 }
@@ -212,7 +213,7 @@ function endFloatingResize(handle: LayoutFloatingResizeHandle, deltaX: number, d
   const nextRect = updateFloatingResizeRect(handle, deltaX, deltaY, sourceRect)
 
   emit('floating-resize-end', {
-    ...createFloatingState(nextRect, true),
+    ...createFloatingState(nextRect),
     handle,
   })
   activeResizeRect.value = null

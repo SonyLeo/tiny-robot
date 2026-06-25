@@ -8,7 +8,7 @@ export const layoutSelectors = {
   rightAsideContent: '.tr-layout__aside.tr-layout__aside--right',
   header: '.tr-layout__header',
   main: '.tr-layout__main',
-  scrollTarget: '[data-tr-layout-scroll-target]',
+  scrollTarget: '[data-testid="layout-scroll-target"]',
   footer: '.tr-layout__footer',
   scrollbar: '.tr-layout-proxy-scrollbar',
   scrollbarThumb: '.tr-layout-proxy-scrollbar__thumb',

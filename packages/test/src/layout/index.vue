@@ -486,7 +486,12 @@ onBeforeUnmount(() => {
         </template>
 
         <template #main>
-          <BubbleList ref="scrollHostRef" class="layout-demo__bubble-list" :messages="messages" />
+          <BubbleList
+            ref="scrollHostRef"
+            class="layout-demo__bubble-list"
+            data-testid="layout-scroll-target"
+            :messages="messages"
+          />
           <TrLayout.ProxyScrollbar :scroll-target="scrollHostRef" />
         </template>
 

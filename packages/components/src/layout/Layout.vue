@@ -184,8 +184,8 @@ onKeyDown('Escape', (event) => {
     :mode="mode"
     :class="surfaceClass"
     :style="surfaceStyle"
-    v-model:floating-state="floatingState"
     :floating-options="floatingOptions"
+    v-model:floating-state="floatingState"
     @floating-drag-start="emit('floating-drag-start', $event)"
     @floating-drag="emit('floating-drag', $event)"
     @floating-drag-end="emit('floating-drag-end', $event)"
@@ -196,7 +196,6 @@ onKeyDown('Escape', (event) => {
     <div class="tr-layout__body">
       <AsideContent
         v-if="hasLeftAside"
-        side="left"
         :panel="leftPanel"
         :opposite-dock-width="rightDockWidth"
         @width-change="setLeftAsideWidth"
@@ -221,7 +220,6 @@ onKeyDown('Escape', (event) => {
 
       <AsideContent
         v-if="hasRightAside"
-        side="right"
         :panel="rightPanel"
         :opposite-dock-width="leftDockWidth"
         @width-change="setRightAsideWidth"
