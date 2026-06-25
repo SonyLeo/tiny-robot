@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { onKeyDown } from '@vueuse/core'
-import { computed, ref } from 'vue'
+import { unrefElement } from '@vueuse/core'
+import { computed, ref, type ComponentPublicInstance } from 'vue'
 import AsideContent from './components/AsideContent.vue'
 import LayoutSurface from './components/LayoutSurface.vue'
 import { provideLayoutContext } from './composables/useLayoutContext'
-import { useLayoutAsidePanels } from './composables/useLayoutAsidePanels'
+import { useLayoutAsideStates } from './composables/useLayoutAsideStates'
 import type { LayoutAsideResizeDetail, LayoutEmits, LayoutProps, LayoutSlots, LayoutFloatingState } from './index.type'
 import type { LayoutAsidePanel } from './internal.type'
 import { emitAsideResizeEvent } from './utils/asideEventEmitters'
@@ -20,12 +20,18 @@ defineOptions({
 const props = defineProps<LayoutProps>()
 const emit = defineEmits<LayoutEmits>()
 const slots = defineSlots<LayoutSlots>()
+const surfaceRef = ref<ComponentPublicInstance | HTMLElement | null>(null)
+const rootEl = computed<HTMLElement | null>(() => {
+  const element = unrefElement(surfaceRef)
+
+  return element instanceof HTMLElement ? element : null
+})
 const hasLeftAside = computed(() => hasNonEmptySlotContent(slots['left-aside']))
 const hasHeader = computed(() => hasNonEmptySlotContent(slots.header))
 const hasFooter = computed(() => hasNonEmptySlotContent(slots.footer))
 const hasRightAside = computed(() => hasNonEmptySlotContent(slots['right-aside']))
 
-const { leftPanel, rightPanel } = useLayoutAsidePanels(props, emit)
+const { leftPanel, rightPanel } = useLayoutAsideStates(props, emit)
 
 function setDrawerOpen(panel: LayoutAsidePanel, sibling: LayoutAsidePanel, nextOpen: boolean): void {
   if (nextOpen && panel.isDrawer.value && sibling.isDrawer.value && sibling.isOpen.value) {
@@ -63,14 +69,8 @@ function closeDrawers(): void {
   }
 }
 
-const drawer = {
-  left: leftPanel,
-  right: rightPanel,
-  isDrawerVisible,
-  closeDrawers,
-}
-
 provideLayoutContext({
+  rootEl,
   left: {
     isOpen: leftPanel.isOpen,
     toggle: toggleLeftDrawer,
@@ -98,11 +98,11 @@ function onAsideResizeEnd(detail: LayoutAsideResizeDetail): void {
 }
 
 function setLeftAsideWidth(width: number): void {
-  drawer.left.setWidth(width)
+  leftPanel.setWidth(width)
 }
 
 function setRightAsideWidth(width: number): void {
-  drawer.right.setWidth(width)
+  rightPanel.setWidth(width)
 }
 
 function getDockedAsideWidth(panel: LayoutAsidePanel, present: boolean): number {
@@ -167,20 +167,11 @@ const surfaceStyle = computed<Record<string, string>>(() => {
 
   return style
 })
-
-onKeyDown('Escape', (event) => {
-  if (event.defaultPrevented || !drawer.isDrawerVisible.value) {
-    return
-  }
-
-  event.preventDefault()
-  event.stopPropagation()
-  drawer.closeDrawers()
-})
 </script>
 
 <template>
   <LayoutSurface
+    ref="surfaceRef"
     :mode="mode"
     :class="surfaceClass"
     :style="surfaceStyle"
@@ -230,12 +221,7 @@ onKeyDown('Escape', (event) => {
         <slot name="right-aside" />
       </AsideContent>
 
-      <div
-        v-if="drawer.isDrawerVisible.value"
-        class="tr-layout__backdrop"
-        aria-hidden="true"
-        @pointerdown="drawer.closeDrawers"
-      />
+      <div v-if="isDrawerVisible" class="tr-layout__backdrop" aria-hidden="true" @pointerdown="closeDrawers" />
     </div>
   </LayoutSurface>
 </template>

@@ -1,4 +1,4 @@
-import type { ComputedRef } from 'vue'
+import type { ComputedRef, Ref } from 'vue'
 import type { LayoutAsideCollapseEffect, LayoutFloatingOptions, LayoutFloatingState, LayoutSide } from './index.type'
 
 export type LayoutResolvedFloating = LayoutFloatingState & LayoutFloatingOptions
@@ -28,6 +28,7 @@ export interface LayoutAsidePanel {
   isRail: ComputedRef<boolean>
   isHidden: ComputedRef<boolean>
   canResize: ComputedRef<boolean>
+  // 不建议把函数用作 props 传入
   setOpen: (nextOpen: boolean) => void
   setWidth: (nextWidth: number) => void
 }
@@ -38,6 +39,7 @@ export interface LayoutAsideToggleContext {
 }
 
 export interface LayoutContext {
+  rootEl: Ref<HTMLElement | null>
   left: LayoutAsideToggleContext
   right: LayoutAsideToggleContext
 }

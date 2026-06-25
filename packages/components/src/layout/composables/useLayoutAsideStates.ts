@@ -15,7 +15,7 @@ function resolveFiniteNumber(value: number | undefined, fallback: number): numbe
   return value === undefined || !Number.isFinite(value) ? fallback : value
 }
 
-function createAsidePanel(
+function createAsideState(
   side: LayoutSide,
   aside: () => LayoutAsideProps | undefined,
   emit: LayoutEmitFn,
@@ -81,9 +81,9 @@ function createAsidePanel(
   }
 }
 
-export function useLayoutAsidePanels(props: LayoutProps, emit: LayoutEmitFn) {
-  const leftPanel = createAsidePanel('left', () => props.leftAside, emit)
-  const rightPanel = createAsidePanel('right', () => props.rightAside, emit)
+export function useLayoutAsideStates(props: LayoutProps, emit: LayoutEmitFn) {
+  const leftPanel = createAsideState('left', () => props.leftAside, emit)
+  const rightPanel = createAsideState('right', () => props.rightAside, emit)
 
   return {
     leftPanel,

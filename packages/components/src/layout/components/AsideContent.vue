@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import AsideResizeTrigger from './AsideResizeTrigger.vue'
 import type { LayoutAsideResizeDetail } from '../index.type'
 import type { LayoutAsidePanel } from '../internal.type'
@@ -13,6 +13,7 @@ interface LayoutAsideContentProps {
   oppositeDockWidth: number
 }
 
+const asideRef = ref<HTMLElement | null>(null)
 const props = defineProps<LayoutAsideContentProps>()
 
 const emit = defineEmits<{
@@ -36,10 +37,11 @@ const asideClass = computed(() => [
 </script>
 
 <template>
-  <aside class="tr-layout__aside" :class="asideClass" :inert="props.panel.isHidden.value || undefined">
+  <aside ref="asideRef" class="tr-layout__aside" :class="asideClass" :inert="props.panel.isHidden.value || undefined">
     <AsideResizeTrigger
       v-if="panel.canResize.value"
       :side="panel.side"
+      :aside-el="asideRef"
       :min-width="panel.minWidth.value"
       :max-width="panel.maxWidth.value"
       :opposite-dock-width="oppositeDockWidth"

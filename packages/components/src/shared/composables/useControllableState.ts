@@ -6,7 +6,7 @@ interface UseControllableStateOptions<T> {
    * undefined 表示非受控，即使显式传入 undefined，也视为非受控。
    * 组件生命周期内不能在 undefined 和非 undefined 之间切换。
    */
-  value?: MaybeRefOrGetter<T | undefined>
+  value: MaybeRefOrGetter<T | undefined>
 
   /**
    * 仅在初始化为非受控模式时使用。

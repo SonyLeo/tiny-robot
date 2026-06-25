@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useLayoutContext } from './composables/useLayoutContext'
+import { useLayoutAsideContext } from './composables/useLayoutContext'
 import type { LayoutAsideToggleProps } from './index.type'
 
 defineOptions({
@@ -9,7 +9,7 @@ defineOptions({
 
 const props = defineProps<LayoutAsideToggleProps>()
 
-const { isOpen, toggle } = useLayoutContext()[props.side]
+const { isOpen, toggle } = useLayoutAsideContext(props.side)
 
 const slotProps = computed(() => ({
   isOpen: isOpen.value,

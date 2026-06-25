@@ -9,7 +9,7 @@ import {
   type ComponentPublicInstance,
   type CSSProperties,
 } from 'vue'
-import { usePointerDragSession } from './composables/usePointerDragSession'
+import { usePointerDrag } from './composables/usePointerDrag'
 import type { LayoutProxyScrollbarProps, LayoutScrollTarget } from './index.type'
 import { lockBodyInteraction, restoreBodyInteraction, type BodyInteractionState } from './utils/domInteraction'
 import { clamp } from './utils/number'
@@ -41,6 +41,7 @@ defineOptions({
 
 const props = defineProps<LayoutProxyScrollbarProps>()
 const scrollbarRef = ref<HTMLElement | null>(null)
+const thumbRef = shallowRef<HTMLElement | null>(null)
 const metrics = shallowRef<ScrollMetrics>(createEmptyMetrics())
 const isTargetHovering = shallowRef(false)
 const isTrackHovering = shallowRef(false)
@@ -49,11 +50,30 @@ let frameId: number | null = null
 const scrollTargetRef = computed<HTMLElement | null>(() => resolveScrollTargetElement(props.scrollTarget))
 const isScrollable = computed(() => metrics.value.isScrollable)
 
-const {
-  activeSession: activeThumbDrag,
-  startSession,
-  stopSession,
-} = usePointerDragSession<ThumbDragState>({
+const { dragState: activeThumbDrag, endDrag: endThumbDrag } = usePointerDrag<ThumbDragState>(thumbRef, {
+  disabled: computed(() => !metrics.value.isScrollable),
+  onStart: (event) => {
+    const scrollTarget = scrollTargetRef.value
+    if (!scrollTarget || !metrics.value.isScrollable) {
+      return null
+    }
+
+    const bodyEl = scrollTarget.ownerDocument.body
+    if (!(bodyEl instanceof HTMLBodyElement)) {
+      return null
+    }
+
+    event.preventDefault()
+
+    return {
+      pointerId: event.pointerId,
+      scrollTarget,
+      startY: event.clientY,
+      startScrollTop: scrollTarget.scrollTop,
+      bodyEl,
+      bodyState: lockBodyInteraction(bodyEl, 'grabbing'),
+    }
+  },
   onMove: (state, event) => {
     const currentMetrics = metrics.value
     if (!currentMetrics.isScrollable) {
@@ -63,7 +83,7 @@ const {
     state.scrollTarget.scrollTop = resolveScrollTopFromThumbDrag(state, event.clientY, currentMetrics)
     scheduleMetricsSync()
   },
-  onStop: (state) => {
+  onEnd: (state) => {
     restoreBodyInteraction(state.bodyEl, state.bodyState)
   },
 })
@@ -187,32 +207,6 @@ function setTrackHovering(value: boolean): void {
   isTrackHovering.value = value
 }
 
-// 开始拖拽时锁定 body 交互，并记录初始位置。
-function startThumbDrag(event: PointerEvent): void {
-  const scrollTarget = scrollTargetRef.value
-  if (!scrollTarget || !metrics.value.isScrollable) {
-    return
-  }
-
-  startSession(event, (event) => {
-    const bodyEl = scrollTarget.ownerDocument.body
-    if (!(bodyEl instanceof HTMLBodyElement)) {
-      return null
-    }
-
-    event.preventDefault()
-
-    return {
-      pointerId: event.pointerId,
-      scrollTarget,
-      startY: event.clientY,
-      startScrollTop: scrollTarget.scrollTop,
-      bodyEl,
-      bodyState: lockBodyInteraction(bodyEl, 'grabbing'),
-    }
-  })
-}
-
 useEventListener(scrollTargetRef, 'scroll', () => {
   scheduleMetricsSync()
 })
@@ -248,7 +242,7 @@ useMutationObserver(
 watch(
   scrollTargetRef,
   () => {
-    stopSession()
+    endThumbDrag()
     isTargetHovering.value = false
     isTrackHovering.value = false
     scheduleMetricsSync()
@@ -265,7 +259,7 @@ onBeforeUnmount(() => {
     window.cancelAnimationFrame(frameId)
   }
 
-  stopSession()
+  endThumbDrag()
 })
 </script>
 
@@ -279,7 +273,7 @@ onBeforeUnmount(() => {
     @mouseenter="setTrackHovering(true)"
     @mouseleave="setTrackHovering(false)"
   >
-    <div class="tr-layout-proxy-scrollbar__thumb" :style="thumbStyle" @pointerdown="startThumbDrag" />
+    <div ref="thumbRef" class="tr-layout-proxy-scrollbar__thumb" :style="thumbStyle" />
   </div>
 </template>
 
