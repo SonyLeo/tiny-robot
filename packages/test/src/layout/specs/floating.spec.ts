@@ -174,6 +174,23 @@ test.describe('Layout 组件测试 - Floating', () => {
     expect(after.y).toBeGreaterThan(before.y)
   })
 
+  test('Props: draggable - 外部重置位置后再次拖拽不应使用过期 anchor', async ({ layout }) => {
+    await layout.setMode('floating')
+
+    await layout.dragSurface(180, 100)
+    await layout.resetFloating()
+
+    const before = await layout.getBox(layout.surface)
+
+    await layout.dragSurface(20, 0)
+
+    const after = await layout.getBox(layout.surface)
+
+    expect(after.x - before.x).toBeGreaterThan(8)
+    expect(after.x - before.x).toBeLessThan(40)
+    expect(Math.abs(after.y - before.y)).toBeLessThan(8)
+  })
+
   test('Props: draggable=false - drag bar 不应再移动 surface', async ({ layout }) => {
     await layout.setMode('floating')
     await layout.disableFloatingDraggable()
