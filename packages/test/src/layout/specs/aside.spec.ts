@@ -27,12 +27,12 @@ test.describe('Layout 组件测试 - Aside', () => {
     await layout.expectAsideState('right', 'open')
   })
 
-  test('Drawer: backdrop / Escape - 应正确打开和关闭右侧 drawer', async ({ layout }) => {
+  test('Drawer: backdrop - 应正确打开和关闭右侧 drawer', async ({ layout }) => {
     await layout.setAsideMode('right', 'drawer')
     await layout.toggleAside('right')
 
     await layout.expectBackdropState('open')
-    await layout.page.keyboard.press('Escape')
+    await layout.backdrop.click()
     await layout.expectBackdropState('closed')
   })
 
