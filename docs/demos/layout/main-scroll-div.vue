@@ -35,12 +35,6 @@ const sections = Array.from({ length: 12 }, (_, index) => index + 1)
   gap: 12px;
   padding: 16px;
   overflow: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.layout-main-scroll-div::-webkit-scrollbar {
-  display: none;
 }
 
 .layout-main-scroll-div.is-centered {

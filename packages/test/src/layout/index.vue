@@ -272,6 +272,13 @@ function appendMessages() {
   ]
 }
 
+function resetMessagesToShortList() {
+  messages.value = Array.from({ length: 2 }, (_, index) => ({
+    role: index % 2 === 0 ? 'assistant' : 'user',
+    content: `layout short message ${index + 1}`,
+  }))
+}
+
 function resetFloating() {
   floatingState.value = {
     ...floatingState.value,
@@ -425,6 +432,7 @@ onBeforeUnmount(() => {
       </button>
 
       <button data-testid="append-messages-btn" type="button" @click="appendMessages">append messages</button>
+      <button data-testid="short-messages-btn" type="button" @click="resetMessagesToShortList">short messages</button>
       <button data-testid="conditional-slots-empty-btn" type="button" @click="emptyConditionalSlots">
         empty conditional slots
       </button>

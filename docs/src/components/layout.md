@@ -74,7 +74,7 @@ outline: [1, 3]
 
 - `scrollTarget` 传实际滚动元素，或对应组件实例的 `ref`
 - 该元素需自行设置尺寸、`box-sizing` 和滚动样式
-- 使用 `Layout.ProxyScrollbar` 时，建议同时隐藏该元素的原生滚动条，例如：
+- `Layout.ProxyScrollbar` 会自动隐藏该元素的原生滚动条
 
 ```css
 .scroll-host {
@@ -82,12 +82,6 @@ outline: [1, 3]
   height: 100%;
   box-sizing: border-box;
   overflow: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.scroll-host::-webkit-scrollbar {
-  display: none;
 }
 ```
 

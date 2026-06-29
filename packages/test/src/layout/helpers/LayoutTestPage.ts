@@ -227,6 +227,10 @@ export class LayoutTestPage {
     await this.page.getByTestId('append-messages-btn').click()
   }
 
+  async resetMessagesToShortList() {
+    await this.page.getByTestId('short-messages-btn').click()
+  }
+
   async emptyConditionalSlots() {
     await this.page.getByTestId('conditional-slots-empty-btn').click()
   }

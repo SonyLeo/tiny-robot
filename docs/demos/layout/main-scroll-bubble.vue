@@ -48,12 +48,6 @@ const messages: BubbleListProps['messages'] = Array.from({ length: 12 }, (_, ind
   height: 100%;
   box-sizing: border-box;
   overflow: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.layout-main-scroll-bubble::-webkit-scrollbar {
-  display: none;
 }
 
 .layout-main-scroll-bubble.is-centered {

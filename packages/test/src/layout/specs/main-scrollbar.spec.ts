@@ -63,6 +63,18 @@ test.describe('Layout 组件测试 - Main Scrollbar', () => {
     await expect.poll(async () => thumb.evaluate((node) => node.getBoundingClientRect().height)).toBeLessThan(before)
   })
 
+  test('内容从不可滚动变为可滚动后 - 应自动显示代理滚动条', async ({ layout }) => {
+    await layout.resetMessagesToShortList()
+    await expect.poll(async () => (await layout.readHarness()).messagesCount).toBe(2)
+    await expect(layout.scrollbar).toHaveCount(0)
+
+    await layout.appendMessages()
+    await expect.poll(async () => (await layout.readHarness()).messagesCount).toBe(22)
+    await layout.scrollTarget.hover()
+
+    await expect(layout.scrollbar).toBeVisible()
+  })
+
   test('滚动条下边界 - thumb 不应越出轨道', async ({ layout }) => {
     const { scrollTarget, scrollbar: track, scrollbarThumb: thumb } = layout
 
