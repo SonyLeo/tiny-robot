@@ -2,12 +2,12 @@
 import { computed, onBeforeUnmount, ref, watchEffect } from 'vue'
 import { BubbleList, TrLayout } from '@opentiny/tiny-robot'
 import type {
-  LayoutAsideResizeEventDetail,
-  LayoutAsideSideOpenEventDetail,
-  LayoutAsideSideResizeEventDetail,
-  LayoutFloatingDragEventDetail,
+  LayoutAsideOpenValue,
+  LayoutAsideResizeDetail,
+  LayoutAsideResizeValue,
+  LayoutFloatingDragDetail,
   LayoutFloatingOptions,
-  LayoutFloatingResizeEventDetail,
+  LayoutFloatingResizeDetail,
   LayoutFloatingResizeHandle,
   LayoutFloatingState,
   LayoutScrollTarget,
@@ -39,9 +39,9 @@ interface LayoutWidths {
 
 type LayoutEventPhase = 'start' | 'progress' | 'end'
 
-type AsideResizeLogEntry = LayoutAsideResizeEventDetail & { phase: LayoutEventPhase }
-type FloatingDragLogEntry = LayoutFloatingDragEventDetail & { phase: LayoutEventPhase }
-type FloatingResizeLogEntry = LayoutFloatingResizeEventDetail & { phase: LayoutEventPhase }
+type AsideResizeLogEntry = LayoutAsideResizeDetail & { phase: LayoutEventPhase }
+type FloatingDragLogEntry = LayoutFloatingDragDetail & { phase: LayoutEventPhase }
+type FloatingResizeLogEntry = LayoutFloatingResizeDetail & { phase: LayoutEventPhase }
 
 interface LayoutHarnessSnapshot {
   metrics: LayoutMetrics
@@ -239,20 +239,20 @@ function emptyConditionalSlots() {
   showLeftAsideSlot.value = false
 }
 
-function updateLeftAsideOpen(detail: LayoutAsideSideOpenEventDetail) {
+function updateLeftAsideOpen(detail: LayoutAsideOpenValue) {
   leftOpen.value = detail.open
 }
 
-function updateRightAsideOpen(detail: LayoutAsideSideOpenEventDetail) {
+function updateRightAsideOpen(detail: LayoutAsideOpenValue) {
   rightOpen.value = detail.open
 }
 
-function updateLeftAsideWidth(detail: LayoutAsideSideResizeEventDetail) {
+function updateLeftAsideWidth(detail: LayoutAsideResizeValue) {
   leftWidth.value = detail.expandedWidth
   widths.value.left = detail.expandedWidth
 }
 
-function updateRightAsideWidth(detail: LayoutAsideSideResizeEventDetail) {
+function updateRightAsideWidth(detail: LayoutAsideResizeValue) {
   rightWidth.value = detail.expandedWidth
   widths.value.right = detail.expandedWidth
 }
@@ -291,19 +291,19 @@ function resetFloating() {
   widths.value.floating = 520
 }
 
-function pushAsideResizeLog(phase: LayoutEventPhase, detail: LayoutAsideResizeEventDetail) {
+function pushAsideResizeLog(phase: LayoutEventPhase, detail: LayoutAsideResizeDetail) {
   eventLogs.value.asideResize.push({ phase, ...detail })
 }
 
-function pushFloatingDragLog(phase: LayoutEventPhase, detail: LayoutFloatingDragEventDetail) {
+function pushFloatingDragLog(phase: LayoutEventPhase, detail: LayoutFloatingDragDetail) {
   eventLogs.value.floatingDrag.push({ phase, ...detail })
 }
 
-function pushFloatingResizeLog(phase: LayoutEventPhase, detail: LayoutFloatingResizeEventDetail) {
+function pushFloatingResizeLog(phase: LayoutEventPhase, detail: LayoutFloatingResizeDetail) {
   eventLogs.value.floatingResize.push({ phase, ...detail })
 }
 
-function handleAsideResizeStart(detail: LayoutAsideResizeEventDetail) {
+function handleAsideResizeStart(detail: LayoutAsideResizeDetail) {
   if (detail.side === 'left') {
     metrics.value.leftResizeStart += 1
   } else {
@@ -313,11 +313,11 @@ function handleAsideResizeStart(detail: LayoutAsideResizeEventDetail) {
   pushAsideResizeLog('start', detail)
 }
 
-function handleAsideResize(detail: LayoutAsideResizeEventDetail) {
+function handleAsideResize(detail: LayoutAsideResizeDetail) {
   pushAsideResizeLog('progress', detail)
 }
 
-function handleAsideResizeEnd(detail: LayoutAsideResizeEventDetail) {
+function handleAsideResizeEnd(detail: LayoutAsideResizeDetail) {
   if (detail.side === 'left') {
     metrics.value.leftResizeEnd += 1
     widths.value.left = detail.expandedWidth
@@ -329,28 +329,28 @@ function handleAsideResizeEnd(detail: LayoutAsideResizeEventDetail) {
   pushAsideResizeLog('end', detail)
 }
 
-function handleFloatingDragStart(detail: LayoutFloatingDragEventDetail) {
+function handleFloatingDragStart(detail: LayoutFloatingDragDetail) {
   metrics.value.floatingDragStart += 1
   pushFloatingDragLog('start', detail)
 }
 
-function handleFloatingDrag(detail: LayoutFloatingDragEventDetail) {
+function handleFloatingDrag(detail: LayoutFloatingDragDetail) {
   metrics.value.floatingDrag += 1
   pushFloatingDragLog('progress', detail)
 }
 
-function handleFloatingDragEnd(detail: LayoutFloatingDragEventDetail) {
+function handleFloatingDragEnd(detail: LayoutFloatingDragDetail) {
   metrics.value.floatingDragEnd += 1
   pushFloatingDragLog('end', detail)
 }
 
-function handleFloatingResizeStart(detail: LayoutFloatingResizeEventDetail) {
+function handleFloatingResizeStart(detail: LayoutFloatingResizeDetail) {
   metrics.value.floatingResizeStartByHandle[detail.handle] += 1
 
   pushFloatingResizeLog('start', detail)
 }
 
-function handleFloatingResize(detail: LayoutFloatingResizeEventDetail) {
+function handleFloatingResize(detail: LayoutFloatingResizeDetail) {
   if (detail.width !== undefined) {
     widths.value.floating = detail.width
   }
@@ -358,7 +358,7 @@ function handleFloatingResize(detail: LayoutFloatingResizeEventDetail) {
   pushFloatingResizeLog('progress', detail)
 }
 
-function handleFloatingResizeEnd(detail: LayoutFloatingResizeEventDetail) {
+function handleFloatingResizeEnd(detail: LayoutFloatingResizeDetail) {
   if (detail.width !== undefined) {
     widths.value.floating = detail.width
   }

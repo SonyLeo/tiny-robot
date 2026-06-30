@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { TrLayout } from '@opentiny/tiny-robot'
-import type { LayoutAsideSideOpenEventDetail, LayoutAsideSideResizeEventDetail } from '@opentiny/tiny-robot'
+import type { LayoutAsideOpenValue, LayoutAsideResizeValue } from '@opentiny/tiny-robot'
 
 const baseLayoutStyle = {
   '--tr-layout-height': '100%',
@@ -76,28 +76,28 @@ const drawerLayoutStyle = {
   '--tr-layout-drawer-width': '344px',
 } as const
 
-function handleBlockedOpen(detail: LayoutAsideSideOpenEventDetail) {
+function handleBlockedOpen(detail: LayoutAsideOpenValue) {
   if (blockedLastOpen.value !== String(detail.open)) {
     blockedOpenEvents.value += 1
     blockedLastOpen.value = String(detail.open)
   }
 }
 
-function handleBlockedResize(detail: LayoutAsideSideResizeEventDetail) {
+function handleBlockedResize(detail: LayoutAsideResizeValue) {
   if (detail.expandedWidth !== blockedLastWidth.value) {
     blockedWidthEvents.value += 1
     blockedLastWidth.value = detail.expandedWidth
   }
 }
 
-function handleUncontrolledOpen(detail: LayoutAsideSideOpenEventDetail) {
+function handleUncontrolledOpen(detail: LayoutAsideOpenValue) {
   if (detail.open !== uncontrolledLastOpen.value) {
     uncontrolledOpenEvents.value += 1
     uncontrolledLastOpen.value = detail.open
   }
 }
 
-function handleUncontrolledResize(detail: LayoutAsideSideResizeEventDetail) {
+function handleUncontrolledResize(detail: LayoutAsideResizeValue) {
   if (detail.expandedWidth !== uncontrolledLastWidth.value) {
     uncontrolledWidthEvents.value += 1
     uncontrolledLastWidth.value = detail.expandedWidth
@@ -109,15 +109,15 @@ function updateUncontrolledDefaults() {
   uncontrolledDefaultWidth.value = 332
 }
 
-function handleUndefinedOpen(detail: LayoutAsideSideOpenEventDetail) {
+function handleUndefinedOpen(detail: LayoutAsideOpenValue) {
   undefinedOpenLastState.value = detail.open
 }
 
-function updateDrawerLeftOpen(detail: LayoutAsideSideOpenEventDetail) {
+function updateDrawerLeftOpen(detail: LayoutAsideOpenValue) {
   drawerLeftOpen.value = detail.open
 }
 
-function updateDrawerRightOpen(detail: LayoutAsideSideOpenEventDetail) {
+function updateDrawerRightOpen(detail: LayoutAsideOpenValue) {
   drawerRightOpen.value = detail.open
 }
 </script>
