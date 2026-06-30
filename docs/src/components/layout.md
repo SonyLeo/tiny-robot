@@ -57,7 +57,7 @@ outline: [1, 3]
 <demo
   vue="../../demos/layout/aside-slot-props.vue"
   title="状态控制"
-  description="通过 leftAside、rightAside 和事件同步侧栏状态。"
+  description="用开关和滑块展示 leftAside、rightAside 和事件同步。"
 />
 
 ### 宽度调整

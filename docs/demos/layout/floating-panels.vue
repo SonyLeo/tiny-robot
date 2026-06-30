@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { TrLayout } from '@opentiny/tiny-robot'
-import type { LayoutAsideSideOpenEventDetail, LayoutFloatingOptions, LayoutFloatingState } from '@opentiny/tiny-robot'
+import type { LayoutAsideOpenDetail, LayoutFloatingOptions, LayoutFloatingState } from '@opentiny/tiny-robot'
 
 const open = ref(false)
 const leftOpen = ref(false)
@@ -23,11 +23,11 @@ const floatingOptions: LayoutFloatingOptions = {
   minHeight: 320,
 }
 
-function updateLeftAside(detail: LayoutAsideSideOpenEventDetail) {
+function updateLeftAside(detail: LayoutAsideOpenDetail) {
   leftOpen.value = detail.open
 }
 
-function updateRightAside(detail: LayoutAsideSideOpenEventDetail) {
+function updateRightAside(detail: LayoutAsideOpenDetail) {
   rightOpen.value = detail.open
 }
 </script>

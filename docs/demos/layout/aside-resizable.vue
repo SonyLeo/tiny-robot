@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { TrLayout } from '@opentiny/tiny-robot'
-import type { LayoutAsideProps, LayoutAsideSideResizeEventDetail } from '@opentiny/tiny-robot'
+import type { LayoutAsideProps, LayoutAsideResizeDetail } from '@opentiny/tiny-robot'
 
 const minExpandedWidth = 160
 const maxExpandedWidth = 320
@@ -15,7 +15,7 @@ const leftAside = computed<LayoutAsideProps>(() => ({
   resizable: true,
 }))
 
-function updateLeftAsideWidth(detail: LayoutAsideSideResizeEventDetail) {
+function updateLeftAsideWidth(detail: LayoutAsideResizeDetail) {
   expandedWidth.value = detail.expandedWidth
 }
 </script>
