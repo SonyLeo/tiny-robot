@@ -1,6 +1,6 @@
 import type { Ref } from 'vue'
 import type { Editor } from '@tiptap/vue-3'
-import type { InputMode, DefaultActions, SubmitTrigger } from './base'
+import type { InputMode, DefaultActions, SubmitTrigger, SubmitActionState } from './base'
 
 /**
  * Sender Context
@@ -49,6 +49,11 @@ export interface SenderContext {
    * 是否有内容
    */
   hasContent: Ref<boolean>
+
+  /**
+   * 提交状态快照
+   */
+  submitState: Ref<SubmitActionState>
 
   /**
    * 是否可以提交

@@ -61,6 +61,14 @@ export function createSenderTestHelper(page: Page) {
       await page.locator(selectors.toggleWordLimitBtn).click()
     },
 
+    async toggleSubmitVisibleOnEmpty() {
+      await page.locator(selectors.toggleSubmitVisibleOnEmptyBtn).click()
+    },
+
+    async toggleSubmitCanSubmitOnEmpty() {
+      await page.locator(selectors.toggleSubmitCanSubmitOnEmptyBtn).click()
+    },
+
     async toggleSize() {
       await page.locator(selectors.toggleSizeBtn).click()
     },
@@ -166,6 +174,15 @@ export function createSenderTestHelper(page: Page) {
         await expect(submitBtn).toHaveClass(/is-disabled/)
       } else {
         await expect(submitBtn).not.toHaveClass(/is-disabled/)
+      }
+    },
+
+    async expectSubmitButtonVisible(visible: boolean) {
+      const submitBtn = page.locator(selectors.submitButton)
+      if (visible) {
+        await expect(submitBtn).toBeVisible()
+      } else {
+        await expect(submitBtn).toHaveCount(0)
       }
     },
 

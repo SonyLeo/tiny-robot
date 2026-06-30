@@ -149,6 +149,20 @@ test.describe('Sender 组件测试', () => {
     await helper.expectResult('提交内容: 提交测试')
   })
 
+  test('Emits: submit - 空内容默认不显示发送按钮', async () => {
+    await helper.expectSubmitButtonVisible(false)
+    await helper.expectResultExact('')
+  })
+
+  test('Emits: submit - 可配置空内容显示并提交', async () => {
+    await helper.toggleSubmitVisibleOnEmpty()
+    await helper.toggleSubmitCanSubmitOnEmpty()
+
+    await helper.expectSubmitButtonVisible(true)
+    await helper.clickSubmit()
+    await helper.expectResult('提交内容: ')
+  })
+
   test('Emits: clear - 应该正确触发清空事件', async () => {
     await helper.toggleClearable()
     await helper.typeContent('清空测试')

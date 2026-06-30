@@ -26,6 +26,8 @@ const isSmallSize = ref(false)
 const submitType = ref<'enter' | 'ctrlEnter' | 'shiftEnter'>('enter')
 const maxLength = ref(100)
 const placeholder = ref('请输入内容...')
+const submitVisibleOnEmpty = ref(false)
+const submitCanSubmitOnEmpty = ref(false)
 
 const enableMention = ref(false)
 const enableTemplate = ref(false)
@@ -34,6 +36,20 @@ const templateData = ref<TemplateItem[]>([])
 
 const mode = computed(() => (isMultipleMode.value ? 'multiple' : 'single'))
 const size = computed(() => (isSmallSize.value ? 'small' : 'normal'))
+
+const defaultActions = computed(() => {
+  const submit: Record<string, unknown> = {}
+
+  if (submitVisibleOnEmpty.value) {
+    submit.visible = () => true
+  }
+
+  if (submitCanSubmitOnEmpty.value) {
+    submit.canSubmit = () => true
+  }
+
+  return Object.keys(submit).length > 0 ? { submit } : undefined
+})
 
 const componentKey = computed(() => {
   return `${enableMention.value}-${enableTemplate.value}-${enableSuggestion.value}`
@@ -274,6 +290,17 @@ onBeforeUnmount(() => {
             <label>placeholder:</label>
             <input data-testid="placeholder-input" type="text" v-model="placeholder" />
           </div>
+          <div class="control-item">
+            <label>empty visible:</label>
+            <tiny-switch data-testid="toggle-submit-visible-on-empty-btn" v-model="submitVisibleOnEmpty"></tiny-switch>
+          </div>
+          <div class="control-item">
+            <label>empty submit:</label>
+            <tiny-switch
+              data-testid="toggle-submit-can-submit-on-empty-btn"
+              v-model="submitCanSubmitOnEmpty"
+            ></tiny-switch>
+          </div>
         </div>
       </fieldset>
 
@@ -337,6 +364,7 @@ onBeforeUnmount(() => {
       :show-word-limit="showWordLimit"
       :placeholder="placeholder"
       :submit-type="submitType"
+      :default-actions="defaultActions"
       @submit="handleSubmit"
       @cancel="handleCancel"
       @clear="handleClear"

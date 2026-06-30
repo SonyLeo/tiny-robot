@@ -5,11 +5,17 @@ import { useSenderContext } from '../../sender/context'
 import { IconSend, IconStop } from '@opentiny/tiny-robot-svgs'
 import { normalizeTooltipContent } from '../utils/tooltip'
 
-const { canSubmit, loading, defaultActions, submit, cancel, stopText } = useSenderContext()
+const { canSubmit, loading, defaultActions, submitState, submit, cancel, stopText } = useSenderContext()
 
 const isDisabled = computed(() => {
-  if (defaultActions.value?.submit?.disabled) {
+  const submit = defaultActions.value?.submit
+
+  if (submit?.disabled) {
     return true
+  }
+
+  if (typeof submit?.canSubmit === 'function') {
+    return !submit.canSubmit(submitState.value)
   }
 
   return !canSubmit.value && !loading.value

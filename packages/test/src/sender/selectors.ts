@@ -12,6 +12,8 @@ export const SENDER_SELECTORS = {
   submitTypeSelect: '[data-testid="submit-type-select"]',
   maxLengthInput: '[data-testid="max-length-input"]',
   placeholderInput: '[data-testid="placeholder-input"]',
+  toggleSubmitVisibleOnEmptyBtn: '[data-testid="toggle-submit-visible-on-empty-btn"]',
+  toggleSubmitCanSubmitOnEmptyBtn: '[data-testid="toggle-submit-can-submit-on-empty-btn"]',
 
   setContentBtn: '[data-testid="set-content-btn"]',
   getContentBtn: '[data-testid="get-content-btn"]',

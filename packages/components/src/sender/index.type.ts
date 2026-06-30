@@ -208,8 +208,9 @@ export interface SenderProps {
    * <script setup>
    * const defaultActions = computed(() => ({
    *   submit: {
-   *     disabled: !canSubmit.value,
-   *     tooltip: canSubmit.value ? '发送' : '请输入内容'
+   *     visible: (state) => state.hasContent,
+   *     canSubmit: (state) => state.hasContent,
+   *     tooltip: (state) => state.hasContent ? '发送' : '请输入内容'
    *   },
    *   clear: { tooltip: '清空输入' }
    * }))

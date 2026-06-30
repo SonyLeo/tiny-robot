@@ -7,11 +7,27 @@ import SubmitButton from '../submit-button/index.vue'
 
 const slots: Slots = useSlots()
 
-const { hasContent, loading } = useSenderContext()
+const { loading, defaultActions, submitState } = useSenderContext()
 const { show: showClearButton } = useClearButtonState()
 
 const hasPrependActions = computed<boolean>(() => Boolean(slots.prepend))
-const showSubmitButton = computed<boolean>(() => hasContent.value || loading.value)
+const showSubmitButton = computed<boolean>(() => {
+  const submit = defaultActions.value?.submit
+
+  if (loading.value) {
+    return true
+  }
+
+  if (typeof submit?.visible === 'function') {
+    return submit.visible(submitState.value)
+  }
+
+  if (typeof submit?.visible === 'boolean') {
+    return submit.visible
+  }
+
+  return submitState.value.hasContent
+})
 const showActionGroup = computed<boolean>(() => hasPrependActions.value || showClearButton.value)
 const showDefaultActions = computed<boolean>(() => hasPrependActions.value || showSubmitButton.value)
 </script>

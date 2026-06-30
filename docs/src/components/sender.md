@@ -185,6 +185,18 @@ TrSender.Suggestion.configure({ items: suggestions, filterFn: customFilter })
 
 <demo vue="../../demos/sender/actions-config-basic.vue" title="默认按钮配置" description="通过 defaultActions 统一配置默认按钮的状态和提示。" />
 
+#### 提交控制
+
+通过 `defaultActions.submit.visible` 控制显示，通过 `defaultActions.submit.canSubmit` 控制提交。
+
+未配置时，空内容不显示且不可提交；`loading` 状态下始终显示停止按钮。
+
+<demo vue="../../demos/sender/submit-control.vue" title="提交控制" description="通过 defaultActions.submit.visible 和 canSubmit 自定义发送按钮显示与提交条件。" />
+
+这样就能实现文本为空，但有附件时仍然可以发送。
+
+**配置详见**：[DefaultActions](#default-actions-type)、[SubmitActionState](#submit-action-state)
+
 #### 增强按钮
 
 通过插槽添加增强按钮（Upload、Voice 等），每个按钮都有独立的配置。
@@ -447,7 +459,7 @@ onSelect: (item) => {
 | 事件名            | 说明                                                                 | 回调参数                                |
 | ----------------- | -------------------------------------------------------------------- | --------------------------------------- |
 | update:modelValue | 内容更新                                                             | `(value: string)`                       |
-| submit            | 提交内容，返回纯文本和结构化数据（可选）                             | `(text: string, data?: StructuredData)` |
+| submit            | 提交内容，返回纯文本和结构化数据（可选，不包含附件信息）               | `(text: string, data?: StructuredData)` |
 | clear             | 清空内容                                                             | `()`                                    |
 | focus             | 获得焦点                                                             | `(event: FocusEvent)`                   |
 | blur              | 失去焦点                                                             | `(event: FocusEvent)`                   |
@@ -457,6 +469,7 @@ onSelect: (item) => {
 :::tip submit 事件参数说明
 - **text**：纯文本内容，适用于简单场景（如直接发送给 AI）
 - **data**：结构化数据数组，仅在使用 Template 或 Mention 扩展时返回，包含文本和特殊节点的完整信息
+- **附件/图片**：不包含在 `submit` 事件参数中，需在业务层自行维护，并在 `defaultActions.submit.canSubmit` 中合并判断
 
 根据业务需求选择使用：
 - 简单场景：只使用 `text` 参数
@@ -561,10 +574,29 @@ function handleSubmit(text: string, data?: StructuredData) {
 
 ## Types
 
+### SubmitActionState {#submit-action-state}
+
+```typescript
+// SubmitActionState 提交按钮状态快照
+interface SubmitActionState {
+  text: string
+  hasContent: boolean
+  loading: boolean
+  disabled: boolean
+  isOverLimit: boolean
+  characterCount: number
+  maxLength?: number
+}
+```
+
+### DefaultActions {#default-actions-type}
+
 ```typescript
 // DefaultActions 默认按钮配置
 interface DefaultActions {
   submit?: {
+    visible?: boolean | ((state: SubmitActionState) => boolean) // 是否显示提交按钮
+    canSubmit?: (state: SubmitActionState) => boolean // 是否允许提交
     disabled?: boolean // 是否禁用提交按钮
     tooltip?: string // 提交按钮提示文本
     tooltipPlacement?: TooltipPlacement // Tooltip 位置

@@ -10,7 +10,7 @@
 
 import { EditorView } from '@tiptap/pm/view'
 import { computed, provide, toRef, watch } from 'vue'
-import type { SenderEmits, StructuredData } from '../index.type'
+import type { SenderEmits, StructuredData, SubmitActionState } from '../index.type'
 import type { SenderPropsWithDefaults } from '../index.vue'
 import {
   MentionPluginKey,
@@ -80,18 +80,35 @@ export function useSenderCore(props: SenderPropsWithDefaults, emit: SenderEmits)
     return countGraphemes(getTextWithTemplates(editor.value))
   })
 
+  const textContent = computed(() => {
+    if (!editor.value) return ''
+    return getTextWithTemplates(editor.value)
+  })
+
   const isOverLimit = computed(() => {
     if (!props.maxLength) return false
     return characterCount.value > props.maxLength
   })
 
+  const submitState = computed<SubmitActionState>(() => ({
+    text: textContent.value,
+    hasContent: textContent.value.trim().length > 0,
+    loading: props.loading ?? false,
+    disabled: props.disabled ?? false,
+    isOverLimit: isOverLimit.value,
+    characterCount: characterCount.value,
+    maxLength: props.maxLength,
+  }))
+
   const canSubmit = computed(() => {
+    const submitRule = props.defaultActions?.submit
+
     return (
-      !props.disabled &&
-      !props.loading &&
-      hasContent.value &&
-      !isOverLimit.value &&
-      !props.defaultActions?.submit?.disabled
+      !submitState.value.disabled &&
+      !submitState.value.loading &&
+      !submitState.value.isOverLimit &&
+      !submitRule?.disabled &&
+      (submitRule?.canSubmit ? submitRule.canSubmit(submitState.value) : submitState.value.hasContent)
     )
   })
 
@@ -105,7 +122,7 @@ export function useSenderCore(props: SenderPropsWithDefaults, emit: SenderEmits)
     // 构建结构化数据（第二个参数，可选）
     // 注意：Template 和 Mention 是互斥的使用场景
     let structuredData: StructuredData | undefined
-    let textContent = ''
+    let outputText = textContent.value
 
     // Template（模板场景）
     if (editor.value.extensionManager.extensions.some((ext) => ext.name === EXTENSION_NAMES.TEMPLATE)) {
@@ -113,7 +130,7 @@ export function useSenderCore(props: SenderPropsWithDefaults, emit: SenderEmits)
       if (templateStructuredData.length > 0) {
         structuredData = templateStructuredData as StructuredData
       }
-      textContent = getTextWithTemplates(editor.value)
+      outputText = getTextWithTemplates(editor.value)
     }
     // Mention（提及场景）
     else if (editor.value.extensionManager.extensions.some((ext) => ext.name === EXTENSION_NAMES.MENTION)) {
@@ -121,16 +138,16 @@ export function useSenderCore(props: SenderPropsWithDefaults, emit: SenderEmits)
       if (mentionStructuredData.length > 0) {
         structuredData = mentionStructuredData as StructuredData
       }
-      textContent = getTextWithMentions(editor.value)
+      outputText = getTextWithMentions(editor.value)
     }
 
     // 如果没有扩展，使用默认的纯文本
-    if (!textContent) {
-      textContent = editor.value.getText()
+    if (!outputText) {
+      outputText = editor.value.getText()
     }
 
     // 触发 submit 事件
-    emit('submit', textContent, structuredData)
+    emit('submit', outputText, structuredData)
   }
 
   // ========================================
@@ -271,6 +288,7 @@ export function useSenderCore(props: SenderPropsWithDefaults, emit: SenderEmits)
     loading: computed(() => props.loading ?? false),
     disabled: computed(() => props.disabled ?? false),
     hasContent,
+    submitState,
     canSubmit,
     isOverLimit,
     characterCount,

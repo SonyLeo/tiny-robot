@@ -220,6 +220,21 @@ export type StructuredData = TemplateItem[] | MentionStructuredItem[]
 // ============================================
 
 /**
+ * 提交按钮状态
+ *
+ * 供 submit.visible / submit.canSubmit 回调用于判断显示和提交条件
+ */
+export interface SubmitActionState {
+  text: string
+  hasContent: boolean
+  loading: boolean
+  disabled: boolean
+  isOverLimit: boolean
+  characterCount: number
+  maxLength?: number
+}
+
+/**
  * 默认操作按钮配置
  *
  * 用于统一配置 Sender 的默认按钮（Clear、Submit）
@@ -237,6 +252,22 @@ export interface DefaultActions {
    * 提交按钮配置
    */
   submit?: {
+    /**
+     * 是否显示提交按钮
+     *
+     * - boolean: 直接控制显示/隐藏
+     * - function: 基于当前状态动态控制
+     * - loading 状态下始终显示停止按钮
+     */
+    visible?: boolean | ((state: SubmitActionState) => boolean)
+
+    /**
+     * 是否允许提交
+     *
+     * 默认沿用当前内容判断；配置后可按业务状态放宽或收紧提交条件
+     */
+    canSubmit?: (state: SubmitActionState) => boolean
+
     /**
      * 是否禁用
      */
