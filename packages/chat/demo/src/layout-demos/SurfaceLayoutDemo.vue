@@ -78,7 +78,7 @@ const seedTurns: SeedTurn[] = [
     question: '再帮我补一个适合教学场景的总结。',
     answers: [
       '如果你是在课堂上讲解，可以这样收尾：When we talk about story structure, protagonist is the most precise term. When we want a more natural everyday expression, main character is usually enough. When we shift the focus to performance and casting, lead or leading role becomes more appropriate.',
-      '这类稍长一点的回复也很适合当前 demo，因为它能把 BubbleList 的内容密度拉起来，方便观察全屏主区和右侧浮层里真实滚动、拖拽改宽与虚拟滚动条之间的同步关系。',
+      '这类稍长一点的回复也很适合当前 demo，因为它能把 BubbleList 的内容密度拉起来，方便观察 normal 和 floating 两种 surface 里的真实滚动、拖拽改宽与虚拟滚动条同步。',
     ],
   },
 ]
@@ -88,12 +88,12 @@ function createSeedMessages(): BubbleMessages {
     {
       role: 'assistant',
       content:
-        '你好，我是 TinyRobot。这里把 Surface demo 收敛成两个更直接的场景：铺满全屏，以及贴住页面右侧的悬浮面板。',
+        '你好，我是 TinyRobot。这里展示 Layout 的两种 surface：normal 全屏承载，以及 floating 贴住视口右侧的悬浮面板。',
     },
     {
       role: 'assistant',
       content:
-        '你可以切换 Fullscreen / Right Edge，重点观察主区滚动、输入区固定、右侧浮层改宽，以及虚拟滚动条和真实滚动宿主之间的同步关系。',
+        '你可以切换 Fullscreen / Floating，重点观察主区滚动、输入区固定、右侧 floating 改宽，以及虚拟滚动条和真实滚动宿主之间的同步关系。',
     },
   ]
 
@@ -107,7 +107,7 @@ function createSeedMessages(): BubbleMessages {
     {
       role: 'assistant',
       content:
-        '重点看三件事：第一，右侧浮层默认是否贴边但仍然留出可拖拽和滚动的操作空间；第二，浮层改宽后，主区列表滚动和虚拟滚动条 thumb 是否仍然一致；第三，左侧业务背景是否还能成立，不会因为 surface 悬浮而显得语义混乱。',
+        '重点看三件事：第一，floating 默认是否贴边但仍然留出可拖拽和滚动的操作空间；第二，改宽后主区列表滚动和虚拟滚动条 thumb 是否仍然一致；第三，左侧业务背景是否还能成立。',
     },
   ]
 
@@ -130,11 +130,11 @@ const bubbleListRef = useTemplateRef<InstanceType<typeof BubbleList>>('bubbleLis
 const { width: viewportWidth } = useWindowSize({ type: 'visual' })
 
 const isFullscreenScenario = computed(() => scenario.value === 'fullscreen')
-const scenarioTitle = computed(() => (isFullscreenScenario.value ? '主区铺满全屏' : '右侧悬浮贴边'))
+const scenarioTitle = computed(() => (isFullscreenScenario.value ? 'normal 全屏承载' : 'floating 右侧贴边'))
 const scenarioHint = computed(() =>
   isFullscreenScenario.value
-    ? '适合检查主区滚动、header / footer 布局，以及内容在满屏主壳里的稳定性。'
-    : '适合检查右侧贴边浮层、改宽拖拽和虚拟滚动条在紧边界下的交互。',
+    ? '适合检查主区滚动、header / footer 布局，以及内容在 normal surface 里的稳定性。'
+    : '适合检查 floating 贴边定位、左右改宽和虚拟滚动条在紧边界下的交互。',
 )
 
 const roleConfigs: Record<string, BubbleRoleConfig> = {
@@ -166,8 +166,8 @@ function createRightEdgeFloatingConfig(): ChatFloatingConfig {
 }
 
 watch(
-  scenario,
-  (nextScenario) => {
+  [scenario, viewportWidth],
+  ([nextScenario]) => {
     if (nextScenario === 'fullscreen') {
       mode.value = 'normal'
       return
@@ -203,15 +203,15 @@ function sendMessage(): void {
     <div v-if="!isFullscreenScenario" class="surface-layout-demo__workspace" aria-hidden="true">
       <section class="surface-layout-demo__workspace-hero">
         <span class="surface-layout-demo__workspace-kicker">Right Edge Workspace</span>
-        <h2>把聊天浮层贴住页面右侧，左边仍然保留真实的业务背景。</h2>
-        <p>这个场景更接近“页面主内容 + 右侧 AI 助手”形态，适合观察贴边、改宽、滚动条和输入区的协同。</p>
+        <h2>把 floating surface 贴住页面右侧，左边仍然保留真实的业务背景。</h2>
+        <p>这个场景更接近“页面主内容 + 右侧 AI 助手”形态，适合观察定位、改宽、滚动条和输入区的协同。</p>
       </section>
 
       <div class="surface-layout-demo__workspace-grid">
         <article class="surface-layout-demo__workspace-card">
           <span>01</span>
           <strong>看默认位置</strong>
-          <p>浮层默认贴住右侧，但仍然留出滚动条和边缘改宽的交互空间。</p>
+          <p>floating 默认贴住右侧，但仍然留出滚动条和边缘改宽的交互空间。</p>
         </article>
         <article class="surface-layout-demo__workspace-card">
           <span>02</span>
@@ -257,7 +257,7 @@ function sendMessage(): void {
                     :class="{ 'is-active': scenario === 'right-edge' }"
                     @click="scenario = 'right-edge'"
                   >
-                    Right Edge
+                    Floating
                   </button>
                 </div>
 
@@ -288,7 +288,7 @@ function sendMessage(): void {
               <input
                 v-model="draft"
                 type="text"
-                placeholder="输入问题，继续观察全屏主区或右侧浮层下的滚动与改宽表现"
+                placeholder="输入问题，继续观察 normal 主区或 floating 下的滚动与改宽表现"
                 @keydown.enter="sendMessage"
               />
               <button type="button" @click="sendMessage">发送</button>

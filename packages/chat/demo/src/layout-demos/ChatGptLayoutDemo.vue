@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useMediaQuery } from '@vueuse/core'
-import { computed, shallowRef, useTemplateRef, watch } from 'vue'
+import { shallowRef, useTemplateRef, watch } from 'vue'
 import { Chat } from '@/index'
 import type { ChatAsideConfig } from '@/types/layout'
 import Composer from './chatgpt/components/Composer.vue'
@@ -11,65 +11,59 @@ import Sidebar from './chatgpt/components/Sidebar.vue'
 
 const isMobile = useMediaQuery('(max-width: 959px)')
 
-const leftExpanded = shallowRef(true)
-const rightExpanded = shallowRef(true)
-const leftDockWidth = shallowRef<ChatAsideConfig['expandedWidth']>(260)
-const rightDockWidth = shallowRef<ChatAsideConfig['expandedWidth']>(364)
+const leftAside = shallowRef<ChatAsideConfig>({
+  layoutMode: 'dock',
+  expanded: true,
+  expandedWidth: 260,
+  collapsedWidth: 52,
+  resizable: true,
+  minExpandedWidth: 220,
+  maxExpandedWidth: 420,
+})
+const rightAside = shallowRef<ChatAsideConfig>({
+  layoutMode: 'dock',
+  expanded: true,
+  expandedWidth: 364,
+  resizable: true,
+  minExpandedWidth: 280,
+  maxExpandedWidth: 520,
+})
 const mainRef = useTemplateRef<InstanceType<typeof Main>>('mainRef')
+
+function resolveDesktopWidth(width: ChatAsideConfig['expandedWidth'], fallback: number): number {
+  return typeof width === 'number' ? width : fallback
+}
 
 watch(
   isMobile,
   (mobile) => {
-    leftExpanded.value = !mobile
-    rightExpanded.value = !mobile
+    leftAside.value = {
+      ...leftAside.value,
+      layoutMode: mobile ? 'drawer' : 'dock',
+      expanded: !mobile,
+      expandedWidth: mobile ? 'min(84vw, 320px)' : resolveDesktopWidth(leftAside.value.expandedWidth, 260),
+      collapsedWidth: 52,
+      resizable: !mobile,
+      minExpandedWidth: 220,
+      maxExpandedWidth: 420,
+    }
+
+    rightAside.value = {
+      ...rightAside.value,
+      layoutMode: mobile ? 'drawer' : 'dock',
+      expanded: !mobile,
+      expandedWidth: mobile ? '100vw' : resolveDesktopWidth(rightAside.value.expandedWidth, 364),
+      resizable: !mobile,
+      minExpandedWidth: 280,
+      maxExpandedWidth: 520,
+    }
   },
   { immediate: true },
 )
-
-const leftAside = computed<ChatAsideConfig>(() => ({
-  layoutMode: isMobile.value ? 'drawer' : 'dock',
-  expanded: leftExpanded.value,
-  expandedWidth: isMobile.value ? 'min(84vw, 320px)' : leftDockWidth.value,
-  collapsedWidth: 52,
-  resizable: !isMobile.value,
-  minExpandedWidth: 220,
-  maxExpandedWidth: 420,
-}))
-
-const rightAside = computed<ChatAsideConfig>(() => ({
-  layoutMode: isMobile.value ? 'drawer' : 'dock',
-  expanded: rightExpanded.value,
-  expandedWidth: isMobile.value ? '100vw' : rightDockWidth.value,
-  resizable: !isMobile.value,
-  minExpandedWidth: 280,
-  maxExpandedWidth: 520,
-}))
-
-function handleLeftAsideUpdate(nextConfig?: ChatAsideConfig): void {
-  leftExpanded.value = nextConfig?.expanded ?? false
-
-  if (!isMobile.value && nextConfig?.expandedWidth !== undefined) {
-    leftDockWidth.value = nextConfig.expandedWidth
-  }
-}
-
-function handleRightAsideUpdate(nextConfig?: ChatAsideConfig): void {
-  rightExpanded.value = nextConfig?.expanded ?? false
-
-  if (!isMobile.value && nextConfig?.expandedWidth !== undefined) {
-    rightDockWidth.value = nextConfig.expandedWidth
-  }
-}
 </script>
 
 <template>
-  <Chat.Layout
-    class="chatgpt-layout-demo"
-    :left-aside="leftAside"
-    :right-aside="rightAside"
-    @update:left-aside="handleLeftAsideUpdate"
-    @update:right-aside="handleRightAsideUpdate"
-  >
+  <Chat.Layout class="chatgpt-layout-demo" v-model:left-aside="leftAside" v-model:right-aside="rightAside">
     <template #left-aside>
       <Sidebar />
     </template>

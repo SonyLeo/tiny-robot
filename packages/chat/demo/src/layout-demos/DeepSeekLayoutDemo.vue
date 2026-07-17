@@ -12,58 +12,51 @@ import Sidebar from './deepseek/components/Sidebar.vue'
 
 const isMobile = useMediaQuery('(max-width: 959px)')
 
-const leftExpanded = shallowRef(false)
-const rightExpanded = shallowRef(false)
-const rightDockWidth = shallowRef<ChatAsideConfig['expandedWidth']>(320)
+const leftAside = shallowRef<ChatAsideConfig>({
+  layoutMode: 'dock',
+  expandedWidth: 262,
+})
+const rightAside = shallowRef<ChatAsideConfig>({
+  layoutMode: 'dock',
+  expandedWidth: 340,
+  resizable: true,
+  minExpandedWidth: 300,
+  maxExpandedWidth: 520,
+})
 const mainRef = useTemplateRef<InstanceType<typeof Main>>('mainRef')
+
+function resolveDesktopWidth(width: ChatAsideConfig['expandedWidth'], fallback: number): number {
+  return typeof width === 'number' ? width : fallback
+}
 
 watch(
   isMobile,
   (mobile) => {
-    if (mobile) {
-      rightExpanded.value = false
+    leftAside.value = {
+      ...leftAside.value,
+      layoutMode: 'dock',
+      expandedWidth: mobile ? 'min(84vw, 320px)' : 262,
+    }
+
+    rightAside.value = {
+      ...rightAside.value,
+      layoutMode: mobile ? 'drawer' : 'dock',
+      expanded: mobile ? false : true,
+      expandedWidth: mobile ? '100vw' : resolveDesktopWidth(rightAside.value.expandedWidth, 340),
+      resizable: !mobile,
+      minExpandedWidth: 300,
+      maxExpandedWidth: 520,
     }
   },
   { immediate: true },
 )
 
-const leftAside = computed<ChatAsideConfig>(() => ({
-  layoutMode: 'drawer',
-  expanded: leftExpanded.value,
-  expandedWidth: isMobile.value ? 'min(84vw, 320px)' : 262,
-}))
-
-const rightAside = computed<ChatAsideConfig>(() => ({
-  layoutMode: isMobile.value ? 'drawer' : 'dock',
-  expanded: rightExpanded.value,
-  expandedWidth: isMobile.value ? '100vw' : rightDockWidth.value,
-  resizable: !isMobile.value,
-  minExpandedWidth: 280,
-  maxExpandedWidth: 520,
-}))
-
-function handleLeftAsideUpdate(nextConfig?: ChatAsideConfig): void {
-  leftExpanded.value = nextConfig?.expanded ?? false
-}
-
-function handleRightAsideUpdate(nextConfig?: ChatAsideConfig): void {
-  rightExpanded.value = nextConfig?.expanded ?? false
-
-  if (!isMobile.value && nextConfig?.expandedWidth !== undefined) {
-    rightDockWidth.value = nextConfig.expandedWidth
-  }
-}
+const launcherVisible = computed(() => !isMobile.value && !leftAside.value.expanded)
 </script>
 
 <template>
   <div class="deepseek-layout-demo-shell">
-    <Chat.Layout
-      class="deepseek-layout-demo"
-      :left-aside="leftAside"
-      :right-aside="rightAside"
-      @update:left-aside="handleLeftAsideUpdate"
-      @update:right-aside="handleRightAsideUpdate"
-    >
+    <Chat.Layout class="deepseek-layout-demo" v-model:left-aside="leftAside" v-model:right-aside="rightAside">
       <template #left-aside>
         <Sidebar />
       </template>
@@ -87,7 +80,7 @@ function handleRightAsideUpdate(nextConfig?: ChatAsideConfig): void {
       </template>
     </Chat.Layout>
 
-    <Launcher :visible="!isMobile && !leftExpanded" @open="leftExpanded = true" />
+    <Launcher :visible="launcherVisible" @open="leftAside = { ...leftAside, expanded: true }" />
   </div>
 </template>
 

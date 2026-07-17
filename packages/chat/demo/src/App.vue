@@ -2,9 +2,15 @@
 import { computed, markRaw, shallowRef } from 'vue'
 import ChatGptLayoutDemo from './layout-demos/ChatGptLayoutDemo.vue'
 import DeepSeekLayoutDemo from './layout-demos/DeepSeekLayoutDemo.vue'
+import ProductShowcaseLayoutDemo from './layout-demos/ProductShowcaseLayoutDemo.vue'
 import SurfaceLayoutDemo from './layout-demos/SurfaceLayoutDemo.vue'
 
 const demos = [
+  {
+    id: 'showcase',
+    label: 'Showcase',
+    component: markRaw(ProductShowcaseLayoutDemo),
+  },
   {
     id: 'deepseek',
     label: 'DeepSeek',
@@ -24,12 +30,12 @@ const demos = [
 
 type DemoId = (typeof demos)[number]['id']
 
-const activeDemoId = shallowRef<DemoId>('surface')
+const activeDemoId = shallowRef<DemoId>('showcase')
 const activeDemo = computed(() => demos.find((demo) => demo.id === activeDemoId.value) ?? demos[0])
 </script>
 
 <template>
-  <div class="demo-shell">
+  <div class="demo-shell" :class="{ 'is-showcase': activeDemoId === 'showcase' }">
     <component :is="activeDemo.component" />
 
     <aside class="demo-shell__dock">
@@ -71,6 +77,18 @@ const activeDemo = computed(() => demos.find((demo) => demo.id === activeDemoId.
   background: rgba(255, 255, 255, 0.92);
   box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
   backdrop-filter: blur(18px);
+  opacity: 1;
+  transition: opacity 0.16s ease;
+}
+
+.demo-shell.is-showcase .demo-shell__dock {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.demo-shell.is-showcase:hover .demo-shell__dock {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .demo-shell__buttons {
