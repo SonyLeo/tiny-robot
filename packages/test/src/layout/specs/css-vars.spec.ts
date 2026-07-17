@@ -1,13 +1,6 @@
-import { expect, test, type Locator, type Page } from '@playwright/test'
-import { openLayoutPage } from '../helpers'
+import type { Locator } from '@playwright/test'
+import { expect, test } from '../helpers'
 import { layoutSelectors } from '../selectors'
-
-async function openCssVarFixtures(page: Page) {
-  await page.getByTestId('show-css-var-fixtures-btn').click()
-  await expect(page.getByTestId('css-vars-normal-surface')).toBeVisible()
-  await expect(page.getByTestId('css-vars-scrollbar-surface')).toBeVisible()
-  await expect(page.getByTestId('css-vars-floating-surface')).toHaveClass(/tr-layout-surface--floating/)
-}
 
 async function readStyle(locator: Locator, prop: string) {
   return locator.evaluate((el, name) => getComputedStyle(el).getPropertyValue(name).trim(), prop)
@@ -24,73 +17,47 @@ async function getBox(locator: Locator) {
 }
 
 test.describe('Layout 组件测试 - CSS Variables', () => {
-  test.beforeEach(async ({ page }) => {
-    await openLayoutPage(page)
-    await openCssVarFixtures(page)
+  test.beforeEach(async ({ layout }) => {
+    await layout.showCssVarFixtures()
+    await layout.expectSurfaceMode('floating', layout.page.getByTestId('css-vars-floating-surface'))
   })
 
   test('公开变量: --tr-layout-height / --tr-layout-bg - 应影响 surface 实际高度和背景', async ({ page }) => {
     const surface = page.getByTestId('css-vars-normal-surface')
+    const body = surface.locator(layoutSelectors.body)
     const box = await getBox(surface)
 
     expect(box.height).toBeGreaterThanOrEqual(418)
     expect(box.height).toBeLessThanOrEqual(422)
-    await expect.poll(async () => readStyle(surface, 'background-color')).toBe('rgb(244, 246, 251)')
+    await expect.poll(async () => readStyle(body, 'background-color')).toBe('rgb(244, 246, 251)')
   })
 
-  test('公开变量: 区域背景和分隔线颜色 - 应影响 left/right/header/main/footer', async ({ page }) => {
+  test('公开变量: 区域背景和分隔线颜色 - 应作用于 left/right/header/main/footer', async ({ page }) => {
     const surface = page.getByTestId('css-vars-normal-surface')
     const leftAside = surface.locator(layoutSelectors.leftAside)
     const rightAside = surface.locator(layoutSelectors.rightAside)
-    const headerShell = surface.locator(layoutSelectors.headerShell)
-    const mainShell = surface.locator(layoutSelectors.mainShell)
-    const footerShell = surface.locator(layoutSelectors.footerShell)
+    const header = surface.locator(layoutSelectors.header)
+    const main = surface.locator(layoutSelectors.main)
+    const footer = surface.locator(layoutSelectors.footer)
 
     await expect.poll(async () => readStyle(leftAside, 'background-color')).toBe('rgb(255, 244, 229)')
     await expect.poll(async () => readStyle(rightAside, 'background-color')).toBe('rgb(232, 245, 255)')
-    await expect.poll(async () => readStyle(headerShell, 'background-color')).toBe('rgb(224, 242, 254)')
-    await expect.poll(async () => readStyle(mainShell, 'background-color')).toBe('rgb(245, 250, 255)')
-    await expect.poll(async () => readStyle(footerShell, 'background-color')).toBe('rgb(232, 245, 233)')
+    await expect.poll(async () => readStyle(header, 'background-color')).toBe('rgb(224, 242, 254)')
+    await expect.poll(async () => readStyle(main, 'background-color')).toBe('rgb(245, 250, 255)')
+    await expect.poll(async () => readStyle(footer, 'background-color')).toBe('rgb(232, 245, 233)')
     await expect.poll(async () => readStyle(leftAside, 'border-right-color')).toBe('rgb(123, 134, 156)')
     await expect.poll(async () => readStyle(rightAside, 'border-left-color')).toBe('rgb(123, 134, 156)')
   })
 
-  test('公开变量: 内容宽度和内边距 - 应统一限制 header/main/footer inner', async ({ page }) => {
-    const surface = page.getByTestId('css-vars-normal-surface')
-    const headerInner = surface.locator(layoutSelectors.headerInner)
-    const mainInner = surface.locator(layoutSelectors.mainInner)
-    const footerInner = surface.locator(layoutSelectors.footerInner)
-
-    const headerBox = await getBox(headerInner)
-    const mainBox = await getBox(mainInner)
-    const footerBox = await getBox(footerInner)
-
-    expect(headerBox.width).toBeGreaterThanOrEqual(418)
-    expect(headerBox.width).toBeLessThanOrEqual(422)
-    expect(Math.abs(headerBox.width - mainBox.width)).toBeLessThanOrEqual(1)
-    expect(Math.abs(headerBox.width - footerBox.width)).toBeLessThanOrEqual(1)
-
-    await expect.poll(async () => readStyle(headerInner, 'padding-left')).toBe('24px')
-    await expect.poll(async () => readStyle(mainInner, 'padding-left')).toBe('24px')
-    await expect.poll(async () => readStyle(footerInner, 'padding-left')).toBe('24px')
-    await expect.poll(async () => readStyle(headerInner, 'padding-right')).toBe('24px')
-    await expect.poll(async () => readStyle(mainInner, 'padding-right')).toBe('24px')
-    await expect.poll(async () => readStyle(footerInner, 'padding-right')).toBe('24px')
-    await expect.poll(async () => readStyle(headerInner, 'padding-top')).toBe('18px')
-    await expect.poll(async () => readStyle(headerInner, 'padding-bottom')).toBe('18px')
-    await expect.poll(async () => readStyle(footerInner, 'padding-top')).toBe('18px')
-    await expect.poll(async () => readStyle(footerInner, 'padding-bottom')).toBe('18px')
-  })
-
   test('公开变量: --tr-layout-main-min-width - 应保护主区最小宽度', async ({ page }) => {
     const surface = page.getByTestId('css-vars-main-min-surface')
-    const mainShell = surface.locator(layoutSelectors.mainShell)
-    const box = await getBox(mainShell)
+    const main = surface.locator(layoutSelectors.main)
+    const box = await getBox(main)
 
     expect(box.width).toBeGreaterThanOrEqual(300)
   })
 
-  test('公开变量: drawer / overlay / panel-shadow - 应作用于右侧 drawer，且不影响 dock', async ({ page }) => {
+  test('公开变量: overlay / panel-shadow - 应作用于右侧 drawer，且不影响左侧 dock', async ({ page }) => {
     const surface = page.getByTestId('css-vars-right-drawer-surface')
     const leftDock = surface.locator(layoutSelectors.leftAside)
     const rightDrawer = surface.locator(layoutSelectors.rightAside)
@@ -122,8 +89,9 @@ test.describe('Layout 组件测试 - CSS Variables', () => {
 
   test('公开变量: floating surface - 应作用于圆角、阴影、层级和背景', async ({ page }) => {
     const surface = page.getByTestId('css-vars-floating-surface')
+    const body = surface.locator(layoutSelectors.body)
 
-    await expect.poll(async () => readStyle(surface, 'background-color')).toBe('rgb(252, 248, 240)')
+    await expect.poll(async () => readStyle(body, 'background-color')).toBe('rgb(252, 248, 240)')
     await expect.poll(async () => readStyle(surface, 'border-top-left-radius')).toBe('18px')
     await expect.poll(async () => readStyle(surface, 'box-shadow')).toContain('rgb(11, 22, 33)')
     await expect.poll(async () => readStyle(surface, 'z-index')).toBe('2048')
@@ -131,11 +99,11 @@ test.describe('Layout 组件测试 - CSS Variables', () => {
 
   test('公开变量: scrollbar - 应作用于轨道宽度和 thumb 默认/hover/active 颜色', async ({ page }) => {
     const surface = page.getByTestId('css-vars-scrollbar-surface')
-    const main = surface.locator(layoutSelectors.main)
+    const scrollTarget = surface.getByTestId('css-vars-scroll-target')
     const scrollbar = surface.locator(layoutSelectors.scrollbar)
     const thumb = surface.locator(layoutSelectors.scrollbarThumb)
 
-    await main.hover()
+    await scrollTarget.hover()
     await expect(scrollbar).toBeVisible()
     await expect.poll(async () => readStyle(scrollbar, 'width')).toBe('14px')
     await expect.poll(async () => readStyle(thumb, 'background-color')).toBe('rgb(120, 130, 150)')
@@ -156,13 +124,14 @@ test.describe('Layout 组件测试 - CSS Variables', () => {
   test('guard: 旧变量不应再作为公开契约生效', async ({ page }) => {
     const surface = page.getByTestId('css-vars-legacy-surface')
     const leftAside = surface.locator(layoutSelectors.leftAside)
-    const mainInner = surface.locator(layoutSelectors.mainInner)
+    const header = surface.locator(layoutSelectors.header)
 
     const leftBox = await getBox(leftAside)
-    const mainInnerBox = await getBox(mainInner)
 
     expect(leftBox.width).toBeGreaterThanOrEqual(278)
     expect(leftBox.width).toBeLessThanOrEqual(282)
-    expect(mainInnerBox.width).toBeGreaterThan(650)
+    await expect.poll(async () => readStyle(header, 'padding-left')).toBe('0px')
+    await expect.poll(async () => readStyle(surface, 'border-top-left-radius')).toBe('0px')
+    await expect.poll(async () => readStyle(surface, 'box-shadow')).toBe('none')
   })
 })

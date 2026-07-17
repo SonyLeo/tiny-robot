@@ -1,96 +1,130 @@
 import type { ComponentPublicInstance, VNode } from 'vue'
 
-export type LayoutPlacement = 'left' | 'right'
+export type LayoutSide = 'left' | 'right'
 export type LayoutAsideMode = 'dock' | 'drawer'
 export type LayoutAsideCollapseEffect = 'overlay' | 'slide'
 export type LayoutMode = 'normal' | 'floating'
-export type LayoutLength = number | string
+export type LayoutFloatingPlacement = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'center'
 
-export interface LayoutAsideResizeEventDetail {
-  placement: LayoutPlacement
+export interface LayoutFloatingState {
+  placement: LayoutFloatingPlacement
+  offsetX: number
+  offsetY: number
   width: number
+  height: number
 }
 
-export interface LayoutFloatingConfig {
-  x?: number
-  y?: number
-  width?: LayoutLength
-  height?: LayoutLength
+export interface LayoutFloatingOptions {
   draggable?: boolean
   resizable?: boolean
-  minWidth?: LayoutLength
-  maxWidth?: LayoutLength
+  minWidth?: number
+  maxWidth?: number
+  minHeight?: number
+  maxHeight?: number
 }
 
-export interface LayoutFloatingResizeEventDetail {
-  edge: LayoutPlacement
-  width: number
+export type LayoutFloatingResizeHandle = 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw'
+
+export interface LayoutAsideOpenDetail {
+  side: LayoutSide
+  open: boolean
 }
 
-export interface LayoutFloatingDragEventDetail {
-  x: number
-  y: number
+export interface LayoutAsideOpenValue {
+  open: boolean
 }
 
-export type LayoutMainScrollHostComponent = Pick<ComponentPublicInstance, '$el'>
-
-export type LayoutMainScrollHost = HTMLElement | LayoutMainScrollHostComponent | null | undefined
-
-export interface LayoutProps {
-  mode?: LayoutMode
-  defaultMode?: LayoutMode
-  floating?: LayoutFloatingConfig
-  defaultFloating?: LayoutFloatingConfig
+export interface LayoutAsideResizeDetail {
+  side: LayoutSide
+  expandedWidth: number
 }
 
-export interface LayoutEmits {
-  'update:mode': [value: LayoutMode]
-  'update:floating': [value: LayoutFloatingConfig]
-  'floating-drag-start': [detail: LayoutFloatingDragEventDetail]
-  'floating-drag': [detail: LayoutFloatingDragEventDetail]
-  'floating-drag-end': [detail: LayoutFloatingDragEventDetail]
-  'floating-resize-start': [detail: LayoutFloatingResizeEventDetail]
-  'floating-resize': [detail: LayoutFloatingResizeEventDetail]
-  'floating-resize-end': [detail: LayoutFloatingResizeEventDetail]
-  'aside-resize-start': [detail: LayoutAsideResizeEventDetail]
-  'aside-resize': [detail: LayoutAsideResizeEventDetail]
-  'aside-resize-end': [detail: LayoutAsideResizeEventDetail]
+export interface LayoutAsideResizeValue {
+  expandedWidth: number
 }
 
-export interface LayoutAsideProps {
-  placement: LayoutPlacement
+export type LayoutFloatingDragDetail = LayoutFloatingState
+
+export type LayoutFloatingResizeDetail = LayoutFloatingState & {
+  handle: LayoutFloatingResizeHandle
+}
+
+export interface LayoutAsideOptions {
   mode?: LayoutAsideMode
   open?: boolean
   defaultOpen?: boolean
-  width?: number
-  defaultWidth?: number
-  railWidth?: number
-  minWidth?: number
-  maxWidth?: number
-  resizable?: boolean
+  expandedWidth?: number
+  defaultExpandedWidth?: number
+  minExpandedWidth?: number
+  maxExpandedWidth?: number
+  collapsedWidth?: number
   collapseEffect?: LayoutAsideCollapseEffect
+  resizable?: boolean
 }
 
-export interface LayoutAsideEmits {
-  'update:open': [value: boolean]
-  'update:width': [value: number]
+export interface LayoutAsidePanelsProps {
+  leftAside?: LayoutAsideOptions
+  rightAside?: LayoutAsideOptions
+}
+
+export interface LayoutNormalProps extends LayoutAsidePanelsProps {
+  mode: 'normal'
+  floatingState?: never
+  defaultFloatingState?: never
+  floatingOptions?: never
+}
+
+type LayoutFloatingStateControlProps =
+  | {
+      floatingState?: LayoutFloatingState
+      defaultFloatingState?: never
+    }
+  | {
+      floatingState?: never
+      defaultFloatingState?: LayoutFloatingState
+    }
+
+export type LayoutFloatingProps = LayoutAsidePanelsProps &
+  LayoutFloatingStateControlProps & {
+    mode: 'floating'
+    floatingOptions?: LayoutFloatingOptions
+  }
+
+export type LayoutProps = LayoutNormalProps | LayoutFloatingProps
+
+export type LayoutScrollTargetComponent = Pick<ComponentPublicInstance, '$el'>
+
+export type LayoutScrollTarget = HTMLElement | LayoutScrollTargetComponent | null | undefined
+
+export interface LayoutProxyScrollbarProps {
+  scrollTarget?: LayoutScrollTarget
 }
 
 export interface LayoutAsideToggleProps {
-  placement: LayoutPlacement
-  ariaLabel?: string
+  side: LayoutSide
 }
 
-export interface LayoutMainProps {
-  scrollHost: LayoutMainScrollHost
-}
+export interface LayoutEmits {
+  'update:floatingState': [value: LayoutFloatingState]
+  'floating-drag-start': [detail: LayoutFloatingDragDetail]
+  'floating-drag': [detail: LayoutFloatingDragDetail]
+  'floating-drag-end': [detail: LayoutFloatingDragDetail]
+  'floating-resize-start': [detail: LayoutFloatingResizeDetail]
+  'floating-resize': [detail: LayoutFloatingResizeDetail]
+  'floating-resize-end': [detail: LayoutFloatingResizeDetail]
 
-export interface LayoutAsideSlots {
-  default?: (slotProps: { isOpen: boolean; isExpanded: boolean }) => VNode | VNode[]
-}
-
-export interface LayoutAsideToggleSlots {
-  default?: (slotProps: { isOpen: boolean; isExpanded: boolean }) => VNode | VNode[]
+  'aside-open-change': [detail: LayoutAsideOpenDetail]
+  'aside-resize-start': [detail: LayoutAsideResizeDetail]
+  'aside-resize': [detail: LayoutAsideResizeDetail]
+  'aside-resize-end': [detail: LayoutAsideResizeDetail]
+  'left-aside-open-change': [detail: LayoutAsideOpenValue]
+  'left-aside-resize-start': [detail: LayoutAsideResizeValue]
+  'left-aside-resize': [detail: LayoutAsideResizeValue]
+  'left-aside-resize-end': [detail: LayoutAsideResizeValue]
+  'right-aside-open-change': [detail: LayoutAsideOpenValue]
+  'right-aside-resize-start': [detail: LayoutAsideResizeValue]
+  'right-aside-resize': [detail: LayoutAsideResizeValue]
+  'right-aside-resize-end': [detail: LayoutAsideResizeValue]
 }
 
 export interface LayoutSlots {

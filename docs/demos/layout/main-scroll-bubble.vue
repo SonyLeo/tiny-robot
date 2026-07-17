@@ -1,33 +1,61 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { BubbleList, TrLayout } from '@opentiny/tiny-robot'
-import type { LayoutMainScrollHost } from '@opentiny/tiny-robot'
+import type { BubbleListProps, BubbleRoleConfig } from '@opentiny/tiny-robot'
 
-const scrollHostRef = ref<LayoutMainScrollHost>(null)
+const props = defineProps<{
+  centered: boolean
+}>()
 
-const messages = Array.from({ length: 24 }, (_, index) => ({
-  role: index % 2 === 0 ? 'assistant' : 'user',
-  content: `layout message ${index + 1}`,
-}))
+const scrollTargetRef = ref<HTMLElement | null>(null)
+
+const roles: Record<string, BubbleRoleConfig> = {
+  user: { placement: 'end' },
+  assistant: { placement: 'start' },
+}
+
+const messages: BubbleListProps['messages'] = Array.from({ length: 12 }, (_, index) => [
+  {
+    role: 'user',
+    content: `第 ${index + 1} 轮：帮我整理一下当前布局的滚动区。`,
+  },
+  {
+    role: 'assistant',
+    content: '可以。内容区可以居中显示，滚动条仍然固定在 Layout 主区右侧。',
+  },
+]).flat()
 </script>
 
 <template>
-  <TrLayout class="layout-main-scroll-example layout-main-scroll-example--bubble">
+  <TrLayout>
     <template #main>
-      <TrLayout.Main :scroll-host="scrollHostRef">
-        <BubbleList ref="scrollHostRef" :messages="messages" />
-      </TrLayout.Main>
+      <div ref="scrollTargetRef" class="layout-main-scroll-bubble-host">
+        <div class="layout-main-scroll-bubble-host__content" :class="{ 'is-centered': props.centered }">
+          <BubbleList class="layout-main-scroll-bubble" :messages="messages" :role-configs="roles" />
+        </div>
+      </div>
+      <TrLayout.ProxyScrollbar :scroll-target="scrollTargetRef" />
     </template>
   </TrLayout>
 </template>
 
 <style scoped>
-.layout-main-scroll-example {
+.layout-main-scroll-bubble-host {
   height: 100%;
-  --tr-layout-height: 100%;
+  overflow: auto;
 }
 
-.layout-main-scroll-example--bubble {
+.layout-main-scroll-bubble-host__content.is-centered {
+  max-width: 450px;
+  margin: 0 auto;
+}
+
+.layout-main-scroll-bubble {
+  --tr-bubble-list-padding: 16px;
+  overflow: visible;
+}
+
+:deep([data-role='user']) {
   --tr-bubble-box-bg: var(--tr-color-primary-light);
 }
 </style>

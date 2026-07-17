@@ -1,52 +1,46 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { TrLayout } from '@opentiny/tiny-robot'
+import { TinyButton } from '@opentiny/vue'
+import type { LayoutAsideOpenValue } from '@opentiny/tiny-robot'
 
 const rightOpen = ref(false)
+
+function updateRightAside(detail: LayoutAsideOpenValue) {
+  rightOpen.value = detail.open
+}
 </script>
 
 <template>
   <div class="layout-aside-demo">
-    <TrLayout>
+    <TrLayout
+      :left-aside="{ defaultOpen: true, defaultExpandedWidth: 156 }"
+      :right-aside="{ mode: 'drawer', open: rightOpen }"
+      @right-aside-open-change="updateRightAside"
+    >
       <template #left-aside>
-        <TrLayout.Aside placement="left" default-open :default-width="156" :rail-width="56">
-          <template #default="{ isExpanded }">
-            <div v-if="isExpanded" class="layout-aside-demo__aside">
-              <TrLayout.AsideToggle placement="left" class="layout-aside-demo__chip"> 收起侧栏 </TrLayout.AsideToggle>
-              <div class="layout-aside-demo__chip">railWidth: 56px</div>
-            </div>
-            <div v-else class="layout-aside-demo__rail">
-              <TrLayout.AsideToggle placement="left" class="layout-aside-demo__rail-chip">栏</TrLayout.AsideToggle>
-              <div class="layout-aside-demo__rail-chip">56</div>
-            </div>
-          </template>
-        </TrLayout.Aside>
+        <div class="layout-aside-demo__aside">Dock 区域</div>
       </template>
 
       <template #header>
         <div class="layout-aside-demo__header">
-          <span>侧栏模式</span>
-          <button type="button" class="layout-aside-demo__chip" @click="rightOpen = true">打开抽屉</button>
+          <span>Header 区域</span>
+          <TinyButton :reset-time="0" @click="rightOpen = !rightOpen">
+            {{ rightOpen ? '关闭 Drawer' : '打开 Drawer' }}
+          </TinyButton>
         </div>
       </template>
 
       <template #main>
-        <div class="layout-aside-demo__main">左侧是 `dock + railWidth`，右侧是 `drawer`。</div>
+        <div class="layout-aside-demo__main">左侧 `dock` 始终参与布局，右侧 `drawer` 按需覆盖主区。</div>
       </template>
 
       <template #right-aside>
-        <TrLayout.Aside
-          placement="right"
-          mode="drawer"
-          v-model:open="rightOpen"
-          style="--tr-layout-drawer-width: 240px"
-        >
-          <div class="layout-aside-demo__drawer">
-            <div>Drawer</div>
-            <div>点击遮罩、按 `Esc` 或按钮关闭。</div>
-            <TrLayout.AsideToggle placement="right" class="layout-aside-demo__chip">关闭抽屉</TrLayout.AsideToggle>
-          </div>
-        </TrLayout.Aside>
+        <div class="layout-aside-demo__drawer layout-aside-demo__drawer-panel">
+          <div>Drawer</div>
+          <div>打开后覆盖内容区，不占主布局宽度。</div>
+          <div>点击遮罩或顶部按钮关闭。</div>
+        </div>
       </template>
     </TrLayout>
   </div>
@@ -55,30 +49,32 @@ const rightOpen = ref(false)
 <style scoped>
 .layout-aside-demo {
   --tr-layout-height: 100%;
-  --tr-layout-content-max-width: none;
-  --tr-layout-inner-padding-inline: 0;
-  --tr-layout-inner-padding-block: 0;
-  --tr-layout-left-bg: color-mix(in srgb, var(--vp-c-bg-soft, #f5f7fa) 88%, #ffffff);
+  --tr-layout-left-aside-bg: var(--vp-c-bg-alt, #f8fafc);
+  --tr-layout-drawer-width: 240px;
   height: 400px;
   overflow: hidden;
   border: 1px solid var(--vp-c-divider, var(--tr-border-color, #dcdfe6));
-  border-radius: 18px;
-  background: var(--vp-c-bg-soft, var(--tr-container-bg-secondary, #f5f7fa));
+  border-radius: 16px;
   color: var(--vp-c-text-1, var(--tr-text-primary, #1f2329));
+}
+
+.layout-aside-demo__drawer-panel {
+  height: 100%;
 }
 
 .layout-aside-demo__header,
 .layout-aside-demo__main,
 .layout-aside-demo__drawer {
-  background: var(--vp-c-bg, var(--tr-container-bg-default, #ffffff));
+  background: var(--vp-c-bg, #ffffff);
 }
 
 .layout-aside-demo__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 14px 18px;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 16px;
   border-bottom: 1px solid var(--vp-c-divider, var(--tr-border-color, #dcdfe6));
 }
 
@@ -90,17 +86,10 @@ const rightOpen = ref(false)
 }
 
 .layout-aside-demo__aside,
-.layout-aside-demo__drawer,
-.layout-aside-demo__rail {
+.layout-aside-demo__drawer {
   display: grid;
   gap: 8px;
-}
-
-.layout-aside-demo__rail {
-  width: 56px;
-  padding: 12px 8px;
-  box-sizing: border-box;
-  justify-items: center;
+  justify-content: center;
 }
 
 .layout-aside-demo__drawer {
@@ -115,23 +104,11 @@ const rightOpen = ref(false)
 .layout-aside-demo__chip {
   display: grid;
   place-items: center;
+  border: 1px solid var(--vp-c-divider, var(--tr-border-color, #dcdfe6));
+  background: var(--vp-c-bg, #ffffff);
+  color: inherit;
   min-height: 36px;
   padding: 0 12px;
-  border: 1px solid var(--vp-c-divider, var(--tr-border-color, #dcdfe6));
-  border-radius: 10px;
-  background: var(--vp-c-bg, var(--tr-container-bg-default, #ffffff));
-  color: inherit;
-}
-
-.layout-aside-demo__rail-chip {
-  display: grid;
-  place-items: center;
-  width: 40px;
-  min-height: 40px;
-  padding: 0;
-  border: 1px solid var(--vp-c-divider, var(--tr-border-color, #dcdfe6));
   border-radius: 8px;
-  background: var(--vp-c-bg, var(--tr-container-bg-default, #ffffff));
-  color: inherit;
 }
 </style>

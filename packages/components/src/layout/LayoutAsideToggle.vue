@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useLayoutAside } from './composables/useLayoutAside'
+import { useLayoutAsideContext } from './composables/useLayoutContext'
 import type { LayoutAsideToggleProps } from './index.type'
 
 defineOptions({
@@ -9,17 +9,11 @@ defineOptions({
 
 const props = defineProps<LayoutAsideToggleProps>()
 
-const { isOpen, isExpanded, toggle } = useLayoutAside(() => props.placement)
+const { isOpen, toggle } = useLayoutAsideContext(props.side)
 
 const slotProps = computed(() => ({
   isOpen: isOpen.value,
-  isExpanded: isExpanded.value,
 }))
-
-const defaultAriaLabels = {
-  left: 'Toggle left panel',
-  right: 'Toggle right panel',
-} as const
 
 const fallbackTexts = {
   left: {
@@ -32,16 +26,14 @@ const fallbackTexts = {
   },
 } as const
 
-const ariaLabel = computed(() => props.ariaLabel ?? defaultAriaLabels[props.placement])
-
 const fallbackText = computed(() => {
-  const text = fallbackTexts[props.placement]
+  const text = fallbackTexts[props.side]
   return isOpen.value ? text.expanded : text.collapsed
 })
 </script>
 
 <template>
-  <button class="tr-layout-aside-toggle" type="button" :aria-expanded="isOpen" :aria-label="ariaLabel" @click="toggle">
+  <button class="tr-layout-aside-toggle" type="button" @click="toggle">
     <slot v-bind="slotProps">
       {{ fallbackText }}
     </slot>

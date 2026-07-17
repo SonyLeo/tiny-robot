@@ -1,18 +1,30 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { TrLayout } from '@opentiny/tiny-robot'
-import type { LayoutFloatingConfig, LayoutMainScrollHost } from '@opentiny/tiny-robot'
+import type { LayoutFloatingOptions, LayoutFloatingState } from '@opentiny/tiny-robot'
+
+type LayoutMainScrollHost = HTMLElement | { $el: Element | null } | null | undefined
 
 const scrollbarHostRef = ref<LayoutMainScrollHost>(null)
 
-const floating = {
-  x: 760,
-  y: 56,
+const floatingState: LayoutFloatingState = {
+  placement: 'top-right',
+  offsetX: 40,
+  offsetY: 56,
   width: 360,
   height: 260,
+}
+
+const floatingOptions: LayoutFloatingOptions = {
   draggable: false,
   resizable: false,
-} satisfies LayoutFloatingConfig
+}
+
+const floatingLayoutProps: Record<string, unknown> = {
+  mode: 'floating',
+  floatingState,
+  floatingOptions,
+}
 
 const scrollItems = Array.from({ length: 80 }, (_, index) => `css var item ${index + 1}`)
 </script>
@@ -20,11 +32,14 @@ const scrollItems = Array.from({ length: 80 }, (_, index) => `css var item ${ind
 <template>
   <div class="layout-css-vars">
     <div class="layout-css-vars__host layout-css-vars__host--wide">
-      <TrLayout data-testid="css-vars-normal-surface" class="layout-css-vars__layout layout-css-vars__layout--normal">
+      <TrLayout
+        data-testid="css-vars-normal-surface"
+        class="layout-css-vars__layout layout-css-vars__layout--normal"
+        :left-aside="{ mode: 'dock', open: true, expandedWidth: 220 }"
+        :right-aside="{ mode: 'dock', open: true, expandedWidth: 240 }"
+      >
         <template #left-aside>
-          <TrLayout.Aside placement="left" mode="dock" :open="true" :width="220">
-            <div class="layout-css-vars__panel">left dock</div>
-          </TrLayout.Aside>
+          <div class="layout-css-vars__panel">left dock</div>
         </template>
 
         <template #header>
@@ -40,9 +55,7 @@ const scrollItems = Array.from({ length: 80 }, (_, index) => `css var item ${ind
         </template>
 
         <template #right-aside>
-          <TrLayout.Aside placement="right" mode="dock" :open="true" :width="240">
-            <div class="layout-css-vars__panel">right dock</div>
-          </TrLayout.Aside>
+          <div class="layout-css-vars__panel">right dock</div>
         </template>
       </TrLayout>
     </div>
@@ -51,11 +64,11 @@ const scrollItems = Array.from({ length: 80 }, (_, index) => `css var item ${ind
       <TrLayout
         data-testid="css-vars-main-min-surface"
         class="layout-css-vars__layout layout-css-vars__layout--main-min"
+        :left-aside="{ mode: 'dock', open: true, expandedWidth: 220 }"
+        :right-aside="{ mode: 'dock', open: true, expandedWidth: 240 }"
       >
         <template #left-aside>
-          <TrLayout.Aside placement="left" mode="dock" :open="true" :width="220">
-            <div class="layout-css-vars__panel">left dock</div>
-          </TrLayout.Aside>
+          <div class="layout-css-vars__panel">left dock</div>
         </template>
 
         <template #main>
@@ -63,9 +76,7 @@ const scrollItems = Array.from({ length: 80 }, (_, index) => `css var item ${ind
         </template>
 
         <template #right-aside>
-          <TrLayout.Aside placement="right" mode="dock" :open="true" :width="240">
-            <div class="layout-css-vars__panel">right dock</div>
-          </TrLayout.Aside>
+          <div class="layout-css-vars__panel">right dock</div>
         </template>
       </TrLayout>
     </div>
@@ -73,18 +84,12 @@ const scrollItems = Array.from({ length: 80 }, (_, index) => `css var item ${ind
     <div class="layout-css-vars__host layout-css-vars__host--drawer">
       <TrLayout
         data-testid="css-vars-right-drawer-surface"
-        class="layout-css-vars__layout layout-css-vars__layout--drawer"
+        class="layout-css-vars__layout layout-css-vars__layout--drawer layout-css-vars__layout--right-drawer"
+        :left-aside="{ mode: 'dock', open: true, expandedWidth: 312 }"
+        :right-aside="{ mode: 'drawer', open: true }"
       >
         <template #left-aside>
-          <TrLayout.Aside
-            placement="left"
-            mode="dock"
-            :open="true"
-            :width="312"
-            class="layout-css-vars__aside layout-css-vars__aside--dock-boundary"
-          >
-            <div class="layout-css-vars__panel">left dock boundary</div>
-          </TrLayout.Aside>
+          <div class="layout-css-vars__panel">left dock boundary</div>
         </template>
 
         <template #main>
@@ -92,14 +97,7 @@ const scrollItems = Array.from({ length: 80 }, (_, index) => `css var item ${ind
         </template>
 
         <template #right-aside>
-          <TrLayout.Aside
-            placement="right"
-            mode="drawer"
-            :open="true"
-            class="layout-css-vars__aside layout-css-vars__aside--right-drawer"
-          >
-            <div class="layout-css-vars__panel">right drawer panel</div>
-          </TrLayout.Aside>
+          <div class="layout-css-vars__panel">right drawer panel</div>
         </template>
       </TrLayout>
     </div>
@@ -107,17 +105,12 @@ const scrollItems = Array.from({ length: 80 }, (_, index) => `css var item ${ind
     <div class="layout-css-vars__host layout-css-vars__host--drawer">
       <TrLayout
         data-testid="css-vars-left-drawer-surface"
-        class="layout-css-vars__layout layout-css-vars__layout--drawer"
+        class="layout-css-vars__layout layout-css-vars__layout--drawer layout-css-vars__layout--left-drawer"
+        :left-aside="{ mode: 'drawer', open: true }"
+        :right-aside="{ mode: 'dock', open: true, expandedWidth: 260 }"
       >
         <template #left-aside>
-          <TrLayout.Aside
-            placement="left"
-            mode="drawer"
-            :open="true"
-            class="layout-css-vars__aside layout-css-vars__aside--left-drawer"
-          >
-            <div class="layout-css-vars__panel">left drawer panel</div>
-          </TrLayout.Aside>
+          <div class="layout-css-vars__panel">left drawer panel</div>
         </template>
 
         <template #main>
@@ -125,23 +118,36 @@ const scrollItems = Array.from({ length: 80 }, (_, index) => `css var item ${ind
         </template>
 
         <template #right-aside>
-          <TrLayout.Aside placement="right" mode="dock" :open="true" :width="260">
-            <div class="layout-css-vars__panel">right dock</div>
-          </TrLayout.Aside>
+          <div class="layout-css-vars__panel">right dock</div>
         </template>
       </TrLayout>
     </div>
 
     <div class="layout-css-vars__host layout-css-vars__host--wide">
-      <TrLayout data-testid="css-vars-legacy-surface" class="layout-css-vars__layout layout-css-vars__layout--legacy">
+      <TrLayout
+        data-testid="css-vars-legacy-surface"
+        class="layout-css-vars__layout layout-css-vars__layout--legacy"
+        :left-aside="{ mode: 'dock', open: true, expandedWidth: 280 }"
+        :right-aside="{ mode: 'dock', open: true, expandedWidth: 240 }"
+      >
         <template #left-aside>
-          <TrLayout.Aside placement="left" mode="dock" :open="true" :width="280">
-            <div class="layout-css-vars__panel">legacy left dock</div>
-          </TrLayout.Aside>
+          <div class="layout-css-vars__panel">legacy left dock</div>
+        </template>
+
+        <template #header>
+          <div class="layout-css-vars__slot">legacy header</div>
         </template>
 
         <template #main>
           <div class="layout-css-vars__slot">legacy guard</div>
+        </template>
+
+        <template #footer>
+          <div class="layout-css-vars__slot">legacy footer</div>
+        </template>
+
+        <template #right-aside>
+          <div class="layout-css-vars__panel">legacy right dock</div>
         </template>
       </TrLayout>
     </div>
@@ -149,8 +155,7 @@ const scrollItems = Array.from({ length: 80 }, (_, index) => `css var item ${ind
     <TrLayout
       data-testid="css-vars-floating-surface"
       class="layout-css-vars__layout layout-css-vars__layout--floating"
-      mode="floating"
-      :floating="floating"
+      v-bind="floatingLayoutProps"
     >
       <template #main>
         <div class="layout-css-vars__slot">floating surface</div>
@@ -163,13 +168,12 @@ const scrollItems = Array.from({ length: 80 }, (_, index) => `css var item ${ind
         class="layout-css-vars__layout layout-css-vars__layout--scrollbar"
       >
         <template #main>
-          <TrLayout.Main :scroll-host="scrollbarHostRef">
-            <div ref="scrollbarHostRef" class="layout-css-vars__scroll-host">
-              <div v-for="item in scrollItems" :key="item" class="layout-css-vars__scroll-item">
-                {{ item }}
-              </div>
+          <div ref="scrollbarHostRef" class="layout-css-vars__scroll-host" data-testid="css-vars-scroll-target">
+            <div v-for="item in scrollItems" :key="item" class="layout-css-vars__scroll-item">
+              {{ item }}
             </div>
-          </TrLayout.Main>
+          </div>
+          <TrLayout.ProxyScrollbar :scroll-target="scrollbarHostRef" />
         </template>
       </TrLayout>
     </div>
@@ -212,15 +216,12 @@ const scrollItems = Array.from({ length: 80 }, (_, index) => `css var item ${ind
 .layout-css-vars__layout--normal {
   --tr-layout-height: 420px;
   --tr-layout-bg: rgb(244, 246, 251);
-  --tr-layout-left-bg: rgb(255, 244, 229);
-  --tr-layout-right-bg: rgb(232, 245, 255);
+  --tr-layout-left-aside-bg: rgb(255, 244, 229);
+  --tr-layout-right-aside-bg: rgb(232, 245, 255);
   --tr-layout-header-bg: rgb(224, 242, 254);
   --tr-layout-main-bg: rgb(245, 250, 255);
   --tr-layout-footer-bg: rgb(232, 245, 233);
   --tr-layout-divider-color: rgb(123, 134, 156);
-  --tr-layout-content-max-width: 420px;
-  --tr-layout-inner-padding-inline: 24px;
-  --tr-layout-inner-padding-block: 18px;
 }
 
 .layout-css-vars__layout--main-min {
@@ -236,16 +237,21 @@ const scrollItems = Array.from({ length: 80 }, (_, index) => `css var item ${ind
 
 .layout-css-vars__layout--legacy {
   --tr-layout-height: 280px;
-  --tr-layout-content-max-width: none;
+  --tr-layout-content-max-width: 320px;
+  --tr-layout-inner-padding-inline: 48px;
+  --tr-layout-inner-padding-block: 32px;
   --tr-layout-left-dock-width: 420px;
   --tr-layout-main-max-width: 320px;
+  --tr-layout-frame-radius: 99px;
+  --tr-layout-frame-shadow: 0 0 0 6px rgb(66, 77, 88);
+  --tr-layout-frame-z-index: 4096;
 }
 
 .layout-css-vars__layout--floating {
   --tr-layout-bg: rgb(252, 248, 240);
-  --tr-layout-surface-radius: 18px;
-  --tr-layout-surface-shadow: 0 0 0 4px rgb(11, 22, 33);
-  --tr-layout-surface-z-index: 2048;
+  --tr-layout-floating-radius: 18px;
+  --tr-layout-floating-shadow: 0 0 0 4px rgb(11, 22, 33);
+  --tr-layout-floating-z-index: 2048;
 }
 
 .layout-css-vars__layout--scrollbar {
@@ -256,15 +262,11 @@ const scrollItems = Array.from({ length: 80 }, (_, index) => `css var item ${ind
   --tr-layout-main-scrollbar-thumb-bg-active: rgb(60, 70, 90);
 }
 
-.layout-css-vars__aside--dock-boundary {
-  --tr-layout-drawer-width: 480px;
-}
-
-.layout-css-vars__aside--right-drawer {
+.layout-css-vars__layout--right-drawer {
   --tr-layout-drawer-width: 368px;
 }
 
-.layout-css-vars__aside--left-drawer {
+.layout-css-vars__layout--left-drawer {
   --tr-layout-drawer-width: 336px;
 }
 
@@ -283,6 +285,12 @@ const scrollItems = Array.from({ length: 80 }, (_, index) => `css var item ${ind
   overflow: auto;
   padding: 16px;
   box-sizing: border-box;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.layout-css-vars__scroll-host::-webkit-scrollbar {
+  display: none;
 }
 
 .layout-css-vars__scroll-item {

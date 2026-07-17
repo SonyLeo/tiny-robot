@@ -1,57 +1,57 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { TrLayout } from '@opentiny/tiny-robot'
-import type { LayoutMainScrollHost } from '@opentiny/tiny-robot'
 
-const scrollHostRef = ref<LayoutMainScrollHost>(null)
+const props = defineProps<{
+  centered: boolean
+}>()
 
-const sections = Array.from({ length: 12 }, (_, index) => ({
-  title: `Section ${index + 1}`,
-  text: '普通滚动容器同样可以直接交给 Layout.Main 管理。',
-}))
+const scrollTargetRef = ref<HTMLElement | null>(null)
+
+const sections = Array.from({ length: 12 }, (_, index) => index + 1)
 </script>
 
 <template>
-  <TrLayout class="layout-main-scroll-example layout-main-scroll-example--div">
+  <TrLayout>
     <template #main>
-      <TrLayout.Main :scroll-host="scrollHostRef">
-        <div ref="scrollHostRef" class="layout-main-scroll-div__host">
-          <article v-for="section in sections" :key="section.title" class="layout-main-scroll-div__card">
-            <strong>{{ section.title }}</strong>
-            <p>{{ section.text }}</p>
-          </article>
+      <div ref="scrollTargetRef" class="layout-main-scroll-div">
+        <div class="layout-main-scroll-div__content" :class="{ 'is-centered': props.centered }">
+          <section v-for="section in sections" :key="section" class="layout-main-scroll-div__item">
+            <strong>Section {{ section }}</strong>
+            <p>普通内容区也可以把滚动宿主交给 Layout.ProxyScrollbar 代理滚动条。</p>
+          </section>
         </div>
-      </TrLayout.Main>
+      </div>
+      <TrLayout.ProxyScrollbar :scroll-target="scrollTargetRef" />
     </template>
   </TrLayout>
 </template>
 
 <style scoped>
-.layout-main-scroll-example {
-  height: 100%;
-  --tr-layout-height: 100%;
-}
-
-.layout-main-scroll-div__host {
-  width: 100%;
+.layout-main-scroll-div {
   height: 100%;
   overflow: auto;
-  box-sizing: border-box;
-  padding: 20px;
 }
 
-.layout-main-scroll-div__card {
-  padding: 16px 18px;
+.layout-main-scroll-div__content {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+
+.layout-main-scroll-div__content.is-centered {
+  max-width: 550px;
+  margin: 0 auto;
+}
+
+.layout-main-scroll-div__item {
+  padding: 16px;
   border: 1px solid var(--vp-c-divider, var(--tr-border-color, #dcdfe6));
-  border-radius: 16px;
+  border-radius: 12px;
   background: var(--vp-c-bg, #ffffff);
 }
 
-.layout-main-scroll-div__card + .layout-main-scroll-div__card {
-  margin-top: 12px;
-}
-
-.layout-main-scroll-div__card p {
+.layout-main-scroll-div__item p {
   margin: 8px 0 0;
   color: var(--vp-c-text-2, var(--tr-text-secondary, #4e5969));
 }

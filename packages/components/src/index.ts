@@ -12,7 +12,7 @@ import DropdownMenu from './dropdown-menu'
 import Feedback from './feedback'
 import History from './history'
 import IconButton from './icon-button'
-import { Layout, LayoutAside, LayoutAsideToggle, LayoutMain } from './layout'
+import { Layout, LayoutAsideToggle, LayoutProxyScrollbar } from './layout'
 import { Prompt, Prompts } from './prompts'
 import Sender from './sender'
 import SenderCompat from './sender-compat'
@@ -60,6 +60,7 @@ export {
   BubbleRenderers,
   useBubbleBoxRenderer,
   useBubbleContentRenderer,
+  useBubbleEventFn,
   useBubbleStateChangeFn,
   useMessageContent,
   useOmitMessageFields,
@@ -84,8 +85,7 @@ const components = [
   History,
   IconButton,
   Layout,
-  LayoutMain,
-  LayoutAside,
+  LayoutProxyScrollbar,
   LayoutAsideToggle,
   Prompt,
   Prompts,
@@ -143,10 +143,8 @@ export {
   IconButton as TrIconButton,
   Layout,
   Layout as TrLayout,
-  LayoutMain,
-  LayoutMain as TrLayoutMain,
-  LayoutAside,
-  LayoutAside as TrLayoutAside,
+  LayoutProxyScrollbar,
+  LayoutProxyScrollbar as TrLayoutProxyScrollbar,
   LayoutAsideToggle,
   LayoutAsideToggle as TrLayoutAsideToggle,
   Prompt,

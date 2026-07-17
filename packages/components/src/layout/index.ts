@@ -1,34 +1,21 @@
 import type { App } from 'vue'
 import LayoutComp from './Layout.vue'
-import LayoutAsideComp from './LayoutAside.vue'
 import LayoutAsideToggleComp from './LayoutAsideToggle.vue'
-import LayoutMainComp from './LayoutMain.vue'
+import LayoutProxyScrollbarComp from './LayoutProxyScrollbar.vue'
 
 export * from './index.type'
 
-LayoutMainComp.name = 'TrLayoutMain'
+LayoutProxyScrollbarComp.name = 'TrLayoutProxyScrollbar'
 
-const layoutMainInstall = function <T>(app: App<T>) {
-  app.component(LayoutMainComp.name!, LayoutMainComp)
+const layoutProxyScrollbarInstall = function <T>(app: App<T>) {
+  app.component(LayoutProxyScrollbarComp.name!, LayoutProxyScrollbarComp)
 }
 
-const LayoutMain = LayoutMainComp as typeof LayoutMainComp & {
-  install: typeof layoutMainInstall
+const LayoutProxyScrollbar = LayoutProxyScrollbarComp as typeof LayoutProxyScrollbarComp & {
+  install: typeof layoutProxyScrollbarInstall
 }
 
-LayoutMain.install = layoutMainInstall
-
-LayoutAsideComp.name = 'TrLayoutAside'
-
-const layoutAsideInstall = function <T>(app: App<T>) {
-  app.component(LayoutAsideComp.name!, LayoutAsideComp)
-}
-
-const LayoutAside = LayoutAsideComp as typeof LayoutAsideComp & {
-  install: typeof layoutAsideInstall
-}
-
-LayoutAside.install = layoutAsideInstall
+LayoutProxyScrollbar.install = layoutProxyScrollbarInstall
 
 LayoutAsideToggleComp.name = 'TrLayoutAsideToggle'
 
@@ -46,25 +33,22 @@ LayoutComp.name = 'TrLayout'
 
 const layoutInstall = function <T>(app: App<T>) {
   app.component(LayoutComp.name!, LayoutComp)
-  app.component(LayoutMain.name!, LayoutMain)
-  app.component(LayoutAside.name!, LayoutAside)
+  app.component(LayoutProxyScrollbar.name!, LayoutProxyScrollbar)
   app.component(LayoutAsideToggle.name!, LayoutAsideToggle)
 }
 
 type LayoutCompound = typeof LayoutComp & {
   install: typeof layoutInstall
-  Main: typeof LayoutMain
-  Aside: typeof LayoutAside
+  ProxyScrollbar: typeof LayoutProxyScrollbar
   AsideToggle: typeof LayoutAsideToggle
 }
 
 const Layout = LayoutComp as LayoutCompound
 
 Layout.install = layoutInstall
-Layout.Main = LayoutMain
-Layout.Aside = LayoutAside
+Layout.ProxyScrollbar = LayoutProxyScrollbar
 Layout.AsideToggle = LayoutAsideToggle
 
-export { Layout, LayoutMain, LayoutAside, LayoutAsideToggle }
+export { Layout, LayoutProxyScrollbar, LayoutAsideToggle }
 
 export default Layout
