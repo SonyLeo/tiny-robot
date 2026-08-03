@@ -7,6 +7,7 @@ const sharedSidebarItems = [
       { text: '快速开始', link: 'quick-start' },
       { text: '主题配置', link: 'theme-config' },
       { text: '更新日志', link: 'update-log' },
+      { text: 'CLI 接入', link: 'cli-integration' },
     ],
   },
   {
@@ -14,6 +15,7 @@ const sharedSidebarItems = [
     base: '/components/',
     items: [
       { text: 'Container 容器', link: 'container' },
+      { text: 'Layout 布局', link: 'layout' },
       { text: 'Bubble 气泡', link: 'bubble' },
       { text: 'Sender 消息输入框', link: 'sender' },
       { text: 'Prompts 提示集', link: 'prompts' },
@@ -36,9 +38,9 @@ const sharedSidebarItems = [
     items: [
       { text: 'useMessage 消息数据管理', link: 'message' },
       { text: 'useConversation 会话数据管理', link: 'conversation' },
+      { text: 'Skill 技能接入', link: 'skill' },
       { text: 'AIClient 模型交互工具类', link: 'ai-client' },
       { text: '工具函数', link: 'utils' },
-      { text: 'CLI 命令行工具', link: 'cli' },
     ],
   },
   {
