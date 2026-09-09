@@ -182,6 +182,15 @@ function insertDependencyOrdered(dependencies, name, version) {
   return next
 }
 
+function hasStableBranchAtOrAbove(range, targetVersion) {
+  if (semver.prerelease(targetVersion) !== null) return false
+
+  return new semver.Range(range).set.some((comparators) => {
+    const minimum = semver.minVersion(comparators.map((comparator) => comparator.value).join(' '))
+    return minimum !== null && semver.gte(minimum, targetVersion)
+  })
+}
+
 function ensureDependency(pkg, name, targetSpecifier) {
   const targetMinimum = semver.minVersion(targetSpecifier)
   invariant(targetMinimum, `${name} has an invalid target version specifier (${targetSpecifier})`)
@@ -227,13 +236,7 @@ function ensureDependency(pkg, name, targetSpecifier) {
 
   if (satisfies) return { type: 'skipped', section: dependency.section, version: dependency.version }
 
-  const minimum = typeof dependency.version === 'string' ? semver.minVersion(dependency.version) : null
-  if (
-    semver.prerelease(targetVersion) === null &&
-    typeof dependency.version === 'string' &&
-    ((semver.valid(dependency.version) && semver.gte(dependency.version, targetVersion)) ||
-      (minimum && semver.gte(minimum, targetVersion)))
-  ) {
+  if (hasStableBranchAtOrAbove(dependency.version, targetVersion)) {
     return { type: 'skipped', section: dependency.section, version: dependency.version }
   }
 

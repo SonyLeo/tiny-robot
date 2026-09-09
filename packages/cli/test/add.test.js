@@ -60,6 +60,15 @@ test('add dependencies preserve an existing range that accepts the stable runtim
   assert.equal(pkg.dependencies['@opentiny/tiny-robot'], '^0.5.1')
 })
 
+test('add dependencies preserve a higher branch in a composite stable range', () => {
+  const pkg = { dependencies: { '@opentiny/tiny-robot': '^0.4.0 || ^1.0.0' } }
+
+  const result = ensureDependency(pkg, '@opentiny/tiny-robot', '^0.5.3')
+
+  assert.equal(result.type, 'skipped')
+  assert.equal(pkg.dependencies['@opentiny/tiny-robot'], '^0.4.0 || ^1.0.0')
+})
+
 test('add dependencies replace a stable range that cannot install the prerelease runtime target', () => {
   const stableRange = { dependencies: { '@opentiny/tiny-robot': '^0.5.1' } }
   const sameReleaseRange = { dependencies: { '@opentiny/tiny-robot': '^0.5.2' } }

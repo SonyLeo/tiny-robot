@@ -156,6 +156,26 @@ test('add preserves a compatible host range and uses caret ranges for missing st
   }
 })
 
+test('add derives runtime dependency versions from the CLI package version by default', () => {
+  const root = createTempDir('tiny-robot-add-default-version-')
+
+  try {
+    createVueProject(root)
+
+    const result = runCli(root, 'add', 'chat', '--yes')
+    const packageJson = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'))
+    const cliVersion = JSON.parse(fs.readFileSync(cliPackageFile, 'utf8')).version
+    const expectedRuntimeSpecifier = cliVersion.includes('-') ? cliVersion : `^${cliVersion}`
+
+    assert.equal(result.status, 0, result.stderr)
+    for (const name of runtimePackageNames) {
+      assert.equal(packageJson.dependencies[name], expectedRuntimeSpecifier)
+    }
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true })
+  }
+})
+
 test('add rejects an invalid runtime version before modifying the project', () => {
   const root = createTempDir('tiny-robot-add-invalid-version-')
 
