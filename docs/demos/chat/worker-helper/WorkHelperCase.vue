@@ -15,8 +15,8 @@ import {
   IconWarning,
 } from '@opentiny/tiny-robot-svgs'
 import { computed, h, markRaw, shallowRef } from 'vue'
-import { useChatCaseRuntime } from '../../shared/runtime/createChatRuntime'
-import { formatChatActionError } from '../../shared/runtime/formatChatActionError'
+import { useChatCaseRuntime } from '../shared/createChatRuntime'
+import { formatChatActionError } from '../shared/formatChatActionError'
 
 const cards = [
   { id: 'trouble', title: '故障处理', prompt: '弹性公网IP不通怎么办?', tone: 'warning', icon: markRaw(IconWarning) },
@@ -161,12 +161,12 @@ function handleRuntimeActionError(payload: ChatRuntimeActionErrorPayload) {
 <style scoped>
 .work-helper {
   position: relative;
-  --work-helper-bg: #f7f7f9;
+  --work-helper-bg: var(--tr-page-bg-default);
   width: 100%;
   height: 100%;
   min-height: 0;
-  overflow: hidden;
-  color: #1f1f23;
+  overflow: visible;
+  color: var(--tr-text-primary);
   background: var(--work-helper-bg);
 }
 
@@ -176,11 +176,11 @@ function handleRuntimeActionError(payload: ChatRuntimeActionErrorPayload) {
   left: 50%;
   z-index: 50;
   padding: 8px 14px;
-  border: 1px solid #f3b4b4;
+  border: 1px solid var(--tr-color-error-light);
   border-radius: 8px;
-  color: #9f1d1d;
-  background: #fff5f5;
-  box-shadow: 0 4px 12px rgb(31 35 41 / 12%);
+  color: var(--tr-color-error);
+  background: var(--tr-color-error-light);
+  box-shadow: var(--tr-shadow-sm);
   font-size: 13px;
   transform: translateX(-50%);
 }
@@ -191,10 +191,10 @@ function handleRuntimeActionError(payload: ChatRuntimeActionErrorPayload) {
 }
 
 .work-helper :deep(.tr-chat-ui) {
-  --tr-chat-ui-header-bg: #f7f7f9;
-  --tr-chat-ui-main-bg: #f7f7f9;
-  --tr-chat-ui-footer-bg: #f7f7f9;
-  --tr-chat-ui-left-aside-bg: #ffffff;
+  --tr-chat-ui-header-bg: var(--work-helper-bg);
+  --tr-chat-ui-main-bg: var(--work-helper-bg);
+  --tr-chat-ui-footer-bg: var(--work-helper-bg);
+  --tr-chat-ui-left-aside-bg: var(--tr-container-bg-default);
 }
 
 .work-helper :deep(.chat-panel-content--header) {
@@ -209,12 +209,12 @@ function handleRuntimeActionError(payload: ChatRuntimeActionErrorPayload) {
 
 .work-helper :deep(.chat-panel-content--footer) {
   max-width: 860px;
-  padding: 0 36px 26px;
+  padding: 0 36px 52px;
 }
 
 .work-helper :deep(.tr-sender) {
   border-radius: 24px;
-  box-shadow: 0 8px 22px rgba(40, 42, 51, 0.08);
+  box-shadow: var(--tr-shadow-sm);
 }
 
 .work-helper :deep(.tr-model-selector__trigger),
@@ -240,9 +240,9 @@ function handleRuntimeActionError(payload: ChatRuntimeActionErrorPayload) {
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: linear-gradient(145deg, #ffffff, #e8f2ff);
-  color: #2b9bf3;
-  box-shadow: 0 3px 12px rgba(43, 155, 243, 0.18);
+  background: linear-gradient(145deg, var(--tr-container-bg-default), var(--tr-color-primary-light));
+  color: var(--tr-color-primary);
+  box-shadow: var(--tr-shadow-sm);
 }
 
 .work-helper :deep(.tr-welcome__title) {
@@ -268,8 +268,8 @@ function handleRuntimeActionError(payload: ChatRuntimeActionErrorPayload) {
   align-items: center;
   border: 1px solid transparent;
   border-radius: 16px;
-  background: #ffffff;
-  box-shadow: 0 8px 22px rgba(40, 42, 51, 0.05);
+  background: var(--tr-container-bg-default);
+  box-shadow: var(--tr-shadow-sm);
   transition:
     border-color 0.18s ease,
     box-shadow 0.18s ease,
@@ -283,8 +283,8 @@ function handleRuntimeActionError(payload: ChatRuntimeActionErrorPayload) {
 }
 
 .work-helper :deep(.tr-prompt:hover) {
-  border-color: #d9dce5;
-  box-shadow: 0 12px 26px rgba(40, 42, 51, 0.1);
+  border-color: var(--tr-border-color-hover);
+  box-shadow: var(--tr-shadow-sm);
   transform: translateY(-2px);
 }
 
@@ -299,7 +299,7 @@ function handleRuntimeActionError(payload: ChatRuntimeActionErrorPayload) {
 }
 
 .work-helper :deep(.tr-prompt__content-description) {
-  color: #66676c;
+  color: var(--tr-text-secondary);
   font-size: 13px;
   line-height: 1.45;
 }
@@ -351,17 +351,17 @@ function handleRuntimeActionError(payload: ChatRuntimeActionErrorPayload) {
   border: 0;
   border-radius: 6px;
   background: transparent;
-  color: #1f1f23;
+  color: var(--tr-text-primary);
   cursor: pointer;
 }
 
 .topbar-button:hover {
-  background: rgba(0, 0, 0, 0.06);
+  background: var(--tr-container-bg-hover);
 }
 
 .topbar-button:focus-visible,
 .shuffle-button:focus-visible {
-  outline: 2px solid #1476ff;
+  outline: 2px solid var(--tr-color-primary);
   outline-offset: 2px;
 }
 
@@ -369,7 +369,7 @@ function handleRuntimeActionError(payload: ChatRuntimeActionErrorPayload) {
   position: absolute;
   top: 18px;
   left: 50%;
-  color: #6e6f75;
+  color: var(--tr-text-secondary);
   font-size: 13px;
   transform: translateX(-50%);
 }
@@ -381,7 +381,7 @@ function handleRuntimeActionError(payload: ChatRuntimeActionErrorPayload) {
   padding: 4px 0;
   border: 0;
   background: transparent;
-  color: #68696f;
+  color: var(--tr-text-secondary);
   font-size: 13px;
   cursor: pointer;
 }
@@ -398,14 +398,14 @@ function handleRuntimeActionError(payload: ChatRuntimeActionErrorPayload) {
   top: calc(100% + 10px);
   right: 50%;
   width: max-content;
-  color: #85868b;
+  color: var(--tr-text-tertiary);
   font-size: 12px;
   transform: translateX(50%);
 }
 
 @media (max-width: 680px) {
   .work-helper :deep(.chat-panel-content--footer) {
-    padding: 0 16px 24px;
+    padding: 0 16px 48px;
   }
 
   .work-helper :deep(.chat-welcome-content) {

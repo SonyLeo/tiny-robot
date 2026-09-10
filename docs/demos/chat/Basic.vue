@@ -50,6 +50,12 @@ const runtime = useLocalChatRuntime({ modelProviders })
   min-height: 0;
 }
 
+.chat-basic-demo :deep(.tr-welcome__title-wrapper) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 @media (max-width: 640px) {
   .chat-basic-demo {
     height: 560px;

@@ -93,10 +93,10 @@ const emit = defineEmits<{
   gap: 4px;
   height: 40px;
   padding: 4px 6px;
-  border: 1px solid #e6e8ed;
+  border: 1px solid var(--tr-border-color-default);
   border-radius: 20px;
-  background: rgb(255 255 255 / 94%);
-  box-shadow: 0 4px 16px rgb(31 35 41 / 8%);
+  background: color-mix(in srgb, var(--tr-container-bg-default) 94%, transparent);
+  box-shadow: var(--tr-shadow-sm);
   pointer-events: auto;
 }
 
@@ -121,7 +121,7 @@ const emit = defineEmits<{
   max-width: min(560px, 60vw);
   margin: 0;
   overflow: hidden;
-  color: #262626;
+  color: var(--tr-text-primary);
   font-size: 16px;
   font-weight: 600;
   line-height: 22px;
@@ -132,7 +132,7 @@ const emit = defineEmits<{
 .deepseek-session-header__mode {
   display: block;
   margin-top: 2px;
-  color: #8a8f99;
+  color: var(--tr-text-secondary);
   font-size: 12px;
   line-height: 18px;
 }
@@ -148,14 +148,14 @@ const emit = defineEmits<{
   padding: 0;
   border: 0;
   border-radius: 8px;
-  color: #676c76;
+  color: var(--tr-text-secondary);
   background: transparent;
   cursor: pointer;
 }
 
 .deepseek-session-header__share:hover {
-  color: #4d6bfe;
-  background: #eef1ff;
+  color: var(--tr-color-primary);
+  background: var(--tr-color-primary-light);
 }
 
 .deepseek-session-header__share:disabled,
@@ -166,7 +166,7 @@ const emit = defineEmits<{
 
 .deepseek-session-header__share:focus-visible,
 .deepseek-header__button:focus-visible {
-  outline: 2px solid #4d6bfe;
+  outline: 2px solid var(--tr-color-primary);
   outline-offset: 2px;
 }
 
@@ -179,14 +179,14 @@ const emit = defineEmits<{
   padding: 0;
   border: 0;
   border-radius: 7px;
-  color: #676c76;
+  color: var(--tr-text-secondary);
   background: transparent;
   cursor: pointer;
 }
 
 .deepseek-header__button:hover {
-  color: #4d6bfe;
-  background: #eef1ff;
+  color: var(--tr-color-primary);
+  background: var(--tr-color-primary-light);
 }
 
 .deepseek-header__button img {

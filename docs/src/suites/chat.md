@@ -68,7 +68,7 @@ Chat 页面必须放在有明确高度的父容器中，否则内部主区无法
 
 下面的交互示例迁移自 `chat-basic`，展示 `TrChat`、多模型 Provider 和流式消息的最小组合。在线文档通过同源 Service Worker 提供模拟响应，不需要配置 API Key：
 
-<demo vue="../../demos/suites/chat/Basic.vue" :vueFiles="['../../demos/suites/chat/Basic.vue']" />
+<demo vue="../../demos/chat/Basic.vue" :vueFiles="['../../demos/chat/Basic.vue']" />
 
 下面的代码把 `openai` Provider 指向应用自己的 OpenAI-compatible BFF，适合迁移到业务项目。它不在浏览器中保存 API Key：
 
@@ -109,13 +109,13 @@ const runtime = useLocalChatRuntime({ modelProviders })
 Chat 的示例分为最小接入和综合案例两类：
 
 - 本文的`最小接入`只展示 `TrChat`、`useLocalChatRuntime` 和 `modelProviders` 的基本组合，适合复制到业务项目中开始接入。
-- 综合案例按应用拆分为独立页面，展示 TinyRobot、DeepSeek、豆包、Gemini 和 WorkHelper 等完整页面，源码统一位于 `docs/demos/suites/chat`。
+- 综合案例按应用拆分为独立页面，展示 TinyRobot、DeepSeek、DouBao、Gemini 和 WorkHelper 等完整页面，源码统一位于 `docs/demos/chat`。
 
 文档中的组件级示例写在 `docs/demos` 中，并通过 `<demo vue="..." />` 嵌入 Markdown；综合案例使用独立 Markdown 页面，可直接进入：
 
 - [TinyRobot](/examples/chat-tiny-robot)
 - [DeepSeek](/examples/chat-deepseek)
-- [豆包](/examples/chat-doubao)
+- [DouBao](/examples/chat-doubao)
 - [Gemini](/examples/chat-gemini)
 - [WorkHelper](/examples/chat-worker-helper)
 

@@ -34,8 +34,8 @@ const emit = defineEmits<{
   align-items: center;
   height: 56px;
   padding: 0 16px;
-  border-bottom: 1px solid #e5e6eb;
-  background: #fff;
+  border-bottom: 1px solid var(--tr-border-color-default);
+  background: var(--tr-container-bg-default);
 }
 
 .doubao-header__menu {
@@ -47,17 +47,17 @@ const emit = defineEmits<{
   padding: 4px;
   border: 0;
   border-radius: 7px;
-  color: #1f2329;
+  color: var(--tr-text-primary);
   background: transparent;
   cursor: pointer;
 }
 
 .doubao-header__menu:hover {
-  background: #f2f3f5;
+  background: var(--tr-container-bg-hover);
 }
 
 .doubao-header__menu:focus-visible {
-  outline: 2px solid #3370ff;
+  outline: 2px solid var(--tr-color-primary);
   outline-offset: 2px;
 }
 

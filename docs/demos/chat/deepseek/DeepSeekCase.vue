@@ -2,18 +2,18 @@
 import { computed, defineComponent, h, shallowRef } from 'vue'
 import { TrChat, type ChatRuntimeActionErrorPayload } from '@opentiny/tiny-robot-chat'
 import { IconImageUpload, IconSparkles, IconThink } from '@opentiny/tiny-robot-svgs'
-import DeepseekHeader from './DeepseekHeader.vue'
+import DeepSeekHeader from './DeepSeekHeader.vue'
 import deepseekMark from './icons/deepseek-mark.svg'
 import deepseekWordmark from './icons/deepseek-wordmark.svg'
 import newChatIcon from './icons/new-chat.svg'
 import searchIcon from './icons/search.svg'
 import sidebarToggleIcon from './icons/sidebar-toggle.svg'
 import { deepseekConversationStorageKey, deepseekMockConversations, deepseekWelcome } from './config'
-import { useChatCaseRuntime } from '../../shared/runtime/createChatRuntime'
-import { formatChatActionError } from '../../shared/runtime/formatChatActionError'
+import { useChatCaseRuntime } from '../shared/createChatRuntime'
+import { formatChatActionError } from '../shared/formatChatActionError'
 
-const DeepseekLogo = defineComponent({
-  name: 'DeepseekLogo',
+const DeepSeekLogo = defineComponent({
+  name: 'DeepSeekLogo',
   setup() {
     return () => h('img', { src: deepseekMark, alt: 'DeepSeek' })
   },
@@ -29,8 +29,8 @@ const deepseekWelcomeModes = [
   { id: 'expert', label: '专家模式', icon: IconThink },
   { id: 'vision', label: '识图模式', icon: IconImageUpload },
 ] as const
-type DeepseekWelcomeMode = (typeof deepseekWelcomeModes)[number]['id']
-const activeWelcomeMode = shallowRef<DeepseekWelcomeMode>('fast')
+type DeepSeekWelcomeMode = (typeof deepseekWelcomeModes)[number]['id']
+const activeWelcomeMode = shallowRef<DeepSeekWelcomeMode>('fast')
 const activeWelcomeModeLabel = computed(
   () => deepseekWelcomeModes.find((mode) => mode.id === activeWelcomeMode.value)?.label ?? '',
 )
@@ -56,7 +56,7 @@ function handleRuntimeActionError(payload: ChatRuntimeActionErrorPayload) {
 }
 
 const chatUi = computed(() => ({
-  brand: { name: 'DeepSeek', logo: DeepseekLogo },
+  brand: { name: 'DeepSeek', logo: DeepSeekLogo },
   layout: {
     composer: {
       welcome: 'center' as const,
@@ -72,7 +72,7 @@ const chatUi = computed(() => ({
     },
   },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  welcome: { ...deepseekWelcome, icon: h(DeepseekLogo) as any },
+  welcome: { ...deepseekWelcome, icon: h(DeepSeekLogo) as any },
   prompts: false as const,
   mcp: false as const,
   sender: {
@@ -94,7 +94,7 @@ const chatUi = computed(() => ({
         @runtime-action-error="handleRuntimeActionError"
       >
         <template #layout-header="{ title, isEmpty, isLeftAsideOpen, toggleLeftAside, createConversation }">
-          <DeepseekHeader
+          <DeepSeekHeader
             :title="title"
             :is-empty="isEmpty"
             :mode-label="activeWelcomeModeLabel"
@@ -166,12 +166,12 @@ const chatUi = computed(() => ({
   height: 100%;
   min-height: 0;
   overflow: hidden;
-  color: #262626;
-  background: #fff;
-  --tr-chat-ui-left-aside-bg: #f7f8fa;
-  --tr-chat-ui-header-bg: #fff;
-  --tr-chat-ui-main-bg: #fff;
-  --tr-chat-ui-footer-bg: #fff;
+  color: var(--tr-text-primary);
+  background: var(--tr-container-bg-default);
+  --tr-chat-ui-left-aside-bg: var(--tr-container-bg-default-2);
+  --tr-chat-ui-header-bg: var(--tr-container-bg-default);
+  --tr-chat-ui-main-bg: var(--tr-container-bg-default);
+  --tr-chat-ui-footer-bg: var(--tr-container-bg-default);
 }
 
 .deepseek-case__action-error {
@@ -180,11 +180,11 @@ const chatUi = computed(() => ({
   left: 50%;
   z-index: 50;
   padding: 8px 14px;
-  border: 1px solid #f3b4b4;
+  border: 1px solid var(--tr-color-error-light);
   border-radius: 8px;
-  color: #9f1d1d;
-  background: #fff5f5;
-  box-shadow: 0 4px 12px rgb(31 35 41 / 12%);
+  color: var(--tr-color-error);
+  background: var(--tr-color-error-light);
+  box-shadow: var(--tr-shadow-sm);
   font-size: 13px;
   transform: translateX(-50%);
 }
@@ -271,7 +271,7 @@ const chatUi = computed(() => ({
 
 .deepseek-left-brand__actions button:hover,
 .deepseek-left-footer button:hover {
-  background: #eceef2;
+  background: var(--tr-container-bg-hover);
 }
 
 .deepseek-left-brand__actions button:disabled,
@@ -283,7 +283,7 @@ const chatUi = computed(() => ({
 .deepseek-left-brand__actions button:focus-visible,
 .deepseek-left-actions:focus-visible,
 .deepseek-left-footer button:focus-visible {
-  outline: 2px solid #4d6bfe;
+  outline: 2px solid var(--tr-color-primary);
   outline-offset: 2px;
 }
 
@@ -305,10 +305,10 @@ const chatUi = computed(() => ({
   width: 100%;
   height: 42px;
   padding: 0 12px;
-  border: 1px solid #e3e6eb;
+  border: 1px solid var(--tr-border-color-default);
   border-radius: 22px;
-  color: #262626;
-  background: #fff;
+  color: var(--tr-text-primary);
+  background: var(--tr-container-bg-default);
   font: inherit;
   cursor: pointer;
 }
@@ -325,13 +325,13 @@ const chatUi = computed(() => ({
   --tr-history-group-title-font-size: 12px;
   --tr-history-group-title-line-height: 18px;
   --tr-history-group-title-padding: 0 8px 6px;
-  --tr-history-group-title-color: #9297a1;
+  --tr-history-group-title-color: var(--tr-text-tertiary);
   --tr-history-item-padding: 7px 8px;
   --tr-history-item-padding-editing: 7px 8px;
   --tr-history-item-border-radius: 8px;
-  --tr-history-item-hover-bg: #eceef2;
-  --tr-history-item-selected-bg: #e4eaff;
-  --tr-history-item-selected-color: #263d9e;
+  --tr-history-item-hover-bg: var(--tr-container-bg-hover);
+  --tr-history-item-selected-bg: var(--tr-color-primary-light);
+  --tr-history-item-selected-color: var(--tr-color-primary);
   --tr-history-item-space-y: 2px;
 }
 
@@ -350,7 +350,7 @@ const chatUi = computed(() => ({
   gap: 8px;
   height: 38px;
   padding: 0 8px;
-  color: #6f747d;
+  color: var(--tr-text-secondary);
   font-size: 13px;
 }
 
@@ -363,7 +363,7 @@ const chatUi = computed(() => ({
 
 .deepseek-left-footer button {
   margin-left: auto;
-  color: #8b9098;
+  color: var(--tr-text-secondary);
   font-size: 18px;
 }
 
@@ -393,7 +393,7 @@ const chatUi = computed(() => ({
 }
 
 .deepseek-case__chat :deep(.tr-welcome__title) {
-  color: #262626;
+  color: var(--tr-text-primary);
   font-size: 24px;
   font-weight: 600;
   line-height: 34px;
@@ -412,9 +412,9 @@ const chatUi = computed(() => ({
   height: 42px;
   margin-block: 22px;
   padding: 2px;
-  border: 1px solid #e1e4e8;
+  border: 1px solid var(--tr-border-color-default);
   border-radius: 22px;
-  background: #fff;
+  background: var(--tr-container-bg-default);
 }
 
 .deepseek-welcome-modes__item {
@@ -427,7 +427,7 @@ const chatUi = computed(() => ({
   padding: 0 8px;
   border: 0;
   border-radius: 19px;
-  color: #262626;
+  color: var(--tr-text-primary);
   background: transparent;
   font: inherit;
   font-size: 13px;
@@ -435,13 +435,13 @@ const chatUi = computed(() => ({
 }
 
 .deepseek-welcome-modes__item.is-active {
-  color: #4772ff;
-  background: #eff4ff;
-  box-shadow: inset 0 0 0 1px #b8ccff;
+  color: var(--tr-color-primary);
+  background: var(--tr-color-primary-light);
+  box-shadow: inset 0 0 0 1px var(--tr-border-color-hover);
 }
 
 .deepseek-welcome-modes__item:focus-visible {
-  outline: 2px solid #4d6bfe;
+  outline: 2px solid var(--tr-color-primary);
   outline-offset: 1px;
 }
 
@@ -471,7 +471,7 @@ const chatUi = computed(() => ({
 }
 
 .deepseek-case__chat :deep(.chat-panel-content--main.is-message-state [data-box-type='box'][data-role='user']) {
-  --tr-bubble-box-bg: #f2f3f5;
+  --tr-bubble-box-bg: var(--tr-container-bg-default-2);
 }
 
 .deepseek-case__chat :deep(.chat-panel-content--main.is-message-state [data-box-type='box']:not([data-role='user'])) {

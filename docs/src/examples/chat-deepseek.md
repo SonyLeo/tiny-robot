@@ -1,8 +1,16 @@
-<script setup lang="ts">
-import ChatCaseShell from '../../demos/suites/chat/ChatCaseShell.vue'
-import DeepseekCase from '../../demos/suites/chat/cases/deepseek/DeepseekCase.vue'
-</script>
-
-<ChatCaseShell>
-  <DeepseekCase />
-</ChatCaseShell>
+<demo
+  vue="../../demos/chat/deepseek/Demo.vue"
+  :vueFiles="[
+    '../../demos/chat/deepseek/Demo.vue',
+    '../../demos/chat/ChatDemoShell.vue',
+    '../../demos/chat/deepseek/DeepSeekCase.vue',
+    '../../demos/chat/deepseek/DeepSeekHeader.vue',
+    '../../demos/chat/deepseek/config.ts',
+    '../../demos/chat/shared/createChatRuntime.ts',
+    '../../demos/chat/shared/formatChatActionError.ts',
+    '../../demos/chat/shared/mockConversationStorage.ts',
+    '../../demos/chat/shared/modelProviders.ts',
+    '../../demos/chat/shared/base.css'
+  ]"
+  playground="false"
+/>

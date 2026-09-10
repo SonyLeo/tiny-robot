@@ -1,14 +1,14 @@
 import type { ChatPromptsOptions, ChatWelcomeOptions } from '@opentiny/tiny-robot-chat'
 import type { ChatMessage } from '@opentiny/tiny-robot-kit'
 
-export const doubaoNavigation = {
+export const douBaoNavigation = {
   work: 'new-task',
   chat: 'new-chat',
 } as const
 
-export const doubaoConversationStorageKey = 'tiny-robot-doubao-conversations'
+export const douBaoConversationStorageKey = 'tiny-robot-doubao-conversations'
 
-export const doubaoMockConversations = [
+export const douBaoMockConversations = [
   {
     title: '新对话',
     metadata: { color: 'pink' },
@@ -48,19 +48,19 @@ export const doubaoMockConversations = [
   messages: readonly ChatMessage[]
 }[]
 
-export const doubaoConversationWelcome: ChatWelcomeOptions = {
+export const douBaoConversationWelcome: ChatWelcomeOptions = {
   title: '有什么我能帮你的吗？',
   description: '',
   align: 'center',
 }
 
-export const doubaoWorkWelcome: ChatWelcomeOptions = {
+export const douBaoWorkWelcome: ChatWelcomeOptions = {
   title: '今天有什么工作要处理?',
   description: '',
   align: 'center',
 }
 
-export const doubaoConversationPrompts: ChatPromptsOptions = {
+export const douBaoConversationPrompts: ChatPromptsOptions = {
   vertical: true,
   wrap: false,
   items: [
@@ -71,7 +71,7 @@ export const doubaoConversationPrompts: ChatPromptsOptions = {
   ],
 }
 
-export const doubaoWorkPrompts: ChatPromptsOptions = {
+export const douBaoWorkPrompts: ChatPromptsOptions = {
   vertical: true,
   wrap: false,
   items: [

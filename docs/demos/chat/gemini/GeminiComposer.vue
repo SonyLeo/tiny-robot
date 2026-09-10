@@ -66,7 +66,7 @@ const modelOptions = computed<ModelSelectorOption[]>(() =>
   justify-content: center;
   padding: 0;
   border: 0;
-  color: #1f1f1f;
+  color: var(--tr-text-primary);
   background: transparent;
   cursor: pointer;
   font-size: 26px;
@@ -92,20 +92,20 @@ const modelOptions = computed<ModelSelectorOption[]>(() =>
 
 .gemini-composer__add:hover,
 .gemini-composer__voice:hover {
-  background: #f1f3f4;
+  background: var(--tr-container-bg-hover);
 }
 
 .gemini-composer__add:focus-visible,
 .gemini-composer__voice:focus-visible,
 .gemini-composer__model-selector:focus-within {
-  outline: 2px solid #1476ff;
+  outline: 2px solid var(--tr-color-primary);
   outline-offset: 2px;
 }
 
 :deep(.tr-sender) {
-  --tr-sender-bg-color: #fff;
+  --tr-sender-bg-color: var(--tr-container-bg-default);
   --tr-sender-border-radius: 32px;
-  --tr-sender-box-shadow: 0 4px 12px rgb(31 35 41 / 12%);
+  --tr-sender-box-shadow: 0 4px 12px color-mix(in srgb, var(--tr-text-primary) 12%, transparent);
   --tr-sender-padding: 0 8px 0 12px;
   --tr-sender-prefix-padding-right: 8px;
   --tr-sender-actions-padding-right: 2px;

@@ -3,8 +3,8 @@ import type { SuggestionData, SuggestionItem, TemplateItem } from '@opentiny/tin
 import { TrDropdownMenu, TrSuggestionPillButton, TrSuggestionPills, TrSuggestionPopover } from '@opentiny/tiny-robot'
 import type { ChatSenderSlotProps } from '@opentiny/tiny-robot-chat'
 import { IconSparkles } from '@opentiny/tiny-robot-svgs'
-import type { ChatMenuItem, TemplateCategory, TemplateSuggestionItem } from '../config/chat-ui'
-import type { McpExample } from '../config/chat-runtime'
+import type { ChatMenuItem, TemplateCategory, TemplateSuggestionItem } from './chat-ui'
+import type { McpExample } from './chat-runtime'
 import { computed } from 'vue'
 
 const props = defineProps<{
@@ -45,7 +45,7 @@ function submitSuggestion(item: SuggestionItem): void {
     <TrSuggestionPopover :append-to="overlayTarget" :data="suggestionData" @item-click="submitSuggestion">
       <template #trigger>
         <TrSuggestionPillButton title="常用查询"
-          ><IconSparkles style="font-size: 16px; color: #1476ff"
+          ><IconSparkles style="font-size: 16px; color: var(--tr-color-primary)"
         /></TrSuggestionPillButton>
       </template>
     </TrSuggestionPopover>

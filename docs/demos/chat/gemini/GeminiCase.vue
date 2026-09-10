@@ -12,8 +12,8 @@ import GeminiHeader from './GeminiHeader.vue'
 import GeminiRail from './GeminiRail.vue'
 import geminiMask from './icons/gemini-mask.svg'
 import { geminiConversationStorageKey, geminiMockConversations, geminiWelcome } from './config'
-import { useChatCaseRuntime } from '../../shared/runtime/createChatRuntime'
-import { formatChatActionError } from '../../shared/runtime/formatChatActionError'
+import { useChatCaseRuntime } from '../shared/createChatRuntime'
+import { formatChatActionError } from '../shared/formatChatActionError'
 
 const GeminiLogo = defineComponent({
   name: 'GeminiLogo',
@@ -182,13 +182,13 @@ const chatUi = {
   overflow: hidden;
   color: var(--gemini-sidebar-text);
   background: var(--gemini-sidebar-bg);
-  --gemini-sidebar-bg: var(--tr-container-bg-default, #fff);
-  --gemini-sidebar-text: var(--tr-text-primary, #191919);
-  --gemini-sidebar-muted: var(--tr-text-secondary, #595959);
-  --gemini-sidebar-hover-bg: var(--tr-container-bg-hover, rgba(0, 0, 0, 0.04));
-  --gemini-sidebar-selected-bg: var(--tr-color-primary-light, #deecff);
-  --gemini-sidebar-selected-text: var(--tr-text-primary, #191919);
-  --gemini-sidebar-focus-ring: color-mix(in srgb, var(--tr-color-primary, #1476ff) 52%, transparent);
+  --gemini-sidebar-bg: var(--tr-container-bg-default);
+  --gemini-sidebar-text: var(--tr-text-primary);
+  --gemini-sidebar-muted: var(--tr-text-secondary);
+  --gemini-sidebar-hover-bg: var(--tr-container-bg-hover);
+  --gemini-sidebar-selected-bg: var(--tr-color-primary-light);
+  --gemini-sidebar-selected-text: var(--tr-text-primary);
+  --gemini-sidebar-focus-ring: color-mix(in srgb, var(--tr-color-primary) 52%, transparent);
   --gemini-avatar-bg: #d8e5f8;
   --gemini-avatar-text: #4268a8;
   --gemini-sidebar-footer-bg: var(--gemini-sidebar-bg);
@@ -206,11 +206,11 @@ const chatUi = {
   left: 50%;
   z-index: 50;
   padding: 8px 14px;
-  border: 1px solid #f3b4b4;
+  border: 1px solid var(--tr-color-error-light);
   border-radius: 8px;
-  color: #9f1d1d;
-  background: #fff5f5;
-  box-shadow: 0 4px 12px rgb(31 35 41 / 12%);
+  color: var(--tr-color-error);
+  background: var(--tr-color-error-light);
+  box-shadow: var(--tr-shadow-sm);
   font-size: 13px;
   transform: translateX(-50%);
 }
@@ -512,7 +512,12 @@ const chatUi = {
 }
 
 .gemini-case__chat :deep(.chat-panel) {
-  background: radial-gradient(ellipse at center, #d9efff 0, #f5faff 36%, #fff 70%);
+  background: radial-gradient(
+    ellipse at center,
+    color-mix(in srgb, var(--tr-color-primary-light) 70%, var(--tr-container-bg-default)) 0,
+    var(--tr-container-bg-default-2) 36%,
+    var(--tr-container-bg-default) 70%
+  );
 }
 
 .gemini-case__chat :deep(.tr-welcome) {
@@ -522,7 +527,7 @@ const chatUi = {
 }
 
 .gemini-case__chat :deep(.tr-welcome__title) {
-  color: #1f1f1f;
+  color: var(--tr-text-primary);
   font-size: 40px;
   font-weight: 400;
   line-height: 56px;

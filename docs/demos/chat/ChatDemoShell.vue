@@ -1,18 +1,15 @@
 <script setup lang="ts">
 import { TrThemeProvider as TrTheme } from '@opentiny/tiny-robot'
 import '@opentiny/tiny-robot-chat/dist/style.css'
-import './styles/base.css'
-import './cases/tiny-robot/index.css'
+import './shared/base.css'
 </script>
 
 <template>
   <TrTheme>
     <div class="chat-case-shell">
-      <div class="chat-case-shell__preview">
-        <ClientOnly>
-          <slot />
-        </ClientOnly>
-      </div>
+      <ClientOnly>
+        <slot />
+      </ClientOnly>
     </div>
   </TrTheme>
 </template>
@@ -21,30 +18,14 @@ import './cases/tiny-robot/index.css'
 .chat-case-shell {
   container-type: inline-size;
   box-sizing: border-box;
-  position: relative;
-  width: 100%;
-  max-width: 1280px;
-  margin: 10px auto;
-  padding: 20px 20px 30px;
-  border: 1px solid var(--coot-demo-box-border, #ddd);
-  border-radius: 8px;
-  background: #fafafa;
-}
-
-.chat-case-shell__preview {
-  box-sizing: border-box;
-  position: relative;
-  display: flex;
   width: 100%;
   height: min(880px, calc(100vh - 180px));
   min-height: 0;
-  overflow: hidden;
-  border-radius: 16px;
-  background: var(--tr-container-bg-default, #fff);
-  box-shadow: 0 4px 24px rgb(0 0 0 / 6%);
+  overflow: visible;
+  background: var(--tr-container-bg-default);
 }
 
-.chat-case-shell__preview > * {
+.chat-case-shell > :deep(*) {
   width: 100%;
   min-width: 0;
   height: 100%;
@@ -72,5 +53,11 @@ import './cases/tiny-robot/index.css'
 
 :global(.VPDoc:has(.chat-case-shell) .VPDocFooter) {
   display: none;
+}
+
+@media (max-width: 640px) {
+  .chat-case-shell {
+    height: 640px;
+  }
 }
 </style>

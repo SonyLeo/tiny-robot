@@ -44,7 +44,7 @@ defineProps<{
 }
 
 .gemini-header__feedback:hover {
-  background: #f1f3f4;
+  background: var(--tr-container-bg-hover);
 }
 
 .gemini-header__feedback:disabled,
@@ -71,21 +71,21 @@ defineProps<{
   padding: 0 18px;
   border: 0;
   border-radius: 20px;
-  color: #145078;
-  background: #c6e8ff;
+  color: var(--tr-color-primary);
+  background: var(--tr-color-primary-light);
   font: inherit;
   font-size: 14px;
   cursor: pointer;
 }
 
 .gemini-upgrade:hover {
-  background: #b4dffb;
+  background: var(--tr-container-bg-hover);
 }
 
 .gemini-header__feedback {
   width: 32px;
   height: 32px;
   border-radius: 8px;
-  color: #1f1f1f;
+  color: var(--tr-text-primary);
 }
 </style>

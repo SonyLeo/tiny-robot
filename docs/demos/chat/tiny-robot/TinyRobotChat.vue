@@ -4,11 +4,11 @@ import { TrSender, TrThemeProvider as TrTheme } from '@opentiny/tiny-robot'
 import { TrChat, useChatHistoryItems, useLocalChatRuntime, type ChatHistoryItem } from '@opentiny/tiny-robot-chat'
 import { IconAi } from '@opentiny/tiny-robot-svgs'
 import { computed, reactive, ref } from 'vue'
-import ComposerTools from './components/ComposerTools.vue'
-import WindowHeader from './components/WindowHeader.vue'
-import { composerMenus, createChatUi, templateCategories } from './config/chat-ui'
-import { mcpExamples, mcpServers, modelProviders } from './config/chat-runtime'
-import { useWindow } from './composables/useWindow'
+import ComposerTools from './ComposerTools.vue'
+import WindowHeader from './WindowHeader.vue'
+import { composerMenus, createChatUi, templateCategories } from './chat-ui'
+import { mcpExamples, mcpServers, modelProviders } from './chat-runtime'
+import { useWindow } from './useWindow'
 
 const runtime = useLocalChatRuntime({ modelProviders, mcpServers })
 const window = reactive(useWindow())

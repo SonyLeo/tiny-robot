@@ -1,8 +1,14 @@
-<script setup lang="ts">
-import ChatCaseShell from '../../demos/suites/chat/ChatCaseShell.vue'
-import WorkHelperCase from '../../demos/suites/chat/cases/worker-helper/WorkHelperCase.vue'
-</script>
-
-<ChatCaseShell>
-  <WorkHelperCase />
-</ChatCaseShell>
+<demo
+  vue="../../demos/chat/worker-helper/Demo.vue"
+  :vueFiles="[
+    '../../demos/chat/worker-helper/Demo.vue',
+    '../../demos/chat/ChatDemoShell.vue',
+    '../../demos/chat/worker-helper/WorkHelperCase.vue',
+    '../../demos/chat/shared/createChatRuntime.ts',
+    '../../demos/chat/shared/formatChatActionError.ts',
+    '../../demos/chat/shared/mockConversationStorage.ts',
+    '../../demos/chat/shared/modelProviders.ts',
+    '../../demos/chat/shared/base.css'
+  ]"
+  playground="false"
+/>

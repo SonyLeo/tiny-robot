@@ -1,8 +1,17 @@
-<script setup lang="ts">
-import ChatCaseShell from '../../demos/suites/chat/ChatCaseShell.vue'
-import DoubaoCase from '../../demos/suites/chat/cases/doubao/DoubaoCase.vue'
-</script>
-
-<ChatCaseShell>
-  <DoubaoCase />
-</ChatCaseShell>
+<demo
+  vue="../../demos/chat/doubao/Demo.vue"
+  :vueFiles="[
+    '../../demos/chat/doubao/Demo.vue',
+    '../../demos/chat/ChatDemoShell.vue',
+    '../../demos/chat/doubao/DouBaoCase.vue',
+    '../../demos/chat/doubao/DouBaoHeader.vue',
+    '../../demos/chat/doubao/DouBaoSidebar.vue',
+    '../../demos/chat/doubao/config.ts',
+    '../../demos/chat/shared/createChatRuntime.ts',
+    '../../demos/chat/shared/formatChatActionError.ts',
+    '../../demos/chat/shared/mockConversationStorage.ts',
+    '../../demos/chat/shared/modelProviders.ts',
+    '../../demos/chat/shared/base.css'
+  ]"
+  playground="false"
+/>

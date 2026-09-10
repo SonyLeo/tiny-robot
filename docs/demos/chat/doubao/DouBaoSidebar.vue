@@ -8,7 +8,7 @@ import {
   type ChatHistoryData,
 } from '@opentiny/tiny-robot-chat'
 import squarePenIcon from './icons/square-pen.svg'
-import { doubaoNavigation } from './config'
+import { douBaoNavigation } from './config'
 
 const props = defineProps<{
   variant: 'fixed' | 'floating'
@@ -26,8 +26,8 @@ const emit = defineEmits<{
 }>()
 
 const navigationItems = [
-  { id: doubaoNavigation.work, label: '新工作任务', icon: squarePenIcon },
-  { id: doubaoNavigation.chat, label: '新对话', icon: squarePenIcon },
+  { id: douBaoNavigation.work, label: '新工作任务', icon: squarePenIcon },
+  { id: douBaoNavigation.chat, label: '新对话', icon: squarePenIcon },
 ]
 
 const historyItems = useChatHistoryData({
@@ -39,7 +39,7 @@ const historyItems = useChatHistoryData({
 function handleNavigationChange(item: string) {
   emit('navigationChange', item)
 
-  if (item === doubaoNavigation.chat) {
+  if (item === douBaoNavigation.chat) {
     emit('createConversation')
   }
 }
@@ -69,7 +69,7 @@ function getAvatarColor(item: ChatConversationInfo) {
 
 <template>
   <aside class="doubao-sidebar" :class="`doubao-sidebar--${variant}`">
-    <div class="doubao-sidebar__brand">豆包</div>
+    <div class="doubao-sidebar__brand">DouBao</div>
 
     <nav class="doubao-sidebar__navigation" aria-label="主导航">
       <button
@@ -118,8 +118,8 @@ function getAvatarColor(item: ChatConversationInfo) {
   flex-direction: column;
   padding: 20px 20px 0;
   overflow: hidden;
-  color: #1f2329;
-  background: #fafafa;
+  color: var(--tr-text-primary);
+  background: var(--tr-container-bg-default-2);
 }
 
 .doubao-sidebar--fixed {
@@ -129,9 +129,9 @@ function getAvatarColor(item: ChatConversationInfo) {
 
 .doubao-sidebar--floating {
   height: 100%;
-  border: 1px solid #e5e6eb;
+  border: 1px solid var(--tr-border-color-default);
   border-radius: 16px;
-  box-shadow: 0 8px 24px rgb(31 35 41 / 12%);
+  box-shadow: var(--tr-layout-floating-shadow, var(--tr-shadow-sm));
 }
 
 .doubao-sidebar__history {
@@ -141,14 +141,14 @@ function getAvatarColor(item: ChatConversationInfo) {
   --tr-history-item-padding: 6px 8px;
   --tr-history-item-padding-editing: 6px 8px;
   --tr-history-item-border-radius: 8px;
-  --tr-history-item-hover-bg: #f2f3f5;
-  --tr-history-item-selected-bg: #e8f3ff;
+  --tr-history-item-hover-bg: var(--tr-container-bg-hover);
+  --tr-history-item-selected-bg: var(--tr-color-primary-light);
   --tr-history-item-space-y: 2px;
 }
 
 .doubao-sidebar__brand {
   height: 28px;
-  color: #1f2329;
+  color: var(--tr-text-primary);
   font-size: 17px;
   line-height: 28px;
 }
@@ -167,7 +167,7 @@ function getAvatarColor(item: ChatConversationInfo) {
   min-height: 32px;
   padding: 4px 0;
   border: 0;
-  color: #1f2329;
+  color: var(--tr-text-primary);
   background: transparent;
   font: inherit;
   font-size: 14px;
@@ -176,16 +176,16 @@ function getAvatarColor(item: ChatConversationInfo) {
 }
 
 .doubao-sidebar__nav-item:hover {
-  color: #3370ff;
+  color: var(--tr-color-primary);
 }
 
 .doubao-sidebar__nav-item:focus-visible {
-  outline: 2px solid #3370ff;
+  outline: 2px solid var(--tr-color-primary);
   outline-offset: 2px;
 }
 
 .doubao-sidebar__nav-item.is-active {
-  color: #3370ff;
+  color: var(--tr-color-primary);
 }
 
 .doubao-sidebar__nav-icon {
