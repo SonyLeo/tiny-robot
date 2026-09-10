@@ -31,6 +31,20 @@ describe('useChatRuntimeAdapter', () => {
     })
   })
 
+  it('preserves paused request state without treating it as loading', () => {
+    const fixture = createRuntimeFixture()
+    fixture.runtime.activeConversation.value = {
+      id: 'conversation-a',
+      title: 'Conversation A',
+      messages: [],
+      requestState: 'paused',
+    }
+    const adapter = useChatRuntimeAdapter({ runtime: fixture.runtime, onActionError: vi.fn() })
+
+    expect(adapter.data.value.request).toMatchObject({ state: 'paused' })
+    expect(adapter.data.value.sender?.loading).toBe(false)
+  })
+
   it('reports send errors once and returns false', async () => {
     const error = new Error('send failed')
     const onActionError = vi.fn()

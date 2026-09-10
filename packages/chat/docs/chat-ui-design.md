@@ -117,7 +117,7 @@ right-aside-open-change
 
 `request` 只负责展示请求事实：
 
-- `state`：`idle`、`processing`、`completed`、`aborted` 或 `error`。
+- `state`：`idle`、`processing`、`completed`、`paused`、`aborted` 或 `error`；其中 `paused` 表示等待工具确认或恢复。
 - `processingState`：请求过程中的细分状态。
 - `error`：当前请求错误。
 
