@@ -20,13 +20,13 @@
   padding: 0;
   border: 0;
   border-radius: 50%;
-  background: var(--tr-color-primary);
-  color: #fff;
+  background: var(--tr-container-bg-default);
+  color: var(--tr-color-primary);
   box-shadow: 0 8px 24px rgb(0 0 0 / 20%);
   cursor: pointer;
 }
 .chat-add-launcher:hover {
-  background: var(--tr-color-primary-hover);
+  background: var(--tr-color-primary-light);
 }
 .chat-add-launcher:focus-visible {
   outline: 2px solid var(--tr-color-primary);
