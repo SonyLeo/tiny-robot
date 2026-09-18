@@ -124,6 +124,13 @@ const recordUntouchedRename = (newTitle: string, item: FixtureItem) => {
       <History :data="groupedItems" />
     </section>
 
+    <section
+      data-testid="transformed-history"
+      style="width: 480px; margin-top: 80px; padding: 24px; transform: translateZ(0); will-change: transform"
+    >
+      <History :data="flatItems" :menu-items="menuItems" />
+    </section>
+
     <section data-testid="empty-history">
       <History :data="[]" />
     </section>

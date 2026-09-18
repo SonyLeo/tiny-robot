@@ -237,7 +237,6 @@ const handleClickMenuItem = (action: HistoryMenuItem) => {
       </div>
       <MenuList
         ref="menuListRef"
-        v-show="menuTriggerEl"
         v-model:trigger="menuTriggerEl"
         v-model:data="menuTriggerItem"
         :items="props.menuItems"

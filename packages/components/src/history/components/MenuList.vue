@@ -1,6 +1,7 @@
 <script setup lang="ts" generic="T">
 import { onClickOutside, useElementBounding, useElementSize, useWindowSize } from '@vueuse/core'
 import { computed, CSSProperties, nextTick, ref } from 'vue'
+import { useTeleportTarget } from '../../shared/composables'
 import { toCssUnit } from '../../shared/utils'
 import { HistoryMenuItem } from '../index.type'
 
@@ -37,6 +38,7 @@ onClickOutside(
 const { top, bottom, left } = useElementBounding(trigger)
 const { width: menuListWidth, height: menuListHeight } = useElementSize(menuRef, undefined, { box: 'border-box' })
 const { height: viewportHeight } = useWindowSize()
+const teleportTarget = useTeleportTarget(trigger, 'body')
 
 const threshold = 4
 
@@ -110,19 +112,28 @@ defineExpose({ focusFirstItem, focusLastItem })
 </script>
 
 <template>
-  <ul class="tr-history__menu-list" ref="menuRef" :style="styles" role="menu" @keydown="handleKeydown">
-    <li
-      class="tr-history__menu-list__item"
-      v-for="item in props.items"
-      :key="item.id"
-      role="menuitem"
-      tabindex="-1"
-      @click="handleItemClick(item)"
+  <Teleport :to="teleportTarget">
+    <ul
+      class="tr-history__menu-list"
+      ref="menuRef"
+      v-show="trigger"
+      :style="styles"
+      role="menu"
+      @keydown="handleKeydown"
     >
-      <component :is="item.icon" />
-      <span>{{ item.text }}</span>
-    </li>
-  </ul>
+      <li
+        class="tr-history__menu-list__item"
+        v-for="item in props.items"
+        :key="item.id"
+        role="menuitem"
+        tabindex="-1"
+        @click="handleItemClick(item)"
+      >
+        <component :is="item.icon" />
+        <span>{{ item.text }}</span>
+      </li>
+    </ul>
+  </Teleport>
 </template>
 
 <style lang="less" scoped>

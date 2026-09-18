@@ -1,12 +1,14 @@
 import { expect, test } from '@playwright/experimental-ct-vue'
-import type { Locator } from '@playwright/test'
+import type { Locator, Page } from '@playwright/test'
 import HistoryFixture from './History.fixture.vue'
 
-const openRenameEditor = async (history: Locator, title: string) => {
+const getVisibleMenu = (page: Page) => page.locator('[role="menu"]:visible')
+
+const openRenameEditor = async (history: Locator, page: Page, title: string) => {
   const trigger = history.getByRole('button', { name: `${title} 更多操作` })
   await trigger.focus()
   await trigger.press('ArrowDown')
-  await history.getByRole('menuitem', { name: '重命名' }).click()
+  await getVisibleMenu(page).getByRole('menuitem', { name: '重命名' }).click()
   return history.getByRole('textbox')
 }
 
@@ -31,7 +33,7 @@ test.describe('History', () => {
     await expect(component.getByTestId('prefix-chat-2')).toHaveText('personal')
   })
 
-  test('emits the clicked item and custom menu action', async ({ mount }) => {
+  test('emits the clicked item and custom menu action', async ({ mount, page }) => {
     const component = await mount(HistoryFixture)
     const flat = component.getByTestId('flat-history')
 
@@ -43,7 +45,7 @@ test.describe('History', () => {
     const secondMenuTrigger = flat.getByRole('button', { name: 'Second chat 更多操作' })
     await secondMenuTrigger.focus()
     await secondMenuTrigger.press('ArrowDown')
-    await flat.getByRole('menuitem', { name: '归档' }).click()
+    await getVisibleMenu(page).getByRole('menuitem', { name: '归档' }).click()
     await expect(flat.getByTestId('item-action-output')).toHaveText(
       JSON.stringify({
         action: { id: 'archive', text: '归档' },
@@ -53,10 +55,10 @@ test.describe('History', () => {
     await expect(flat.getByTestId('item-action-identity')).toHaveText('same')
   })
 
-  test('focuses and selects the title when rename starts, then confirms with Enter', async ({ mount }) => {
+  test('focuses and selects the title when rename starts, then confirms with Enter', async ({ mount, page }) => {
     const component = await mount(HistoryFixture)
     const history = component.getByTestId('confirm-history')
-    const editor = await openRenameEditor(history, 'First chat')
+    const editor = await openRenameEditor(history, page, 'First chat')
 
     await expect(editor).toBeFocused()
     await expect(editor).toHaveJSProperty('selectionStart', 0)
@@ -74,49 +76,49 @@ test.describe('History', () => {
     await expect(editor).toHaveCount(0)
   })
 
-  test('opens and operates the action menu from the keyboard', async ({ mount }) => {
+  test('opens and operates the action menu from the keyboard', async ({ mount, page }) => {
     const component = await mount(HistoryFixture)
     const history = component.getByTestId('flat-history')
     const trigger = history.getByRole('button', { name: 'First chat 更多操作' })
 
     await trigger.focus()
     await trigger.press('ArrowDown')
-    await expect(history.getByRole('menuitem', { name: '重命名' })).toBeFocused()
-    await history.getByRole('menuitem', { name: '重命名' }).press('ArrowDown')
-    await expect(history.getByRole('menuitem', { name: '归档' })).toBeFocused()
-    await history.getByRole('menuitem', { name: '归档' }).press('Enter')
+    await expect(getVisibleMenu(page).getByRole('menuitem', { name: '重命名' })).toBeFocused()
+    await getVisibleMenu(page).getByRole('menuitem', { name: '重命名' }).press('ArrowDown')
+    await expect(getVisibleMenu(page).getByRole('menuitem', { name: '归档' })).toBeFocused()
+    await getVisibleMenu(page).getByRole('menuitem', { name: '归档' }).press('Enter')
 
     await expect(history.getByTestId('item-action-output')).toContainText('archive')
     await expect(trigger).toBeFocused()
     await expect(trigger).toHaveAttribute('aria-expanded', 'false')
 
     await trigger.press('ArrowDown')
-    await history.getByRole('menuitem', { name: '重命名' }).press('Escape')
+    await getVisibleMenu(page).getByRole('menuitem', { name: '重命名' }).press('Escape')
     await expect(trigger).toBeFocused()
     await expect(trigger).toHaveAttribute('aria-expanded', 'false')
   })
 
-  test('closes the action menu when Tab moves focus away', async ({ mount }) => {
+  test('closes the action menu when Tab moves focus away', async ({ mount, page }) => {
     const component = await mount(HistoryFixture)
     const history = component.getByTestId('flat-history')
     const trigger = history.getByRole('button', { name: 'First chat 更多操作' })
-    const menu = history.getByRole('menu')
+    const menu = getVisibleMenu(page)
 
     await trigger.focus()
     await trigger.press('ArrowDown')
-    await expect(history.getByRole('menuitem', { name: '重命名' })).toBeFocused()
+    await expect(getVisibleMenu(page).getByRole('menuitem', { name: '重命名' })).toBeFocused()
 
-    await history.getByRole('menuitem', { name: '重命名' }).press('Tab')
+    await getVisibleMenu(page).getByRole('menuitem', { name: '重命名' }).press('Tab')
 
     await expect(menu).toBeHidden()
     await expect(trigger).toHaveAttribute('aria-expanded', 'false')
   })
 
-  test('closes a mouse-opened action menu with Escape from the trigger', async ({ mount }) => {
+  test('closes a mouse-opened action menu with Escape from the trigger', async ({ mount, page }) => {
     const component = await mount(HistoryFixture)
     const history = component.getByTestId('flat-history')
     const trigger = history.getByRole('button', { name: 'First chat 更多操作' })
-    const menu = history.getByRole('menu')
+    const menu = getVisibleMenu(page)
 
     await history.locator('.tr-history__item').first().hover()
     await trigger.click()
@@ -129,12 +131,12 @@ test.describe('History', () => {
     await expect(trigger).toHaveAttribute('aria-expanded', 'false')
   })
 
-  test('closes a mouse-opened action menu when Tab leaves the trigger', async ({ mount }) => {
+  test('closes a mouse-opened action menu when Tab leaves the trigger', async ({ mount, page }) => {
     const component = await mount(HistoryFixture)
     const history = component.getByTestId('flat-history')
     const trigger = history.getByRole('button', { name: 'First chat 更多操作' })
     const nextTrigger = history.getByRole('button', { name: 'Second chat 更多操作' })
-    const menu = history.getByRole('menu')
+    const menu = getVisibleMenu(page)
 
     await history.locator('.tr-history__item').first().hover()
     await trigger.click()
@@ -147,10 +149,10 @@ test.describe('History', () => {
     await expect(nextTrigger).toBeFocused()
   })
 
-  test('cancels rename with Escape without emitting a title change', async ({ mount }) => {
+  test('cancels rename with Escape without emitting a title change', async ({ mount, page }) => {
     const component = await mount(HistoryFixture)
     const history = component.getByTestId('cancel-history')
-    const editor = await openRenameEditor(history, 'First chat')
+    const editor = await openRenameEditor(history, page, 'First chat')
 
     await editor.fill('Discarded title')
     await editor.press('Escape')
@@ -158,37 +160,37 @@ test.describe('History', () => {
     await expect(history.getByTestId('cancel-output')).toBeEmpty()
   })
 
-  test('supports explicit rename confirmation and cancellation controls', async ({ mount }) => {
+  test('supports explicit rename confirmation and cancellation controls', async ({ mount, page }) => {
     const component = await mount(HistoryFixture)
     const history = component.getByTestId('confirm-history')
-    let editor = await openRenameEditor(history, 'Second chat')
+    let editor = await openRenameEditor(history, page, 'Second chat')
 
     await editor.fill('Confirmed by button')
     await history.getByRole('button', { name: '确认重命名' }).click()
     await expect(history.getByTestId('confirm-output')).toContainText('Confirmed by button')
 
-    editor = await openRenameEditor(history, 'Second chat')
+    editor = await openRenameEditor(history, page, 'Second chat')
     await editor.fill('Cancelled by button')
     await history.getByRole('button', { name: '取消重命名' }).click()
     await expect(editor).toHaveCount(0)
     await expect(history.getByTestId('confirm-output')).not.toContainText('Cancelled by button')
   })
 
-  test('confirms rename when clicking outside the editor', async ({ mount }) => {
+  test('confirms rename when clicking outside the editor', async ({ mount, page }) => {
     const component = await mount(HistoryFixture)
     const confirmHistory = component.getByTestId('confirm-history')
-    const confirmEditor = await openRenameEditor(confirmHistory, 'First chat')
+    const confirmEditor = await openRenameEditor(confirmHistory, page, 'First chat')
 
     await confirmEditor.fill('Confirmed outside')
     await component.getByTestId('outside-confirm').click()
     await expect(confirmHistory.getByTestId('confirm-output')).toContainText('Confirmed outside')
   })
 
-  test('cancels rename when configured to cancel on outside clicks', async ({ mount }) => {
+  test('cancels rename when configured to cancel on outside clicks', async ({ mount, page }) => {
     const component = await mount(HistoryFixture)
 
     const cancelHistory = component.getByTestId('cancel-history')
-    const cancelEditor = await openRenameEditor(cancelHistory, 'First chat')
+    const cancelEditor = await openRenameEditor(cancelHistory, page, 'First chat')
 
     await cancelEditor.fill('Cancelled outside')
     await component.getByTestId('outside-cancel').click()
@@ -196,11 +198,11 @@ test.describe('History', () => {
     await expect(cancelHistory.getByTestId('cancel-output')).toBeEmpty()
   })
 
-  test('leaves rename open when outside clicks are disabled', async ({ mount }) => {
+  test('leaves rename open when outside clicks are disabled', async ({ mount, page }) => {
     const component = await mount(HistoryFixture)
 
     const noneHistory = component.getByTestId('none-history')
-    const noneEditor = await openRenameEditor(noneHistory, 'First chat')
+    const noneEditor = await openRenameEditor(noneHistory, page, 'First chat')
 
     await expect(noneEditor).toBeVisible()
     await noneEditor.fill('Still editing')
@@ -209,10 +211,10 @@ test.describe('History', () => {
     await expect(noneHistory.getByTestId('none-output')).toBeEmpty()
   })
 
-  test('preserves mapped conversation rename state by id and emits the current item', async ({ mount }) => {
+  test('preserves mapped conversation rename state by id and emits the current item', async ({ mount, page }) => {
     const component = await mount(HistoryFixture)
     const history = component.getByTestId('mapped-conversation-history')
-    const editor = await openRenameEditor(history, '新标题')
+    const editor = await openRenameEditor(history, page, '新标题')
 
     await editor.fill('Draft title')
     await component.getByTestId('replace-mapped-conversations').click()
@@ -229,7 +231,7 @@ test.describe('History', () => {
     await expect(history.getByTestId('mapped-rename-identity')).toHaveText('current')
   })
 
-  test('preserves mapped conversation menu state by id and emits the current item', async ({ mount }) => {
+  test('preserves mapped conversation menu state by id and emits the current item', async ({ mount, page }) => {
     const component = await mount(HistoryFixture)
     const history = component.getByTestId('mapped-conversation-history')
     const trigger = history.getByRole('button', { name: '新标题 更多操作' })
@@ -241,7 +243,7 @@ test.describe('History', () => {
     await history.evaluate((element) => element.dispatchEvent(new Event('replace-conversations')))
 
     await expect(trigger).toHaveAttribute('aria-expanded', 'true')
-    await history.getByRole('menuitem', { name: '归档' }).click()
+    await getVisibleMenu(page).getByRole('menuitem', { name: '归档' }).click()
     await expect(history.getByTestId('mapped-action-output')).toHaveText(
       JSON.stringify({
         action: { id: 'archive', text: '归档' },
@@ -251,10 +253,10 @@ test.describe('History', () => {
     await expect(history.getByTestId('mapped-action-identity')).toHaveText('current')
   })
 
-  test('does not restore stale rename state when a removed id is added again', async ({ mount }) => {
+  test('does not restore stale rename state when a removed id is added again', async ({ mount, page }) => {
     const component = await mount(HistoryFixture)
     const history = component.getByTestId('mapped-conversation-history')
-    const editor = await openRenameEditor(history, '新标题')
+    const editor = await openRenameEditor(history, page, '新标题')
 
     await editor.fill('Stale draft')
     await component.getByTestId('remove-mapped-conversation').click()
@@ -262,5 +264,25 @@ test.describe('History', () => {
 
     await expect(history.getByRole('textbox')).toHaveCount(0)
     await expect(history).toContainText('新标题')
+  })
+
+  test('keeps the action menu aligned inside transformed ancestors', async ({ mount, page }) => {
+    const component = await mount(HistoryFixture)
+    const history = component.getByTestId('transformed-history')
+    const trigger = history.getByRole('button', { name: 'First chat 更多操作' })
+
+    await history.locator('.tr-history__item').first().hover()
+    await trigger.click()
+
+    const menu = getVisibleMenu(page)
+    await expect(menu).toBeVisible()
+
+    const [triggerBox, menuBox] = await Promise.all([trigger.boundingBox(), menu.boundingBox()])
+
+    expect(triggerBox).not.toBeNull()
+    expect(menuBox).not.toBeNull()
+    expect(menuBox!.x).toBeCloseTo(triggerBox!.x, 0)
+    expect(menuBox!.y).toBeCloseTo(triggerBox!.y + triggerBox!.height + 8, 0)
+    expect(await menu.evaluate((element) => element.parentElement === document.body)).toBe(true)
   })
 })
