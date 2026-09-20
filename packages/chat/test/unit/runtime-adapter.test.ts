@@ -80,6 +80,58 @@ describe('useChatRuntimeAdapter', () => {
     expect(adapter.inputValue.value).toBe('draft')
   })
 
+  it('does not restore a failed send after Runtime switches conversations directly', async () => {
+    const deferred = createDeferred<boolean>()
+    const fixture = createRuntimeFixture({ send: () => deferred.promise })
+    fixture.runtime.activeConversation.value = {
+      id: 'conversation-a',
+      title: 'Conversation A',
+      messages: [],
+      requestState: 'processing',
+    }
+    fixture.runtime.actions.switchConversation = async (id) => {
+      fixture.runtime.activeConversation.value = {
+        id,
+        title: 'Conversation B',
+        messages: [],
+        requestState: 'idle',
+      }
+    }
+    const adapter = useChatRuntimeAdapter({ runtime: fixture.runtime, onActionError: vi.fn() })
+    adapter.setInputValue('draft for A')
+
+    const request = adapter.send({ text: 'draft for A' })
+    await Promise.resolve()
+    await fixture.runtime.actions.switchConversation('conversation-b')
+    deferred.resolve(false)
+
+    await expect(request).resolves.toBe(false)
+    expect(adapter.inputValue.value).toBe('')
+  })
+
+  it('restores a failed first-send draft after Runtime creates a conversation', async () => {
+    const deferred = createDeferred<boolean>()
+    const fixture = createRuntimeFixture({
+      send: async () => {
+        fixture.runtime.activeConversation.value = {
+          id: 'conversation-a',
+          title: 'Conversation A',
+          messages: [],
+          requestState: 'processing',
+        }
+        return deferred.promise
+      },
+    })
+    const adapter = useChatRuntimeAdapter({ runtime: fixture.runtime, onActionError: vi.fn() })
+    adapter.setInputValue('first draft')
+
+    const request = adapter.send({ text: 'first draft' })
+    deferred.resolve(false)
+
+    await expect(request).resolves.toBe(false)
+    expect(adapter.inputValue.value).toBe('first draft')
+  })
+
   it('clears the draft when the active conversation changes', async () => {
     const fixture = createRuntimeFixture()
     fixture.runtime.activeConversation.value = {
