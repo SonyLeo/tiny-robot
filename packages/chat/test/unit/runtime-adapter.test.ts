@@ -80,6 +80,50 @@ describe('useChatRuntimeAdapter', () => {
     expect(adapter.inputValue.value).toBe('draft')
   })
 
+  it('clears the draft when the active conversation changes', async () => {
+    const fixture = createRuntimeFixture()
+    fixture.runtime.activeConversation.value = {
+      id: 'conversation-a',
+      title: 'Conversation A',
+      messages: [],
+      requestState: 'idle',
+    }
+    fixture.runtime.actions.switchConversation = async (id) => {
+      fixture.runtime.activeConversation.value = {
+        id,
+        title: 'Conversation B',
+        messages: [],
+        requestState: 'idle',
+      }
+    }
+    const adapter = useChatRuntimeAdapter({ runtime: fixture.runtime, onActionError: vi.fn() })
+    adapter.setInputValue('draft for A')
+
+    await adapter.switchConversation('conversation-b')
+
+    expect(adapter.inputValue.value).toBe('')
+  })
+
+  it('keeps the draft when switching conversations fails', async () => {
+    const fixture = createRuntimeFixture({
+      switchConversation: async () => {
+        throw new Error('switch failed')
+      },
+    })
+    fixture.runtime.activeConversation.value = {
+      id: 'conversation-a',
+      title: 'Conversation A',
+      messages: [],
+      requestState: 'idle',
+    }
+    const adapter = useChatRuntimeAdapter({ runtime: fixture.runtime, onActionError: vi.fn() })
+    adapter.setInputValue('draft for A')
+
+    await adapter.switchConversation('conversation-b')
+
+    expect(adapter.inputValue.value).toBe('draft for A')
+  })
+
   it('consumes non-send action errors and reports them once', async () => {
     const error = new Error('action failed')
     const onActionError = vi.fn()
