@@ -60,6 +60,26 @@ describe('useChatRuntimeAdapter', () => {
     expect(onActionError).toHaveBeenCalledWith({ action: 'send', payload: { text: 'hello' }, error })
   })
 
+  it('does not invalidate the draft when switching to the active conversation', async () => {
+    const deferred = createDeferred<boolean>()
+    const fixture = createRuntimeFixture({ send: () => deferred.promise })
+    fixture.runtime.activeConversation.value = {
+      id: 'conversation-a',
+      title: 'Conversation A',
+      messages: [],
+      requestState: 'processing',
+    }
+    const adapter = useChatRuntimeAdapter({ runtime: fixture.runtime, onActionError: vi.fn() })
+    adapter.setInputValue('draft')
+
+    const request = adapter.send({ text: 'draft' })
+    await adapter.switchConversation('conversation-a')
+    deferred.resolve(false)
+
+    await expect(request).resolves.toBe(false)
+    expect(adapter.inputValue.value).toBe('draft')
+  })
+
   it('consumes non-send action errors and reports them once', async () => {
     const error = new Error('action failed')
     const onActionError = vi.fn()

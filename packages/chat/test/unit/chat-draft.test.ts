@@ -32,6 +32,7 @@ describe('useChatDraft', () => {
 
   it('restores the original draft when send returns false', async () => {
     const draft = useChatDraft({ send: async () => false })
+    draft.setInputValue('  hello  ')
 
     await expect(draft.send({ text: '  hello  ' })).resolves.toBe(false)
     expect(draft.inputValue.value).toBe('  hello  ')
@@ -44,6 +45,7 @@ describe('useChatDraft', () => {
         throw error
       },
     })
+    draft.setInputValue('hello')
 
     await expect(draft.send({ text: 'hello' })).rejects.toBe(error)
     expect(draft.inputValue.value).toBe('hello')
