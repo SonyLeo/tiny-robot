@@ -4,16 +4,19 @@ outline: [1, 3]
 
 # Chat 运行时
 
-Chat Runtime 统一会话、消息发送、模型和 MCP 状态。新建聊天页面使用 `useChatRuntime`，已有 Kit 会话使用 `useChatRuntimeFromConversation`。
+Chat Runtime 统一会话、消息发送、模型和 MCP 状态，并可适配为 `TrChatUI` 需要的数据与动作。
 
 ## 概览
 
 ### 适用场景
 
-| 场景          | Runtime               | 使用组件              | 说明                                               |
-| ------------- | --------------------- | --------------------- | -------------------------------------------------- |
-| 新建聊天页面  | `useChatRuntime` | `TrChat`              | 创建完整聊天页面并配置模型服务和可选 MCP。         |
-| 已有 Kit 会话 | `useChatRuntimeFromConversation`   | `TrChat` / `TrChatUI` | 复用已有 `useConversation`，接入完整或自定义界面。 |
+| 任务              | 入口                             | 界面连接   | 状态与默认能力                                                          |
+| ----------------- | -------------------------------- | ---------- | ----------------------------------------------------------------------- |
+| 创建完整 Runtime  | `useChatRuntime`                 | `TrChat`   | 创建 Kit 会话，安装错误、请求快照及可选模型和 MCP 插件。                |
+| 复用已有 Kit 会话 | `useChatRuntimeFromConversation` | `TrChat`   | 保留应用持有的 conversation 与插件，只建立 Runtime 状态和动作。         |
+| 适配自定义界面    | `useChatRuntimeAdapter`          | `TrChatUI` | 把 Runtime 状态转为界面数据，并管理草稿失效与模型、MCP 的临时交互状态。 |
+
+`TrChat` 内部已使用 `useChatRuntimeAdapter`。直接使用 `TrChatUI` 时，应用需要把适配器动作连接到对应的界面事件；完整事件见 [TrChatUI API](./chat#trchatui-api)。
 
 ## 快速开始
 
@@ -69,7 +72,7 @@ const runtime = useChatRuntime({ modelProviders })
 
 `useChatRuntime` 的响应层二选一：提供非空 `modelProviders`，或在 `conversation.useMessageOptions.responseProvider` 中提供自定义 Provider。两者同时提供会抛错。
 
-### 复用 Kit 会话
+### 复用已有 Kit 会话
 
 已有 Kit `useConversation` 时使用 `useChatRuntimeFromConversation`。它只适配已有会话、消息和请求状态，不会修改该会话的插件配置，也不会自动安装错误状态插件。
 
@@ -84,11 +87,22 @@ const conversation = useConversation({
 const runtime = useChatRuntimeFromConversation({ conversation })
 ```
 
-将 Runtime 直接传给 `TrChat` 可以使用完整聊天页面。使用 `TrChatUI` 时，应用负责将会话、消息和请求状态组织为界面数据，并处理界面事件；`TrChatUI` 本身不接收 `runtime`。
+将 Runtime 直接传给 `TrChat` 可以使用完整聊天页面。`TrChatUI` 本身不接收 `runtime`，自定义界面需要通过适配器连接状态和事件。
 
 `clearActiveConversation()` 仅把当前会话设为 `null`，不会删除会话或中止请求。默认发送流程会在首条非空消息发送时创建会话；需要取消后开始新会话时，先调用 `abort()`，再调用 `clearActiveConversation()`。
 
-### 发送配置
+### Runtime 与自定义界面
+
+`useChatRuntimeAdapter` 读取 Runtime 并返回 `TrChatUI` 需要的数据、草稿和标准动作。适配器在会话导航或 Runtime 更换时使草稿失效，并管理模型和 MCP 操作的临时 UI 状态。Runtime 及其会话、持久化与动作副作用仍由应用持有；适配器只调用这些动作，不会替换它们。
+
+<demo
+  vue="../../demos/chat/runtime-adapter.vue"
+  :vueFiles="['../../demos/chat/runtime-adapter.vue']"
+  title="Runtime 适配自定义界面"
+  description="将 Runtime 状态转换为 TrChatUI 数据，并连接输入、发送和会话动作。"
+/>
+
+### 发送拦截与自定义发送
 
 默认 Runtime 拒绝 trim 后为空的文本。传入自定义 `send` 后，空文本会以 `{ text: '' }` 进入回调，由应用处理附件、会话创建、消息写入和请求。
 
@@ -109,9 +123,9 @@ const runtime = useChatRuntimeFromConversation({ conversation })
 
 发送被禁用、已启用 MCP 工具未准备好或 `beforeSend` 返回 `'reject'` 时，`actions.send()` 返回 `false`。请求错误和校验异常会 reject 原始错误。
 
-### 把请求错误保存到消息
+### 消息错误持久化
 
-`useChatRuntime` 创建 conversation 时会默认安装 `errorStatePlugin()`。Provider 失败后，插件把规范化错误写入当前回合最后一条 assistant 消息的 `state.error`；错误与消息一起由 conversation 持久化。Engine 发请求时仍按默认规则排除 `state`、`metadata` 和 `loading`，所以这些界面状态不会发送给模型。
+`useChatRuntime` 创建 conversation 时会默认安装 `errorStatePlugin()`。Provider 失败后，插件把规范化错误写入当前回合最后一条 assistant 消息的 `state.error`；如果该回合没有 assistant 消息，它会追加一条内容为空且携带 `state.error` 的 assistant 消息。错误与消息一起由 conversation 持久化。Engine 发请求时仍按默认规则排除 `state`、`metadata` 和 `loading`，所以这些界面状态不会发送给模型。
 
 <demo
   vue="../../demos/chat/runtime-error.vue"
@@ -161,9 +175,9 @@ const replacement: UseMessagePlugin = {
 }
 ```
 
-`onError` 是观察与状态写入钩子。所有已启用的 `onError` 执行后，请求 Promise 仍会 reject 原始错误；`TrChat` 因此仍会发出 `runtime-action-error`。该事件适合遥测或非消息动作反馈，不应再复制一份 send 错误详情到页面顶部。
+`normalizeError` 返回 `null` 或 `undefined` 时，插件跳过本次写入。`onError` 完成后，原始请求 Promise 仍会 reject：直接调用 Runtime 动作时，调用方收到该 rejection；`useChatRuntimeAdapter` 则捕获动作错误并调用必填的 `onActionError`。`TrChat` 使用同一适配器发出 `runtime-action-error`，该事件适合遥测或非消息动作反馈，不应再复制一份 send 错误详情到页面顶部。
 
-### MCP 配置与安全边界
+### MCP 与安全边界
 
 `mcpServers` 与 `mcp` 互斥。前者适用于浏览器可访问的 Streamable HTTP 服务，后者用于自定义 transport、OAuth、权限过滤或连接复用。
 
@@ -196,14 +210,14 @@ Chat 没有稳定的附件传输协议。自定义 `send` 可收到空文本和 
 
 ### Composables
 
-| 导出                    | 签名                                                                         | 说明                                          |
-| ----------------------- | ---------------------------------------------------------------------------- | --------------------------------------------- |
-| `useChatRuntime`   | `(options: UseChatRuntimeOptions) => ChatRuntime`                       | 创建默认 Runtime。                            |
-| `useChatRuntimeFromConversation`     | `(options: UseChatRuntimeFromConversationOptions) => ChatRuntime`                         | 包装 Kit 会话。                               |
-| `useChatRuntimeAdapter` | `(options: UseChatRuntimeAdapterOptions) => adapter`                         | 把 Runtime 转换为 `TrChatUI` 数据与标准动作。 |
-| `useChatHistoryItems`   | `(options: UseChatHistoryItemsOptions) => ShallowRef<ChatHistoryItem[]>`     | 规范化平铺历史项。                            |
-| `useChatHistoryData`    | `(options: UseChatHistoryDataOptions) => ShallowRef<ChatHistoryDisplayData>` | 规范化平铺或分组历史数据。                    |
-| `errorStatePlugin`      | `(options?: ErrorStatePluginOptions) => UseMessagePlugin`                    | 把请求错误写入所属 assistant 消息。           |
+| 导出                             | 签名                                                                         | 说明                                          |
+| -------------------------------- | ---------------------------------------------------------------------------- | --------------------------------------------- |
+| `useChatRuntime`                 | `(options: UseChatRuntimeOptions) => ChatRuntime`                            | 创建默认 Runtime。                            |
+| `useChatRuntimeFromConversation` | `(options: UseChatRuntimeFromConversationOptions) => ChatRuntime`            | 包装 Kit 会话。                               |
+| `useChatRuntimeAdapter`          | `(options: UseChatRuntimeAdapterOptions) => adapter`                         | 把 Runtime 转换为 `TrChatUI` 数据与标准动作。 |
+| `useChatHistoryItems`            | `(options: UseChatHistoryItemsOptions) => ShallowRef<ChatHistoryItem[]>`     | 规范化平铺历史项。                            |
+| `useChatHistoryData`             | `(options: UseChatHistoryDataOptions) => ShallowRef<ChatHistoryDisplayData>` | 规范化平铺或分组历史数据。                    |
+| `errorStatePlugin`               | `(options?: ErrorStatePluginOptions) => UseMessagePlugin`                    | 把请求错误写入所属 assistant 消息。           |
 
 ### 错误状态插件
 
@@ -248,22 +262,22 @@ Chat 没有稳定的附件传输协议。自定义 `send` 可收到空文本和 
 
 #### 模型与 MCP
 
-| 类型                            | 字段                                                                                                                                                                                                                                                                                                                                         |
-| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ChatModelOption`               | `id: string`；`label: string`；`description?: string`；`icon?: ChatIcon`；`disabled?: boolean`；`group?: string`；`efforts?: readonly ModelSelectorReasoningEffortOption[]`；`defaultEffort?: string`；`thinkingRequired?: boolean`；`capabilities?: Partial<Record<'thinking' \| 'search', boolean>>`；`metadata?: Record<string, unknown>` |
-| `ChatMcpServerInfo`             | `id: string`；`name: string`；`description?: string`；`icon?: string`；`category?: string`；`installed: boolean`；`enabled: boolean`；`loading?: boolean`；`error?: unknown`；`metadata?: Record<string, unknown>`                                                                                                                           |
-| `ChatMcpToolInfo`               | `id: string`；`name: string`；`description?: string`；`enabled: boolean`                                                                                                                                                                                                                                                                     |
-| `ChatMcpToolState`              | `Partial<Record<string, readonly ChatMcpToolInfo[]>>`，键为 Server ID。                                                                                                                                                                                                                                                                      |
-| `ChatProviderConfig`            | `type: 'openai' \| 'deepseek' \| 'qwen'`；`label?: string`；`apiUrl?: string`；`apiKey?: string`；`headers?: Record<string, string>`；`timeout?: number`；`models: ChatProviderModelConfig[]`                                                                                                                                                |
-| `ChatProviderType`              | `'openai' \| 'deepseek' \| 'qwen'`                                                                                                                                                                                                                                                                                                           |
-| `ChatProviderModelConfig`       | 继承 `ChatModelOption`，不含 `metadata`；`featureBody?: Partial<Record<'thinking' \| 'search', ChatProviderFeatureBody>>`；`effortParam?: string`                                                                                                                                                                                            |
-| `ChatProviderFeatureBody`       | `enabled?: Record<string, unknown>`；`disabled?: Record<string, unknown>`                                                                                                                                                                                                                                                                    |
-| `ChatResolvedProviderModel`     | 继承 `ChatProviderModelConfig`；补充解析后的 Provider 类型、名称、请求地址、认证与超时配置。                                                                                                                                                                                                                                                 |
-| `ChatBuiltInModelFeature`       | `'thinking' \| 'search'`                                                                                                                                                                                                                                                                                                                     |
-| `ChatIcon`                      | `ModelSelectorOption['icon']`                                                                                                                                                                                                                                                                                                                |
-| `ChatMcpServerConfig`           | `id: string`；`name: string`；`baseUrl: string`；`installed?: boolean`；`description?: string`；`icon?: string`；`headers?: Record<string, string>`；`timeout?: number`；`validate?: (serverId: string) => void`                                                                                                                             |
-| `ChatMcpServers`                | `readonly ChatMcpServerConfig[]`                                                                                                                                                                                                                                                                                                             |
-| `UseChatRuntimeMcpAdapter` | `runtime: ChatMcpRuntime`；`listTools`；`callTool`。后两项来自 Chat 的 MCP Tool 插件协议。                                                                                                                                                                                                                                                   |
+| 类型                        | 字段                                                                                                                                                                                                                                                                                                                                         |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ChatModelOption`           | `id: string`；`label: string`；`description?: string`；`icon?: ChatIcon`；`disabled?: boolean`；`group?: string`；`efforts?: readonly ModelSelectorReasoningEffortOption[]`；`defaultEffort?: string`；`thinkingRequired?: boolean`；`capabilities?: Partial<Record<'thinking' \| 'search', boolean>>`；`metadata?: Record<string, unknown>` |
+| `ChatMcpServerInfo`         | `id: string`；`name: string`；`description?: string`；`icon?: string`；`category?: string`；`installed: boolean`；`enabled: boolean`；`loading?: boolean`；`error?: unknown`；`metadata?: Record<string, unknown>`                                                                                                                           |
+| `ChatMcpToolInfo`           | `id: string`；`name: string`；`description?: string`；`enabled: boolean`                                                                                                                                                                                                                                                                     |
+| `ChatMcpToolState`          | `Partial<Record<string, readonly ChatMcpToolInfo[]>>`，键为 Server ID。                                                                                                                                                                                                                                                                      |
+| `ChatProviderConfig`        | `type: 'openai' \| 'deepseek' \| 'qwen'`；`label?: string`；`apiUrl?: string`；`apiKey?: string`；`headers?: Record<string, string>`；`timeout?: number`；`models: ChatProviderModelConfig[]`                                                                                                                                                |
+| `ChatProviderType`          | `'openai' \| 'deepseek' \| 'qwen'`                                                                                                                                                                                                                                                                                                           |
+| `ChatProviderModelConfig`   | 继承 `ChatModelOption`，不含 `metadata`；`featureBody?: Partial<Record<'thinking' \| 'search', ChatProviderFeatureBody>>`；`effortParam?: string`                                                                                                                                                                                            |
+| `ChatProviderFeatureBody`   | `enabled?: Record<string, unknown>`；`disabled?: Record<string, unknown>`                                                                                                                                                                                                                                                                    |
+| `ChatResolvedProviderModel` | 继承 `ChatProviderModelConfig`；补充解析后的 Provider 类型、名称、请求地址、认证与超时配置。                                                                                                                                                                                                                                                 |
+| `ChatBuiltInModelFeature`   | `'thinking' \| 'search'`                                                                                                                                                                                                                                                                                                                     |
+| `ChatIcon`                  | `ModelSelectorOption['icon']`                                                                                                                                                                                                                                                                                                                |
+| `ChatMcpServerConfig`       | `id: string`；`name: string`；`baseUrl: string`；`installed?: boolean`；`description?: string`；`icon?: string`；`headers?: Record<string, string>`；`timeout?: number`；`validate?: (serverId: string) => void`                                                                                                                             |
+| `ChatMcpServers`            | `readonly ChatMcpServerConfig[]`                                                                                                                                                                                                                                                                                                             |
+| `UseChatRuntimeMcpAdapter`  | `runtime: ChatMcpRuntime`；`listTools`；`callTool`。后两项来自 Chat 的 MCP Tool 插件协议。                                                                                                                                                                                                                                                   |
 
 #### 发送与请求快照
 
@@ -279,15 +293,15 @@ Chat 没有稳定的附件传输协议。自定义 `send` 可收到空文本和 
 
 #### Composable 配置
 
-| 类型                           | 字段                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `UseChatRuntimeOptions`   | `conversation?: Omit<UseConversationOptions, 'useMessageOptions'> & { useMessageOptions?: Partial<UseConversationOptions['useMessageOptions']> }`；`titleGenerator?: (text: string) => string`；`beforeSend?: ChatBeforeSend`；`composer?: Pick<ChatComposerRuntime, 'disabled' \| 'submitDisabled'>`；`modelProviders?: readonly ChatProviderConfig[]`；`mcp?: UseChatRuntimeMcpAdapter`；`mcpServers?: ChatMcpServers` |
-| `UseChatRuntimeFromConversationOptions`     | `conversation: UseConversationReturn`；`titleGenerator?: (text: string) => string`；`beforeSend?: ChatBeforeSend`；`send?: (payload: ChatSendPayload & { conversationId: string \| null; runConfig?: ChatRunConfig }) => void \| Promise<void>`；`composer?: ChatComposerRuntime`                                                                                                                                             |
-| `UseChatRuntimeAdapterOptions` | `runtime: MaybeRefOrGetter<ChatRuntime>`；`title?: MaybeRefOrGetter<string \| undefined>`；`historyData?: MaybeRefOrGetter<ChatHistoryData \| undefined>`；`onActionError(payload)`                                                                                                                                                                                                                                           |
-| `UseChatHistoryItemsOptions`   | `conversations: MaybeRefOrGetter<readonly ChatConversationInfo[] \| undefined>`；`defaultTitle: MaybeRefOrGetter<string>`                                                                                                                                                                                                                                                                                                     |
-| `UseChatHistoryDataOptions`    | 继承 `UseChatHistoryItemsOptions`；`history?: MaybeRefOrGetter<ChatHistoryData \| undefined>`                                                                                                                                                                                                                                                                                                                                 |
-| `ChatHistoryItem`              | 继承 `ChatConversationInfo`；`raw: ChatConversationInfo`                                                                                                                                                                                                                                                                                                                                                                      |
-| `ChatHistoryDisplayData`       | `ChatHistoryItem[] \| HistoryGroup<ChatHistoryItem>[]`                                                                                                                                                                                                                                                                                                                                                                        |
+| 类型                                    | 字段                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `UseChatRuntimeOptions`                 | `conversation?: Omit<UseConversationOptions, 'useMessageOptions'> & { useMessageOptions?: Partial<UseConversationOptions['useMessageOptions']> }`；`titleGenerator?: (text: string) => string`；`beforeSend?: ChatBeforeSend`；`composer?: Pick<ChatComposerRuntime, 'disabled' \| 'submitDisabled'>`；`modelProviders?: readonly ChatProviderConfig[]`；`mcp?: UseChatRuntimeMcpAdapter`；`mcpServers?: ChatMcpServers` |
+| `UseChatRuntimeFromConversationOptions` | `conversation: UseConversationReturn`；`titleGenerator?: (text: string) => string`；`beforeSend?: ChatBeforeSend`；`send?: (payload: ChatSendPayload & { conversationId: string \| null; runConfig?: ChatRunConfig }) => void \| Promise<void>`；`composer?: ChatComposerRuntime`                                                                                                                                        |
+| `UseChatRuntimeAdapterOptions`          | `runtime: MaybeRefOrGetter<ChatRuntime>`；`title?: MaybeRefOrGetter<string \| undefined>`；`historyData?: MaybeRefOrGetter<ChatHistoryData \| undefined>`；`onActionError(payload)`                                                                                                                                                                                                                                      |
+| `UseChatHistoryItemsOptions`            | `conversations: MaybeRefOrGetter<readonly ChatConversationInfo[] \| undefined>`；`defaultTitle: MaybeRefOrGetter<string>`                                                                                                                                                                                                                                                                                                |
+| `UseChatHistoryDataOptions`             | 继承 `UseChatHistoryItemsOptions`；`history?: MaybeRefOrGetter<ChatHistoryData \| undefined>`                                                                                                                                                                                                                                                                                                                            |
+| `ChatHistoryItem`                       | 继承 `ChatConversationInfo`；`raw: ChatConversationInfo`                                                                                                                                                                                                                                                                                                                                                                 |
+| `ChatHistoryDisplayData`                | `ChatHistoryItem[] \| HistoryGroup<ChatHistoryItem>[]`                                                                                                                                                                                                                                                                                                                                                                   |
 
 `UseConversationOptions`、`UseConversationReturn` 来自 `@opentiny/tiny-robot-kit`；`MaybeRefOrGetter` 来自 Vue；`ModelSelectorReasoningEffortOption`、`HistoryGroup` 和 `ChatIcon` 的底层图标类型来自 `@opentiny/tiny-robot`。这些外部类型请参阅各自的 API。
 
