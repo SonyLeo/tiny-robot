@@ -62,9 +62,33 @@ const snapshots = {
       messages: [
         { id: 'question', role: 'user', content: '整理最近的缺陷并按模块归类。' },
         {
+          id: 'tool-call',
+          role: 'assistant',
+          content: '我先读取最近的缺陷记录。',
+          tool_calls: [
+            {
+              id: 'call-list-issues',
+              type: 'function',
+              function: { name: '读取缺陷', arguments: '{"project":"TinyRobot","limit":20}' },
+            },
+          ],
+          state: {
+            toolCall: {
+              'call-list-issues': { status: 'success', description: '已读取最近 20 条缺陷' },
+            },
+          },
+        },
+        {
+          id: 'tool-result',
+          role: 'tool',
+          tool_call_id: 'call-list-issues',
+          name: '读取缺陷',
+          content: '{"count":20,"modules":["对话框架","Runtime","MCP"]}',
+        },
+        {
           id: 'answer',
           role: 'assistant',
-          content: '已连接缺陷管理工具，可以继续读取并归类数据。',
+          content: '已读取 20 条缺陷，可以按对话框架、Runtime 和 MCP 继续归类。',
         },
       ],
     },

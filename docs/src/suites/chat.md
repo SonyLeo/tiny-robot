@@ -74,7 +74,7 @@ const runtime = useChatRuntime({ modelProviders })
 
 ## 用法示例
 
-### 展示数据如何映射到界面
+### 数据驱动的页面状态
 
 `TrChatUI` 把 `data` 中的会话、消息、输入状态、模型和 MCP 数据映射到对应界面区域。下面三个快照分别描述一个完整场景，便于观察同一数据结构如何随会话进程扩展；示例不发送请求。
 
@@ -82,12 +82,12 @@ const runtime = useChatRuntime({ modelProviders })
   vue="../../demos/chat/data-driven-ui.vue"
   :vueFiles="['../../demos/chat/data-driven-ui.vue']"
   title="数据驱动的聊天界面"
-  description="切换新会话、进行中的会话和启用工具的会话，观察 ChatUIData 各分支对应的界面区域。"
+  description="切换三组 ChatUIData 快照，对比各数据分支对应的界面区域。"
 />
 
 `data.sender.loading` 控制发送中的反馈，`disabled` 和 `submitDisabled` 分别禁用输入或提交。`data.request` 记录请求生命周期，并作为参数传给 `layout-main` 和 `layout-empty-state`；默认界面不会仅根据它额外渲染反馈。可展示的错误属于具体消息，应放在对应 assistant 消息的 `state.error` 中。
 
-### 在所属消息中展示错误
+### 消息错误状态
 
 `useChatRuntime` 默认把请求错误规范化到本轮最后一条 assistant 消息的 `state.error`。Bubble 在正常消息内容之后渲染错误，因此错误会保持所属消息的头像、顺序和布局；请求失败仍会让 `request.state` 进入 `error`。
 
