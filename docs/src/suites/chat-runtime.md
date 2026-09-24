@@ -36,7 +36,7 @@ Chat Runtime 统一会话、消息发送、模型和 MCP 状态，并可适配�
 
 ### 模型服务
 
-`modelProviders` 支持 `openai`、`deepseek` 和 `qwen`。同一份配置内的模型 ID 必须唯一，第一个模型为初始选择。
+`modelProviders` 支持 `openai`、`deepseek` 和 `qwen`。同一份配置内的模型 ID 必须唯一；至少解析出一个模型时，第一个模型为初始选择。
 
 ```ts
 import { useChatRuntime, type ChatProviderConfig } from '@opentiny/tiny-robot-chat'
@@ -70,7 +70,7 @@ const runtime = useChatRuntime({ modelProviders })
 | `models[].capabilities`            | 控制 `thinking`、`search` 控件是否可用。      |
 | `models[].featureBody` / `efforts` | 覆盖能力请求体或 reasoning effort 选项。      |
 
-`useChatRuntime` 的响应层二选一：提供非空 `modelProviders`，或在 `conversation.useMessageOptions.responseProvider` 中提供自定义 Provider。两者同时提供会抛错。
+`useChatRuntime` 的响应层二选一：让 `modelProviders` 至少解析出一个模型，或在 `conversation.useMessageOptions.responseProvider` 中提供自定义 Provider。只要 `modelProviders` 外层数组非空，它就不能与自定义 Provider 同时配置，即使其中的 `models` 全为空数组。
 
 ### 复用已有 Kit 会话
 
@@ -229,11 +229,11 @@ Chat 没有稳定的附件传输协议。自定义 `send` 可收到空文本和 
 | `titleGenerator` | `(text: string) => string`                                                                               | 否；取 trim 后前 20 个 Unicode 字符 | 生成首次默认发送时的会话标题；结果为空时默认标题为 `新对话`。                                                                       |
 | `beforeSend`     | `ChatBeforeSend`                                                                                         | 否                                  | 创建本轮 `ChatRunConfig` 快照后执行的异步门禁。                                                                                     |
 | `composer`       | `Pick<ChatComposerRuntime, 'disabled' \| 'submitDisabled'>`                                              | 否；`{}`                            | 只接收外部 `disabled` 和 `submitDisabled` 可读值；模型和 MCP Runtime 分别由下列配置提供。                                           |
-| `modelProviders` | `readonly ChatProviderConfig[]`                                                                          | 否                                  | 非空数组创建内建模型 Runtime 与 Provider；空数组不提供响应层。                                                                      |
+| `modelProviders` | `readonly ChatProviderConfig[]`                                                                          | 否                                  | 至少解析出一个模型时创建内建模型 Runtime 与 Provider；否则不提供响应层。                                                            |
 | `mcp`            | `UseChatRuntimeMcpAdapter`                                                                               | 否                                  | 使用应用提供的 MCP Runtime、工具列表和工具调用函数；与 `mcpServers` 互斥。                                                          |
 | `mcpServers`     | `ChatMcpServers`                                                                                         | 否                                  | 为配置的 Server 创建内建 Streamable HTTP 适配器；与 `mcp` 互斥。                                                                    |
 
-非空 `modelProviders` 与 `conversation.useMessageOptions.responseProvider` 同时存在时会抛错。传入空数组不会创建响应层，此时仍必须在 conversation 中提供自定义 `responseProvider`。
+非空 `modelProviders` 外层数组与 `conversation.useMessageOptions.responseProvider` 同时存在时会抛错。空数组或所有 `models` 都为空数组时不会创建响应层；前者可以改用自定义 `responseProvider`，后者会因非空外层数组的冲突检查而不能同时配置自定义 Provider。
 
 ### `useChatRuntimeFromConversation` 配置
 
@@ -452,13 +452,13 @@ Runtime 动作可以是同步或异步实现。下表记录默认 Kit 适配的�
 - 默认发送的 trim 后文本为空；自定义 `useChatRuntimeFromConversation({ send })` 可以接收空文本。
 - Composer 的 `disabled` 或外部 `submitDisabled` 为 `true`。
 - 默认发送没有可用的已选模型。
-- 已启用的 MCP Server 正在加载工具或存在错误，尚未准备好。
+- 已启用的 MCP Server 正在加载工具，或 `tools` 尚无该 Server 的条目。`server.error` 是诊断状态，不会被发送门禁直接检查。
 - 活动会话的当前回合不允许开始新请求。
 - `beforeSend` 返回 `'reject'`，或在未返回 `'handled'` 时，钩子执行期间切换、清空或删除了活动会话。
 
 ### 模型服务与自定义 Provider 冲突
 
-非空 `modelProviders` 与 `conversation.useMessageOptions.responseProvider` 只能提供其中一个响应层来源。空 `modelProviders` 不会创建响应层，仍需自定义 Provider。
+非空 `modelProviders` 外层数组与 `conversation.useMessageOptions.responseProvider` 不能同时配置。内建响应层还要求配置至少解析出一个模型；空外层数组可以改用自定义 Provider，而非空外层数组中的 `models` 全为空数组时则会抛出缺少响应层的错误。
 
 ### MCP Server 无法连接
 
