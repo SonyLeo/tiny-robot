@@ -5,7 +5,7 @@ tests retain the application entry, parent state, and complete submit flows.
 This separation improves failure attribution and avoids repeating page setup
 for every editor interaction. Production behavior is unchanged in the migration.
 
-## Current suite
+## Migration baseline
 
 This stage contains **147 independently mounted tests + 10 pure utility tests**,
 plus **five E2E tests**. Public slot scopes and Suggestion update/close regressions
@@ -110,3 +110,12 @@ Mention allowSpaces covers an internal ordinary space, not trailing browser NBSP
 Neither repeated passes nor the case count establish a long-term flake rate.
 
 See [RUNTIME.md](./RUNTIME.md) for commands, evidence and measured limits.
+
+## Follow-up fixes
+
+The slot-scope fix adds SenderSlots.spec.ts and its public-slot fixture: seven
+mounted cases covering single/multiple layout visibility, the real content
+editor, actions-inline/footer/footer-right scopes and editor actions. The
+current total is 154 mounts + 10 utilities; the baseline table above describes
+only the independently mergeable migration. Three Suggestion regressions remain
+reserved for the next fix.

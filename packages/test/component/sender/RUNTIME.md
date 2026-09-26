@@ -33,6 +33,10 @@ Validated on 2026-09-26 with four workers and zero retries:
 
 ## Design experiment
 
+The subsequent slot-scope commit passed scoped vue-tsc, scoped ESLint and all
+seven Slots CT cases (12.2 seconds, four workers, zero retries). Its test count
+is 154 mounts + 10 utilities; the migration measurements above remain unchanged.
+
 Before splitting the migration from its product fixes, the combined candidate
 was compared against nested subsets of the complete suite. Every row includes
 ten pure utility tests in addition to its mounted count.

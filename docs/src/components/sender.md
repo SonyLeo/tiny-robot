@@ -244,7 +244,7 @@ TrSender.Suggestion.configure({ items: suggestions, filterFn: customFilter })
 
 ### 自定义插槽
 
-Sender 提供了多个插槽位置，方便扩展功能：
+Sender 提供了多个插槽位置，方便扩展功能。`header` 和 `prefix` 没有作用域参数；`content` 仅提供编辑器实例。`actions-inline` 仅在单行模式渲染，`footer` 和 `footer-right` 仅在多行模式渲染。
 
 - **`header`** - 顶部区域，可添加标题、提示信息等
 - **`prefix`** - 输入框前缀区域，可添加图标、标签等（位于输入框内部）
@@ -252,7 +252,7 @@ Sender 提供了多个插槽位置，方便扩展功能：
 - **`footer-right`** - 底部右侧区域，可添加操作按钮
 
 :::tip 插槽作用域
-`footer` 和 `footer-right` 插槽提供了作用域数据，包括 `editor`、`hasContent`、`disabled`、`loading` 等状态，以及 `focus`、`insert`、`append`、`replace` 等操作方法，可用于实现自定义功能按钮。
+`actions-inline`、`footer` 和 `footer-right` 使用相同的 `SenderSlotScope`：`editor`、`insert`、`append`、`replace`、`focus`、`blur`、`disabled`、`loading`、`hasContent`。这些插槽提供的操作和状态可用于实现自定义功能按钮。
 :::
 
 <demo vue="../../demos/sender/custom-slots.vue" title="自定义插槽" description="在插槽区域添加自定义按钮，如深度思考、网络搜索等功能。" />
@@ -449,12 +449,12 @@ onSelect: (item) => {
 
 | 插槽名称 | 描述 | 作用域参数 |
 |---------|------|-----------|
-| header | 头部插槽，位于输入框上方 | - |
-| prefix | 前缀插槽，位于输入框左侧 | - |
-| content @0.4 | 内容插槽，用于完全自定义编辑器内容 | `{ editor }` |
-| actions-inline @0.4 | 单行模式下的操作按钮区域 | - |
-| footer | 底部自定义区域 | `{ editor, hasContent, disabled, loading }` |
-| footer-right | 底部右侧区域 | - |
+| header | 头部插槽，位于输入框上方，单行和多行均可用 | - |
+| prefix | 前缀插槽，位于输入框左侧，单行和多行均可用 | - |
+| content @0.4 | 内容插槽，用于完全自定义编辑器内容，单行和多行均可用 | `{ editor }` |
+| actions-inline @0.4 | 仅单行模式的操作按钮区域 | `SenderSlotScope` |
+| footer | 仅多行模式的底部自定义区域 | `SenderSlotScope` |
+| footer-right | 仅多行模式的底部右侧区域 | `SenderSlotScope` |
 
 ## Events
 
