@@ -31,6 +31,17 @@ test.describe('Sender Suggestion extension', () => {
     await expect(items(page).nth(1)).toContainText('JavaScript')
   })
 
+  test('SUGGESTION-04 refreshes the open list when its Ref items change', async ({ mount, page }) => {
+    const component = await mount(SenderExtensionsFixture, { props: { kind: 'suggestion' } })
+    const editor = component.getByTestId('sender-root').locator('.ProseMirror')
+
+    await editor.pressSequentially('J')
+    await expect(items(page)).toHaveCount(6)
+    await component.getByTestId('update-suggestion-ref').click()
+    await expect(items(page)).toHaveCount(1)
+    await expect(items(page).first()).toContainText('新建议')
+  })
+
   test('SUGGESTION-05 selects the default highlighted item with Enter', async ({ mount, page }) => {
     const component = await mount(SenderExtensionsFixture, { props: { kind: 'suggestion' } })
     const editor = component.getByTestId('sender-root').locator('.ProseMirror')
@@ -162,5 +173,42 @@ test.describe('Sender Suggestion extension', () => {
     await component.getByTestId('sender-root').locator('.ProseMirror').pressSequentially('自')
     await expect(page.locator('.suggestion-list__text--match')).toHaveText('自定义')
     await expect(page.locator('.suggestion-list__text--normal')).toHaveText('高亮')
+  })
+
+  test('SUGGESTION-16 reopens after new input and closes after clearing', async ({ mount, page }) => {
+    const component = await mount(SenderExtensionsFixture, { props: { kind: 'suggestion' } })
+    const editor = component.getByTestId('sender-root').locator('.ProseMirror')
+
+    await editor.pressSequentially('J')
+    await editor.press('Enter')
+    await expect(list(page)).toHaveCount(0)
+    await editor.press('Control+A')
+    await editor.press('Backspace')
+    await editor.pressSequentially('P')
+    await expect(editor).toHaveText('P')
+    await expect(list(page)).toBeVisible()
+    await editor.press('Control+A')
+    await editor.press('Backspace')
+    await expect(editor).toHaveText('')
+    await expect(list(page)).toHaveCount(0)
+  })
+
+  test('SUGGESTION-16A reopens after synchronous close, clear, and input transactions', async ({ mount, page }) => {
+    const component = await mount(SenderExtensionsFixture, { props: { kind: 'suggestion' } })
+    const editor = component.getByTestId('sender-root').locator('.ProseMirror')
+
+    await editor.pressSequentially('J')
+    await expect(list(page)).toBeVisible()
+    await component.getByTestId('run-suggestion-sync-sequence').click()
+
+    await expect(editor).toHaveText('P')
+    await expect(component.getByTestId('suggestion-sync-steps')).toHaveText(
+      JSON.stringify([
+        { step: 'close', text: 'Java', active: false, itemCount: 0 },
+        { step: 'clear', text: '', active: false, itemCount: 0 },
+        { step: 'input', text: 'P', active: true, itemCount: 6 },
+      ]),
+    )
+    await expect(list(page)).toBeVisible()
   })
 })

@@ -31,11 +31,23 @@ Validated on 2026-09-26 with four workers and zero retries:
   (including production vue-tsc) passed.
 - No skipped, unexpected or flaky results were reported in these runs.
 
-## Design experiment
+## Fix verification
 
 The subsequent slot-scope commit passed scoped vue-tsc, scoped ESLint and all
 seven Slots CT cases (12.2 seconds, four workers, zero retries). Its test count
 is 154 mounts + 10 utilities; the migration measurements above remain unchanged.
+
+After both fixes, the final suite passed 167/167 in 100.03 seconds, followed by
+5/5 page E2E in 9.4 seconds using a fresh successful component build. Scoped
+Sender vue-tsc and ESLint passed. Runs used four workers, zero retries, and
+reported no skipped, unexpected or flaky cases. This verification run is slower
+than the earlier benchmark and is not a controlled timing comparison.
+
+For a negative control, temporarily removing both production fixes caused
+SLOT-03/05/06/07 and SUGGESTION-04/16A to fail on their expected state assertions;
+SLOT-01/02/04 still passed. Restoring the fixes preceded the final full run.
+
+## Design experiment
 
 Before splitting the migration from its product fixes, the combined candidate
 was compared against nested subsets of the complete suite. Every row includes

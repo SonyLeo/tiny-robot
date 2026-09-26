@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import type { Node as PMNode } from '@tiptap/pm/model'
 import Sender from '../../../../components/src/sender/index.vue'
 import { Mention, Suggestion, Template } from '../../../../components/src/sender/extensions'
+import { SuggestionPluginKey } from '../../../../components/src/sender/extensions/suggestion/plugin'
 import type {
   MentionItem,
   SenderSuggestionItem,
@@ -128,6 +129,7 @@ const modelValue = ref('')
 const submitCount = ref(0)
 const lastSubmit = ref('[]')
 const revision = ref(0)
+const suggestionSyncSteps = ref<Array<{ step: string; text: string; active: boolean; itemCount: number }>>([])
 
 function resolveTemplateItems(scenario: TemplateScenario): TemplateItem[] {
   const options = [
@@ -366,6 +368,35 @@ const updateSuggestionItems = () => {
   suggestionItems.value = [{ content: '新建议', data: { source: 'ref-update' } }]
 }
 
+const recordSuggestionSyncStep = (step: string) => {
+  const editor = getEditor()
+  const suggestionState = editor ? SuggestionPluginKey.getState(editor.state) : undefined
+  suggestionSyncSteps.value = [
+    ...suggestionSyncSteps.value,
+    {
+      step,
+      text: editor?.state.doc.textContent ?? '',
+      active: suggestionState?.active ?? false,
+      itemCount: suggestionState?.filteredSuggestions.length ?? 0,
+    },
+  ]
+}
+
+const runSuggestionSyncSequence = () => {
+  const editor = getEditor()
+  if (!editor) return
+
+  suggestionSyncSteps.value = []
+  editor.view.dom.dispatchEvent(
+    new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', bubbles: true, cancelable: true }),
+  )
+  recordSuggestionSyncStep('close')
+  editor.commands.clearContent()
+  recordSuggestionSyncStep('clear')
+  editor.commands.insertContent('P')
+  recordSuggestionSyncStep('input')
+}
+
 const getBlockTexts = () => getTemplateNodes().blocks.map(({ node }) => cleanText(node.textContent || ''))
 
 const getSelectionState = () => {
@@ -582,6 +613,14 @@ onBeforeUnmount(() => {
       >
         update suggestion
       </button>
+      <button
+        v-if="props.kind === 'suggestion'"
+        data-testid="run-suggestion-sync-sequence"
+        type="button"
+        @click="runSuggestionSyncSequence"
+      >
+        run suggestion sync sequence
+      </button>
     </section>
 
     <output data-testid="submit-count">{{ submitCount }}</output>
@@ -597,6 +636,7 @@ onBeforeUnmount(() => {
       {{ JSON.stringify(getEditor()?.getJSON?.() ?? null) }}
     </output>
     <output data-testid="block-texts">{{ JSON.stringify(getBlockTexts()) }}</output>
+    <output data-testid="suggestion-sync-steps">{{ JSON.stringify(suggestionSyncSteps) }}</output>
 
     <Teleport :to="shadowSenderTarget" :disabled="props.senderLocation !== 'shadow'">
       <Sender

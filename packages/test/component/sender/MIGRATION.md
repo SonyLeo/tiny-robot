@@ -116,6 +116,12 @@ See [RUNTIME.md](./RUNTIME.md) for commands, evidence and measured limits.
 The slot-scope fix adds SenderSlots.spec.ts and its public-slot fixture: seven
 mounted cases covering single/multiple layout visibility, the real content
 editor, actions-inline/footer/footer-right scopes and editor actions. The
-current total is 154 mounts + 10 utilities; the baseline table above describes
-only the independently mergeable migration. Three Suggestion regressions remain
-reserved for the next fix.
+slot-only total is 154 mounts + 10 utilities; the baseline table above describes
+only the independently mergeable migration.
+
+The Suggestion fix adds three mounted cases to SenderSuggestion.spec.ts:
+SUGGESTION-04 verifies Ref-only item refresh, SUGGESTION-16 verifies real-key
+close/clear/re-entry, and SUGGESTION-16A checks synchronous close/clear/input
+transactions against the real editor and plugin state. The final suite contains
+157 mounted tests + 10 utilities = 167 runner cases in 15 files, plus five E2E.
+The ten reserved tests are now delivered; other known boundaries above remain.
