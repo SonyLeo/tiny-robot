@@ -19,6 +19,48 @@ const createTestMessageEngine = (options: CreateMessageEngineOptions) =>
   createMessageEngine(createNativeMessageAdapter(), options)
 
 describe('createMessageEngine', () => {
+  it('updates a current message in place and rejects a foreign reference', () => {
+    const message: ChatMessage = { role: 'assistant', content: 'ready', state: { toolCall: { a: { status: 'pending' } } } }
+    const engine = createTestMessageEngine({ initialMessages: [message], plugins: silentDefaultPlugins })
+    const revisions: number[] = []
+    engine.subscribe('messages', () => revisions.push(revisions.length))
+
+    engine.updateMessage(message, (current) => {
+      current.state!.toolCall = { a: { status: 'success' } }
+    })
+
+    expect(engine.getState().messages[0]).toBe(message)
+    expect((message.state?.toolCall as { a: { status: string } }).a.status).toBe('success')
+    expect(revisions).toHaveLength(2)
+    expect(() => engine.updateMessage({ role: 'assistant', content: 'ready' }, () => {})).toThrow(
+      'Message is no longer in this engine',
+    )
+    expect(revisions).toHaveLength(2)
+  })
+
+  it('ignores a response chunk yielded after cancellation', async () => {
+    let release!: () => void
+    const gate = new Promise<void>((resolve) => { release = resolve })
+    const engine = createTestMessageEngine({
+      plugins: silentDefaultPlugins,
+      responseProvider: async function* () {
+        await gate
+        yield {
+          id: 'late', object: 'chat.completion.chunk', created: 0, model: 'test',
+          choices: [{ index: 0, delta: { content: 'late' }, finish_reason: 'stop' }],
+        }
+      },
+    })
+    const sending = engine.sendMessage('cancel')
+    await Promise.resolve()
+    await Promise.resolve()
+    const cancelling = engine.abort()
+    release()
+    await Promise.all([sending, cancelling])
+    expect(engine.getState().requestState).toBe('aborted')
+    expect(engine.getState().messages.some((message) => message.content === 'late')).toBe(false)
+  })
+
   it('throws when adapter is initialized more than once', () => {
     const adapter = createNativeMessageAdapter()
 
@@ -477,13 +519,15 @@ describe('createMessageEngine', () => {
       responseProvider: mockResponseProvider(['first chunk', ' second chunk'], 100),
     })
 
+    let firstChunkSeen!: () => void
+    const firstChunk = new Promise<void>((resolve) => { firstChunkSeen = resolve })
+    const unsubscribe = engine.subscribe('messages', (state) => {
+      if (state.messages[1]?.content === 'first chunk') firstChunkSeen()
+    })
     const sendMessagePromise = engine.sendMessage('ping')
-
-    setTimeout(() => {
-      engine.abort()
-    }, 50)
-
-    await sendMessagePromise
+    await firstChunk
+    await Promise.all([sendMessagePromise, engine.abort()])
+    unsubscribe()
 
     const { messages, requestState } = engine.getState()
     expect(requestState).toBe('aborted')

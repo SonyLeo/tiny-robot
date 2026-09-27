@@ -1,0 +1,1 @@
+{"compilerOptions":{"target":"ES2022","module":"preserve","moduleResolution":"bundler","lib":["ES2022","dom"],"strict":true,"skipLibCheck":false,"experimentalDecorators":true,"useDefineForClassFields":false,"outDir":"dist/ts","types":[]},"angularCompilerOptions":{"strictTemplates":true},"files":["src/main.ts"],"include":["src/**/*.ts"]}

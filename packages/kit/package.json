@@ -45,6 +45,11 @@
       "import": "./dist/core.mjs",
       "require": "./dist/core.js"
     },
+    "./angular": {
+      "types": "./dist/angular.d.ts",
+      "import": "./dist/angular.mjs",
+      "require": "./dist/angular.js"
+    },
     "./node": {
       "types": "./dist/node.d.ts",
       "import": "./dist/node.mjs",
@@ -56,8 +61,8 @@
   ],
   "sideEffects": false,
   "scripts": {
-    "build": "tsup src/index.ts src/core.ts src/node.ts --format cjs,esm --dts --minify",
-    "dev": "tsup src/index.ts src/core.ts src/node.ts --format cjs,esm --dts --watch",
+    "build": "tsup src/index.ts src/core.ts src/angular.ts src/node.ts --format cjs,esm --dts --minify",
+    "dev": "tsup src/index.ts src/core.ts src/angular.ts src/node.ts --format cjs,esm --dts --watch",
     "lint": "eslint src",
     "pretest": "node scripts/download-skill-fixtures.mjs",
     "test": "vitest run",
@@ -66,19 +71,29 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "@angular/core": "^20.0.0",
     "@types/node": "^22.13.17",
     "fake-indexeddb": "^6.2.5",
-    "openai": "^6.34.0",
     "tsup": "^8.0.1",
     "typescript": "^5.8.2",
     "vite": "^6.4.3",
     "vitest": "^4.1.4"
   },
   "peerDependencies": {
+    "@angular/core": ">=20 <23",
     "vue": ">=3.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@angular/core": {
+      "optional": true
+    },
+    "vue": {
+      "optional": true
+    }
   },
   "dependencies": {
     "idb": "^8.0.3",
+    "openai": "^6.34.0",
     "yaml": "^2.8.3"
   }
 }

@@ -1,6 +1,5 @@
 import { ChatMessage } from '../types'
-import type { ConversationInfo } from '../vue/conversation/types'
-import type { ConversationStorageStrategy } from './types'
+import type { ConversationInfo, ConversationStorageStrategy } from './types'
 import { transformMessages } from './utils'
 
 const getConversations = (storageKey: string) => {

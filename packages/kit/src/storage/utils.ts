@@ -1,13 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { toRaw } from 'vue'
 import { ChatMessage } from '../types'
 
 /**
- * 递归解包 Proxy 对象，将 Vue 响应式对象转换为普通对象
+ * 递归复制 Proxy 对象，将响应式对象转换为普通对象
  * 同时移除不可序列化的内容（函数、Symbol 等）
  *
  * @param value - 要解包的值
- * @param visited - 用于检测循环引用和共享引用的 WeakMap，映射原始对象到其克隆对象
+ * @param visited - 用于检测循环引用和共享引用的 WeakMap，映射源对象到其克隆对象
  * @returns 解包后的普通对象
  */
 export function unwrapProxy<T>(value: T, visited: WeakMap<object, any> = new WeakMap()): T {
@@ -22,47 +21,46 @@ export function unwrapProxy<T>(value: T, visited: WeakMap<object, any> = new Wea
   }
 
   try {
-    // 使用 Vue 的 toRaw 解包响应式对象
-    const rawValue: any = toRaw(value)
+    const source: any = value
 
     // 如果已经处理过该对象，返回之前创建的克隆对象（处理循环引用和共享引用）
-    if (visited.has(rawValue)) {
-      return visited.get(rawValue)
+    if (visited.has(source)) {
+      return visited.get(source)
     }
 
     // 处理数组
-    if (Array.isArray(rawValue)) {
+    if (Array.isArray(source)) {
       // 先创建空数组并存储到 visited，避免循环引用问题
       const arr: any[] = []
-      visited.set(rawValue, arr)
+      visited.set(source, arr)
       // 然后填充数组内容
-      arr.push(...rawValue.map((item: any) => unwrapProxy(item, visited)))
+      arr.push(...source.map((item: any) => unwrapProxy(item, visited)))
       return arr as T
     }
 
     // 处理 Date 对象
-    if (rawValue instanceof Date) {
-      return rawValue as T
+    if (source instanceof Date) {
+      return source as T
     }
 
     // 处理 RegExp 对象
-    if (rawValue instanceof RegExp) {
-      return rawValue as T
+    if (source instanceof RegExp) {
+      return source as T
     }
 
     // 处理 ArrayBuffer、Blob 等二进制对象（IndexedDB 支持）
-    if (rawValue instanceof ArrayBuffer || rawValue instanceof Blob) {
-      return rawValue as T
+    if (source instanceof ArrayBuffer || source instanceof Blob) {
+      return source as T
     }
 
     // 处理普通对象
     // 先创建空对象并存储到 visited，避免循环引用问题
     const result: any = {}
-    visited.set(rawValue, result)
+    visited.set(source, result)
 
     // 使用 Object.keys 而不是 for...in，确保只处理自有属性
-    for (const key of Object.keys(rawValue)) {
-      const descriptor = Object.getOwnPropertyDescriptor(rawValue, key)
+    for (const key of Object.keys(source)) {
+      const descriptor = Object.getOwnPropertyDescriptor(source, key)
       if (!descriptor) {
         continue
       }
@@ -72,7 +70,7 @@ export function unwrapProxy<T>(value: T, visited: WeakMap<object, any> = new Wea
         continue
       }
 
-      const propValue = rawValue[key]
+      const propValue = source[key]
 
       // 跳过函数
       if (typeof propValue === 'function') {

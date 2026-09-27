@@ -1,4 +1,4 @@
-export * from './message/adapters'
+export * from './message/adapters/native'
 export * from './message/core'
 export * from './message/plugins'
 export * from './message/types'

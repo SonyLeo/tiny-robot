@@ -87,6 +87,8 @@ export interface MessageEngine {
   abort(): Promise<void>
   setResponseProvider(provider: ResponseProvider): void
   dispatchCommand<Result = unknown>(command: string, payload?: unknown): Promise<Result>
+  /** Updates a current message in place and notifies message subscribers. */
+  updateMessage(message: ChatMessage, recipe: (message: ChatMessage) => void): void
 }
 
 export type MessageUpdateKind = 'messages' | 'requestState'

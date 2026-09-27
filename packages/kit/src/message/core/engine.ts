@@ -176,6 +176,15 @@ export const createMessageEngine = (
     return createdMessages
   }
 
+  const updateMessage: MessageEngine['updateMessage'] = (message, recipe) => {
+    mutate('messages', (draft) => {
+      if (!draft.messages.includes(message)) {
+        throw new Error('Message is no longer in this engine')
+      }
+      recipe(message)
+    })
+  }
+
   // Create base context for plugins
   const getBaseContext = (abortSignal: AbortSignal): BasePluginContext => ({
     getState,
@@ -313,6 +322,9 @@ export const createMessageEngine = (
       const turnResponseProvider = runtime.responseProvider
 
       try {
+        if (ac.signal.aborted) {
+          throw new AbortError('Aborted')
+        }
         await executeRequest(turnResponseProvider, ac.signal, { setAssistantMessage })
         await finishTurnAfterRequest(ac.signal)
       } catch (error) {
@@ -512,6 +524,9 @@ export const createMessageEngine = (
     for (const plugin of plugins.filter((plugin) => !isPluginDisabled(plugin, baseContext))) {
       await plugin.onBeforeRequest?.({ ...baseContext, requestBody })
     }
+    if (abortSignal.aborted) {
+      throw new AbortError('Aborted')
+    }
     runRequestBodyFinalizers(requestBody)
 
     // 请求前对消息进行清洗，去掉不必要的字段
@@ -527,6 +542,9 @@ export const createMessageEngine = (
     let lastChoice: ChatCompletionChoice | undefined = undefined
 
     for await (const chunk of chunks) {
+      if (abortSignal.aborted) {
+        throw new AbortError('Aborted')
+      }
       setRequestState('processing', 'completing')
 
       mutate('messages', (_, skipNotify) => {
@@ -610,6 +628,9 @@ export const createMessageEngine = (
       }
     }
 
+    if (abortSignal.aborted) {
+      throw new AbortError('Aborted')
+    }
     await postRequest(assistantMessage, responseProvider, abortSignal, lastChoice, options)
   }
 
@@ -746,6 +767,7 @@ export const createMessageEngine = (
     send,
     abort,
     dispatchCommand,
+    updateMessage,
     setResponseProvider(provider) {
       runtime.responseProvider = provider
     },

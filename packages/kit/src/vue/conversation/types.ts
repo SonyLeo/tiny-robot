@@ -1,19 +1,8 @@
 import type { ComputedRef, Ref } from 'vue'
-import { ConversationStorageStrategy } from '../../storage'
+import type { ConversationInfo, ConversationStorageStrategy } from '../../storage/types'
 import { UseMessageOptions, UseMessageReturn } from '../message/types'
 
-export interface ConversationInfo {
-  /** 会话ID */
-  id: string
-  /** 会话标题 */
-  title?: string
-  /** 创建时间 */
-  createdAt: number
-  /** 更新时间 */
-  updatedAt: number
-  /** 自定义元数据 */
-  metadata?: Record<string, unknown>
-}
+export type { ConversationInfo } from '../../storage/types'
 
 export interface Conversation extends ConversationInfo {
   /**

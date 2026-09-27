@@ -1,5 +1,17 @@
 import { ChatMessage, MaybePromise } from '../types'
-import type { ConversationInfo } from '../vue/conversation/types'
+
+export interface ConversationInfo {
+  /** 会话ID */
+  id: string
+  /** 会话标题 */
+  title?: string
+  /** 创建时间 */
+  createdAt: number
+  /** 更新时间 */
+  updatedAt: number
+  /** 自定义元数据 */
+  metadata?: Record<string, unknown>
+}
 
 /**
  * 存储策略接口
