@@ -1,0 +1,657 @@
+{
+  "variant": "direct-no-suggestion",
+  "note": "Rollup renderedLength is before final minification; group totals estimate contribution, not compressed bytes.",
+  "totalRenderedBytes": 3995630,
+  "groups": [
+    {
+      "name": "workspace/components",
+      "renderedBytes": 690544
+    },
+    {
+      "name": "@opentiny/vue-renderless",
+      "renderedBytes": 293612
+    },
+    {
+      "name": "@vue/runtime-core",
+      "renderedBytes": 277275
+    },
+    {
+      "name": "prosemirror-view",
+      "renderedBytes": 247695
+    },
+    {
+      "name": "@tiptap/core",
+      "renderedBytes": 168353
+    },
+    {
+      "name": "markdown-it",
+      "renderedBytes": 166072
+    },
+    {
+      "name": "workspace/chat",
+      "renderedBytes": 146453
+    },
+    {
+      "name": "dompurify",
+      "renderedBytes": 132979
+    },
+    {
+      "name": "prosemirror-model",
+      "renderedBytes": 124861
+    },
+    {
+      "name": "workspace/svgs",
+      "renderedBytes": 117899
+    },
+    {
+      "name": "@opentiny/vue-locale",
+      "renderedBytes": 106976
+    },
+    {
+      "name": "@opentiny/vue-base-select",
+      "renderedBytes": 103638
+    },
+    {
+      "name": "@opentiny/utils",
+      "renderedBytes": 91284
+    },
+    {
+      "name": "@better-scroll/core",
+      "renderedBytes": 89564
+    },
+    {
+      "name": "prosemirror-transform",
+      "renderedBytes": 84203
+    },
+    {
+      "name": "entities",
+      "renderedBytes": 68506
+    },
+    {
+      "name": "@vue/runtime-dom",
+      "renderedBytes": 63843
+    },
+    {
+      "name": "@opentiny/vue-input",
+      "renderedBytes": 57151
+    },
+    {
+      "name": "@vue/reactivity",
+      "renderedBytes": 53330
+    },
+    {
+      "name": "workspace/kit",
+      "renderedBytes": 49395
+    },
+    {
+      "name": "@opentiny/vue-icon",
+      "renderedBytes": 40711
+    },
+    {
+      "name": "@opentiny/vue-tabs",
+      "renderedBytes": 37234
+    },
+    {
+      "name": "prosemirror-state",
+      "renderedBytes": 36017
+    },
+    {
+      "name": "@opentiny/vue-common",
+      "renderedBytes": 35632
+    },
+    {
+      "name": "@opentiny/vue-search",
+      "renderedBytes": 33411
+    },
+    {
+      "name": "jsonrepair",
+      "renderedBytes": 33156
+    },
+    {
+      "name": "@vueuse/core",
+      "renderedBytes": 30659
+    },
+    {
+      "name": "@floating-ui/dom",
+      "renderedBytes": 25562
+    },
+    {
+      "name": "prosemirror-commands",
+      "renderedBytes": 25363
+    },
+    {
+      "name": "@opentiny/vue-tooltip",
+      "renderedBytes": 24876
+    },
+    {
+      "name": "@opentiny/vue-drawer",
+      "renderedBytes": 24786
+    },
+    {
+      "name": "linkify-it",
+      "renderedBytes": 23416
+    },
+    {
+      "name": "@opentiny/vue-dialog-box",
+      "renderedBytes": 22621
+    },
+    {
+      "name": "@opentiny/vue-switch",
+      "renderedBytes": 20354
+    },
+    {
+      "name": "@opentiny/vue-carousel",
+      "renderedBytes": 19598
+    },
+    {
+      "name": "@floating-ui/core",
+      "renderedBytes": 19245
+    },
+    {
+      "name": "@opentiny/vue-radio",
+      "renderedBytes": 17989
+    },
+    {
+      "name": "@opentiny/vue-popconfirm",
+      "renderedBytes": 17789
+    },
+    {
+      "name": "prosemirror-history",
+      "renderedBytes": 17094
+    },
+    {
+      "name": "@vue/shared",
+      "renderedBytes": 16684
+    },
+    {
+      "name": "@opentiny/vue-button",
+      "renderedBytes": 16458
+    },
+    {
+      "name": "unicode-segmenter",
+      "renderedBytes": 16402
+    },
+    {
+      "name": "@opentiny/vue-dropdown",
+      "renderedBytes": 16200
+    },
+    {
+      "name": "@opentiny/vue-select-dropdown",
+      "renderedBytes": 15775
+    },
+    {
+      "name": "@opentiny/vue-popover",
+      "renderedBytes": 15513
+    },
+    {
+      "name": "mdurl",
+      "renderedBytes": 15349
+    },
+    {
+      "name": "punycode.js",
+      "renderedBytes": 12667
+    },
+    {
+      "name": "@opentiny/vue-dropdown-item",
+      "renderedBytes": 12531
+    },
+    {
+      "name": "@opentiny/vue-button-group",
+      "renderedBytes": 12490
+    },
+    {
+      "name": "@opentiny/vue-radio-button",
+      "renderedBytes": 12346
+    },
+    {
+      "name": "@tiptap/vue-3",
+      "renderedBytes": 11937
+    },
+    {
+      "name": "@opentiny/vue-directive",
+      "renderedBytes": 11706
+    },
+    {
+      "name": "@opentiny/vue-option",
+      "renderedBytes": 11098
+    },
+    {
+      "name": "@tiptap/extensions",
+      "renderedBytes": 11008
+    },
+    {
+      "name": "@opentiny/vue-action-sheet",
+      "renderedBytes": 10701
+    },
+    {
+      "name": "@opentiny/vue-dropdown-menu",
+      "renderedBytes": 10194
+    },
+    {
+      "name": "@opentiny/vue-tag",
+      "renderedBytes": 9965
+    },
+    {
+      "name": "@opentiny/vue-recycle-scroller",
+      "renderedBytes": 9536
+    },
+    {
+      "name": "@floating-ui/utils",
+      "renderedBytes": 9346
+    },
+    {
+      "name": "@vueuse/shared",
+      "renderedBytes": 9071
+    },
+    {
+      "name": "@opentiny/vue-radio-group",
+      "renderedBytes": 9043
+    },
+    {
+      "name": "@opentiny/vue-hooks",
+      "renderedBytes": 8822
+    },
+    {
+      "name": "@opentiny/vue-carousel-item",
+      "renderedBytes": 8667
+    },
+    {
+      "name": "prosemirror-gapcursor",
+      "renderedBytes": 8348
+    },
+    {
+      "name": "rope-sequence",
+      "renderedBytes": 7265
+    },
+    {
+      "name": "prosemirror-schema-list",
+      "renderedBytes": 7083
+    },
+    {
+      "name": "prosemirror-dropcursor",
+      "renderedBytes": 6647
+    },
+    {
+      "name": "uc.micro",
+      "renderedBytes": 5099
+    },
+    {
+      "name": "@opentiny/vue-filter-box",
+      "renderedBytes": 4931
+    },
+    {
+      "name": "@opentiny/vue-tab-item",
+      "renderedBytes": 4843
+    },
+    {
+      "name": "prosemirror-keymap",
+      "renderedBytes": 4790
+    },
+    {
+      "name": "orderedmap",
+      "renderedBytes": 4382
+    },
+    {
+      "name": "@opentiny/vue-scrollbar",
+      "renderedBytes": 4105
+    },
+    {
+      "name": "w3c-keyname",
+      "renderedBytes": 2653
+    },
+    {
+      "name": "@tiptap/extension-paragraph",
+      "renderedBytes": 1518
+    },
+    {
+      "name": "vue",
+      "renderedBytes": 436
+    },
+    {
+      "name": "@tiptap/extension-document",
+      "renderedBytes": 294
+    },
+    {
+      "name": "@tiptap/extension-text",
+      "renderedBytes": 272
+    },
+    {
+      "name": "other",
+      "renderedBytes": 161
+    },
+    {
+      "name": "@tiptap/extension-character-count",
+      "renderedBytes": 51
+    },
+    {
+      "name": "@tiptap/extension-placeholder",
+      "renderedBytes": 50
+    },
+    {
+      "name": "@tiptap/extension-history",
+      "renderedBytes": 47
+    }
+  ],
+  "topModules": [
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@vue+runtime-core@3.5.42/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js",
+      "renderedBytes": 277275
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/prosemirror-view@1.42.3/node_modules/prosemirror-view/dist/index.js",
+      "renderedBytes": 247695
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@tiptap+core@3.17.1_@tiptap+pm@3.17.1/node_modules/@tiptap/core/dist/index.js",
+      "renderedBytes": 168353
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/dompurify@3.4.15/node_modules/dompurify/dist/purify.es.mjs",
+      "renderedBytes": 132979
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/prosemirror-model@1.25.11/node_modules/prosemirror-model/dist/index.js",
+      "renderedBytes": 124861
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-locale@3.31.0/node_modules/@opentiny/vue-locale/lib/index.js",
+      "renderedBytes": 106976
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/packages/components/src/assets/loading.webp",
+      "renderedBytes": 96341
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+utils@3.31.0_patc_e6573d1db89d6af0641c9dc01c2f9b0d/node_modules/@opentiny/utils/dist/index.es.js",
+      "renderedBytes": 91284
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@better-scroll+core@2.5.0/node_modules/@better-scroll/core/dist/core.esm.js",
+      "renderedBytes": 89564
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/prosemirror-transform@1.12.1/node_modules/prosemirror-transform/dist/index.js",
+      "renderedBytes": 84203
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@vue+runtime-dom@3.5.42/node_modules/@vue/runtime-dom/dist/runtime-dom.esm-bundler.js",
+      "renderedBytes": 63843
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@vue+reactivity@3.5.42/node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js",
+      "renderedBytes": 53330
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-renderless@3._4541b456dae2ec0da87a6431b9b93fc4/node_modules/@opentiny/vue-renderless/base-select/index.js",
+      "renderedBytes": 52889
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-base-select@3.31.0/node_modules/@opentiny/vue-base-select/lib/mobile-first.js",
+      "renderedBytes": 48825
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/entities@4.5.0/node_modules/entities/lib/esm/generated/decode-data-html.js",
+      "renderedBytes": 47687
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-base-select@3.31.0/node_modules/@opentiny/vue-base-select/lib/pc.js",
+      "renderedBytes": 46390
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/prosemirror-state@1.4.4/node_modules/prosemirror-state/dist/index.js",
+      "renderedBytes": 36017
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-common@3.31.0/node_modules/@opentiny/vue-common/lib/index.js",
+      "renderedBytes": 35632
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/packages/chat/src/ChatUI.vue?vue&type=script&setup=true&lang.ts",
+      "renderedBytes": 34707
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@vueuse+core@13.9.0_vue@3.5.42_typescript@5.9.3_/node_modules/@vueuse/core/index.mjs",
+      "renderedBytes": 30659
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-input@3.31.0/node_modules/@opentiny/vue-input/lib/mobile-first.js",
+      "renderedBytes": 28307
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@floating-ui+dom@1.8.0/node_modules/@floating-ui/dom/dist/floating-ui.dom.mjs",
+      "renderedBytes": 25562
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/prosemirror-commands@1.7.2/node_modules/prosemirror-commands/dist/index.js",
+      "renderedBytes": 25363
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/jsonrepair@3.15.0/node_modules/jsonrepair/lib/esm/regular/jsonrepair.js",
+      "renderedBytes": 24996
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-input@3.31.0/node_modules/@opentiny/vue-input/lib/pc.js",
+      "renderedBytes": 24757
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-search@3.31.0/node_modules/@opentiny/vue-search/lib/mobile-first.js",
+      "renderedBytes": 20905
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/packages/components/src/sender/extensions/template/block/plugins.ts",
+      "renderedBytes": 19665
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@floating-ui+core@1.8.0/node_modules/@floating-ui/core/dist/floating-ui.core.mjs",
+      "renderedBytes": 19245
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/entities@4.5.0/node_modules/entities/lib/esm/decode.js",
+      "renderedBytes": 18866
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/packages/kit/src/message/core/engine.ts",
+      "renderedBytes": 18686
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-renderless@3._4541b456dae2ec0da87a6431b9b93fc4/node_modules/@opentiny/vue-renderless/base-select/vue.js",
+      "renderedBytes": 18391
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/linkify-it@5.0.2/node_modules/linkify-it/index.mjs",
+      "renderedBytes": 17778
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-tabs@3.31.0/node_modules/@opentiny/vue-tabs/lib/pc.js",
+      "renderedBytes": 17738
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/packages/components/src/mcp-server-picker/index.vue?vue&type=script&setup=true&lang.ts",
+      "renderedBytes": 17359
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/markdown-it@14.3.2/node_modules/markdown-it/lib/index.mjs",
+      "renderedBytes": 17343
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-tabs@3.31.0/node_modules/@opentiny/vue-tabs/lib/mobile-first.js",
+      "renderedBytes": 17207
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/prosemirror-history@1.5.0/node_modules/prosemirror-history/dist/index.js",
+      "renderedBytes": 17094
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-renderless@3._4541b456dae2ec0da87a6431b9b93fc4/node_modules/@opentiny/vue-renderless/recycle-scroller/index.js",
+      "renderedBytes": 16844
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@vue+shared@3.5.42/node_modules/@vue/shared/dist/shared.esm-bundler.js",
+      "renderedBytes": 16684
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-tooltip@3.31.0/node_modules/@opentiny/vue-tooltip/lib/mobile-first.js",
+      "renderedBytes": 13647
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/packages/chat/src/Chat.vue?vue&type=script&setup=true&lang.ts",
+      "renderedBytes": 13418
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-switch@3.31.0/node_modules/@opentiny/vue-switch/lib/mobile-first.js",
+      "renderedBytes": 12841
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/punycode.js@2.3.1/node_modules/punycode.js/punycode.es6.js",
+      "renderedBytes": 12667
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/packages/components/src/model-selector/index.vue?vue&type=script&setup=true&lang.ts",
+      "renderedBytes": 12394
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/packages/components/src/mcp-extension-form/components/FormEditor.vue?vue&type=script&setup=true&lang.ts",
+      "renderedBytes": 12271
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-renderless@3._4541b456dae2ec0da87a6431b9b93fc4/node_modules/@opentiny/vue-renderless/input/index.js",
+      "renderedBytes": 12243
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@tiptap+vue-3@3.17.1_@float_116253ec6d4eceb90b9daa854361243b/node_modules/@tiptap/vue-3/dist/index.js",
+      "renderedBytes": 11937
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/packages/chat/src/composables/useChatRuntimeAdapter.ts",
+      "renderedBytes": 11792
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-directive@3.31.0/node_modules/@opentiny/vue-directive/index.js",
+      "renderedBytes": 11706
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-drawer@3.31.0/node_modules/@opentiny/vue-drawer/lib/pc.js",
+      "renderedBytes": 11316
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-radio@3.31.0/node_modules/@opentiny/vue-radio/lib/mobile-first.js",
+      "renderedBytes": 11209
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/packages/components/src/history/index.vue?vue&type=script&setup=true&lang.ts",
+      "renderedBytes": 11122
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/packages/components/src/sender/extensions/suggestion/plugin.ts",
+      "renderedBytes": 11094
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@tiptap+extensions@3.17.1_@_b61b522872e112785e4399ba15e7af9b/node_modules/@tiptap/extensions/dist/index.js",
+      "renderedBytes": 11008
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-select-dropdown@3.31.0/node_modules/@opentiny/vue-select-dropdown/lib/mobile-first.js",
+      "renderedBytes": 10839
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-button-group@3.31.0/node_modules/@opentiny/vue-button-group/lib/pc.js",
+      "renderedBytes": 10613
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/packages/components/src/model-selector/components/ModelSelectorPanel.vue?vue&type=script&setup=true&lang.ts",
+      "renderedBytes": 10236
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-renderless@3._4541b456dae2ec0da87a6431b9b93fc4/node_modules/@opentiny/vue-renderless/tab-nav/index.js",
+      "renderedBytes": 10108
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-dialog-box@3.31.0/node_modules/@opentiny/vue-dialog-box/lib/mobile-first.js",
+      "renderedBytes": 9965
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-search@3.31.0/node_modules/@opentiny/vue-search/lib/pc.js",
+      "renderedBytes": 9953
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-button@3.31.0/node_modules/@opentiny/vue-button/lib/mobile-first.js",
+      "renderedBytes": 9833
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/mdurl@2.1.0/node_modules/mdurl/lib/parse.mjs",
+      "renderedBytes": 9792
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/packages/components/src/mcp-server-picker/components/PluginCard.vue?vue&type=script&setup=true&lang.ts",
+      "renderedBytes": 9769
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/packages/components/src/attachments/components/FileCard.vue?vue&type=script&setup=true&lang.ts",
+      "renderedBytes": 9757
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-renderless@3._4541b456dae2ec0da87a6431b9b93fc4/node_modules/@opentiny/vue-renderless/input/vue.js",
+      "renderedBytes": 9734
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/packages/chat/src/ui/layout/ChatLeftAside.vue?vue&type=script&setup=true&lang.ts",
+      "renderedBytes": 9730
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/packages/components/src/layout/Layout.vue?vue&type=script&setup=true&lang.ts",
+      "renderedBytes": 9471
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-renderless@3._4541b456dae2ec0da87a6431b9b93fc4/node_modules/@opentiny/vue-renderless/tabs-mf/index.js",
+      "renderedBytes": 9188
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-carousel@3.31.0/node_modules/@opentiny/vue-carousel/lib/mobile-first.js",
+      "renderedBytes": 9168
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/packages/components/src/suggestion-popover/index.vue?vue&type=script&setup=true&lang.tsx",
+      "renderedBytes": 9105
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/markdown-it@14.3.2/node_modules/markdown-it/lib/rules_block/list.mjs",
+      "renderedBytes": 9100
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@vueuse+shared@13.9.0_vue@3.5.42_typescript@5.9.3_/node_modules/@vueuse/shared/index.mjs",
+      "renderedBytes": 9071
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-drawer@3.31.0/node_modules/@opentiny/vue-drawer/lib/mobile-first.js",
+      "renderedBytes": 9003
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/unicode-segmenter@0.14.5/node_modules/unicode-segmenter/grapheme.js",
+      "renderedBytes": 8932
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-popover@3.31.0/node_modules/@opentiny/vue-popover/lib/mobile-first.js",
+      "renderedBytes": 8907
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/markdown-it@14.3.2/node_modules/markdown-it/lib/renderer.mjs",
+      "renderedBytes": 8886
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/packages/components/src/sender-compat/index.vue?vue&type=script&setup=true&lang.ts",
+      "renderedBytes": 8788
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-popconfirm@3.31.0/node_modules/@opentiny/vue-popconfirm/lib/mobile-first.js",
+      "renderedBytes": 8744
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-renderless@3._4541b456dae2ec0da87a6431b9b93fc4/node_modules/@opentiny/vue-renderless/carousel/index.js",
+      "renderedBytes": 8677
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/packages/svgs/src/components/IconEmptySearch.vue",
+      "renderedBytes": 8613
+    }
+  ]
+}

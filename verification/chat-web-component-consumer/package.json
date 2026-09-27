@@ -1,0 +1,8 @@
+{
+  "name": "tiny-robot-chat-wc-consumer-check",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@opentiny/tiny-robot-chat-web-component": "file:./opentiny-tiny-robot-chat-web-component-0.5.1.tgz"
+  }
+}

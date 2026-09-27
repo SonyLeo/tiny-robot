@@ -1,0 +1,22 @@
+{
+  "name": "@opentiny/tiny-robot-chat-web-component",
+  "version": "0.5.1",
+  "license": "MIT",
+  "description": "Self-contained TinyRobot Chat Web Component",
+  "homepage": "https://docs.opentiny.design/tiny-robot/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/opentiny/tiny-robot.git"
+  },
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist/*.js", "dist/index.d.ts", "README*"],
+  "scripts": {
+    "build": "pnpm --dir ../chat build:web-component"
+  }
+}

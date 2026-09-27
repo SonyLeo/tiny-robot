@@ -1,0 +1,44 @@
+{
+  "result": "pass",
+  "totalJsGzipBytes": 650237,
+  "totalCssGzipBytes": 55718,
+  "files": [
+    {
+      "name": "index-CmsJFt3k.js",
+      "bytes": 12097,
+      "gzipBytes": 3614,
+      "sha256": "a55c8cbadcdad04bd7914f3366582fd82aa03554d9a268d838fafbd6e0edc49b"
+    },
+    {
+      "name": "index-_sffDIhE.js",
+      "bytes": 138831,
+      "gzipBytes": 52085,
+      "sha256": "a7c03e57da876a0f5721b87b70b26640dcd635f9cfaf9c6122dc538b988336e6"
+    },
+    {
+      "name": "index.js",
+      "bytes": 2275089,
+      "gzipBytes": 580818,
+      "sha256": "cdd8bb37647daa73b91cfac82768b689294d805a267ea7420b20926df1a93fb9"
+    },
+    {
+      "name": "purify.es-CImoWRjX.js",
+      "bytes": 41708,
+      "gzipBytes": 13720,
+      "sha256": "eef0ddcfd267a249ccbb13f448f8d1586edec5cbb53dac89184e491d5781cda3"
+    },
+    {
+      "name": "style.css",
+      "bytes": 449055,
+      "gzipBytes": 55718,
+      "sha256": "14de036547603500ea8653e32e7177b6ab9464d2276c8857bbb096f12d7f6f83"
+    }
+  ],
+  "excludedDependencyGroups": [
+    "echarts",
+    "zrender",
+    "@opentiny/vue-grid",
+    "@opentiny/fluent-editor",
+    "quill"
+  ]
+}

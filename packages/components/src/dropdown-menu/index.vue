@@ -98,7 +98,7 @@ const handleTriggerKeydown = (event: KeyboardEvent) => {
 
 const handleMenuKeydown = (event: KeyboardEvent) => {
   const items = getMenuItems()
-  const currentIndex = items.indexOf(document.activeElement as HTMLElement)
+  const currentIndex = items.indexOf(event.target as HTMLElement)
 
   if (event.key === 'Tab') {
     if (props.trigger !== 'manual') show.value = false

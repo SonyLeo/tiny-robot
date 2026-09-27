@@ -264,7 +264,9 @@ export function createSuggestionPlugin(options: PluginOptions): Plugin {
               popup = component.element as HTMLElement
               popup.style.position = 'absolute'
               popup.style.zIndex = '1000'
-              document.body.appendChild(popup)
+              const root = view.dom.getRootNode()
+              const target = view.dom.closest('[data-tr-theme]') ?? (root instanceof ShadowRoot ? root : document.body)
+              target.appendChild(popup)
             } else {
               // 更新 props
               component.updateProps({

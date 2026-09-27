@@ -1,0 +1,1397 @@
+{
+  "variant": "no-suggestion",
+  "note": "Rollup renderedLength is before final minification; group totals estimate contribution, not compressed bytes.",
+  "totalRenderedBytes": 13329609,
+  "groups": [
+    {
+      "name": "echarts",
+      "renderedBytes": 2264450
+    },
+    {
+      "name": "@opentiny/vue-renderless",
+      "renderedBytes": 1891713
+    },
+    {
+      "name": "workspace/components",
+      "renderedBytes": 690652
+    },
+    {
+      "name": "@opentiny/vue-grid",
+      "renderedBytes": 583489
+    },
+    {
+      "name": "zrender",
+      "renderedBytes": 543189
+    },
+    {
+      "name": "@opentiny/fluent-editor",
+      "renderedBytes": 393696
+    },
+    {
+      "name": "@vue/runtime-core",
+      "renderedBytes": 278085
+    },
+    {
+      "name": "prosemirror-view",
+      "renderedBytes": 247693
+    },
+    {
+      "name": "@opentiny/vue-icon",
+      "renderedBytes": 236211
+    },
+    {
+      "name": "quill",
+      "renderedBytes": 227464
+    },
+    {
+      "name": "@opentiny/utils",
+      "renderedBytes": 174433
+    },
+    {
+      "name": "@tiptap/core",
+      "renderedBytes": 168318
+    },
+    {
+      "name": "@opentiny/vue-grid-toolbar",
+      "renderedBytes": 166621
+    },
+    {
+      "name": "markdown-it",
+      "renderedBytes": 166076
+    },
+    {
+      "name": "@opentiny/vue-query-builder",
+      "renderedBytes": 157974
+    },
+    {
+      "name": "workspace/chat",
+      "renderedBytes": 146501
+    },
+    {
+      "name": "shepherd.js",
+      "renderedBytes": 141254
+    },
+    {
+      "name": "@opentiny/vue-mind-map",
+      "renderedBytes": 136308
+    },
+    {
+      "name": "dompurify",
+      "renderedBytes": 132979
+    },
+    {
+      "name": "prosemirror-model",
+      "renderedBytes": 124864
+    },
+    {
+      "name": "workspace/svgs",
+      "renderedBytes": 117985
+    },
+    {
+      "name": "cropperjs",
+      "renderedBytes": 108664
+    },
+    {
+      "name": "@opentiny/vue-locale",
+      "renderedBytes": 107033
+    },
+    {
+      "name": "@opentiny/vue-select",
+      "renderedBytes": 104222
+    },
+    {
+      "name": "@opentiny/vue-base-select",
+      "renderedBytes": 103806
+    },
+    {
+      "name": "@better-scroll/core",
+      "renderedBytes": 89704
+    },
+    {
+      "name": "lodash-es",
+      "renderedBytes": 88655
+    },
+    {
+      "name": "prosemirror-transform",
+      "renderedBytes": 84203
+    },
+    {
+      "name": "@opentiny/vue-upload-list",
+      "renderedBytes": 69857
+    },
+    {
+      "name": "entities",
+      "renderedBytes": 68506
+    },
+    {
+      "name": "@opentiny/vue-qr-code",
+      "renderedBytes": 66597
+    },
+    {
+      "name": "@opentiny/vue-steps",
+      "renderedBytes": 65656
+    },
+    {
+      "name": "@vue/runtime-dom",
+      "renderedBytes": 63990
+    },
+    {
+      "name": "@opentiny/vue-input",
+      "renderedBytes": 57256
+    },
+    {
+      "name": "@vue/reactivity",
+      "renderedBytes": 53537
+    },
+    {
+      "name": "@opentiny/vue-calendar-view",
+      "renderedBytes": 52765
+    },
+    {
+      "name": "lodash.isequal",
+      "renderedBytes": 51453
+    },
+    {
+      "name": "workspace/kit",
+      "renderedBytes": 49403
+    },
+    {
+      "name": "@opentiny/vue-file-upload",
+      "renderedBytes": 47626
+    },
+    {
+      "name": "@opentiny/vue-pager",
+      "renderedBytes": 47226
+    },
+    {
+      "name": "lodash.clonedeep",
+      "renderedBytes": 46641
+    },
+    {
+      "name": "@opentiny/vue-date-range",
+      "renderedBytes": 44832
+    },
+    {
+      "name": "@opentiny/vue-image-viewer",
+      "renderedBytes": 44264
+    },
+    {
+      "name": "@opentiny/vue-date-panel",
+      "renderedBytes": 42269
+    },
+    {
+      "name": "@opentiny/vue-picker",
+      "renderedBytes": 39720
+    },
+    {
+      "name": "fast-diff",
+      "renderedBytes": 38833
+    },
+    {
+      "name": "@opentiny/vue-color-select-panel",
+      "renderedBytes": 38750
+    },
+    {
+      "name": "@opentiny/vue-tabs",
+      "renderedBytes": 37389
+    },
+    {
+      "name": "@opentiny/vue-tree",
+      "renderedBytes": 37297
+    },
+    {
+      "name": "@opentiny/vue-cascader",
+      "renderedBytes": 36831
+    },
+    {
+      "name": "@opentiny/vue-common",
+      "renderedBytes": 36778
+    },
+    {
+      "name": "prosemirror-state",
+      "renderedBytes": 36017
+    },
+    {
+      "name": "parchment",
+      "renderedBytes": 35466
+    },
+    {
+      "name": "@opentiny/vue-amount",
+      "renderedBytes": 35181
+    },
+    {
+      "name": "@opentiny/vue-numeric",
+      "renderedBytes": 35164
+    },
+    {
+      "name": "@opentiny/vue-search",
+      "renderedBytes": 33524
+    },
+    {
+      "name": "jsonrepair",
+      "renderedBytes": 33156
+    },
+    {
+      "name": "@opentiny/vue-time-spinner",
+      "renderedBytes": 32935
+    },
+    {
+      "name": "@opentiny/vue-card",
+      "renderedBytes": 31983
+    },
+    {
+      "name": "@vueuse/core",
+      "renderedBytes": 30673
+    },
+    {
+      "name": "@opentiny/vue-popeditor",
+      "renderedBytes": 30198
+    },
+    {
+      "name": "@opentiny/vue-slider",
+      "renderedBytes": 30013
+    },
+    {
+      "name": "@opentiny/vue-date-picker-mobile-first",
+      "renderedBytes": 28978
+    },
+    {
+      "name": "@opentiny/vue-form-item",
+      "renderedBytes": 28249
+    },
+    {
+      "name": "@opentiny/vue-modal",
+      "renderedBytes": 27412
+    },
+    {
+      "name": "quill-delta",
+      "renderedBytes": 25998
+    },
+    {
+      "name": "@opentiny/vue-select-wrapper",
+      "renderedBytes": 25987
+    },
+    {
+      "name": "@floating-ui/dom",
+      "renderedBytes": 25945
+    },
+    {
+      "name": "prosemirror-commands",
+      "renderedBytes": 25363
+    },
+    {
+      "name": "@opentiny/vue-slider-button-group",
+      "renderedBytes": 25142
+    },
+    {
+      "name": "@opentiny/vue-tooltip",
+      "renderedBytes": 24914
+    },
+    {
+      "name": "@opentiny/vue-drawer",
+      "renderedBytes": 24900
+    },
+    {
+      "name": "@opentiny/vue-flowchart",
+      "renderedBytes": 24830
+    },
+    {
+      "name": "@opentiny/vue-cascader-view",
+      "renderedBytes": 24678
+    },
+    {
+      "name": "linkify-it",
+      "renderedBytes": 23416
+    },
+    {
+      "name": "@opentiny/vue-dialog-box",
+      "renderedBytes": 22702
+    },
+    {
+      "name": "@opentiny/vue-calendar",
+      "renderedBytes": 22684
+    },
+    {
+      "name": "@opentiny/vue-select-view",
+      "renderedBytes": 21755
+    },
+    {
+      "name": "@opentiny/vue-cascader-mobile",
+      "renderedBytes": 20520
+    },
+    {
+      "name": "@opentiny/vue-switch",
+      "renderedBytes": 20427
+    },
+    {
+      "name": "@opentiny/vue-directive",
+      "renderedBytes": 20243
+    },
+    {
+      "name": "@opentiny/vue-loading",
+      "renderedBytes": 20181
+    },
+    {
+      "name": "@opentiny/vue-carousel",
+      "renderedBytes": 19657
+    },
+    {
+      "name": "@opentiny/vue-pop-upload",
+      "renderedBytes": 19430
+    },
+    {
+      "name": "@opentiny/vue-user",
+      "renderedBytes": 19334
+    },
+    {
+      "name": "@opentiny/vue-progress",
+      "renderedBytes": 19333
+    },
+    {
+      "name": "@floating-ui/core",
+      "renderedBytes": 19331
+    },
+    {
+      "name": "@opentiny/vue-year-range",
+      "renderedBytes": 18761
+    },
+    {
+      "name": "@opentiny/vue-time-line",
+      "renderedBytes": 18689
+    },
+    {
+      "name": "@opentiny/vue-alert",
+      "renderedBytes": 18614
+    },
+    {
+      "name": "@opentiny/vue-checkbox",
+      "renderedBytes": 18487
+    },
+    {
+      "name": "@opentiny/vue-radio",
+      "renderedBytes": 18071
+    },
+    {
+      "name": "@opentiny/vue-dialog-select",
+      "renderedBytes": 18037
+    },
+    {
+      "name": "@opentiny/vue-popconfirm",
+      "renderedBytes": 17876
+    },
+    {
+      "name": "@opentiny/vue-grid-select",
+      "renderedBytes": 17516
+    },
+    {
+      "name": "@opentiny/vue-split",
+      "renderedBytes": 17303
+    },
+    {
+      "name": "@opentiny/vue-nav-menu",
+      "renderedBytes": 17183
+    },
+    {
+      "name": "@opentiny/vue-column-list-item",
+      "renderedBytes": 17121
+    },
+    {
+      "name": "prosemirror-history",
+      "renderedBytes": 17094
+    },
+    {
+      "name": "@opentiny/vue-standard-list-item",
+      "renderedBytes": 16995
+    },
+    {
+      "name": "@opentiny/vue-select-mobile",
+      "renderedBytes": 16960
+    },
+    {
+      "name": "@vue/shared",
+      "renderedBytes": 16732
+    },
+    {
+      "name": "@opentiny/vue-filter",
+      "renderedBytes": 16728
+    },
+    {
+      "name": "@opentiny/vue-theme",
+      "renderedBytes": 16692
+    },
+    {
+      "name": "@opentiny/vue-timeline-item",
+      "renderedBytes": 16653
+    },
+    {
+      "name": "@opentiny/vue-selected-box",
+      "renderedBytes": 16577
+    },
+    {
+      "name": "@opentiny/vue-button",
+      "renderedBytes": 16497
+    },
+    {
+      "name": "unicode-segmenter",
+      "renderedBytes": 16402
+    },
+    {
+      "name": "@opentiny/vue-rate",
+      "renderedBytes": 16288
+    },
+    {
+      "name": "@opentiny/vue-dropdown",
+      "renderedBytes": 16284
+    },
+    {
+      "name": "@opentiny/vue-cascader-select",
+      "renderedBytes": 16278
+    },
+    {
+      "name": "@opentiny/vue-select-dropdown",
+      "renderedBytes": 15856
+    },
+    {
+      "name": "@opentiny/vue-tree-select",
+      "renderedBytes": 15683
+    },
+    {
+      "name": "@opentiny/vue-menu",
+      "renderedBytes": 15591
+    },
+    {
+      "name": "@opentiny/vue-popover",
+      "renderedBytes": 15588
+    },
+    {
+      "name": "mdurl",
+      "renderedBytes": 15349
+    },
+    {
+      "name": "@opentiny/vue-dept",
+      "renderedBytes": 14738
+    },
+    {
+      "name": "@opentiny/vue-wizard",
+      "renderedBytes": 13935
+    },
+    {
+      "name": "@opentiny/vue-collapse-item",
+      "renderedBytes": 13863
+    },
+    {
+      "name": "@opentiny/vue-pager-item",
+      "renderedBytes": 13372
+    },
+    {
+      "name": "@opentiny/vue-date-table",
+      "renderedBytes": 13339
+    },
+    {
+      "name": "@opentiny/vue-calendar-bar",
+      "renderedBytes": 13022
+    },
+    {
+      "name": "@opentiny/vue-guide",
+      "renderedBytes": 12891
+    },
+    {
+      "name": "@opentiny/vue-fluent-editor",
+      "renderedBytes": 12678
+    },
+    {
+      "name": "punycode.js",
+      "renderedBytes": 12667
+    },
+    {
+      "name": "@opentiny/vue-dropdown-item",
+      "renderedBytes": 12584
+    },
+    {
+      "name": "@opentiny/vue-user-link",
+      "renderedBytes": 12573
+    },
+    {
+      "name": "@opentiny/vue-cascader-node",
+      "renderedBytes": 12567
+    },
+    {
+      "name": "@opentiny/vue-button-group",
+      "renderedBytes": 12543
+    },
+    {
+      "name": "@opentiny/vue-radio-button",
+      "renderedBytes": 12447
+    },
+    {
+      "name": "@opentiny/vue-tag-group",
+      "renderedBytes": 12382
+    },
+    {
+      "name": "@opentiny/vue-transfer",
+      "renderedBytes": 12325
+    },
+    {
+      "name": "@opentiny/vue-exception",
+      "renderedBytes": 12223
+    },
+    {
+      "name": "@opentiny/vue-time",
+      "renderedBytes": 11977
+    },
+    {
+      "name": "@tiptap/vue-3",
+      "renderedBytes": 11939
+    },
+    {
+      "name": "@opentiny/vue-floating-button",
+      "renderedBytes": 11651
+    },
+    {
+      "name": "@opentiny/vue-user-head",
+      "renderedBytes": 11533
+    },
+    {
+      "name": "@opentiny/vue-image",
+      "renderedBytes": 11513
+    },
+    {
+      "name": "@opentiny/vue-slider-button",
+      "renderedBytes": 11487
+    },
+    {
+      "name": "@opentiny/vue-milestone",
+      "renderedBytes": 11400
+    },
+    {
+      "name": "@opentiny/vue-hooks",
+      "renderedBytes": 11310
+    },
+    {
+      "name": "@opentiny/vue-option",
+      "renderedBytes": 11171
+    },
+    {
+      "name": "@tiptap/extensions",
+      "renderedBytes": 11008
+    },
+    {
+      "name": "@opentiny/vue-action-sheet",
+      "renderedBytes": 10750
+    },
+    {
+      "name": "@opentiny/vue-autocomplete",
+      "renderedBytes": 10687
+    },
+    {
+      "name": "@opentiny/vue-tree-menu",
+      "renderedBytes": 10683
+    },
+    {
+      "name": "streamsaver",
+      "renderedBytes": 10629
+    },
+    {
+      "name": "@opentiny/vue-currency",
+      "renderedBytes": 10577
+    },
+    {
+      "name": "@opentiny/vue-badge",
+      "renderedBytes": 10541
+    },
+    {
+      "name": "@opentiny/vue-form",
+      "renderedBytes": 10385
+    },
+    {
+      "name": "@opentiny/vue-year-table",
+      "renderedBytes": 10282
+    },
+    {
+      "name": "@opentiny/vue-dropdown-menu",
+      "renderedBytes": 10247
+    },
+    {
+      "name": "@opentiny/vue-transfer-panel",
+      "renderedBytes": 10240
+    },
+    {
+      "name": "@opentiny/vue-upload",
+      "renderedBytes": 10056
+    },
+    {
+      "name": "@opentiny/vue-tag",
+      "renderedBytes": 10004
+    },
+    {
+      "name": "@opentiny/vue-area",
+      "renderedBytes": 9996
+    },
+    {
+      "name": "@opentiny/vue-tag-input",
+      "renderedBytes": 9829
+    },
+    {
+      "name": "@opentiny/vue-link-menu",
+      "renderedBytes": 9742
+    },
+    {
+      "name": "@opentiny/vue-month-range",
+      "renderedBytes": 9678
+    },
+    {
+      "name": "eventemitter3",
+      "renderedBytes": 9590
+    },
+    {
+      "name": "@opentiny/vue-recycle-scroller",
+      "renderedBytes": 9569
+    },
+    {
+      "name": "@floating-ui/utils",
+      "renderedBytes": 9490
+    },
+    {
+      "name": "@opentiny/vue-user-head-group",
+      "renderedBytes": 9418
+    },
+    {
+      "name": "@opentiny/vue-time-panel",
+      "renderedBytes": 9334
+    },
+    {
+      "name": "@opentiny/vue-user-contact",
+      "renderedBytes": 9239
+    },
+    {
+      "name": "@opentiny/vue-checkbox-group",
+      "renderedBytes": 9166
+    },
+    {
+      "name": "@opentiny/vue-radio-group",
+      "renderedBytes": 9136
+    },
+    {
+      "name": "@vueuse/shared",
+      "renderedBytes": 9073
+    },
+    {
+      "name": "@opentiny/vue-fall-menu",
+      "renderedBytes": 9014
+    },
+    {
+      "name": "@opentiny/vue-bulletin-board",
+      "renderedBytes": 8944
+    },
+    {
+      "name": "@opentiny/vue-action-menu",
+      "renderedBytes": 8842
+    },
+    {
+      "name": "@opentiny/vue-toggle-menu",
+      "renderedBytes": 8767
+    },
+    {
+      "name": "@opentiny/vue-carousel-item",
+      "renderedBytes": 8716
+    },
+    {
+      "name": "@opentiny/vue-signature",
+      "renderedBytes": 8598
+    },
+    {
+      "name": "@opentiny/vue-skeleton",
+      "renderedBytes": 8592
+    },
+    {
+      "name": "@opentiny/vue-cascader-menu",
+      "renderedBytes": 8436
+    },
+    {
+      "name": "@opentiny/vue-time-range",
+      "renderedBytes": 8366
+    },
+    {
+      "name": "prosemirror-gapcursor",
+      "renderedBytes": 8331
+    },
+    {
+      "name": "@opentiny/vue-table",
+      "renderedBytes": 8225
+    },
+    {
+      "name": "@opentiny/vue-cascader-panel",
+      "renderedBytes": 8121
+    },
+    {
+      "name": "@opentiny/vue-record",
+      "renderedBytes": 7693
+    },
+    {
+      "name": "@opentiny/vue-pull-refresh",
+      "renderedBytes": 7675
+    },
+    {
+      "name": "rope-sequence",
+      "renderedBytes": 7265
+    },
+    {
+      "name": "@opentiny/vue-hrapprover",
+      "renderedBytes": 7202
+    },
+    {
+      "name": "@opentiny/vue-tabbar-item",
+      "renderedBytes": 7185
+    },
+    {
+      "name": "@opentiny/vue-skeleton-item",
+      "renderedBytes": 7129
+    },
+    {
+      "name": "@opentiny/vue-crop",
+      "renderedBytes": 7090
+    },
+    {
+      "name": "prosemirror-schema-list",
+      "renderedBytes": 7083
+    },
+    {
+      "name": "@opentiny/vue-float-button",
+      "renderedBytes": 6896
+    },
+    {
+      "name": "@opentiny/vue-card-group",
+      "renderedBytes": 6788
+    },
+    {
+      "name": "@opentiny/vue-ip-address",
+      "renderedBytes": 6688
+    },
+    {
+      "name": "@opentiny/vue-upload-dragger",
+      "renderedBytes": 6684
+    },
+    {
+      "name": "@opentiny/vue-color-picker",
+      "renderedBytes": 6674
+    },
+    {
+      "name": "prosemirror-dropcursor",
+      "renderedBytes": 6647
+    },
+    {
+      "name": "@opentiny/vue-card-template",
+      "renderedBytes": 6626
+    },
+    {
+      "name": "@opentiny/vue-statistic",
+      "renderedBytes": 6490
+    },
+    {
+      "name": "@opentiny/vue-option-group",
+      "renderedBytes": 6445
+    },
+    {
+      "name": "@opentiny/vue-checkbox-button",
+      "renderedBytes": 6405
+    },
+    {
+      "name": "@opentiny/vue-top-box",
+      "renderedBytes": 6376
+    },
+    {
+      "name": "@opentiny/vue-sticky",
+      "renderedBytes": 6169
+    },
+    {
+      "name": "@opentiny/vue-collapse",
+      "renderedBytes": 6120
+    },
+    {
+      "name": "@opentiny/vue-anchor",
+      "renderedBytes": 6029
+    },
+    {
+      "name": "@opentiny/vue-load-list",
+      "renderedBytes": 6006
+    },
+    {
+      "name": "@opentiny/vue-date-picker",
+      "renderedBytes": 5972
+    },
+    {
+      "name": "@opentiny/vue-quarter-panel",
+      "renderedBytes": 5905
+    },
+    {
+      "name": "@opentiny/vue-roles",
+      "renderedBytes": 5715
+    },
+    {
+      "name": "@opentiny/vue-locales",
+      "renderedBytes": 5557
+    },
+    {
+      "name": "@opentiny/vue-popup",
+      "renderedBytes": 5478
+    },
+    {
+      "name": "@opentiny/vue-drop-roles",
+      "renderedBytes": 5347
+    },
+    {
+      "name": "@opentiny/vue-panel",
+      "renderedBytes": 5284
+    },
+    {
+      "name": "@opentiny/vue-filter-bar",
+      "renderedBytes": 5282
+    },
+    {
+      "name": "@opentiny/vue-divider",
+      "renderedBytes": 5270
+    },
+    {
+      "name": "@opentiny/vue-virtual-scroll-box",
+      "renderedBytes": 5181
+    },
+    {
+      "name": "@opentiny/vue-virtual-tree",
+      "renderedBytes": 5163
+    },
+    {
+      "name": "@opentiny/vue-company",
+      "renderedBytes": 5145
+    },
+    {
+      "name": "@opentiny/vue-time-picker-mobile",
+      "renderedBytes": 5102
+    },
+    {
+      "name": "uc.micro",
+      "renderedBytes": 5099
+    },
+    {
+      "name": "@opentiny/vue-country",
+      "renderedBytes": 5079
+    },
+    {
+      "name": "@opentiny/vue-drop-times",
+      "renderedBytes": 5050
+    },
+    {
+      "name": "@opentiny/vue-container",
+      "renderedBytes": 4986
+    },
+    {
+      "name": "@opentiny/vue-filter-box",
+      "renderedBytes": 4954
+    },
+    {
+      "name": "@opentiny/vue-space",
+      "renderedBytes": 4926
+    },
+    {
+      "name": "@opentiny/vue-user-account",
+      "renderedBytes": 4910
+    },
+    {
+      "name": "@opentiny/vue-tab-item",
+      "renderedBytes": 4878
+    },
+    {
+      "name": "@opentiny/vue-dynamic-scroller",
+      "renderedBytes": 4871
+    },
+    {
+      "name": "@opentiny/vue-scroll-text",
+      "renderedBytes": 4849
+    },
+    {
+      "name": "@opentiny/vue-config-provider",
+      "renderedBytes": 4830
+    },
+    {
+      "name": "@opentiny/vue-link",
+      "renderedBytes": 4801
+    },
+    {
+      "name": "prosemirror-keymap",
+      "renderedBytes": 4790
+    },
+    {
+      "name": "@opentiny/vue-tabbar",
+      "renderedBytes": 4781
+    },
+    {
+      "name": "@opentiny/vue-text-popup",
+      "renderedBytes": 4685
+    },
+    {
+      "name": "@opentiny/vue-breadcrumb-item",
+      "renderedBytes": 4640
+    },
+    {
+      "name": "@opentiny/vue-filter-panel",
+      "renderedBytes": 4635
+    },
+    {
+      "name": "@opentiny/vue-col",
+      "renderedBytes": 4604
+    },
+    {
+      "name": "@opentiny/vue-breadcrumb",
+      "renderedBytes": 4598
+    },
+    {
+      "name": "@opentiny/vue-collapse-transition",
+      "renderedBytes": 4415
+    },
+    {
+      "name": "orderedmap",
+      "renderedBytes": 4382
+    },
+    {
+      "name": "@opentiny/vue-floatbar",
+      "renderedBytes": 4139
+    },
+    {
+      "name": "@opentiny/vue-scrollbar",
+      "renderedBytes": 4132
+    },
+    {
+      "name": "@opentiny/vue-month-table",
+      "renderedBytes": 4096
+    },
+    {
+      "name": "@opentiny/vue-espace",
+      "renderedBytes": 4035
+    },
+    {
+      "name": "@opentiny/vue-row",
+      "renderedBytes": 4026
+    },
+    {
+      "name": "@opentiny/vue-async-flowchart",
+      "renderedBytes": 3860
+    },
+    {
+      "name": "@opentiny/vue-cell",
+      "renderedBytes": 3668
+    },
+    {
+      "name": "@opentiny/vue-number-animation",
+      "renderedBytes": 3641
+    },
+    {
+      "name": "@opentiny/vue-logout",
+      "renderedBytes": 3496
+    },
+    {
+      "name": "@opentiny/vue-fullscreen",
+      "renderedBytes": 3383
+    },
+    {
+      "name": "@opentiny/vue-river",
+      "renderedBytes": 3325
+    },
+    {
+      "name": "@opentiny/vue-layout",
+      "renderedBytes": 3320
+    },
+    {
+      "name": "@opentiny/vue-column-list-group",
+      "renderedBytes": 3210
+    },
+    {
+      "name": "@opentiny/vue-watermark",
+      "renderedBytes": 3141
+    },
+    {
+      "name": "w3c-keyname",
+      "renderedBytes": 2653
+    },
+    {
+      "name": "@opentiny/vue-logon-user",
+      "renderedBytes": 2592
+    },
+    {
+      "name": "@opentiny/vue-dynamic-scroller-item",
+      "renderedBytes": 2039
+    },
+    {
+      "name": "@tiptap/extension-paragraph",
+      "renderedBytes": 1518
+    },
+    {
+      "name": "tslib",
+      "renderedBytes": 1514
+    },
+    {
+      "name": "@opentiny/vue-time-picker",
+      "renderedBytes": 730
+    },
+    {
+      "name": "@opentiny/vue-time-select",
+      "renderedBytes": 730
+    },
+    {
+      "name": "other",
+      "renderedBytes": 498
+    },
+    {
+      "name": "vue",
+      "renderedBytes": 439
+    },
+    {
+      "name": "@opentiny/vue-message",
+      "renderedBytes": 307
+    },
+    {
+      "name": "@tiptap/extension-document",
+      "renderedBytes": 294
+    },
+    {
+      "name": "@tiptap/extension-text",
+      "renderedBytes": 276
+    },
+    {
+      "name": "@opentiny/vue-notify",
+      "renderedBytes": 97
+    },
+    {
+      "name": "@tiptap/extension-character-count",
+      "renderedBytes": 51
+    },
+    {
+      "name": "@tiptap/extension-placeholder",
+      "renderedBytes": 50
+    },
+    {
+      "name": "@tiptap/extension-history",
+      "renderedBytes": 47
+    }
+  ],
+  "topModules": [
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-grid@3.31.0/node_modules/@opentiny/vue-grid/lib/index.js",
+      "renderedBytes": 583489
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@vue+runtime-core@3.5.42/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js",
+      "renderedBytes": 278085
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/prosemirror-view@1.42.3/node_modules/prosemirror-view/dist/index.js",
+      "renderedBytes": 247693
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+utils@3.31.0_patc_e6573d1db89d6af0641c9dc01c2f9b0d/node_modules/@opentiny/utils/dist/index.es.js",
+      "renderedBytes": 174433
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@tiptap+core@3.17.1_@tiptap+pm@3.17.1/node_modules/@tiptap/core/dist/index.js",
+      "renderedBytes": 168318
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-grid-toolbar@3.31.0/node_modules/@opentiny/vue-grid-toolbar/lib/index.js",
+      "renderedBytes": 166621
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-query-builder@3.31.0/node_modules/@opentiny/vue-query-builder/lib/index.js",
+      "renderedBytes": 157974
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/shepherd.js@11.1.1/node_modules/shepherd.js/dist/js/shepherd.esm.js",
+      "renderedBytes": 141254
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-mind-map@3.31.0/node_modules/@opentiny/vue-mind-map/lib/pc.js",
+      "renderedBytes": 135102
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/dompurify@3.4.15/node_modules/dompurify/dist/purify.es.mjs",
+      "renderedBytes": 132979
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/prosemirror-model@1.25.11/node_modules/prosemirror-model/dist/index.js",
+      "renderedBytes": 124864
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/cropperjs@1.6.3/node_modules/cropperjs/dist/cropper.esm.js",
+      "renderedBytes": 108664
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-locale@3.31.0/node_modules/@opentiny/vue-locale/lib/index.js",
+      "renderedBytes": 107033
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/packages/components/src/assets/loading.webp",
+      "renderedBytes": 96341
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@better-scroll+core@2.5.0/node_modules/@better-scroll/core/dist/core.esm.js",
+      "renderedBytes": 89704
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/prosemirror-transform@1.12.1/node_modules/prosemirror-transform/dist/index.js",
+      "renderedBytes": 84203
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-renderless@3._4541b456dae2ec0da87a6431b9b93fc4/node_modules/@opentiny/vue-renderless/file-upload/index.js",
+      "renderedBytes": 71989
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-qr-code@3.31.0/node_modules/@opentiny/vue-qr-code/lib/index.js",
+      "renderedBytes": 66597
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-renderless@3._4541b456dae2ec0da87a6431b9b93fc4/node_modules/@opentiny/vue-renderless/select/index.js",
+      "renderedBytes": 65797
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/echarts@5.4.1/node_modules/echarts/lib/core/echarts.js",
+      "renderedBytes": 65683
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@vue+runtime-dom@3.5.42/node_modules/@vue/runtime-dom/dist/runtime-dom.esm-bundler.js",
+      "renderedBytes": 63990
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@vue+reactivity@3.5.42/node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js",
+      "renderedBytes": 53537
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-renderless@3._4541b456dae2ec0da87a6431b9b93fc4/node_modules/@opentiny/vue-renderless/base-select/index.js",
+      "renderedBytes": 52959
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/lodash.isequal@4.5.0/node_modules/lodash.isequal/index.js",
+      "renderedBytes": 51418
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-select@3.31.0/node_modules/@opentiny/vue-select/lib/pc.js",
+      "renderedBytes": 49212
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-base-select@3.31.0/node_modules/@opentiny/vue-base-select/lib/mobile-first.js",
+      "renderedBytes": 48898
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/entities@4.5.0/node_modules/entities/lib/esm/generated/decode-data-html.js",
+      "renderedBytes": 47687
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/lodash.clonedeep@4.5.0/node_modules/lodash.clonedeep/index.js",
+      "renderedBytes": 46604
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-select@3.31.0/node_modules/@opentiny/vue-select/lib/mobile-first.js",
+      "renderedBytes": 46561
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-base-select@3.31.0/node_modules/@opentiny/vue-base-select/lib/pc.js",
+      "renderedBytes": 46467
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-renderless@3._4541b456dae2ec0da87a6431b9b93fc4/node_modules/@opentiny/vue-renderless/flowchart/index.js",
+      "renderedBytes": 45672
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+fluent-editor@3.25.12/node_modules/@opentiny/fluent-editor/es/config/base64-image.es.js",
+      "renderedBytes": 44021
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-picker@3.31.0/node_modules/@opentiny/vue-picker/lib/index.js",
+      "renderedBytes": 39720
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-upload-list@3.31.0/node_modules/@opentiny/vue-upload-list/lib/mobile-first.js",
+      "renderedBytes": 39431
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/fast-diff@1.3.0/node_modules/fast-diff/diff.js",
+      "renderedBytes": 38833
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-renderless@3._4541b456dae2ec0da87a6431b9b93fc4/node_modules/@opentiny/vue-renderless/picker/index.js",
+      "renderedBytes": 36904
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-common@3.31.0/node_modules/@opentiny/vue-common/lib/index.js",
+      "renderedBytes": 36778
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-color-select-panel@3.31.0/node_modules/@opentiny/vue-color-select-panel/lib/pc.js",
+      "renderedBytes": 36758
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/prosemirror-state@1.4.4/node_modules/prosemirror-state/dist/index.js",
+      "renderedBytes": 36017
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/parchment@3.0.0/node_modules/parchment/dist/parchment.js",
+      "renderedBytes": 35466
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/packages/chat/src/ChatUI.vue?vue&type=script&setup=true&lang.ts",
+      "renderedBytes": 34721
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/echarts@5.4.1/node_modules/echarts/lib/chart/line/LineView.js",
+      "renderedBytes": 34265
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+fluent-editor@3.25.12/node_modules/@opentiny/fluent-editor/es/modules/table/formats/table.es.js",
+      "renderedBytes": 33485
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-tree@3.31.0/node_modules/@opentiny/vue-tree/lib/pc.js",
+      "renderedBytes": 33156
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-steps@3.31.0/node_modules/@opentiny/vue-steps/lib/mobile-first.js",
+      "renderedBytes": 32913
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-image-viewer@3.31.0/node_modules/@opentiny/vue-image-viewer/lib/mobile-first.js",
+      "renderedBytes": 32625
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/zrender@5.4.1/node_modules/zrender/lib/Element.js",
+      "renderedBytes": 32077
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/echarts@5.4.1/node_modules/echarts/lib/component/tooltip/TooltipView.js",
+      "renderedBytes": 30891
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-steps@3.31.0/node_modules/@opentiny/vue-steps/lib/pc.js",
+      "renderedBytes": 30797
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@vueuse+core@13.9.0_vue@3.5.42_typescript@5.9.3_/node_modules/@vueuse/core/index.mjs",
+      "renderedBytes": 30673
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-renderless@3._4541b456dae2ec0da87a6431b9b93fc4/node_modules/@opentiny/vue-renderless/fluent-editor/index.js",
+      "renderedBytes": 30438
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/echarts@5.4.1/node_modules/echarts/lib/chart/treemap/TreemapView.js",
+      "renderedBytes": 29415
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-date-picker-mobile-first@3.31.0/node_modules/@opentiny/vue-date-picker-mobile-first/lib/index.js",
+      "renderedBytes": 28978
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-pager@3.31.0/node_modules/@opentiny/vue-pager/lib/mobile-first.js",
+      "renderedBytes": 28412
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-input@3.31.0/node_modules/@opentiny/vue-input/lib/mobile-first.js",
+      "renderedBytes": 28344
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/echarts@5.4.1/node_modules/echarts/lib/chart/bar/BarView.js",
+      "renderedBytes": 28051
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/echarts@5.4.1/node_modules/echarts/lib/component/dataZoom/SliderZoomView.js",
+      "renderedBytes": 27799
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-calendar-view@3.31.0/node_modules/@opentiny/vue-calendar-view/lib/mobile-first.js",
+      "renderedBytes": 27639
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-upload-list@3.31.0/node_modules/@opentiny/vue-upload-list/lib/pc.js",
+      "renderedBytes": 27435
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+fluent-editor@3.25.12/node_modules/@opentiny/fluent-editor/es/modules/emoji/emoji-sprite.es.js",
+      "renderedBytes": 27002
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/echarts@5.4.1/node_modules/echarts/lib/data/DataStore.js",
+      "renderedBytes": 26506
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-renderless@3._4541b456dae2ec0da87a6431b9b93fc4/node_modules/@opentiny/vue-renderless/picker/timezone.js",
+      "renderedBytes": 26126
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/echarts@5.4.1/node_modules/echarts/lib/chart/custom/CustomView.js",
+      "renderedBytes": 26087
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@floating-ui+dom@1.8.0/node_modules/@floating-ui/dom/dist/floating-ui.dom.mjs",
+      "renderedBytes": 25945
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-renderless@3._4541b456dae2ec0da87a6431b9b93fc4/node_modules/@opentiny/vue-renderless/tree/index.js",
+      "renderedBytes": 25765
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-popeditor@3.31.0/node_modules/@opentiny/vue-popeditor/lib/pc.js",
+      "renderedBytes": 25760
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/echarts@5.4.1/node_modules/echarts/lib/component/visualMap/ContinuousView.js",
+      "renderedBytes": 25547
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/echarts@5.4.1/node_modules/echarts/lib/component/helper/MapDraw.js",
+      "renderedBytes": 25377
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/prosemirror-commands@1.7.2/node_modules/prosemirror-commands/dist/index.js",
+      "renderedBytes": 25363
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/zrender@5.4.1/node_modules/zrender/lib/animation/Animator.js",
+      "renderedBytes": 25278
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-renderless@3._4541b456dae2ec0da87a6431b9b93fc4/node_modules/@opentiny/vue-renderless/fluent-editor/options.js",
+      "renderedBytes": 25233
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/jsonrepair@3.15.0/node_modules/jsonrepair/lib/esm/regular/jsonrepair.js",
+      "renderedBytes": 24996
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-flowchart@3.31.0/node_modules/@opentiny/vue-flowchart/lib/index.js",
+      "renderedBytes": 24830
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-input@3.31.0/node_modules/@opentiny/vue-input/lib/pc.js",
+      "renderedBytes": 24796
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-cascader-view@3.31.0/node_modules/@opentiny/vue-cascader-view/lib/index.js",
+      "renderedBytes": 24678
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/echarts@5.4.1/node_modules/echarts/lib/data/SeriesData.js",
+      "renderedBytes": 24448
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/zrender@5.4.1/node_modules/zrender/lib/core/PathProxy.js",
+      "renderedBytes": 24311
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-renderless@3._4541b456dae2ec0da87a6431b9b93fc4/node_modules/@opentiny/vue-renderless/calendar-view/index.js",
+      "renderedBytes": 24288
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-renderless@3._4541b456dae2ec0da87a6431b9b93fc4/node_modules/@opentiny/vue-renderless/popeditor/index.js",
+      "renderedBytes": 23782
+    },
+    {
+      "id": "D:/Projects/Work/tiny-robot/node_modules/.pnpm/@opentiny+vue-date-range@3.31.0/node_modules/@opentiny/vue-date-range/lib/mobile-first.js",
+      "renderedBytes": 23318
+    }
+  ]
+}

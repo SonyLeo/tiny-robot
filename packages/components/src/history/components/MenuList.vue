@@ -95,7 +95,7 @@ const handleKeydown = (event: KeyboardEvent) => {
   }
 
   const items = getMenuItems()
-  const currentIndex = items.indexOf(document.activeElement as HTMLElement)
+  const currentIndex = items.indexOf(event.target as HTMLElement)
 
   if (event.key === 'Escape') {
     event.preventDefault()

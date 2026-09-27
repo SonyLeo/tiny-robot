@@ -27,6 +27,7 @@
   ],
   "scripts": {
     "build": "pnpm type-check && vite build",
+    "build:web-component": "vue-tsc --noEmit -p tsconfig.web-component.json && vite build --config vite.web-component.release.config.ts && node verification/web-component/check-release-size.mjs",
     "dev": "vite --host 0.0.0.0",
     "type-check": "vue-tsc --noEmit",
     "test": "vitest run",

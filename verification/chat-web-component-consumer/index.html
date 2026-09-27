@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Installed Chat Web Component</title>
+    <style>
+      body { font: 14px system-ui; margin: 0; }
+      .chats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 12px; }
+      tiny-robot-chat { display: block; height: 650px; min-width: 0; border: 1px solid #999; }
+      body button { font-size: 24px; color: red; }
+    </style>
+  </head>
+  <body>
+    <form id="outside"><input value="outside"><button>Submit</button></form>
+    <main class="chats">
+      <tiny-robot-chat id="a" title="A" color-mode="light"><span slot="header-notice">Host A</span></tiny-robot-chat>
+      <tiny-robot-chat id="b" title="B" color-mode="dark"><span slot="header-notice">Host B</span></tiny-robot-chat>
+    </main>
+    <script type="module">
+      import { registerTinyRobotChat } from './node_modules/@opentiny/tiny-robot-chat-web-component/dist/index.js'
+
+      const a = document.querySelector('#a')
+      const b = document.querySelector('#b')
+      const calls = { a: [], b: [] }
+      const ready = []
+      const errors = []
+      window.consumer = { a, b, calls, ready, errors }
+      for (const [name, element] of [['a', a], ['b', b]]) {
+        element.responseProvider = (_body, signal) => {
+          const call = { signal, release: undefined, fail: undefined }
+          calls[name].push(call)
+          signal.addEventListener('abort', () => call.release?.(''), { once: true })
+          return (async function* () {
+            const content = await new Promise((resolve, reject) => { call.release = resolve; call.fail = reject })
+            if (signal.aborted) return
+            yield { id: name, object: 'chat.completion.chunk', created: 0, model: 'mock', system_fingerprint: null,
+              choices: [{ index: 0, delta: { role: 'assistant', content }, finish_reason: null }] }
+          })()
+        }
+        element.addEventListener('ready', () => ready.push(name))
+        element.addEventListener('chat-error', event => errors.push({ name, detail: event.detail }))
+      }
+      registerTinyRobotChat()
+      document.querySelector('#outside').addEventListener('submit', event => event.preventDefault())
+    </script>
+  </body>
+</html>

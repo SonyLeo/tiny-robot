@@ -1,0 +1,25 @@
+Read-only independent review of the TinyRobot Chat Web Component bundle-size fix.
+Work in D:/Projects/Work/tiny-robot. Respond in Chinese. Do not modify any source file, install packages, build, start servers, commit, stage, publish, or start more agents.
+
+Read these files and their immediate dependencies only:
+- packages/chat/vite.web-component.config.ts
+- packages/chat/verification/web-component/reproduce-size.mjs
+- packages/chat/verification/web-component/tooltip-size-report.json
+- packages/chat/verification/web-component/check-size.mjs
+- packages/chat/verification/web-component/size-check.json
+- packages/chat/verification/web-component/bundle-report-inline.json
+- packages/chat/verification/web-component/bundle-report-baseline.json
+- packages/chat/verification/web-component/BUNDLE-SIZE.md
+- packages/chat/verification/web-component/element.ts
+- packages/chat/verification/web-component/index.html
+- packages/test/src/chat-web-component.spec.ts
+
+The original WC config had inlineDynamicImports: true and no external runtime dependencies. Full Chat emitted JS gzip 2,349,677 bytes and CSS gzip 188,096 bytes. A direct-import experiment reduced these to 764,779 / 66,688 bytes. A later controlled experiment kept aggregate imports and changed only inlineDynamicImports to false: all four JS files total 650,224 gzip bytes and CSS is 55,718 gzip bytes. Shared component source, package manifests and ordinary Vue external config were restored to the starting state. Final fix only changes the WC default to allow dynamic chunks. Full WC browser suite: 11 passed, including a relocated entry/CSS/Markdown renderer test. Ordinary Vue attachment/Mention/Suggestion suite: 36 passed; components type/build/declarations passed.
+
+Review these concrete questions:
+1. Do the production/minimal comparisons support the claimed configuration trigger, or do the scripts change another material variable?
+2. Are total payload calculations correct, including all lazy chunks?
+3. Does the config or relocated-resource test miss a compatibility/lifecycle/resource-path risk?
+4. Is the narrow config fix defensible compared with changing shared component imports?
+
+Lead with actionable findings ordered by severity, with file and line references. Distinguish observed facts from inference. If no defect is found, say so, and list only material unverified boundaries. Do not assume a specific upstream Vite/Rollup bug has been proven.

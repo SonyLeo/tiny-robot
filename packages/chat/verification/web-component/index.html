@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Chat Web Component verification</title>
+    <style>
+      body { margin: 0; font: 14px system-ui; color: #18212b; background: #eef2f5; }
+      button, input { font: inherit; }
+      .toolbar { display: flex; gap: 10px; padding: 12px; border-bottom: 1px solid #bac4cd; background: white; }
+      .workspace { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding: 12px; }
+      .workspace > section { min-width: 0; }
+      tiny-robot-chat-verification { display: block; height: 650px; border: 1px solid #9ba9b6; background: white; }
+      /* Deliberate hostile host rules; Shadow DOM content must remain usable. */
+      body button { color: #b00020; font-size: 24px; }
+      body p { letter-spacing: 3px; }
+      @media (max-width: 800px) { .workspace { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body>
+    <div class="toolbar">
+      <form id="outside-form"><label>外部表单 <input id="outside-input" value="outside" /></label><button>提交</button></form>
+      <button id="release-a" type="button">释放 A 片段</button>
+      <button id="release-b" type="button">释放 B 片段</button>
+      <button id="fail-a" type="button">A 失败</button>
+      <button id="finish-a" type="button">完成 A</button>
+      <button id="finish-b" type="button">完成 B</button>
+    </div>
+    <main class="workspace">
+      <section><tiny-robot-chat-verification id="chat-a" title="Chat A" color-mode="light"><span slot="header-notice">宿主 A</span></tiny-robot-chat-verification></section>
+      <section><tiny-robot-chat-verification id="chat-b" title="Chat B" color-mode="dark"><span slot="header-notice">宿主 B</span></tiny-robot-chat-verification></section>
+    </main>
+    <script type="module">
+      const a = document.querySelector('#chat-a')
+      const b = document.querySelector('#chat-b')
+      const requests = { a: [], b: [] }
+      const log = []
+      window.verification = { a, b, requests, log, preUpgrade: !customElements.get('tiny-robot-chat-verification') }
+      document.querySelector('#outside-form').addEventListener('submit', event => { event.preventDefault(); log.push('outside-submit') })
+
+      function providerFor(id) {
+        return (_body, signal) => {
+          const request = { signal, queue: [], waiting: null, done: false, error: null }
+          requests[id].push(request)
+          signal.addEventListener('abort', () => request.waiting?.(), { once: true })
+          return (async function* () {
+            while (true) {
+              if (signal.aborted) { const error = new Error('cancelled'); error.name = 'AbortError'; throw error }
+              if (request.queue.length) {
+                const content = request.queue.shift()
+                yield { id: `mock-${id}`, object: 'chat.completion.chunk', created: 0, model: 'mock', system_fingerprint: null,
+                  choices: [{ index: 0, delta: { role: 'assistant', content }, finish_reason: null }] }
+                continue
+              }
+              if (request.error) throw request.error
+              if (request.done) return
+              await new Promise(resolve => { request.waiting = resolve })
+              request.waiting = null
+            }
+          })()
+        }
+      }
+      function releaseAt(id, index, content) { const request = requests[id][index]; request.queue.push(content); request.waiting?.() }
+      function finishAt(id, index) { const request = requests[id][index]; request.done = true; request.waiting?.() }
+      function release(id, content) { releaseAt(id, requests[id].length - 1, content) }
+      function finish(id) { finishAt(id, requests[id].length - 1) }
+      function fail(id) { const request = requests[id].at(-1); request.error = new Error('controlled failure'); request.waiting?.() }
+      Object.assign(window.verification, { release, releaseAt, finish, finishAt, fail })
+      a.responseProvider = providerFor('a')
+      b.responseProvider = providerFor('b')
+      for (const element of [a, b]) element.addEventListener('ready', event => log.push({ type: 'ready', id: element.id, detail: event.detail, at: performance.now() }))
+      for (const element of [a, b]) element.addEventListener('chat-error', event => log.push({ type: 'chat-error', id: element.id, detail: event.detail }))
+      document.querySelector('#release-a').onclick = () => release('a', 'A fragment ')
+      document.querySelector('#release-b').onclick = () => release('b', 'B fragment ')
+      document.querySelector('#fail-a').onclick = () => fail('a')
+      document.querySelector('#finish-a').onclick = () => finish('a')
+      document.querySelector('#finish-b').onclick = () => finish('b')
+      const variant = new URLSearchParams(location.search).get('bundle')
+      const bundle = variant === 'inline'
+        ? './verification/web-component/dist-inline/index.js'
+        : variant === 'aggregate'
+        ? './verification/web-component/dist-aggregate/index.js'
+        : variant === 'direct'
+          ? './verification/web-component/dist-direct/index.js'
+          : '../../dist-web-component/index.js'
+      const { registerTinyRobotChatVerification } = await import(bundle)
+      registerTinyRobotChatVerification()
+    </script>
+  </body>
+</html>

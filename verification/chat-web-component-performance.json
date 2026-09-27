@@ -1,0 +1,25 @@
+{
+  "browser": "153.0.8010.54",
+  "host": "local static HTTP; browser process warm; fresh context and cache per sample",
+  "metric": "navigationStart to the later of two ready events, milliseconds",
+  "samples": {
+    "native": [
+      282,
+      245,
+      241,
+      243,
+      240
+    ],
+    "angular": [
+      434,
+      388,
+      317,
+      323,
+      347
+    ]
+  },
+  "median": {
+    "native": 243,
+    "angular": 347
+  }
+}
