@@ -38,14 +38,14 @@
 
 | 现状线索 | 源码位置 | 需要确认的影响 |
 | --- | --- | --- |
-| 根入口导出 Vue composables、存储、Skill、旧客户端和工具函数；`/core` 导出消息引擎及核心插件；`/node` 导出 Node Skill API | `src/index.ts`、`src/core.ts`、`src/node.ts` | 入口的运行时和声明依赖要分别审计；根入口与 `/core` 的同名类型形状不同 |
+| 根入口导出 Vue composables、存储、Skill、旧客户端和工具函数；`/core` 导出消息引擎、核心插件、会话及无框架 storage/SSE/Provider；`/node` 导出 Node Skill API | `src/index.ts`、`src/core.ts`、`src/storage/core.ts`、`src/node.ts` | 入口的运行时和声明依赖要分别审计；根入口与 `/core` 的同名类型形状不同 |
 | `/core` 经 adapter 汇总入口导出 Vue adapter | `src/message/adapters/index.ts` | 不能仅凭业务代码不 import Vue 认定核心独立 |
 | 包声明 Vue 为必需 peer；OpenAI 类型出现在核心公开类型中，但 `openai` 当前仅列在 devDependencies | `package.json`、`src/message/types.ts` | 无 Vue 独立安装与 `skipLibCheck: false` 类型检查可能暴露问题 |
 | 引擎持有并原地更新消息对象；native adapter 的 `getState()` 只复制消息数组，嵌套对象仍共享引用 | `src/message/core/engine.ts`、`src/message/adapters/native.ts` | 订阅值不能未经定义就称为不可变历史快照；Angular 子组件更新和性能均待测 |
 | Vue adapter 使用响应式消息代理，Vue 会话层用深度 `watch` 自动保存；存储类型和序列化仍连着 Vue | `src/message/adapters/vue.ts`、`src/vue/conversation/useConversation.ts`、`src/storage/types.ts`、`src/storage/utils.ts` | 核心会话迁移须维持 Vue 直接修改消息及深度保存行为 |
 | 引擎公开 `subscribe`、`abort`，尚无 `dispose()`；工具暂停回合元数据另存于 localStorage | `src/message/types.ts`、`src/message/core/turnPersistence.ts` | 取消订阅、取消请求、销毁实例和删除历史须明确区分 |
 
-这些线索记录于初始只读检查，其中 `/core` 导出、存储类型与序列化依赖、包依赖元数据已在 S1/S2 作实验性调整。kit 全量测试已运行，结果为 192 通过、1 跳过；`/core` 已有无 Vue 的独立安装、严格声明及 ESM/CJS 导入证据。根入口无 Vue 导入仍失败，会话与存储尚无中立公开入口；上述结果不等于下表全部验收项已通过。
+这些线索记录于初始只读检查，其中 `/core` 导出、存储类型与序列化依赖、包依赖元数据已在 S1/S2 作实验性调整。D4.1 已补 `/core` 的无框架 storage/SSE/Provider 出口，并通过当前产物 ESM/CJS、无 Vue 静态扫描及严格声明消费检查；根入口仍是 Vue 绑定入口。上述结果不等于下表全部验收项已通过。
 
 ## 4. 首版能力清单与验收口径
 
@@ -85,7 +85,7 @@ Vue `ref/computed` 可作为理解 Angular Signal/`computed` 的参照，但 Vue
 
 1. **状态连接**：比较订阅现有 native adapter 后发布 Angular 状态，与实现 Angular `MessageStateAdapter`。逐块检查嵌套更新、对象身份、插件回调、状态通知次数和长历史成本。不能替换引擎内部持有的消息对象；不能未经测量把每 token 深拷贝全历史定为正式方案。
 2. **会话边界**：比较框架无关会话管理器加 Vue/Angular 连接，与其他最小兼容迁移路径。须解释 Vue 深度监听及消费方直接修改如何继续自动保存，以及 Angular 受控写入如何保存。
-3. **发布方案**：S1-S4 后优先单包子入口：Vue 根入口维持既有消费方式，`/core` 提供无 Vue 的共享能力，新 Angular 入口只连接 Angular 与共享模块，`/node` 保持原定位。S1/S2 已证明 `/core` 可无 Vue 独立消费，但存储和 SSE 等辅助能力仍须设计无 Vue 的公开路径并实测。对旧 `/core` 的 Vue adapter 导出记录路径变化；不为此保留 Vue 依赖或新增一套 `/runtime`。正式入口名称和类型仍须在独立宿主验收后固定。
+3. **发布方案**：S1-S4 后优先单包子入口：Vue 根入口维持既有消费方式，`/core` 提供无 Vue 的共享能力，新 Angular 入口只连接 Angular 与共享模块，`/node` 保持原定位。D4.1 已为 storage、SSE 和 Provider 补无 Vue 的公开路径并固定 core 类型桥接；D4.2 仍需独立宿主实测。对旧 `/core` 的 Vue adapter 导出记录路径变化；不为此保留 Vue 依赖或新增一套 `/runtime`。
 4. **传输桥接**：优先保留 `responseProvider`。如增加 HttpClient/Observable 便利层，须明确定义逐块产出、退订与 `AbortSignal` 的关系，以及 HTTP/解析错误如何传递；无证据时不作为主路径。
 
 ### 5.3 生命周期必须写明的规则
