@@ -1,8 +1,10 @@
 # Kit Angular 适配目标与验收基线
 
-> 状态：目标基线；S1-S4 前期验证与 R1 评审已完成，D1 消息和 D2 Skill 阶段已审查通过，完整首版尚未验收。详细任务、提示词和关口见 [执行计划](./angular-adaptation-execution.md)。
+> 状态：目标基线；S1-S4 前期验证与 R1 评审已完成，D1 消息、D2 Skill 和 D3 会话阶段已审查通过，完整首版尚未验收。详细任务、提示词和关口见 [执行计划](./angular-adaptation-execution.md)。
 >
 > 建立日期：2026-09-26。工作分支：`feat/kit-angular`；起点：`robot/develop` 的 `0f75d2c9689559b075fab20f577aab2f21bd62c0`。
+
+> 最新复核：2026-10-04 已合入 `robot/develop@cd42d23a0`，B0 新基线、D3 共享会话、Vue 兼容和 Angular 多会话已完成动态复验；D4/A1 的公开入口、版本矩阵、资源基线和交付材料仍待执行。D1/D2/D3 的阶段结论不能代替完整首版验收。
 
 ## 1. 文档用途与变更规则
 

@@ -1,5 +1,6 @@
-import { computed, ref, watch, WatchStopHandle } from 'vue'
+import { computed, ref, toRaw, watch, WatchStopHandle } from 'vue'
 import { localStorageStrategyFactory } from '../../storage/factories'
+import { unwrapProxy } from '../../storage/utils'
 import { ChatMessage } from '../../types'
 import { UseMessageOptions, UseMessagePlugin, UseMessageReturn } from '../message/types'
 import { useMessage } from '../message/useMessage'
@@ -76,6 +77,7 @@ export const useConversation = (options: UseConversationOptions): UseConversatio
    * @param id - 会话 ID，如果不提供则使用当前活跃会话
    */
   const saveConversationMessages = (id: string, messages: ChatMessage[]): Promise<void> => {
+    const snapshot = unwrapProxy(toRaw(messages))
     return enqueuePersistence(id, async () => {
       if (!storage?.saveMessages) return
 
@@ -84,7 +86,7 @@ export const useConversation = (options: UseConversationOptions): UseConversatio
 
       conversation.updatedAt = Date.now()
       await storage.saveConversation?.(conversation)
-      await storage.saveMessages(id, messages)
+      await storage.saveMessages(id, snapshot)
     })
   }
 

@@ -38,6 +38,33 @@ describe('useConversation', () => {
     expect((await conversation.switchConversation('paused'))?.engine).toBe(pausedConversation.engine)
   })
 
+  it('auto-saves direct nested message mutations through the Vue deep watcher', async () => {
+    const saved: ChatMessage[][] = []
+    const storage: ConversationStorageStrategy = {
+      loadConversations: () => [],
+      loadMessages: () => [],
+      saveConversation: () => undefined,
+      saveMessages: (_id, messages) => {
+        saved.push(JSON.parse(JSON.stringify(messages)) as ChatMessage[])
+      },
+    }
+    const api = useConversation({
+      autoSaveMessages: true,
+      autoSaveThrottle: 0,
+      storage,
+      useMessageOptions: {
+        initialMessages: [{ role: 'assistant', content: '', state: { tool: { status: 'pending' } } }],
+        responseProvider,
+      },
+    })
+
+    const created = api.createConversation({ id: 'nested' })
+    const message = created.engine.messages.value[0]
+    message.state!.tool.status = 'approved'
+
+    await vi.waitFor(() => expect(saved.at(-1)?.[0]?.state?.tool?.status).toBe('approved'))
+  })
+
   it('clears inactive engines that can start a turn', async () => {
     const conversation = useConversation({
       useMessageOptions: { responseProvider },
