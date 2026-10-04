@@ -5,3 +5,17 @@ export * from './message/types'
 export { combineDeltaData, normalizeToAsyncGenerator } from './message/utils'
 export * from './skills'
 export * from './conversation'
+
+// Framework-neutral transport, provider, and browser persistence helpers.
+// The Vue-bound root entry remains unchanged; these exports make the helpers
+// consumable from the no-Vue core entry used by Angular applications.
+export { BaseModelProvider } from './providers/base'
+export { OpenAIProvider } from './providers/openai'
+export { handleSSEStream, sseStreamToGenerator } from './utils'
+export {
+  IndexedDBStrategy,
+  LocalStorageStrategy,
+  indexedDBStorageStrategyFactory,
+  localStorageStrategyFactory,
+  type CoreConversationStorageStrategy as ConversationStorageStrategy,
+} from './storage/core'
