@@ -3,7 +3,6 @@ import * as core from '../../core'
 import * as root from '../../index'
 import { createNativeMessageAdapter, createVueMessageAdapter } from '../adapters'
 import { useMessage } from '../../vue/message/useMessage'
-import { BaseModelProvider, OpenAIProvider, handleSSEStream, sseStreamToGenerator } from '../../core'
 import { IndexedDBStrategy, LocalStorageStrategy, indexedDBStorageStrategyFactory, localStorageStrategyFactory } from '../../storage'
 
 describe('message public exports', () => {
@@ -19,13 +18,13 @@ describe('message public exports', () => {
   })
 
   it('exposes framework-neutral transport, providers, and storage from core', () => {
-    expect(BaseModelProvider).toBeTypeOf('function')
-    expect(OpenAIProvider).toBeTypeOf('function')
-    expect(handleSSEStream).toBeTypeOf('function')
-    expect(sseStreamToGenerator).toBeTypeOf('function')
-    expect(LocalStorageStrategy).toBeTypeOf('function')
-    expect(IndexedDBStrategy).toBeTypeOf('function')
-    expect(localStorageStrategyFactory).toBeTypeOf('function')
-    expect(indexedDBStorageStrategyFactory).toBeTypeOf('function')
+    expect(core.BaseModelProvider).toBeTypeOf('function')
+    expect(core.OpenAIProvider).toBeTypeOf('function')
+    expect(core.handleSSEStream).toBeTypeOf('function')
+    expect(core.sseStreamToGenerator).toBeTypeOf('function')
+    expect(core.LocalStorageStrategy).toBe(LocalStorageStrategy)
+    expect(core.IndexedDBStrategy).toBe(IndexedDBStrategy)
+    expect(core.localStorageStrategyFactory).toBeTypeOf('function')
+    expect(core.indexedDBStorageStrategyFactory).toBeTypeOf('function')
   })
 })
