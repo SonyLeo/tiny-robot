@@ -49,8 +49,24 @@ export function unwrapProxy<T>(value: T, visited: WeakMap<object, any> = new Wea
     }
 
     // 处理 ArrayBuffer、Blob 等二进制对象（IndexedDB 支持）
-    if (source instanceof ArrayBuffer || source instanceof Blob) {
+    if (source instanceof ArrayBuffer || ArrayBuffer.isView(source) || source instanceof Blob) {
       return source as T
+    }
+
+    if (source instanceof Map) {
+      const result = new Map()
+      visited.set(source, result)
+      for (const [key, entry] of source) {
+        result.set(unwrapProxy(key, visited), unwrapProxy(entry, visited))
+      }
+      return result as T
+    }
+
+    if (source instanceof Set) {
+      const result = new Set()
+      visited.set(source, result)
+      for (const entry of source) result.add(unwrapProxy(entry, visited))
+      return result as T
     }
 
     // 处理普通对象

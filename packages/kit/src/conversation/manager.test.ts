@@ -14,7 +14,7 @@ const engine = (): MessageEngine => ({
 })
 
 describe('conversation manager persistence', () => {
-  it('throttles automatic saves and materializes a stable message snapshot', async () => {
+  it('materializes a stable snapshot of the initial messages', async () => {
     vi.useFakeTimers()
     const saved: unknown[][] = []
     let state = { requestState: 'idle' as const, messages: [{ role: 'user' as const, content: 'first' }], isProcessing: false, isPaused: false, canStartTurn: true }
@@ -73,14 +73,13 @@ describe('conversation manager persistence', () => {
       storage: {
         loadConversations: () => [{ id: 'a', createdAt: 1, updatedAt: 1 }, { id: 'b', createdAt: 1, updatedAt: 1 }],
         saveMessages: async (id) => { events.push(`save:${id}`); if (id === 'a') await blocked },
-        saveConversation: async ({ id }) => events.push(`meta:${id}`),
-        deleteConversation: async (id) => events.push(`delete:${id}`),
+        saveConversation: async ({ id }) => { events.push(`meta:${id}`) },
+        deleteConversation: async (id) => { events.push(`delete:${id}`) },
       },
     })
     await manager.load()
     await manager.loadMessages('a')
     await manager.loadMessages('b')
-    manager.createConversation({ id: 'b' })
     const saveA = manager.saveMessages('a')
     const deleteA = manager.deleteConversation('a')
     await manager.saveMessages('b')
@@ -173,12 +172,14 @@ describe('conversation manager lifecycle', () => {
     })
     await manager.load()
     const pending = manager.loadMessages('same')
-    await manager.deleteConversation('same')
+    // Deletion invalidates the old generation immediately, then reads persisted
+    // messages to clear its turn snapshots before deleting storage.
+    const deletion = manager.deleteConversation('same')
     const pendingInfo = manager.createConversation({ id: 'same' })
     expect(pendingInfo.id).toBe('same')
     old.resolve([])
     fresh.resolve([])
-    await pending
+    await Promise.all([pending, deletion])
     expect(manager.getEngine('same')).toBeDefined()
     expect(made).toEqual(['same:0'])
   })
@@ -196,5 +197,3 @@ describe('conversation manager lifecycle', () => {
     expect(await manager.loadMessages('a')).toBe(await one)
   })
 })
-
-

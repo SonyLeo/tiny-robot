@@ -34,7 +34,9 @@ interface ConversationDB extends DBSchema {
 export class IndexedDBStrategy implements ConversationStorageStrategy {
   private dbName: string
   private dbVersion: number
-  private db: IDBPDatabase<ConversationDB> | null = null
+  private dbPromise?: Promise<IDBPDatabase<ConversationDB>>
+  private closed = false
+  private closePromise?: Promise<void>
 
   constructor(dbName: string = 'tiny-robot-ai-db', dbVersion: number = 3) {
     this.dbName = dbName
@@ -45,8 +47,9 @@ export class IndexedDBStrategy implements ConversationStorageStrategy {
    * 获取或初始化数据库连接
    */
   private async getDB(): Promise<IDBPDatabase<ConversationDB>> {
-    if (!this.db) {
-      this.db = await openDB<ConversationDB>(this.dbName, this.dbVersion, {
+    if (this.closed) throw new Error('IndexedDB conversation storage is closed')
+    if (!this.dbPromise) {
+      this.dbPromise = openDB<ConversationDB>(this.dbName, this.dbVersion, {
         upgrade(db) {
           // 创建会话对象存储和索引
           if (!db.objectStoreNames.contains('conversations')) {
@@ -63,7 +66,27 @@ export class IndexedDBStrategy implements ConversationStorageStrategy {
         },
       })
     }
-    return this.db
+    const opening = this.dbPromise
+    try {
+      const db = await opening
+      if (this.closed) throw new Error('IndexedDB conversation storage is closed')
+      return db
+    } catch (error) {
+      if (!this.closed && this.dbPromise === opening) this.dbPromise = undefined
+      throw error
+    }
+  }
+
+  /** Call after the owner has awaited pending saves. Does not delete history or reopen. */
+  close(): Promise<void> {
+    if (!this.closePromise) {
+      this.closed = true
+      this.closePromise = (this.dbPromise ?? Promise.resolve(undefined)).then((db) => {
+        db?.close()
+        this.dbPromise = undefined
+      })
+    }
+    return this.closePromise
   }
 
   /**

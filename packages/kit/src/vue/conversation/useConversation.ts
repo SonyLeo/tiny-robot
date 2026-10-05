@@ -1,390 +1,143 @@
-import { computed, ref, toRaw, watch, WatchStopHandle } from 'vue'
+import { computed, ref, shallowRef, toRaw, watch, WatchStopHandle } from 'vue'
+import { createConversationManager } from '../../conversation/manager'
+import type { ConversationManagerState, ConversationStorage } from '../../conversation/types'
+import type { CreateMessageEngineOptions, MessageEngine } from '../../message/types'
 import { localStorageStrategyFactory } from '../../storage/factories'
-import { unwrapProxy } from '../../storage/utils'
 import { ChatMessage } from '../../types'
-import { UseMessageOptions, UseMessagePlugin, UseMessageReturn } from '../message/types'
-import { useMessage } from '../message/useMessage'
+import { UseMessageOptions } from '../message/types'
+import { createVueMessageRuntime } from '../message/runtime'
 import { Conversation, ConversationInfo, UseConversationOptions, UseConversationReturn } from './types'
-import { useThrottleFn } from './useThrottleFn'
+
+// Carry Vue callbacks through the manager's options without exposing them as core plugins.
+const vueOptions = Symbol('vue-message-options')
+type VueEngineOptions = CreateMessageEngineOptions & { [vueOptions]: UseMessageOptions }
+
+const toEngineOptions = (options: UseMessageOptions): VueEngineOptions => ({
+  [vueOptions]: options,
+  initialMessages: options.initialMessages as CreateMessageEngineOptions['initialMessages'],
+})
 
 export const useConversation = (options: UseConversationOptions): UseConversationReturn => {
-  // 如果没有提供存储策略，使用默认的 LocalStorage 策略
-  const storage = options.storage || localStorageStrategyFactory()
-  /**
-   * All conversations.
-   */
+  const storage = (options.storage || localStorageStrategyFactory()) as unknown as ConversationStorage
   const conversations = ref<ConversationInfo[]>([])
+  const activeConversationId = ref<string | null>(null)
+  const engineRevision = shallowRef(0)
+  const runtimes = new WeakMap<MessageEngine, ReturnType<typeof createVueMessageRuntime>>()
+  const watchers = new WeakMap<MessageEngine, WatchStopHandle>()
 
-  /**
-   * Runtime engines cache, only keeps active and background-running conversations.
-   */
-  const workingEngines = new Map<string, UseMessageReturn>()
-
-  /**
-   * Watch stop handles for each engine's messages, used for auto-save.
-   */
-  const watchers = new Map<string, WatchStopHandle>()
-
-  /**
-   * Serialize persistence per conversation so saves and deletion cannot
-   * complete out of order.
-   */
-  const persistenceQueues = new Map<string, Promise<void>>()
-
-  const enqueuePersistence = (id: string, operation: () => Promise<void>): Promise<void> => {
-    const previousOperation = persistenceQueues.get(id)
-    const currentOperation = previousOperation ? previousOperation.catch(() => undefined).then(operation) : operation()
-    persistenceQueues.set(id, currentOperation)
-
-    const clearCompletedOperation = () => {
-      if (persistenceQueues.get(id) === currentOperation) {
-        persistenceQueues.delete(id)
-      }
+  const syncState = (state: ConversationManagerState) => {
+    const existing = new Map(conversations.value.map((info) => [info.id, info]))
+    const next = state.conversations.map((info) => {
+      const previous = existing.get(info.id)
+      if (!previous) return info
+      Object.assign(previous, info)
+      return previous
+    })
+    if (
+      next.length !== conversations.value.length ||
+      next.some((info, index) => toRaw(info) !== toRaw(conversations.value[index]))
+    ) {
+      conversations.value = next
     }
-    void currentOperation.then(clearCompletedOperation, clearCompletedOperation)
-
-    return currentOperation
+    activeConversationId.value = state.activeConversationId
   }
 
-  /**
-   * Currently active conversation id.
-   */
-  const activeConversationId = ref<string | null>(null)
-
-  /**
-   * Get current active conversation object.
-   * Computed from activeConversationId, automatically syncs with state changes.
-   */
-  const activeConversation = computed<Conversation | null>(() => {
-    const id = activeConversationId.value
-    if (!id) return null
-
-    const info = conversations.value.find((c) => c.id === id)
-    if (!info) return null
-
-    const engine = workingEngines.get(id)
-    if (!engine) return null
-
-    return { ...info, engine }
+  const manager = createConversationManager({
+    storage,
+    engineOptions: toEngineOptions(options.useMessageOptions),
+    autoSaveThrottle: options.autoSaveMessages ? (options.autoSaveThrottle ?? 1000) : undefined,
+    engineFactory: (_id, initialMessages, config) => {
+      const messageOptions = (config as VueEngineOptions)[vueOptions]
+      const runtime = createVueMessageRuntime(
+        { ...messageOptions, initialMessages: initialMessages as ChatMessage[] },
+        config?.plugins,
+      )
+      runtimes.set(runtime.engine, runtime)
+      return runtime.engine
+    },
+    onEngineCreated: (id, engine) => {
+      const runtime = runtimes.get(engine)!
+      if (options.autoSaveMessages) {
+        // Vue plugins and consumers may mutate reactive messages without a core update event.
+        // Report those writes immediately so releasing an engine always sees its dirty tail.
+        watchers.set(
+          engine,
+          watch(runtime.api.messages, () => manager.notifyMessagesChanged(id), { deep: true, flush: 'sync' }),
+        )
+      }
+      engineRevision.value++
+    },
+    onEngineReleased: (_id, engine) => {
+      watchers.get(engine)?.()
+      watchers.delete(engine)
+      runtimes.get(engine)?.stop()
+      runtimes.delete(engine)
+      engineRevision.value++
+    },
+    onLoad: (items) => options.onLoad?.(items),
+    onPersistenceError: (error, id) => console.error(`[useConversation] persistence failed for ${id}:`, error),
   })
 
-  /**
-   * 保存指定会话的消息到存储层。
-   *
-   * 注意：此函数只会对已加载到内存中的会话生效。如果会话尚未被打开或切换过，
-   * 其消息引擎不在内存中，调用此函数不会有任何效果。
-   *
-   * @param id - 会话 ID，如果不提供则使用当前活跃会话
-   */
-  const saveConversationMessages = (id: string, messages: ChatMessage[]): Promise<void> => {
-    const snapshot = unwrapProxy(toRaw(messages))
-    return enqueuePersistence(id, async () => {
-      if (!storage?.saveMessages) return
+  manager.subscribe(syncState)
+  if (storage.loadConversations) {
+    void manager.load().catch((error) => console.error('[useConversation] loadConversations failed:', error))
+  }
 
-      const conversation = conversations.value.find((item) => item.id === id)
-      if (!conversation) return
+  const activeConversation = computed<Conversation | null>(() => {
+    void engineRevision.value
+    const id = activeConversationId.value
+    if (!id) return null
+    const info = conversations.value.find((item) => item.id === id)
+    const engine = manager.getEngine(id)
+    const runtime = engine && runtimes.get(engine)
+    return info && runtime ? { ...info, engine: runtime.api } : null
+  })
 
-      conversation.updatedAt = Date.now()
-      await storage.saveConversation?.(conversation)
-      await storage.saveMessages(id, snapshot)
+  const createConversation: UseConversationReturn['createConversation'] = (params = {}) => {
+    manager.createConversation({
+      id: params.id,
+      title: params.title,
+      metadata: params.metadata,
+      options: params.useMessageOptions
+        ? toEngineOptions({ ...options.useMessageOptions, ...params.useMessageOptions })
+        : undefined,
     })
-  }
-
-  const saveMessages = async (id?: string): Promise<void> => {
-    if (!storage?.saveMessages) return
-    const conversationId = id || activeConversationId.value
-
-    if (!conversationId) return
-
-    const engine = workingEngines.get(conversationId)
-    if (!engine) return
-
-    await saveConversationMessages(conversationId, engine.messages.value)
-  }
-
-  /**
-   * 为引擎设置自动保存监听器
-   */
-  const setupAutoSave = (id: string, engine: UseMessageReturn) => {
-    if (!options.autoSaveMessages || !storage?.saveMessages) return
-
-    // 停止已存在的监听器（如果有）
-    const existingWatcher = watchers.get(id)
-    if (existingWatcher) {
-      existingWatcher()
-    }
-
-    // 创建节流保存函数
-    const throttleTime = options.autoSaveThrottle ?? 1000
-    const throttledSave = useThrottleFn(
-      () => {
-        saveMessages(id)
-      },
-      throttleTime,
-      true, // trailing: 在节流周期结束时执行
-      true, // leading: 在节流周期开始时执行
-    )
-
-    // 监听消息变化并自动保存
-    const stopMessageWatcher = watch(engine.messages, throttledSave, { deep: true })
-    watchers.set(id, () => {
-      stopMessageWatcher()
-    })
-  }
-
-  /**
-   * 停止引擎的自动保存监听器
-   */
-  const stopAutoSave = (id: string) => {
-    const watcher = watchers.get(id)
-    if (watcher) {
-      watcher()
-      watchers.delete(id)
-    }
-  }
-
-  const createConversationEngine = (id: string, messageOptions: UseMessageOptions): UseMessageReturn => {
-    const plugins = messageOptions.plugins ?? []
-    const pausePersistencePlugin: UseMessagePlugin = {
-      onTurnPause: (context) => saveConversationMessages(id, context.getState().messages),
-    }
-
-    return useMessage({
-      ...messageOptions,
-      plugins: options.autoSaveMessages ? [pausePersistencePlugin, ...plugins] : plugins,
-    })
-  }
-
-  /**
-   * Load initial conversation list from storage (if provided).
-   */
-  if (storage?.loadConversations) {
-    Promise.resolve(storage.loadConversations())
-      .then((list) => {
-        // 存储为空时仍返回加载期间创建的内存会话
-        if (!list?.length) {
-          return conversations.value
-        }
-
-        // 如果当前内存中的会话列表为空，直接使用加载的列表
-        if (conversations.value.length === 0) {
-          conversations.value = list
-          return conversations.value
-        }
-
-        // 合并策略：内存数据优先于存储数据
-        // 1. 保留内存中已存在的会话（不会被存储数据覆盖）
-        // 2. 添加存储中存在但内存中不存在的会话
-        // 这样可以避免覆盖在 loadConversations 完成之前通过 createConversation 创建的会话
-        const merged = new Map(conversations.value.map((c) => [c.id, c]))
-        list.forEach((c) => {
-          if (!merged.has(c.id)) {
-            merged.set(c.id, c)
-          }
-        })
-        conversations.value = Array.from(merged.values())
-
-        // 确保 activeConversation 对应的会话在合并后的列表中
-        // 如果 activeConversationId 存在但对应的会话不在列表中，说明可能被意外删除
-        // 这种情况下，activeConversation 会自动变为 null（通过 computed 属性）
-        return conversations.value
-      })
-      .then((loadedList) => {
-        options.onLoad?.(loadedList)
-      })
-      .catch((error) => {
-        console.error('[useConversation] loadConversations failed:', error)
-      })
-  }
-
-  /**
-   * Ensure an engine instance exists for the given conversation id.
-   * If not, it will be created using stored messages (when storage is available).
-   */
-  const ensureEngine = async (id: string, overrideOptions?: UseMessageOptions): Promise<UseMessageReturn> => {
-    const existing = workingEngines.get(id)
-    if (existing) return existing
-
-    let initialMessages: ChatMessage[] =
-      overrideOptions?.initialMessages ?? options.useMessageOptions.initialMessages ?? []
-
-    if (storage?.loadMessages) {
-      try {
-        initialMessages = await storage.loadMessages(id)
-      } catch (error) {
-        console.error('[useConversation] loadMessages failed:', error)
-      }
-    }
-
-    const engine = createConversationEngine(id, {
-      ...options.useMessageOptions,
-      ...overrideOptions,
-      initialMessages,
-    })
-
-    workingEngines.set(id, engine)
-    setupAutoSave(id, engine)
-
-    return engine
-  }
-
-  /**
-   * 生成唯一ID
-   */
-  function generateId(): string {
-    return Date.now().toString(36) + Math.random().toString(36).substring(2, 9)
-  }
-
-  const createConversation = (params?: {
-    id?: string
-    title?: string
-    metadata?: Record<string, unknown>
-    useMessageOptions?: Partial<UseMessageOptions>
-  }): Conversation => {
-    const { id = generateId(), title, metadata, useMessageOptions } = params || {}
-
-    const now = Date.now()
-    const info: ConversationInfo = {
-      id,
-      title,
-      createdAt: now,
-      updatedAt: now,
-      metadata,
-    }
-    conversations.value.unshift(info)
-
-    const engine = createConversationEngine(id, {
-      ...options.useMessageOptions,
-      ...useMessageOptions,
-    })
-    workingEngines.set(id, engine)
-    setupAutoSave(id, engine)
-
-    // Persist new conversation and its initial messages.
-    void saveConversationMessages(id, engine.messages.value).catch((error) => {
-      console.error('[useConversation] save initial messages failed:', error)
-    })
-
-    activeConversationId.value = id
-
     return activeConversation.value!
   }
 
-  const clearInactiveEngines = (options?: { excludeId?: string }) => {
-    const { excludeId } = options || {}
-
-    workingEngines.forEach((engine, key) => {
-      if (excludeId && key === excludeId) return
-
-      if (engine.canStartTurn.value) {
-        stopAutoSave(key)
-        workingEngines.delete(key)
-      }
-    })
-  }
-
-  /**
-   * Switch active conversation by id.
-   */
-  const switchConversation = async (id: string): Promise<Conversation | null> => {
-    if (!id) return null
-
-    if (activeConversationId.value === id) return activeConversation.value
-
-    const conversation = conversations.value.find((c) => c.id === id)
+  const switchConversation: UseConversationReturn['switchConversation'] = async (id) => {
+    const conversation = await manager.switchConversation(id)
     if (!conversation) return null
-
-    // Ensure active conversation has an engine (lazy creation from storage).
-    await ensureEngine(id)
-
-    // Cleanup engines that are not active and not processing.
-    // This helps to release memory for engines that are no longer in use.
-    clearInactiveEngines({ excludeId: id })
-
-    activeConversationId.value = id
-
-    return activeConversation.value
+    const runtime = conversation.engine && runtimes.get(conversation.engine)
+    const info = conversations.value.find((item) => item.id === id)
+    const result =
+      activeConversation.value?.id === id
+        ? activeConversation.value
+        : runtime && info
+          ? { ...info, engine: runtime.api }
+          : null
+    await manager.releaseInactiveEngines(manager.getState().activeConversationId ?? undefined)
+    return result
   }
 
-  /**
-   * Close a conversation and optionally fall back to another one.
-   */
   const deleteConversation = async (id: string) => {
-    const idx = conversations.value.findIndex((c) => c.id === id)
-    if (idx === -1) return
-
-    // Abort running request when closing this conversation.
-    const engine = workingEngines.get(id)
-    await engine?.abortRequest()
-
-    // Stop auto-save watcher before removing engine
-    stopAutoSave(id)
-    workingEngines.delete(id)
-
-    conversations.value.splice(idx, 1)
-
-    // Clear active state before waiting for persistence so consumers never
-    // observe an active id whose conversation has already been removed.
-    if (activeConversationId.value === id) {
-      activeConversationId.value = null
-      clearInactiveEngines()
-    }
-
-    // Serialize deletion with both pending and later saves for this id. A new
-    // conversation with the same id can then persist only after deletion.
-    const deletion = enqueuePersistence(id, async () => {
-      await storage?.deleteConversation?.(id)
-    })
-
-    await deletion
+    await manager.deleteConversation(id)
+    await manager.releaseInactiveEngines(manager.getState().activeConversationId ?? undefined)
   }
 
-  /**
-   * Clear all conversations and their messages.
-   */
   const clear = () => {
-    const ids = conversations.value.map((c) => c.id)
-    ids.forEach((id) => {
-      storage?.deleteConversation?.(id)
-    })
-    workingEngines.forEach((engine) => {
-      engine.abortRequest()
-    })
-    watchers.forEach((watcher) => {
-      watcher()
-    })
-    conversations.value = []
-    workingEngines.clear()
-    watchers.clear()
-    activeConversationId.value = null
+    void manager.clear().catch((error) => console.error('[useConversation] clear failed:', error))
   }
 
-  /**
-   * Update conversation title and persist it via storage.
-   */
   const updateConversationTitle = (id: string, title?: string) => {
-    const info = conversations.value.find((c) => c.id === id)
-    if (!info) return
-
-    info.title = title
-    info.updatedAt = Date.now()
-    void enqueuePersistence(id, async () => {
-      await storage?.saveConversation?.(info)
-    }).catch((error) => {
-      console.error('[useConversation] update title failed:', error)
-    })
+    void manager
+      .updateConversationTitle(id, title)
+      .catch((error) => console.error('[useConversation] update title failed:', error))
   }
 
-  /**
-   * Convenience method: send message to active conversation.
-   */
-  const sendMessage = (content: string): Promise<void> => {
-    return activeConversation.value?.engine.sendMessage(content) ?? Promise.resolve()
-  }
+  const sendMessage = (content: string): Promise<void> =>
+    activeConversation.value?.engine.sendMessage(content) ?? Promise.resolve()
 
-  /**
-   * Convenience method: abort request of active conversation.
-   */
   const abortActiveRequest = async () => {
     await activeConversation.value?.engine.abortRequest()
   }
@@ -393,14 +146,12 @@ export const useConversation = (options: UseConversationOptions): UseConversatio
     conversations,
     activeConversationId,
     activeConversation,
-
     createConversation,
     switchConversation,
     deleteConversation,
     clear,
     updateConversationTitle,
-    saveMessages,
-
+    saveMessages: manager.saveMessages,
     sendMessage,
     abortActiveRequest,
   }

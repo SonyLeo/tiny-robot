@@ -5,6 +5,25 @@ import type { ChatMessage } from '../../message/types'
 import type { ConversationStorageStrategy } from '../../storage'
 import { useConversation } from './useConversation'
 
+const createMemoryStorage = (): ConversationStorageStrategy => {
+  const conversations = new Map<string, Parameters<ConversationStorageStrategy['saveConversation']>[0]>()
+  const messages = new Map<string, Parameters<ConversationStorageStrategy['saveMessages']>[1]>()
+  return {
+    loadConversations: () => structuredClone([...conversations.values()]),
+    loadMessages: (id) => structuredClone(messages.get(id) ?? []),
+    saveConversation: (info) => {
+      conversations.set(info.id, structuredClone(info))
+    },
+    saveMessages: (id, history) => {
+      messages.set(id, structuredClone(history))
+    },
+    deleteConversation: (id) => {
+      conversations.delete(id)
+      messages.delete(id)
+    },
+  }
+}
+
 describe('useConversation', () => {
   const responseProvider: ResponseProvider = async () =>
     ({
@@ -17,6 +36,7 @@ describe('useConversation', () => {
 
   it('keeps paused inactive engines while clearing engines that can start a turn', async () => {
     const conversation = useConversation({
+      storage: createMemoryStorage(),
       useMessageOptions: { responseProvider },
     })
     const pausedConversation = conversation.createConversation({
@@ -67,6 +87,7 @@ describe('useConversation', () => {
 
   it('clears inactive engines that can start a turn', async () => {
     const conversation = useConversation({
+      storage: createMemoryStorage(),
       useMessageOptions: { responseProvider },
     })
     const idleConversation = conversation.createConversation({ id: 'idle' })

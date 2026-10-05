@@ -10,13 +10,14 @@ import {
 
 /** Storage contract for the core message type used by Angular and other consumers. */
 export type CoreConversationStorageStrategy = ConversationStorage
+export type CoreIndexedDBStorageStrategy = CoreConversationStorageStrategy & Pick<LegacyIndexedDBStrategy, 'close'>
 
 /** Runtime-compatible storage classes with the shared core declaration shape. */
 export const LocalStorageStrategy = LegacyLocalStorageStrategy as unknown as {
   new (storageKey?: string): CoreConversationStorageStrategy
 }
 export const IndexedDBStrategy = LegacyIndexedDBStrategy as unknown as {
-  new (dbName?: string, dbVersion?: number): CoreConversationStorageStrategy
+  new (dbName?: string, dbVersion?: number): CoreIndexedDBStorageStrategy
 }
 
 export const localStorageStrategyFactory = (
@@ -25,6 +26,6 @@ export const localStorageStrategyFactory = (
 
 export const indexedDBStorageStrategyFactory = (
   config: IndexedDBConfig = {},
-): CoreConversationStorageStrategy => legacyIndexedDBStorageStrategyFactory(config) as unknown as CoreConversationStorageStrategy
+): CoreIndexedDBStorageStrategy => legacyIndexedDBStorageStrategyFactory(config) as unknown as CoreIndexedDBStorageStrategy
 
 export type { IndexedDBConfig, LocalStorageConfig }

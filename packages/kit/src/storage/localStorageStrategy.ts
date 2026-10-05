@@ -30,6 +30,7 @@ export class LocalStorageStrategy implements ConversationStorageStrategy {
       localStorage.setItem(this.storageKey, JSON.stringify(conversations))
     } catch (error) {
       console.error('保存会话失败:', error)
+      throw error
     }
   }
 
@@ -59,6 +60,7 @@ export class LocalStorageStrategy implements ConversationStorageStrategy {
       localStorage.setItem(this.storageKey, JSON.stringify(conversations))
     } catch (error) {
       console.error('保存会话消息失败:', error)
+      throw error
     }
   }
 

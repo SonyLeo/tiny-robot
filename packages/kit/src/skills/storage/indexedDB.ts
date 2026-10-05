@@ -70,6 +70,8 @@ export class IndexedDBSkillStorage<TImportOptions = SkillImportOptions> implemen
   readonly skillStoreName = defaultSkillStoreName
   readonly resourceStoreName = defaultResourceStoreName
   private dbPromise?: Promise<IDBPDatabase<IndexedDBSkillStorageSchema>>
+  private closed = false
+  private closePromise?: Promise<void>
 
   constructor(
     options: IndexedDBSkillStorageOptions,
@@ -78,7 +80,8 @@ export class IndexedDBSkillStorage<TImportOptions = SkillImportOptions> implemen
     this.databaseName = options.databaseName
   }
 
-  private getDB() {
+  private async getDB() {
+    if (this.closed) throw new Error('IndexedDB skill storage is closed')
     this.dbPromise ??= openDB<IndexedDBSkillStorageSchema>(this.databaseName, defaultVersion, {
       upgrade: (db) => {
         if (!db.objectStoreNames.contains(this.skillStoreName)) {
@@ -96,10 +99,31 @@ export class IndexedDBSkillStorage<TImportOptions = SkillImportOptions> implemen
       },
     })
 
-    return this.dbPromise
+    const opening = this.dbPromise
+    try {
+      const db = await opening
+      if (this.closed) throw new Error('IndexedDB skill storage is closed')
+      return db
+    } catch (error) {
+      if (!this.closed && this.dbPromise === opening) this.dbPromise = undefined
+      throw error
+    }
+  }
+
+  /** The storage owner closes it after awaiting pending imports/writes. History stays persisted. */
+  close(): Promise<void> {
+    if (!this.closePromise) {
+      this.closed = true
+      this.closePromise = (this.dbPromise ?? Promise.resolve(undefined)).then((db) => {
+        db?.close()
+        this.dbPromise = undefined
+      })
+    }
+    return this.closePromise
   }
 
   async add(skill: SkillDefinition) {
+    if (this.closed) throw new Error('IndexedDB skill storage is closed')
     const resourceRecords = await Promise.all(
       (skill.resources ?? []).map((resource) => toResourceRecord(skill.name, resource)),
     )
@@ -159,6 +183,9 @@ export class IndexedDBSkillStorage<TImportOptions = SkillImportOptions> implemen
   }
 
   import(options: TImportOptions): SkillImportJob {
+    if (this.closed) {
+      return Object.assign(Promise.reject(new Error('IndexedDB skill storage is closed')), { cancel: () => undefined })
+    }
     const task = this.importer(options)
 
     return Object.assign(

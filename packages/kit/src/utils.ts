@@ -5,6 +5,28 @@
 
 import type { ChatMessage, ChatCompletionResponse, ChatCompletionStreamResponse, StreamHandler } from './types'
 
+/** Input accepted by the legacy text formatter, including OpenAI messages. */
+export interface FormatMessageInput {
+  role: string
+  content?: unknown
+  name?: string
+}
+
+/**
+ * Text-only output of formatMessages. Tool fields and multipart content are not
+ * preserved; this is not an OpenAI request-message conversion.
+ */
+export interface FormattedMessage {
+  role: string
+  content: string
+  name?: string
+}
+
+/** Minimal response shape needed to extract text, including nullable OpenAI content. */
+export interface TextExtractionResponse {
+  choices?: Array<{ message?: { content?: string | null } }>
+}
+
 export const getUniqueStringArray = (value: unknown) => {
   if (!Array.isArray(value)) {
     return undefined
@@ -98,13 +120,16 @@ export async function handleSSEStream(response: Response, handler: StreamHandler
 
 /**
  * 格式化消息
- * 将各种格式的消息转换为标准的ChatMessage格式
+ * 将消息转换为旧版文本格式，仅保留 role、字符串化的 content 和非空 name。
+ * 不保留工具、元数据或多模态内容；缺少 content 的对象按旧规则字符串化为用户消息。
  * @param messages 消息数组
- * @returns 标准格式的消息数组
+ * @returns 旧版文本格式的消息数组
  */
-export function formatMessages(messages: Array<ChatMessage | string>): ChatMessage[] {
+export function formatMessages(messages: Array<ChatMessage | string>): ChatMessage[]
+export function formatMessages(messages: Array<FormatMessageInput | string>): FormattedMessage[]
+export function formatMessages(messages: Array<FormatMessageInput | string>): FormattedMessage[] {
   return messages.map((msg) => {
-    // 如果已经是标准格式，直接返回
+    // 保留旧版文本字段
     if (typeof msg === 'object' && 'role' in msg && 'content' in msg) {
       return {
         role: msg.role,
@@ -134,7 +159,9 @@ export function formatMessages(messages: Array<ChatMessage | string>): ChatMessa
  * @param response 聊天完成响应
  * @returns 文本内容
  */
-export function extractTextFromResponse(response: ChatCompletionResponse): string {
+export function extractTextFromResponse(response: ChatCompletionResponse): string
+export function extractTextFromResponse(response: TextExtractionResponse): string
+export function extractTextFromResponse(response: TextExtractionResponse): string {
   if (!response.choices || !response.choices.length) {
     return ''
   }

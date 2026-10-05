@@ -1,9 +1,39 @@
 import 'fake-indexeddb/auto'
-import { describe, expect, it } from 'vitest'
-import { createIndexedDBSkillStorage } from '../storage'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { createIndexedDBSkillStorage as createStorage, IndexedDBSkillStorage } from '../storage'
+import type { IndexedDBSkillStorageOptions, SkillImportJob } from '../storage'
 import type { SkillDefinition } from '../types'
 
 const databaseName = () => `tiny-robot-skills-test-${crypto.randomUUID()}`
+const storages = new Set<Pick<IndexedDBSkillStorage<unknown>, 'databaseName' | 'close'>>()
+const createIndexedDBSkillStorage = (options: IndexedDBSkillStorageOptions) => {
+  const storage = createStorage(options)
+  storages.add(storage)
+  return storage
+}
+const requestResult = <T>(request: IDBRequest<T>) =>
+  new Promise<T>((resolve, reject) => {
+    request.onsuccess = () => resolve(request.result)
+    request.onerror = () => reject(request.error)
+  })
+const deleteDatabase = (name: string) =>
+  new Promise<void>((resolve, reject) => {
+    const request = indexedDB.deleteDatabase(name)
+    request.onsuccess = () => resolve()
+    request.onerror = () => reject(request.error)
+    request.onblocked = () => reject(new Error(`Skill database ${name} still has an open connection`))
+  })
+const skill: SkillDefinition = { name: 'lifecycle', description: 'Lifecycle skill', instructions: '# Lifecycle' }
+
+afterEach(async () => {
+  try {
+    await Promise.all([...storages].map((storage) => storage.close()))
+    await Promise.all([...new Set([...storages].map((storage) => storage.databaseName))].map(deleteDatabase))
+  } finally {
+    storages.clear()
+    vi.restoreAllMocks()
+  }
+})
 
 describe('IndexedDBSkillStorage', () => {
   it('adds, gets, lists, checks, and deletes skills', async () => {
@@ -211,5 +241,134 @@ describe('IndexedDBSkillStorage', () => {
       name: 'SkillLoadCancelledError',
     })
     await expect(storage.has('cancelled')).resolves.toBe(false)
+  })
+
+  it('returns one close promise and rejects new operations without invoking external readers or imports', async () => {
+    const importer = vi.fn(() =>
+      Object.assign(Promise.resolve({ name: skill.name, skill, warnings: [] }), { cancel: () => undefined }),
+    )
+    const storage = new IndexedDBSkillStorage<unknown>({ databaseName: databaseName() }, importer)
+    storages.add(storage)
+    const open = vi.spyOn(indexedDB, 'open')
+    const readText = vi.fn(async () => 'external text')
+    const first = storage.close()
+    expect(storage.close()).toBe(first)
+    await first
+    await expect(
+      storage.add({ ...skill, resources: [{ path: 'lazy.md', resourceId: 'lazy.md', kind: 'text', readText }] }),
+    ).rejects.toThrow('closed')
+    expect(readText).not.toHaveBeenCalled()
+    await expect(storage.get(skill.name)).rejects.toThrow('closed')
+    await expect(storage.has(skill.name)).rejects.toThrow('closed')
+    await expect(storage.list()).rejects.toThrow('closed')
+    await expect(storage.delete(skill.name)).rejects.toThrow('closed')
+    const task: SkillImportJob = storage.import({})
+    expect(task.cancel).toBeTypeOf('function')
+    task.cancel()
+    await expect(task).rejects.toThrow('closed')
+    expect(importer).not.toHaveBeenCalled()
+    expect(open).not.toHaveBeenCalled()
+  })
+
+  it('closes a pending real connection and rejects concurrent operations waiting for it', async () => {
+    const name = databaseName()
+    const blocker = await requestResult(indexedDB.open(name, 1))
+    const deletion = indexedDB.deleteDatabase(name)
+    await new Promise<void>((resolve, reject) => {
+      deletion.onblocked = () => resolve()
+      deletion.onerror = () => reject(deletion.error)
+    })
+    const deleted = requestResult(deletion)
+    const opened: IDBDatabase[] = []
+    const closed = vi.fn()
+    const nativeOpen = indexedDB.open.bind(indexedDB)
+    const open = vi.spyOn(indexedDB, 'open').mockImplementation((dbName, version) => {
+      const request = nativeOpen(dbName, version)
+      request.addEventListener('success', () => {
+        opened.push(request.result)
+        const nativeClose = request.result.close.bind(request.result)
+        vi.spyOn(request.result, 'close').mockImplementation(() => {
+          closed()
+          nativeClose()
+        })
+      })
+      return request
+    })
+    const storage = createIndexedDBSkillStorage({ databaseName: name })
+    try {
+      const reads = Promise.allSettled([storage.list(), storage.has(skill.name)])
+      const first = storage.close()
+      expect(storage.close()).toBe(first)
+      blocker.close()
+      await deleted
+      await first
+      expect(
+        (await reads).every((result) => result.status === 'rejected' && /closed/.test(String(result.reason))),
+      ).toBe(true)
+      expect(open).toHaveBeenCalledOnce()
+      expect(closed).toHaveBeenCalledOnce()
+      await deleteDatabase(name)
+    } finally {
+      blocker.close()
+      opened.forEach((db) => db.close())
+      await storage.close()
+    }
+  })
+
+  it('retries an asynchronous open failure on the same instance', async () => {
+    const name = databaseName()
+    const incompatible = await requestResult(indexedDB.open(name, 2))
+    incompatible.close()
+    const storage = createIndexedDBSkillStorage({ databaseName: name })
+    const open = vi.spyOn(indexedDB, 'open')
+    await expect(storage.list()).rejects.toMatchObject({ name: 'VersionError' })
+    await deleteDatabase(name)
+    await storage.add(skill)
+    expect(await storage.has(skill.name)).toBe(true)
+    expect(open).toHaveBeenCalledTimes(2)
+  })
+
+  it('preserves resources for a new owner and rejects previously acquired lazy readers after close', async () => {
+    const name = databaseName()
+    const storage = createIndexedDBSkillStorage({ databaseName: name })
+    const open = vi.spyOn(indexedDB, 'open')
+    const stored = await storage.add({
+      ...skill,
+      resources: [
+        { path: 'guide.md', resourceId: 'guide.md', kind: 'text', text: '# Guide' },
+        { path: 'icon.png', resourceId: 'icon.png', kind: 'binary', binary: new Uint8Array([3, 7]) },
+      ],
+    })
+    await storage.close()
+    for (const resource of stored.resources!) {
+      await expect(resource.readText!()).rejects.toThrow('closed')
+      await expect(resource.readBinary!()).rejects.toThrow('closed')
+    }
+    await expect(storage.add(skill)).rejects.toThrow('closed')
+    expect(open).toHaveBeenCalledOnce()
+    const reader = createIndexedDBSkillStorage({ databaseName: name })
+    const restored = await reader.get(skill.name)
+    expect(restored?.instructions).toBe(skill.instructions)
+    await expect(restored?.resources?.[0].readText!()).resolves.toBe('# Guide')
+    await expect(restored?.resources?.[1].readBinary!()).resolves.toEqual(new Uint8Array([3, 7]))
+  })
+
+  it('rejects a lazy write released after close without opening a database', async () => {
+    const storage = createIndexedDBSkillStorage({ databaseName: databaseName() })
+    const open = vi.spyOn(indexedDB, 'open')
+    let release!: (text: string) => void
+    const text = new Promise<string>((resolve) => {
+      release = resolve
+    })
+    const result = Promise.allSettled([
+      storage.add({
+        ...skill,
+        resources: [{ path: 'lazy.md', resourceId: 'lazy.md', kind: 'text', readText: () => text }],
+      }),
+    ])
+    await storage.close()
+    release('late text')
+    expect(await result).toEqual([expect.objectContaining({ status: 'rejected', reason: expect.any(Error) })])
+    expect(open).not.toHaveBeenCalled()
   })
 })

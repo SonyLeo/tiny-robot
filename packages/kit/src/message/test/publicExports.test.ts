@@ -3,7 +3,7 @@ import * as core from '../../core'
 import * as root from '../../index'
 import { createNativeMessageAdapter, createVueMessageAdapter } from '../adapters'
 import { useMessage } from '../../vue/message/useMessage'
-import { IndexedDBStrategy, LocalStorageStrategy, indexedDBStorageStrategyFactory, localStorageStrategyFactory } from '../../storage'
+import { IndexedDBStrategy, LocalStorageStrategy } from '../../storage'
 
 describe('message public exports', () => {
   it('keeps the core entry limited to the native adapter', () => {

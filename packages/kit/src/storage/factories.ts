@@ -24,6 +24,6 @@ export function localStorageStrategyFactory(config: LocalStorageConfig = {}): Co
 /**
  * IndexedDB 策略工厂函数
  */
-export function indexedDBStorageStrategyFactory(config: IndexedDBConfig = {}): ConversationStorageStrategy {
+export function indexedDBStorageStrategyFactory(config: IndexedDBConfig = {}): IndexedDBStrategy {
   return new IndexedDBStrategy(config.dbName || 'tiny-robot-ai-db', config.dbVersion || 1)
 }

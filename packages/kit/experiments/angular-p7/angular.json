@@ -1,0 +1,29 @@
+{
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "newProjectRoot": "projects",
+  "projects": {
+    "p7": {
+      "projectType": "application",
+      "root": "",
+      "sourceRoot": "src",
+      "prefix": "p7",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "browser": "src/main.ts",
+            "index": "src/index.html",
+            "tsConfig": "tsconfig.app.json",
+            "outputPath": "dist/p7"
+          }
+        },
+        "serve": { "builder": "@angular/build:dev-server", "options": { "buildTarget": "p7:build" } },
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": { "buildTarget": "p7:build", "tsConfig": "tsconfig.spec.json", "runner": "vitest" }
+        }
+      }
+    }
+  }
+}
