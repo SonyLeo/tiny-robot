@@ -39,6 +39,7 @@ const controllableEngine = (requestState: PublicMessageState['requestState'] = '
     send: async () => undefined,
     dispatchCommand: async <T>() => undefined as T,
     updateMessage: () => undefined,
+    setMessages: () => undefined,
     setResponseProvider: () => undefined,
   } satisfies MessageEngine
   return {

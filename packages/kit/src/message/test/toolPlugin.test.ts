@@ -71,6 +71,148 @@ const assistantCompletion = (content: string, finishReason: 'stop' | 'length' = 
   ],
 })
 
+describe('toolPlugin streamed result contract', () => {
+  const makeStreamEngine = (callTool: Parameters<typeof toolPlugin>[0]['callTool']) => {
+    const responseProvider = vi.fn<ResponseProvider>(async (body) =>
+      body.messages.some((message) => message.role === 'tool')
+        ? assistantCompletion('finished')
+        : toolCallCompletion('stream-call'),
+    )
+    const ended: Array<{ status: string; error?: Error }> = []
+    const engine = createTestMessageEngine({
+      responseProvider,
+      plugins: [
+        ...silentDefaultPlugins,
+        toolPlugin({
+          getTools: () => [],
+          callTool,
+          persistPausedTurn: false,
+          onToolCallEnd: (_call, { status, error }) => ended.push({ status, error }),
+        }),
+      ],
+    })
+    return { engine, responseProvider, ended }
+  }
+
+  it('publishes every string chunk and preserves the tool message identity', async () => {
+    const { engine, responseProvider, ended } = makeStreamEngine(async function* () {
+      yield 'one '
+      yield 'two '
+      yield 'three'
+    })
+    const contents: string[] = []
+    const identities: ChatMessage[] = []
+    const unsubscribe = engine.subscribe('messages', ({ messages }) => {
+      const message = messages.find((item) => item.role === 'tool')
+      if (message?.content && contents.at(-1) !== message.content) {
+        contents.push(String(message.content))
+        identities.push(message)
+      }
+    })
+    try {
+      await engine.sendMessage('stream strings')
+      expect(contents).toEqual(['one ', 'one two ', 'one two three'])
+      expect(identities.every((message) => message === identities[0])).toBe(true)
+      expect(responseProvider.mock.calls[1][0].messages.find((message) => message.role === 'tool')?.content).toBe(
+        'one two three',
+      )
+      expect(ended).toEqual([{ status: 'success', error: undefined }])
+    } finally {
+      unsubscribe()
+    }
+  })
+
+  it('merges object deltas by nested fields and indexed array entries', async () => {
+    const { engine } = makeStreamEngine(async function* () {
+      yield { text: 'one', nested: { label: 'A' }, rows: [{ index: 0, text: 'x' }] }
+      yield {
+        text: ' two',
+        nested: { label: 'B', extra: true },
+        rows: [
+          { index: 0, text: 'y' },
+          { index: 1, text: 'z' },
+        ],
+      }
+    })
+    await engine.sendMessage('stream objects')
+    const result = engine.getState().messages.find((message) => message.role === 'tool')!
+    expect(JSON.parse(String(result.content))).toEqual({
+      text: 'one two',
+      nested: { label: 'AB', extra: true },
+      rows: [
+        { index: 0, text: 'xy' },
+        { index: 1, text: 'z' },
+      ],
+    })
+    expect(engine.getState().messages[1].state?.toolCall).toMatchObject({ 'stream-call': { status: 'success' } })
+  })
+
+  it('keeps partial content when a tool fails after yielding a result', async () => {
+    const failure = new Error('stream failed after partial')
+    const log = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    const { engine, ended, responseProvider } = makeStreamEngine(async function* () {
+      yield 'retained partial'
+      throw failure
+    })
+    try {
+      await engine.sendMessage('partial failure')
+      expect(engine.getState().messages.find((message) => message.role === 'tool')?.content).toBe('retained partial')
+      expect(engine.getState().messages[1].state?.toolCall).toMatchObject({ 'stream-call': { status: 'failed' } })
+      expect(ended).toEqual([{ status: 'failed', error: failure }])
+      expect(responseProvider).toHaveBeenCalledTimes(2)
+      expect(log).toHaveBeenCalledWith(failure)
+    } finally {
+      log.mockRestore()
+    }
+  })
+
+  it('uses failure fallback when the tool never yields a meaningful result', async () => {
+    const failure = new Error('stream failed before result')
+    const log = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    const { engine, ended } = makeStreamEngine(async function* () {
+      yield ''
+      yield {}
+      throw failure
+    })
+    try {
+      await engine.sendMessage('empty failure')
+      expect(engine.getState().messages.find((message) => message.role === 'tool')?.content).toBe('Tool call failed.')
+      expect(ended).toEqual([{ status: 'failed', error: failure }])
+    } finally {
+      log.mockRestore()
+    }
+  })
+
+  it('ignores a late chunk after abort and does not request a follow-up answer', async () => {
+    let release!: () => void
+    let started!: () => void
+    const gate = new Promise<void>((resolve) => {
+      release = resolve
+    })
+    const first = new Promise<void>((resolve) => {
+      started = resolve
+    })
+    const { engine, responseProvider, ended } = makeStreamEngine(async function* () {
+      yield 'before abort'
+      started()
+      await gate
+      yield ' late result'
+    })
+    const sending = engine.sendMessage('cancel tool')
+    await first
+    const message = engine.getState().messages.find((item) => item.role === 'tool')!
+    const aborting = engine.abort()
+    release()
+    await Promise.all([sending, aborting])
+    expect(engine.getState().requestState).toBe('aborted')
+    expect(engine.getState().messages.find((item) => item.role === 'tool')).toBe(message)
+    expect(message.content).toBe('before abort')
+    expect(engine.getState().messages[1].state?.toolCall).toMatchObject({ 'stream-call': { status: 'cancelled' } })
+    expect(ended).toEqual([{ status: 'cancelled', error: undefined }])
+    expect(responseProvider).toHaveBeenCalledOnce()
+  })
+})
+
 describe('toolPlugin', () => {
   it.each([-1, 1.5, Number.NaN, Number.POSITIVE_INFINITY])(
     'rejects invalid maxToolRounds value %s',

@@ -19,8 +19,98 @@ const createTestMessageEngine = (options: CreateMessageEngineOptions) =>
   createMessageEngine(createNativeMessageAdapter(), options)
 
 describe('createMessageEngine', () => {
+  it('replaces messages with one notification, isolates the input array, and preserves existing identities', () => {
+    const existing: ChatMessage = { role: 'assistant', content: 'existing' }
+    const replacement: ChatMessage = { role: 'user', content: 'replacement' }
+    const engine = createTestMessageEngine({ initialMessages: [existing], plugins: silentDefaultPlugins })
+    const updates: ChatMessage[][] = []
+    engine.subscribe('messages', (state) => updates.push(state.messages))
+
+    const input = [existing, replacement]
+    engine.setMessages(input)
+    input.push({ role: 'user', content: 'outside mutation' })
+
+    expect(engine.getState().messages).toEqual([existing, replacement])
+    expect(engine.getState().messages[0]).toBe(existing)
+    expect(engine.getState().messages[1]).toBe(replacement)
+    expect(engine.getState().messages).not.toBe(input)
+    expect(updates.slice(1)).toHaveLength(1)
+  })
+
+  it('preserves adapted identities and adapts an original input again when the adapter returns a new object', () => {
+    const original: ChatMessage = { role: 'assistant', content: 'original' }
+    const createMessage = vi.fn(<T extends ChatMessage>(message: T): T => ({ ...message }))
+    const engine = createMessageEngine(
+      { ...createNativeMessageAdapter(), createMessage },
+      { initialMessages: [original], plugins: silentDefaultPlugins },
+    )
+    const existing = engine.getState().messages[0]
+    expect(existing).not.toBe(original)
+
+    engine.setMessages([existing])
+    expect(engine.getState().messages[0]).toBe(existing)
+    expect(createMessage).toHaveBeenCalledTimes(1)
+
+    engine.setMessages([original])
+    expect(engine.getState().messages[0]).toEqual(original)
+    expect(engine.getState().messages[0]).not.toBe(original)
+    expect(createMessage).toHaveBeenCalledTimes(2)
+
+    engine.setMessages([])
+    engine.setMessages([existing])
+    expect(engine.getState().messages[0]).toBe(existing)
+    expect(createMessage).toHaveBeenCalledTimes(2)
+  })
+
+  it.each(['idle', 'completed', 'aborted', 'error'] as const)('allows setMessages in %s state', (requestState) => {
+    const existing: ChatMessage = { role: 'assistant', content: 'existing' }
+    const adapter = createNativeMessageAdapter()
+    const statefulEngine = createMessageEngine(adapter, { initialMessages: [existing], plugins: silentDefaultPlugins })
+    adapter.mutate('requestState', (draft) => {
+      draft.requestState = requestState
+    })
+
+    expect(() => statefulEngine.setMessages([{ role: 'user', content: requestState }])).not.toThrow()
+    expect(statefulEngine.getState().messages[0].content).toBe(requestState)
+  })
+
+  it.each([
+    ['processing', 'Cannot set messages while processing is in progress'],
+    ['paused', 'Cannot set messages while the request is paused'],
+  ] as const)('rejects setMessages in %s state', (requestState, message) => {
+    const adapter = createNativeMessageAdapter()
+    const engine = createMessageEngine(adapter, { plugins: silentDefaultPlugins })
+    adapter.mutate('requestState', (draft) => {
+      draft.requestState = requestState
+    })
+    expect(() => engine.setMessages([])).toThrow(message)
+  })
+
+  it('rejects setMessages while a tool call awaits approval', () => {
+    const adapter = createNativeMessageAdapter()
+    const engine = createMessageEngine(adapter, {
+      plugins: silentDefaultPlugins,
+      initialMessages: [
+        {
+          role: 'assistant',
+          content: '',
+          tool_calls: [{ id: 'call-1', type: 'function', function: { name: 'lookup', arguments: '{}' } }],
+          state: { toolCall: { 'call-1': { status: 'awaiting-approval' } } },
+        },
+      ],
+    })
+    adapter.mutate('requestState', (draft) => {
+      draft.requestState = 'processing'
+    })
+    expect(() => engine.setMessages([])).toThrow('Cannot set messages while a tool call is awaiting approval')
+  })
+
   it('updates a current message in place and rejects a foreign reference', () => {
-    const message: ChatMessage = { role: 'assistant', content: 'ready', state: { toolCall: { a: { status: 'pending' } } } }
+    const message: ChatMessage = {
+      role: 'assistant',
+      content: 'ready',
+      state: { toolCall: { a: { status: 'pending' } } },
+    }
     const engine = createTestMessageEngine({ initialMessages: [message], plugins: silentDefaultPlugins })
     const revisions: number[] = []
     engine.subscribe('messages', () => revisions.push(revisions.length))
@@ -40,13 +130,18 @@ describe('createMessageEngine', () => {
 
   it('ignores a response chunk yielded after cancellation', async () => {
     let release!: () => void
-    const gate = new Promise<void>((resolve) => { release = resolve })
+    const gate = new Promise<void>((resolve) => {
+      release = resolve
+    })
     const engine = createTestMessageEngine({
       plugins: silentDefaultPlugins,
       responseProvider: async function* () {
         await gate
         yield {
-          id: 'late', object: 'chat.completion.chunk', created: 0, model: 'test',
+          id: 'late',
+          object: 'chat.completion.chunk',
+          created: 0,
+          model: 'test',
           choices: [{ index: 0, delta: { content: 'late' }, finish_reason: 'stop' }],
         }
       },
@@ -520,7 +615,9 @@ describe('createMessageEngine', () => {
     })
 
     let firstChunkSeen!: () => void
-    const firstChunk = new Promise<void>((resolve) => { firstChunkSeen = resolve })
+    const firstChunk = new Promise<void>((resolve) => {
+      firstChunkSeen = resolve
+    })
     const unsubscribe = engine.subscribe('messages', (state) => {
       if (state.messages[1]?.content === 'first chunk') firstChunkSeen()
     })

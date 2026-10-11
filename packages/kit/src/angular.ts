@@ -1,17 +1,8 @@
 import { computed, inject, signal, DestroyRef } from '@angular/core'
 import { createMessageEngine } from './message/core'
 import { createNativeMessageAdapter } from './message/adapters/native'
-import type {
-  ChatMessage,
-  CreateMessageEngineOptions,
-  MessageEngine,
-  ResponseProvider,
-} from './message/types'
-import type {
-  ConversationInfo,
-  ConversationManager,
-  ConversationManagerState,
-} from './conversation/types'
+import type { ChatMessage, CreateMessageEngineOptions, MessageEngine, ResponseProvider } from './message/types'
+import type { ConversationInfo, ConversationManager, ConversationManagerState } from './conversation/types'
 
 /** A mutable message view. Nested fields change in place; read revision in OnPush children. */
 function createConnection(engine: MessageEngine, destroyRef: DestroyRef | undefined, ownsEngine: boolean) {
@@ -79,6 +70,10 @@ function createConnection(engine: MessageEngine, destroyRef: DestroyRef | undefi
     updateMessage(message: ChatMessage, recipe: (message: ChatMessage) => void) {
       ensureActive()
       engine.updateMessage(message, recipe)
+    },
+    setMessages(messages: readonly ChatMessage[]) {
+      ensureActive()
+      engine.setMessages(messages)
     },
     dispose,
   }
@@ -166,18 +161,42 @@ function createConversationConnection(manager: ConversationManager, destroyRef?:
     activeConversation,
     activeEngine,
     revision: revision.asReadonly(),
-    load: () => { ensureActive(); return manager.load() },
+    load: () => {
+      ensureActive()
+      return manager.load()
+    },
     createConversation: (params?: Parameters<ConversationManager['createConversation']>[0]) => {
       ensureActive()
       return manager.createConversation(params)
     },
-    loadMessages: (id: string) => { ensureActive(); return manager.loadMessages(id) },
-    switchConversation: (id: string) => { ensureActive(); return manager.switchConversation(id) },
-    updateConversationTitle: (id: string, title?: string) => { ensureActive(); return manager.updateConversationTitle(id, title) },
-    deleteConversation: (id: string) => { ensureActive(); return manager.deleteConversation(id) },
-    clear: () => { ensureActive(); return manager.clear() },
-    saveMessages: (id?: string) => { ensureActive(); return manager.saveMessages(id) },
-    flush: (id?: string) => { ensureActive(); return manager.flush(id) },
+    loadMessages: (id: string) => {
+      ensureActive()
+      return manager.loadMessages(id)
+    },
+    switchConversation: (id: string) => {
+      ensureActive()
+      return manager.switchConversation(id)
+    },
+    updateConversationTitle: (id: string, title?: string) => {
+      ensureActive()
+      return manager.updateConversationTitle(id, title)
+    },
+    deleteConversation: (id: string) => {
+      ensureActive()
+      return manager.deleteConversation(id)
+    },
+    clear: () => {
+      ensureActive()
+      return manager.clear()
+    },
+    saveMessages: (id?: string) => {
+      ensureActive()
+      return manager.saveMessages(id)
+    },
+    flush: (id?: string) => {
+      ensureActive()
+      return manager.flush(id)
+    },
     sendMessage(content: string) {
       ensureActive()
       return activeMessage()?.sendMessage(content) ?? Promise.resolve()
@@ -186,13 +205,20 @@ function createConversationConnection(manager: ConversationManager, destroyRef?:
       ensureActive()
       return activeMessage()?.send(...messages) ?? Promise.resolve()
     },
+    setMessages(messages: readonly ChatMessage[]) {
+      ensureActive()
+      activeMessage()?.setMessages(messages)
+    },
     abort() {
       ensureActive()
       return activeMessage()?.abort() ?? Promise.resolve()
     },
     dispatchCommand<Result = unknown>(command: string, payload?: unknown) {
       ensureActive()
-      return activeMessage()?.dispatchCommand<Result>(command, payload) ?? Promise.reject(new Error('No active conversation'))
+      return (
+        activeMessage()?.dispatchCommand<Result>(command, payload) ??
+        Promise.reject(new Error('No active conversation'))
+      )
     },
     dispose,
   }
@@ -201,7 +227,10 @@ function createConversationConnection(manager: ConversationManager, destroyRef?:
 export type AngularConversationConnection = ReturnType<typeof createConversationConnection>
 
 /** Connects a view to an application-owned conversation manager. */
-export function connectAngularConversation(manager: ConversationManager, destroyRef?: DestroyRef): AngularConversationConnection {
+export function connectAngularConversation(
+  manager: ConversationManager,
+  destroyRef?: DestroyRef,
+): AngularConversationConnection {
   return createConversationConnection(manager, destroyRef)
 }
 

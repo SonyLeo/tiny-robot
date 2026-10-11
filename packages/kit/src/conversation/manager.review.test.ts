@@ -4,8 +4,11 @@ import type { MessageEngine, PublicMessageState } from '../message/types'
 
 const source = () => {
   const state: PublicMessageState = {
-    requestState: 'idle', messages: [{ role: 'assistant', content: 'initial' }],
-    isProcessing: false, isPaused: false, canStartTurn: true,
+    requestState: 'idle',
+    messages: [{ role: 'assistant', content: 'initial' }],
+    isProcessing: false,
+    isPaused: false,
+    canStartTurn: true,
   }
   const listeners = new Set<() => void>()
   let failSnapshot = false
@@ -19,14 +22,24 @@ const source = () => {
       listeners.add(listener)
       return () => listeners.delete(listener)
     },
-    abort: vi.fn(async () => undefined), sendMessage: async () => undefined,
-    send: async () => undefined, setResponseProvider: () => undefined,
-    dispatchCommand: async <T>() => undefined as T, updateMessage: () => undefined,
+    abort: vi.fn(async () => undefined),
+    sendMessage: async () => undefined,
+    send: async () => undefined,
+    setResponseProvider: () => undefined,
+    dispatchCommand: async <T>() => undefined as T,
+    updateMessage: () => undefined,
+    setMessages: () => undefined,
   }
   return {
-    engine, state,
-    change(content: string) { state.messages[0].content = content; listeners.forEach((listener) => listener()) },
-    failSnapshots(value: boolean) { failSnapshot = value },
+    engine,
+    state,
+    change(content: string) {
+      state.messages[0].content = content
+      listeners.forEach((listener) => listener())
+    },
+    failSnapshots(value: boolean) {
+      failSnapshot = value
+    },
   }
 }
 
@@ -53,12 +66,23 @@ describe('manager independent review gates', () => {
   it('keeps an engine that becomes active while its idle release is flushing storage', async () => {
     let release!: () => void
     let started!: () => void
-    const gate = new Promise<void>((resolve) => { release = resolve })
-    const pending = new Promise<void>((resolve) => { started = resolve })
+    const gate = new Promise<void>((resolve) => {
+      release = resolve
+    })
+    const pending = new Promise<void>((resolve) => {
+      started = resolve
+    })
     let block = false
     const manager = createConversationManager({
       engineFactory: () => source().engine,
-      storage: { saveMessages: async (id) => { if (block && id === 'a') { started(); await gate } } },
+      storage: {
+        saveMessages: async (id) => {
+          if (block && id === 'a') {
+            started()
+            await gate
+          }
+        },
+      },
     })
     manager.createConversation({ id: 'a' })
     manager.createConversation({ id: 'b' })
@@ -78,18 +102,25 @@ describe('manager independent review gates', () => {
   it('clears persisted conversations whose initial list has not arrived yet', async () => {
     const records = new Map([['unseen', { id: 'unseen', createdAt: 1, updatedAt: 1 }]])
     let release!: () => void
-    const gate = new Promise<void>((resolve) => { release = resolve })
+    const gate = new Promise<void>((resolve) => {
+      release = resolve
+    })
     let firstLoad = true
     const manager = createConversationManager({
       engineFactory: () => source().engine,
       storage: {
         loadConversations: async () => {
           const result = [...records.values()]
-          if (firstLoad) { firstLoad = false; await gate }
+          if (firstLoad) {
+            firstLoad = false
+            await gate
+          }
           return result
         },
         loadMessages: () => [],
-        deleteConversation: (id) => { records.delete(id) },
+        deleteConversation: (id) => {
+          records.delete(id)
+        },
       },
     })
     const loading = manager.load()
@@ -108,11 +139,21 @@ describe('manager independent review gates', () => {
     current.state.canStartTurn = false
     let release!: () => void
     let started!: () => void
-    const pending = new Promise<void>((resolve) => { release = resolve })
-    const saving = new Promise<void>((resolve) => { started = resolve })
+    const pending = new Promise<void>((resolve) => {
+      release = resolve
+    })
+    const saving = new Promise<void>((resolve) => {
+      started = resolve
+    })
     const manager = createConversationManager({
       engineFactory: () => current.engine,
-      storage: { saveMessages: () => { started(); return pending }, deleteConversation: () => undefined },
+      storage: {
+        saveMessages: () => {
+          started()
+          return pending
+        },
+        deleteConversation: () => undefined,
+      },
     })
     manager.createConversation({ id: 'running' })
     await saving
@@ -128,10 +169,15 @@ describe('manager independent review gates', () => {
   })
 
   it('does not enable automatic persistence when recycling an autosave-disabled engine', async () => {
-    const current = source(), saves: string[] = []
+    const current = source(),
+      saves: string[] = []
     const manager = createConversationManager({
       engineFactory: () => current.engine,
-      storage: { saveMessages: (_id, messages) => { saves.push(String(messages[0].content)) } },
+      storage: {
+        saveMessages: (_id, messages) => {
+          saves.push(String(messages[0].content))
+        },
+      },
     })
     manager.createConversation({ id: 'manual' })
     await manager.flush()
@@ -143,9 +189,12 @@ describe('manager independent review gates', () => {
 
   it('reports and rejects a tail snapshot failure before the storage queue receives it', async () => {
     vi.useFakeTimers()
-    const current = source(), onPersistenceError = vi.fn()
+    const current = source(),
+      onPersistenceError = vi.fn()
     const manager = createConversationManager({
-      autoSaveThrottle: 20, engineFactory: () => current.engine, onPersistenceError,
+      autoSaveThrottle: 20,
+      engineFactory: () => current.engine,
+      onPersistenceError,
       storage: { saveMessages: () => undefined },
     })
     manager.createConversation({ id: 'tail' })

@@ -1,5 +1,6 @@
 import type { ComputedRef, Ref } from 'vue'
 import type { ConversationInfo, ConversationStorageStrategy } from '../../storage/types'
+import type { ChatMessage } from '../../types'
 import { UseMessageOptions, UseMessageReturn } from '../message/types'
 
 export type { ConversationInfo } from '../../storage/types'
@@ -61,5 +62,6 @@ export interface UseConversationReturn {
   updateConversationTitle: (id: string, title?: string) => void
   saveMessages: (id?: string) => Promise<void>
   sendMessage: (content: string) => Promise<void>
+  setMessages: (messages: readonly ChatMessage[]) => void
   abortActiveRequest: () => Promise<void>
 }

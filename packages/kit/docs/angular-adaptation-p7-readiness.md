@@ -1,26 +1,28 @@
 # P7 前置准备、反证与重新验收
 
-> 2026-10-11。工作树 `D:/Projects/Work/tiny-robot-kit-angular`，分支 `feat/kit-angular`。源码基线包含本轮 P7-T01 资源取消修复。用户已授权修复 D3 缺口、重新验收及本地检查点提交；推送、发布及最终首版放行仍留后续评审。本页为当前状态入口，优先于历史执行表中的整体完成结论。
+> 2026-10-11。工作树 `D:/Projects/Work/tiny-robot-kit-angular`，分支 `feat/kit-angular`。本轮授权 N1–N6 实施与验证，不包含新的提交、推送或发布；历史本地提交授权只对应当时检查点。本页为当前状态入口，优先于历史执行表中的整体完成结论。
 
 ## 1. 当前结论
 
 ### 最新交接检查点（2026-10-11）
 
-本次本地提交保存 D3 修复、存储生命周期、公开辅助出口、可重建 Angular 宿主及验收记录。它是开发检查点，完整首版未放行；用户本轮授权本地提交，推送与发布另行评审。
+本轮按[N1–N6消费契约与完整验收设计](./angular-adaptation-finalization-design.md)完成基础 Angular 技术关口。N4 使用同一 N3 hash 完成 Angular20/21/22 strict/build/TestBed 与两模式 smoke；Angular20另补工具流式、Skill、旧格式5项打包能力、Node `/node` 和两模式受控GitHub404/取消、真实HTTP取消。N6 最终回归、lint、clean build和严格声明通过，重新pack与N3 hash一致。此前旧dist残留和失败记录保留为历史；发布决策与暂无 Angular 业务评审者单列。
+
+下表列出当前 N3 候选包结果；下方历史章节中的“Angular22未运行”、275 等文字只描述当时检查点。最新证据以本节与[验收索引](./angular-adaptation-validation-results.md#2026-10-11-最新核对)为准。
+
+历史本地提交保存了 D3 修复、存储生命周期、公开辅助出口和阶段验收记录。本轮改动仍在工作树中，未提交、推送或发布。
 
 | 范围 | 最新实际结果 |
 | --- | --- |
 | manager/Vue 共享规则 | 已落地；Vue 五文件50/50通过，尾保存、删除取消、加载代际及paused保留有契约证据 |
-| kit 源码回归 | 32文件，275 passed、1 skipped；lint及四入口clean build通过 |
+| kit/Vue 源码回归 | N6：32文件，294 passed、1 skipped；lint、四入口 clean build和严格生成声明检查通过，重新pack与当前N3 hash一致 |
 | 存储与公开工具 | DB close局部契约、类型往返、错误传播通过；根/core复用同一AIClient和工具实现，严格生成声明检查通过 |
-| 最新产物 | SHA-256 `2E23E364ABB1A0B152FFAC53121EA94A1BD8C3E24E7BA585647B5FD6905D1E7C`；开发版本0.5.1，未发布 |
-| 最新产物 Angular20 | 仓库外无Vue安装、skipLibCheck:false、入口图、生产构建和7文件32/32 TestBed通过 |
-| 最新产物浏览器 | P7-T01 已修复并通过：Angular20 Zone.js/zoneless 均通过资源取消、OPFS、受控GitHub、500/2000历史和30次销毁；最新 tarball SHA-256 `C7C01DB61D907849478B34CCAE2F3246292A282B7225B29B74C50F0C5E7E515A` |
-| Angular21 | 最新 P7-T01 tarball 在全新仓库外宿主通过：pnpm 安装、`skipLibCheck:false` strict check、生产构建、7文件32/32 TestBed、Zone.js/zoneless 浏览器 smoke；真实本地 HTTP/SSE、Skill资源取消、OPFS、500/2000历史和30次销毁通过。npm 10.9.2 在 peer 解析阶段可重复触发 Arborist `edgesOut` 崩溃，故以 pnpm 完成干净安装，不使用 force/legacy-peer-deps |
-| Angular22 | 最新产物未运行；已确认隔离 Node 24.19.0 可用，但需配合可用 npm/pnpm CLI 重建独立宿主。历史矩阵不能顶替当前结果 |
-| 列表调整 | Angular仅有单条updateMessage；受控列表删除/清空方案待用户评审，尚未实现或延期 |
+| 当前候选产物 | SHA-256 `9EDCD1EC12EA7F1C76D5A6D3843BE1060153B0ED0B5B6F13BC6D469C1D3D52CE`；开发版本 0.5.1，未发布 |
+| Angular20/21/22 独立宿主 | 同一候选包均通过 `skipLibCheck:false`、入口/声明检查、生产构建、8 文件 43/43 TestBed，以及 Zone.js/zoneless 关键浏览器 smoke；结果路径见[完成审核清单](./angular-adaptation-completion-audit.md) |
+| 浏览器与资源 | 三版均完成本地 HTTP/SSE、Skill、OPFS/File、固定 ref GitHub、500/2000 历史、40 chunks、30 次销毁；最终订阅/请求/队列/数据库/timer 计数归零。Angular22 Zone 模式保留一次短暂 `dbBlocked:1` 环境观测，最终数据库计数平衡 |
+| 列表调整 | `setMessages(messages)` 已在核心、Angular message/conversation connection、Vue `useMessage/useConversation` 实现；允许 idle/completed/aborted/error，processing/paused/工具审批拒绝；核心、Vue、manager 和当前候选包三版 Angular TestBed 已覆盖，索引见完成审核清单 |
 
-资源取消的核心阻塞已由 P7-T01 关闭；Angular21 最新产物矩阵现已通过。当前阻塞转为 Angular22 最新产物验证、消息列表调整 API 评审、M01-L01逐子项证据和最终交付材料。不能从单元测试或20/21两版结果推导完整首版通过。详细历史反证和有顺序的待办见[验收结果](./angular-adaptation-validation-results.md#修复前浏览器失败与版本安装失败)与[后续待办](#8-下一次继续的待办)。
+资源取消阻塞、三版同包矩阵、受控传输负例和旧格式消费证据已关闭/归并。当前 M01–L01 技术结果见[完成审核清单](./angular-adaptation-completion-audit.md)，材料复核和新增负例后的完整脚本复验已完成。当前尚未发布；后续发布事项见[后续待办](#8-下一次继续的待办)。
 
 以下第2-3节按发生顺序保留反证与检查点历史；其中“正在实施/待修复”描述当时状态，当前结论以本节和第6节为准。
 
@@ -149,42 +151,44 @@ L01 的 `formatMessages/extractTextFromResponse` 与原AIClient无Vue出口已�
 
 ## 6. M01-L01 当前完整关口状态
 
-状态只有通过、失败、未运行；“完整关口未运行”不否定已有局部通过。
+“通过”指已确认首版范围内的技术验收通过，包含下述证据分工与限制；不代表完成业务评审或获得发布授权。逐子项和日志见[完成审核清单](./angular-adaptation-completion-audit.md)。
 
 | 能力 | 完整关口 | 已有证据与尚缺内容 |
 | --- | --- | --- |
-| M01 消息/动态 Provider | 未运行 | 单会话核心/Vue/Angular 结果已通过；需最终产物逐项归并动态替换和空输入 |
-| M02 Promise/流式/自定义 chunk | 未运行 | native/OnPush 流式已有证据；最终自定义 runDefault、元数据和展示/请求分离归并 |
-| M03 取消/错误 | 未运行 | P7-T01 核心可控 reader 与 Angular20/21 Zone.js、zoneless 浏览器均证明取消后迟到资源不会写入历史；最终冻结产物全矩阵及错误子项归并待完成 |
-| M04 插件/请求清洗 | 未运行 | 核心/Vue 生命周期已有测试；最终 Angular 自定义命令、错误和清洗结果收口 |
-| M05 工具/审批/恢复 | 未运行 | paused dispose 已修复；核心与Angular20真正整页重载批准/拒绝通过；最终产物完整矩阵待跑 |
-| M06 Skill | 未运行 | Angular20/21最新P7-T01 tarball完成原生目录、二进制、重复路径、资源取消和受控GitHub；真实GitHub与最终全版本产物归并待完成 |
-| C01 会话生命周期 | 未运行 | Vue已共享manager；delete/clear及时取消、paused释放已有测试和Angular20产物证据；最终完整矩阵待跑 |
-| C02 持久化 | 未运行 | 原三个反例及close局部生命周期通过；Angular20服务关闭顺序通过，最终浏览器及全版本仍待验收 |
-| C03 竞态 | 未运行 | 快速切换、加载去重、迟到clear/dispose、重入及回收活跃会话的反例已通过；最终产物归并待跑 |
-| A01 Signals/OnPush | 未运行 | 单消息真实组件已有证据；正式多会话/工具子组件矩阵待补 |
-| A02 生命周期 | 未运行 | 共享只解绑、manager取消/尾保存/paused保留通过核心与Angular20；storage关闭及长资源基线待补 |
-| P01 独立消费 | 未运行 | 最新tarball的Angular20/21 strict声明、生产构建、32项TestBed及两模式浏览器通过；Angular22未跑，最终冻结产物矩阵未完成 |
-| V01 Vue 兼容 | 未运行 | 当前共享迁移50/50及kit全量275/1跳过通过；最终源码冻结后需归并所有兼容子项与后续修改回归 |
-| L01 其他公开能力 | 未运行 | 新 core 出口检查通过；旧发布 adapter 路径和根/node 产物完整审计待收口 |
+| M01 消息/动态 Provider | 通过 | 三版 TestBed及关键smoke，空输入、对象顺序、动态Provider、setMessages |
+| M02 Promise/流式/自定义 chunk | 通过 | 工具流式核心42项、三版TestBed/smoke、Angular20三层OnPush工具流式补验 |
+| M03 取消/错误 | 通过 | 核心迟到丢弃、三版两模式、Angular20真实HTTP首块后取消及恢复 |
+| M04 插件/请求清洗 | 通过 | 核心通用组合与三版公开命令、错误和字段清洗消费 |
+| M05 工具/审批/恢复 | 通过 | 核心、三版TestBed、两模式整页重载批准/拒绝/故障恢复 |
+| M06 Skill | 通过 | 三版动态选择/File/OPFS/IDB/固定ref，Angular20两模式受控GitHub404/取消；picker UI不承诺 |
+| C01 会话生命周期 | 通过 | 共享manager、Vue/Angular连接、后台切换、删除清空及整页重载 |
+| C02 持久化 | 通过 | 可控队列/尾保存/错误/paused/close；Angular20内置旧格式5项补验，fake IDB往返与真实Skill DB生命周期分别记录 |
+| C03 竞态 | 通过 | 核心可控快切/加载代际/删除重建/迟到结果，三版关键页面消费 |
+| A01 Signals/OnPush | 通过 | 三版TestBed及两模式嵌套刷新，Angular20三层工具消费；无业务评审者 |
+| A02 生命周期 | 通过 | 自有/共享连接、manager释放、30次资源计数和DB owner；不合作Provider限制保留 |
+| P01 独立消费 | 通过 | 同hash三版无Vue/alias、strict、入口、生产构建、TestBed及两模式浏览器 |
+| V01 Vue 兼容 | 通过 | N6全量294/1 skipped、direct mutation/deep watch/签名；兼容变化另列 |
+| L01 其他公开能力 | 通过 | core辅助出口/声明、真实SSE、Node FS/GitHub；默认opt-in网络测试仍skipped |
 
 ## 7. 首版范围保持
 
 Skill 不静默延期；不以 Chat WC 或单会话结果替代 kit 完整 Angular 验收。SSR 暂不承诺，不新增 HttpClient/Observable wrapper 或 Angular UI 组件库。没有 Angular 业务评审者的缺口保留，主线程技术检查不称为业务方认可。
 
-P7 前置准备完成后提交实际结果与剩余发布决策，用户评审决定是否推进、推送或发布。当前仍在修复与准备阶段，不标 goal 完成。
+基础 Angular 实施与技术验收已完成，N6材料与脚本最终复核已收口。剩余版本、兼容迁移、提交/推送/发布由用户决定；技术验收不替代这些授权。
 
 ## 8. 下一次继续的待办
 
 按以下顺序推进，实施仍由`gpt-6.1-sol high`子代理完成，主线程复核；读取本页与结果索引后再动代码，不重做已经有证据的步骤。
 
-1. **T01 资源取消反证，已完成。** 核心可控reader与 Angular20 浏览器两模式均证明 abort 后迟到结果不会写入历史；保留旧失败记录和修复后 tarball/hash。
-2. **T02 版本矩阵。Angular21已完成。** 最新tarball在仓库外Angular21宿主通过 strict类型、生产构建、TestBed32/32及Zone.js/zoneless smoke。npm10.9.2在两次干净安装中崩溃；pnpm10.33.2干净安装通过。下一步用隔离Node24.19.0建立Angular22新宿主并完成相同检查；不使用force/legacy-peer-deps，不改全局环境。
-3. **T03 列表能力评审。** 等用户决定受控列表更新API；推荐只在idle/completed/error/aborted允许，processing/paused拒绝。评审须说明删除/清空、对象身份、通知与自动保存、Vue兼容；未经确认不实现或静默排除。
-4. **T04 能力证据补齐。** 对照M01-M06/C01-C03/A01-A02/P01/V01/L01逐子项检查，补动态Provider、空输入、发送对象、自定义chunk/runDefault、插件命令/错误与请求清洗的独立消费缺项。开始前完成T03列表能力范围评审；通用核心规则用核心测试证明，Angular响应式与DI用真实TestBed证明。
-5. **T05 冻结源码并重打包。** 全量kit、Vue回归、lint、clean build和公开声明通过后，制作新tarball/hash；当前`2E23…`是失败复现检查点，不能称最终放行产物。
-6. **T06 完整独立矩阵。** 同一最终tarball在20/21/22全新仓库外宿主安装；skipLibCheck:false、无Vue/源码alias、ESM/CJS及声明、生产构建、TestBed、Zone.js/zoneless浏览器、本地HTTP/SSE、真正重载工具/Skill审批均记录退出码与版本。
-7. **T07 Skill与资源基线。** 原生File、OPFS真实目录句柄、二进制、strict/warnings、取消/异常、IDB关闭后无blocked；受控GitHub与真实外网分开。OPFS句柄不等于用户操作showDirectoryPicker，若宣称文件选择交互已验证需另给交互证据。记录500/2000历史及重复30次销毁；区分实际观测和手动计数，资源需回到约定基线。
-8. **T08 交付准备审查。** 回填最终结果、API/兼容迁移、可重建示例和团队材料；无Angular业务评审者的缺口保留。全部首版能力有证据后才完成goal，并交用户决定推进/推送/发布。
+1. **T01 资源取消反证，已完成。** 核心可控reader与 Angular20/21/22 浏览器两模式均证明 abort 后迟到结果不会写入历史；保留旧失败记录和修复后 tarball/hash。
+2. **T02 版本矩阵，已完成当前 N4 检查点。** 同一候选包在 Angular20/21/22 仓库外宿主通过 strict类型、生产构建、TestBed和Zone.js/zoneless smoke；npm peer 解析崩溃的历史保留，实际通过宿主使用可复现依赖。后续只在源码或hash变化时重跑受影响矩阵。
+3. **T03 列表能力实现与验收。已完成。** 用户已确认受控 `setMessages(messages)`：只复制数组容器、保持消息对象身份、非 processing/paused/工具审批期间允许，统一触发消息通知和既有自动保存；清空列表不删除会话。核心、Angular connection、Vue connection、manager 和当前候选包 Angular TestBed 已覆盖；逐子项证据路径并入 T08 收口。
+4. **T04 能力证据补齐，已完成。** 工具流式核心42项、打包能力5项、Node `/node` FS/GitHub消费已记录；M01-L01各项证据路径已归并到最终审计表，不把测试数量代替能力关口。
+5. **T05 冻结源码并重打包，当前候选包已冻结。** N3 clean build、公开声明和 hash 已固定；若后续修改运行时或包元数据，必须生成新 hash 并按影响范围重跑。
+6. **T06 完整独立矩阵，已完成。** 同包20/21/22完成 strict、无Vue/alias、core ESM/CJS与Angular实际ESM消费、声明、构建、TestBed及两模式浏览器；Angular20另补旧格式和受控传输负例。证据见完成审核清单。
+7. **T07 Skill与资源基线，已完成。** File、OPFS句柄、二进制、strict/warnings、取消/异常、IDB close、受控成功/404/取消与真实fixed ref、长历史和30次销毁均有证据。OPFS不等于`showDirectoryPicker` UI；短heap观测不证明长期无泄漏。
+8. **T08 交付准备审查，已完成。** API/迁移、可重建示例、团队材料和M01–L01证据已回填并复核；异步close等待的strict/5项TestBed及新增负例前缀后的完整smoke均通过。完整复验首次GitHub403限流、重置后重试成功及PID/端口清理见[完成审核](./angular-adaptation-completion-audit.md#n6-最终收口)。无业务评审者的缺口保留。
+
+实施收口后待用户决定：候选版本及上述两项兼容迁移策略；是否本地提交、推送/PR及发布。后续实际Angular业务试用发现的问题按复现场景迭代；不另建分叉核心。
 
 复现产物与隔离宿主暂保留在仓库外`D:/Projects/Work/_tmp`，不纳入提交；仓库提交包含可重建源码、测试、脚本和文档。后续继续前先检查分支、工作树及代理状态，保护现有修改。

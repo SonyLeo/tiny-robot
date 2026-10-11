@@ -138,6 +138,10 @@ export const useConversation = (options: UseConversationOptions): UseConversatio
   const sendMessage = (content: string): Promise<void> =>
     activeConversation.value?.engine.sendMessage(content) ?? Promise.resolve()
 
+  const setMessages: UseConversationReturn['setMessages'] = (messages) => {
+    activeConversation.value?.engine.setMessages(messages)
+  }
+
   const abortActiveRequest = async () => {
     await activeConversation.value?.engine.abortRequest()
   }
@@ -153,6 +157,7 @@ export const useConversation = (options: UseConversationOptions): UseConversatio
     updateConversationTitle,
     saveMessages: manager.saveMessages,
     sendMessage,
+    setMessages,
     abortActiveRequest,
   }
 }

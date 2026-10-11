@@ -224,6 +224,33 @@ describe('Vue shared conversation manager integration', () => {
     expect(saved.at(-1)?.[0].metadata?.nested.source).toBe('consumer')
   })
 
+  it('persists a controlled message list replacement through the shared manager', async () => {
+    const saved: ChatMessage[][] = []
+    const api = useConversation({
+      autoSaveMessages: true,
+      autoSaveThrottle: 0,
+      storage: storage({
+        saveMessages: (_id, messages) => {
+          saved.push(JSON.parse(JSON.stringify(messages)) as ChatMessage[])
+        },
+      }),
+      useMessageOptions: { responseProvider, initialMessages: [{ role: 'assistant', content: 'initial' }] },
+    })
+    const created = api.createConversation({ id: 'one' })
+    await api.saveMessages('one')
+
+    const replacement: ChatMessage[] = [created.engine.messages.value[0], { role: 'user', content: 'replacement' }]
+    api.setMessages(replacement)
+    await new Promise<void>((resolve) => queueMicrotask(resolve))
+
+    expect(saved.at(-1)).toEqual([
+      { role: 'assistant', content: 'initial' },
+      { role: 'user', content: 'replacement' },
+    ])
+    expect(created.engine.messages.value[0]).toBe(replacement[0])
+    expect(created.engine.messages.value).not.toBe(replacement)
+  })
+
   it('uses the default 1000ms interval for the final nested auto-save', async () => {
     vi.useFakeTimers()
     const saved: ChatMessage[][] = []

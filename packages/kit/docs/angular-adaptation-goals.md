@@ -1,5 +1,7 @@
 # Kit Angular 适配目标与验收基线
 
+> **当前入口（2026-10-11）**：已确认的首版M01–L01范围不变，包含Skill。当前N3同hash在Angular20/21/22及两模式完成技术验收，`setMessages`、共享会话/Vue兼容/持久化与补验已通过；N6最终回归294/1 skipped、clean pack一致。当前事实见[完成审核](./angular-adaptation-completion-audit.md)，下方较早状态是历史。暂无Angular业务评审者，后续使用中迭代；SSR不承诺。尚未发布，版本及兼容迁移另行决策。
+
 > 状态：目标基线。2026-10-05最新检查点已修复共享manager/Vue、尾保存/释放与存储生命周期，kit275通过/1跳过，Angular20最新产物32项TestBed通过。新增浏览器资源取消失败、Angular21宿主依赖冲突、列表API待评审及完整矩阵/资源验收尚未收口，完整首版未放行。此前D3整体完成判断已撤回。当前结果与待办见[P7准备清单](./angular-adaptation-p7-readiness.md)，下方基线/阶段段落保留发生时的历史含义。详细任务见[执行计划](./angular-adaptation-execution.md)。
 >
 > 建立日期：2026-09-26。工作分支：`feat/kit-angular`；起点：`robot/develop` 的 `0f75d2c9689559b075fab20f577aab2f21bd62c0`。

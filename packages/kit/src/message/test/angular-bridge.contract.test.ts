@@ -6,13 +6,16 @@ import { createVueMessageAdapter } from '../adapters/vue'
 import type { MessageEngine } from '../types'
 import type { ChatCompletion } from 'openai/resources'
 
-const createEngine = (provider = async () => ({
-  id: 'contract',
-  object: 'chat.completion',
-  created: 0,
-  model: 'test',
-  choices: [{ index: 0, message: { role: 'assistant', content: 'ok' }, finish_reason: 'stop' }],
-} as unknown as ChatCompletion)) => createMessageEngine(createNativeMessageAdapter(), { responseProvider: provider })
+const createEngine = (
+  provider = async () =>
+    ({
+      id: 'contract',
+      object: 'chat.completion',
+      created: 0,
+      model: 'test',
+      choices: [{ index: 0, message: { role: 'assistant', content: 'ok' }, finish_reason: 'stop' }],
+    }) as unknown as ChatCompletion,
+) => createMessageEngine(createNativeMessageAdapter(), { responseProvider: provider })
 
 describe('D3a.1 engine bridge contracts', () => {
   it('uses one framework-neutral engine factory with native and Vue adapters', () => {
@@ -62,5 +65,16 @@ describe('D3a.1 engine bridge contracts', () => {
 
     expect(message.state?.status).toBe('done')
     expect(revisions.at(-1)).toBeGreaterThan(0)
+  })
+
+  it('exposes setMessages on Angular connections', () => {
+    const first = { role: 'assistant' as const, content: 'first' }
+    const connection = createAngularMessage({ initialMessages: [first] })
+    const replacement = { role: 'user' as const, content: 'replacement' }
+
+    connection.setMessages([first, replacement])
+
+    expect(connection.messages()[0]).toBe(first)
+    expect(connection.messages()[1]).toBe(replacement)
   })
 })

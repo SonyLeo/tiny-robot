@@ -89,6 +89,8 @@ export interface MessageEngine {
   dispatchCommand<Result = unknown>(command: string, payload?: unknown): Promise<Result>
   /** Updates a current message in place and notifies message subscribers. */
   updateMessage(message: ChatMessage, recipe: (message: ChatMessage) => void): void
+  /** Replaces the message list while preserving existing message identities. */
+  setMessages(messages: readonly ChatMessage[]): void
 }
 
 export type MessageUpdateKind = 'messages' | 'requestState'

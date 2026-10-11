@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { ref } from 'vue'
+import { ref, toRaw, watch } from 'vue'
 import type { SkillDefinition } from '../../skills/types'
 import type { ChatMessage } from '../../types'
 import { mockResponseProvider, mockSequentialResponseProvider } from './mockResponseProvider'
@@ -29,6 +29,46 @@ describe('useMessage', () => {
     expect(engine.messages.value).toHaveLength(3)
     expect(engine.messages.value[1]).toMatchObject({ role: 'user', content: 'ping' })
     expect(engine.messages.value[2]).toMatchObject({ role: 'assistant', content: 'foobar', loading: undefined })
+  })
+
+  it('exposes setMessages while preserving direct messages ref compatibility', () => {
+    const engine = useMessage({ responseProvider: mockResponseProvider('unused') })
+    const first = { role: 'assistant' as const, content: 'first' }
+    const second = { role: 'user' as const, content: 'second' }
+    const input = [first, second]
+
+    engine.setMessages(input)
+    input.pop()
+
+    expect(engine.messages.value).toHaveLength(2)
+    const existing = engine.messages.value[0]
+    expect(toRaw(existing)).toBe(first)
+    engine.setMessages([existing, second])
+    expect(engine.messages.value[0]).toBe(existing)
+    expect(toRaw(engine.messages.value[1])).toBe(second)
+    engine.messages.value = [first]
+    expect(engine.messages.value).toHaveLength(1)
+  })
+
+  it('preserves the reactive message and nested updates when reinserting its original input', () => {
+    const original = { role: 'assistant' as const, content: 'first', state: { status: 'pending' } }
+    const engine = useMessage({ initialMessages: [original], responseProvider: mockResponseProvider('unused') })
+    const existing = engine.messages.value[0]
+
+    engine.setMessages([])
+    engine.setMessages([original])
+
+    expect(engine.messages.value[0]).toBe(existing)
+    expect(toRaw(engine.messages.value[0])).toBe(original)
+    const onStatusChange = vi.fn()
+    const stop = watch(() => engine.messages.value[0].state?.status, onStatusChange, { flush: 'sync' })
+    try {
+      existing.state!.status = 'success'
+      expect(onStatusChange).toHaveBeenCalledOnce()
+      expect(engine.messages.value[0].state?.status).toBe('success')
+    } finally {
+      stop()
+    }
   })
 
   it('keeps responseProvider as a writable ref', async () => {

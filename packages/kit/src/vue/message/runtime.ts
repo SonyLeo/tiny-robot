@@ -253,6 +253,7 @@ export const createVueMessageRuntime = (options: UseMessageOptions, corePlugins:
     canStartTurn: adapter.canStartTurn,
     sendMessage: engine.sendMessage,
     send: engine.send,
+    setMessages: engine.setMessages,
     abortRequest: engine.abort,
     dispatchCommand: engine.dispatchCommand,
   } as UseMessageReturn

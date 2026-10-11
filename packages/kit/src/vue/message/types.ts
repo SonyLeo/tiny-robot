@@ -130,6 +130,7 @@ export interface UseMessageReturn {
   canStartTurn: ComputedRef<boolean>
   sendMessage: (content: string) => Promise<void>
   send: (...msgs: ChatMessage[]) => Promise<void>
+  setMessages: (messages: readonly ChatMessage[]) => void
   abortRequest: () => Promise<void>
   dispatchCommand: <Result = unknown>(command: string, payload?: unknown) => Promise<Result>
 }

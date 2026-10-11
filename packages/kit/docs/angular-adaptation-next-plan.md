@@ -1,6 +1,6 @@
 # Kit Angular 适配：上游同步、进度复核与后续计划
 
-> 2026-10-05 最新交接：用户已授权D3修复及本次本地提交。共享manager、Vue接入、存储close/错误传播和core辅助出口已落地；kit275通过/1跳过，lint/clean build通过。最新tarball在Angular20无Vue严格声明/构建/32项TestBed通过；新增浏览器资源取消探针失败，Angular21因宿主Vitest peer冲突安装失败，22未复验。完整首版未放行。下一次按[P7有序待办](./angular-adaptation-p7-readiness.md#8-下一次继续的待办)推进：取消反证→宿主依赖→列表API评审→能力补验→最终产物矩阵/资源→交付审查。第1-12节保留原计划与历史假设，不作为当前完成证明。
+> 2026-10-11 最新结果：[完成审核](./angular-adaptation-completion-audit.md)。N1–N6基础Angular实施与技术验收完成，同hash完成20/21/22与两模式矩阵，补齐工具/Skill/旧格式/Node/受控传输负例和资源基线；N6最终294/1 skipped、clean pack一致。材料和实验脚本最终复核已完成，发布版本及兼容迁移另行决策。以下第1-12节保留原计划与历史假设，不作为当前事实；本轮未提交、推送或发布。
 
 ## 1. 本轮基线与授权边界
 

@@ -1,8 +1,10 @@
 # Kit Angular 适配执行计划与子代理任务
 
+> **当前入口（2026-10-11）**：按[N1–N6设计](./angular-adaptation-finalization-design.md)完成基础Angular实施与技术验收，由`gpt-6.1-sol high`子代理实现、主线程核验。同hash三版两模式矩阵、补验和N6最终294/1 skipped、clean pack一致已有证据；材料与脚本最后复核已完成。当前授权不含新的提交、推送或发布。当前结果见[完成审核](./angular-adaptation-completion-audit.md)，下方旧阶段状态与授权均为历史。
+
 > 2026-09-27。配套目标：[angular-adaptation-goals.md](./angular-adaptation-goals.md)。工作目录：`D:/Projects/Work/tiny-robot-kit-angular`，分支 `feat/kit-angular`，基线 `robot/develop@0f75d2c`。
 >
-> 当前状态（2026-10-05最新交接）：D3共享manager/Vue及存储/出口修复已落地；kit275通过/1跳过，lint、clean build、Angular20严格声明/构建/32项TestBed通过。最新浏览器取消资源探针失败、Angular21宿主peer安装失败；列表API待评审，完整A1未通过。本轮已授权本地检查点提交，推送/发布另评审。结果和下一任务见[P7清单](./angular-adaptation-p7-readiness.md)。下方进度表保留历史结论，旧“完成”不能覆盖失败/未运行。实施继续使用`gpt-6.1-sol high`子代理，主代理负责审查。
+> 历史交接（2026-10-05）：D3共享manager/Vue及存储/出口修复已落地；kit275通过/1跳过，Angular20类型/构建/32项通过，资源取消与Angular21安装曾失败；当时有本地检查点提交授权。上述失败及列表能力已在后续修复/验收，旧授权不延伸至本轮。下方执行表保留发生时的状态，当前以顶部与[P7清单](./angular-adaptation-p7-readiness.md)为准。
 
 ## 1. 执行纪律
 
@@ -12,7 +14,22 @@
 - WC 主 worktree 目前与 `robot/develop` 在 kit 文件上无差异。每次开始共享文件编辑前重新检查，发现新改动先确定来源和兼容方式，不覆盖已有修改。
 - 不把 Chat WC 当成 Angular 验收；浏览器宿主必须用 Angular 自己的输入、消息和工具状态组件。
 
-## 2. 任务依赖和关口
+## N1–N6 当前实施结果（2026-10-11）
+
+| 阶段 | 实施与验收结果 | 状态 |
+| --- | --- | --- |
+| N1 消费与列表契约 | 明确native消息引用与revision规则，完成受控setMessages、身份/单通知/自动保存及Vue兼容 | 完成 |
+| N2 公开能力消费 | Angular公开消息、插件、工具、会话及OnPush消费用例；每版43项TestBed | 完成 |
+| N3 冻结与打包 | clean四入口ESM/CJS/DTS、strict声明、无Vue独立消费，候选hash固定 | 完成 |
+| N4 独立矩阵 | 同包Angular20/21/22生产构建、TestBed、Zone.js/zoneless真实浏览器 | 完成 |
+| N5 Skill/存储/资源 | 工具流式42项核心/5项打包补验、旧格式、Node、真实/受控传输、长历史及30次销毁 | 完成 |
+| N6 收口复核 | kit/Vue294 passed/1 skipped、lint/clean build/严格声明、重新pack同hash；await close复验、完整脚本顺序复跑、材料与逐能力审核 | 完成 |
+
+逐项用例、日志与证据分工见[完成审核](./angular-adaptation-completion-audit.md)。N6完整smoke首次GitHub匿名限流403、重置后一次重试通过的记录保留；测试进程、浏览器、本地HTTP与端口已清理。暂无Angular业务评审者，按用户确认的基础功能范围完成技术验收，后续使用中迭代；SSR不承诺。
+
+当前源码与文档尚未提交；版本、旧`/core`Vue adapter路径与LocalStorage抛错迁移策略、提交/推送/发布须另行决定。技术完成不代表已发布。以下原计划保留历史状态。
+
+## 2. 原任务依赖和关口（历史状态）
 
 | 任务 | 执行者 | 前置条件 | 产出 | 主代理通过条件 | 状态 |
 | --- | --- | --- | --- | --- | --- |
@@ -30,7 +47,7 @@
 
 S1-S4 是验证任务，允许保留局部实验代码，但主代理在 R1 决定是否正式采用。若实验表明需要大范围重构或影响 Vue 兼容，先列证据、替代方案和成本，再更新目标文档。
 
-## 3. 阶段 1 的详细检查表
+## 3. 阶段 1 的详细检查表（历史）
 
 ### S0 基线
 

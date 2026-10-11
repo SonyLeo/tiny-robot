@@ -1,8 +1,32 @@
 # Angular 适配验收结果索引
 
-> 2026-10-11。结果按实际运行范围记录。修复前、修复中和最终产物分开，不把某个局部通过升级为完整能力通过。当前 P7 仍在进行，见 [当前审查清单](./angular-adaptation-p7-readiness.md)。
+> 2026-10-11。结果按实际运行范围记录。当前首版基础 Angular 技术关口通过，最新结果见本节与第4节；修复前/修复中的记录保留历史。逐子项见[完成审核](./angular-adaptation-completion-audit.md)，交付与发布状态见[P7清单](./angular-adaptation-p7-readiness.md)。
 
 ## 1. 结果来源
+
+### 2026-10-11 最新核对
+
+本次 N4 补证使用同一候选包 `9EDCD1EC12EA7F1C76D5A6D3843BE1060153B0ED0B5B6F13BC6D469C1D3D52CE`，未改变运行时源码或包元数据：
+
+- `D:/Projects/Work/_tmp/kit-angular-n4-20-20261011/N4-tool-stream-core.log`：核心工具流式 42/42，通过多块字符串、对象 delta、部分结果失败、无结果 fallback、取消后迟到块。
+- `D:/Projects/Work/_tmp/kit-angular-n4-20-20261011/N4-capabilities-ng-test.log`：打包能力 TestBed 5/5；`N4-capabilities-tsc.log` 严格类型检查 exit 0。
+- `D:/Projects/Work/_tmp/kit-angular-n4-20-20261011/N4-node-consumer.log`：Node v22.22.3 独立消费 `/core`、`/node`、真实 FS storage、受控成功/404/取消和固定 commit 的真实 GitHub。
+- Angular 21 修正版浏览器结果：`D:/Projects/Work/_tmp/kit-angular-n4-21-20261011/N4-browser-smoke-fixed.log` 与 `N4-browser-smoke-result.json`；Angular 22 修正版结果：`D:/Projects/Work/_tmp/p7-angular22-n4-evidence-20261011/browser-smoke.stdout.log`、`browser-smoke.result.json`。两版 Zone.js/zoneless 均包含 500/2000 历史、40 chunks、30 次销毁和最终订阅/请求/队列/数据库/timer 计数归零。
+- Angular20 两模式受控GitHub404/响应开始后取消与真实HTTP首块后取消已通过：`N4-negative-transports-browser.log`、`N4-negative-transports-{zoneless,zone}.json`、`N4-negative-transports-tsc.log`、`N4-negative-transports-cleanup.log`。GitHub使用307连接本地真实HTTP，证明浏览器传输负例，不能声明为github.com外网故障实验。Signal、服务端提前close、迟到块不入DOM/历史均有断言；自有PID/端口已清理。
+- N6修正打包能力测试的异步close等待，重新strict exit0、5/5 TestBed通过：Angular20目录`N6-capabilities-tsc.log`、`N6-capabilities-ng-test.log`及退出码文件；未改产品运行时或hash。
+- N6主线程最终源码回归：32文件294 passed、1 skipped；lint、正常clean build和严格生成声明检查均exit0，重新pack与N3 hash一致。日志位于`D:/Projects/Work/_tmp/kit-angular-n3-20261011/`的`N6-kit-full.log`、`N6-kit-lint.log`、`N6-kit-clean-build.log`、`N6-core-public-types.log`；重复包清单为`D:/Projects/Work/_tmp/kit-angular-n6-consistency-20261011/pack.json`。
+- N6新增负例前缀后的完整默认smoke已在Angular20同包复验，两模式passed、pageErrors为空、exit0。Angular20目录证据：`N6-full-browser-smoke-with-negatives.log`、`N6-full-browser-{zone,zoneless}.json`、`N6-full-browser-manifest.json`、`N6-full-browser-cleanup.json`。30次销毁资源计数归零、DB opens/closes 32/32；Zone短暂dbBlocked:1最终删除成功。PID15020退出，55743/55744无监听。首次真实GitHub403且remaining=0，等待额度重置后仅重试一次完整流程通过；保留`N6-full-browser-smoke-with-negatives-attempt1.log`和`N6-full-browser-github-network-diagnostic.log`，不承诺外网稳定性。
+- 默认Node opt-in网络测试仍skipped，不由显式fixed-ref成功改写。暂无Angular业务评审者，用户接受后续使用中迭代；SSR不承诺。
+
+### N1开始前的检查点历史
+
+- 上一轮实际命令记录：kit 32 files，287 passed、1 skipped（总计288）；lint、普通ESM/CJS/DTS build、diff检查通过。该build没有清理旧dist，不能记为clean build。
+- 普通build后的检查点包 SHA-256 `1A6248AAF89DB4BCCCFB0615FF2CB9B404D4CC2B8C6EA23A6B55E6CE7468AA63` 含旧输出残留，不作为最终候选产物。
+- 此包的 Angular20 外部宿主 `D:/Projects/Work/_tmp/tiny-robot-kit-angular-final-20b`：strict/entry-check已通过；TestBed 32 passed/1 failed。唯一失败为新增setMessages测试在双视图fixture中期望总行数1，实际2。静态检查确认Host包含Primary/Secondary两个视图；应逐视图断言，不能据此认定引擎更新缺陷。修正及重跑待N1执行，生产build最终退出码本轮未复核。
+- 历史复核：Angular22 旧 P7-T01 包 `C7C01DB6…E515A` 的 Node22.22.3、Angular/CLI/build22.2.2、TS6.0.3、zone0.16.3 结果均 exit 0；真实GitHub未运行，当前 setMessages 未覆盖。该条只保留为历史，不能覆盖当前 N3 候选包结果。
+- Angular22报告与日志：`D:/Projects/Work/_tmp/p7-angular22-t02-20261011-r1/T02-angular22-results.md`、`t02-results-actual.log`、`t02-smoke.log`。失败包装脚本的`t02-results.log`无有效命令，不计入证据。
+
+以下表格中的旧结果按各自源码/产物保留；当前N1–N6同包结论见第4节，不用旧包顶替。
 
 | 标识 | 源码/产物 | 用途 |
 | --- | --- | --- |
@@ -13,6 +37,7 @@
 | P7-SL | 本次本地提交的源码检查点，父提交`f63c8310d`；SHA-256 `2E23E364ABB1A0B152FFAC53121EA94A1BD8C3E24E7BA585647B5FD6905D1E7C` | 含manager/Vue、存储close与中立序列化、core公开工具；Angular20类型/构建/TestBed通过，资源取消探针曾失败；非最终产物 |
 | P7-T01 | 当前工作树 clean build/pack；SHA-256 `C7C01DB61D907849478B34CCAE2F3246292A282B7225B29B74C50F0C5E7E515A` | 核心丢弃取消后迟到资源结果；Angular20仓库外宿主 strict check、生产构建、TestBed 32/32及 Zone.js/zoneless browser smoke通过；资源取消为`aborted`，500/2000历史和30次销毁完成；尚非最终版本矩阵产物 |
 | P7-T02 | 同一 P7-T01 tarball；仓库外 Angular21.2.25/CLI 21.2.26、TS5.9.3、Zone.js0.16.3；pnpm10.33.2 | strict check、生产构建、7文件32/32 TestBed、Zone.js/zoneless browser smoke、本地HTTP/SSE、Skill资源取消、OPFS、受控GitHub、500/2000历史、30次销毁均通过；非最终产物，真实GitHub未运行 |
+| P7-T03 | 当前工作树 `setMessages` 实现；未重新打包 | 核心、Angular bridge、Vue message/conversation、manager 相关 6 文件共 87 项定向测试通过；尚未在最终 tarball 和 Angular22 独立宿主运行 |
 
 ## 2. 通过与失败的具体范围
 
@@ -24,6 +49,7 @@
 | H-D42 浏览器 | 三版，各 Zone.js/zoneless | 通过 | 单会话流式、取消、错误、工具批准/拒绝、本地 HTTP/SSE；不证明共享 manager 审批整页恢复 |
 | P7-B kit 全量 | Node，25 文件/214 项 | 通过 | 213 passed、1 skipped；已审查发现未覆盖的共享会话缺口 |
 | P7-B clean build | ESM/CJS/DTS | 通过 | 清除旧 dist 再构建打包；不包含修复中源码 |
+| P7-T03 `setMessages` 局部回归 | Node/Vitest；6 个文件 | 通过 | 87 项通过；覆盖状态拒绝、数组容器隔离、已有消息身份、新消息 adapter、单次通知、Vue 自动保存和 manager 保存；不替代独立 Angular 宿主 |
 | P7-W 首轮 manager 契约 | 3 文件/24 项 | 通过 | 只证明这些测试；主线程独立复核仍失败，不放行 |
 | P7-W 关闭自动保存时回收 idle | manager.review.test.ts | 通过 | 首轮失败后已调整 dirty 调度；仍须 Vue 接入回归 |
 | P7-W 阻塞保存期间删除取消请求 | manager.review.test.ts | 通过 | 首轮 abort 次数 0；修复后立即启动捕获的旧引擎 abort，删除仍排在旧保存与取消之后 |
@@ -152,11 +178,12 @@ node --input-type=module -e 'import { loadSkill } from "./packages/kit/dist/core
 
 这是一次固定路径真实服务可用性检查，不保证未来 GitHub 网络、限流或所有 Skill 目录均可用。最终 Angular 宿主继续验证真实 GitHub 和受控 HTTP 的不同职责，以及资源、取消和错误结果。
 
-## 4. 最终结果待补
+## 4. 当前收口状态（2026-10-11）
 
-- 修复后的资源取消与 Angular20 两模式证据已补齐；继续修正并验证21/22宿主依赖模板。
-- 列表调整API等待用户评审，不能认定单条updateMessage已覆盖列表删除/清空。
-- 源码冻结后重新执行kit/Vue/lint/clean build/严格声明，并制作最终hash；275/1跳过与当前hash是检查点证据。
-- 最终产物完整20/21/22独立安装及两模式验收，包括原生会话、后台/多视图、真正重载工具/Skill审批和本地HTTP/SSE。
-- 原生File/目录句柄/IDB资源整套、受控与真实GitHub分开，以及500/2000长历史和重复销毁资源基线。
-- 最终M01-L01逐子项归并、迁移/示例/团队材料；发布评审另行进行。具体顺序见[P7待办](./angular-adaptation-p7-readiness.md#8-下一次继续的待办)。
+当前候选包 SHA-256 为 `9EDCD1EC12EA7F1C76D5A6D3843BE1060153B0ED0B5B6F13BC6D469C1D3D52CE`。Angular 20/21/22 已完成同包独立安装、无 Vue/源码 alias、`skipLibCheck:false`、生产构建、8 文件 43 项 TestBed 和 Zone.js/zoneless 浏览器验证。`setMessages` 的双视图、清空、身份及保存规则已包含在当前 TestBed 中。历史失败及旧包数据保留在上文，不作为当前未完成项。
+
+三版两模式均有后台/多视图、工具/Skill 整页审批恢复、本地 HTTP/SSE、File/OPFS/IndexedDB、固定 ref GitHub、500/2000 历史及 30 次销毁证据。Angular22 Zone 的一次短暂 `dbBlocked:1` 保留为环境观测，最终数据库连接平衡。
+
+旧 `renderContent` 独立消费已在 Angular20 当前包补验：`experiments/angular-p7/src/packed-capabilities.spec.ts` 分别通过内置 LocalStorage/IndexedDB 加载、OnPush 显示、修改、flush、await close/重开后再加载；metadata 保留，legacy 字段移除。最终证据为 `D:/Projects/Work/_tmp/kit-angular-n4-20-20261011/N6-capabilities-ng-test.log`（5/5）及 `N6-capabilities-tsc.log`（严格类型 exit 0）；同目录N4初次日志保留。IndexedDB 使用 fake-indexeddb 验证数据往返，真实Skill DB连接生命周期由三版 smoke 承担；不声称21/22各自重复了这两项旧格式用例。
+
+浏览器传输负例与N6最终回归已补齐，详见本页最新核对；M01–L01证据已归并至完成审核清单。API/迁移、可重建示例和团队材料已更新，实验脚本顺序及材料最后复核已完成，首版基础Angular实施与技术验收收口。暂无Angular业务评审者，后续使用中迭代；SSR不承诺。发布版本、兼容迁移、提交、推送及发布另行授权。见[P7待办](./angular-adaptation-p7-readiness.md#8-下一次继续的待办)。

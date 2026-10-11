@@ -83,7 +83,12 @@ export const createMessageEngine = (
     plugins: pluginsFromOptions = [],
   } = options
 
-  const createMessage = <T extends ChatMessage>(message: T): T => adapter.createMessage(message)
+  const messageReferences = new WeakSet<ChatMessage>()
+  const createMessage = <T extends ChatMessage>(message: T): T => {
+    const created = adapter.createMessage(message)
+    messageReferences.add(created)
+    return created
+  }
 
   const defaultPlugins: MessageEnginePlugin[] = [thinkingPlugin(), lengthPlugin()]
   const plugins = deduplicatePlugins(defaultPlugins.concat(pluginsFromOptions))
@@ -182,6 +187,36 @@ export const createMessageEngine = (
         throw new Error('Message is no longer in this engine')
       }
       recipe(message)
+    })
+  }
+
+  const hasAwaitingApprovalToolCall = (messages: ChatMessage[]) =>
+    messages.some((message) => {
+      if (message.role !== 'assistant' || !Array.isArray(message.tool_calls) || message.tool_calls.length === 0) {
+        return false
+      }
+
+      const toolCallState = (message.state?.toolCall as Record<string, { status?: string }> | undefined) ?? {}
+      return message.tool_calls.some((toolCall) => toolCallState[toolCall.id]?.status === 'awaiting-approval')
+    })
+
+  const setMessages: MessageEngine['setMessages'] = (messages) => {
+    const state = getState()
+    if (state.requestState === 'processing') {
+      throw new Error(
+        hasAwaitingApprovalToolCall(state.messages)
+          ? 'Cannot set messages while a tool call is awaiting approval'
+          : 'Cannot set messages while processing is in progress',
+      )
+    }
+    if (state.requestState === 'paused') {
+      throw new Error('Cannot set messages while the request is paused')
+    }
+
+    const nextMessages = messages.map((message) => (messageReferences.has(message) ? message : createMessage(message)))
+
+    mutate('messages', (draft) => {
+      draft.messages = [...nextMessages]
     })
   }
 
@@ -768,6 +803,7 @@ export const createMessageEngine = (
     abort,
     dispatchCommand,
     updateMessage,
+    setMessages,
     setResponseProvider(provider) {
       runtime.responseProvider = provider
     },
