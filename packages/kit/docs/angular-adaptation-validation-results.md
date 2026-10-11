@@ -1,6 +1,6 @@
 # Angular 适配验收结果索引
 
-> 2026-10-05。结果按实际运行范围记录。修复前、修复中和最终产物分开，不把某个局部通过升级为完整能力通过。当前 P7 仍在进行，见 [当前审查清单](./angular-adaptation-p7-readiness.md)。
+> 2026-10-11。结果按实际运行范围记录。修复前、修复中和最终产物分开，不把某个局部通过升级为完整能力通过。当前 P7 仍在进行，见 [当前审查清单](./angular-adaptation-p7-readiness.md)。
 
 ## 1. 结果来源
 
@@ -10,7 +10,9 @@
 | P7-B | `f63c8310d` 修复前 clean build；tarball SHA-256 `4E3881929E1D7C74792D01179FE347EE74FDA60C5E776785CEC6C76D7D124C85` | 当前反证与 Skill 读取基线；不是最终交付产物 |
 | P7-W | 工作树 manager 修复中 | 针对性契约与主线程复核测试；2026-10-05 主线程重跑 4 文件 34/34 通过。Vue 共享接入和独立产物验收仍未放行 |
 | P7-D3 | `f63c8310d` 加本轮未提交 manager/Vue 修复；SHA-256 `1AEDBE014A7592FA860FAE89BE978210F4FB965B10FCCF37216101FACDBE33B6` | clean build 后 npm pack 的 D3 复验检查点；不是最终全能力放行产物 |
-| P7-SL | 本次本地提交的源码检查点，父提交`f63c8310d`；SHA-256 `2E23E364ABB1A0B152FFAC53121EA94A1BD8C3E24E7BA585647B5FD6905D1E7C` | 含manager/Vue、存储close与中立序列化、core公开工具；Angular20类型/构建/TestBed通过，新增浏览器资源取消失败；非最终产物 |
+| P7-SL | 本次本地提交的源码检查点，父提交`f63c8310d`；SHA-256 `2E23E364ABB1A0B152FFAC53121EA94A1BD8C3E24E7BA585647B5FD6905D1E7C` | 含manager/Vue、存储close与中立序列化、core公开工具；Angular20类型/构建/TestBed通过，资源取消探针曾失败；非最终产物 |
+| P7-T01 | 当前工作树 clean build/pack；SHA-256 `C7C01DB61D907849478B34CCAE2F3246292A282B7225B29B74C50F0C5E7E515A` | 核心丢弃取消后迟到资源结果；Angular20仓库外宿主 strict check、生产构建、TestBed 32/32及 Zone.js/zoneless browser smoke通过；资源取消为`aborted`，500/2000历史和30次销毁完成；尚非最终版本矩阵产物 |
+| P7-T02 | 同一 P7-T01 tarball；仓库外 Angular21.2.25/CLI 21.2.26、TS5.9.3、Zone.js0.16.3；pnpm10.33.2 | strict check、生产构建、7文件32/32 TestBed、Zone.js/zoneless browser smoke、本地HTTP/SSE、Skill资源取消、OPFS、受控GitHub、500/2000历史、30次销毁均通过；非最终产物，真实GitHub未运行 |
 
 ## 2. 通过与失败的具体范围
 
@@ -35,6 +37,9 @@
 | P7-D3 独立 Angular 20 TestBed | Angular20.3.33/TS5.9.3；5文件29项 | 通过 | app/d1/d2/s4 与新增 manager 9项；只有初始 detectChanges，后续流式/工具变化依赖 Angular scheduler |
 | P7-D3 独立 Angular 20 浏览器 | Chrome，Zone.js/zoneless | 通过 | 真正 page.reload 的工具/Skill批准拒绝、缺快照/资源/Skill、删除、保存失败恢复、后台/双视图、dispose保留历史、真实本地HTTP/SSE；pageErrors均为空 |
 | M06 真实 GitHub loader | P7-B `/core`，Node 原生 fetch；固定 commit | 通过 | 未拦截 HTTP，加载 weather name 正确、instructions 1856 字符、无资源；不是浏览器目录选择或全 Angular 版本证明 |
+| P7-T01 取消后迟到资源 | Angular20，最新 tarball `C7C01DB6…E515A`；核心可控 reader、浏览器 Zone.js/zoneless | 通过 | `toolPlugin` 在每个结果写入前及循环结束后检查 `AbortSignal`；迟到内容未进入历史，工具状态为`cancelled`；浏览器资源探针记录一次短暂 IndexedDB `blocked` 后删除成功，不能将 `blocked` 单独解释为泄漏 |
+| P7-T02 Angular21 独立消费 | Angular21.2.25/CLI21.2.26、TS5.9.3、Zone.js0.16.3；同一 P7-T01 tarball，仓库外全新宿主 | 通过 | `skipLibCheck:false` 类型检查、生产构建、7文件32/32 TestBed通过；Zone.js和zoneless smoke均`status: passed`且`pageErrors: []`；本地HTTP/SSE、Skill取消、OPFS目录、二进制/重复路径、受控GitHub、500/2000历史和30次销毁通过，最终 subscriptions/requests/queues/databases/timers 均为0，数据库 open/close 均32。真实GitHub未提供配置，不计通过 |
+| P7-T02 npm 安装诊断 | Node22.15.1/npm10.9.2；两个全新Angular21宿主目录 | 环境工具失败 | npm在 peer set 解析时重复抛 `Cannot read properties of null (reading 'edgesOut')`，栈位于 npm Arborist `#loadPeerSet`；未使用`--force`或`--legacy-peer-deps`。改由pnpm10.33.2干净安装成功，Angular消费验证通过 |
 
 以上 P7-W 状态将按修复后实际复验追加，保留失败发生时的证据。
 
@@ -93,7 +98,7 @@ L01 子代理 runtime 用例 **8/8 通过**，根/core 类与函数身份一致�
 
 该产物于仓库外 `p7-angular20-storage-l01` 通过严格声明、无Vue入口图、生产构建和 **7 文件 32/32 TestBed**（新增 service关闭顺序2项、core辅助工具1项，加旧20项与manager9项）。此时浏览器正在执行。Angular21首次重建安装失败：`@angular/build@21.2.24` 要求 Vitest `^4.0.8`，模板仍为3.2.7；会按实际peer修正重建模板，不能用 force/legacy-peer-deps 绕过或记为版本通过。
 
-### 最新产物浏览器失败与版本安装失败
+### 修复前浏览器失败与版本安装失败
 
 2026-10-05交接时，P7-SL浏览器命令已结束，退出码1。脚本按zoneless→zone顺序运行；首个模式通过前面的会话操作后，在`Validate native resources`诊断步骤失败：
 
@@ -112,6 +117,8 @@ node browser-smoke.mjs
 ```
 
 本轮整套两模式浏览器结果为失败；未完成原生资源整套验证，后续OPFS目录、受控/真实GitHub、500/2000长历史、30次销毁及GC结果均未运行，zone模式也未运行。此前P7-D3两模式通过保留为不同hash的历史证据。smoke退出时执行finally清理其浏览器、HTTP与Angular进程；随后检查4317/4318/4320无监听，不将其视为长期资源验收。
+
+修复后以 P7-T01 最新 tarball 从全新仓库外 Angular20 宿主重跑同一 smoke：zoneless 与 zone 均通过，资源取消结果为 `aborted`，迟到内容未泄漏；OPFS 目录、二进制资源、严格重复路径、受控 GitHub、500/2000 历史、30 次销毁和本地 HTTP/SSE 均完成。删除探针允许规范中的短暂 `blocked`，等待最终 `success` 并以 2 秒超时判定；zoneless 为0次、zone为1次短暂 blocked，最终均成功且数据库 open/close 计数平衡。
 
 Angular21重建命令也退出1：
 
@@ -147,7 +154,7 @@ node --input-type=module -e 'import { loadSkill } from "./packages/kit/dist/core
 
 ## 4. 最终结果待补
 
-- 优先复现和修复取消后的迟到资源内容；修正21/22宿主依赖模板。
+- 修复后的资源取消与 Angular20 两模式证据已补齐；继续修正并验证21/22宿主依赖模板。
 - 列表调整API等待用户评审，不能认定单条updateMessage已覆盖列表删除/清空。
 - 源码冻结后重新执行kit/Vue/lint/clean build/严格声明，并制作最终hash；275/1跳过与当前hash是检查点证据。
 - 最终产物完整20/21/22独立安装及两模式验收，包括原生会话、后台/多视图、真正重载工具/Skill审批和本地HTTP/SSE。

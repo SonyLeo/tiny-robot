@@ -184,6 +184,90 @@ describe('skillPlugin', () => {
     })
   })
 
+  it('drops a late resource reader result after the turn is aborted', async () => {
+    let markStarted!: () => void
+    const started = new Promise<void>((resolve) => {
+      markStarted = resolve
+    })
+    let release!: (value: string) => void
+    const pending = new Promise<string>((resolve) => {
+      release = resolve
+    })
+    const skill: SkillDefinition = {
+      name: 'pending-resource',
+      description: 'Pending resource skill',
+      instructions: 'Read slowly.',
+      resources: [
+        {
+          path: 'slow.md',
+          kind: 'text',
+          resourceId: 'slow.md',
+          readText: () => {
+            markStarted()
+            return pending
+          },
+        },
+      ],
+    }
+    const responseProvider = vi.fn<ResponseProvider>(async () => ({
+      id: 'late-resource-tool-call',
+      object: 'chat.completion',
+      created: Math.floor(Date.now() / 1000),
+      model: 'mock',
+      choices: [
+        {
+          index: 0,
+          message: {
+            role: 'assistant',
+            content: '',
+            tool_calls: [
+              {
+                id: 'call-late-resource',
+                type: 'function',
+                function: {
+                  name: 'read_skill_file',
+                  arguments: JSON.stringify({ skillName: skill.name, path: 'slow.md' }),
+                },
+              },
+            ],
+          },
+          finish_reason: 'tool_calls',
+        },
+      ],
+    }) as ChatCompletion)
+    const engine = createTestMessageEngine({
+      plugins: [
+        ...silentDefaultPlugins,
+        skillPlugin({ selection: { mode: 'manual', skills: [skill] } }),
+        toolPlugin({
+          getTools: async () => [],
+          callTool: async () => {
+            throw new Error('fallback should not run')
+          },
+        }),
+      ],
+      responseProvider,
+    })
+
+    const turn = engine.sendMessage('read slowly')
+    await started
+    const abort = engine.abort()
+    release('late forbidden content')
+    await Promise.all([turn, abort])
+
+    const messages = engine.getState().messages
+    const toolMessage = messages.find((message) => message.role === 'tool')
+    const assistantMessage = messages.find((message) => message.tool_calls?.length)
+    const status = (assistantMessage?.state?.toolCall as Record<string, { status?: string }> | undefined)?.[
+      'call-late-resource'
+    ]?.status
+
+    expect(engine.getState()).toMatchObject({ requestState: 'aborted' })
+    expect(String(toolMessage?.content ?? '')).not.toContain('late forbidden content')
+    expect(status).toBe('cancelled')
+    expect(responseProvider).toHaveBeenCalledOnce()
+  })
+
   it('rebuilds skill runtime tools before resuming a persisted turn', async () => {
     const values = new Map<string, string>()
     vi.stubGlobal('localStorage', {

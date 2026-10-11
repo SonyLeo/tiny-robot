@@ -1,6 +1,6 @@
 # Kit Angular 适配能力与证据映射
 
-> 2026-10-05最新检查点：父基线`f63c8310d`，分支`feat/kit-angular`；共享manager/Vue和存储/出口修复落地，kit275通过/1跳过，最新Angular20产物32项TestBed通过。资源取消浏览器失败、21宿主依赖安装失败、列表能力待评审及完整矩阵未完成。实时子项状态与有序待办见[P7清单](./angular-adaptation-p7-readiness.md)。下方B0表格保留`90e92e19b`静态线索和后续历史阶段证据，“缺口”列不作为最新源码事实。
+> 2026-10-11最新检查点：分支`feat/kit-angular`；P7-T01修复资源取消后迟到写入，Angular20/21最新检查点tarball strict类型、生产构建、32项TestBed及Zone.js/zoneless smoke通过。Angular22尚未复验；消息列表受控调整API待评审；完整M01-L01和最终产物验收未完成。实时状态与有序待办见[P7清单](./angular-adaptation-p7-readiness.md)。下方B0表格保留`90e92e19b`静态线索和后续历史阶段证据，“缺口”列不作为最新源码事实。
 
 ## 读表规则
 

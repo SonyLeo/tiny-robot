@@ -14,9 +14,11 @@ const caught = async (operation: () => PromiseLike<unknown>) => {
 async function removeDB(name: string) {
   let blocked = 0;
   await new Promise<void>((resolve, reject) => {
+    const timeout = setTimeout(() => reject(new Error(`DB deletion timed out: ${name}`)), 2000);
     const request = indexedDB.deleteDatabase(name);
-    request.onblocked = () => { blocked += 1; reject(new Error(`DB remained open: ${name}`)); };
-    request.onerror = () => reject(request.error); request.onsuccess = () => resolve();
+    request.onblocked = () => { blocked += 1; };
+    request.onerror = () => { clearTimeout(timeout); reject(request.error); };
+    request.onsuccess = () => { clearTimeout(timeout); resolve(); };
   });
   return blocked;
 }

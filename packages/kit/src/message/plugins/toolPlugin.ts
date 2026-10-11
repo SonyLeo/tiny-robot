@@ -654,6 +654,14 @@ export const toolPlugin = (
       const iterator = normalizeToAsyncGenerator(result)
 
       for await (const chunk of iterator) {
+        // The outer turn may already have been aborted while an async tool
+        // reader was still pending. Do not let a late chunk mutate the tool
+        // message after cancellation.
+        if (abortSignal.aborted) {
+          toolCallEnd(toolCall, { ...contextWithToolMessage, status: 'cancelled' })
+          return
+        }
+
         mutate('messages', () => {
           if (
             (typeof chunk === 'string' && chunk.length > 0) ||
@@ -680,6 +688,11 @@ export const toolPlugin = (
           toolMessage.metadata ??= {}
           toolMessage.metadata.updatedAt = Math.floor(Date.now() / 1000)
         })
+      }
+
+      if (abortSignal.aborted) {
+        toolCallEnd(toolCall, { ...contextWithToolMessage, status: 'cancelled' })
+        return
       }
 
       toolCallEnd(toolCall, { ...contextWithToolMessage, status: 'success' })
