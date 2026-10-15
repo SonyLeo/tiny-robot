@@ -22,6 +22,8 @@
 - 设计或调整一般性的 VitePress 侧边栏、文档导航或站点信息架构；公开入口的弃用状态发生变化时，仍必须按第 10 节检查首屏、导航标签和推荐链接是否保持一致；
 - 直接新增或修改 CI 门禁。本文只记录作者和评审者应执行的验证责任。
 
+修改 `docs/src/suites/chat.md` 或 `docs/src/suites/chat-runtime.md` 时，AI 和文档作者还 MUST 遵循 [TinyRobot Chat 套件文档生成规范](./chat-suite-documentation-standard.md)。该规范负责两篇 Chat 套件文档的职责划分、内容矩阵、源码核对顺序和生成流程。
+
 本文使用以下规范词：
 
 - **MUST**：必须满足；不满足时不能认为文档已经完成。
