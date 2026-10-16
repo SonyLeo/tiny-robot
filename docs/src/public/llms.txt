@@ -1,0 +1,40 @@
+# TinyRobot Chat
+
+> Vue AI 聊天应用套件的 API 文档入口，当前范围为 `@opentiny/tiny-robot-chat`。
+
+## 版本
+
+- API 适用版本：`1.0.0-rc.1`
+- 发布状态：npm 已发布的预发布版本（RC）。
+- Chat：`@opentiny/tiny-robot-chat@1.0.0-rc.1`
+- Kit：`@opentiny/tiny-robot-kit@1.0.0-rc.1`
+- 基础组件：`@opentiny/tiny-robot@1.0.0-rc.1`
+- Vue：`^3.3.11`
+- 文档源码 Git 基线：`a3319fae37faac76750bac4ba14c678a80434113`
+- 发布依据：[npm 1.0.0-rc.1](https://www.npmjs.com/package/@opentiny/tiny-robot-chat/v/1.0.0-rc.1)。
+- 内容来源：与上述版本对齐的构建工作区；API 适用版本独立声明，不由工作区 package.json 的版本号推导。Git 基线仅用于追溯文档来源，不要求应用仓库使用相同提交。
+
+## 安装目标版本
+
+```bash
+pnpm add @opentiny/tiny-robot-chat@1.0.0-rc.1 @opentiny/tiny-robot@1.0.0-rc.1 @opentiny/tiny-robot-kit@1.0.0-rc.1
+```
+
+请指定精确版本；npm 的 latest 标签不代表上述 RC 版本。直接导入 Kit API 时，也需要显式安装同版 Kit。
+
+## API 与文档
+
+- [完整 Chat API](./llms-chat.txt)：组件、Runtime、公共配置、类型、行为约束及示例依赖。
+- [快速上手](./suites/quick-start.html)：安装、样式和首次接入。
+- [界面与交互](./suites/chat.html)：TrChat、TrChatUI、ui 配置、事件和插槽。
+- [数据与逻辑](./suites/chat-runtime.html)：模型、请求、会话、存储及 MCP。
+
+## Agent 使用规则
+
+1. 修改前重新获取本索引及完整 Chat API，以 1.0.0-rc.1 为更新目标，核对并更新应用的 Chat、Kit 和基础组件依赖，再按该版本 API 调整代码；安装时固定精确版本，不使用未指定版本的安装命令、latest 或浮动的 rc 标签。Git 基线仅用于文档来源追溯。
+2. 阅读目标功能对应的 API、行为边界和类型，再对照应用现有代码定位需要调整的用法；本文件不提供历史版本差异。
+3. 通过包根导入公共 API。类型源码中的相对路径和辅助声明仅用于说明，不能据此深层导入内部模块。
+4. 通常使用 TrChat + useChatRuntime；已有 Kit 会话使用 useChatRuntimeFromConversation；自行管理数据与事件时使用 TrChatUI。
+5. TrChat 已处理发送、取消和会话切换；使用 TrChatUI 时由应用处理相应事件，避免重复或遗漏操作。
+6. 文档 Demo 使用模拟服务和共享文件。按文末依赖保留文件关系，真实接入时替换服务地址和模型；不要把文档模拟地址当作可用后端。
+7. 更新后检查类型、构建和受影响交互；不能仅依据名称相似推断 API 兼容。
