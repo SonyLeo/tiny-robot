@@ -2,7 +2,7 @@
 
 ## 1. 文档目的
 
-本文是 TinyRobot 文档 Agent 友好化改造的执行基线。它记录当前基线、目标架构、实施边界、文件变更、验证门槛和后续提交顺序。
+本文是 TinyRobot 文档 Agent 友好化改造的端到端执行基线。它记录目标用户与场景、内容事实源、数据契约、生成链路、实施阶段、验收门槛、发布运维和回滚策略。每一阶段完成后应更新实际状态、验证结果和未解决项，避免计划与实现脱节。
 
 本文只描述方案，不改变 VitePress 运行时、组件 API 或独立 MCP 服务。后续实现应在 `docs/agent-friendly-docs-plan` worktree 中继续，并以本文作为执行清单。
 
@@ -19,9 +19,9 @@
 | 项目 | 当前情况 |
 | --- | --- |
 | 文档框架 | VitePress 1.x |
-| Markdown 页面 | 55 个 |
+| Markdown 页面 | 55 个（当前方案 worktree 统计；构建时以脚本实际发现结果为准） |
 | 组件页面 | 23 个 |
-| Demo 源文件 | 245 个 `.vue` / `.ts` 文件 |
+| Demo 源文件 | 245 个 `.vue` / `.ts` 文件；另有 18 个 `.css` / `.html` / `.svg` 辅助文件 |
 | 页面 Demo | 使用 `vitepress-demo-plugin` 和 `<demo>` 标签 |
 | 搜索 | VitePress local search |
 | 页面操作区 | 尚未提供文档内部的复制 Markdown、查看 Markdown、ChatGPT、Claude 操作 |
@@ -29,15 +29,27 @@
 | `llms.txt` / `llms-full.txt` | 不存在 |
 | `sitemap.md` / 页面 JSON 索引 | 不存在 |
 | Agent Skill 发布入口 | 不在当前 docs 构建链路中 |
-| MCP Server | 现有 SDK 用于 Chat 运行时 MCP 客户端，不是 docs MCP 服务 |
+| MCP Server | 当前无面向文档查询的 MCP Server；Chat Runtime 中的 SDK 用于客户端连接，不是 docs MCP 服务 |
 | API JSON 索引 | 组件 API 主要存在于 Markdown 表格，没有统一组件元数据索引 |
 | 文档规范 | 已有 `component-documentation-standard.md`，包含 L0 Demo、API 完整性、事实源和弃用规则 |
 
 已有独立 `agent-skills` 仓库中的 `tiny-robot-skill` 仍有价值，但它复制了组件文档、Demo、指南和规则。后续应将 docs 作为唯一事实源，独立 Skill 收敛为规则和索引入口，避免文档内容分叉。
 
-## 3. 目标和非目标
+## 3. 用户场景、目标和非目标
 
-### 3.1 目标
+### 3.1 目标用户与任务
+
+| 用户 / Agent | 典型任务 | 首选入口 |
+| --- | --- | --- |
+| 开发者 | 查组件用法、API、限制和示例 | HTML 文档、页面内复制 Markdown |
+| IDE Agent | 根据需求选组件并生成可运行代码 | Skill + `llms.txt` / 页面索引 / raw 页面 |
+| MCP 客户端 | 搜索并按需读取文档、API 和 Demo | 独立 MCP Server（后续阶段） |
+| 通用网页 Agent | 发现文档站和相关页面 | `llms.txt`、Skill discovery 文件、sitemap |
+| 离线或受限网络用户 | 使用固定版本资料 | 标注版本和生成时间的 Skill / 文档快照 |
+
+本改造的“AI 友好”以可发现、可引用、可校验、可追溯和版本明确为目标，不以单纯增加 AI 按钮或生成更多 JSON 文件作为完成标准。
+
+### 3.2 目标
 
 1. 让 AI 工具可以直接发现、读取和引用 TinyRobot 文档。
 2. 让页面、Markdown、Demo 和 API 元数据建立稳定关系。
@@ -46,7 +58,7 @@
 5. 为后续独立 MCP 服务提供稳定、可查询的内容源。
 6. 维持现有 VitePress、Demo、GitHub Pages 和 Vue 组件使用方式。
 
-### 3.2 非目标
+### 3.3 非目标
 
 1. 不迁移到 Nuxt 或 Nuxt Content。
 2. 不在第一阶段重写全部组件文档。
@@ -54,6 +66,7 @@
 4. 不把 MCP Server 部署到 GitHub Pages。
 5. 不继续手工复制一份完整 Skill 文档作为长期事实源。
 6. 不改变 TinyRobot 公开组件 API。
+7. 第一阶段不采集用户提示词、会话或个人数据；不增加需要账号或密钥的功能。
 
 ## 4. 总体架构
 
@@ -81,6 +94,29 @@ TinyRobot 源码
 
 GitHub Pages 可以部署所有静态资源，但不能处理 MCP 的 Streamable HTTP `POST /mcp` 请求。MCP 必须作为独立 Node 服务、Serverless Function、Worker 或其他支持运行时请求的平台部署。
 
+### 4.1 构建与发布边界
+
+- 当前文档构建入口是仓库根目录 `pnpm build:docs`，由 `scripts/build-docs.js` 负责依次构建组件、Playground 和 VitePress。Agent 产物必须明确接入该入口及 CI，而不能只增加一个未被发布链路调用的 docs 子命令。
+- VitePress 当前使用 `docs/src` 为 `srcDir`、`docs/dist` 为 `outDir`，并从 `VITEPRESS_BASE` 读取子路径。所有产物 URL 必须经过同一 base URL helper 生成；不能硬编码站点根路径。
+- 先生成或校验供 VitePress 消费的中间数据，再构建 VitePress；需要复制到发布目录的静态文件在构建后写入 `docs/dist`。具体时机需由实现阶段通过本地 build 和 CI 发布链路验证。
+- 当前发布工作流按 tag 将产物部署到 `/<tag>/`。每个版本目录应可独立工作；方案还需在上线前确定一个稳定的默认文档入口和 `DOCS_SITE_URL`，不能假设 preview、tag、latest 路径等价。
+- 构建产物必须包含版本信息：源码版本/tag、基线 commit、生成时间（仅用于展示，不作为可复现性输入）、schema 版本和文档 base URL。内容哈希用于验证产物与输入对应。
+
+### 4.2 产物生命周期
+
+```text
+Markdown + frontmatter + navigation + Demo 声明
+              │
+              ▼
+discover → parse → validate → normalize → render/export → verify
+              │                                      │
+              ├── manifest / pages / demos           ├── HTML + raw Markdown
+              ├── component catalog                  ├── llms.txt / llms-full.txt
+              └── validation report                   └── Skill bundle / MCP catalog
+```
+
+所有下游产物只从同一轮构建生成。页面列表、raw 页面、llms 索引和 MCP catalog 不得各自维护重复清单。
+
 ## 5. 单一事实源和内容优先级
 
 不同问题使用不同事实源：
@@ -96,29 +132,94 @@ GitHub Pages 可以部署所有静态资源，但不能处理 MCP 的 Streamable
 
 AI 产物、Skill 和 MCP 都只能消费这些事实源生成的结果，不能反向成为新的事实源。
 
+### 5.1 内容分类和状态
+
+构建器必须区分正式内容、草稿、模板、规范文档和非页面 Markdown。只有正式发布的文档进入公开索引；规范文档可单独标记为维护者资源，除非明确批准，不自动作为终端用户 API 文档发布。默认通过 frontmatter `draft: true` 排除草稿，并提供显式纳入规则和构建报告，不能仅依赖目录名猜测。
+
+每个页面需要稳定且唯一的 `id` 或由规范化源路径确定的稳定键。字段语义固定如下：`route` 是不含部署 base 的 VitePress 站内路由；`canonical_url` 是带正式站点域名、且包含该版本部署 base 的绝对 URL；`source` 是相对 `docs/src/` 的 Markdown 路径；`raw_path` 是相对站点 origin 的 raw 文件路径，包含部署 base；`raw_url` 是可公开访问的绝对 raw URL。源 frontmatter 只维护内容事实，route、source、raw 等派生字段由生成器统一计算。
+
+### 5.2 建议的页面元数据契约
+
+```yaml
+---
+title: Bubble 气泡组件
+description: 展示 AI 消息、流式文本和多种内容类型的气泡组件。
+kind: component
+status: stable
+package: '@opentiny/tiny-robot'
+exports: [Bubble, TrBubble]
+keywords: [AI 消息, 流式文本, Markdown 渲染]
+related: [/components/sender]
+---
+```
+
+`title`、`description`、`kind`、`status`、`package`、`exports`、`keywords`、`related` 应按字段定义校验规则；自动推导值只能作为构建期 fallback 或待补全报告，不能静默伪装成人工确认。组件专属字段只对 `kind: component` 等适用页面强制要求。不要在 frontmatter 中维护可从文件路径稳定推导的 `source`、`raw` 等派生字段。生成 JSON 使用 camelCase，源 frontmatter 保持现有 snake_case 兼容；转换映射写入 schema。建议为生成数据增加 `schemaVersion`，并对字段变更执行兼容性检查。
+
+### 5.3 Demo 关系数据契约
+
+记录每个 `<demo>` 的页面、顺序、标题、入口文件、明确声明的 `vueFiles`、文件角色和源码相对路径。显式声明的文件缺失必须报错；递归 import 检查作为独立规则，报告未列入展示清单的本地依赖，不应误把包依赖、别名或测试夹具当成缺失 Demo。构建器应支持当前插件语法与仓库中的多行数组写法，避免脆弱地用单一正则解析 Vue/Markdown 属性。
+
+复制示例的行为必须保留文件名和多文件结构；单文件复制可复制源码，多文件示例应提供逐文件复制/下载或清楚展示依赖，不能把多个文件直接拼成不可运行的代码块。
+
 ## 6. 分阶段执行计划
+
+阶段按依赖关系执行。静态资源生成依赖页面与 Demo 清单；页面操作区依赖 raw Markdown URL 契约；MCP 依赖稳定的 pages/component/demo schema。每阶段均需产出可审查的文件、自动化验证和人工验收记录。阶段完成定义为验收通过并更新本文，不以代码已合并为准。
+
+### 元数据错误等级
+
+| 等级 | 示例 | 阶段 1 行为 | 阶段 3 完成行为 |
+| --- | --- | --- | --- |
+| Error | frontmatter 无法解析、route 冲突、显式 Demo 文件缺失或越界 | 阻断构建 | 阻断构建 |
+| Warning | 页面缺少 description、keywords 或相关链接 | 统计并输出来源文件 | 对已纳入正式范围的必填字段升级为 Error |
+| Info | 使用自动推导标题、页面没有 Demo、可选 API 未覆盖 | 报告，不阻断 | 按页面类型和豁免规则处理 |
+
+阶段 3 结束时，正式页面必须满足其 `kind` 对应的必填字段；豁免项需在带原因的 allowlist 中记录并定期复核。构建报告输出总量、各级问题数量及相对基线上升/下降，不将渐进补齐阶段的 warning 与最终质量门槛混为一谈。
 
 ### 阶段 0：基线和脚本骨架
 
-目标：建立可重复执行的文档产物生成入口，不改变页面行为。
+目标：建立可重复执行的文档产物生成入口，不改变页面行为，并冻结输入/输出契约。
 
 计划变更：
 
-- 新增 `docs/scripts/build-agent-docs.mjs`。
+- 新增唯一 CLI `docs/scripts/agent-docs.mjs`。
 - 在 `docs/package.json` 增加 Agent 文档生成命令。
 - 为脚本提供 `DOCS_SITE_URL` 和 `VITEPRESS_BASE` 配置。
 - 生成过程失败时返回非零退出码。
 - 对输入路径使用 `path.resolve` 并限制在 `docs` 目录内。
+- 读取正式页面源、VitePress 配置和 nav/sidebar，不扫描敏感配置或环境变量；只允许显式读取 `DOCS_SITE_URL` 等公开构建参数。
+- 输出阶段性 manifest、schema 版本和清晰的错误/警告报告；支持 `--check` 只校验不写入，生成物不回写 Markdown。
+- 明确忽略规则、draft 规则、canonical host、当前发布 tag 对应的 base URL 和默认稳定 URL。
 
 验收：
 
 - 本地执行可以重复生成同样的文件。
 - 不依赖网络服务。
 - 不修改源码 Markdown。
+- 对同一输入连续构建，除明确声明的生成时间外内容哈希相同；CI 可在 check 模式下验证生成物无过期差异。
 
-### 阶段 1：静态 AI 文档产物
+### 阶段 1：页面目录、元数据和 Demo 关系
 
-目标：让 GitHub Pages 直接提供 AI 可读取的文档资源。
+目标：先得到所有后续产物共用且可验证的规范化内容目录。
+
+计划变更：
+
+- 从 `docs/src` 发现页面，根据正式页面规则过滤；收集 route、标题、description、kind、status、canonical URL 和来源文件。阶段 1 只要求结构有效，缺失的渐进式元数据按上述等级告警。
+- 解析 frontmatter 和 VitePress 导航，校验重复 route、损坏 frontmatter、无效关联链接；区分阻断错误与待补齐告警。
+- 解析 `<demo>` 声明，记录入口和明确列出的多文件源码；使用仓库已有 Markdown/Vue 解析依赖或结构化解析，不使用易误匹配的跨行正则。
+- 对 Demo 源路径执行 realpath/规范化路径边界检查，拒绝越出 `docs/demos` 的路径；校验文件存在及扩展名白名单。
+- 对 Demo 本地相对导入生成遗漏报告；初期人工确认误报和遗漏，不把未支持的别名/动态导入静默判为完整依赖图。
+- 只产出内部规范化 manifest 和验证报告，不生成公开 `pages.json` / `demos.json`，也不批量改写全部页面；按类型分批补齐人工元数据。
+
+验收：
+
+- 正式页面、排除页面和例外有清单及计数；计数随仓库内容变化，不写死为永恒基准。
+- route、页面 ID 和计算后的 canonical URL 唯一；所有已声明 related 链接指向正式页面或明确外链。
+- 所有 Demo 的显式文件存在且位于允许目录；依赖遗漏报告经维护者确认。
+- 校验脚本有覆盖路由冲突、缺失 Demo、越界路径、多文件示例和草稿过滤的必要测试。
+
+### 阶段 2：静态 AI 文档产物
+
+目标：从阶段 1 的规范化目录生成 GitHub Pages 可读取的静态资源。
 
 生成以下文件：
 
@@ -128,6 +229,8 @@ AI 产物、Skill 和 MCP 都只能消费这些事实源生成的结果，不能
 /llms-full.txt
 /sitemap.md
 /agent/pages.json
+/agent/demos.json
+/agent/manifest.json
 ```
 
 `pages.json` 最低字段：
@@ -139,14 +242,26 @@ AI 产物、Skill 和 MCP 都只能消费这些事实源生成的结果，不能
   "description": "...",
   "kind": "component",
   "source": "components/bubble.md",
-  "raw": "/raw/components/bubble.md",
+  "canonicalUrl": "${DOCS_SITE_URL}${VITEPRESS_BASE}components/bubble",
+  "rawPath": "${VITEPRESS_BASE}raw/components/bubble.md",
+  "rawUrl": "${DOCS_SITE_URL}${VITEPRESS_BASE}raw/components/bubble.md",
   "examples": ["demos/bubble/basic.vue"]
 }
 ```
 
-`llms.txt` 只保留页面索引、摘要、分类和链接，控制上下文大小。
+`llms.txt` 只保留页面索引、摘要、分类和链接，控制上下文大小。`docs/src/agents/llms-txt.md` 等页面若存在，只是介绍这些产物的说明页；它们不能与根目录生成的 `/llms.txt` 文件混淆，也不能覆盖同一路径。
 
-`llms-full.txt` 包含页面 Markdown，并在页面之后附带页面声明的 Demo 源码和必要的多文件依赖。
+`llms-full.txt` 包含正式页面 Markdown，并在页面之后附带页面声明的 Demo 源码；首版设定并记录大小上限，超限时不截断中间内容，应输出拆分索引或按需页面链接。多文件示例必须有文件名边界；Demo 单独资源可由 `agent/demos.json` 定位。
+
+附加约定：
+
+- raw 发布路径按 VitePress source 相对路径映射；移除 `.md` 后缀的页面路由规则与 `index.md` 路由规则明确，raw 文件本身保留 `.md`。例如 `docs/src/components/bubble.md` 对应 `/raw/components/bubble.md`，站点首页对应 `/raw/index.md`。
+- raw 内容中的站内 Markdown 链接、图片、锚点和下载链接必须解析后改写为本次版本可访问的绝对 URL，包含部署 base；代码块中的文本不改写。无法安全解析的动态链接输出校验告警并保留原文，不静默生成错误链接。
+- Demo 标签在 raw 中替换为稳定的示例说明块：标题、描述、示例入口和所有声明文件的公开 URL；不保留无法被普通 Markdown 阅读器渲染的 VitePress 专属标签。
+- 统一处理 frontmatter：面向用户的 raw Markdown 可保留原始 frontmatter；llms 文本需将机器元数据转为稳定页面头信息，避免重复和噪声。
+- `llms.txt` 定位为轻量发现索引，内容含绝对 URL、标题、简述和分类；`llms-full.txt` 只作为批量上下文便利产物，页面 raw 才是按需读取的权威格式。
+- `sitemap.xml` 用于通用爬虫；`sitemap.md` 如保留，明确其为 Agent 人类可读目录，不替代 XML。
+- `DOCS_SITE_URL` 必须是 origin（scheme + host，可选 port），不得含路径；`VITEPRESS_BASE` 必须是以 `/` 开头和结尾的部署路径。统一 helper 负责规范化与拼接，拒绝重复 base、双斜杠和错误编码。本地预览使用本地 origin，不写入发布 canonical 字段。
 
 验收：
 
@@ -154,10 +269,13 @@ AI 产物、Skill 和 MCP 都只能消费这些事实源生成的结果，不能
 - `llms.txt` 能覆盖所有正式页面。
 - `llms-full.txt` 能定位页面来源和 Demo 来源。
 - `pages.json` 可被 Node、浏览器和 MCP 服务读取。
+- `manifest.json` 标明内容版本、schema 版本、base URL、生成时间和产物哈希。
+- 构建成功后以 HTTP 静态服务器实际读取 raw、索引和 llms 文件；检查 base 子路径和大小上限。
+- 对发布使用的 `${DOCS_SITE_URL}`、`${VITEPRESS_BASE}` 执行组合测试：根部署 `/`、tag 子路径 `/tiny-robot/alpha/`、`/tiny-robot/latest/`；检查 URL 拼接后无重复 base，标签切换后版本 URL 自洽。
 
-### 阶段 2：页面元数据和 Demo 关系
+### 阶段 3：页面元数据质量提升和链接校验
 
-目标：提高页面检索质量，消除 AI 对目录和相对路径的猜测。
+目标：在自动目录可靠后，提高检索质量并逐步消除 AI 对目录和相对路径的猜测。
 
 建议 frontmatter：
 
@@ -165,7 +283,6 @@ AI 产物、Skill 和 MCP 都只能消费这些事实源生成的结果，不能
 ---
 title: Bubble 气泡组件
 description: 展示 AI 消息、流式文本和多种内容类型的气泡组件。
-canonical_url: /components/bubble
 kind: component
 status: stable
 package: '@opentiny/tiny-robot'
@@ -184,27 +301,22 @@ related:
 
 执行策略：
 
-1. 先从 H1、首段和目录自动推导缺失标题、描述和分类。
-2. 再为组件、套件、工具和迁移页面补充人工确认的 description、package、exports 和 keywords。
+1. 自动推导只生成待审核报告，不自动批量写入源文件。
+2. 按组件、套件、工具、指南、迁移等类别分批补充人工确认的 description、package、exports 和 keywords。
 3. 对 `badge: deprecated` 继续复用现有侧边栏 Badge 机制。
 4. 不把自动推导结果直接当作高质量人工描述；自动结果必须可被后续修改覆盖。
 
-Demo 解析规则：
-
-1. 解析 `<demo vue="..." />`。
-2. 解析 `:vueFiles="[...]"` 多文件列表。
-3. 将相对路径解析为 `docs/demos` 下的规范路径。
-4. 检查文件存在、路径没有越出 `docs` 根目录。
-5. 将 Demo 关系写入 `pages.json`。
-6. 页面引用的 Demo 文件不存在时阻断构建。
+本阶段不重新解析或生成 Demo 索引；解析与唯一数据生成归阶段 1、2。此处只对已生成的 Demo 目录执行增量质量治理：按已确认的依赖差异清单逐步消除遗漏，对元数据补齐结果做内容抽样审查。
 
 验收：
 
-- 245 个现有 Demo 源文件不被移动或复制到另一个事实源目录。
-- 所有正式页面的 Demo 引用可解析。
-- 多文件 Demo 的入口和依赖关系可完整读取。
+- 245 个现有 `.vue` / `.ts` Demo 源文件及 18 个辅助文件不被移动或复制到另一个事实源目录。
+- 所有正式页面的显式 Demo 声明可解析。
+- 多文件 Demo 的入口和声明依赖可完整读取，递归导入检查能力及限制有文档说明。
+- markdown 内站内链接、图片和锚点通过校验；忽略清单有理由、负责人和到期复核点。
+- 阶段 3 不维护第二份 Demo 数据或解析逻辑，公开 `pages.json` / `demos.json` 仍仅由阶段 2 的生成命令输出。
 
-### 阶段 3：页面内部 AI 操作区
+### 阶段 4：页面内部 AI 操作区
 
 目标：实现 Nuxt UI 类似的正文操作体验。
 
@@ -235,6 +347,9 @@ docs/.vitepress/theme/Layout.vue
 - 外部链接使用新窗口并带安全属性。
 - 首页不显示页面操作区。
 - 小屏幕不遮挡正文标题和目录。
+- ChatGPT / Claude 按钮只打开带当前页面公开 URL 的新会话入口；不把页面内容、剪贴板、用户输入或密钥自动提交给第三方。若平台 URL 格式不稳定，保留复制 Markdown / 链接作为主操作。
+- “查看 Markdown”应打开当前版本的 raw 页面并保持部署 base；复制链接的目标是稳定公开 URL，并显示复制失败反馈。
+- 页面路由切换后操作区标题、raw 链接和 canonical URL 必须同步更新。
 
 验收：
 
@@ -242,7 +357,7 @@ docs/.vitepress/theme/Layout.vue
 - 不影响默认侧边栏、右侧 outline 和 Demo。
 - 静态部署和带 `VITEPRESS_BASE` 的子路径部署都能生成正确链接。
 
-### 阶段 4：Skill 收敛和在线文档入口
+### 阶段 5：Skill 收敛和在线文档入口
 
 目标：保留已有 `tiny-robot-skill` 的规则价值，消除重复文档维护。
 
@@ -254,21 +369,29 @@ docs/.vitepress/theme/Layout.vue
 - Vue `script setup` 和命名规范。
 - 组件、Kit、Chat 套件的选型路由。
 - 弃用入口处理规则。
-- `/llms.txt`、`/agent/pages.json`、raw Markdown 和 MCP 地址。
+- 支持客户端对应格式的 Skill discovery 地址、`llms.txt`、`/agent/pages.json`、raw Markdown 和（启用时）MCP 地址。
 - 离线快照的版本信息。
 
 完整组件 Markdown、Demo、指南和迁移文档应由 docs 构建生成，不能继续手工复制维护。
 
+Skill 采用 Open Agent Skills 兼容的 `SKILL.md` 格式作为主格式，并在包元数据中声明名称、版本和发现 URL。以已核实支持该格式或 discovery 协议的客户端为首批验收目标；不同客户端的安装方式、自动发现能力和版本必须逐项验证。不得宣称一个 URL 自动适用于所有 Agent。
+
 静态发布入口：
 
 ```text
-/.well-known/skills/index.json
-/.well-known/skills/tiny-robot/SKILL.md
+<site-origin>/<stable-prefix>/.well-known/skills/index.json
+<site-origin>/<version-base>/.well-known/skills/tiny-robot/SKILL.md
 ```
+
+当前 GitHub Pages 发布按 `/<tag>/` 部署，不会自动部署站点根目录。实现时必须通过同一发布流程维护稳定入口：稳定前缀下发布 discovery index 与指向版本化 Skill 的公开 URL；版本路径保留不可变内容。若 Pages 仓库根路径由其他站点内容占用，应将稳定前缀配置在实际可发布的路径，不得假设能写入 `/.well-known/`。验收需同时检查稳定入口、版本入口和失效版本回退策略。
+
+discovery index 至少列出 Skill 的 `name`、`version`、`description`、`skillUrl`、`docsVersion` 和 `schemaVersion`，链接必须是完整绝对 URL。index 的 JSON schema 以第一批支持客户端实际识别的格式为准；若客户端没有共同 discovery 标准，则静态站点提供规范安装说明和直接 `SKILL.md` 下载链接，不自创并宣称通用发现协议。
 
 独立 `agent-skills` 仓库可以继续提供离线安装入口，但内容应来自 docs 产物或明确标注快照版本。
 
-### 阶段 5：组件级 API 元数据
+Skill 分发需要区分两类内容：由 docs 生成的安装包/版本快照，与仓库中的维护源。每次发布校验 Skill 声明的文档版本和 manifest 一致；若 agent-skills 仓库暂时不能自动消费产物，则在该仓库保留明确的生成来源、同步流程和版本号，禁止把它误称为实时链接。
+
+### 阶段 6：组件级 API 元数据
 
 目标：在页面级索引稳定后，为 MCP 和 Agent 提供结构化组件 API。
 
@@ -310,7 +433,7 @@ docs/.vitepress/theme/Layout.vue
 - 首阶段不自动推导所有 CSS 变量和复杂泛型。
 - 文档表格仍保留给开发者阅读，JSON 用于机器查询。
 
-### 阶段 6：独立 MCP Server
+### 阶段 7：独立 MCP Server
 
 目标：提供 Nuxt UI 类似的结构化 Agent 查询能力。
 
@@ -354,15 +477,51 @@ POST /mcp
 /.well-known/mcp/server-card.json
 ```
 
-部署选择只保留一种正式方案：独立 Node/Serverless 服务部署，GitHub Pages 继续负责静态文档和演示。
+在开始部署前补齐运行规格：唯一生产 URL、托管平台、Node LTS 版本、传输协议和 SDK 版本、CORS/来源限制、超时和响应大小限制、健康检查、日志脱敏、速率限制、可用性目标、版本更新与回滚方式。服务只读取公开 docs 构建产物，不接收或保存用户私有代码、提示词和凭证。首期只提供只读查询，不暴露执行代码或任意文件读取工具。
 
-## 7. 计划新增和修改的文件
+工具契约需定义输入 schema、分页/排序、错误码、结果来源 URL、文档版本、字符限制和兼容策略。`search-documentation` 与 `search-components` 返回短摘要和引用；`get-documentation-page` / `get-example` 支持按需完整读取。限制搜索结果数量和读取字节，过大内容返回明确截断元信息与继续读取方式。无效路径必须通过 manifest 查表拒绝，不能拼接用户输入访问文件系统。
+
+部署选择只保留一种正式方案：独立 Node 服务部署，GitHub Pages 继续负责静态文档和演示。若 MCP 单独部署尚无预算或维护人，阶段 7 可以推迟，不影响静态 AI 改造完成；不得将“有 MCP”设为第一阶段交付阻塞项。
+
+## 7. 跨阶段工程约定
+
+### 7.1 版本与兼容
+
+- `pages.json`、`demos.json`、组件 catalog、MCP 返回结构均带 schema 版本；发布端与 MCP 端不得依赖未声明的隐式字段。
+- 每个静态发布目录都能独立提供匹配版本的 HTML、raw、索引和 Skill；不得让旧版 HTML 请求只有 latest 才有的 raw 内容。stable discovery index 指向明确的当前版本；版本化路径内容不可变，不以静默覆盖方式更新旧版本。
+- 索引采用加法兼容：新增可选字段不破坏旧消费者；删除/改名字段需提高 schema 版本并同步 MCP 客户端和 Skill。
+- 构建是确定性的；产物不得依赖构建机时区、网络抓取或线上 API。生成时间字段排除在输入内容哈希之外。
+
+### 7.2 安全、隐私和可访问性
+
+- 产物只发布仓库明确公开的文档和 Demo 文件；路径规范化后验证边界，拒绝符号链接越界和 URL 编码绕过。
+- Markdown 导出与 AI 页面操作不可绕过站点现有 HTML/Markdown 安全处理；禁止未经净化的 HTML 注入。
+- 不把来源不明的远程抓取内容混入索引；保留来源文件和 commit，以便审计。
+- 复制操作提供键盘访问、可读状态提示和失败反馈；图标按钮有 aria-label，外链有明确名称。
+- 第三方 AI 链接只携带公开页面 URL，不自动传输正文或剪贴板内容。
+
+### 7.3 维护流程与责任
+
+- 新增正式页面时，PR 检查要求有标题、描述、分类、状态和可解析链接；组件页需关联包与公共导出，示例页需声明 Demo 文件。
+- 修改公开 API 时，同一 PR 更新文档和 Demo；组件元数据校验应能指出导出/API 与页面的差异，但不自动改写文档结论。
+- PR CI 执行静态构建、索引校验、死链/本地链接校验、Schema 校验和 `git diff --check`；对耗时的递归依赖或全站外链检查可定期运行，不阻塞每个 PR。
+- 每次发布记录页面数、Demo 数、缺失元数据数、警告数和产物大小；错误为零，允许警告需有阈值并逐步降低。
+- 指定 docs 维护责任人审查 Schema、canonical host、Skill 同步和发布异常；此方案不假定未指定的个人或团队名。
+
+### 7.4 回滚与故障处理
+
+- 静态产物随文档 tag 一起发布；发布失败时保留上一个可用目录，不覆盖稳定入口到不完整版本。
+- 操作区功能失败时用户仍可直接访问 HTML 和 raw Markdown；复制 API 不可用时给出可选择文本的备用方式。
+- 构建器可通过关闭 Agent 产物生成恢复旧 docs build；脚本错误不得阻断组件包发布，但应阻止不完整 docs artifact 部署。
+- MCP 部署与静态站点发布解耦；MCP 故障时 Skill 和静态索引仍可用。回滚服务版本不回滚已发布的静态文档。
+
+## 8. 计划新增和修改的文件
 
 ### 第一批静态产物改造
 
 ```text
 docs/package.json
-docs/scripts/build-agent-docs.mjs
+docs/scripts/agent-docs.mjs
 docs/.vitepress/theme/Layout.vue
 docs/.vitepress/theme/components/DocActions.vue
 docs/.vitepress/theme/style.css
@@ -372,15 +531,21 @@ docs/src/agents/llms-txt.md
 docs/src/agents/skills.md
 docs/src/agents/mcp.md
 docs/agent/skills/tiny-robot/SKILL.md
+docs/agent/schema/*.schema.json
 ```
+
+`docs/src/agents/*.md` 是 VitePress 中的说明页面；`docs/agent/` 是仓库维护的生成输入/skill 源，最终可发布文件位于 `docs/dist/`。根目录 `llms.txt`、`llms-full.txt`、`.well-known` 等生成文件不得作为 Markdown 源文件手工维护。生成目录要在 `.gitignore` 或发布规则中明确，避免构建结果意外提交或被 VitePress 当页面扫描。
+
+唯一 CLI 为 `docs/scripts/agent-docs.mjs`，提供 `catalog`（阶段 1 内部 manifest）、`build`（生成公开静态产物）、`check`（只校验并检查产物新鲜度）和 `report`（输出质量统计）子命令。`docs/package.json` 只暴露这些子命令，不另设 `build-agent-docs.mjs` 或 `validate-agent-docs.mjs` 入口；内部模块可拆分，但解析和 schema 只保留一份实现。
 
 ### 第二批内容和校验
 
 ```text
 docs/src/**/*.md
-docs/scripts/validate-agent-docs.mjs
 docs/scripts/extract-component-metadata.mjs
 ```
+
+第二批沿用唯一 `agent-docs.mjs` CLI 与其内部模块，不再创建重复 Validator；`extract-component-metadata.mjs` 属于组件 API 阶段的独立提取器，必须复用页面/Demo schema 和公共导出白名单。
 
 ### 第三批 MCP
 
@@ -392,40 +557,46 @@ packages/docs-mcp/src/tools/*.ts
 packages/docs-mcp/test/*.test.ts
 ```
 
-## 8. 提交拆分
+## 9. 提交拆分
 
 后续在本 worktree 中按以下本地提交拆分，便于逐步审查：
 
-1. `docs: add agent-friendly docs execution plan`：本文档。
-2. `docs: generate static ai documentation artifacts`：raw Markdown、`llms.txt`、`llms-full.txt`、sitemap、页面索引。
-3. `docs: add inline ai document actions`：正文内部操作区和子路径链接处理。
-4. `docs: add agent skill entry and docs navigation`：Agents 页面、Skill 入口和页面说明。
-5. `docs: validate demo and metadata references`：Demo 路径、链接和 frontmatter 校验。
-6. `docs: add component metadata catalog`：公开导出和 API 元数据。
-7. `feat: add tiny-robot docs mcp server`：独立 MCP 服务及其测试。
+1. `docs: add agent-friendly docs execution plan`：执行基线方案。
+2. `docs: validate page and demo catalog`：页面清单、Demo 解析、路径与元数据校验。
+3. `docs: generate static ai documentation artifacts`：raw、llms、sitemap、pages/demos manifest。
+4. `docs: add inline ai document actions`：正文操作区和子路径处理。
+5. `docs: add agent skill entry and docs navigation`：Skill bundle、Agents 入口及版本说明。
+6. `docs: add component metadata catalog`：轻量组件索引与公开 API 对照。
+7. `feat: add tiny-robot docs mcp server`：独立服务、工具契约和部署配置。
 
 每个提交都必须保持可构建；MCP 提交不应与静态文档提交混在一起。
 
-## 9. 验证门槛
+## 10. 验证门槛
 
 静态文档阶段：
 
 ```text
-pnpm -F docs build
+pnpm build:docs
 git diff --check
 ```
+
+权威集成验证命令为仓库根目录 `pnpm build:docs`，它覆盖组件依赖、Playground、VitePress、Agent 产物和 postbuild。PR 与发布流水线均使用该根命令，或使用经证明产物等价且显式跳过部分步骤的构建入口。快速本地验证可以使用 `pnpm -F docs build`，但它只验证 VitePress，不作为完整 Agent 产物验收。单独的 `pnpm -F docs agent:check` 用于快速校验 metadata/catalog 与生成物新鲜度。现有 PR CI 直接运行 `pnpm -F docs build`，实施时需明确更新该 workflow；不得只改 release workflow。CI 失败需指明源文件、字段/路径和修复建议，不只输出堆栈。
 
 构建校验：
 
 - Markdown 页面标题存在。
-- 正式页面描述可用。
-- `canonical_url` 唯一。
+- 阶段 1 缺失渐进式元数据只输出 warning；阶段 3 结束后，正式页面满足其 `kind` 对应的描述等必填字段，例外必须在 allowlist。
+- 生成的 `canonicalUrl` 唯一且为绝对 URL；站内 `route` 不包含 base，raw URL 包含当前 base。
 - `<demo>` 和 `vueFiles` 路径存在。
 - Demo 路径不会越出 `docs` 目录。
 - 页面索引和 raw 文件数量一致。
 - `llms.txt`、`llms-full.txt`、`sitemap.md`、`pages.json` 生成成功。
 - `VITEPRESS_BASE` 子路径下的链接正确。
 - 页面内部操作区不出现在首页、不遮挡正文。
+- 用本地静态服务器访问构建目录，验证实际 HTTP 路径和 MIME 类型；仅检查文件存在不足以证明部署可读。
+- 至少抽测一个组件单 Demo、一个多文件 Demo、一个非组件指南、一页迁移文档和首页；检查桌面/窄屏与键盘操作。
+- 原始 Markdown 和 llms 内容不含失效的相对链接、构建机绝对路径、内部临时路径或无意义插件标签。
+- 页面、raw、manifest、llms 索引覆盖集合一致；所有引用使用本次构建的同一版本。
 
 MCP 阶段：
 
@@ -436,10 +607,12 @@ MCP 阶段：
 - Demo 读取支持单文件和多文件示例。
 - 无效页面和无效 Demo 返回明确错误。
 - 大页面读取不会超出服务限制。
+- 工具只读公开 catalog，不接受文件系统路径；响应含来源 URL、版本和大小信息。
+- MCP 不可用时静态 docs、raw、Skill 和索引仍能独立完成核心任务。
 
-## 10. 完成标准
+## 11. 完成标准
 
-改造完成必须同时满足：
+静态 AI 友好化完成（不含可延期 MCP）必须满足：
 
 1. GitHub Pages 能访问 HTML、Demo、raw Markdown、`llms.txt`、`llms-full.txt`、sitemap、页面 JSON 和 Skill。
 2. 页面正文内部提供复制 Markdown、查看 Markdown 和 AI 工具入口。
@@ -447,28 +620,70 @@ MCP 阶段：
 4. Demo 与页面关系由构建脚本验证，而不是依赖模型猜测。
 5. Skill 不再维护完整文档副本，或明确标记为自动生成的离线快照。
 6. 组件 API 元数据与公开导出有可追踪来源。
-7. MCP 服务独立部署并读取同一批 docs 构建产物。
-8. 文档构建、链接校验和 MCP 测试全部通过。
+7. 页面清单、Demo 声明和静态索引来自同一构建，schema 和版本信息明确。
+8. 文档构建、链接校验、子路径 HTTP 检查和静态产物一致性验证全部通过。
 
-## 11. 风险与处理
+完整智能化改造还需满足：组件 API catalog 与公开导出可追踪；MCP 服务独立部署、监控、可回滚并读取匹配版本的 docs 产物。
+
+## 12. 风险与处理
 
 | 风险 | 处理方式 |
 | --- | --- |
 | `llms-full.txt` 过大 | 保持 `llms.txt` 精简；MCP 支持按页面和章节读取；Demo 源码按需返回 |
 | 文档和源码 API 漂移 | 公开导出索引、类型检查、文档校验分阶段增加，不用手工 JSON 作为事实源 |
 | GitHub Pages 子路径链接错误 | 所有 URL 通过 `VITEPRESS_BASE` 统一生成，并在构建中验证 |
-| Demo 多文件依赖遗漏 | 解析 `vueFiles`，对入口导入做路径检查，遗漏时阻断构建 |
+| Demo 多文件依赖遗漏 | 校验显式 `vueFiles`；递归导入差异先报告，覆盖率明确后再按规则阻断 |
 | 独立 Skill 再次过期 | Skill 只保留规则；完整资料由 docs 构建自动生成 |
 | MCP 与静态站点耦合 | MCP 读取构建产物并独立部署，不让 GitHub Pages 承担运行时请求 |
 | 页面操作区影响现有主题 | 使用 VitePress `doc-before` 插槽，并进行桌面和移动端检查 |
+| 手写页面计数过期 | 由生成器输出每次扫描计数，基线数字仅用于审查记录 |
+| old tag 与 latest 数据混用 | 每个发布目录包含自洽产物，stable URL 由发布配置明确映射 |
+| llms-full 超大或被截断 | 大小预算、拆分策略和构建统计；永不静默截断 |
+| Skill 文案与发布版本错配 | 从匹配版本 manifest 生成版本元数据并在发布校验 |
 
-## 12. 下一步
+## 13. 执行顺序与状态跟踪
 
-当前提交只包含本执行方案。后续实现顺序固定为：
+当前文档定义方案，不代表各实施阶段已经完成。实现顺序固定为：
 
-1. 先实现静态 AI 文档产物和构建校验。
-2. 再实现页面正文操作区和 Agents 页面。
-3. 再补充元数据和 Demo 关系。
-4. 最后实现独立 MCP Server。
+1. 核实正式站点域名、稳定入口具体路径、Skill 客户端支持矩阵、发布 tag 语义和内容纳入/排除规则。
+2. 实现页面/Demo 规范目录、元数据契约和校验报告。
+3. 生成静态 AI 资源并接入真实 build、PR CI 和 tag 发布链路。
+4. 完成 raw Markdown、llms、索引的 HTTP 与子路径验证。
+5. 实现页面正文操作区及 Skill 在线/离线入口。
+6. 分批补齐组件 API catalog 并建立与公开导出的差异检查。
+7. 另行确认 MCP 服务运行规格后实施独立部署、监控和回滚。
+
+每一阶段交接记录：分支/基线 commit、变更文件、执行命令及结果、产物样例、未解决警告、下一阶段依赖。若发现方案与现有发布链路冲突，先更新此文档及验收项，再实现相应变化。
 
 任何后续范围变化都应先更新本文，再修改实现。
+
+## 14. 参考链接
+
+### 设计参考
+
+- [Nuxt UI 文档](https://ui.nuxt.com/)：页面内 AI 操作与文档体验参考。
+- [llms.txt 规范说明](https://llmstxt.org/)：`llms.txt` 与全文文档索引的约定。
+- [Agent Skills Specification](https://agentskills.io/specification)：Skill 文件格式和目录约定。
+- [Model Context Protocol Specification](https://modelcontextprotocol.io/specification/)：MCP Server、工具、资源和传输协议。
+- [GitHub Pages 文档](https://docs.github.com/en/pages)：静态托管能力与发布边界。
+- [GitHub Pages 自定义工作流](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages)：CI 构建和部署方式。
+- [Sitemaps XML 格式](https://www.sitemaps.org/protocol.html)：标准 `sitemap.xml` 格式。
+
+### 实现依据
+
+- [VitePress 扩展默认主题](https://vitepress.dev/guide/extending-default-theme)：Layout 插槽和正文操作区。
+- [VitePress Frontmatter](https://vitepress.dev/guide/frontmatter)：页面元数据读取和配置。
+- [VitePress 静态部署](https://vitepress.dev/guide/deploy)：静态构建与子路径部署。
+- [JSON Schema](https://json-schema.org/draft/2020-12)：静态索引和 MCP catalog 的数据契约校验。
+- [TypeScript Compiler API](https://github.com/microsoft/TypeScript/wiki/Using-the-Compiler-API)：组件公开类型提取参考。
+
+### 本仓库事实源
+
+- [组件文档规范](component-documentation-standard.md)：页面结构、API 和 Demo 约定。
+- [VitePress 配置](.vitepress/config.mts)：`srcDir`、`outDir`、base 和 Markdown 插件。
+- [VitePress 主题配置](.vitepress/themeConfig.ts)：导航与侧边栏来源。
+- [文档构建脚本](../scripts/build-docs.js)：仓库级构建入口。
+- [PR 构建工作流](../.github/workflows/pr-ci-build.yml)：当前 PR 文档构建步骤。
+- [Tag 发布工作流](../.github/workflows/auto-publish.yml)：版本化文档部署路径。
+- [手动发布工作流](../.github/workflows/dispatch-publish.yml)：按发布 tag 部署文档。
+- [tiny-robot-skill](https://github.com/opentiny/agent-skills/tree/main/skills/tiny-robot-skill)：现有独立 Skill 的收敛参考。
