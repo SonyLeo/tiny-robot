@@ -6,7 +6,11 @@
     <!-- 主内容区域 -->
     <div class="main-content">
       <ThemeProvider :color-mode="colorMode">
-        <DefaultLayout />
+        <DefaultLayout>
+          <template #doc-before>
+            <DocActions />
+          </template>
+        </DefaultLayout>
       </ThemeProvider>
     </div>
   </div>
@@ -18,6 +22,7 @@ import DefaultTheme from 'vitepress/theme'
 import { onMounted, onUnmounted, ref } from 'vue'
 import { colorModeSubject } from './color-mode'
 import CustomHeader from './components/CustomHeader.vue'
+import DocActions from './components/DocActions.vue'
 
 // 创建响应式的 colorMode 值
 const colorMode = ref<'light' | 'dark' | 'auto'>('auto')

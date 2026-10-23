@@ -2,6 +2,9 @@ import vueJsx from '@vitejs/plugin-vue-jsx'
 import { fileURLToPath } from 'url'
 import { defineConfig } from 'vitepress'
 import { vitepressDemoPlugin } from 'vitepress-demo-plugin'
+import type { Plugin } from 'vite'
+import { readFile } from 'node:fs/promises'
+import { extname, resolve, sep } from 'node:path'
 import { MarkdownBadgePlugin, SidebarBadgePlugin } from './plugins/badge'
 import { themeConfig } from './themeConfig'
 
@@ -23,6 +26,36 @@ const prodAlias = {
   '@opentiny/tiny-robot-style': '@opentiny/tiny-robot/dist/style.css',
 }
 
+const docsSourceDir = fileURLToPath(new URL('../src', import.meta.url))
+
+const rawMarkdownPlugin: Plugin = {
+  name: 'docs-raw-markdown',
+  configureServer(server) {
+    server.middlewares.use(async (req, res, next) => {
+      const pathname = new URL(req.url || '/', 'http://localhost').pathname
+      if (!pathname.startsWith('/raw/')) return next()
+
+      const relativePath = decodeURIComponent(pathname.slice('/raw/'.length))
+      const sourcePath = resolve(docsSourceDir, relativePath)
+      if (!sourcePath.startsWith(`${docsSourceDir}${sep}`) || extname(sourcePath) !== '.md') {
+        res.statusCode = 404
+        return res.end('Not found')
+      }
+
+      try {
+        const markdown = await readFile(sourcePath)
+        res.statusCode = 200
+        res.setHeader('Content-Type', 'text/markdown; charset=utf-8')
+        res.setHeader('Content-Length', markdown.byteLength)
+        res.end(markdown)
+      } catch {
+        res.statusCode = 404
+        res.end('Not found')
+      }
+    })
+  },
+}
+
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
   title: 'TinyRobot',
@@ -40,7 +73,7 @@ export default defineConfig({
     ],
   ],
   vite: {
-    plugins: [vueJsx(), SidebarBadgePlugin()],
+    plugins: [vueJsx(), SidebarBadgePlugin(), rawMarkdownPlugin],
     server: {
       open: true,
       proxy: process.env.VP_MODE === 'development' ? { '/playground': 'http://localhost:5184' } : undefined,
