@@ -1,5 +1,11 @@
 ---
 outline: [1, 4]
+title: Bubble 气泡组件
+kind: component
+description: 用于展示单条消息或消息列表，支持文本、图片、Markdown 和 AI 流式内容渲染。
+status: stable
+package: '@opentiny/tiny-robot'
+keywords: [消息展示, 流式文本, Markdown]
 ---
 
 # Bubble 气泡组件

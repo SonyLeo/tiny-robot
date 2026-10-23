@@ -1,6 +1,11 @@
 ---
 outline: [1, 3]
 pageClass: demo-container-page-bg
+title: 在应用中管理 MCP 与 Skill 扩展
+kind: best-practice
+description: 展示如何在应用中组合 ExtensionManager、MCP 与 Skill 组件管理扩展目录、导入、启用和卸载流程。
+status: stable
+keywords: [MCP, Skill, ExtensionManager, 扩展管理]
 ---
 
 # 在应用中管理 MCP 与 Skill 扩展

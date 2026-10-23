@@ -1,5 +1,10 @@
 ---
 outline: [1, 3]
+title: Sender 迁移指南
+kind: migration
+description: 说明如何从 v0.3.x SenderCompat 过渡到 v0.4 Sender，并逐步迁移输入组件 API。
+status: stable
+keywords: [Sender, SenderCompat, v0.4]
 ---
 
 # Sender 迁移指南

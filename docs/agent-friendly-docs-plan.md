@@ -657,6 +657,23 @@ MCP 阶段：
 
 任何后续范围变化都应先更新本文，再修改实现。
 
+### 当前交接记录（2026-10-23）
+
+- 分支与基线：`docs/agent-friendly-docs-plan`，基线 `db8beefe57cc235b872d49e2b955eb2a1d3fc298`。
+- 阶段 1 检视：目录扫描得到 55 个正式页面、179 个 Demo，0 个 Error；129 个渐进式元数据 Warning 和 104 个 Info 已按阶段 1 规则保留。复查并修正了相对链接越界判断，只有规范化后真正越出 `docs/src` 的链接才告警；未修改 Markdown 内容。
+- 阶段 2 实现：`docs/scripts/agent-docs.mjs` 从同一 catalog 生成 raw Markdown、Demo 源码、`llms.txt`、`llms-full.txt`、`sitemap.md/xml`、`agent/pages.json`、`agent/demos.json` 和 `agent/manifest.json`；本地根构建入口 `scripts/build-docs.js` 已接入。PR CI 与 tag 发布工作流按范围决定暂不修改，留待最终自动化阶段。
+- 已验证：`pnpm build:docs --nocomponents` 成功；`pnpm -F docs agent:check` 成功；Prettier、Node 语法检查和 `git diff --check` 成功。静态服务器读取 raw、JSON、manifest 与 llms 文件均返回 HTTP 200；根路径、`/tiny-robot/alpha/`、`/tiny-robot/latest/` 的 URL 组合已检查。
+- 未解决警告：元数据 Warning/Info 仍按阶段 1 的渐进策略保留；VitePress 依赖的外部化提示和大 chunk 提示不阻断构建。阶段 3 需按页面类型补齐必填元数据并建立 allowlist。
+- 下一阶段依赖：进入阶段 3 前继续使用阶段 2 生成的 schema 和 catalog，不另建页面或 Demo 清单；优先处理已确认的元数据缺口与链接质量。
+
+### 阶段 3 交接记录（2026-10-23）
+
+- 范围：仅更新 `docs/src` 元数据和现有 Demo 的显式依赖声明，不改发布工作流，也不移动或复制 Demo 源文件。
+- 页面元数据：55 个正式页面均补齐 `title`、`kind`、`description` 和 `status`；适用页面补充 `package` 与检索关键词。三个已弃用/兼容页面按正文标为 `deprecated`，三个仅跳转到版本归档的迁移入口标为 `archived`。
+- Demo 依赖：补齐 Sender 按住说话覆盖层、DeepSeek/Gemini 示例图标和图标目录 Demo 的已存在源码依赖声明；源码位置未变。
+- 验证：`pnpm -F docs agent:catalog` 与 `pnpm -F docs agent:check` 均通过；目录为 55 页、179 个 Demo、0 Error、0 Warning、0 Info。完整文档构建待最终验证。
+- 后续：发布自动化工作流仍按用户决定延后；后续阶段沿用现有 catalog/schema，不维护第二份页面或 Demo 清单。
+
 ## 14. 参考链接
 
 ### 设计参考

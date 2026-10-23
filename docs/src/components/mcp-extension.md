@@ -1,5 +1,11 @@
 ---
 outline: [1, 3]
+title: MCP 扩展添加与详情
+kind: component
+description: 提供 MCP 扩展配置表单和详情展示内容，支持表单与 JSON 输入。
+status: stable
+package: '@opentiny/tiny-robot'
+keywords: [MCP, 扩展管理, 详情]
 ---
 
 # MCP 扩展添加与详情

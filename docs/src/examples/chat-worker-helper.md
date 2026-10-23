@@ -1,3 +1,11 @@
+---
+title: Worker Helper 聊天示例
+kind: example
+description: 展示 Worker Helper 场景下的聊天界面和消息交互。
+status: stable
+keywords: [Worker Helper, 聊天界面, Chat]
+---
+
 <demo
   vue="../../demos/chat/worker-helper/Demo.vue"
   :vueFiles="[

@@ -1,5 +1,11 @@
 ---
 outline: [1, 4]
+title: Sender 消息输入框
+kind: component
+description: 面向聊天场景的可组合输入组件，负责文本编辑、提交和取消交互。
+status: stable
+package: '@opentiny/tiny-robot'
+keywords: [消息输入, 提交, 聊天]
 ---
 
 # Sender 消息输入框
@@ -172,7 +178,7 @@ TrSender.Suggestion.configure({ items: suggestions, filterFn: customFilter })
 
 支持完全自定义语音录制界面，适用于移动端按住说话等场景。
 
-<demo vue="../../demos/sender/voice-custom-ui.vue" title="移动端按住说话" description="自定义录音 UI，展示移动端按住说话的交互模式。" />
+<demo vue="../../demos/sender/voice-custom-ui.vue" :vueFiles="['../../demos/sender/voice-custom-ui.vue', '../../demos/sender/PressToTalkOverlay.vue']" title="移动端按住说话" description="自定义录音 UI，展示移动端按住说话的交互模式。" />
 
 **配置详见**：[VoiceButton 属性](#voicebutton)
 

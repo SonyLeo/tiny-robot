@@ -1,3 +1,11 @@
+---
+title: 豆包聊天示例
+kind: example
+description: 展示基于 TinyRobot Chat 构建的豆包风格聊天界面。
+status: stable
+keywords: [豆包, 聊天界面, Chat]
+---
+
 <demo
   vue="../../demos/chat/doubao/Demo.vue"
   :vueFiles="[

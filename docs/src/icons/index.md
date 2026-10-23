@@ -1,5 +1,11 @@
 ---
 outline: [1, 3]
+title: SVG 图标
+kind: reference
+description: 介绍 @opentiny/tiny-robot-svgs 图标包的安装方式和 SVG 图标组件使用方法。
+status: stable
+package: '@opentiny/tiny-robot-svgs'
+keywords: [SVG, 图标, 图标组件]
 ---
 
 # SVG 图标
@@ -50,7 +56,7 @@ npm install @opentiny/tiny-robot-svgs
 
 图标集合按常用场景分类展示，支持按图标名、分类名和关键词筛选。点击图标卡片可以快速复制图标名称；插画型和场景态图标会单独分组展示。
 
-<demo vue="../../demos/icons/IconGallery.vue" />
+<demo vue="../../demos/icons/IconGallery.vue" :vueFiles="['../../demos/icons/IconGallery.vue', '../../demos/icons/iconMeta.ts']" />
 
 ## 常用属性
 

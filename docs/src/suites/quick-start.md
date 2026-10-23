@@ -1,5 +1,11 @@
 ---
 outline: [1, 3]
+title: 快速上手
+kind: suite
+description: 介绍 TrChat 聊天页面组件的安装、基础配置和 Vue 项目接入方式。
+status: stable
+package: '@opentiny/tiny-robot-chat'
+keywords: [TrChat, 快速开始, 安装]
 ---
 
 # 快速上手

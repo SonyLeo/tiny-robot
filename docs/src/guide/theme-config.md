@@ -1,5 +1,10 @@
 ---
 outline: deep
+title: 主题配置
+kind: guide
+description: 介绍 TinyRobot 主题系统的核心概念、ThemeProvider 用法、自定义样式和持久化配置。
+status: stable
+keywords: [主题, ThemeProvider, CSS 变量]
 ---
 
 # 主题配置

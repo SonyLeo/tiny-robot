@@ -1,5 +1,11 @@
 ---
 outline: deep
+title: Theme
+kind: component
+description: 提供主题和颜色模式管理能力，支持 ThemeProvider、CSS 变量和嵌套主题。
+status: stable
+package: '@opentiny/tiny-robot'
+keywords: [主题, 暗色模式, CSS 变量]
 ---
 
 # Theme

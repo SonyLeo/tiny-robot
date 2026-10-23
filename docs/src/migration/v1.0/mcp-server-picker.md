@@ -1,5 +1,10 @@
 ---
 outline: [1, 3]
+title: McpServerPicker 迁移指南
+kind: migration
+description: 说明 McpServerPicker 弃用后如何使用 ExtensionManager 管理扩展。
+status: stable
+keywords: [McpServerPicker, ExtensionManager, v1.0]
 ---
 
 # McpServerPicker 迁移指南

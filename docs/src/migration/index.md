@@ -1,5 +1,10 @@
 ---
 outline: false
+title: 迁移指南
+kind: migration
+description: 按版本整理 TinyRobot 组件和工具的迁移指南与 API 变更说明。
+status: stable
+keywords: [迁移, 版本升级, API 变更]
 ---
 
 # 迁移指南

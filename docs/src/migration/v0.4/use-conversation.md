@@ -1,5 +1,10 @@
 ---
 outline: [1, 3]
+title: useConversation 迁移
+kind: migration
+description: 说明如何将 useConversation 从 v0.3.x 迁移到 v0.4.x 的会话引擎和存储策略。
+status: stable
+keywords: [useConversation, v0.4, 迁移]
 ---
 
 # useConversation 迁移

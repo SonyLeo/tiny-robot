@@ -1,5 +1,11 @@
 ---
 outline: [1, 3]
+title: History
+kind: component
+description: 用于展示会话历史列表，支持分组数据、菜单项、图标和自定义插槽。
+status: stable
+package: '@opentiny/tiny-robot'
+keywords: [会话历史, 菜单项, 插槽]
 ---
 
 # History

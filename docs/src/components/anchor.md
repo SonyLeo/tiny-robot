@@ -1,5 +1,11 @@
 ---
 outline: [1, 3]
+title: Anchor 锚点
+kind: component
+description: 用于长内容区域和长对话场景的目录导航，支持与 BubbleList 或自定义滚动容器配合使用。
+status: stable
+package: '@opentiny/tiny-robot'
+keywords: [目录导航, 长内容, BubbleList]
 ---
 
 # Anchor 锚点

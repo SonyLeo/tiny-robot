@@ -1,3 +1,11 @@
+---
+title: 综合示例
+kind: example
+description: 展示如何在 Vue 页面和悬浮容器中组合 TinyRobot 消息、输入、历史和会话能力。
+status: stable
+keywords: [综合示例, TrChat, TrContainer]
+---
+
 # 综合示例
 
 ## 直接嵌入页面

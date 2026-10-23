@@ -1,5 +1,11 @@
 ---
 outline: [1, 4]
+title: useConversation 会话数据管理
+kind: tool
+description: 管理多个会话的元数据、当前会话和各自的消息引擎，并支持加载与持久化。
+status: stable
+package: '@opentiny/tiny-robot-kit'
+keywords: [useConversation, 会话管理, 持久化]
 ---
 
 # useConversation 会话数据管理

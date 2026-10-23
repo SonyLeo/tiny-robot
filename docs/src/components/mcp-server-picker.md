@@ -1,6 +1,12 @@
 ---
 outline: [1, 3]
+title: MCP Server Picker 插件选择器
+kind: component
 badge: deprecated
+description: 用于展示和管理 MCP Server 的旧版插件选择组件，建议迁移到 ExtensionManager。
+status: deprecated
+package: '@opentiny/tiny-robot'
+keywords: [MCP Server, 插件选择, 迁移]
 ---
 
 # MCP Server Picker 插件选择器

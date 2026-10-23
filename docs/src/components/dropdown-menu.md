@@ -1,5 +1,11 @@
 ---
 outline: deep
+title: DropdownMenu 下拉菜单
+kind: component
+description: 为 SuggestionPills 等场景提供下拉菜单展示和选择能力。
+status: stable
+package: '@opentiny/tiny-robot'
+keywords: [下拉菜单, SuggestionPills, 菜单]
 ---
 
 # DropdownMenu 下拉菜单

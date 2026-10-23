@@ -4,7 +4,11 @@
   "scripts": {
     "dev": "cross-env VP_MODE=development vitepress dev",
     "build": "cross-env NODE_OPTIONS=--max-old-space-size=4096 VP_MODE=production vitepress build",
-    "preview": "vitepress preview"
+    "preview": "vitepress preview",
+    "agent:catalog": "node scripts/agent-docs.mjs catalog",
+    "agent:build": "node scripts/agent-docs.mjs build",
+    "agent:check": "node scripts/agent-docs.mjs check",
+    "agent:report": "node scripts/agent-docs.mjs report"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

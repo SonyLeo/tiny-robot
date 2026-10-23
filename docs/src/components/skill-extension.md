@@ -1,5 +1,11 @@
 ---
 outline: [1, 3]
+title: Skill 扩展导入与详情
+kind: component
+description: 提供 Skill 导入表单和详情展示内容，支持本地文件夹与 GitHub 导入。
+status: stable
+package: '@opentiny/tiny-robot'
+keywords: [Skill, 扩展导入, GitHub]
 ---
 
 # Skill 扩展导入与详情

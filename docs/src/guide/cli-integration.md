@@ -1,5 +1,10 @@
 ---
 outline: [1, 3]
+title: CLI 接入
+kind: guide
+description: 介绍 TinyRobot CLI 的安装方式，以及使用 create 和 add 命令创建或扩展 Vue 项目。
+status: stable
+keywords: [CLI, 项目创建, 安装]
 ---
 
 # CLI 接入

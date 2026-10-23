@@ -1,5 +1,9 @@
 ---
 outline: false
+title: useConversation 迁移指南
+kind: migration
+description: 本页为旧版 useConversation 迁移入口，请查看对应版本归档的迁移说明。
+status: archived
 ---
 
 # useConversation 迁移指南

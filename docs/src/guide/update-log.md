@@ -1,3 +1,10 @@
+---
+title: 更新日志
+kind: guide
+description: 按版本记录 TinyRobot 的新特性、问题修复和优化改进。
+status: stable
+---
+
 # 更新日志
 
 TinyRobot 遵循语义化版本规范，每个版本的更新内容如下。

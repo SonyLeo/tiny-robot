@@ -1,5 +1,10 @@
 ---
 outline: [1, 3]
+title: Bubble 迁移指南
+kind: migration
+description: 说明如何将 v0.3.x Bubble 用法迁移到 v0.4.x，包括消息数据模型和组件 API 变化。
+status: stable
+keywords: [Bubble, v0.4, 迁移]
 ---
 
 # Bubble 迁移指南

@@ -1,5 +1,10 @@
 ---
 outline: [1, 3]
+title: Container 迁移指南
+kind: migration
+description: 说明 Container 弃用后如何使用 Layout 替代页面、侧栏和浮层布局。
+status: stable
+keywords: [Container, Layout, v1.0]
 ---
 
 # Container 迁移指南

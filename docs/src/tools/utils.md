@@ -1,5 +1,11 @@
 ---
 outline: [1, 3]
+title: 工具函数 Utils
+kind: tool
+description: 提供 SSE 流转换、消息格式化和响应文本提取等辅助函数。
+status: stable
+package: '@opentiny/tiny-robot-kit'
+keywords: [工具函数, SSE, 消息处理]
 ---
 
 # 工具函数 Utils

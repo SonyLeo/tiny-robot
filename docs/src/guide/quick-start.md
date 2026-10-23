@@ -1,5 +1,10 @@
 ---
 outline: [1, 3]
+title: 快速开始
+kind: guide
+description: 介绍 TinyRobot 的环境要求、安装方式和 Vue 应用快速接入步骤。
+status: stable
+keywords: [快速开始, 安装, Vue]
 ---
 
 # 快速开始

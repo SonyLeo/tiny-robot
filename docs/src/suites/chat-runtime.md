@@ -1,5 +1,11 @@
 ---
 outline: [1, 3]
+title: 数据与逻辑配置
+kind: suite
+description: 介绍 TrChat 的模型服务、消息发送、会话管理和 MCP 工具运行时配置。
+status: stable
+package: '@opentiny/tiny-robot-chat'
+keywords: [TrChat, 运行时, 会话]
 ---
 
 # 数据与逻辑配置

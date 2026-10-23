@@ -1,5 +1,11 @@
 ---
 outline: [1, 3]
+title: 界面与交互配置
+kind: suite
+description: 介绍 TrChat 的布局、输入区、消息展示和交互配置，以及 TrChatUI 的单独使用方式。
+status: stable
+package: '@opentiny/tiny-robot-chat'
+keywords: [TrChat, 界面配置, 插槽]
 ---
 
 # 界面与交互配置

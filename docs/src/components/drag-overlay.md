@@ -1,5 +1,11 @@
 ---
 outline: [1, 3]
+title: DragOverlay 拖拽浮层
+kind: component
+description: 提供拖拽上传能力，由 v-dropzone 指令和拖拽浮层组件协同工作。
+status: stable
+package: '@opentiny/tiny-robot'
+keywords: [拖拽上传, 文件上传, 浮层]
 ---
 
 # DragOverlay 拖拽浮层

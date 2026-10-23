@@ -1,5 +1,11 @@
 ---
 outline: [1, 3]
+title: Attachments 附件卡片
+kind: component
+description: 用于展示文件列表，支持图片预览、文件下载和文件状态等交互。
+status: stable
+package: '@opentiny/tiny-robot'
+keywords: [附件, 文件列表, 图片预览]
 ---
 
 # Attachments 附件卡片

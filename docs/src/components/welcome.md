@@ -1,5 +1,11 @@
 ---
 outline: deep
+title: Welcome
+kind: component
+description: 用于展示欢迎信息，支持标题、描述、图标、对齐方式和底部内容。
+status: stable
+package: '@opentiny/tiny-robot'
+keywords: [欢迎页, 标题, 插槽]
 ---
 
 # Welcome

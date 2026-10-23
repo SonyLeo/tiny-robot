@@ -1,3 +1,11 @@
+---
+title: TinyRobot 聊天示例
+kind: example
+description: 展示使用 TinyRobot Chat 组件搭建的完整聊天窗口和交互界面。
+status: stable
+keywords: [TinyRobot, 聊天窗口, Chat]
+---
+
 <demo
   vue="../../demos/chat/tiny-robot/Demo.vue"
   :vueFiles="[

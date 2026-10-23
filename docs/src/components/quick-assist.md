@@ -1,5 +1,11 @@
 ---
 outline: [1, 3]
+title: QuickAssist 智能帮助
+kind: component
+description: 提供 QuickAssist 智能帮助组件的安装、引入和使用示例。
+status: stable
+package: '@opentiny/tiny-robot'
+keywords: [智能帮助, 安装, 示例]
 ---
 
 <script setup>

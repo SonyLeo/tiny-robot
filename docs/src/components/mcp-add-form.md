@@ -1,5 +1,11 @@
 ---
 outline: [1, 3]
+title: McpAddForm 插件添加表单
+kind: component
+description: 用于添加 MCP 插件，支持表单添加和代码添加两种方式。
+status: stable
+package: '@opentiny/tiny-robot'
+keywords: [MCP, 插件, 表单]
 ---
 
 # McpAddForm 插件添加表单

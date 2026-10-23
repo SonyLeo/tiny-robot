@@ -1,6 +1,12 @@
 ---
 outline: [1, 3]
+title: ExtensionManager 扩展管理组件
+kind: component
 pageClass: demo-container-page-bg
+description: 用于浏览和管理 Extension，提供标签页、筛选、分区和展开状态管理。
+status: stable
+package: '@opentiny/tiny-robot'
+keywords: [Extension, 扩展管理, 筛选]
 ---
 
 # ExtensionManager 扩展管理组件

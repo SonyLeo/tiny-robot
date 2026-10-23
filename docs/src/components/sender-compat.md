@@ -1,5 +1,11 @@
 ---
 outline: false
+title: SenderCompat 文档
+kind: component
+description: 提供 SenderCompat 的兼容期用法和 API 参考，内容已合并到 Sender 迁移指南。
+status: deprecated
+package: '@opentiny/tiny-robot'
+keywords: [SenderCompat, 兼容, 迁移]
 ---
 
 # SenderCompat 文档

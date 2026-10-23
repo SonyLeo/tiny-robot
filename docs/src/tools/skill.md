@@ -1,5 +1,11 @@
 ---
 outline: [1, 3]
+title: Skill 技能接入
+kind: tool
+description: 介绍如何在 Vue 应用中选择和启用 Skill，并通过 skillPlugin 将 instructions 与资源接入请求。
+status: stable
+package: '@opentiny/tiny-robot-kit'
+keywords: [Skill, skillPlugin, instructions]
 ---
 
 # Skill 技能接入

@@ -1,5 +1,11 @@
 ---
 outline: [1, 4]
+title: useMessage 消息数据管理
+kind: tool
+description: 管理单个 AI 消息流，处理完整或流式响应、请求状态、取消和插件生命周期。
+status: stable
+package: '@opentiny/tiny-robot-kit'
+keywords: [useMessage, 流式响应, 插件]
 ---
 
 # useMessage 消息数据管理

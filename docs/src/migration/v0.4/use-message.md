@@ -1,5 +1,10 @@
 ---
 outline: [1, 3]
+title: useMessage 迁移
+kind: migration
+description: 说明如何将 useMessage 从 v0.3.x 迁移到 v0.4.x 的 responseProvider 和请求状态模型。
+status: stable
+keywords: [useMessage, responseProvider, v0.4]
 ---
 
 # useMessage 迁移

@@ -1,3 +1,11 @@
+---
+title: 版本标记使用指南
+kind: guide
+description: 介绍如何在 TinyRobot 文档 Markdown 和侧边栏中配置 API 版本标记。
+status: stable
+keywords: [版本标记, Markdown, 侧边栏]
+---
+
 # 版本标记使用指南
 
 TinyRobot 文档支持在 Markdown 表格中添加版本标记，用于标识属性、方法或其他 API 的版本信息。

@@ -1,5 +1,11 @@
 ---
 outline: deep
+title: AIClient 模型交互工具类
+kind: tool
+description: AIClient 是已废弃的模型交互兼容类；新项目建议使用 useMessage 与 responseProvider。
+status: deprecated
+package: '@opentiny/tiny-robot'
+keywords: [AIClient, 模型交互, 迁移]
 ---
 
 # AIClient 模型交互工具类

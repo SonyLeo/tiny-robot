@@ -1,6 +1,10 @@
 ---
 # https://vitepress.dev/reference/default-theme-home-page
 layout: home
+title: TinyRobot 文档首页
+kind: page
+description: TinyRobot AI 组件库文档首页，提供快速开始、组件说明和聊天示例入口。
+status: stable
 
 hero:
   name: 'TinyRobot'

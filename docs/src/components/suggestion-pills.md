@@ -1,5 +1,11 @@
 ---
 outline: deep
+title: SuggestionPills 建议按钮组
+kind: component
+description: 用于展示可点击的提示按钮组，支持插槽、自定义样式和禁用状态。
+status: stable
+package: '@opentiny/tiny-robot'
+keywords: [提示按钮, 按钮组, 插槽]
 ---
 
 # SuggestionPills 建议按钮组
