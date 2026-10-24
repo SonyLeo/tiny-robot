@@ -873,9 +873,11 @@ function buildStaticArtifacts(catalog) {
   const outputHashes = Object.fromEntries(
     [...artifacts].map(([file, content]) => [file, crypto.createHash('sha256').update(content).digest('hex')]),
   )
+  const docsVersion = process.env.DOCS_VERSION || process.env.GITHUB_REF_NAME || 'working-tree'
   const publicManifest = {
     schemaVersion: catalog.schemaVersion,
-    contentVersion: process.env.DOCS_VERSION || process.env.GITHUB_REF_NAME || 'working-tree',
+    docsVersion,
+    contentVersion: docsVersion,
     sourceCommit: process.env.GITHUB_SHA || null,
     generatedAt: new Date().toISOString(),
     inputHash: catalog.inputHash,

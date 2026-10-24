@@ -376,16 +376,39 @@ docs/.vitepress/theme/Layout.vue
 
 Skill 采用 Open Agent Skills 兼容的 `SKILL.md` 格式作为主格式，并在包元数据中声明名称、版本和发现 URL。以已核实支持该格式或 discovery 协议的客户端为首批验收目标；不同客户端的安装方式、自动发现能力和版本必须逐项验证。不得宣称一个 URL 自动适用于所有 Agent。
 
-静态发布入口：
+阶段 5 分为两个可独立验收的子阶段，先完成内容和版本契约，再接入发布自动化。当前发布流程按 tag 部署，且阶段 5 初期不改工作流，因此暂不承诺根域名下的稳定别名或通用 discovery URL。
+
+#### 5A：Skill 内容收敛与版本契约（不改发布工作流）
+
+- 先以 `opentiny/agent-skills/skills/tiny-robot-skill` 为现有 Skill 的维护源，核对其触发规则、版本和安装说明；TinyRobot 文档仓库不复制一份可独立编辑的 Skill 正文，避免形成第二个事实源。
+- 为 Skill 的离线快照和在线文档产物定义同一版本字段：`docsVersion` 对应文档发布 tag，`schemaVersion` 对应生成产物契约版本；Skill 自身版本单独递增，不与 docs tag 混用。manifest 暂时保留既有 `contentVersion` 作为兼容别名，两字段必须相同。
+- 约定 Skill 包元数据必须声明 `name`、`version`、`description`、来源仓库/路径、兼容的 `docsVersion`，并在 README 中说明它是离线快照还是在线链接。Skill 与 `agent/manifest.json` 的版本不匹配时应视为验收失败。
+- 在线文档构建继续只发布本仓库已经生成的 raw Markdown、`llms.txt`、`agent/pages.json`、`agent/demos.json` 和 `agent/manifest.json`；Skill 对这些资源给出发现顺序和 URL 解析规则，不在本阶段另造一份页面/Demo 索引或未经客户端验证的 discovery 协议。
+- 在阶段 5A 的验收记录中确定目标客户端及安装方式：先核实客户端是否实际读取 Agent Skills 格式或 discovery URL；未验证的客户端只提供规范安装说明和版本化 `SKILL.md` 下载地址，不宣称自动发现。
+
+5A 验收：
+
+- Skill 的维护源唯一且明确；离线副本明确标示来源和对应文档版本。
+- Skill 版本、`docsVersion`、`schemaVersion` 含义互不混淆，离线副本与文档 manifest 能执行一致性检查。
+- 选定客户端的安装/读取路径经过实际验证；未验证的能力不作为已支持功能宣传。
+- 本仓库现有 Agent 产物 schema 与 URL 契约保持兼容，根目录和 tag 子路径构建均通过现有检查。
+
+#### 5B：稳定在线入口与发布自动化（5A 验收后再做）
+
+先基于实际托管验证确定站点 origin、可占用的稳定前缀和版本化路径。当前已知版本路径按 `/<tag>/` 发布，README 指向 `https://docs.opentiny.design/tiny-robot/`，两者关系和稳定别名映射仍需由实际发布配置确认。
+
+如客户端确有可互操作的 discovery 格式，再选择其已支持的格式；若没有共同标准，则只发布规范安装说明及直接 `SKILL.md` 下载链接，不新造通用协议。
+
+静态发布入口（仅在托管路径和客户端格式确认后启用）：
 
 ```text
 <site-origin>/<stable-prefix>/.well-known/skills/index.json
 <site-origin>/<version-base>/.well-known/skills/tiny-robot/SKILL.md
 ```
 
-当前 GitHub Pages 发布按 `/<tag>/` 部署，不会自动部署站点根目录。实现时必须通过同一发布流程维护稳定入口：稳定前缀下发布 discovery index 与指向版本化 Skill 的公开 URL；版本路径保留不可变内容。若 Pages 仓库根路径由其他站点内容占用，应将稳定前缀配置在实际可发布的路径，不得假设能写入 `/.well-known/`。验收需同时检查稳定入口、版本入口和失效版本回退策略。
+当前 GitHub Pages 发布按 `/<tag>/` 部署，不会自动部署站点根目录。实现时必须通过同一发布流程维护经确认的稳定入口；稳定入口只指向不可变的版本化 Skill，版本路径不可静默覆盖。若 Pages 仓库根路径由其他站点内容占用，应将稳定前缀配置在实际可发布的路径，不得假设能写入 `/.well-known/`。验收需同时检查稳定入口、版本入口和失效版本回退策略。
 
-discovery index 至少列出 Skill 的 `name`、`version`、`description`、`skillUrl`、`docsVersion` 和 `schemaVersion`，链接必须是完整绝对 URL。index 的 JSON schema 以第一批支持客户端实际识别的格式为准；若客户端没有共同 discovery 标准，则静态站点提供规范安装说明和直接 `SKILL.md` 下载链接，不自创并宣称通用发现协议。
+若最终启用 discovery index，它至少列出 Skill 的 `name`、`version`、`description`、`skillUrl`、`docsVersion` 和 `schemaVersion`，链接必须是完整绝对 URL。index 的 JSON schema 以第一批支持客户端实际识别的格式为准；若客户端没有共同 discovery 标准，则静态站点提供规范安装说明和直接 `SKILL.md` 下载链接，不自创并宣称通用发现协议。
 
 独立 `agent-skills` 仓库可以继续提供离线安装入口，但内容应来自 docs 产物或明确标注快照版本。
 
@@ -673,6 +696,17 @@ MCP 阶段：
 - Demo 依赖：补齐 Sender 按住说话覆盖层、DeepSeek/Gemini 示例图标和图标目录 Demo 的已存在源码依赖声明；源码位置未变。
 - 验证：`pnpm -F docs agent:catalog` 与 `pnpm -F docs agent:check` 均通过；目录为 55 页、179 个 Demo、0 Error、0 Warning、0 Info。完整文档构建待最终验证。
 - 后续：发布自动化工作流仍按用户决定延后；后续阶段沿用现有 catalog/schema，不维护第二份页面或 Demo 清单。
+
+### 阶段 5 准备记录（2026-10-24）
+
+- 将阶段 5 拆为 5A（Skill 内容收敛与版本契约）和 5B（稳定在线入口与发布自动化）；5B 依赖实际托管路径和目标客户端协议验证，发布工作流仍按用户要求暂不修改。
+- manifest 新增 `docsVersion`，取值与现有 `contentVersion` 相同，后者暂作兼容别名；`schemaVersion` 继续独立表示数据契约版本。
+- 上游只读盘点：`skills/tiny-robot-skill` 共 155 个文件，包括 16 个组件 Markdown、122 个 Demo、1 个完整示例、3 个 guide、3 个 migration、4 个 tools、4 个 rules、`SKILL.md` 和插件元数据。组件文档、Demo、guide、migration、tools 属于 TinyRobot 文档内容副本；4 个 rules 文件是 Skill 的行为路由和代码生成约束，应保留并改为从在线索引/raw 文档按需取 API 与示例。
+- 版本问题已确认：`SKILL.md` metadata 的 Skill 版本为 `1.0.0`，`.claude-plugin/plugin.json` 为 `0.1.0`；两者需要统一。现有手动同步工作流从 TinyRobot `develop` 覆盖 demos、components、examples、guide、migration、tools，但没有同步文档版本字段，也没有覆盖 rules 或 Skill 元数据；因此它目前产出的是文档快照，不能证明快照与 manifest 对应。
+- 推荐事实源边界：agent-skills 仓库维护 `SKILL.md`、rules 和安装/插件元数据；TinyRobot 仓库维护组件文档、Demo 和 Agent 静态产物。后续只在需要离线使用时打包一份带 `docsVersion` 的生成快照，在线安装则通过 manifest/pages/raw 获取当前版本；不要让两边都手工编辑同一份组件说明或 Demo。
+- 目标 Skill 安装格式已经是 `SKILL.md`，插件元数据提供仓库主页；尚未验证具体客户端是否支持 URL discovery。5A 的最小实施清单：精简 Skill 索引为查找规则和按需读取策略、校正 `SKILL.md` 与插件版本、在离线快照元数据写入 `docsVersion`/来源 commit、为在线资源 URL 明确版本化解析方式，并验证首批客户端安装路径。具体同步改造留到自动化阶段，不改当前工作流。
+- 5A 本地草案进展：在 `D:\Projects\Work\agent-skills` 的源码快照中改写了 `SKILL.md` 与 4 个 rules，使其通过页面索引和 raw Markdown 查找文档，并将 Skill 与插件版本统一为 `1.1.0`；版本相等检查和文本/diff 空白检查通过。由于源码快照获取未形成可用 Git checkout，当前这些草案没有可审阅的 Git diff。删除本地重复目录的递归操作被执行策略拒绝，故 16 个组件 Markdown、122 个 Demo 等副本仍然存在；不能视为 Skill 已完成瘦身。未改同步工作流、未提交或推送。
+- 验证：本次只做静态语法检查与 diff 检查，未运行完整 docs 构建；发布 URL 与在线稳定入口尚未验证。
 
 ## 14. 参考链接
 

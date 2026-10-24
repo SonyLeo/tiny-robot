@@ -87,6 +87,8 @@ jobs:
         env:
           VITEPRESS_BASE: /tiny-robot/${{ inputs.tag }}/
           PLAYGROUND_BASE: /tiny-robot/${{ inputs.tag }}/playground
+          DOCS_SITE_URL: https://${{ github.repository_owner }}.github.io
+          DOCS_VERSION: ${{ inputs.tag }}
 
       - name: Verify build output
         run: ls -la ./docs/dist
