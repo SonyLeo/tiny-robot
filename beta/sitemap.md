@@ -1,0 +1,59 @@
+# TinyRobot Documentation Sitemap
+
+This is a human-readable Agent index. See sitemap.xml for crawler sitemap format.
+
+- [在应用中管理 MCP 与 Skill 扩展](https://sonyleo.github.io/tiny-robot/beta/best-practices/extension-manager-integration) — best-practice
+- [Anchor 锚点](https://sonyleo.github.io/tiny-robot/beta/components/anchor) — component
+- [Attachments 附件卡片](https://sonyleo.github.io/tiny-robot/beta/components/attachments) — component
+- [Bubble 气泡组件](https://sonyleo.github.io/tiny-robot/beta/components/bubble) — component
+- [Container 容器](https://sonyleo.github.io/tiny-robot/beta/components/container) — component
+- [DragOverlay 拖拽浮层](https://sonyleo.github.io/tiny-robot/beta/components/drag-overlay) — component
+- [DropdownMenu 下拉菜单](https://sonyleo.github.io/tiny-robot/beta/components/dropdown-menu) — component
+- [ExtensionManager 扩展管理组件](https://sonyleo.github.io/tiny-robot/beta/components/extension-manager) — component
+- [Feedback 气泡反馈](https://sonyleo.github.io/tiny-robot/beta/components/feedback) — component
+- [History](https://sonyleo.github.io/tiny-robot/beta/components/history) — component
+- [Layout 布局](https://sonyleo.github.io/tiny-robot/beta/components/layout) — component
+- [McpAddForm 插件添加表单](https://sonyleo.github.io/tiny-robot/beta/components/mcp-add-form) — component
+- [MCP 扩展添加与详情](https://sonyleo.github.io/tiny-robot/beta/components/mcp-extension) — component
+- [MCP Server Picker 插件选择器](https://sonyleo.github.io/tiny-robot/beta/components/mcp-server-picker) — component
+- [ModelSelector 模型选择器](https://sonyleo.github.io/tiny-robot/beta/components/model-selector) — component
+- [Prompts 提示集组件](https://sonyleo.github.io/tiny-robot/beta/components/prompts) — component
+- [QuickAssist 智能帮助](https://sonyleo.github.io/tiny-robot/beta/components/quick-assist) — component
+- [SenderCompat 文档](https://sonyleo.github.io/tiny-robot/beta/components/sender-compat) — component
+- [Sender 消息输入框](https://sonyleo.github.io/tiny-robot/beta/components/sender) — component
+- [Skill 扩展导入与详情](https://sonyleo.github.io/tiny-robot/beta/components/skill-extension) — component
+- [SuggestionPills 建议按钮组](https://sonyleo.github.io/tiny-robot/beta/components/suggestion-pills) — component
+- [SuggestionPopover 建议弹出框](https://sonyleo.github.io/tiny-robot/beta/components/suggestion-popover) — component
+- [Theme](https://sonyleo.github.io/tiny-robot/beta/components/theme) — component
+- [Welcome](https://sonyleo.github.io/tiny-robot/beta/components/welcome) — component
+- [综合示例](https://sonyleo.github.io/tiny-robot/beta/examples/assistant) — example
+- [DeepSeek 聊天示例](https://sonyleo.github.io/tiny-robot/beta/examples/chat-deepseek) — example
+- [豆包聊天示例](https://sonyleo.github.io/tiny-robot/beta/examples/chat-doubao) — example
+- [Gemini 聊天示例](https://sonyleo.github.io/tiny-robot/beta/examples/chat-gemini) — example
+- [TinyRobot 聊天示例](https://sonyleo.github.io/tiny-robot/beta/examples/chat-tiny-robot) — example
+- [Worker Helper 聊天示例](https://sonyleo.github.io/tiny-robot/beta/examples/chat-worker-helper) — example
+- [CLI 接入](https://sonyleo.github.io/tiny-robot/beta/guide/cli-integration) — guide
+- [版本标记使用指南](https://sonyleo.github.io/tiny-robot/beta/guide/plugin-badge) — guide
+- [快速开始](https://sonyleo.github.io/tiny-robot/beta/guide/quick-start) — guide
+- [主题配置](https://sonyleo.github.io/tiny-robot/beta/guide/theme-config) — guide
+- [更新日志](https://sonyleo.github.io/tiny-robot/beta/guide/update-log) — guide
+- [SVG 图标](https://sonyleo.github.io/tiny-robot/beta/icons/) — reference
+- [TinyRobot 文档首页](https://sonyleo.github.io/tiny-robot/beta/) — page
+- [Bubble 迁移指南](https://sonyleo.github.io/tiny-robot/beta/migration/bubble-migration) — migration
+- [迁移指南](https://sonyleo.github.io/tiny-robot/beta/migration/) — migration
+- [useConversation 迁移指南](https://sonyleo.github.io/tiny-robot/beta/migration/use-conversation-migration) — migration
+- [useMessage 迁移指南](https://sonyleo.github.io/tiny-robot/beta/migration/use-message-migration) — migration
+- [Bubble 迁移指南](https://sonyleo.github.io/tiny-robot/beta/migration/v0.4/bubble) — migration
+- [Sender 迁移指南](https://sonyleo.github.io/tiny-robot/beta/migration/v0.4/sender) — migration
+- [useConversation 迁移](https://sonyleo.github.io/tiny-robot/beta/migration/v0.4/use-conversation) — migration
+- [useMessage 迁移](https://sonyleo.github.io/tiny-robot/beta/migration/v0.4/use-message) — migration
+- [Container 迁移指南](https://sonyleo.github.io/tiny-robot/beta/migration/v1.0/container) — migration
+- [McpServerPicker 迁移指南](https://sonyleo.github.io/tiny-robot/beta/migration/v1.0/mcp-server-picker) — migration
+- [数据与逻辑配置](https://sonyleo.github.io/tiny-robot/beta/suites/chat-runtime) — suite
+- [界面与交互配置](https://sonyleo.github.io/tiny-robot/beta/suites/chat) — suite
+- [快速上手](https://sonyleo.github.io/tiny-robot/beta/suites/quick-start) — suite
+- [AIClient 模型交互工具类](https://sonyleo.github.io/tiny-robot/beta/tools/ai-client) — tool
+- [useConversation 会话数据管理](https://sonyleo.github.io/tiny-robot/beta/tools/conversation) — tool
+- [useMessage 消息数据管理](https://sonyleo.github.io/tiny-robot/beta/tools/message) — tool
+- [Skill 技能接入](https://sonyleo.github.io/tiny-robot/beta/tools/skill) — tool
+- [工具函数 Utils](https://sonyleo.github.io/tiny-robot/beta/tools/utils) — tool

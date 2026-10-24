@@ -1,0 +1,3653 @@
+{
+  "schemaVersion": "0.1.0",
+  "demos": [
+    {
+      "id": "best-practices/extension-manager-integration#demo-1",
+      "pageId": "best-practices/extension-manager-integration",
+      "pageRoute": "/best-practices/extension-manager-integration",
+      "order": 0,
+      "title": "内置与远程扩展管理",
+      "description": "异步安装并查看进度，启用、卸载、添加及查看扩展，最后重置示例。",
+      "entry": "best-practices/extension-manager-integration/integrated.vue",
+      "files": [
+        {
+          "path": "best-practices/extension-manager-integration/integrated.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/best-practices/extension-manager-integration/integrated.vue"
+        },
+        {
+          "path": "best-practices/extension-manager-integration/ExtensionAddMenu.vue",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/best-practices/extension-manager-integration/ExtensionAddMenu.vue"
+        },
+        {
+          "path": "best-practices/extension-manager-integration/ExtensionAddIcon.vue",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/best-practices/extension-manager-integration/ExtensionAddIcon.vue"
+        },
+        {
+          "path": "best-practices/extension-manager-integration/use-extension-catalog.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/best-practices/extension-manager-integration/use-extension-catalog.ts"
+        },
+        {
+          "path": "best-practices/extension-manager-integration/extension-catalog-repository.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/best-practices/extension-manager-integration/extension-catalog-repository.ts"
+        },
+        {
+          "path": "best-practices/extension-manager-integration/use-extension-dialog.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/best-practices/extension-manager-integration/use-extension-dialog.ts"
+        },
+        {
+          "path": "best-practices/extension-manager-integration/mock-api.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/best-practices/extension-manager-integration/mock-api.ts"
+        },
+        {
+          "path": "best-practices/extension-manager-integration/catalog.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/best-practices/extension-manager-integration/catalog.ts"
+        },
+        {
+          "path": "best-practices/extension-manager-integration/skill-options-storage.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/best-practices/extension-manager-integration/skill-options-storage.ts"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/anchor#demo-1",
+      "pageId": "components/anchor",
+      "pageRoute": "/components/anchor",
+      "order": 0,
+      "title": null,
+      "description": null,
+      "entry": "anchor/controlled-search.vue",
+      "files": [
+        {
+          "path": "anchor/controlled-search.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/anchor/controlled-search.vue"
+        },
+        {
+          "path": "anchor/controlled-search.messages.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/anchor/controlled-search.messages.ts"
+        },
+        {
+          "path": "anchor/demo-shell.css",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/anchor/demo-shell.css"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/anchor#demo-2",
+      "pageId": "components/anchor",
+      "pageRoute": "/components/anchor",
+      "order": 1,
+      "title": null,
+      "description": null,
+      "entry": "anchor/basic-source.vue",
+      "files": [
+        {
+          "path": "anchor/basic-source.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/anchor/basic-source.vue"
+        },
+        {
+          "path": "anchor/basic-source.messages.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/anchor/basic-source.messages.ts"
+        },
+        {
+          "path": "anchor/demo-shell.css",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/anchor/demo-shell.css"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/attachments#demo-1",
+      "pageId": "components/attachments",
+      "pageRoute": "/components/attachments",
+      "order": 0,
+      "title": null,
+      "description": null,
+      "entry": "attachments/basic.vue",
+      "files": [
+        {
+          "path": "attachments/basic.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/attachments/basic.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/attachments#demo-2",
+      "pageId": "components/attachments",
+      "pageRoute": "/components/attachments",
+      "order": 1,
+      "title": null,
+      "description": null,
+      "entry": "attachments/status.vue",
+      "files": [
+        {
+          "path": "attachments/status.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/attachments/status.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/attachments#demo-3",
+      "pageId": "components/attachments",
+      "pageRoute": "/components/attachments",
+      "order": 2,
+      "title": null,
+      "description": null,
+      "entry": "attachments/picture-list.vue",
+      "files": [
+        {
+          "path": "attachments/picture-list.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/attachments/picture-list.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/attachments#demo-4",
+      "pageId": "components/attachments",
+      "pageRoute": "/components/attachments",
+      "order": 3,
+      "title": null,
+      "description": null,
+      "entry": "attachments/wrap.vue",
+      "files": [
+        {
+          "path": "attachments/wrap.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/attachments/wrap.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/attachments#demo-5",
+      "pageId": "components/attachments",
+      "pageRoute": "/components/attachments",
+      "order": 4,
+      "title": null,
+      "description": null,
+      "entry": "attachments/download.vue",
+      "files": [
+        {
+          "path": "attachments/download.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/attachments/download.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/attachments#demo-6",
+      "pageId": "components/attachments",
+      "pageRoute": "/components/attachments",
+      "order": 5,
+      "title": null,
+      "description": null,
+      "entry": "attachments/custom-icon.vue",
+      "files": [
+        {
+          "path": "attachments/custom-icon.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/attachments/custom-icon.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/attachments#demo-7",
+      "pageId": "components/attachments",
+      "pageRoute": "/components/attachments",
+      "order": 6,
+      "title": null,
+      "description": null,
+      "entry": "attachments/custom-file-type.vue",
+      "files": [
+        {
+          "path": "attachments/custom-file-type.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/attachments/custom-file-type.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/bubble#demo-1",
+      "pageId": "components/bubble",
+      "pageRoute": "/components/bubble",
+      "order": 0,
+      "title": "基础气泡",
+      "description": "使用 content 展示一条默认气泡消息。",
+      "entry": "bubble/basic.vue",
+      "files": [
+        {
+          "path": "bubble/basic.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/bubble/basic.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/bubble#demo-2",
+      "pageId": "components/bubble",
+      "pageRoute": "/components/bubble",
+      "order": 1,
+      "title": "头像和位置",
+      "description": "为不同角色配置头像，并使用 placement 控制气泡对齐方向。",
+      "entry": "bubble/avatar-and-placement.vue",
+      "files": [
+        {
+          "path": "bubble/avatar-and-placement.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/bubble/avatar-and-placement.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/bubble#demo-3",
+      "pageId": "components/bubble",
+      "pageRoute": "/components/bubble",
+      "order": 2,
+      "title": "气泡形状",
+      "description": "对比 corner、rounded 和 none 三种气泡形状。",
+      "entry": "bubble/shape.vue",
+      "files": [
+        {
+          "path": "bubble/shape.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/bubble/shape.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/bubble#demo-4",
+      "pageId": "components/bubble",
+      "pageRoute": "/components/bubble",
+      "order": 3,
+      "title": "加载状态",
+      "description": "使用 loading 展示消息生成前的等待状态。",
+      "entry": "bubble/loading.vue",
+      "files": [
+        {
+          "path": "bubble/loading.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/bubble/loading.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/bubble#demo-5",
+      "pageId": "components/bubble",
+      "pageRoute": "/components/bubble",
+      "order": 4,
+      "title": "流式文本",
+      "description": "持续更新响应式 content，模拟 AI 回复逐步生成的过程。",
+      "entry": "bubble/streaming.vue",
+      "files": [
+        {
+          "path": "bubble/streaming.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/bubble/streaming.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/bubble#demo-6",
+      "pageId": "components/bubble",
+      "pageRoute": "/components/bubble",
+      "order": 5,
+      "title": "Markdown 内容",
+      "description": "配置 Markdown 渲染器展示格式化文本。",
+      "entry": "bubble/markdown.vue",
+      "files": [
+        {
+          "path": "bubble/markdown.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/bubble/markdown.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/bubble#demo-7",
+      "pageId": "components/bubble",
+      "pageRoute": "/components/bubble",
+      "order": 6,
+      "title": "图片与图文混排",
+      "description": "使用固定的公开图片展示多图，以及图片位于文本前后的混合内容。",
+      "entry": "bubble/image.vue",
+      "files": [
+        {
+          "path": "bubble/image.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/bubble/image.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/bubble#demo-8",
+      "pageId": "components/bubble",
+      "pageRoute": "/components/bubble",
+      "order": 7,
+      "title": "内容渲染模式",
+      "description": "对比 single 与 split 模式处理数组内容时的布局差异。",
+      "entry": "bubble/content-render-mode.vue",
+      "files": [
+        {
+          "path": "bubble/content-render-mode.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/bubble/content-render-mode.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/bubble#demo-9",
+      "pageId": "components/bubble",
+      "pageRoute": "/components/bubble",
+      "order": 8,
+      "title": "自定义内容解析",
+      "description": "使用 contentResolver 从消息的自定义字段中提取展示内容。",
+      "entry": "bubble/content-resolver.vue",
+      "files": [
+        {
+          "path": "bubble/content-resolver.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/bubble/content-resolver.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/bubble#demo-10",
+      "pageId": "components/bubble",
+      "pageRoute": "/components/bubble",
+      "order": 9,
+      "title": "插槽扩展",
+      "description": "通过 prefix、suffix、content-footer 和 after 插槽扩展气泡区域。",
+      "entry": "bubble/slots.vue",
+      "files": [
+        {
+          "path": "bubble/slots.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/bubble/slots.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/bubble#demo-11",
+      "pageId": "components/bubble",
+      "pageRoute": "/components/bubble",
+      "order": 10,
+      "title": "Schema 卡片渲染",
+      "description": "将结构化消息匹配到自定义卡片渲染器。",
+      "entry": "bubble/schema-render.vue",
+      "files": [
+        {
+          "path": "bubble/schema-render.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/bubble/schema-render.vue"
+        },
+        {
+          "path": "bubble/schema-card.ce.vue",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/bubble/schema-card.ce.vue"
+        }
+      ],
+      "playground": false
+    },
+    {
+      "id": "components/bubble#demo-12",
+      "pageId": "components/bubble",
+      "pageRoute": "/components/bubble",
+      "order": 11,
+      "title": "基础消息列表",
+      "description": "使用 BubbleList 按角色配置连续的聊天消息。",
+      "entry": "bubble/list.vue",
+      "files": [
+        {
+          "path": "bubble/list.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/bubble/list.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/bubble#demo-13",
+      "pageId": "components/bubble",
+      "pageRoute": "/components/bubble",
+      "order": 12,
+      "title": "连续角色分组",
+      "description": "将相邻且角色相同的消息合并为一组。",
+      "entry": "bubble/list-consecutive.vue",
+      "files": [
+        {
+          "path": "bubble/list-consecutive.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/bubble/list-consecutive.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/bubble#demo-14",
+      "pageId": "components/bubble",
+      "pageRoute": "/components/bubble",
+      "order": 13,
+      "title": "自定义分组",
+      "description": "使用分组函数按应用规则组织消息。",
+      "entry": "bubble/list-custom-group.vue",
+      "files": [
+        {
+          "path": "bubble/list-custom-group.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/bubble/list-custom-group.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/bubble#demo-15",
+      "pageId": "components/bubble",
+      "pageRoute": "/components/bubble",
+      "order": 14,
+      "title": "列表中的数组内容",
+      "description": "观察分组数量与 contentRenderMode 共同决定数组内容的渲染方式。",
+      "entry": "bubble/list-array-content.vue",
+      "files": [
+        {
+          "path": "bubble/list-array-content.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/bubble/list-array-content.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/bubble#demo-16",
+      "pageId": "components/bubble",
+      "pageRoute": "/components/bubble",
+      "order": 15,
+      "title": "隐藏指定角色",
+      "description": "通过角色配置隐藏不需要展示的消息。",
+      "entry": "bubble/list-hidden.vue",
+      "files": [
+        {
+          "path": "bubble/list-hidden.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/bubble/list-hidden.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/bubble#demo-17",
+      "pageId": "components/bubble",
+      "pageRoute": "/components/bubble",
+      "order": 16,
+      "title": "消息列表自动滚动",
+      "description": "添加消息或异步加载固定的外部图片时，观察列表在接近底部时的自动跟随。",
+      "entry": "bubble/list-auto-scroll.vue",
+      "files": [
+        {
+          "path": "bubble/list-auto-scroll.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/bubble/list-auto-scroll.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/bubble#demo-18",
+      "pageId": "components/bubble",
+      "pageRoute": "/components/bubble",
+      "order": 17,
+      "title": "Provider 渲染器配置",
+      "description": "在 BubbleProvider 中配置匹配规则，让整个组件树复用自定义渲染器。",
+      "entry": "bubble/provider-renderer.vue",
+      "files": [
+        {
+          "path": "bubble/provider-renderer.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/bubble/provider-renderer.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/bubble#demo-19",
+      "pageId": "components/bubble",
+      "pageRoute": "/components/bubble",
+      "order": 18,
+      "title": "Provider Attributes",
+      "description": "统一为 Box 和 Content 注入 data 属性，并与匹配规则中的 attributes 合并。",
+      "entry": "bubble/provider-attributes.vue",
+      "files": [
+        {
+          "path": "bubble/provider-attributes.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/bubble/provider-attributes.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/bubble#demo-20",
+      "pageId": "components/bubble",
+      "pageRoute": "/components/bubble",
+      "order": 19,
+      "title": "错误消息",
+      "description": "显式启用内置 Error 渲染器，并重复切换消息级错误状态。",
+      "entry": "bubble/error.vue",
+      "files": [
+        {
+          "path": "bubble/error.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/bubble/error.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/bubble#demo-21",
+      "pageId": "components/bubble",
+      "pageRoute": "/components/bubble",
+      "order": 20,
+      "title": "推理内容渲染器",
+      "description": "使用内置 Reasoning 渲染器展示可展开的推理内容。",
+      "entry": "bubble/reasoning.vue",
+      "files": [
+        {
+          "path": "bubble/reasoning.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/bubble/reasoning.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/bubble#demo-22",
+      "pageId": "components/bubble",
+      "pageRoute": "/components/bubble",
+      "order": 21,
+      "title": "工具调用渲染器",
+      "description": "使用内置 Tool 与 Tools 渲染器展示工具调用状态和结果。",
+      "entry": "bubble/tools.vue",
+      "files": [
+        {
+          "path": "bubble/tools.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/bubble/tools.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/bubble#demo-23",
+      "pageId": "components/bubble",
+      "pageRoute": "/components/bubble",
+      "order": 22,
+      "title": "复合内容渲染器",
+      "description": "拆分推理字段并递归渲染剩余内容，同时保留 Provider 注入的 attributes。",
+      "entry": "bubble/custom-composite-renderer.vue",
+      "files": [
+        {
+          "path": "bubble/custom-composite-renderer.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/bubble/custom-composite-renderer.vue"
+        },
+        {
+          "path": "bubble/RecursiveReasoningRenderer.vue",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/bubble/RecursiveReasoningRenderer.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/bubble#demo-24",
+      "pageId": "components/bubble",
+      "pageRoute": "/components/bubble",
+      "order": 23,
+      "title": "Fallback 渲染器",
+      "description": "为单个 Bubble 配置自定义 fallback Box 与 Content 渲染器。",
+      "entry": "bubble/custom-renderer.vue",
+      "files": [
+        {
+          "path": "bubble/custom-renderer.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/bubble/custom-renderer.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/bubble#demo-25",
+      "pageId": "components/bubble",
+      "pageRoute": "/components/bubble",
+      "order": 24,
+      "title": "状态更新与事件透传",
+      "description": "从渲染器发出 bubble-event，并由外层同步 state:update 产生的新状态。",
+      "entry": "bubble/state-change.vue",
+      "files": [
+        {
+          "path": "bubble/state-change.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/bubble/state-change.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/bubble#demo-26",
+      "pageId": "components/bubble",
+      "pageRoute": "/components/bubble",
+      "order": 25,
+      "title": "确认工具调用",
+      "description": "工具等待执行时，用户可以允许或拒绝本次调用。",
+      "entry": "bubble/tool-approval.vue",
+      "files": [
+        {
+          "path": "bubble/tool-approval.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/bubble/tool-approval.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/container#demo-1",
+      "pageId": "components/container",
+      "pageRoute": "/components/container",
+      "order": 0,
+      "title": null,
+      "description": null,
+      "entry": "container/basic.vue",
+      "files": [
+        {
+          "path": "container/basic.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/container/basic.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/drag-overlay#demo-1",
+      "pageId": "components/drag-overlay",
+      "pageRoute": "/components/drag-overlay",
+      "order": 0,
+      "title": null,
+      "description": null,
+      "entry": "drag-overlay/basic.vue",
+      "files": [
+        {
+          "path": "drag-overlay/basic.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/drag-overlay/basic.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/drag-overlay#demo-2",
+      "pageId": "components/drag-overlay",
+      "pageRoute": "/components/drag-overlay",
+      "order": 1,
+      "title": null,
+      "description": null,
+      "entry": "drag-overlay/custom-overlay.vue",
+      "files": [
+        {
+          "path": "drag-overlay/custom-overlay.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/drag-overlay/custom-overlay.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/drag-overlay#demo-3",
+      "pageId": "components/drag-overlay",
+      "pageRoute": "/components/drag-overlay",
+      "order": 2,
+      "title": null,
+      "description": null,
+      "entry": "drag-overlay/disabled.vue",
+      "files": [
+        {
+          "path": "drag-overlay/disabled.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/drag-overlay/disabled.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/dropdown-menu#demo-1",
+      "pageId": "components/dropdown-menu",
+      "pageRoute": "/components/dropdown-menu",
+      "order": 0,
+      "title": null,
+      "description": null,
+      "entry": "dropdown-menu/basic.vue",
+      "files": [
+        {
+          "path": "dropdown-menu/basic.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/dropdown-menu/basic.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/extension-manager#demo-1",
+      "pageId": "components/extension-manager",
+      "pageRoute": "/components/extension-manager",
+      "order": 0,
+      "title": "管理 MCP 与 Skills",
+      "description": "切换 MCP 开关、安装 Skills，或卸载并重新安装 MCP，观察条目在分区之间移动。",
+      "entry": "extension-manager/basic.vue",
+      "files": [
+        {
+          "path": "extension-manager/basic.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/extension-manager/basic.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/extension-manager#demo-2",
+      "pageId": "components/extension-manager",
+      "pageRoute": "/components/extension-manager",
+      "order": 1,
+      "title": "浏览、筛选与自动分区",
+      "description": "切换标签页、选择标签或输入关键词，观察筛选后的已安装和可安装分区。",
+      "entry": "extension-manager/browse-and-filter.vue",
+      "files": [
+        {
+          "path": "extension-manager/browse-and-filter.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/extension-manager/browse-and-filter.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/extension-manager#demo-3",
+      "pageId": "components/extension-manager",
+      "pageRoute": "/components/extension-manager",
+      "order": 2,
+      "title": "卡片进度",
+      "description": "分别展示确定进度、不确定进度和超出范围数值的限制结果。",
+      "entry": "extension-manager/progress.vue",
+      "files": [
+        {
+          "path": "extension-manager/progress.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/extension-manager/progress.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/extension-manager#demo-4",
+      "pageId": "components/extension-manager",
+      "pageRoute": "/components/extension-manager",
+      "order": 3,
+      "title": "分区与管理器空状态",
+      "description": "分别定制空分区内容，并为没有标签页的管理器提供提示文字。",
+      "entry": "extension-manager/empty-states.vue",
+      "files": [
+        {
+          "path": "extension-manager/empty-states.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/extension-manager/empty-states.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/extension-manager#demo-5",
+      "pageId": "components/extension-manager",
+      "pageRoute": "/components/extension-manager",
+      "order": 4,
+      "title": "由父组件控制当前标签页",
+      "description": "使用 v-model:active-tab 保存当前标签页，并显示父组件收到的最新值。",
+      "entry": "extension-manager/controlled-events.vue",
+      "files": [
+        {
+          "path": "extension-manager/controlled-events.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/extension-manager/controlled-events.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/extension-manager#demo-6",
+      "pageId": "components/extension-manager",
+      "pageRoute": "/components/extension-manager",
+      "order": 5,
+      "title": "替换管理器区域",
+      "description": "在不依赖内部 DOM 的前提下定制头部、标签、条目和空分区。",
+      "entry": "extension-manager/manager-slots.vue",
+      "files": [
+        {
+          "path": "extension-manager/manager-slots.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/extension-manager/manager-slots.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/extension-manager#demo-7",
+      "pageId": "components/extension-manager",
+      "pageRoute": "/components/extension-manager",
+      "order": 6,
+      "title": "独立使用 Card 与 CardGrid",
+      "description": "在独立 Card 中定制主操作并展示更多操作，同时使用 CardGrid 的 item 插槽替换条目内容。",
+      "entry": "extension-manager/card-and-grid.vue",
+      "files": [
+        {
+          "path": "extension-manager/card-and-grid.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/extension-manager/card-and-grid.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/extension-manager#demo-8",
+      "pageId": "components/extension-manager",
+      "pageRoute": "/components/extension-manager",
+      "order": 7,
+      "title": "容器响应式布局",
+      "description": "切换宽窄容器，观察筛选控件和 CardGrid 如何根据组件容器宽度调整布局。",
+      "entry": "extension-manager/responsive-layout.vue",
+      "files": [
+        {
+          "path": "extension-manager/responsive-layout.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/extension-manager/responsive-layout.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/feedback#demo-1",
+      "pageId": "components/feedback",
+      "pageRoute": "/components/feedback",
+      "order": 0,
+      "title": null,
+      "description": null,
+      "entry": "feedback/basic.vue",
+      "files": [
+        {
+          "path": "feedback/basic.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/feedback/basic.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/feedback#demo-2",
+      "pageId": "components/feedback",
+      "pageRoute": "/components/feedback",
+      "order": 1,
+      "title": null,
+      "description": null,
+      "entry": "feedback/limit.vue",
+      "files": [
+        {
+          "path": "feedback/limit.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/feedback/limit.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/feedback#demo-3",
+      "pageId": "components/feedback",
+      "pageRoute": "/components/feedback",
+      "order": 2,
+      "title": null,
+      "description": null,
+      "entry": "feedback/custom-action-icon.vue",
+      "files": [
+        {
+          "path": "feedback/custom-action-icon.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/feedback/custom-action-icon.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/history#demo-1",
+      "pageId": "components/history",
+      "pageRoute": "/components/history",
+      "order": 0,
+      "title": null,
+      "description": null,
+      "entry": "history/basic.vue",
+      "files": [
+        {
+          "path": "history/basic.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/history/basic.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/history#demo-2",
+      "pageId": "components/history",
+      "pageRoute": "/components/history",
+      "order": 1,
+      "title": null,
+      "description": null,
+      "entry": "history/empty.vue",
+      "files": [
+        {
+          "path": "history/empty.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/history/empty.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/history#demo-3",
+      "pageId": "components/history",
+      "pageRoute": "/components/history",
+      "order": 2,
+      "title": null,
+      "description": null,
+      "entry": "history/custom-menu.vue",
+      "files": [
+        {
+          "path": "history/custom-menu.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/history/custom-menu.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/history#demo-4",
+      "pageId": "components/history",
+      "pageRoute": "/components/history",
+      "order": 3,
+      "title": null,
+      "description": null,
+      "entry": "history/icon.vue",
+      "files": [
+        {
+          "path": "history/icon.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/history/icon.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/history#demo-5",
+      "pageId": "components/history",
+      "pageRoute": "/components/history",
+      "order": 4,
+      "title": null,
+      "description": null,
+      "entry": "history/slot-item-prefix.vue",
+      "files": [
+        {
+          "path": "history/slot-item-prefix.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/history/slot-item-prefix.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/history#demo-6",
+      "pageId": "components/history",
+      "pageRoute": "/components/history",
+      "order": 5,
+      "title": null,
+      "description": null,
+      "entry": "history/slot-item-title.vue",
+      "files": [
+        {
+          "path": "history/slot-item-title.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/history/slot-item-title.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/layout#demo-1",
+      "pageId": "components/layout",
+      "pageRoute": "/components/layout",
+      "order": 0,
+      "title": "基础布局",
+      "description": "最小布局示例。",
+      "entry": "layout/basic.vue",
+      "files": [
+        {
+          "path": "layout/basic.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/layout/basic.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/layout#demo-2",
+      "pageId": "components/layout",
+      "pageRoute": "/components/layout",
+      "order": 1,
+      "title": "布局模式",
+      "description": "切换 normal 和 floating 查看布局形态差异。",
+      "entry": "layout/mode.vue",
+      "files": [
+        {
+          "path": "layout/mode.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/layout/mode.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/layout#demo-3",
+      "pageId": "components/layout",
+      "pageRoute": "/components/layout",
+      "order": 2,
+      "title": "显示模式",
+      "description": "左侧占据页面空间，右侧覆盖在内容上方。",
+      "entry": "layout/aside-modes.vue",
+      "files": [
+        {
+          "path": "layout/aside-modes.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/layout/aside-modes.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/layout#demo-4",
+      "pageId": "components/layout",
+      "pageRoute": "/components/layout",
+      "order": 3,
+      "title": "收起行为",
+      "description": "对比 overlay 和 slide 两种收起动画。",
+      "entry": "layout/aside-collapse-effect.vue",
+      "files": [
+        {
+          "path": "layout/aside-collapse-effect.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/layout/aside-collapse-effect.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/layout#demo-5",
+      "pageId": "components/layout",
+      "pageRoute": "/components/layout",
+      "order": 4,
+      "title": "宽度调整",
+      "description": "拖动分隔线查看当前宽度和边界。",
+      "entry": "layout/aside-resizable.vue",
+      "files": [
+        {
+          "path": "layout/aside-resizable.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/layout/aside-resizable.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/layout#demo-6",
+      "pageId": "components/layout",
+      "pageRoute": "/components/layout",
+      "order": 5,
+      "title": "侧栏受控",
+      "description": "外部控制侧栏开关和宽度。",
+      "entry": "layout/aside-controlled.vue",
+      "files": [
+        {
+          "path": "layout/aside-controlled.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/layout/aside-controlled.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/layout#demo-7",
+      "pageId": "components/layout",
+      "pageRoute": "/components/layout",
+      "order": 6,
+      "title": "非受控浮层",
+      "description": "只设置初始位置和大小，后续由组件内部维护。",
+      "entry": "layout/floating.vue",
+      "files": [
+        {
+          "path": "layout/floating.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/layout/floating.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/layout#demo-8",
+      "pageId": "components/layout",
+      "pageRoute": "/components/layout",
+      "order": 7,
+      "title": "受控浮层",
+      "description": "由外部维护位置和尺寸状态。",
+      "entry": "layout/floating-controlled.vue",
+      "files": [
+        {
+          "path": "layout/floating-controlled.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/layout/floating-controlled.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/layout#demo-9",
+      "pageId": "components/layout",
+      "pageRoute": "/components/layout",
+      "order": 8,
+      "title": "浮层模式下的侧栏",
+      "description": "在浮层里组合常驻侧栏和按需抽屉。",
+      "entry": "layout/floating-panels.vue",
+      "files": [
+        {
+          "path": "layout/floating-panels.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/layout/floating-panels.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/layout#demo-10",
+      "pageId": "components/layout",
+      "pageRoute": "/components/layout",
+      "order": 9,
+      "title": "代理滚动条",
+      "description": "内容区居中后，滚动条仍固定在主区右侧。",
+      "entry": "layout/main-scroll.vue",
+      "files": [
+        {
+          "path": "layout/main-scroll.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/layout/main-scroll.vue"
+        },
+        {
+          "path": "layout/main-scroll-bubble.vue",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/layout/main-scroll-bubble.vue"
+        },
+        {
+          "path": "layout/main-scroll-div.vue",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/layout/main-scroll-div.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/layout#demo-11",
+      "pageId": "components/layout",
+      "pageRoute": "/components/layout",
+      "order": 10,
+      "title": "侧栏开关",
+      "description": "在侧栏内容中使用 AsideToggle 触发当前侧栏开关。",
+      "entry": "layout/aside-toggle.vue",
+      "files": [
+        {
+          "path": "layout/aside-toggle.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/layout/aside-toggle.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/mcp-add-form#demo-1",
+      "pageId": "components/mcp-add-form",
+      "pageRoute": "/components/mcp-add-form",
+      "order": 0,
+      "title": null,
+      "description": null,
+      "entry": "mcp-add-form/basic.vue",
+      "files": [
+        {
+          "path": "mcp-add-form/basic.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/mcp-add-form/basic.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/mcp-extension#demo-1",
+      "pageId": "components/mcp-extension",
+      "pageRoute": "/components/mcp-extension",
+      "order": 0,
+      "title": "填写并提交连接",
+      "description": "填写名称和 HTTP 地址后提交；取消和重置都可在页面观察。",
+      "entry": "mcp-extension-form/basic.vue",
+      "files": [
+        {
+          "path": "mcp-extension-form/basic.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/mcp-extension-form/basic.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/mcp-extension#demo-2",
+      "pageId": "components/mcp-extension",
+      "pageRoute": "/components/mcp-extension",
+      "order": 1,
+      "title": "代码方式与受控添加方式",
+      "description": "编辑单条 MCP JSON 配置，观察提交来源和错误恢复。",
+      "entry": "mcp-extension-form/code-mode.vue",
+      "files": [
+        {
+          "path": "mcp-extension-form/code-mode.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/mcp-extension-form/code-mode.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/mcp-extension#demo-3",
+      "pageId": "components/mcp-extension",
+      "pageRoute": "/components/mcp-extension",
+      "order": 2,
+      "title": "应用更新工具状态",
+      "description": "切换工具后由应用更新传入数据，并可一键恢复初始状态。",
+      "entry": "mcp-extension-detail/basic.vue",
+      "files": [
+        {
+          "path": "mcp-extension-detail/basic.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/mcp-extension-detail/basic.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/mcp-server-picker#demo-1",
+      "pageId": "components/mcp-server-picker",
+      "pageRoute": "/components/mcp-server-picker",
+      "order": 0,
+      "title": null,
+      "description": null,
+      "entry": "mcp-server-picker/basic-usage.vue",
+      "files": [
+        {
+          "path": "mcp-server-picker/basic-usage.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/mcp-server-picker/basic-usage.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/mcp-server-picker#demo-2",
+      "pageId": "components/mcp-server-picker",
+      "pageRoute": "/components/mcp-server-picker",
+      "order": 1,
+      "title": null,
+      "description": null,
+      "entry": "mcp-server-picker/popup-config.vue",
+      "files": [
+        {
+          "path": "mcp-server-picker/popup-config.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/mcp-server-picker/popup-config.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/model-selector#demo-1",
+      "pageId": "components/model-selector",
+      "pageRoute": "/components/model-selector",
+      "order": 0,
+      "title": "基础用法",
+      "description": "models 与 v-model 的基础选择。",
+      "entry": "model-selector/basic.vue",
+      "files": [
+        {
+          "path": "model-selector/basic.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/model-selector/basic.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/model-selector#demo-2",
+      "pageId": "components/model-selector",
+      "pageRoute": "/components/model-selector",
+      "order": 1,
+      "title": "搜索与分组",
+      "description": "名称、描述、分组搜索与禁用状态。",
+      "entry": "model-selector/search-and-group.vue",
+      "files": [
+        {
+          "path": "model-selector/search-and-group.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/model-selector/search-and-group.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/model-selector#demo-3",
+      "pageId": "components/model-selector",
+      "pageRoute": "/components/model-selector",
+      "order": 2,
+      "title": "思考强度",
+      "description": "内置选项、自定义选项与不支持思考强度的模型。",
+      "entry": "model-selector/reasoning-effort.vue",
+      "files": [
+        {
+          "path": "model-selector/reasoning-effort.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/model-selector/reasoning-effort.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/model-selector#demo-4",
+      "pageId": "components/model-selector",
+      "pageRoute": "/components/model-selector",
+      "order": 3,
+      "title": "尺寸与外观",
+      "description": "三种尺寸与三种外观的展示效果。",
+      "entry": "model-selector/variants.vue",
+      "files": [
+        {
+          "path": "model-selector/variants.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/model-selector/variants.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/model-selector#demo-5",
+      "pageId": "components/model-selector",
+      "pageRoute": "/components/model-selector",
+      "order": 4,
+      "title": "自定义触发器",
+      "description": "模型标识、展开箭头与窄屏表现的定制效果。",
+      "entry": "model-selector/icon-trigger.vue",
+      "files": [
+        {
+          "path": "model-selector/icon-trigger.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/model-selector/icon-trigger.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/model-selector#demo-6",
+      "pageId": "components/model-selector",
+      "pageRoute": "/components/model-selector",
+      "order": 5,
+      "title": "自定义选项面板",
+      "description": "面板标题、模型项、空状态和底部操作区的定制效果。",
+      "entry": "model-selector/slots.vue",
+      "files": [
+        {
+          "path": "model-selector/slots.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/model-selector/slots.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/prompts#demo-1",
+      "pageId": "components/prompts",
+      "pageRoute": "/components/prompts",
+      "order": 0,
+      "title": null,
+      "description": null,
+      "entry": "prompts/basic.vue",
+      "files": [
+        {
+          "path": "prompts/basic.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/prompts/basic.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/prompts#demo-2",
+      "pageId": "components/prompts",
+      "pageRoute": "/components/prompts",
+      "order": 1,
+      "title": null,
+      "description": null,
+      "entry": "prompts/size.vue",
+      "files": [
+        {
+          "path": "prompts/size.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/prompts/size.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/prompts#demo-3",
+      "pageId": "components/prompts",
+      "pageRoute": "/components/prompts",
+      "order": 2,
+      "title": null,
+      "description": null,
+      "entry": "prompts/disabled.vue",
+      "files": [
+        {
+          "path": "prompts/disabled.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/prompts/disabled.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/prompts#demo-4",
+      "pageId": "components/prompts",
+      "pageRoute": "/components/prompts",
+      "order": 3,
+      "title": null,
+      "description": null,
+      "entry": "prompts/badge.vue",
+      "files": [
+        {
+          "path": "prompts/badge.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/prompts/badge.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/prompts#demo-5",
+      "pageId": "components/prompts",
+      "pageRoute": "/components/prompts",
+      "order": 4,
+      "title": null,
+      "description": null,
+      "entry": "prompts/vertical.vue",
+      "files": [
+        {
+          "path": "prompts/vertical.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/prompts/vertical.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/prompts#demo-6",
+      "pageId": "components/prompts",
+      "pageRoute": "/components/prompts",
+      "order": 5,
+      "title": null,
+      "description": null,
+      "entry": "prompts/wrap.vue",
+      "files": [
+        {
+          "path": "prompts/wrap.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/prompts/wrap.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/prompts#demo-7",
+      "pageId": "components/prompts",
+      "pageRoute": "/components/prompts",
+      "order": 6,
+      "title": null,
+      "description": null,
+      "entry": "prompts/responsive.vue",
+      "files": [
+        {
+          "path": "prompts/responsive.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/prompts/responsive.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/prompts#demo-8",
+      "pageId": "components/prompts",
+      "pageRoute": "/components/prompts",
+      "order": 7,
+      "title": null,
+      "description": null,
+      "entry": "prompts/footer.vue",
+      "files": [
+        {
+          "path": "prompts/footer.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/prompts/footer.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/quick-assist#demo-1",
+      "pageId": "components/quick-assist",
+      "pageRoute": "/components/quick-assist",
+      "order": 0,
+      "title": "Vue 对话面板接入",
+      "description": "划词后打开 TinyRobot 对话面板，并自动提交 prompt 与脱敏上下文。",
+      "entry": "quick-assist/vue-chat.vue",
+      "files": [
+        {
+          "path": "quick-assist/vue-chat.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/quick-assist/vue-chat.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/quick-assist#demo-2",
+      "pageId": "components/quick-assist",
+      "pageRoute": "/components/quick-assist",
+      "order": 1,
+      "title": "HTML 接入",
+      "description": "划词后查看提交给应用的请求内容。",
+      "entry": "quick-assist/vanilla.html",
+      "files": [
+        {
+          "path": "quick-assist/vanilla.html",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/quick-assist/vanilla.html"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/quick-assist#demo-3",
+      "pageId": "components/quick-assist",
+      "pageRoute": "/components/quick-assist",
+      "order": 2,
+      "title": "延迟显示划词入口",
+      "description": "切换立即显示与延迟 300 毫秒，对比划词体验。",
+      "entry": "quick-assist/trigger-delay.vue",
+      "files": [
+        {
+          "path": "quick-assist/trigger-delay.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/quick-assist/trigger-delay.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/quick-assist#demo-4",
+      "pageId": "components/quick-assist",
+      "pageRoute": "/components/quick-assist",
+      "order": 3,
+      "title": "静态与异步推荐",
+      "description": "查看推荐加载、合并和点击后直接提交的效果。",
+      "entry": "quick-assist/recommendations.vue",
+      "files": [
+        {
+          "path": "quick-assist/recommendations.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/quick-assist/recommendations.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/quick-assist#demo-5",
+      "pageId": "components/quick-assist",
+      "pageRoute": "/components/quick-assist",
+      "order": 4,
+      "title": "上下文与脱敏",
+      "description": "选中文字并提交，查看允许交给应用的上下文。",
+      "entry": "quick-assist/context.vue",
+      "files": [
+        {
+          "path": "quick-assist/context.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/quick-assist/context.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/quick-assist#demo-6",
+      "pageId": "components/quick-assist",
+      "pageRoute": "/components/quick-assist",
+      "order": 5,
+      "title": "可选择区域与长度限制",
+      "description": "仅指定区域和有效长度的选区会显示划词入口。",
+      "entry": "quick-assist/selection-scope.vue",
+      "files": [
+        {
+          "path": "quick-assist/selection-scope.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/quick-assist/selection-scope.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/quick-assist#demo-7",
+      "pageId": "components/quick-assist",
+      "pageRoute": "/components/quick-assist",
+      "order": 6,
+      "title": "启停与关闭会话",
+      "description": "通过按钮控制划词功能，并模拟页面切换。",
+      "entry": "quick-assist/lifecycle.vue",
+      "files": [
+        {
+          "path": "quick-assist/lifecycle.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/quick-assist/lifecycle.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/sender#demo-1",
+      "pageId": "components/sender",
+      "pageRoute": "/components/sender",
+      "order": 0,
+      "title": "基础消息提交",
+      "description": "绑定输入内容，提交后在页面中显示结果并清空输入框。",
+      "entry": "sender/basic.vue",
+      "files": [
+        {
+          "path": "sender/basic.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/sender/basic.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/sender#demo-2",
+      "pageId": "components/sender",
+      "pageRoute": "/components/sender",
+      "order": 1,
+      "title": "输入模式",
+      "description": "支持单行和多行模式，单行模式可自动切换为多行。",
+      "entry": "sender/mode-switch.vue",
+      "files": [
+        {
+          "path": "sender/mode-switch.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/sender/mode-switch.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/sender#demo-3",
+      "pageId": "components/sender",
+      "pageRoute": "/components/sender",
+      "order": 2,
+      "title": "加载、禁用与取消",
+      "description": "展示加载与禁用状态，并模拟提交完成和取消处理。",
+      "entry": "sender/loading-state.vue",
+      "files": [
+        {
+          "path": "sender/loading-state.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/sender/loading-state.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/sender#demo-4",
+      "pageId": "components/sender",
+      "pageRoute": "/components/sender",
+      "order": 3,
+      "title": "字数限制",
+      "description": "限制输入字符数并显示字数统计。",
+      "entry": "sender/word-limit.vue",
+      "files": [
+        {
+          "path": "sender/word-limit.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/sender/word-limit.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/sender#demo-5",
+      "pageId": "components/sender",
+      "pageRoute": "/components/sender",
+      "order": 4,
+      "title": "模板填充",
+      "description": "支持动态模板切换，自动聚焦可编辑字段。",
+      "entry": "sender/template-editor.vue",
+      "files": [
+        {
+          "path": "sender/template-editor.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/sender/template-editor.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/sender#demo-6",
+      "pageId": "components/sender",
+      "pageRoute": "/components/sender",
+      "order": 5,
+      "title": "提及功能",
+      "description": "输入 @ 触发提及选择，快速引用预设的助手或对象，支持键盘导航和搜索过滤。",
+      "entry": "sender/mention.vue",
+      "files": [
+        {
+          "path": "sender/mention.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/sender/mention.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/sender#demo-7",
+      "pageId": "components/sender",
+      "pageRoute": "/components/sender",
+      "order": 6,
+      "title": "基础用法",
+      "description": "直接显示所有建议项，不过滤。",
+      "entry": "sender/suggestion-basic.vue",
+      "files": [
+        {
+          "path": "sender/suggestion-basic.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/sender/suggestion-basic.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/sender#demo-8",
+      "pageId": "components/sender",
+      "pageRoute": "/components/sender",
+      "order": 7,
+      "title": "自定义过滤",
+      "description": "使用 filterFn 实现自定义过滤逻辑。",
+      "entry": "sender/suggestion-filter.vue",
+      "files": [
+        {
+          "path": "sender/suggestion-filter.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/sender/suggestion-filter.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/sender#demo-9",
+      "pageId": "components/sender",
+      "pageRoute": "/components/sender",
+      "order": 8,
+      "title": "高亮模式",
+      "description": "动态切换三种高亮模式，对比不同的高亮效果。",
+      "entry": "sender/suggestion-highlight.vue",
+      "files": [
+        {
+          "path": "sender/suggestion-highlight.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/sender/suggestion-highlight.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/sender#demo-10",
+      "pageId": "components/sender",
+      "pageRoute": "/components/sender",
+      "order": 9,
+      "title": "基础语音输入",
+      "description": "使用本地 Mock 处理器对比自动写入编辑器和仅接收识别事件。",
+      "entry": "sender/voice-input.vue",
+      "files": [
+        {
+          "path": "sender/voice-input.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/sender/voice-input.vue"
+        },
+        {
+          "path": "sender/mockSpeechHandler.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/sender/mockSpeechHandler.ts"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/sender#demo-11",
+      "pageId": "components/sender",
+      "pageRoute": "/components/sender",
+      "order": 10,
+      "title": "自定义语音识别",
+      "description": "先用本地 Mock handler 验证接入流程，再参考 speechHandlers.ts 接入受保护的服务端代理。",
+      "entry": "sender/voice-custom.vue",
+      "files": [
+        {
+          "path": "sender/voice-custom.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/sender/voice-custom.vue"
+        },
+        {
+          "path": "sender/speechHandlers.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/sender/speechHandlers.ts"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/sender#demo-12",
+      "pageId": "components/sender",
+      "pageRoute": "/components/sender",
+      "order": 11,
+      "title": "移动端按住说话",
+      "description": "自定义录音 UI，展示移动端按住说话的交互模式。",
+      "entry": "sender/voice-custom-ui.vue",
+      "files": [
+        {
+          "path": "sender/voice-custom-ui.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/sender/voice-custom-ui.vue"
+        },
+        {
+          "path": "sender/PressToTalkOverlay.vue",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/sender/PressToTalkOverlay.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/sender#demo-13",
+      "pageId": "components/sender",
+      "pageRoute": "/components/sender",
+      "order": 12,
+      "title": "默认按钮配置",
+      "description": "通过 defaultActions 统一配置默认按钮的状态和提示。",
+      "entry": "sender/actions-config-basic.vue",
+      "files": [
+        {
+          "path": "sender/actions-config-basic.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/sender/actions-config-basic.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/sender#demo-14",
+      "pageId": "components/sender",
+      "pageRoute": "/components/sender",
+      "order": 13,
+      "title": "增强按钮",
+      "description": "通过插槽添加 Upload、Voice 等增强按钮；语音按钮使用本地 Mock，上传内容随消息提交见下方示例。",
+      "entry": "sender/actions-enhanced.vue",
+      "files": [
+        {
+          "path": "sender/actions-enhanced.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/sender/actions-enhanced.vue"
+        },
+        {
+          "path": "sender/mockSpeechHandler.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/sender/mockSpeechHandler.ts"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/sender#demo-15",
+      "pageId": "components/sender",
+      "pageRoute": "/components/sender",
+      "order": 14,
+      "title": "输入框内附件列表",
+      "description": "使用 Attachments 在 Sender 内展示和管理附件，并随消息一起提交。",
+      "entry": "sender/attachments-in-sender.vue",
+      "files": [
+        {
+          "path": "sender/attachments-in-sender.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/sender/attachments-in-sender.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/sender#demo-16",
+      "pageId": "components/sender",
+      "pageRoute": "/components/sender",
+      "order": 15,
+      "title": "提交方式",
+      "description": "支持三种提交快捷键，适应不同使用场景。",
+      "entry": "sender/submit-type.vue",
+      "files": [
+        {
+          "path": "sender/submit-type.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/sender/submit-type.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/sender#demo-17",
+      "pageId": "components/sender",
+      "pageRoute": "/components/sender",
+      "order": 16,
+      "title": "自定义插槽",
+      "description": "在插槽区域添加自定义按钮，如深度思考、网络搜索等功能。",
+      "entry": "sender/custom-slots.vue",
+      "files": [
+        {
+          "path": "sender/custom-slots.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/sender/custom-slots.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/sender#demo-18",
+      "pageId": "components/sender",
+      "pageRoute": "/components/sender",
+      "order": 17,
+      "title": "首行前置插槽与超长占位文本",
+      "description": "展示多行模式下超长占位文本的换行，以及首行前置插槽的动态添加和移除。",
+      "entry": "sender/input-prefix-placeholder.vue",
+      "files": [
+        {
+          "path": "sender/input-prefix-placeholder.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/sender/input-prefix-placeholder.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/sender#demo-19",
+      "pageId": "components/sender",
+      "pageRoute": "/components/sender",
+      "order": 18,
+      "title": "方法调用",
+      "description": "通过 ref 调用组件方法，如聚焦、设置内容等。",
+      "entry": "sender/methods-demo.vue",
+      "files": [
+        {
+          "path": "sender/methods-demo.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/sender/methods-demo.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/sender#demo-20",
+      "pageId": "components/sender",
+      "pageRoute": "/components/sender",
+      "order": 19,
+      "title": "组件尺寸",
+      "description": "支持正常和紧凑两种尺寸，适应不同的使用场景。",
+      "entry": "sender/size.vue",
+      "files": [
+        {
+          "path": "sender/size.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/sender/size.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/skill-extension#demo-1",
+      "pageId": "components/skill-extension",
+      "pageRoute": "/components/skill-extension",
+      "order": 0,
+      "title": "从 GitHub 地址导入",
+      "description": "使用 kit 默认解析器导入真实 Skill，并查看应用收到的定义。",
+      "entry": "skill-import-form/basic.vue",
+      "files": [
+        {
+          "path": "skill-import-form/basic.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/skill-import-form/basic.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/skill-extension#demo-2",
+      "pageId": "components/skill-extension",
+      "pageRoute": "/components/skill-extension",
+      "order": 1,
+      "title": "本地文件夹与默认解析器",
+      "description": "选择包含 SKILL.md 的文件夹，确认后查看应用收到的定义。",
+      "entry": "skill-import-form/local-import.vue",
+      "files": [
+        {
+          "path": "skill-import-form/local-import.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/skill-import-form/local-import.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/skill-extension#demo-3",
+      "pageId": "components/skill-extension",
+      "pageRoute": "/components/skill-extension",
+      "order": 2,
+      "title": "解析状态与重试",
+      "description": "控制本地解析结果，观察加载、错误、成功以及重试路径。",
+      "entry": "skill-import-form/resolver-states.vue",
+      "files": [
+        {
+          "path": "skill-import-form/resolver-states.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/skill-import-form/resolver-states.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/skill-extension#demo-4",
+      "pageId": "components/skill-extension",
+      "pageRoute": "/components/skill-extension",
+      "order": 3,
+      "title": "展示 Skill 定义",
+      "description": "切换 SKILL.md 与资源文件页签，查看只读正文、资源路径和大小。",
+      "entry": "skill-extension-detail/basic.vue",
+      "files": [
+        {
+          "path": "skill-extension-detail/basic.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/skill-extension-detail/basic.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/suggestion-pills#demo-1",
+      "pageId": "components/suggestion-pills",
+      "pageRoute": "/components/suggestion-pills",
+      "order": 0,
+      "title": null,
+      "description": null,
+      "entry": "suggestion/pills-popper.vue",
+      "files": [
+        {
+          "path": "suggestion/pills-popper.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/suggestion/pills-popper.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/suggestion-popover#demo-1",
+      "pageId": "components/suggestion-popover",
+      "pageRoute": "/components/suggestion-popover",
+      "order": 0,
+      "title": null,
+      "description": null,
+      "entry": "suggestion/popover-basic.vue",
+      "files": [
+        {
+          "path": "suggestion/popover-basic.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/suggestion/popover-basic.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/suggestion-popover#demo-2",
+      "pageId": "components/suggestion-popover",
+      "pageRoute": "/components/suggestion-popover",
+      "order": 1,
+      "title": null,
+      "description": null,
+      "entry": "suggestion/popover-trigger.vue",
+      "files": [
+        {
+          "path": "suggestion/popover-trigger.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/suggestion/popover-trigger.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/suggestion-popover#demo-3",
+      "pageId": "components/suggestion-popover",
+      "pageRoute": "/components/suggestion-popover",
+      "order": 2,
+      "title": null,
+      "description": null,
+      "entry": "suggestion/popover-grouped.vue",
+      "files": [
+        {
+          "path": "suggestion/popover-grouped.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/suggestion/popover-grouped.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/suggestion-popover#demo-4",
+      "pageId": "components/suggestion-popover",
+      "pageRoute": "/components/suggestion-popover",
+      "order": 3,
+      "title": null,
+      "description": null,
+      "entry": "suggestion/popover-custom-item.vue",
+      "files": [
+        {
+          "path": "suggestion/popover-custom-item.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/suggestion/popover-custom-item.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/suggestion-popover#demo-5",
+      "pageId": "components/suggestion-popover",
+      "pageRoute": "/components/suggestion-popover",
+      "order": 4,
+      "title": null,
+      "description": null,
+      "entry": "suggestion/popover-other-status.vue",
+      "files": [
+        {
+          "path": "suggestion/popover-other-status.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/suggestion/popover-other-status.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/suggestion-popover#demo-6",
+      "pageId": "components/suggestion-popover",
+      "pageRoute": "/components/suggestion-popover",
+      "order": 5,
+      "title": null,
+      "description": null,
+      "entry": "suggestion/popover-slots.vue",
+      "files": [
+        {
+          "path": "suggestion/popover-slots.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/suggestion/popover-slots.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/theme#demo-1",
+      "pageId": "components/theme",
+      "pageRoute": "/components/theme",
+      "order": 0,
+      "title": null,
+      "description": null,
+      "entry": "theme-provider/Theme.vue",
+      "files": [
+        {
+          "path": "theme-provider/Theme.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/theme-provider/Theme.vue"
+        },
+        {
+          "path": "theme-provider/ThemeComp.vue",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/theme-provider/ThemeComp.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/theme#demo-2",
+      "pageId": "components/theme",
+      "pageRoute": "/components/theme",
+      "order": 1,
+      "title": null,
+      "description": null,
+      "entry": "theme-provider/ColorMode.vue",
+      "files": [
+        {
+          "path": "theme-provider/ColorMode.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/theme-provider/ColorMode.vue"
+        },
+        {
+          "path": "theme-provider/ColorModeComp.vue",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/theme-provider/ColorModeComp.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/theme#demo-3",
+      "pageId": "components/theme",
+      "pageRoute": "/components/theme",
+      "order": 2,
+      "title": null,
+      "description": null,
+      "entry": "theme-provider/NestedTheme.vue",
+      "files": [
+        {
+          "path": "theme-provider/NestedTheme.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/theme-provider/NestedTheme.vue"
+        },
+        {
+          "path": "theme-provider/ThemeComp.vue",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/theme-provider/ThemeComp.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/theme#demo-4",
+      "pageId": "components/theme",
+      "pageRoute": "/components/theme",
+      "order": 3,
+      "title": null,
+      "description": null,
+      "entry": "theme-provider/Storage.vue",
+      "files": [
+        {
+          "path": "theme-provider/Storage.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/theme-provider/Storage.vue"
+        },
+        {
+          "path": "theme-provider/StorageComp.vue",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/theme-provider/StorageComp.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/welcome#demo-1",
+      "pageId": "components/welcome",
+      "pageRoute": "/components/welcome",
+      "order": 0,
+      "title": null,
+      "description": null,
+      "entry": "welcome/basic.vue",
+      "files": [
+        {
+          "path": "welcome/basic.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/welcome/basic.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/welcome#demo-2",
+      "pageId": "components/welcome",
+      "pageRoute": "/components/welcome",
+      "order": 1,
+      "title": null,
+      "description": null,
+      "entry": "welcome/align.vue",
+      "files": [
+        {
+          "path": "welcome/align.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/welcome/align.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "components/welcome#demo-3",
+      "pageId": "components/welcome",
+      "pageRoute": "/components/welcome",
+      "order": 2,
+      "title": null,
+      "description": null,
+      "entry": "welcome/footer.vue",
+      "files": [
+        {
+          "path": "welcome/footer.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/welcome/footer.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "examples/assistant#demo-1",
+      "pageId": "examples/assistant",
+      "pageRoute": "/examples/assistant",
+      "order": 0,
+      "title": null,
+      "description": null,
+      "entry": "examples/AssistantPageExample.vue",
+      "files": [
+        {
+          "path": "examples/AssistantPageExample.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/examples/AssistantPageExample.vue"
+        },
+        {
+          "path": "examples/responseProvider.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/examples/responseProvider.ts"
+        },
+        {
+          "path": "examples/assistantConstants.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/examples/assistantConstants.ts"
+        },
+        {
+          "path": "examples/mockMcp.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/examples/mockMcp.ts"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "examples/assistant#demo-2",
+      "pageId": "examples/assistant",
+      "pageRoute": "/examples/assistant",
+      "order": 1,
+      "title": null,
+      "description": null,
+      "entry": "examples/AssistantContainerExample.vue",
+      "files": [
+        {
+          "path": "examples/AssistantContainerExample.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/examples/AssistantContainerExample.vue"
+        },
+        {
+          "path": "examples/responseProvider.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/examples/responseProvider.ts"
+        },
+        {
+          "path": "examples/assistantConstants.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/examples/assistantConstants.ts"
+        },
+        {
+          "path": "examples/mockMcp.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/examples/mockMcp.ts"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "examples/chat-deepseek#demo-1",
+      "pageId": "examples/chat-deepseek",
+      "pageRoute": "/examples/chat-deepseek",
+      "order": 0,
+      "title": null,
+      "description": null,
+      "entry": "chat/deepseek/Demo.vue",
+      "files": [
+        {
+          "path": "chat/deepseek/Demo.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/deepseek/Demo.vue"
+        },
+        {
+          "path": "chat/ChatDemoShell.vue",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/ChatDemoShell.vue"
+        },
+        {
+          "path": "chat/deepseek/DeepSeekCase.vue",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/deepseek/DeepSeekCase.vue"
+        },
+        {
+          "path": "chat/deepseek/DeepSeekHeader.vue",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/deepseek/DeepSeekHeader.vue"
+        },
+        {
+          "path": "chat/deepseek/icons/deepseek-mark.svg",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/deepseek/icons/deepseek-mark.svg"
+        },
+        {
+          "path": "chat/deepseek/icons/deepseek-wordmark.svg",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/deepseek/icons/deepseek-wordmark.svg"
+        },
+        {
+          "path": "chat/deepseek/icons/new-chat.svg",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/deepseek/icons/new-chat.svg"
+        },
+        {
+          "path": "chat/deepseek/icons/search.svg",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/deepseek/icons/search.svg"
+        },
+        {
+          "path": "chat/deepseek/icons/sidebar-toggle.svg",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/deepseek/icons/sidebar-toggle.svg"
+        },
+        {
+          "path": "chat/deepseek/config.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/deepseek/config.ts"
+        },
+        {
+          "path": "chat/shared/createChatRuntime.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/shared/createChatRuntime.ts"
+        },
+        {
+          "path": "chat/shared/mockConversationStorage.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/shared/mockConversationStorage.ts"
+        },
+        {
+          "path": "chat/shared/modelProviders.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/shared/modelProviders.ts"
+        },
+        {
+          "path": "chat/shared/base.css",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/shared/base.css"
+        }
+      ],
+      "playground": false
+    },
+    {
+      "id": "examples/chat-doubao#demo-1",
+      "pageId": "examples/chat-doubao",
+      "pageRoute": "/examples/chat-doubao",
+      "order": 0,
+      "title": null,
+      "description": null,
+      "entry": "chat/doubao/Demo.vue",
+      "files": [
+        {
+          "path": "chat/doubao/Demo.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/doubao/Demo.vue"
+        },
+        {
+          "path": "chat/ChatDemoShell.vue",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/ChatDemoShell.vue"
+        },
+        {
+          "path": "chat/doubao/DouBaoCase.vue",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/doubao/DouBaoCase.vue"
+        },
+        {
+          "path": "chat/doubao/DouBaoIcon.vue",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/doubao/DouBaoIcon.vue"
+        },
+        {
+          "path": "chat/doubao/DouBaoHeader.vue",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/doubao/DouBaoHeader.vue"
+        },
+        {
+          "path": "chat/doubao/DouBaoSidebar.vue",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/doubao/DouBaoSidebar.vue"
+        },
+        {
+          "path": "chat/doubao/config.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/doubao/config.ts"
+        },
+        {
+          "path": "chat/doubao/runtime.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/doubao/runtime.ts"
+        },
+        {
+          "path": "chat/shared/base.css",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/shared/base.css"
+        }
+      ],
+      "playground": false
+    },
+    {
+      "id": "examples/chat-gemini#demo-1",
+      "pageId": "examples/chat-gemini",
+      "pageRoute": "/examples/chat-gemini",
+      "order": 0,
+      "title": null,
+      "description": null,
+      "entry": "chat/gemini/Demo.vue",
+      "files": [
+        {
+          "path": "chat/gemini/Demo.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/gemini/Demo.vue"
+        },
+        {
+          "path": "chat/ChatDemoShell.vue",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/ChatDemoShell.vue"
+        },
+        {
+          "path": "chat/gemini/GeminiCase.vue",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/gemini/GeminiCase.vue"
+        },
+        {
+          "path": "chat/gemini/GeminiComposer.vue",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/gemini/GeminiComposer.vue"
+        },
+        {
+          "path": "chat/gemini/GeminiHeader.vue",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/gemini/GeminiHeader.vue"
+        },
+        {
+          "path": "chat/gemini/GeminiRail.vue",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/gemini/GeminiRail.vue"
+        },
+        {
+          "path": "chat/gemini/icons/gemini-mask.svg",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/gemini/icons/gemini-mask.svg"
+        },
+        {
+          "path": "chat/gemini/config.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/gemini/config.ts"
+        },
+        {
+          "path": "chat/shared/createChatRuntime.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/shared/createChatRuntime.ts"
+        },
+        {
+          "path": "chat/shared/mockConversationStorage.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/shared/mockConversationStorage.ts"
+        },
+        {
+          "path": "chat/shared/modelProviders.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/shared/modelProviders.ts"
+        },
+        {
+          "path": "chat/shared/base.css",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/shared/base.css"
+        }
+      ],
+      "playground": false
+    },
+    {
+      "id": "examples/chat-tiny-robot#demo-1",
+      "pageId": "examples/chat-tiny-robot",
+      "pageRoute": "/examples/chat-tiny-robot",
+      "order": 0,
+      "title": null,
+      "description": null,
+      "entry": "chat/tiny-robot/Demo.vue",
+      "files": [
+        {
+          "path": "chat/tiny-robot/Demo.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/tiny-robot/Demo.vue"
+        },
+        {
+          "path": "chat/ChatDemoShell.vue",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/ChatDemoShell.vue"
+        },
+        {
+          "path": "chat/tiny-robot/TinyRobotChat.vue",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/tiny-robot/TinyRobotChat.vue"
+        },
+        {
+          "path": "chat/tiny-robot/index.css",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/tiny-robot/index.css"
+        },
+        {
+          "path": "chat/tiny-robot/ComposerTools.vue",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/tiny-robot/ComposerTools.vue"
+        },
+        {
+          "path": "chat/tiny-robot/WindowHeader.vue",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/tiny-robot/WindowHeader.vue"
+        },
+        {
+          "path": "chat/tiny-robot/useWindow.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/tiny-robot/useWindow.ts"
+        },
+        {
+          "path": "chat/tiny-robot/chat-runtime.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/tiny-robot/chat-runtime.ts"
+        },
+        {
+          "path": "chat/tiny-robot/chat-ui.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/tiny-robot/chat-ui.ts"
+        },
+        {
+          "path": "chat/shared/modelProviders.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/shared/modelProviders.ts"
+        },
+        {
+          "path": "chat/shared/base.css",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/shared/base.css"
+        }
+      ],
+      "playground": false
+    },
+    {
+      "id": "examples/chat-worker-helper#demo-1",
+      "pageId": "examples/chat-worker-helper",
+      "pageRoute": "/examples/chat-worker-helper",
+      "order": 0,
+      "title": null,
+      "description": null,
+      "entry": "chat/worker-helper/Demo.vue",
+      "files": [
+        {
+          "path": "chat/worker-helper/Demo.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/worker-helper/Demo.vue"
+        },
+        {
+          "path": "chat/ChatDemoShell.vue",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/ChatDemoShell.vue"
+        },
+        {
+          "path": "chat/worker-helper/WorkHelperCase.vue",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/worker-helper/WorkHelperCase.vue"
+        },
+        {
+          "path": "chat/shared/createChatRuntime.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/shared/createChatRuntime.ts"
+        },
+        {
+          "path": "chat/shared/mockConversationStorage.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/shared/mockConversationStorage.ts"
+        },
+        {
+          "path": "chat/shared/modelProviders.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/shared/modelProviders.ts"
+        },
+        {
+          "path": "chat/shared/base.css",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/shared/base.css"
+        }
+      ],
+      "playground": false
+    },
+    {
+      "id": "icons#demo-1",
+      "pageId": "icons",
+      "pageRoute": "/icons/",
+      "order": 0,
+      "title": null,
+      "description": null,
+      "entry": "icons/DirectRender.vue",
+      "files": [
+        {
+          "path": "icons/DirectRender.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/icons/DirectRender.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "icons#demo-2",
+      "pageId": "icons",
+      "pageRoute": "/icons/",
+      "order": 1,
+      "title": null,
+      "description": null,
+      "entry": "icons/PropsUsage.vue",
+      "files": [
+        {
+          "path": "icons/PropsUsage.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/icons/PropsUsage.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "icons#demo-3",
+      "pageId": "icons",
+      "pageRoute": "/icons/",
+      "order": 2,
+      "title": null,
+      "description": null,
+      "entry": "icons/VNodeUsage.vue",
+      "files": [
+        {
+          "path": "icons/VNodeUsage.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/icons/VNodeUsage.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "icons#demo-4",
+      "pageId": "icons",
+      "pageRoute": "/icons/",
+      "order": 3,
+      "title": null,
+      "description": null,
+      "entry": "icons/IconGallery.vue",
+      "files": [
+        {
+          "path": "icons/IconGallery.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/icons/IconGallery.vue"
+        },
+        {
+          "path": "icons/iconMeta.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/icons/iconMeta.ts"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "suites/chat-runtime#demo-1",
+      "pageId": "suites/chat-runtime",
+      "pageRoute": "/suites/chat-runtime",
+      "order": 0,
+      "title": "通过外部按钮发送与取消",
+      "description": "点击外部按钮发送预设问题，在回答生成过程中停止请求。",
+      "entry": "chat/runtime-actions.vue",
+      "files": [
+        {
+          "path": "chat/runtime-actions.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/runtime-actions.vue"
+        },
+        {
+          "path": "chat/shared/modelProviders.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/shared/modelProviders.ts"
+        },
+        {
+          "path": "chat/shared/runtime-demo.css",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/shared/runtime-demo.css"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "suites/chat-runtime#demo-2",
+      "pageId": "suites/chat-runtime",
+      "pageRoute": "/suites/chat-runtime",
+      "order": 1,
+      "title": "发送前检查登录状态",
+      "description": "切换“已登录”开关，比较阻止发送与正常发送；不执行真实登录。",
+      "entry": "chat/runtime-before-send.vue",
+      "files": [
+        {
+          "path": "chat/runtime-before-send.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/runtime-before-send.vue"
+        },
+        {
+          "path": "chat/shared/modelProviders.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/shared/modelProviders.ts"
+        },
+        {
+          "path": "chat/shared/runtime-demo.css",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/shared/runtime-demo.css"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "suites/chat-runtime#demo-3",
+      "pageId": "suites/chat-runtime",
+      "pageRoute": "/suites/chat-runtime",
+      "order": 2,
+      "title": "禁用输入区与仅禁用提交",
+      "description": "点击“填入预设问题”，切换禁用状态，比较输入编辑和发送按钮的变化。",
+      "entry": "chat/runtime-composer.vue",
+      "files": [
+        {
+          "path": "chat/runtime-composer.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/runtime-composer.vue"
+        },
+        {
+          "path": "chat/shared/modelProviders.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/shared/modelProviders.ts"
+        },
+        {
+          "path": "chat/shared/runtime-demo.css",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/shared/runtime-demo.css"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "suites/chat-runtime#demo-4",
+      "pageId": "suites/chat-runtime",
+      "pageRoute": "/suites/chat-runtime",
+      "order": 3,
+      "title": "使用内置历史列表管理会话",
+      "description": "在历史列表中切换、重命名和删除会话，对比两种新建方式。会话保存在浏览器中，刷新后保留。",
+      "entry": "chat/runtime-conversations.vue",
+      "files": [
+        {
+          "path": "chat/runtime-conversations.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/runtime-conversations.vue"
+        },
+        {
+          "path": "chat/shared/modelProviders.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/shared/modelProviders.ts"
+        },
+        {
+          "path": "chat/shared/mockConversationStorage.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/shared/mockConversationStorage.ts"
+        },
+        {
+          "path": "chat/shared/runtime-demo.css",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/shared/runtime-demo.css"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "suites/chat-runtime#demo-5",
+      "pageId": "suites/chat-runtime",
+      "pageRoute": "/suites/chat-runtime",
+      "order": 4,
+      "title": "默认发送与自定义发送",
+      "description": "比较两种发送方式对空文本的处理。示例仅展示这一差异，不包含实际请求和消息保存。",
+      "entry": "chat/runtime-send.vue",
+      "files": [
+        {
+          "path": "chat/runtime-send.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/runtime-send.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "suites/chat-runtime#demo-6",
+      "pageId": "suites/chat-runtime",
+      "pageRoute": "/suites/chat-runtime",
+      "order": 5,
+      "title": "在 TrChatUI 中复用 Runtime",
+      "description": "展示输入、发送及会话切换、重命名、删除的绑定方式。",
+      "entry": "chat/runtime-adapter.vue",
+      "files": [
+        {
+          "path": "chat/runtime-adapter.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/runtime-adapter.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "suites/chat#demo-1",
+      "pageId": "suites/chat",
+      "pageRoute": "/suites/chat",
+      "order": 0,
+      "title": "基础布局",
+      "description": "切换布局，查看侧栏宽度、展开和隐藏，以及空会话输入区的位置变化。",
+      "entry": "chat/layout-presets.vue",
+      "files": [
+        {
+          "path": "chat/layout-presets.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/layout-presets.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "suites/chat#demo-2",
+      "pageId": "suites/chat",
+      "pageRoute": "/suites/chat",
+      "order": 1,
+      "title": "欢迎区和推荐问题",
+      "description": "切换欢迎区和推荐问题的显示，点击问题填入输入框，编辑后发送并查看模拟回答。",
+      "entry": "chat/welcome-prompts.vue",
+      "files": [
+        {
+          "path": "chat/welcome-prompts.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/welcome-prompts.vue"
+        },
+        {
+          "path": "chat/shared/createChatRuntime.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/shared/createChatRuntime.ts"
+        },
+        {
+          "path": "chat/shared/mockConversationStorage.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/shared/mockConversationStorage.ts"
+        },
+        {
+          "path": "chat/shared/modelProviders.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/shared/modelProviders.ts"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "suites/chat#demo-3",
+      "pageId": "suites/chat",
+      "pageRoute": "/suites/chat",
+      "order": 2,
+      "title": "输入扩展与自定义按钮",
+      "description": "输入 @ 选择对象，使用报告模板和常用问题按钮填入内容，编辑后发送；点击“使用说明”查看操作提示。",
+      "entry": "chat/sender-options.vue",
+      "files": [
+        {
+          "path": "chat/sender-options.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/sender-options.vue"
+        },
+        {
+          "path": "chat/shared/createChatRuntime.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/shared/createChatRuntime.ts"
+        },
+        {
+          "path": "chat/shared/mockConversationStorage.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/shared/mockConversationStorage.ts"
+        },
+        {
+          "path": "chat/shared/modelProviders.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/shared/modelProviders.ts"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "suites/chat#demo-4",
+      "pageId": "suites/chat",
+      "pageRoute": "/suites/chat",
+      "order": 3,
+      "title": "按角色定制消息外观",
+      "description": "切换默认和自定义外观，比较用户与 AI 消息的头像和气泡形状；预设回答包含 Markdown 内容。",
+      "entry": "chat/bubble-options.vue",
+      "files": [
+        {
+          "path": "chat/bubble-options.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/bubble-options.vue"
+        },
+        {
+          "path": "chat/shared/createChatRuntime.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/shared/createChatRuntime.ts"
+        },
+        {
+          "path": "chat/shared/mockConversationStorage.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/shared/mockConversationStorage.ts"
+        },
+        {
+          "path": "chat/shared/modelProviders.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/shared/modelProviders.ts"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "suites/chat#demo-5",
+      "pageId": "suites/chat",
+      "pageRoute": "/suites/chat",
+      "order": 4,
+      "title": "请求失败提示",
+      "description": "发送包含“失败”的内容查看默认错误提示，发送其他内容查看正常回复。",
+      "entry": "chat/runtime-error.vue",
+      "files": [
+        {
+          "path": "chat/runtime-error.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/runtime-error.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "suites/chat#demo-6",
+      "pageId": "suites/chat",
+      "pageRoute": "/suites/chat",
+      "order": 5,
+      "title": "自定义历史会话分组",
+      "description": "查看预设分组和选中样式，切换、重命名或删除会话；新建会话并发送消息后，查看列表更新。",
+      "entry": "chat/history-groups.vue",
+      "files": [
+        {
+          "path": "chat/history-groups.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/history-groups.vue"
+        },
+        {
+          "path": "chat/shared/createChatRuntime.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/shared/createChatRuntime.ts"
+        },
+        {
+          "path": "chat/shared/mockConversationStorage.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/shared/mockConversationStorage.ts"
+        },
+        {
+          "path": "chat/shared/modelProviders.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/shared/modelProviders.ts"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "suites/chat#demo-7",
+      "pageId": "suites/chat",
+      "pageRoute": "/suites/chat",
+      "order": 6,
+      "title": "插槽定制",
+      "description": "通过自定义页头展开会话列表或返回新会话页面，点击 AI 回答下的“有帮助”按钮，并查看输入框外下方的提示文字。",
+      "entry": "chat/slots-basic.vue",
+      "files": [
+        {
+          "path": "chat/slots-basic.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/slots-basic.vue"
+        },
+        {
+          "path": "chat/shared/modelProviders.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/shared/modelProviders.ts"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "suites/chat#demo-8",
+      "pageId": "suites/chat",
+      "pageRoute": "/suites/chat",
+      "order": 7,
+      "title": "右侧资料与预览面板",
+      "description": "点击消息操作，打开发布方案预览或引用资料。",
+      "entry": "chat/right-aside-panel.vue",
+      "files": [
+        {
+          "path": "chat/right-aside-panel.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/right-aside-panel.vue"
+        },
+        {
+          "path": "chat/business-right-aside.vue",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/business-right-aside.vue"
+        },
+        {
+          "path": "chat/release-preview.html",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/release-preview.html"
+        },
+        {
+          "path": "chat/shared/modelProviders.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/shared/modelProviders.ts"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "suites/chat#demo-9",
+      "pageId": "suites/chat",
+      "pageRoute": "/suites/chat",
+      "order": 8,
+      "title": "浮动聊天窗口",
+      "description": "打开聊天窗口，拖动或缩放后查看位置和尺寸变化。",
+      "entry": "chat/floating-layout.vue",
+      "files": [
+        {
+          "path": "chat/floating-layout.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/floating-layout.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "suites/chat#demo-10",
+      "pageId": "suites/chat",
+      "pageRoute": "/suites/chat",
+      "order": 9,
+      "title": "桌面与移动端布局",
+      "description": "切换布局，查看侧栏的显示和开闭效果，以及桌面布局下的宽度调整。",
+      "entry": "chat/responsive-layout.vue",
+      "files": [
+        {
+          "path": "chat/responsive-layout.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/responsive-layout.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "suites/chat#demo-11",
+      "pageId": "suites/chat",
+      "pageRoute": "/suites/chat",
+      "order": 10,
+      "title": "处理发送与取消",
+      "description": "使用本地模拟回答，展示消息更新、发送中状态和取消操作，不连接真实服务或保存会话。",
+      "entry": "chat/controlled-ui.vue",
+      "files": [
+        {
+          "path": "chat/controlled-ui.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/controlled-ui.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "suites/quick-start#demo-1",
+      "pageId": "suites/quick-start",
+      "pageRoute": "/suites/quick-start",
+      "order": 0,
+      "title": "完整聊天页面",
+      "description": "输入消息并发送，查看模拟服务返回的回答。",
+      "entry": "chat/basic.vue",
+      "files": [
+        {
+          "path": "chat/basic.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/chat/basic.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "tools/ai-client#demo-1",
+      "pageId": "tools/ai-client",
+      "pageRoute": "/tools/ai-client",
+      "order": 0,
+      "title": null,
+      "description": null,
+      "entry": "tools/client/Basic.vue",
+      "files": [
+        {
+          "path": "tools/client/Basic.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/tools/client/Basic.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "tools/ai-client#demo-2",
+      "pageId": "tools/ai-client",
+      "pageRoute": "/tools/ai-client",
+      "order": 1,
+      "title": null,
+      "description": null,
+      "entry": "tools/client/Stream.vue",
+      "files": [
+        {
+          "path": "tools/client/Stream.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/tools/client/Stream.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "tools/conversation#demo-1",
+      "pageId": "tools/conversation",
+      "pageRoute": "/tools/conversation",
+      "order": 0,
+      "title": "多会话管理",
+      "description": "使用本地 mock 演示会话切换、创建、删除和独立消息引擎。",
+      "entry": "tools/conversation/Basic.vue",
+      "files": [
+        {
+          "path": "tools/conversation/Basic.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/tools/conversation/Basic.vue"
+        },
+        {
+          "path": "tools/conversation/mockResponseProvider.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/tools/conversation/mockResponseProvider.ts"
+        },
+        {
+          "path": "tools/conversation/mockStorageStrategy.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/tools/conversation/mockStorageStrategy.ts"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "tools/conversation#demo-2",
+      "pageId": "tools/conversation",
+      "pageRoute": "/tools/conversation",
+      "order": 1,
+      "title": "LocalStorage 持久化",
+      "description": "在浏览器本地保存会话和消息，刷新页面后仍可恢复。",
+      "entry": "tools/conversation/LocalStorage.vue",
+      "files": [
+        {
+          "path": "tools/conversation/LocalStorage.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/tools/conversation/LocalStorage.vue"
+        },
+        {
+          "path": "tools/conversation/mockResponseProvider.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/tools/conversation/mockResponseProvider.ts"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "tools/conversation#demo-3",
+      "pageId": "tools/conversation",
+      "pageRoute": "/tools/conversation",
+      "order": 2,
+      "title": "IndexedDB 持久化",
+      "description": "使用 IndexedDB 保存容量较大的会话数据。",
+      "entry": "tools/conversation/IndexedDB.vue",
+      "files": [
+        {
+          "path": "tools/conversation/IndexedDB.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/tools/conversation/IndexedDB.vue"
+        },
+        {
+          "path": "tools/conversation/mockResponseProvider.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/tools/conversation/mockResponseProvider.ts"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "tools/conversation#demo-4",
+      "pageId": "tools/conversation",
+      "pageRoute": "/tools/conversation",
+      "order": 3,
+      "title": "自定义存储策略",
+      "description": "使用内存实现展示存储接口；刷新页面后数据会丢失。",
+      "entry": "tools/storage/Custom.vue",
+      "files": [
+        {
+          "path": "tools/storage/Custom.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/tools/storage/Custom.vue"
+        },
+        {
+          "path": "tools/storage/mockResponseProvider.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/tools/storage/mockResponseProvider.ts"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "tools/message#demo-1",
+      "pageId": "tools/message",
+      "pageRoute": "/tools/message",
+      "order": 0,
+      "title": "基础流式消息",
+      "description": "使用本地模拟响应展示发送、增量更新和取消。",
+      "entry": "tools/message/MockStream.vue",
+      "files": [
+        {
+          "path": "tools/message/MockStream.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/tools/message/MockStream.ts"
+        },
+        {
+          "path": "tools/message/MockStream.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/tools/message/MockStream.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "tools/message#demo-2",
+      "pageId": "tools/message",
+      "pageRoute": "/tools/message",
+      "order": 1,
+      "title": "接入 SSE 服务",
+      "description": "通过站点 API 获取流式响应；部署时需要提供对应的服务端接口。",
+      "entry": "tools/message/Basic.vue",
+      "files": [
+        {
+          "path": "tools/message/Basic.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/tools/message/Basic.ts"
+        },
+        {
+          "path": "tools/message/Basic.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/tools/message/Basic.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "tools/message#demo-3",
+      "pageId": "tools/message",
+      "pageRoute": "/tools/message",
+      "order": 2,
+      "title": "非流式响应",
+      "description": "等待完整响应后一次性更新助手消息。",
+      "entry": "tools/message/NonStreaming.vue",
+      "files": [
+        {
+          "path": "tools/message/NonStreaming.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/tools/message/NonStreaming.ts"
+        },
+        {
+          "path": "tools/message/NonStreaming.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/tools/message/NonStreaming.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "tools/message#demo-4",
+      "pageId": "tools/message",
+      "pageRoute": "/tools/message",
+      "order": 3,
+      "title": "请求状态",
+      "description": "观察请求、响应合并、完成和取消阶段。",
+      "entry": "tools/message/RequestState.vue",
+      "files": [
+        {
+          "path": "tools/message/RequestState.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/tools/message/RequestState.ts"
+        },
+        {
+          "path": "tools/message/RequestState.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/tools/message/RequestState.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "tools/message#demo-5",
+      "pageId": "tools/message",
+      "pageRoute": "/tools/message",
+      "order": 4,
+      "title": "错误处理",
+      "description": "通过 onError 把请求失败转成对话内可见反馈。",
+      "entry": "tools/message/ErrorHandling.vue",
+      "files": [
+        {
+          "path": "tools/message/ErrorHandling.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/tools/message/ErrorHandling.ts"
+        },
+        {
+          "path": "tools/message/ErrorHandling.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/tools/message/ErrorHandling.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "tools/message#demo-6",
+      "pageId": "tools/message",
+      "pageRoute": "/tools/message",
+      "order": 5,
+      "title": "修改请求参数",
+      "description": "在请求前注入额外消息与参数。",
+      "entry": "tools/message/OnBeforeRequest.vue",
+      "files": [
+        {
+          "path": "tools/message/OnBeforeRequest.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/tools/message/OnBeforeRequest.ts"
+        },
+        {
+          "path": "tools/message/OnBeforeRequest.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/tools/message/OnBeforeRequest.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "tools/message#demo-7",
+      "pageId": "tools/message",
+      "pageRoute": "/tools/message",
+      "order": 6,
+      "title": "自定义响应块处理",
+      "description": "统计响应块，并继续执行默认消息合并。",
+      "entry": "tools/message/CustomChunk.vue",
+      "files": [
+        {
+          "path": "tools/message/CustomChunk.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/tools/message/CustomChunk.ts"
+        },
+        {
+          "path": "tools/message/CustomChunk.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/tools/message/CustomChunk.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "tools/message#demo-8",
+      "pageId": "tools/message",
+      "pageRoute": "/tools/message",
+      "order": 7,
+      "title": "工具调用",
+      "description": "使用本地模拟工具完成声明、执行和结果回传。",
+      "entry": "tools/message/ToolCall.vue",
+      "files": [
+        {
+          "path": "tools/message/ToolCall.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/tools/message/ToolCall.ts"
+        },
+        {
+          "path": "tools/message/ToolCall.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/tools/message/ToolCall.vue"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "tools/skill#demo-1",
+      "pageId": "tools/skill",
+      "pageRoute": "/tools/skill",
+      "order": 0,
+      "title": null,
+      "description": null,
+      "entry": "tools/skill/VueSkillPlugin.vue",
+      "files": [
+        {
+          "path": "tools/skill/VueSkillPlugin.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/tools/skill/VueSkillPlugin.vue"
+        },
+        {
+          "path": "tools/skill/VueSkillPlugin.css",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/tools/skill/VueSkillPlugin.css"
+        }
+      ],
+      "playground": true
+    },
+    {
+      "id": "tools/skill#demo-2",
+      "pageId": "tools/skill",
+      "pageRoute": "/tools/skill",
+      "order": 1,
+      "title": null,
+      "description": null,
+      "entry": "tools/skill/SkillInspector.vue",
+      "files": [
+        {
+          "path": "tools/skill/SkillInspector.vue",
+          "role": "entry",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/tools/skill/SkillInspector.vue"
+        },
+        {
+          "path": "tools/skill/useSkillInspector.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/tools/skill/useSkillInspector.ts"
+        },
+        {
+          "path": "tools/skill/exampleSkillFiles.ts",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/tools/skill/exampleSkillFiles.ts"
+        },
+        {
+          "path": "tools/skill/SkillInspector.css",
+          "role": "dependency",
+          "url": "https://sonyleo.github.io/tiny-robot/beta/demos/tools/skill/SkillInspector.css"
+        }
+      ],
+      "playground": true
+    }
+  ]
+}

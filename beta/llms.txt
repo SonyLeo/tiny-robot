@@ -1,0 +1,59 @@
+# TinyRobot Documentation
+
+> AI-readable documentation index.
+
+- [在应用中管理 MCP 与 Skill 扩展](https://sonyleo.github.io/tiny-robot/beta/best-practices/extension-manager-integration): 展示如何在应用中组合 ExtensionManager、MCP 与 Skill 组件管理扩展目录、导入、启用和卸载流程。
+- [Anchor 锚点](https://sonyleo.github.io/tiny-robot/beta/components/anchor): 用于长内容区域和长对话场景的目录导航，支持与 BubbleList 或自定义滚动容器配合使用。
+- [Attachments 附件卡片](https://sonyleo.github.io/tiny-robot/beta/components/attachments): 用于展示文件列表，支持图片预览、文件下载和文件状态等交互。
+- [Bubble 气泡组件](https://sonyleo.github.io/tiny-robot/beta/components/bubble): 用于展示单条消息或消息列表，支持文本、图片、Markdown 和 AI 流式内容渲染。
+- [Container 容器](https://sonyleo.github.io/tiny-robot/beta/components/container): 兼容旧版本的全屏容器组件；新布局请使用 Layout。
+- [DragOverlay 拖拽浮层](https://sonyleo.github.io/tiny-robot/beta/components/drag-overlay): 提供拖拽上传能力，由 v-dropzone 指令和拖拽浮层组件协同工作。
+- [DropdownMenu 下拉菜单](https://sonyleo.github.io/tiny-robot/beta/components/dropdown-menu): 为 SuggestionPills 等场景提供下拉菜单展示和选择能力。
+- [ExtensionManager 扩展管理组件](https://sonyleo.github.io/tiny-robot/beta/components/extension-manager): 用于浏览和管理 Extension，提供标签页、筛选、分区和展开状态管理。
+- [Feedback 气泡反馈](https://sonyleo.github.io/tiny-robot/beta/components/feedback): 用于展示反馈气泡中的操作项和动作，并通过事件响应用户选择。
+- [History](https://sonyleo.github.io/tiny-robot/beta/components/history): 用于展示会话历史列表，支持分组数据、菜单项、图标和自定义插槽。
+- [Layout 布局](https://sonyleo.github.io/tiny-robot/beta/components/layout): 用于搭建聊天页、工作台和多面板操作界面的通用 AI 页面布局。
+- [McpAddForm 插件添加表单](https://sonyleo.github.io/tiny-robot/beta/components/mcp-add-form): 用于添加 MCP 插件，支持表单添加和代码添加两种方式。
+- [MCP 扩展添加与详情](https://sonyleo.github.io/tiny-robot/beta/components/mcp-extension): 提供 MCP 扩展配置表单和详情展示内容，支持表单与 JSON 输入。
+- [MCP Server Picker 插件选择器](https://sonyleo.github.io/tiny-robot/beta/components/mcp-server-picker): 用于展示和管理 MCP Server 的旧版插件选择组件，建议迁移到 ExtensionManager。
+- [ModelSelector 模型选择器](https://sonyleo.github.io/tiny-robot/beta/components/model-selector): 用于从一组 AI 模型中选择当前模型，支持搜索、分组、禁用和思考强度。
+- [Prompts 提示集组件](https://sonyleo.github.io/tiny-robot/beta/components/prompts): 用于展示提示列表，支持大小、禁用、徽章、换行和响应式布局。
+- [QuickAssist 智能帮助](https://sonyleo.github.io/tiny-robot/beta/components/quick-assist): 提供 QuickAssist 智能帮助组件的安装、引入和使用示例。
+- [SenderCompat 文档](https://sonyleo.github.io/tiny-robot/beta/components/sender-compat): 提供 SenderCompat 的兼容期用法和 API 参考，内容已合并到 Sender 迁移指南。
+- [Sender 消息输入框](https://sonyleo.github.io/tiny-robot/beta/components/sender): 面向聊天场景的可组合输入组件，负责文本编辑、提交和取消交互。
+- [Skill 扩展导入与详情](https://sonyleo.github.io/tiny-robot/beta/components/skill-extension): 提供 Skill 导入表单和详情展示内容，支持本地文件夹与 GitHub 导入。
+- [SuggestionPills 建议按钮组](https://sonyleo.github.io/tiny-robot/beta/components/suggestion-pills): 用于展示可点击的提示按钮组，支持插槽、自定义样式和禁用状态。
+- [SuggestionPopover 建议弹出框](https://sonyleo.github.io/tiny-robot/beta/components/suggestion-popover): 用于展示可触发的建议弹出框，支持点击、手动触发和分组数据。
+- [Theme](https://sonyleo.github.io/tiny-robot/beta/components/theme): 提供主题和颜色模式管理能力，支持 ThemeProvider、CSS 变量和嵌套主题。
+- [Welcome](https://sonyleo.github.io/tiny-robot/beta/components/welcome): 用于展示欢迎信息，支持标题、描述、图标、对齐方式和底部内容。
+- [综合示例](https://sonyleo.github.io/tiny-robot/beta/examples/assistant): 展示如何在 Vue 页面和悬浮容器中组合 TinyRobot 消息、输入、历史和会话能力。
+- [DeepSeek 聊天示例](https://sonyleo.github.io/tiny-robot/beta/examples/chat-deepseek): 展示基于 TinyRobot Chat 构建的 DeepSeek 风格聊天界面。
+- [豆包聊天示例](https://sonyleo.github.io/tiny-robot/beta/examples/chat-doubao): 展示基于 TinyRobot Chat 构建的豆包风格聊天界面。
+- [Gemini 聊天示例](https://sonyleo.github.io/tiny-robot/beta/examples/chat-gemini): 展示基于 TinyRobot Chat 构建的 Gemini 风格聊天界面。
+- [TinyRobot 聊天示例](https://sonyleo.github.io/tiny-robot/beta/examples/chat-tiny-robot): 展示使用 TinyRobot Chat 组件搭建的完整聊天窗口和交互界面。
+- [Worker Helper 聊天示例](https://sonyleo.github.io/tiny-robot/beta/examples/chat-worker-helper): 展示 Worker Helper 场景下的聊天界面和消息交互。
+- [CLI 接入](https://sonyleo.github.io/tiny-robot/beta/guide/cli-integration): 介绍 TinyRobot CLI 的安装方式，以及使用 create 和 add 命令创建或扩展 Vue 项目。
+- [版本标记使用指南](https://sonyleo.github.io/tiny-robot/beta/guide/plugin-badge): 介绍如何在 TinyRobot 文档 Markdown 和侧边栏中配置 API 版本标记。
+- [快速开始](https://sonyleo.github.io/tiny-robot/beta/guide/quick-start): 介绍 TinyRobot 的环境要求、安装方式和 Vue 应用快速接入步骤。
+- [主题配置](https://sonyleo.github.io/tiny-robot/beta/guide/theme-config): 介绍 TinyRobot 主题系统的核心概念、ThemeProvider 用法、自定义样式和持久化配置。
+- [更新日志](https://sonyleo.github.io/tiny-robot/beta/guide/update-log): 按版本记录 TinyRobot 的新特性、问题修复和优化改进。
+- [SVG 图标](https://sonyleo.github.io/tiny-robot/beta/icons/): 介绍 @opentiny/tiny-robot-svgs 图标包的安装方式和 SVG 图标组件使用方法。
+- [TinyRobot 文档首页](https://sonyleo.github.io/tiny-robot/beta/): TinyRobot AI 组件库文档首页，提供快速开始、组件说明和聊天示例入口。
+- [Bubble 迁移指南](https://sonyleo.github.io/tiny-robot/beta/migration/bubble-migration): 本页为旧版 Bubble 迁移入口，请按版本查看对应的 Bubble 迁移文档。
+- [迁移指南](https://sonyleo.github.io/tiny-robot/beta/migration/): 按版本整理 TinyRobot 组件和工具的迁移指南与 API 变更说明。
+- [useConversation 迁移指南](https://sonyleo.github.io/tiny-robot/beta/migration/use-conversation-migration): 本页为旧版 useConversation 迁移入口，请查看对应版本归档的迁移说明。
+- [useMessage 迁移指南](https://sonyleo.github.io/tiny-robot/beta/migration/use-message-migration): 本页为旧版 useMessage 迁移入口，请查看对应版本归档的迁移说明。
+- [Bubble 迁移指南](https://sonyleo.github.io/tiny-robot/beta/migration/v0.4/bubble): 说明如何将 v0.3.x Bubble 用法迁移到 v0.4.x，包括消息数据模型和组件 API 变化。
+- [Sender 迁移指南](https://sonyleo.github.io/tiny-robot/beta/migration/v0.4/sender): 说明如何从 v0.3.x SenderCompat 过渡到 v0.4 Sender，并逐步迁移输入组件 API。
+- [useConversation 迁移](https://sonyleo.github.io/tiny-robot/beta/migration/v0.4/use-conversation): 说明如何将 useConversation 从 v0.3.x 迁移到 v0.4.x 的会话引擎和存储策略。
+- [useMessage 迁移](https://sonyleo.github.io/tiny-robot/beta/migration/v0.4/use-message): 说明如何将 useMessage 从 v0.3.x 迁移到 v0.4.x 的 responseProvider 和请求状态模型。
+- [Container 迁移指南](https://sonyleo.github.io/tiny-robot/beta/migration/v1.0/container): 说明 Container 弃用后如何使用 Layout 替代页面、侧栏和浮层布局。
+- [McpServerPicker 迁移指南](https://sonyleo.github.io/tiny-robot/beta/migration/v1.0/mcp-server-picker): 说明 McpServerPicker 弃用后如何使用 ExtensionManager 管理扩展。
+- [数据与逻辑配置](https://sonyleo.github.io/tiny-robot/beta/suites/chat-runtime): 介绍 TrChat 的模型服务、消息发送、会话管理和 MCP 工具运行时配置。
+- [界面与交互配置](https://sonyleo.github.io/tiny-robot/beta/suites/chat): 介绍 TrChat 的布局、输入区、消息展示和交互配置，以及 TrChatUI 的单独使用方式。
+- [快速上手](https://sonyleo.github.io/tiny-robot/beta/suites/quick-start): 介绍 TrChat 聊天页面组件的安装、基础配置和 Vue 项目接入方式。
+- [AIClient 模型交互工具类](https://sonyleo.github.io/tiny-robot/beta/tools/ai-client): AIClient 是已废弃的模型交互兼容类；新项目建议使用 useMessage 与 responseProvider。
+- [useConversation 会话数据管理](https://sonyleo.github.io/tiny-robot/beta/tools/conversation): 管理多个会话的元数据、当前会话和各自的消息引擎，并支持加载与持久化。
+- [useMessage 消息数据管理](https://sonyleo.github.io/tiny-robot/beta/tools/message): 管理单个 AI 消息流，处理完整或流式响应、请求状态、取消和插件生命周期。
+- [Skill 技能接入](https://sonyleo.github.io/tiny-robot/beta/tools/skill): 介绍如何在 Vue 应用中选择和启用 Skill，并通过 skillPlugin 将 instructions 与资源接入请求。
+- [工具函数 Utils](https://sonyleo.github.io/tiny-robot/beta/tools/utils): 提供 SSE 流转换、消息格式化和响应文本提取等辅助函数。
