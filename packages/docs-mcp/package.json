@@ -1,0 +1,15 @@
+{
+  "name": "@opentiny/tiny-robot-docs-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Local read-only MCP server for TinyRobot documentation",
+  "scripts": {
+    "start": "node src/server.mjs",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "zod": "^4.6.2"
+  }
+}

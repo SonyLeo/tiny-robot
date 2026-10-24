@@ -16,22 +16,22 @@
 
 当前文档结构：
 
-| 项目 | 当前情况 |
-| --- | --- |
-| 文档框架 | VitePress 1.x |
-| Markdown 页面 | 55 个（当前方案 worktree 统计；构建时以脚本实际发现结果为准） |
-| 组件页面 | 23 个 |
-| Demo 源文件 | 245 个 `.vue` / `.ts` 文件；另有 18 个 `.css` / `.html` / `.svg` 辅助文件 |
-| 页面 Demo | 使用 `vitepress-demo-plugin` 和 `<demo>` 标签 |
-| 搜索 | VitePress local search |
-| 页面操作区 | 尚未提供文档内部的复制 Markdown、查看 Markdown、ChatGPT、Claude 操作 |
-| Markdown 原文路由 | 不存在 |
-| `llms.txt` / `llms-full.txt` | 不存在 |
-| `sitemap.md` / 页面 JSON 索引 | 不存在 |
-| Agent Skill 发布入口 | 不在当前 docs 构建链路中 |
-| MCP Server | 当前无面向文档查询的 MCP Server；Chat Runtime 中的 SDK 用于客户端连接，不是 docs MCP 服务 |
-| API JSON 索引 | 组件 API 主要存在于 Markdown 表格，没有统一组件元数据索引 |
-| 文档规范 | 已有 `component-documentation-standard.md`，包含 L0 Demo、API 完整性、事实源和弃用规则 |
+| 项目                          | 当前情况                                                                                  |
+| ----------------------------- | ----------------------------------------------------------------------------------------- |
+| 文档框架                      | VitePress 1.x                                                                             |
+| Markdown 页面                 | 55 个（当前方案 worktree 统计；构建时以脚本实际发现结果为准）                             |
+| 组件页面                      | 23 个                                                                                     |
+| Demo 源文件                   | 245 个 `.vue` / `.ts` 文件；另有 18 个 `.css` / `.html` / `.svg` 辅助文件                 |
+| 页面 Demo                     | 使用 `vitepress-demo-plugin` 和 `<demo>` 标签                                             |
+| 搜索                          | VitePress local search                                                                    |
+| 页面操作区                    | 尚未提供文档内部的复制 Markdown、查看 Markdown、ChatGPT、Claude 操作                      |
+| Markdown 原文路由             | 不存在                                                                                    |
+| `llms.txt` / `llms-full.txt`  | 不存在                                                                                    |
+| `sitemap.md` / 页面 JSON 索引 | 不存在                                                                                    |
+| Agent Skill 发布入口          | 不在当前 docs 构建链路中                                                                  |
+| MCP Server                    | 当前无面向文档查询的 MCP Server；Chat Runtime 中的 SDK 用于客户端连接，不是 docs MCP 服务 |
+| API JSON 索引                 | 组件 API 主要存在于 Markdown 表格，没有统一组件元数据索引                                 |
+| 文档规范                      | 已有 `component-documentation-standard.md`，包含 L0 Demo、API 完整性、事实源和弃用规则    |
 
 已有独立 `agent-skills` 仓库中的 `tiny-robot-skill` 仍有价值，但它复制了组件文档、Demo、指南和规则。后续应将 docs 作为唯一事实源，独立 Skill 收敛为规则和索引入口，避免文档内容分叉。
 
@@ -39,13 +39,13 @@
 
 ### 3.1 目标用户与任务
 
-| 用户 / Agent | 典型任务 | 首选入口 |
-| --- | --- | --- |
-| 开发者 | 查组件用法、API、限制和示例 | HTML 文档、页面内复制 Markdown |
-| IDE Agent | 根据需求选组件并生成可运行代码 | Skill + `llms.txt` / 页面索引 / raw 页面 |
-| MCP 客户端 | 搜索并按需读取文档、API 和 Demo | 独立 MCP Server（后续阶段） |
-| 通用网页 Agent | 发现文档站和相关页面 | `llms.txt`、Skill discovery 文件、sitemap |
-| 离线或受限网络用户 | 使用固定版本资料 | 标注版本和生成时间的 Skill / 文档快照 |
+| 用户 / Agent       | 典型任务                        | 首选入口                                  |
+| ------------------ | ------------------------------- | ----------------------------------------- |
+| 开发者             | 查组件用法、API、限制和示例     | HTML 文档、页面内复制 Markdown            |
+| IDE Agent          | 根据需求选组件并生成可运行代码  | Skill + `llms.txt` / 页面索引 / raw 页面  |
+| MCP 客户端         | 搜索并按需读取文档、API 和 Demo | 独立 MCP Server（后续阶段）               |
+| 通用网页 Agent     | 发现文档站和相关页面            | `llms.txt`、Skill discovery 文件、sitemap |
+| 离线或受限网络用户 | 使用固定版本资料                | 标注版本和生成时间的 Skill / 文档快照     |
 
 本改造的“AI 友好”以可发现、可引用、可校验、可追溯和版本明确为目标，不以单纯增加 AI 按钮或生成更多 JSON 文件作为完成标准。
 
@@ -121,14 +121,14 @@ discover → parse → validate → normalize → render/export → verify
 
 不同问题使用不同事实源：
 
-| 要确认的问题 | 首要事实源 | 辅助事实源 |
-| --- | --- | --- |
-| 公共组件和类型是否导出 | 包根导出、显式公共导出文件 | 组件目录导出 |
-| Props、Events、Slots、Expose 类型 | 公开 TypeScript 类型 | 实现、类型测试 |
-| 默认值和运行时行为 | 实际实现 | 稳定行为测试 |
-| 用户交互是否稳定 | 实际实现和稳定行为测试 | 架构约束 |
-| Demo 和正文是否准确 | 上述事实源 | 现有文档 |
-| 页面描述、分类和关键词 | 页面正文、导航和维护者确认 | 自动推导结果 |
+| 要确认的问题                      | 首要事实源                 | 辅助事实源     |
+| --------------------------------- | -------------------------- | -------------- |
+| 公共组件和类型是否导出            | 包根导出、显式公共导出文件 | 组件目录导出   |
+| Props、Events、Slots、Expose 类型 | 公开 TypeScript 类型       | 实现、类型测试 |
+| 默认值和运行时行为                | 实际实现                   | 稳定行为测试   |
+| 用户交互是否稳定                  | 实际实现和稳定行为测试     | 架构约束       |
+| Demo 和正文是否准确               | 上述事实源                 | 现有文档       |
+| 页面描述、分类和关键词            | 页面正文、导航和维护者确认 | 自动推导结果   |
 
 AI 产物、Skill 和 MCP 都只能消费这些事实源生成的结果，不能反向成为新的事实源。
 
@@ -167,11 +167,11 @@ related: [/components/sender]
 
 ### 元数据错误等级
 
-| 等级 | 示例 | 阶段 1 行为 | 阶段 3 完成行为 |
-| --- | --- | --- | --- |
-| Error | frontmatter 无法解析、route 冲突、显式 Demo 文件缺失或越界 | 阻断构建 | 阻断构建 |
-| Warning | 页面缺少 description、keywords 或相关链接 | 统计并输出来源文件 | 对已纳入正式范围的必填字段升级为 Error |
-| Info | 使用自动推导标题、页面没有 Demo、可选 API 未覆盖 | 报告，不阻断 | 按页面类型和豁免规则处理 |
+| 等级    | 示例                                                       | 阶段 1 行为        | 阶段 3 完成行为                        |
+| ------- | ---------------------------------------------------------- | ------------------ | -------------------------------------- |
+| Error   | frontmatter 无法解析、route 冲突、显式 Demo 文件缺失或越界 | 阻断构建           | 阻断构建                               |
+| Warning | 页面缺少 description、keywords 或相关链接                  | 统计并输出来源文件 | 对已纳入正式范围的必填字段升级为 Error |
+| Info    | 使用自动推导标题、页面没有 Demo、可选 API 未覆盖           | 报告，不阻断       | 按页面类型和豁免规则处理               |
 
 阶段 3 结束时，正式页面必须满足其 `kind` 对应的必填字段；豁免项需在带原因的 allowlist 中记录并定期复核。构建报告输出总量、各级问题数量及相对基线上升/下降，不将渐进补齐阶段的 warning 与最终质量门槛混为一谈。
 
@@ -545,11 +545,11 @@ packages/docs-mcp/
 
 ```text
 search-documentation
-get-documentation-page
 search-components
 get-component-metadata
+get-component
+get-documentation-page
 get-example
-list-resources
 get-migration-guide
 ```
 
@@ -562,7 +562,7 @@ resource://tiny-robot/examples
 resource://tiny-robot/migrations
 ```
 
-服务发现：
+在线服务发现（远程部署决策留到 fork 验收和评审后）：
 
 ```text
 POST /mcp
@@ -573,7 +573,17 @@ POST /mcp
 
 工具契约需定义输入 schema、分页/排序、错误码、结果来源 URL、文档版本、字符限制和兼容策略。`search-documentation` 与 `search-components` 返回短摘要和引用；`get-documentation-page` / `get-example` 支持按需完整读取。限制搜索结果数量和读取字节，过大内容返回明确截断元信息与继续读取方式。无效路径必须通过 manifest 查表拒绝，不能拼接用户输入访问文件系统。
 
-部署选择只保留一种正式方案：独立 Node 服务部署，GitHub Pages 继续负责静态文档和演示。若 MCP 单独部署尚无预算或维护人，阶段 7 可以推迟，不影响静态 AI 改造完成；不得将“有 MCP”设为第一阶段交付阻塞项。
+本地验证先使用 stdio transport；HTTP transport、Server Card、正式托管方式及其运行规格，留到 fork 验收和方案评审后确定。GitHub Pages 继续负责静态文档和演示，不能直接承载需要运行时请求的 MCP endpoint。若远程 MCP 单独部署尚无预算或维护人，可以推迟，不影响静态 AI 文档交付。
+
+#### 阶段 7A：本地 stdio MCP 首版
+
+评审前只实现可在维护者本机运行和验证的 stdio 服务，不实现 HTTP、Server Card、CORS、远程部署或正式站点配置。服务作为 `packages/docs-mcp/` 独立 workspace 包，直接声明 MCP SDK 依赖；输入只使用 `docs/dist` 已生成的 `agent/{manifest,pages,demos,components}.json`、`raw/` 和 `demos/`，不在每次请求时扫描源码，也不要求在线访问文档站。
+
+静态 MCP Resources 提供页面、组件、示例和迁移指南目录；不再额外提供与 Resources 重复的 `list-resources` 工具。Tools 提供 `search-documentation`、`search-components`、`get-component-metadata`、`get-component`、`get-documentation-page`、`get-example` 和 `get-migration-guide`。搜索首版采用标题、描述、公开名称/别名、关键词和路由的本地词项匹配，不承诺语义召回；读取文档支持按 H2 章节读取，超长内容提供字符偏移和下一段位置。
+
+工具只接受 catalog 中的页面 ID/路由、组件导出名/别名和 Demo ID/已登记文件路径。文件路径只从已校验的 catalog 映射解析；检查相对路径边界，并以 manifest 中的 SHA-256 校验实际内容。结果携带 `docsVersion`、`schemaVersion` 和公开来源 URL；限制结果数量及单次读取字符量。服务不联网、不执行文档中的代码、不接受任意文件系统路径，也不读取用户项目、提示词或凭证。
+
+验收至少覆盖真实 MCP 客户端 stdio 握手、目录资源读取、组件搜索和章节查询、Demo 读取、迁移查询、未知 ID 拒绝、路径越界拒绝、哈希不匹配和超长内容续读。阶段 7A 通过后再更新 MCP 文档页为可验证的本地安装/启动说明；是否增加 Prompts、HTTP transport、Server Card 和远程部署，在本机体验及 fork 验收后决定。
 
 ## 7. 跨阶段工程约定
 
@@ -718,36 +728,41 @@ MCP 阶段：
 
 ## 12. 风险与处理
 
-| 风险 | 处理方式 |
-| --- | --- |
-| `llms-full.txt` 过大 | 保持 `llms.txt` 精简；MCP 支持按页面和章节读取；Demo 源码按需返回 |
-| 文档和源码 API 漂移 | 公开导出索引、类型检查、文档校验分阶段增加，不用手工 JSON 作为事实源 |
-| GitHub Pages 子路径链接错误 | 所有 URL 通过 `VITEPRESS_BASE` 统一生成，并在构建中验证 |
-| Demo 多文件依赖遗漏 | 校验显式 `vueFiles`；递归导入差异先报告，覆盖率明确后再按规则阻断 |
-| 独立 Skill 再次过期 | Skill 只保留规则；完整资料由 docs 构建自动生成 |
-| MCP 与静态站点耦合 | MCP 读取构建产物并独立部署，不让 GitHub Pages 承担运行时请求 |
-| 页面操作区影响现有主题 | 使用 VitePress `doc-before` 插槽，并进行桌面和移动端检查 |
-| 手写页面计数过期 | 由生成器输出每次扫描计数，基线数字仅用于审查记录 |
-| old tag 与 latest 数据混用 | 每个发布目录包含自洽产物，stable URL 由发布配置明确映射 |
-| llms-full 超大或被截断 | 大小预算、拆分策略和构建统计；永不静默截断 |
-| Skill 文案与发布版本错配 | 从匹配版本 manifest 生成版本元数据并在发布校验 |
+| 风险                        | 处理方式                                                             |
+| --------------------------- | -------------------------------------------------------------------- |
+| `llms-full.txt` 过大        | 保持 `llms.txt` 精简；MCP 支持按页面和章节读取；Demo 源码按需返回    |
+| 文档和源码 API 漂移         | 公开导出索引、类型检查、文档校验分阶段增加，不用手工 JSON 作为事实源 |
+| GitHub Pages 子路径链接错误 | 所有 URL 通过 `VITEPRESS_BASE` 统一生成，并在构建中验证              |
+| Demo 多文件依赖遗漏         | 校验显式 `vueFiles`；递归导入差异先报告，覆盖率明确后再按规则阻断    |
+| 独立 Skill 再次过期         | Skill 只保留规则；完整资料由 docs 构建自动生成                       |
+| MCP 与静态站点耦合          | MCP 读取构建产物并独立部署，不让 GitHub Pages 承担运行时请求         |
+| 页面操作区影响现有主题      | 使用 VitePress `doc-before` 插槽，并进行桌面和移动端检查             |
+| 手写页面计数过期            | 由生成器输出每次扫描计数，基线数字仅用于审查记录                     |
+| old tag 与 latest 数据混用  | 每个发布目录包含自洽产物，stable URL 由发布配置明确映射              |
+| llms-full 超大或被截断      | 大小预算、拆分策略和构建统计；永不静默截断                           |
+| Skill 文案与发布版本错配    | 从匹配版本 manifest 生成版本元数据并在发布校验                       |
 
 ## 13. 执行顺序与状态跟踪
 
-本方案以维护者 fork 作为评审前完整验收环境。正式站点域名、稳定入口和生产专用参数属于评审后的环境切换项，不阻塞 fork 实现、测试或评审。当前执行顺序为：
+本方案以维护者 fork 作为评审前完整验收环境。正式站点域名、稳定入口和生产专用参数属于评审后的环境切换项，不阻塞 fork 实现、测试或评审。当前执行状态为：
 
 1. 已完成阶段 0–3：建立并验证页面/Demo catalog、静态 Agent 文档产物和渐进式元数据质量门槛。
 2. 已完成阶段 4 的核心页面操作，以及阶段 5A Skill 内容收敛和版本契约；ChatGPT/Claude 入口按用户要求延期。
 3. 阶段 5B 的 Agent 文档入口和三页初版已完成，读者反馈调整已纳入；用户已完成本地浏览器验收并确认无问题。
 4. 阶段 6A 轻量组件 catalog 已完成：关联有独立文档的公开 Vue 组件导出、文档页与 Demo，并通过校验；内置工具组件明确排除。完整 Props/Events/Slots 元数据留待单独评估。
-5. 当前下一阶段为阶段 7：开发本地 MCP Server，并先在本机验证工具查询链路；是否部署为远程服务在方案评审后决定。
-6. 阶段 7 本地验证完成后，在 fork beta 上使用手动 dispatch 完成端到端验收，覆盖 Agent 专区、构建产物、子路径 URL、manifest 哈希、页面操作区、Skill 行为、组件 catalog 和本地 MCP 的对应能力，并记录证据。
-7. 汇总方案和 fork 验收证据，提交同事评审。评审意见导致的调整先回到 fork 验证。
-8. 评审通过后进入 5C-Production：确定正式 URL、稳定入口和目标客户端支持范围，替换环境配置并验证正式资源；最后处理生产发布自动化。
+5. 阶段 7A 本地 stdio MCP 已实现；查询覆盖文档正文、API 标识符和中文描述，返回命中章节、摘要及来源链接。MCP 集成测试 7/7 通过，Agent catalog/build/check 与格式检查通过。
+6. Beta 连接路径已用本地构建快照完成真实 MCP Client/stdio 调用：API 查询和中文自然语言查询均命中相关文档，来源链接指向 fork Beta；inputHash 与 Beta manifest 一致，Bubble raw SHA-256 匹配。该临时快照的 `sourceCommit` 为空，正式演示前应由 Beta 部署使用的确切提交重建并记录清晰的来源信息。
+7. 阶段 5B 本地浏览器验收由用户确认通过；仍需完成阶段 5C-Fork 的完整端到端验收，尤其是手动 dispatch 部署后的页面链接/产物核验、Skill 成功与失败路径，以及 Codex 桌面端实际连接本地 MCP 的人工验收。
+8. 本次完成后整理评审材料并与同事评审。评审意见导致的改动先回到 fork 环境修订和复验。
+9. 评审通过后进入 5C-Production：确定正式 URL、稳定入口和目标客户端支持范围，替换环境配置并验证正式资源；最后处理生产发布自动化。远程 MCP 是否建设及其运维归属也在评审后按实际需求决策。
 
 每一阶段交接记录：分支/基线 commit、变更文件、执行命令及结果、产物样例、未解决警告、下一阶段依赖。若发现方案与现有发布链路冲突，先更新此文档及验收项，再实现相应变化。
 
 任何后续范围变化都应先更新本文，再修改实现。
+
+### 评审材料
+
+同事评审的讲解顺序、演示准备、现场脚本、证据矩阵和决策问题已拆分到[《同事评审讲解与验收方案》](agent-friendly-docs-review-plan.md)。本执行方案继续维护阶段进度和实施记录。
 
 ### 当前交接记录（2026-10-23）
 
@@ -821,6 +836,34 @@ MCP 阶段：
 - 验证：`pnpm -F docs agent:catalog`、`pnpm -F docs agent:check` 和 `pnpm -F docs agent:build` 通过；共生成 321 个 Agent 静态产物，catalog 为 58 页、179 个 Demo、0 Error、0 Warning。`docs/scripts/agent-docs.mjs` 的 Prettier 检查和 `git diff --check` 通过。
 - 完整集成构建：尝试运行 `pnpm build:docs --nocomponents`；Agent catalog 阶段通过，但命令停留在 Playground 的 Vite build 阶段，未得到退出结果，因此本次不能记为完整站点构建通过。Agent 产物自身的 build 已独立成功。
 - 阶段结论：6A 首版实现及静态 Agent 产物验证完成；内置工具组件不作为补文档任务。当前主线下一步是阶段 7 本地 MCP Server；之后再统一做 fork beta 端到端验收并准备同事评审。
+
+### 阶段 7A 实施记录（2026-10-24）
+
+- 目标：提供可在本机使用的只读 stdio MCP 服务，不涉及 HTTP endpoint、Server Card、远程部署或正式环境地址。
+- 包边界：新增独立 workspace 包 `packages/docs-mcp/`，直接声明 `@modelcontextprotocol/sdk` 和 Zod；服务只读取 `docs/dist`，不在工具调用时扫描仓库源码。
+- 发现能力：提供页面、组件、示例和迁移指南四个只读 Resources，不另设重复目录工具。
+- Tools：`search-documentation`、`search-components`、`get-component-metadata`、`get-component`、`get-documentation-page`、`get-example`、`get-migration-guide`。搜索使用本地词项匹配；文档按 H2 标题读取；长文和示例支持偏移续读。
+- 安全边界：入参只能定位已索引的页面、组件和示例；文档资源路径经过相对路径及真实路径边界校验；读取内容需匹配 manifest SHA-256；查询不联网、不执行代码，也不读取用户项目文件、提示词或凭证。
+- 文档：MCP 页面已更新为本地启动和 Codex stdio 配置说明，并明确尚无远程托管地址。
+- 验证：文档 catalog/build 通过，索引为 58 页、179 个 Demo、39 个组件，0 Error/Warning/Info；真实 MCP Client/stdio 集成测试通过，覆盖资源发现、全部 Tools、组件和文档查询、Demo、迁移指南、路径越界、未知 ID、哈希失配及续读；另用当前真实 `docs/dist` 完成组件搜索、API 章节读取和 Resource 读取 smoke test。
+- 阶段结论：本机 MCP 首版已可用并通过协议级验证。是否增加 Prompts、HTTP transport 和远程部署，留到本机体验、fork beta 验收及方案评审后决定。
+
+### 阶段 7A 查询体验优化记录（2026-10-24）
+
+- 组件搜索改为加权匹配：名称/导出名/别名权重最高，其次匹配关联文档标题和关键词，再匹配说明与路由；示例路径不再参与组件检索；多词查询要求每个词都能命中，避免弱相关结果占位。
+- 来源引用按 manifest 的公开站点基址生成。未配置站点基址时仅返回路由和 rawPath，sourceUrl/publicBaseUrl 为 null；配置 fork base 后通过该 base 生成 Markdown 和 Demo 的完整可访问 URL。
+- 四类 Resources 改为精简索引记录，移除目录中重复的绝对 Demo URL 及完整组件 Demo 清单；源码仍由按需工具读取。
+- 补充测试覆盖：无关组件即使引用同一 Demo 也不应匹配、无匹配词返回空结果、本地不伪造 localhost 链接、fork 子路径 URL 拼接与构建产物读取、目录 Resources 负载上限。
+- 验证结果：6 组 MCP stdio 集成测试全部通过。使用当前完整 docs catalog 启动新 stdio 进程后，`Bubble` 组件查询首项为 `TrBubble`，不再返回 `TrLayout`；179 条示例目录 Resource 为 48,312 bytes，低于 64 KiB 预算；真实本地结果没有 `localhost` 来源链接。公开 `/tiny-robot/beta/` 基址的 raw 与 Demo 引用拼接及对应本地产物读取均由夹具测试覆盖。
+- 会话刷新说明：当前 Codex 会话已加载的 MCP 工具仍显示旧版本搜索结果；本地新启动服务已验证新逻辑。重新加载 MCP 配置/开启新 Codex 会话后，才会从新服务进程看到本次优化。
+
+### 阶段 7A 正文搜索与 Beta 演示验证（2026-10-24）
+
+- 文档搜索除标题、关键词、说明和路由外，现加载并校验索引页面的 raw Markdown 正文；结果包含命中章节和摘要，便于 AI 助手判断是否需要继续读取页面。
+- 使用线上 Beta manifest 对应的本地构建快照进行了真实 MCP Client/stdio 调用。API 查询 `useChatRuntimeFromConversation` 命中 `suites/chat-runtime`，中文查询“TrChat 复用已有会话”也命中相关页面；结果的 `publicBaseUrl` 与 raw 来源链接均指向 `https://sonyleo.github.io/tiny-robot/beta/`。
+- Beta 本地快照与线上 manifest 的 `inputHash` 一致，Bubble raw Markdown 的 SHA-256 与线上 artifact hash 一致。当前这份临时快照 manifest 的 `sourceCommit` 为空，因此演示时应从 Beta 部署使用的提交重新构建快照，并检查 `docsVersion` 与 `publicBaseUrl`；不要把临时目录当作长期配置路径。
+- MCP 页面补充 Codex 本地 stdio 配置示例与 Beta 演示说明：内容在本地快照中检索，结果链接跳转到线上 Beta；查询不实时抓取线上内容，Beta 更新后要重建快照并重启服务。GitHub Pages 只托管静态文档，不能充当 MCP endpoint。
+- 验证：真实 stdio 握手及 API/中文查询通过；MCP 单元/集成测试、文档 Agent 检查、格式检查和 diff 检查在完成本轮文档更新后重跑。未进行 Codex GUI 的人工连接演示，仍需在评审演示前配置本机路径并重启 Codex 验证工具可见性。
 
 ## 14. 参考链接
 
