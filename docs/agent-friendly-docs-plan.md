@@ -467,19 +467,40 @@ Skill 分发需要区分两类内容：由 docs 生成的安装包/版本快照�
 
 目标：在页面级索引稳定后，为 MCP 和 Agent 提供结构化组件 API。
 
-第一步生成轻量组件索引：
+#### 6A：轻量组件 catalog（当前实施范围）
+
+从组件包根入口的 TypeScript 公共导出中识别 `Tr*` Vue 组件，并生成 `agent/components.json`。文档页 frontmatter 的 `exports` 是组件与说明页面之间唯一需要维护的关联；包名、页面路由、文档状态和示例文件均从现有 catalog 推导，不另建 JSON 清单。
+
+每条记录至少包含：
 
 ```json
 {
   "name": "TrBubble",
+  "exportName": "TrBubble",
+  "aliases": ["Bubble"],
   "package": "@opentiny/tiny-robot",
   "status": "stable",
+  "documentationStatus": "documented",
   "page": "/components/bubble",
   "examples": ["demos/bubble/basic.vue"]
 }
 ```
 
-第二步再生成完整 API 元数据：
+`agent/components.json` 顶层包含 `schemaVersion`、包名、组件总数和组件记录。该索引面向有独立使用文档的公开组件；内置工具组件（当前为 `TrConversations`、`TrIconButton`）不属于文档查询目标，不进入索引，也不作为缺文档警告。为防止遗漏真实组件，今后新增的未映射导出仍需先确认类别：确认属于内置工具后加入排除集合，其他未映射导出继续报告 Warning。QuickAssist 是 Vanilla 能力，不属于 Vue 组件导出，因此不进入该文件。
+
+校验要求：
+
+- 通过 TypeScript Compiler API 读取 `packages/components/src/index.ts` 的模块导出，筛选公共的 `Tr*` Vue 组件，不以文本正则近似解析 TypeScript。
+- 文档 frontmatter 声明的导出必须真实存在于组件包根公开 Vue 组件导出中；不存在或重复关联均报 Error。
+- 页面映射只读取正式页面 catalog。已关联页面的包名、页面状态和 Demo 文件由该页元数据推导；未映射导出不能静默忽略，只有明确分类为内置工具的导出可排除。
+- 包入口源码纳入 catalog 输入哈希，入口导出变化会触发 catalog 过期检查。
+- `agent/components.json` 纳入静态产物与 `agent/manifest.json` 的 SHA-256 产物哈希，继承相同的版本路径和部署子路径规则。
+
+#### 6B：完整组件 API 元数据（后续评估）
+
+只有在轻量 catalog 被本地和 fork 流程验证后，再决定是否生成 Props、Events、Slots、Methods、Types 等字段。不能把未验证的类型推导结果作为确定 API 发布。
+
+评估阶段可参考以下目标结构：
 
 ```json
 {
@@ -494,8 +515,7 @@ Skill 分发需要区分两类内容：由 docs 生成的安装包/版本快照�
 
 生成来源：
 
-- TypeScript Compiler API。
-- 包根公共导出。
+- TypeScript Compiler API 和包根公共导出。
 - 公开 Props、Events、Slots 和 Expose 类型。
 - 实现和测试用于核对默认值和运行时行为。
 
@@ -718,12 +738,12 @@ MCP 阶段：
 
 1. 已完成阶段 0–3：建立并验证页面/Demo catalog、静态 Agent 文档产物和渐进式元数据质量门槛。
 2. 已完成阶段 4 的核心页面操作，以及阶段 5A Skill 内容收敛和版本契约；ChatGPT/Claude 入口按用户要求延期。
-3. 阶段 5B 的 Agent 文档入口和三页初版已完成，随后按读者反馈调整了导航与正文表达；下一步完成浏览器体验验收，再推进阶段 6 的轻量组件 API catalog。
-4. 阶段 6 先关联公开组件导出、页面和 Demo，再评估完整 Props/Events/Slots 元数据的范围。
-5. 在 fork beta 上完成合并验收：使用手动 dispatch 部署，验证 Agent 专区、构建产物、子路径 URL、manifest 哈希、页面操作区和 Skill 实际行为，并记录结果。
-6. 汇总方案和 fork 验收证据，提交同事评审。评审意见导致的调整先回到 fork 验证。
-7. 评审通过后进入 5C-Production：确定正式 URL、稳定入口和目标客户端支持范围，替换环境配置并验证正式资源。
-8. 最后处理生产发布自动化。阶段 7 MCP 是独立运行时项目，需单独确认范围、托管规格和维护责任，可在静态 Agent 友好化验收后另行推进。
+3. 阶段 5B 的 Agent 文档入口和三页初版已完成，读者反馈调整已纳入；用户已完成本地浏览器验收并确认无问题。
+4. 阶段 6A 轻量组件 catalog 已完成：关联有独立文档的公开 Vue 组件导出、文档页与 Demo，并通过校验；内置工具组件明确排除。完整 Props/Events/Slots 元数据留待单独评估。
+5. 当前下一阶段为阶段 7：开发本地 MCP Server，并先在本机验证工具查询链路；是否部署为远程服务在方案评审后决定。
+6. 阶段 7 本地验证完成后，在 fork beta 上使用手动 dispatch 完成端到端验收，覆盖 Agent 专区、构建产物、子路径 URL、manifest 哈希、页面操作区、Skill 行为、组件 catalog 和本地 MCP 的对应能力，并记录证据。
+7. 汇总方案和 fork 验收证据，提交同事评审。评审意见导致的调整先回到 fork 验证。
+8. 评审通过后进入 5C-Production：确定正式 URL、稳定入口和目标客户端支持范围，替换环境配置并验证正式资源；最后处理生产发布自动化。
 
 每一阶段交接记录：分支/基线 commit、变更文件、执行命令及结果、产物样例、未解决警告、下一阶段依赖。若发现方案与现有发布链路冲突，先更新此文档及验收项，再实现相应变化。
 
@@ -789,8 +809,18 @@ MCP 阶段：
 - Agent 页面导航只使用 VitePress 侧栏中的普通路由索引，页面间不提供重复的联动导航。LLMs 页面资源区仅展示 `llms.txt` 与 `llms-full.txt`。
 - 本地开发时两个 TXT 文件曾因 VitePress 开发服务器未暴露生成文件而返回 404；已在开发中间件增加读取，并实测根路径及 `/tiny-robot/beta/` 子路径均返回 HTTP 200。
 - Agent 页面目录归类为 `agent-doc`；页面、raw Markdown、LLMs 目录和 sitemap 使用现有统一生成链路，不新增重复内容事实源。
-- 验证：`pnpm -F docs agent:catalog`、`agent:check`、目标 Markdown 的 Prettier 检查和 `git diff --check` 均通过，目录为 58 个页面、179 个 Demo，0 errors/warnings/infos。此前已有带 fork 子路径的构建记录；近期正文调整后尚未运行完整站点构建、浏览器视觉与交互验收，也未部署 fork beta。
-- 阶段 5B 本地实现和正文修订已完成；仍需浏览器检查页面阅读体验、侧栏跳转及 TXT 链接，并部署 fork beta 做最终验证。
+- 验证：`pnpm -F docs agent:catalog`、`agent:check` 和 `git diff --check` 均通过，目录为 58 个页面、179 个 Demo，0 errors/warnings/infos。此前已有带 fork 子路径的构建记录；用户已完成人工浏览器验收并确认页面没有问题。近期正文调整后尚未完成完整站点集成构建，也未部署 fork beta。
+- 阶段 5B 本地实现、正文修订和本地浏览器验收均已完成；fork beta 的完整部署验收放在本地 MCP 阶段完成之后。
+
+### 阶段 6A 实施记录（2026-10-24）
+
+- 目标：生成轻量 `agent/components.json`，记录组件包的公开 Vue 组件导出、包名、关联文档页、文档状态和 Demo；本阶段不抽取 Props、Events、Slots、Methods 或 Types。
+- 来源与校验：使用 TypeScript Compiler API 读取组件包根入口的真实模块导出；文档 frontmatter `exports` 声明页面映射。源码中发现 41 个公开 `Tr*` Vue 组件导出，其中 39 个属于独立文档目标；`TrConversations` 与 `TrIconButton` 是内置工具组件，按用户确认从组件文档 catalog 排除，不要求补文档，也不产生缺文档警告。
+- QuickAssist 文档说明的是 Vanilla 能力，并无 `Tr*` Vue 导出，不纳入 Vue 组件 catalog。
+- 产物：`docs/dist/agent/components.json` 已生成并由 `agent/manifest.json` 记录 SHA-256。独立验证确认 JSON 有 39 条记录，均有关联文档；所有记录的页面、状态和 Demo 源文件有效，产物哈希匹配 manifest。
+- 验证：`pnpm -F docs agent:catalog`、`pnpm -F docs agent:check` 和 `pnpm -F docs agent:build` 通过；共生成 321 个 Agent 静态产物，catalog 为 58 页、179 个 Demo、0 Error、0 Warning。`docs/scripts/agent-docs.mjs` 的 Prettier 检查和 `git diff --check` 通过。
+- 完整集成构建：尝试运行 `pnpm build:docs --nocomponents`；Agent catalog 阶段通过，但命令停留在 Playground 的 Vite build 阶段，未得到退出结果，因此本次不能记为完整站点构建通过。Agent 产物自身的 build 已独立成功。
+- 阶段结论：6A 首版实现及静态 Agent 产物验证完成；内置工具组件不作为补文档任务。当前主线下一步是阶段 7 本地 MCP Server；之后再统一做 fork beta 端到端验收并准备同事评审。
 
 ## 14. 参考链接
 

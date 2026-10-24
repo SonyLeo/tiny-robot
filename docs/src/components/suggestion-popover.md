@@ -5,6 +5,7 @@ kind: component
 description: 用于展示可触发的建议弹出框，支持点击、手动触发和分组数据。
 status: stable
 package: '@opentiny/tiny-robot'
+exports: [TrSuggestionPopover]
 keywords: [建议, 弹出框, 分组]
 ---
 

@@ -2,6 +2,7 @@ import crypto from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
+import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import matter from 'gray-matter'
 
@@ -10,6 +11,10 @@ const AGENT_SCRIPT_PATH = fileURLToPath(import.meta.url)
 const DOCS_ROOT = path.resolve(SCRIPT_DIR, '..')
 const SRC_ROOT = path.join(DOCS_ROOT, 'src')
 const DEMOS_ROOT = path.join(DOCS_ROOT, 'demos')
+const COMPONENT_PACKAGE_ROOT = path.resolve(DOCS_ROOT, '..', 'packages', 'components')
+const COMPONENT_ENTRY_PATH = path.join(COMPONENT_PACKAGE_ROOT, 'src', 'index.ts')
+const COMPONENT_PACKAGE_NAME = '@opentiny/tiny-robot'
+const NON_CATALOG_COMPONENT_EXPORTS = new Set(['TrConversations', 'TrIconButton'])
 const THEME_CONFIG_PATH = path.join(DOCS_ROOT, '.vitepress', 'themeConfig.ts')
 const OUTPUT_ROOT = path.join(DOCS_ROOT, '.agent-docs')
 const MANIFEST_PATH = path.join(OUTPUT_ROOT, 'manifest.json')
@@ -240,7 +245,13 @@ function walkFiles(directory) {
 }
 
 function inputHash(config) {
-  const inputs = [...walkMarkdown(SRC_ROOT), ...walkFiles(DEMOS_ROOT), THEME_CONFIG_PATH, AGENT_SCRIPT_PATH]
+  const inputs = [
+    ...walkMarkdown(SRC_ROOT),
+    ...walkFiles(DEMOS_ROOT),
+    THEME_CONFIG_PATH,
+    COMPONENT_ENTRY_PATH,
+    AGENT_SCRIPT_PATH,
+  ]
     .filter((file, index, files) => files.indexOf(file) === index && fs.existsSync(file))
     .sort()
   const hash = crypto.createHash('sha256')
@@ -488,6 +499,135 @@ function validateNavigation(pages, issues) {
   return routes
 }
 
+function publicComponentExports(issues) {
+  try {
+    const requireFromComponents = createRequire(path.join(COMPONENT_PACKAGE_ROOT, 'package.json'))
+    const ts = requireFromComponents('typescript')
+    const program = ts.createProgram([COMPONENT_ENTRY_PATH], {
+      target: ts.ScriptTarget.ESNext,
+      module: ts.ModuleKind.ESNext,
+      moduleResolution: ts.ModuleResolutionKind.Node10,
+      skipLibCheck: true,
+    })
+    const sourceFile = program.getSourceFile(COMPONENT_ENTRY_PATH)
+    const moduleSymbol = sourceFile && program.getTypeChecker().getSymbolAtLocation(sourceFile)
+    if (!moduleSymbol) throw new Error('无法读取组件包根入口的 TypeScript 模块导出')
+    const checker = program.getTypeChecker()
+    const exports = checker.getExportsOfModule(moduleSymbol)
+    const names = exports.map((symbol) => symbol.name)
+    const componentNames = exports
+      .filter((symbol) => /^Tr[A-Z]/.test(symbol.name))
+      .filter((symbol) => {
+        const target = symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol
+        return (target.flags & ts.SymbolFlags.Value) !== 0
+      })
+      .map((symbol) => symbol.name)
+    return {
+      all: new Set(names),
+      components: componentNames,
+    }
+  } catch (error) {
+    issues.push(
+      issue(
+        'error',
+        'component-exports-unavailable',
+        `无法读取组件包的公开导出：${error.message}`,
+        'packages/components/src/index.ts',
+      ),
+    )
+    return { all: new Set(), components: [] }
+  }
+}
+
+function buildComponentCatalog(pages, issues) {
+  const publicExports = publicComponentExports(issues)
+  for (const page of pages.filter((item) => item.exports?.length)) {
+    if (page.kind !== 'component' || page.package !== COMPONENT_PACKAGE_NAME) {
+      issues.push(
+        issue(
+          'error',
+          'invalid-component-page-metadata',
+          `声明组件导出的页面必须是 ${COMPONENT_PACKAGE_NAME} 的 component 页面`,
+          page.source,
+        ),
+      )
+    }
+  }
+  const componentPages = pages.filter((page) => page.kind === 'component' && page.package === COMPONENT_PACKAGE_NAME)
+  const pageByExport = new Map()
+  for (const page of componentPages) {
+    for (const exportName of page.exports || []) {
+      if (!publicExports.components.includes(exportName)) {
+        issues.push(
+          issue(
+            'error',
+            'invalid-component-export',
+            `组件文档声明的导出不属于包根公开 Vue 组件：${exportName}`,
+            page.source,
+            { exportName },
+          ),
+        )
+        continue
+      }
+      if (pageByExport.has(exportName)) {
+        issues.push(
+          issue(
+            'error',
+            'duplicate-component-documentation',
+            `组件导出已关联到 ${pageByExport.get(exportName).source}：${exportName}`,
+            page.source,
+            { exportName },
+          ),
+        )
+        continue
+      }
+      pageByExport.set(exportName, page)
+    }
+  }
+
+  const catalogExports = publicExports.components.filter((exportName) => !NON_CATALOG_COMPONENT_EXPORTS.has(exportName))
+  const unmappedExports = catalogExports.filter((exportName) => !pageByExport.has(exportName))
+  if (unmappedExports.length) {
+    issues.push(
+      issue(
+        'warning',
+        'undocumented-component-exports',
+        `${unmappedExports.length} 个公开 Vue 组件导出尚未关联组件文档：${unmappedExports.join(', ')}`,
+        'packages/components/src/index.ts',
+        { exports: unmappedExports },
+      ),
+    )
+  }
+
+  const components = catalogExports.map((exportName) => {
+    const page = pageByExport.get(exportName) || null
+    const baseExport = exportName.slice(2)
+    const examples = page
+      ? [...new Set(page.demos.flatMap((demo) => demo.files.map((file) => `demos/${file.path}`)))]
+      : []
+    return {
+      name: exportName,
+      exportName,
+      aliases: publicExports.all.has(baseExport) ? [baseExport] : [],
+      package: COMPONENT_PACKAGE_NAME,
+      documentationStatus: page ? 'documented' : 'undocumented',
+      status: page?.status || null,
+      page: page?.route || null,
+      examples,
+    }
+  })
+
+  return {
+    package: COMPONENT_PACKAGE_NAME,
+    counts: {
+      components: components.length,
+      documented: components.filter((component) => component.documentationStatus === 'documented').length,
+      undocumented: unmappedExports.length,
+    },
+    components,
+  }
+}
+
 function buildCatalog() {
   const issues = []
   const config = readBuildConfig(issues)
@@ -522,6 +662,10 @@ function buildCatalog() {
   }
   validateRelatedLinks(pages, issues)
   const navigation = validateNavigation(pages, issues)
+  const componentCatalog = buildComponentCatalog(
+    pages.filter((page) => !page.draft),
+    issues,
+  )
   const publishedPages = pages.filter((page) => !page.draft)
   const draftPages = pages.filter((page) => page.draft)
   const errors = issues.filter((item) => item.severity === 'error')
@@ -541,11 +685,15 @@ function buildCatalog() {
       publishedPages: publishedPages.length,
       draftPages: draftPages.length,
       demos: pages.reduce((count, page) => count + page.demos.length, 0),
+      components: componentCatalog.counts.components,
+      documentedComponents: componentCatalog.counts.documented,
+      undocumentedComponents: componentCatalog.counts.undocumented,
       errors: errors.length,
       warnings: issues.filter((item) => item.severity === 'warning').length,
       infos: issues.filter((item) => item.severity === 'info').length,
     },
     pages: publishedPages,
+    components: componentCatalog.components,
     excludedPages: draftPages.map((page) => ({ id: page.id, source: page.source, reason: 'draft' })),
     issues,
   }
@@ -868,6 +1016,24 @@ function buildStaticArtifacts(catalog) {
     `${JSON.stringify({ schemaVersion: catalog.schemaVersion, pages: pageRecords }, null, 2)}\n`,
   )
   artifacts.set('agent/demos.json', `${JSON.stringify({ schemaVersion: catalog.schemaVersion, demos }, null, 2)}\n`)
+  const documentedComponents = catalog.components.filter((component) => component.documentationStatus === 'documented')
+  artifacts.set(
+    'agent/components.json',
+    `${JSON.stringify(
+      {
+        schemaVersion: catalog.schemaVersion,
+        package: COMPONENT_PACKAGE_NAME,
+        counts: {
+          components: catalog.components.length,
+          documented: documentedComponents.length,
+          undocumented: catalog.components.length - documentedComponents.length,
+        },
+        components: catalog.components,
+      },
+      null,
+      2,
+    )}\n`,
+  )
 
   catalog.issues = issues
   refreshCounts(catalog)
@@ -885,7 +1051,14 @@ function buildStaticArtifacts(catalog) {
     docsSiteUrl: catalog.config.docsSiteUrl,
     vitepressBase: catalog.config.vitepressBase,
     publicBaseUrl: `${catalog.config.docsSiteUrl || 'http://localhost:4173'}${catalog.config.vitepressBase}`,
-    counts: { pages: pages.length, demos: demos.length, warnings: catalog.counts.warnings },
+    counts: {
+      pages: pages.length,
+      demos: demos.length,
+      components: catalog.components.length,
+      documentedComponents: catalog.counts.documentedComponents,
+      undocumentedComponents: catalog.counts.undocumentedComponents,
+      warnings: catalog.counts.warnings,
+    },
     llmsFullMaxBytes: MAX_LLM_FULL_BYTES,
     llmsFullParts: fullParts,
     artifactHashes: outputHashes,
@@ -935,6 +1108,9 @@ function printSummary(catalog) {
   const { counts } = catalog
   console.log(
     `Agent docs catalog: ${counts.publishedPages} published pages, ${counts.draftPages} drafts, ${counts.demos} demos`,
+  )
+  console.log(
+    `Component catalog: ${counts.documentedComponents}/${counts.components} documented, ${counts.undocumentedComponents} undocumented`,
   )
   console.log(`Validation: ${counts.errors} errors, ${counts.warnings} warnings, ${counts.infos} infos`)
   if (counts.errors > 0) {

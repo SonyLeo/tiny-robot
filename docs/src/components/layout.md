@@ -5,6 +5,7 @@ kind: component
 description: 用于搭建聊天页、工作台和多面板操作界面的通用 AI 页面布局。
 status: stable
 package: '@opentiny/tiny-robot'
+exports: [TrLayout, TrLayoutAsideToggle, TrLayoutProxyScrollbar]
 keywords: [页面布局, 侧栏, 聊天页]
 ---
 

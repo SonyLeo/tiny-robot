@@ -5,6 +5,7 @@ kind: component
 description: 用于从一组 AI 模型中选择当前模型，支持搜索、分组、禁用和思考强度。
 status: stable
 package: '@opentiny/tiny-robot'
+exports: [TrModelSelector]
 keywords: [模型选择, 搜索, 分组]
 ---
 

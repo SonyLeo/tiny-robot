@@ -5,6 +5,7 @@ kind: component
 description: 面向聊天场景的可组合输入组件，负责文本编辑、提交和取消交互。
 status: stable
 package: '@opentiny/tiny-robot'
+exports: [TrSender, TrActionButton, TrSubmitButton, TrClearButton, TrUploadButton, TrVoiceButton, TrWordCounter, TrDefaultActionButtons]
 keywords: [消息输入, 提交, 聊天]
 ---
 
