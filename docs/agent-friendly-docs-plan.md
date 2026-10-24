@@ -376,13 +376,13 @@ docs/.vitepress/theme/Layout.vue
 
 Skill 采用 Open Agent Skills 兼容的 `SKILL.md` 格式作为主格式，并在包元数据中声明名称、版本和发现 URL。以已核实支持该格式或 discovery 协议的客户端为首批验收目标；不同客户端的安装方式、自动发现能力和版本必须逐项验证。不得宣称一个 URL 自动适用于所有 Agent。
 
-阶段 5 分为两个可独立验收的子阶段，先完成内容和版本契约，再接入发布自动化。当前发布流程按 tag 部署，且阶段 5 初期不改工作流，因此暂不承诺根域名下的稳定别名或通用 discovery URL。
+阶段 5 分为 5A、5B、5C-Fork 和 5C-Production。先完成 Skill 内容与版本契约，再建立 Agent 文档入口；之后完成阶段 6 的组件 API catalog，并以维护者 fork 的 beta 部署完成评审前端到端验收。同事评审通过后，才确定正式站点入口并切换生产配置。生产发布自动化属于最后的发布收尾工作，不作为 fork 验收或评审前置条件。
 
 #### 5A：Skill 内容收敛与版本契约（不改发布工作流）
 
 - 先以 `opentiny/agent-skills/skills/tiny-robot-skill` 为现有 Skill 的维护源，核对其触发规则、版本和安装说明；TinyRobot 文档仓库不复制一份可独立编辑的 Skill 正文，避免形成第二个事实源。
 - 为 Skill 的离线快照和在线文档产物定义同一版本字段：`docsVersion` 对应文档发布 tag，`schemaVersion` 对应生成产物契约版本；Skill 自身版本单独递增，不与 docs tag 混用。manifest 暂时保留既有 `contentVersion` 作为兼容别名，两字段必须相同。
-- 约定 Skill 包元数据必须声明 `name`、`version`、`description`、来源仓库/路径、兼容的 `docsVersion`，并在 README 中说明它是离线快照还是在线链接。Skill 与 `agent/manifest.json` 的版本不匹配时应视为验收失败。
+- 约定 Skill 包元数据必须声明 `name`、`version`、`description` 和来源仓库/路径；在线 Skill 在每次读取时从 manifest 校验所选 `docsVersion` 与 `schemaVersion`，离线快照才需在包元数据中固定 `docsVersion` 和 source commit，并在 README 中说明快照状态。Skill 与 `agent/manifest.json` 的版本不匹配时应视为验收失败。
 - 在线文档构建继续只发布本仓库已经生成的 raw Markdown、`llms.txt`、`agent/pages.json`、`agent/demos.json` 和 `agent/manifest.json`；Skill 对这些资源给出发现顺序和 URL 解析规则，不在本阶段另造一份页面/Demo 索引或未经客户端验证的 discovery 协议。
 - 在阶段 5A 的验收记录中确定目标客户端及安装方式：先核实客户端是否实际读取 Agent Skills 格式或 discovery URL；未验证的客户端只提供规范安装说明和版本化 `SKILL.md` 下载地址，不宣称自动发现。
 
@@ -393,13 +393,62 @@ Skill 采用 Open Agent Skills 兼容的 `SKILL.md` 格式作为主格式，并�
 - 选定客户端的安装/读取路径经过实际验证；未验证的能力不作为已支持功能宣传。
 - 本仓库现有 Agent 产物 schema 与 URL 契约保持兼容，根目录和 tag 子路径构建均通过现有检查。
 
-#### 5B：稳定在线入口与发布自动化（5A 验收后再做）
+#### 5B：Agent 文档入口（fork 评审前）
 
-先基于实际托管验证确定站点 origin、可占用的稳定前缀和版本化路径。当前已知版本路径按 `/<tag>/` 发布，README 指向 `https://docs.opentiny.design/tiny-robot/`，两者关系和稳定别名映射仍需由实际发布配置确认。
+目标：在文档站中提供统一、可直接访问的 Agent 专区，让开发者和 Agent 能找到 TinyRobot 的 LLMs.txt、Skill 和 MCP Server 信息。参考 Nuxt UI 的文档侧栏索引和三个独立页面；用户通过侧栏索引进入独立路由，不在各页面正文中增加重复的页面切换导航。
+
+建议页面结构：
+
+```text
+docs/src/agents/
+├── llms-txt.md
+├── skills.md
+└── mcp-server.md
+```
+
+三页组成侧栏中的 `Agents` 分组；本阶段不另建内容重复的 `index.md`。各页面必须有稳定、可直接访问的路由，刷新和复制链接后仍能打开对应页面。
+
+实现与内容约定：
+
+- 在文档侧栏中增加 `Agents` 索引，包含 `LLMs.txt`、`Skills`、`MCP Server` 三个页面；三个页面都有独立、可分享的路由，通过侧栏普通链接跳转，不在正文内互相联动或重复列出页面导航。
+- `LLMs.txt` 页面说明 `/llms.txt` 与 `/llms-full.txt` 的用途、差异、上下文规模和适用场景，并可链接到页面索引、Demo 索引、raw Markdown 和 manifest。所有链接按当前部署 base 生成。
+- `Skills` 页面说明 TinyRobot Skill 的能力、维护源、在线查阅方式和已验证的安装路径；只描述实际验证过的客户端行为，不宣称通用 URL 自动发现。
+- `MCP Server` 页面介绍文档查询服务的目标、与 TinyRobot MCP 组件/客户端运行时的边界及规划状态。阶段 7 服务上线前必须显式标为规划中，不展示虚构的 endpoint 或安装配置；服务实现后再补充实际地址和客户端配置。
+- 页面索引使用当前 VitePress 侧栏配置实现；页面跳转由路由处理，不依赖隐藏面板状态。窄屏下侧栏导航仍可访问，不能遮挡标题和正文。
+- Agent 专区只解释和链接现有生成产物，不复制维护 `llms.txt`、Skill 内容、索引或 Demo，保持原有事实源与构建输出唯一。
+- Markdown 页面参与现有页面索引和站点地图；生成的 `/llms.txt`、`/llms-full.txt` 等静态文件继续保持原路径，不与 `/agents/` 说明页面混淆。
+
+验收：
+
+- 侧边栏 Agent 索引包含三个独立页面；点击索引项、直接打开或刷新任一子路由均可用。
+- fork beta 的子路径部署下，页面内所有静态产物链接均落在同一版本 base，不包含正式域名硬编码。
+- LLMs 与 Skills 页面所列资源在 fork beta 可访问；MCP 页面清楚标注未部署状态，不给出无法验证的连接地址。
+- 窄屏下侧栏索引可用且不遮挡正文；直接打开、刷新、前进/后退和复制路由链接均保持正确页面。
+- 三个说明页面纳入现有 Agent 页面索引和站点地图；页面内容可复制为 Markdown，且页面链接按 fork 子路径正确解析。
+
+#### 5C-Fork：维护者 fork 的端到端验收（评审前）
+
+目标：在不依赖正式域名、正式仓库或生产凭据的前提下，使用维护者 fork 验证完整的文档 Agent 主线，并形成可供同事评审的证据。
+
+- 唯一验收基址使用维护者明确提供的 fork beta URL；构建、manifest、页面索引、raw Markdown、Demo、页面操作区和 Skill 查阅流程都应使用该部署的 `DOCS_SITE_URL` 与 `VITEPRESS_BASE`。
+- 阶段 5B Agent 文档入口和阶段 6 组件 API catalog 首个可用版本应纳入本轮 fork 验收；不要为了评审前验证而填写正式域名、稳定入口或生产专用配置。
+- 使用现有手动 dispatch 发布流程部署 fork beta。只为 fork 端到端验收所必需时，才做最小工作流调整；不得在此阶段接入正式仓库发布或生产凭据。
+- 部署后验证 manifest 与部署基址、`docsVersion`、`schemaVersion` 一致；检查 raw Markdown、页面索引、Demo 索引、llms 产物和必要的页面链接可访问，并对 manifest 声明的 artifact hashes 做实际内容核验。
+- 使用 fork beta URL 运行 Skill 成功与失败场景：文档查找和代码生成、无文档依据的 API 不猜测、资源缺失时停止并说明；代码示例应包含必要导入或声明项目配置前提。
+- 在 fork beta 上验收复制 Markdown、复制链接和查看 Markdown 等页面操作。ChatGPT/Claude 第三方入口按当前用户范围继续延期。
+- 形成评审材料：目标与非目标、架构与产物、fork 部署/验证步骤、实际结果、限制及评审后才需确定的正式环境配置。验收记录中的链接须标明是 fork beta，不得表述为正式环境验证。
+
+5C-Fork 验收通过后，进入同事评审。若评审要求改变方案或实现，先在 fork 环境修订并重跑相关验收，再进入生产切换。
+
+#### 5C-Production：评审后的正式入口与发布自动化
+
+只有评审通过后才启动本子阶段。正式域名、稳定前缀、生产仓库、正式 tag 路径、客户端发现格式和发布凭据均在此时确认；fork beta 的成功结果不替代正式环境验证。
+
+将已在 fork 验收过的环境参数替换为评审确认的生产值，优先通过构建参数和发布配置完成，不改动已验证的文档契约或功能实现。先验证正式静态资源和 URL，再接入生产发布自动化。
 
 如客户端确有可互操作的 discovery 格式，再选择其已支持的格式；若没有共同标准，则只发布规范安装说明及直接 `SKILL.md` 下载链接，不新造通用协议。
 
-静态发布入口（仅在托管路径和客户端格式确认后启用）：
+静态发布入口（仅在评审通过且托管路径和客户端格式确认后启用）：
 
 ```text
 <site-origin>/<stable-prefix>/.well-known/skills/index.json
@@ -549,10 +598,9 @@ docs/.vitepress/theme/Layout.vue
 docs/.vitepress/theme/components/DocActions.vue
 docs/.vitepress/theme/style.css
 docs/.vitepress/themeConfig.ts
-docs/src/agents/index.md
 docs/src/agents/llms-txt.md
 docs/src/agents/skills.md
-docs/src/agents/mcp.md
+docs/src/agents/mcp-server.md
 docs/agent/skills/tiny-robot/SKILL.md
 docs/agent/schema/*.schema.json
 ```
@@ -666,15 +714,16 @@ MCP 阶段：
 
 ## 13. 执行顺序与状态跟踪
 
-当前文档定义方案，不代表各实施阶段已经完成。实现顺序固定为：
+本方案以维护者 fork 作为评审前完整验收环境。正式站点域名、稳定入口和生产专用参数属于评审后的环境切换项，不阻塞 fork 实现、测试或评审。当前执行顺序为：
 
-1. 核实正式站点域名、稳定入口具体路径、Skill 客户端支持矩阵、发布 tag 语义和内容纳入/排除规则。
-2. 实现页面/Demo 规范目录、元数据契约和校验报告。
-3. 生成静态 AI 资源并接入真实 build、PR CI 和 tag 发布链路。
-4. 完成 raw Markdown、llms、索引的 HTTP 与子路径验证。
-5. 实现页面正文操作区及 Skill 在线/离线入口。
-6. 分批补齐组件 API catalog 并建立与公开导出的差异检查。
-7. 另行确认 MCP 服务运行规格后实施独立部署、监控和回滚。
+1. 已完成阶段 0–3：建立并验证页面/Demo catalog、静态 Agent 文档产物和渐进式元数据质量门槛。
+2. 已完成阶段 4 的核心页面操作，以及阶段 5A Skill 内容收敛和版本契约；ChatGPT/Claude 入口按用户要求延期。
+3. 阶段 5B 的 Agent 文档入口和三页初版已完成，随后按读者反馈调整了导航与正文表达；下一步完成浏览器体验验收，再推进阶段 6 的轻量组件 API catalog。
+4. 阶段 6 先关联公开组件导出、页面和 Demo，再评估完整 Props/Events/Slots 元数据的范围。
+5. 在 fork beta 上完成合并验收：使用手动 dispatch 部署，验证 Agent 专区、构建产物、子路径 URL、manifest 哈希、页面操作区和 Skill 实际行为，并记录结果。
+6. 汇总方案和 fork 验收证据，提交同事评审。评审意见导致的调整先回到 fork 验证。
+7. 评审通过后进入 5C-Production：确定正式 URL、稳定入口和目标客户端支持范围，替换环境配置并验证正式资源。
+8. 最后处理生产发布自动化。阶段 7 MCP 是独立运行时项目，需单独确认范围、托管规格和维护责任，可在静态 Agent 友好化验收后另行推进。
 
 每一阶段交接记录：分支/基线 commit、变更文件、执行命令及结果、产物样例、未解决警告、下一阶段依赖。若发现方案与现有发布链路冲突，先更新此文档及验收项，再实现相应变化。
 
@@ -699,7 +748,7 @@ MCP 阶段：
 
 ### 阶段 5 准备记录（2026-10-24）
 
-- 将阶段 5 拆为 5A（Skill 内容收敛与版本契约）和 5B（稳定在线入口与发布自动化）；5B 依赖实际托管路径和目标客户端协议验证，发布工作流仍按用户要求暂不修改。
+- 历史安排曾将 5B 定为稳定在线入口与发布自动化；该顺序已被后续“先在维护者 fork 完整验收、同事评审通过后再确定正式入口”的决策取代。当前阶段 5 拆为 5A（Skill 内容收敛与版本契约）、5B（Agent 文档入口）、5C-Fork（评审前 fork 验收）和 5C-Production（评审后的正式环境切换与发布收尾）。
 - manifest 新增 `docsVersion`，取值与现有 `contentVersion` 相同，后者暂作兼容别名；`schemaVersion` 继续独立表示数据契约版本。
 - 上游只读盘点：`skills/tiny-robot-skill` 共 155 个文件，包括 16 个组件 Markdown、122 个 Demo、1 个完整示例、3 个 guide、3 个 migration、4 个 tools、4 个 rules、`SKILL.md` 和插件元数据。组件文档、Demo、guide、migration、tools 属于 TinyRobot 文档内容副本；4 个 rules 文件是 Skill 的行为路由和代码生成约束，应保留并改为从在线索引/raw 文档按需取 API 与示例。
 - 版本问题已确认：`SKILL.md` metadata 的 Skill 版本为 `1.0.0`，`.claude-plugin/plugin.json` 为 `0.1.0`；两者需要统一。现有手动同步工作流从 TinyRobot `develop` 覆盖 demos、components、examples、guide、migration、tools，但没有同步文档版本字段，也没有覆盖 rules 或 Skill 元数据；因此它目前产出的是文档快照，不能证明快照与 manifest 对应。
@@ -708,11 +757,49 @@ MCP 阶段：
 - 5A 本地草案进展：在 `D:\Projects\Work\agent-skills` 的源码快照中改写了 `SKILL.md` 与 4 个 rules，使其通过页面索引和 raw Markdown 查找文档，并将 Skill 与插件版本统一为 `1.1.0`；版本相等检查和文本/diff 空白检查通过。由于源码快照获取未形成可用 Git checkout，当前这些草案没有可审阅的 Git diff。删除本地重复目录的递归操作被执行策略拒绝，故 16 个组件 Markdown、122 个 Demo 等副本仍然存在；不能视为 Skill 已完成瘦身。未改同步工作流、未提交或推送。
 - 验证：本次只做静态语法检查与 diff 检查，未运行完整 docs 构建；发布 URL 与在线稳定入口尚未验证。
 
+### 阶段 5A 本地验收记录（2026-10-24）
+
+- `agent-skills` 仓库已恢复为正常 Git checkout（`main`）；将 Skill 包收敛为 `SKILL.md`、4 个 rules 和 Claude 插件元数据，移除本地重复的 16 个组件 Markdown、122 个 Demo、1 个示例、3 个指南、3 个迁移页和 4 个工具文档，共删除 149 个文档/示例副本。
+- Skill 版本统一为 `1.1.0`：`SKILL.md` frontmatter、Skill plugin 元数据和根 marketplace 的 `tiny-robot-skill` entry 对齐。Skill 不含离线文档快照，因此从所选 docs manifest 动态读取 `docsVersion`/`schemaVersion`，不固定某个部署 tag。
+- 用已部署 beta 执行索引链路验证：manifest、pages、demos、Bubble raw Markdown、Bubble 页面与 `demos/bubble/basic.vue` 均 HTTP 200；manifest 的 `publicBaseUrl` 与 beta base 一致，`docsVersion=beta`、`schemaVersion=0.1.0`；raw 和 demo 的 SHA-256 均匹配 manifest artifact hashes。
+- 对正式人类文档入口做了边界检查：`https://docs.opentiny.design/tiny-robot/` 会 301 到 guide 页面，而自动读取根目录 manifest 返回 403。这是评审通过后需要处理的生产入口事项，不构成 fork beta 验收或同事评审的前置条件。
+- 根据实测 schema 修正 Skill：`pages.json` 的 `rawUrl` 是绝对 URL，`rawPath` 是含部署前缀的 origin-relative 路径；Demo 资源位于 `demos.json` 中按 `pageId` 对应的记录，`files[].url` 是绝对 URL，而 `files[].path` 是相对文件路径。
+- 未修改 agent-skills 的同步工作流。现有手动同步工作流会重新复制文档/Demo；在最终自动化阶段改造前，不要对该 Skill 运行该同步工作流，否则会重新产生重复副本。
+- 本地静态验证：两个版本 JSON 一致；搜索未发现 Skill/rules 继续依赖已移除的本地 `components/`、`demos/`、`guide/`、`migration/`、`tools/` 目录；`git diff --check` 通过。未安装外部 Agent 客户端验证插件安装体验，亦未提交或推送 `agent-skills` 改动。
+
+### 评审前 fork 验收顺序调整（2026-10-24）
+
+- 验收环境明确为维护者 fork 的 beta URL。评审前不要求确认正式站点 URL、稳定入口或生产凭据；正式环境只作为评审通过后的配置替换与验证目标。
+- 独立 Skill 成功路径复测通过：按 beta manifest、pages/demos 索引、Bubble raw 与 Demo 查找；未编造 `sparkleMode`；输出包含必要的 `TrBubble` 导入。缺失 manifest 的失败路径返回 HTTP 404 后停止，没有回退到其他版本或本地副本。
+- Bubble raw Markdown 和 `demos/bubble/list.vue` 的实际 SHA-256 与 beta manifest 的 `artifactHashes` 一致。上述 Skill 测试与哈希核验均只读，未修改项目文件。
+- `agent-skills` 的阶段 5A 收敛内容已在本地提交 `2a262fc`，仅本地提交、未推送；本仓库计划文档尚未提交这些记录。
+- 当前下一步：先实施阶段 5B Agent 文档入口，再做阶段 6 轻量组件 API catalog；然后用 fork 手动 dispatch 跑完整部署和 Agent 验收，准备同事评审。ChatGPT/Claude 入口、正式环境配置和生产发布自动化不作为当前 fork 主线的阻塞项；MCP 页面先说明规划状态，服务本身仍属阶段 7。
+
+### 阶段 5B 方案补充（2026-10-24）
+
+- Agent 专区按 Nuxt UI 的信息架构采用 `Agents` 导航分组和三个独立路由页面，不把三篇长内容折叠到单页面板，也不增加重复内容的总览 `index.md`。
+- 计划页面文件名统一为 `docs/src/agents/llms-txt.md`、`docs/src/agents/skills.md`、`docs/src/agents/mcp-server.md`；分别承载 LLMs 产物说明、Skill 使用说明和 MCP 服务状态/边界说明。
+- 三页通过侧栏中的 Agent 索引访问，不在页面正文中提供互相联动的导航；fork beta 验收需覆盖直接访问、刷新、浏览器前进/后退、窄屏可用性及所有产物链接的子路径解析。
+- 此记录描述实施结构和验收标准；阶段 5B 实际实现状态见下方“阶段 5B 本地实现记录”。
+
+### 阶段 5B 本地实现记录（2026-10-24）
+
+- 在 VitePress 侧栏加入 `Agents` 索引，三个页面为 `/agents/llms-txt`、`/agents/skills`、`/agents/mcp-server`；页面通过侧栏普通路由链接访问，不使用页面头部共享导航或正文内的跨页链接。
+- 三页正文已根据读者反馈重组为面向开发者的使用说明：LLMs 页面介绍两份文本资料的用途、选择方式及如何提供给 AI 工具；Skills 页面介绍编码助手可协助的任务、Skills CLI 与 Codex 安装方式、使用示例和建议；MCP 页面明确提示服务暂未提供，并介绍计划支持的查询场景及其与应用内 MCP 功能的区别。页面正文不展示内部版本、索引、manifest 或构建细节。
+- Agent 页面导航只使用 VitePress 侧栏中的普通路由索引，页面间不提供重复的联动导航。LLMs 页面资源区仅展示 `llms.txt` 与 `llms-full.txt`。
+- 本地开发时两个 TXT 文件曾因 VitePress 开发服务器未暴露生成文件而返回 404；已在开发中间件增加读取，并实测根路径及 `/tiny-robot/beta/` 子路径均返回 HTTP 200。
+- Agent 页面目录归类为 `agent-doc`；页面、raw Markdown、LLMs 目录和 sitemap 使用现有统一生成链路，不新增重复内容事实源。
+- 验证：`pnpm -F docs agent:catalog`、`agent:check`、目标 Markdown 的 Prettier 检查和 `git diff --check` 均通过，目录为 58 个页面、179 个 Demo，0 errors/warnings/infos。此前已有带 fork 子路径的构建记录；近期正文调整后尚未运行完整站点构建、浏览器视觉与交互验收，也未部署 fork beta。
+- 阶段 5B 本地实现和正文修订已完成；仍需浏览器检查页面阅读体验、侧栏跳转及 TXT 链接，并部署 fork beta 做最终验证。
+
 ## 14. 参考链接
 
 ### 设计参考
 
-- [Nuxt UI 文档](https://ui.nuxt.com/)：页面内 AI 操作与文档体验参考。
+- [Nuxt UI MCP Server 文档](https://ui.nuxt.com/docs/getting-started/ai/mcp)：Agents 导航下的 MCP 页面信息架构参考。
+- [Nuxt UI LLMs.txt 文档](https://ui.nuxt.com/docs/getting-started/ai/llms-txt)：LLMs.txt 说明页与产物链接展示参考。
+- [Nuxt UI Skills 文档](https://ui.nuxt.com/docs/getting-started/ai/skills)：Skill 说明页与安装/查阅说明参考。
+- [Nuxt UI 文档](https://ui.nuxt.com/)：页面内 AI 操作与整体文档体验参考。
 - [llms.txt 规范说明](https://llmstxt.org/)：`llms.txt` 与全文文档索引的约定。
 - [Agent Skills Specification](https://agentskills.io/specification)：Skill 文件格式和目录约定。
 - [Model Context Protocol Specification](https://modelcontextprotocol.io/specification/)：MCP Server、工具、资源和传输协议。

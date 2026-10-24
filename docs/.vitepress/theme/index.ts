@@ -4,6 +4,7 @@ import '@opentiny/vue-theme/dark-theme-index.css'
 import DefaultTheme from 'vitepress/theme'
 import { setupDarkModeListener } from './color-mode'
 import Layout from './Layout.vue'
+import AgentResourceLinks from './components/AgentResourceLinks.vue'
 import './style.css'
 
 declare global {
@@ -18,6 +19,7 @@ export default {
   enhanceApp({ app }) {
     // 监听暗黑模式变化
     setupDarkModeListener()
+    app.component('AgentResourceLinks', AgentResourceLinks)
 
     app.mixin({
       mounted() {

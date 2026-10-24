@@ -27,12 +27,29 @@ const prodAlias = {
 }
 
 const docsSourceDir = fileURLToPath(new URL('../src', import.meta.url))
+const docsDistDir = fileURLToPath(new URL('../dist', import.meta.url))
+const vitepressBase = process.env.VITEPRESS_BASE || '/'
 
 const rawMarkdownPlugin: Plugin = {
   name: 'docs-raw-markdown',
   configureServer(server) {
     server.middlewares.use(async (req, res, next) => {
       const pathname = new URL(req.url || '/', 'http://localhost').pathname
+      const requestPath = pathname.startsWith(vitepressBase) ? `/${pathname.slice(vitepressBase.length)}` : pathname
+
+      if (requestPath === '/llms.txt' || requestPath === '/llms-full.txt') {
+        try {
+          const content = await readFile(resolve(docsDistDir, requestPath.slice(1)))
+          res.statusCode = 200
+          res.setHeader('Content-Type', 'text/plain; charset=utf-8')
+          res.setHeader('Content-Length', content.byteLength)
+          res.end(content)
+          return
+        } catch {
+          return next()
+        }
+      }
+
       if (!pathname.startsWith('/raw/')) return next()
 
       const relativePath = decodeURIComponent(pathname.slice('/raw/'.length))

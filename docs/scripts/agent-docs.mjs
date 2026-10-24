@@ -32,6 +32,7 @@ const KIND_BY_DIRECTORY = {
   'best-practices': 'best-practice',
   components: 'component',
   examples: 'example',
+  agents: 'agent-doc',
   guide: 'guide',
   icons: 'reference',
   migration: 'migration',

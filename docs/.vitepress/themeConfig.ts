@@ -63,6 +63,15 @@ const sharedSidebarItems = [
     items: [{ text: 'MCP 与 Skill 扩展管理', link: 'extension-manager-integration' }],
   },
   {
+    text: 'Agents',
+    base: '/agents/',
+    items: [
+      { text: 'LLMs.txt', link: 'llms-txt' },
+      { text: 'Skills', link: 'skills' },
+      { text: 'MCP Server', link: 'mcp-server' },
+    ],
+  },
+  {
     text: '图标',
     items: [{ text: 'SVG 图标', link: '/icons/' }],
   },
@@ -81,6 +90,7 @@ const sidebar = {
   '/best-practices/': sharedSidebarItems,
   '/icons/': sharedSidebarItems,
   '/suites/': sharedSidebarItems,
+  '/agents/': sharedSidebarItems,
   '/examples/': [
     {
       text: '演示',
