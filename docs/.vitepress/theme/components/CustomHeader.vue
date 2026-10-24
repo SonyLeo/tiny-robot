@@ -118,6 +118,7 @@ const navigationTabs = computed(() => {
       key: item.link || item.text.toLowerCase().replace(/\s+/g, '-'),
       name: item.text,
       link: item.link,
+      activeMatch: item.activeMatch,
       disabled: false,
     })) || []
   )
@@ -127,6 +128,7 @@ interface TabItem {
   key: string
   name: string
   link: string
+  activeMatch?: string
   disabled?: boolean
 }
 
@@ -138,7 +140,7 @@ const showNavigation = computed(() => {
 // 当前激活的导航标签
 const activeNavTab = computed(() => {
   const currentTab = navigationTabs.value.find((tab: TabItem) =>
-    isActiveNav({ text: tab.name, link: tab.link, activeMatch: undefined }),
+    isActiveNav({ text: tab.name, link: tab.link, activeMatch: tab.activeMatch }),
   )
   return currentTab?.key || ''
 })
