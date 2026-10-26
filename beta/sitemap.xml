@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://sonyleo.github.io/tiny-robot/beta/agents/llms-txt</loc></url>
+  <url><loc>https://sonyleo.github.io/tiny-robot/beta/agents/mcp-server</loc></url>
+  <url><loc>https://sonyleo.github.io/tiny-robot/beta/agents/skills</loc></url>
   <url><loc>https://sonyleo.github.io/tiny-robot/beta/best-practices/extension-manager-integration</loc></url>
   <url><loc>https://sonyleo.github.io/tiny-robot/beta/components/anchor</loc></url>
   <url><loc>https://sonyleo.github.io/tiny-robot/beta/components/attachments</loc></url>

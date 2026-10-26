@@ -6,6 +6,7 @@ badge: deprecated
 description: 兼容旧版本的全屏容器组件；新布局请使用 Layout。
 status: deprecated
 package: '@opentiny/tiny-robot'
+exports: [TrContainer]
 keywords: [容器, 全屏布局, 迁移]
 ---
 

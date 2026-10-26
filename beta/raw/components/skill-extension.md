@@ -5,6 +5,7 @@ kind: component
 description: 提供 Skill 导入表单和详情展示内容，支持本地文件夹与 GitHub 导入。
 status: stable
 package: '@opentiny/tiny-robot'
+exports: [TrSkillImportForm, TrSkillExtensionDetail]
 keywords: [Skill, 扩展导入, GitHub]
 ---
 

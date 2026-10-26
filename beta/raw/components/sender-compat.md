@@ -5,6 +5,7 @@ kind: component
 description: 提供 SenderCompat 的兼容期用法和 API 参考，内容已合并到 Sender 迁移指南。
 status: deprecated
 package: '@opentiny/tiny-robot'
+exports: [TrSenderCompat]
 keywords: [SenderCompat, 兼容, 迁移]
 ---
 

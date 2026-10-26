@@ -5,6 +5,7 @@ kind: component
 description: 用于展示反馈气泡中的操作项和动作，并通过事件响应用户选择。
 status: stable
 package: '@opentiny/tiny-robot'
+exports: [TrFeedback]
 keywords: [反馈, 操作项, 气泡]
 ---
 

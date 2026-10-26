@@ -5,6 +5,7 @@ kind: component
 description: 用于展示可点击的提示按钮组，支持插槽、自定义样式和禁用状态。
 status: stable
 package: '@opentiny/tiny-robot'
+exports: [TrSuggestionPills, TrSuggestionPillButton]
 keywords: [提示按钮, 按钮组, 插槽]
 ---
 

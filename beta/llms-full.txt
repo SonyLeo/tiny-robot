@@ -1,5 +1,212 @@
 # TinyRobot Documentation (full)
 
+# LLMs.txt
+
+Title: LLMs.txt
+Kind: agent-doc
+Status: stable
+Description: 使用 TinyRobot 的 AI 友好文档，查找组件说明、使用方法和示例。
+Source: agents/llms-txt.md
+Raw: https://sonyleo.github.io/tiny-robot/beta/raw/agents/llms-txt.md
+
+# LLMs.txt
+
+> 想让 AI 助手更了解 TinyRobot？可以把下面的文档提供给它，让它依据项目文档回答问题或协助编写代码。
+
+## 提供哪些内容？
+
+这里有两份适合 AI 阅读的文档：
+
+- [`llms.txt`](../llms.txt)：精简的文档目录，帮助 AI 快速了解 TinyRobot 文档涵盖的主题，并找到相关内容。
+- [`llms-full.txt`](../llms-full.txt)：汇集更完整的文档说明和示例，适合需要较多背景信息或跨多个主题查阅时使用。
+
+## 应该从哪一份开始？
+
+如果你还不确定要查什么，先提供 `llms.txt`，让 AI 了解文档范围，再根据问题补充相关内容。这样通常能更快定位到需要的信息。
+
+如果问题涉及多个组件、配置步骤或较完整的实现示例，可以提供 `llms-full.txt`，让 AI 在更完整的背景下回答。它包含的信息更多，适合需要深入查阅的任务。
+
+## 如何在 AI 工具中使用？
+
+### 支持添加文档链接的工具
+
+如果你使用的工具支持添加文档链接或项目知识库，可以将 `llms.txt` 添加为文档入口。遇到需要完整背景的问题时，再添加 `llms-full.txt`。
+
+### 支持读取链接的聊天助手
+
+在提问时附上文档链接，并说明你希望 AI 根据 TinyRobot 文档回答。例如：
+
+> 请参考 TinyRobot 文档，说明 Bubble 组件如何使用，并给出包含必要导入语句的 Vue 示例。若文档没有说明某个 API，请指出这一点，不要猜测。
+
+不同 AI 工具读取网页链接的能力有所不同。如果工具无法直接读取链接，可以打开文档并将相关内容粘贴到对话中。
+
+## 什么时候使用？
+
+你可以在以下场景中使用这些文档：
+
+- 了解 TinyRobot 提供了哪些组件和功能；
+- 查找组件的使用方法、配置方式和示例；
+- 请 AI 协助编写或调整 TinyRobot Vue 代码；
+- 让 AI 根据项目文档解释已有实现或排查使用问题。
+
+提供相关文档有助于 AI 给出更贴合 TinyRobot 的回答；具体结果仍取决于所用工具能否读取这些内容，以及问题本身提供的信息是否充分。
+
+
+---
+
+# MCP Server
+
+Title: MCP Server
+Kind: agent-doc
+Status: available
+Description: 在本地 AI 助手中查询 TinyRobot 组件、文档和示例。
+Source: agents/mcp-server.md
+Raw: https://sonyleo.github.io/tiny-robot/beta/raw/agents/mcp-server.md
+
+# MCP Server
+
+> 在支持 MCP 的 AI 助手中搜索 TinyRobot 文档，并按需读取组件说明和示例。
+
+::: tip 当前提供方式
+TinyRobot 文档 MCP Server 已可在本地运行。它读取本地生成的文档索引、Markdown 和示例；目前没有托管的远程服务地址。
+:::
+
+## 可以做什么？
+
+连接后，AI 助手可以：
+
+- 搜索文档页面和公开组件；
+- 获取组件目录信息和组件文档；
+- 按章节读取文档，并在内容较长时继续读取后续部分；
+- 读取文档示例和迁移指南；
+- 查看每条结果对应的文档来源。
+
+服务只查询构建后的公开文档内容，不访问当前项目代码，也不执行示例代码。
+
+## 本地启动
+
+在 TinyRobot 仓库根目录安装依赖并生成文档产物：
+
+```sh
+pnpm install
+pnpm -F docs agent:catalog
+pnpm -F docs agent:build
+```
+
+服务需要 Node.js 18 或更高版本。MCP 客户端启动配置应从 TinyRobot 仓库根目录运行：
+
+```sh
+pnpm -F @opentiny/tiny-robot-docs-mcp start
+```
+
+stdio MCP 客户端会管理服务进程。不要在终端单独启动后再填写 HTTP 地址；当前没有远程 endpoint。
+
+## 在 Codex 中使用
+
+将服务注册到 Codex。把示例中的仓库路径替换成 TinyRobot 在本机的实际位置：
+
+```sh
+codex mcp add tiny-robot-docs -- pnpm --dir "D:\path\to\tiny-robot" -F @opentiny/tiny-robot-docs-mcp start
+```
+
+然后重启 Codex。服务使用该仓库最新一次生成的 `docs/dist` 产物；文档更新后，先执行 `pnpm -F docs agent:catalog`，再执行 `pnpm -F docs agent:build` 刷新可查询内容。
+
+### 用 fork Beta 文档进行演示
+
+评审演示可以让本地 MCP 服务读取 fork Beta 对应的本地构建快照。先从 Beta 部署使用的提交检出 TinyRobot 仓库，在仓库根目录按该 fork 的站点地址依次运行 `pnpm -F docs agent:catalog` 和 `pnpm -F docs agent:build`；构建完成后，确认 `docs/dist/agent/manifest.json` 中的 `docsVersion` 为 `beta`，`publicBaseUrl` 指向 fork Beta 地址。将下面配置中的两个本地路径替换为实际路径：
+
+```sh
+codex mcp add tiny-robot-docs-beta --env "DOCS_MCP_CATALOG_DIR=D:\path\to\beta\docs\dist" -- pnpm --dir "D:\path\to\tiny-robot" -F @opentiny/tiny-robot-docs-mcp start
+```
+
+此配置让工具从本地快照搜索和读取内容，查询结果中的 Markdown 与 Demo 来源链接仍指向 fork Beta 网站。它不会在每次查询时联网抓取，也不会因此变成远程 MCP 服务；Beta 更新后需重新生成本地快照并重启 MCP 服务，才能查到更新内容。
+
+## 可用查询
+
+连接后可通过工具搜索文档和组件、读取组件元数据、按页或章节读取文档、获取示例，以及查阅迁移指南。也可以通过 MCP Resources 浏览页面、组件、示例和迁移指南目录。
+
+组件搜索优先匹配组件名称和别名，其次匹配页面标题、关键词与说明；示例文件路径不参与组件搜索，减少无关命中。文档搜索还会检索页面 Markdown 正文，支持 API 标识符和中文描述，并返回命中章节及摘要。每次读取有长度上限；较长页面或代码示例会返回继续读取的位置。
+
+本地构建没有公开站点地址时，查询结果会返回文档路由和 raw 文件路径，不会生成本机 `localhost` 链接。构建时配置了公开文档地址后，结果会附上对应部署路径下的可访问链接。目录 Resources 只包含查找所需的摘要信息，完整文档和代码通过对应工具按需读取。
+
+## 与应用中的 MCP 功能有什么区别？
+
+TinyRobot 组件和运行时中的 MCP 能力，服务于应用开发中的连接、配置或管理流程。本文介绍的 MCP Server 则为 AI 助手提供 TinyRobot 自身的文档和示例查询，两者用途不同。
+
+## 远程服务
+
+目前没有公开托管的 MCP 服务地址。是否提供远程连接及其部署方式，将在本地验证和方案评审后确定。
+
+
+---
+
+# Skills
+
+Title: Skills
+Kind: agent-doc
+Status: stable
+Description: 为编码助手安装 TinyRobot Skill，获取组件使用建议和 Vue 示例指导。
+Source: agents/skills.md
+Raw: https://sonyleo.github.io/tiny-robot/beta/raw/agents/skills.md
+
+# Skills
+
+> TinyRobot Skill 可以帮助编码助手更准确地理解 TinyRobot 项目，并在编写 Vue 代码时参考相应的组件用法和示例。
+
+## Skill 可以帮你做什么？
+
+为编码助手安装 TinyRobot Skill 后，它可以在处理 TinyRobot 相关任务时：
+
+- 根据需求帮助选择合适的组件或功能；
+- 结合组件文档和示例，说明如何配置和使用；
+- 在编写 Vue 示例时补充必要的导入和使用前提；
+- 对文档没有说明的 API 明确指出信息不足，而不是臆测不存在的属性或行为；
+- 协助理解、编写和调整基于 TinyRobot 的聊天界面与交互代码。
+
+Skill 为编码助手提供 TinyRobot 相关的工作指引。组件的具体用法和示例仍以 TinyRobot 文档为准。
+
+## 安装
+
+请先确认你使用的编码助手支持以下安装方式。
+
+### 使用 Skills CLI
+
+Skills CLI 可用于将 TinyRobot Skill 安装到支持该格式的编码助手：
+
+```bash
+npx skills add opentiny/agent-skills --skill tiny-robot-skill
+```
+
+如果需要指定目标编码助手，可以根据 Skills CLI 的说明追加 `--agent` 参数。
+
+### 在 Codex 中安装
+
+在 Codex 对话中调用内置的 `$skill-installer`，并提供 TinyRobot Skill 的仓库地址：
+
+```text
+$skill-installer 请从 https://github.com/opentiny/agent-skills/tree/main/skills/tiny-robot-skill 安装 TinyRobot Skill。
+```
+
+Codex 会从该仓库目录获取 Skill 并安装到本机。若安装后尚未出现在可用 Skill 中，可重新启动 Codex 再试。
+
+## 开始使用
+
+安装完成后，直接描述你希望完成的 TinyRobot 任务即可。例如：
+
+> 请用 TinyRobot 的 Bubble 和 Sender 组件实现一个简单的聊天界面。先说明需要哪些组件，再给出包含导入语句的 Vue 示例。
+
+也可以让编码助手解释现有代码、调整组件配置，或根据文档示例补充交互。若它找不到对应 API 或示例，可以让它说明缺少的资料，再根据文档站中的组件说明继续确认。
+
+## 使用建议
+
+- 尽可能说明你正在使用的组件、期望的交互和项目环境；
+- 对涉及具体 API 的回答，要求编码助手给出对应的文档或示例依据；
+- 生成代码后，仍应在自己的项目中检查导入路径、依赖和运行效果；
+- 如果当前编码助手不支持 Skills 或对应安装方式，可直接查阅 TinyRobot 文档并把相关内容提供给它。
+
+
+---
+
 # 在应用中管理 MCP 与 Skill 扩展
 
 Title: 在应用中管理 MCP 与 Skill 扩展

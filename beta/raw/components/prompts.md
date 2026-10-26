@@ -5,6 +5,7 @@ kind: component
 description: 用于展示提示列表，支持大小、禁用、徽章、换行和响应式布局。
 status: stable
 package: '@opentiny/tiny-robot'
+exports: [TrPrompt, TrPrompts]
 keywords: [提示词, 列表, 响应式布局]
 ---
 

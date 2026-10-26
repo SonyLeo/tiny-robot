@@ -5,6 +5,7 @@ kind: component
 description: 为 SuggestionPills 等场景提供下拉菜单展示和选择能力。
 status: stable
 package: '@opentiny/tiny-robot'
+exports: [TrDropdownMenu]
 keywords: [下拉菜单, SuggestionPills, 菜单]
 ---
 

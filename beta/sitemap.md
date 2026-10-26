@@ -2,6 +2,9 @@
 
 This is a human-readable Agent index. See sitemap.xml for crawler sitemap format.
 
+- [LLMs.txt](https://sonyleo.github.io/tiny-robot/beta/agents/llms-txt) — agent-doc
+- [MCP Server](https://sonyleo.github.io/tiny-robot/beta/agents/mcp-server) — agent-doc
+- [Skills](https://sonyleo.github.io/tiny-robot/beta/agents/skills) — agent-doc
 - [在应用中管理 MCP 与 Skill 扩展](https://sonyleo.github.io/tiny-robot/beta/best-practices/extension-manager-integration) — best-practice
 - [Anchor 锚点](https://sonyleo.github.io/tiny-robot/beta/components/anchor) — component
 - [Attachments 附件卡片](https://sonyleo.github.io/tiny-robot/beta/components/attachments) — component

@@ -6,6 +6,7 @@ badge: deprecated
 description: 用于展示和管理 MCP Server 的旧版插件选择组件，建议迁移到 ExtensionManager。
 status: deprecated
 package: '@opentiny/tiny-robot'
+exports: [TrMcpServerPicker]
 keywords: [MCP Server, 插件选择, 迁移]
 ---
 

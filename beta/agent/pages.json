@@ -2,6 +2,45 @@
   "schemaVersion": "0.1.0",
   "pages": [
     {
+      "id": "agents/llms-txt",
+      "route": "/agents/llms-txt",
+      "title": "LLMs.txt",
+      "description": "使用 TinyRobot 的 AI 友好文档，查找组件说明、使用方法和示例。",
+      "kind": "agent-doc",
+      "status": "stable",
+      "source": "agents/llms-txt.md",
+      "canonicalUrl": "https://sonyleo.github.io/tiny-robot/beta/agents/llms-txt",
+      "rawPath": "/tiny-robot/beta/raw/agents/llms-txt.md",
+      "rawUrl": "https://sonyleo.github.io/tiny-robot/beta/raw/agents/llms-txt.md",
+      "examples": []
+    },
+    {
+      "id": "agents/mcp-server",
+      "route": "/agents/mcp-server",
+      "title": "MCP Server",
+      "description": "在本地 AI 助手中查询 TinyRobot 组件、文档和示例。",
+      "kind": "agent-doc",
+      "status": "available",
+      "source": "agents/mcp-server.md",
+      "canonicalUrl": "https://sonyleo.github.io/tiny-robot/beta/agents/mcp-server",
+      "rawPath": "/tiny-robot/beta/raw/agents/mcp-server.md",
+      "rawUrl": "https://sonyleo.github.io/tiny-robot/beta/raw/agents/mcp-server.md",
+      "examples": []
+    },
+    {
+      "id": "agents/skills",
+      "route": "/agents/skills",
+      "title": "Skills",
+      "description": "为编码助手安装 TinyRobot Skill，获取组件使用建议和 Vue 示例指导。",
+      "kind": "agent-doc",
+      "status": "stable",
+      "source": "agents/skills.md",
+      "canonicalUrl": "https://sonyleo.github.io/tiny-robot/beta/agents/skills",
+      "rawPath": "/tiny-robot/beta/raw/agents/skills.md",
+      "rawUrl": "https://sonyleo.github.io/tiny-robot/beta/raw/agents/skills.md",
+      "examples": []
+    },
+    {
       "id": "best-practices/extension-manager-integration",
       "route": "/best-practices/extension-manager-integration",
       "title": "在应用中管理 MCP 与 Skill 扩展",

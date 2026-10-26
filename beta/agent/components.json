@@ -1,0 +1,931 @@
+{
+  "schemaVersion": "0.1.0",
+  "package": "@opentiny/tiny-robot",
+  "counts": {
+    "components": 39,
+    "documented": 39,
+    "undocumented": 0
+  },
+  "components": [
+    {
+      "name": "TrAttachments",
+      "exportName": "TrAttachments",
+      "aliases": [
+        "Attachments"
+      ],
+      "package": "@opentiny/tiny-robot",
+      "documentationStatus": "documented",
+      "status": "stable",
+      "page": "/components/attachments",
+      "examples": [
+        "demos/attachments/basic.vue",
+        "demos/attachments/status.vue",
+        "demos/attachments/picture-list.vue",
+        "demos/attachments/wrap.vue",
+        "demos/attachments/download.vue",
+        "demos/attachments/custom-icon.vue",
+        "demos/attachments/custom-file-type.vue"
+      ]
+    },
+    {
+      "name": "TrBubble",
+      "exportName": "TrBubble",
+      "aliases": [
+        "Bubble"
+      ],
+      "package": "@opentiny/tiny-robot",
+      "documentationStatus": "documented",
+      "status": "stable",
+      "page": "/components/bubble",
+      "examples": [
+        "demos/bubble/basic.vue",
+        "demos/bubble/avatar-and-placement.vue",
+        "demos/bubble/shape.vue",
+        "demos/bubble/loading.vue",
+        "demos/bubble/streaming.vue",
+        "demos/bubble/markdown.vue",
+        "demos/bubble/image.vue",
+        "demos/bubble/content-render-mode.vue",
+        "demos/bubble/content-resolver.vue",
+        "demos/bubble/slots.vue",
+        "demos/bubble/schema-render.vue",
+        "demos/bubble/schema-card.ce.vue",
+        "demos/bubble/list.vue",
+        "demos/bubble/list-consecutive.vue",
+        "demos/bubble/list-custom-group.vue",
+        "demos/bubble/list-array-content.vue",
+        "demos/bubble/list-hidden.vue",
+        "demos/bubble/list-auto-scroll.vue",
+        "demos/bubble/provider-renderer.vue",
+        "demos/bubble/provider-attributes.vue",
+        "demos/bubble/error.vue",
+        "demos/bubble/reasoning.vue",
+        "demos/bubble/tools.vue",
+        "demos/bubble/custom-composite-renderer.vue",
+        "demos/bubble/RecursiveReasoningRenderer.vue",
+        "demos/bubble/custom-renderer.vue",
+        "demos/bubble/state-change.vue",
+        "demos/bubble/tool-approval.vue"
+      ]
+    },
+    {
+      "name": "TrBubbleList",
+      "exportName": "TrBubbleList",
+      "aliases": [
+        "BubbleList"
+      ],
+      "package": "@opentiny/tiny-robot",
+      "documentationStatus": "documented",
+      "status": "stable",
+      "page": "/components/bubble",
+      "examples": [
+        "demos/bubble/basic.vue",
+        "demos/bubble/avatar-and-placement.vue",
+        "demos/bubble/shape.vue",
+        "demos/bubble/loading.vue",
+        "demos/bubble/streaming.vue",
+        "demos/bubble/markdown.vue",
+        "demos/bubble/image.vue",
+        "demos/bubble/content-render-mode.vue",
+        "demos/bubble/content-resolver.vue",
+        "demos/bubble/slots.vue",
+        "demos/bubble/schema-render.vue",
+        "demos/bubble/schema-card.ce.vue",
+        "demos/bubble/list.vue",
+        "demos/bubble/list-consecutive.vue",
+        "demos/bubble/list-custom-group.vue",
+        "demos/bubble/list-array-content.vue",
+        "demos/bubble/list-hidden.vue",
+        "demos/bubble/list-auto-scroll.vue",
+        "demos/bubble/provider-renderer.vue",
+        "demos/bubble/provider-attributes.vue",
+        "demos/bubble/error.vue",
+        "demos/bubble/reasoning.vue",
+        "demos/bubble/tools.vue",
+        "demos/bubble/custom-composite-renderer.vue",
+        "demos/bubble/RecursiveReasoningRenderer.vue",
+        "demos/bubble/custom-renderer.vue",
+        "demos/bubble/state-change.vue",
+        "demos/bubble/tool-approval.vue"
+      ]
+    },
+    {
+      "name": "TrBubbleProvider",
+      "exportName": "TrBubbleProvider",
+      "aliases": [
+        "BubbleProvider"
+      ],
+      "package": "@opentiny/tiny-robot",
+      "documentationStatus": "documented",
+      "status": "stable",
+      "page": "/components/bubble",
+      "examples": [
+        "demos/bubble/basic.vue",
+        "demos/bubble/avatar-and-placement.vue",
+        "demos/bubble/shape.vue",
+        "demos/bubble/loading.vue",
+        "demos/bubble/streaming.vue",
+        "demos/bubble/markdown.vue",
+        "demos/bubble/image.vue",
+        "demos/bubble/content-render-mode.vue",
+        "demos/bubble/content-resolver.vue",
+        "demos/bubble/slots.vue",
+        "demos/bubble/schema-render.vue",
+        "demos/bubble/schema-card.ce.vue",
+        "demos/bubble/list.vue",
+        "demos/bubble/list-consecutive.vue",
+        "demos/bubble/list-custom-group.vue",
+        "demos/bubble/list-array-content.vue",
+        "demos/bubble/list-hidden.vue",
+        "demos/bubble/list-auto-scroll.vue",
+        "demos/bubble/provider-renderer.vue",
+        "demos/bubble/provider-attributes.vue",
+        "demos/bubble/error.vue",
+        "demos/bubble/reasoning.vue",
+        "demos/bubble/tools.vue",
+        "demos/bubble/custom-composite-renderer.vue",
+        "demos/bubble/RecursiveReasoningRenderer.vue",
+        "demos/bubble/custom-renderer.vue",
+        "demos/bubble/state-change.vue",
+        "demos/bubble/tool-approval.vue"
+      ]
+    },
+    {
+      "name": "TrContainer",
+      "exportName": "TrContainer",
+      "aliases": [
+        "Container"
+      ],
+      "package": "@opentiny/tiny-robot",
+      "documentationStatus": "documented",
+      "status": "deprecated",
+      "page": "/components/container",
+      "examples": [
+        "demos/container/basic.vue"
+      ]
+    },
+    {
+      "name": "TrAnchor",
+      "exportName": "TrAnchor",
+      "aliases": [
+        "Anchor"
+      ],
+      "package": "@opentiny/tiny-robot",
+      "documentationStatus": "documented",
+      "status": "stable",
+      "page": "/components/anchor",
+      "examples": [
+        "demos/anchor/controlled-search.vue",
+        "demos/anchor/controlled-search.messages.ts",
+        "demos/anchor/demo-shell.css",
+        "demos/anchor/basic-source.vue",
+        "demos/anchor/basic-source.messages.ts"
+      ]
+    },
+    {
+      "name": "TrDragOverlay",
+      "exportName": "TrDragOverlay",
+      "aliases": [
+        "DragOverlay"
+      ],
+      "package": "@opentiny/tiny-robot",
+      "documentationStatus": "documented",
+      "status": "stable",
+      "page": "/components/drag-overlay",
+      "examples": [
+        "demos/drag-overlay/basic.vue",
+        "demos/drag-overlay/custom-overlay.vue",
+        "demos/drag-overlay/disabled.vue"
+      ]
+    },
+    {
+      "name": "TrDropdownMenu",
+      "exportName": "TrDropdownMenu",
+      "aliases": [
+        "DropdownMenu"
+      ],
+      "package": "@opentiny/tiny-robot",
+      "documentationStatus": "documented",
+      "status": "stable",
+      "page": "/components/dropdown-menu",
+      "examples": [
+        "demos/dropdown-menu/basic.vue"
+      ]
+    },
+    {
+      "name": "TrFeedback",
+      "exportName": "TrFeedback",
+      "aliases": [
+        "Feedback"
+      ],
+      "package": "@opentiny/tiny-robot",
+      "documentationStatus": "documented",
+      "status": "stable",
+      "page": "/components/feedback",
+      "examples": [
+        "demos/feedback/basic.vue",
+        "demos/feedback/limit.vue",
+        "demos/feedback/custom-action-icon.vue"
+      ]
+    },
+    {
+      "name": "TrHistory",
+      "exportName": "TrHistory",
+      "aliases": [
+        "History"
+      ],
+      "package": "@opentiny/tiny-robot",
+      "documentationStatus": "documented",
+      "status": "stable",
+      "page": "/components/history",
+      "examples": [
+        "demos/history/basic.vue",
+        "demos/history/empty.vue",
+        "demos/history/custom-menu.vue",
+        "demos/history/icon.vue",
+        "demos/history/slot-item-prefix.vue",
+        "demos/history/slot-item-title.vue"
+      ]
+    },
+    {
+      "name": "TrLayout",
+      "exportName": "TrLayout",
+      "aliases": [
+        "Layout"
+      ],
+      "package": "@opentiny/tiny-robot",
+      "documentationStatus": "documented",
+      "status": "stable",
+      "page": "/components/layout",
+      "examples": [
+        "demos/layout/basic.vue",
+        "demos/layout/mode.vue",
+        "demos/layout/aside-modes.vue",
+        "demos/layout/aside-collapse-effect.vue",
+        "demos/layout/aside-resizable.vue",
+        "demos/layout/aside-controlled.vue",
+        "demos/layout/floating.vue",
+        "demos/layout/floating-controlled.vue",
+        "demos/layout/floating-panels.vue",
+        "demos/layout/main-scroll.vue",
+        "demos/layout/main-scroll-bubble.vue",
+        "demos/layout/main-scroll-div.vue",
+        "demos/layout/aside-toggle.vue"
+      ]
+    },
+    {
+      "name": "TrLayoutProxyScrollbar",
+      "exportName": "TrLayoutProxyScrollbar",
+      "aliases": [
+        "LayoutProxyScrollbar"
+      ],
+      "package": "@opentiny/tiny-robot",
+      "documentationStatus": "documented",
+      "status": "stable",
+      "page": "/components/layout",
+      "examples": [
+        "demos/layout/basic.vue",
+        "demos/layout/mode.vue",
+        "demos/layout/aside-modes.vue",
+        "demos/layout/aside-collapse-effect.vue",
+        "demos/layout/aside-resizable.vue",
+        "demos/layout/aside-controlled.vue",
+        "demos/layout/floating.vue",
+        "demos/layout/floating-controlled.vue",
+        "demos/layout/floating-panels.vue",
+        "demos/layout/main-scroll.vue",
+        "demos/layout/main-scroll-bubble.vue",
+        "demos/layout/main-scroll-div.vue",
+        "demos/layout/aside-toggle.vue"
+      ]
+    },
+    {
+      "name": "TrLayoutAsideToggle",
+      "exportName": "TrLayoutAsideToggle",
+      "aliases": [
+        "LayoutAsideToggle"
+      ],
+      "package": "@opentiny/tiny-robot",
+      "documentationStatus": "documented",
+      "status": "stable",
+      "page": "/components/layout",
+      "examples": [
+        "demos/layout/basic.vue",
+        "demos/layout/mode.vue",
+        "demos/layout/aside-modes.vue",
+        "demos/layout/aside-collapse-effect.vue",
+        "demos/layout/aside-resizable.vue",
+        "demos/layout/aside-controlled.vue",
+        "demos/layout/floating.vue",
+        "demos/layout/floating-controlled.vue",
+        "demos/layout/floating-panels.vue",
+        "demos/layout/main-scroll.vue",
+        "demos/layout/main-scroll-bubble.vue",
+        "demos/layout/main-scroll-div.vue",
+        "demos/layout/aside-toggle.vue"
+      ]
+    },
+    {
+      "name": "TrModelSelector",
+      "exportName": "TrModelSelector",
+      "aliases": [
+        "ModelSelector"
+      ],
+      "package": "@opentiny/tiny-robot",
+      "documentationStatus": "documented",
+      "status": "stable",
+      "page": "/components/model-selector",
+      "examples": [
+        "demos/model-selector/basic.vue",
+        "demos/model-selector/search-and-group.vue",
+        "demos/model-selector/reasoning-effort.vue",
+        "demos/model-selector/variants.vue",
+        "demos/model-selector/icon-trigger.vue",
+        "demos/model-selector/slots.vue"
+      ]
+    },
+    {
+      "name": "TrPrompt",
+      "exportName": "TrPrompt",
+      "aliases": [
+        "Prompt"
+      ],
+      "package": "@opentiny/tiny-robot",
+      "documentationStatus": "documented",
+      "status": "stable",
+      "page": "/components/prompts",
+      "examples": [
+        "demos/prompts/basic.vue",
+        "demos/prompts/size.vue",
+        "demos/prompts/disabled.vue",
+        "demos/prompts/badge.vue",
+        "demos/prompts/vertical.vue",
+        "demos/prompts/wrap.vue",
+        "demos/prompts/responsive.vue",
+        "demos/prompts/footer.vue"
+      ]
+    },
+    {
+      "name": "TrPrompts",
+      "exportName": "TrPrompts",
+      "aliases": [
+        "Prompts"
+      ],
+      "package": "@opentiny/tiny-robot",
+      "documentationStatus": "documented",
+      "status": "stable",
+      "page": "/components/prompts",
+      "examples": [
+        "demos/prompts/basic.vue",
+        "demos/prompts/size.vue",
+        "demos/prompts/disabled.vue",
+        "demos/prompts/badge.vue",
+        "demos/prompts/vertical.vue",
+        "demos/prompts/wrap.vue",
+        "demos/prompts/responsive.vue",
+        "demos/prompts/footer.vue"
+      ]
+    },
+    {
+      "name": "TrSender",
+      "exportName": "TrSender",
+      "aliases": [
+        "Sender"
+      ],
+      "package": "@opentiny/tiny-robot",
+      "documentationStatus": "documented",
+      "status": "stable",
+      "page": "/components/sender",
+      "examples": [
+        "demos/sender/basic.vue",
+        "demos/sender/mode-switch.vue",
+        "demos/sender/loading-state.vue",
+        "demos/sender/word-limit.vue",
+        "demos/sender/template-editor.vue",
+        "demos/sender/mention.vue",
+        "demos/sender/suggestion-basic.vue",
+        "demos/sender/suggestion-filter.vue",
+        "demos/sender/suggestion-highlight.vue",
+        "demos/sender/voice-input.vue",
+        "demos/sender/mockSpeechHandler.ts",
+        "demos/sender/voice-custom.vue",
+        "demos/sender/speechHandlers.ts",
+        "demos/sender/voice-custom-ui.vue",
+        "demos/sender/PressToTalkOverlay.vue",
+        "demos/sender/actions-config-basic.vue",
+        "demos/sender/actions-enhanced.vue",
+        "demos/sender/attachments-in-sender.vue",
+        "demos/sender/submit-type.vue",
+        "demos/sender/custom-slots.vue",
+        "demos/sender/input-prefix-placeholder.vue",
+        "demos/sender/methods-demo.vue",
+        "demos/sender/size.vue"
+      ]
+    },
+    {
+      "name": "TrSenderCompat",
+      "exportName": "TrSenderCompat",
+      "aliases": [
+        "SenderCompat"
+      ],
+      "package": "@opentiny/tiny-robot",
+      "documentationStatus": "documented",
+      "status": "deprecated",
+      "page": "/components/sender-compat",
+      "examples": []
+    },
+    {
+      "name": "TrSuggestionPillButton",
+      "exportName": "TrSuggestionPillButton",
+      "aliases": [
+        "SuggestionPillButton"
+      ],
+      "package": "@opentiny/tiny-robot",
+      "documentationStatus": "documented",
+      "status": "stable",
+      "page": "/components/suggestion-pills",
+      "examples": [
+        "demos/suggestion/pills-popper.vue"
+      ]
+    },
+    {
+      "name": "TrSuggestionPills",
+      "exportName": "TrSuggestionPills",
+      "aliases": [
+        "SuggestionPills"
+      ],
+      "package": "@opentiny/tiny-robot",
+      "documentationStatus": "documented",
+      "status": "stable",
+      "page": "/components/suggestion-pills",
+      "examples": [
+        "demos/suggestion/pills-popper.vue"
+      ]
+    },
+    {
+      "name": "TrSuggestionPopover",
+      "exportName": "TrSuggestionPopover",
+      "aliases": [
+        "SuggestionPopover"
+      ],
+      "package": "@opentiny/tiny-robot",
+      "documentationStatus": "documented",
+      "status": "stable",
+      "page": "/components/suggestion-popover",
+      "examples": [
+        "demos/suggestion/popover-basic.vue",
+        "demos/suggestion/popover-trigger.vue",
+        "demos/suggestion/popover-grouped.vue",
+        "demos/suggestion/popover-custom-item.vue",
+        "demos/suggestion/popover-other-status.vue",
+        "demos/suggestion/popover-slots.vue"
+      ]
+    },
+    {
+      "name": "TrThemeProvider",
+      "exportName": "TrThemeProvider",
+      "aliases": [
+        "ThemeProvider"
+      ],
+      "package": "@opentiny/tiny-robot",
+      "documentationStatus": "documented",
+      "status": "stable",
+      "page": "/components/theme",
+      "examples": [
+        "demos/theme-provider/Theme.vue",
+        "demos/theme-provider/ThemeComp.vue",
+        "demos/theme-provider/ColorMode.vue",
+        "demos/theme-provider/ColorModeComp.vue",
+        "demos/theme-provider/NestedTheme.vue",
+        "demos/theme-provider/Storage.vue",
+        "demos/theme-provider/StorageComp.vue"
+      ]
+    },
+    {
+      "name": "TrWelcome",
+      "exportName": "TrWelcome",
+      "aliases": [
+        "Welcome"
+      ],
+      "package": "@opentiny/tiny-robot",
+      "documentationStatus": "documented",
+      "status": "stable",
+      "page": "/components/welcome",
+      "examples": [
+        "demos/welcome/basic.vue",
+        "demos/welcome/align.vue",
+        "demos/welcome/footer.vue"
+      ]
+    },
+    {
+      "name": "TrMcpServerPicker",
+      "exportName": "TrMcpServerPicker",
+      "aliases": [
+        "McpServerPicker"
+      ],
+      "package": "@opentiny/tiny-robot",
+      "documentationStatus": "documented",
+      "status": "deprecated",
+      "page": "/components/mcp-server-picker",
+      "examples": [
+        "demos/mcp-server-picker/basic-usage.vue",
+        "demos/mcp-server-picker/popup-config.vue"
+      ]
+    },
+    {
+      "name": "TrMcpAddForm",
+      "exportName": "TrMcpAddForm",
+      "aliases": [
+        "McpAddForm"
+      ],
+      "package": "@opentiny/tiny-robot",
+      "documentationStatus": "documented",
+      "status": "stable",
+      "page": "/components/mcp-add-form",
+      "examples": [
+        "demos/mcp-add-form/basic.vue"
+      ]
+    },
+    {
+      "name": "TrMcpExtensionForm",
+      "exportName": "TrMcpExtensionForm",
+      "aliases": [
+        "McpExtensionForm"
+      ],
+      "package": "@opentiny/tiny-robot",
+      "documentationStatus": "documented",
+      "status": "stable",
+      "page": "/components/mcp-extension",
+      "examples": [
+        "demos/mcp-extension-form/basic.vue",
+        "demos/mcp-extension-form/code-mode.vue",
+        "demos/mcp-extension-detail/basic.vue"
+      ]
+    },
+    {
+      "name": "TrMcpExtensionDetail",
+      "exportName": "TrMcpExtensionDetail",
+      "aliases": [
+        "McpExtensionDetail"
+      ],
+      "package": "@opentiny/tiny-robot",
+      "documentationStatus": "documented",
+      "status": "stable",
+      "page": "/components/mcp-extension",
+      "examples": [
+        "demos/mcp-extension-form/basic.vue",
+        "demos/mcp-extension-form/code-mode.vue",
+        "demos/mcp-extension-detail/basic.vue"
+      ]
+    },
+    {
+      "name": "TrSkillImportForm",
+      "exportName": "TrSkillImportForm",
+      "aliases": [
+        "SkillImportForm"
+      ],
+      "package": "@opentiny/tiny-robot",
+      "documentationStatus": "documented",
+      "status": "stable",
+      "page": "/components/skill-extension",
+      "examples": [
+        "demos/skill-import-form/basic.vue",
+        "demos/skill-import-form/local-import.vue",
+        "demos/skill-import-form/resolver-states.vue",
+        "demos/skill-extension-detail/basic.vue"
+      ]
+    },
+    {
+      "name": "TrSkillExtensionDetail",
+      "exportName": "TrSkillExtensionDetail",
+      "aliases": [
+        "SkillExtensionDetail"
+      ],
+      "package": "@opentiny/tiny-robot",
+      "documentationStatus": "documented",
+      "status": "stable",
+      "page": "/components/skill-extension",
+      "examples": [
+        "demos/skill-import-form/basic.vue",
+        "demos/skill-import-form/local-import.vue",
+        "demos/skill-import-form/resolver-states.vue",
+        "demos/skill-extension-detail/basic.vue"
+      ]
+    },
+    {
+      "name": "TrExtensionManager",
+      "exportName": "TrExtensionManager",
+      "aliases": [
+        "ExtensionManager"
+      ],
+      "package": "@opentiny/tiny-robot",
+      "documentationStatus": "documented",
+      "status": "stable",
+      "page": "/components/extension-manager",
+      "examples": [
+        "demos/extension-manager/basic.vue",
+        "demos/extension-manager/browse-and-filter.vue",
+        "demos/extension-manager/progress.vue",
+        "demos/extension-manager/empty-states.vue",
+        "demos/extension-manager/controlled-events.vue",
+        "demos/extension-manager/manager-slots.vue",
+        "demos/extension-manager/card-and-grid.vue",
+        "demos/extension-manager/responsive-layout.vue"
+      ]
+    },
+    {
+      "name": "TrExtensionCard",
+      "exportName": "TrExtensionCard",
+      "aliases": [
+        "ExtensionCard"
+      ],
+      "package": "@opentiny/tiny-robot",
+      "documentationStatus": "documented",
+      "status": "stable",
+      "page": "/components/extension-manager",
+      "examples": [
+        "demos/extension-manager/basic.vue",
+        "demos/extension-manager/browse-and-filter.vue",
+        "demos/extension-manager/progress.vue",
+        "demos/extension-manager/empty-states.vue",
+        "demos/extension-manager/controlled-events.vue",
+        "demos/extension-manager/manager-slots.vue",
+        "demos/extension-manager/card-and-grid.vue",
+        "demos/extension-manager/responsive-layout.vue"
+      ]
+    },
+    {
+      "name": "TrExtensionCardGrid",
+      "exportName": "TrExtensionCardGrid",
+      "aliases": [
+        "ExtensionCardGrid"
+      ],
+      "package": "@opentiny/tiny-robot",
+      "documentationStatus": "documented",
+      "status": "stable",
+      "page": "/components/extension-manager",
+      "examples": [
+        "demos/extension-manager/basic.vue",
+        "demos/extension-manager/browse-and-filter.vue",
+        "demos/extension-manager/progress.vue",
+        "demos/extension-manager/empty-states.vue",
+        "demos/extension-manager/controlled-events.vue",
+        "demos/extension-manager/manager-slots.vue",
+        "demos/extension-manager/card-and-grid.vue",
+        "demos/extension-manager/responsive-layout.vue"
+      ]
+    },
+    {
+      "name": "TrActionButton",
+      "exportName": "TrActionButton",
+      "aliases": [
+        "ActionButton"
+      ],
+      "package": "@opentiny/tiny-robot",
+      "documentationStatus": "documented",
+      "status": "stable",
+      "page": "/components/sender",
+      "examples": [
+        "demos/sender/basic.vue",
+        "demos/sender/mode-switch.vue",
+        "demos/sender/loading-state.vue",
+        "demos/sender/word-limit.vue",
+        "demos/sender/template-editor.vue",
+        "demos/sender/mention.vue",
+        "demos/sender/suggestion-basic.vue",
+        "demos/sender/suggestion-filter.vue",
+        "demos/sender/suggestion-highlight.vue",
+        "demos/sender/voice-input.vue",
+        "demos/sender/mockSpeechHandler.ts",
+        "demos/sender/voice-custom.vue",
+        "demos/sender/speechHandlers.ts",
+        "demos/sender/voice-custom-ui.vue",
+        "demos/sender/PressToTalkOverlay.vue",
+        "demos/sender/actions-config-basic.vue",
+        "demos/sender/actions-enhanced.vue",
+        "demos/sender/attachments-in-sender.vue",
+        "demos/sender/submit-type.vue",
+        "demos/sender/custom-slots.vue",
+        "demos/sender/input-prefix-placeholder.vue",
+        "demos/sender/methods-demo.vue",
+        "demos/sender/size.vue"
+      ]
+    },
+    {
+      "name": "TrSubmitButton",
+      "exportName": "TrSubmitButton",
+      "aliases": [
+        "SubmitButton"
+      ],
+      "package": "@opentiny/tiny-robot",
+      "documentationStatus": "documented",
+      "status": "stable",
+      "page": "/components/sender",
+      "examples": [
+        "demos/sender/basic.vue",
+        "demos/sender/mode-switch.vue",
+        "demos/sender/loading-state.vue",
+        "demos/sender/word-limit.vue",
+        "demos/sender/template-editor.vue",
+        "demos/sender/mention.vue",
+        "demos/sender/suggestion-basic.vue",
+        "demos/sender/suggestion-filter.vue",
+        "demos/sender/suggestion-highlight.vue",
+        "demos/sender/voice-input.vue",
+        "demos/sender/mockSpeechHandler.ts",
+        "demos/sender/voice-custom.vue",
+        "demos/sender/speechHandlers.ts",
+        "demos/sender/voice-custom-ui.vue",
+        "demos/sender/PressToTalkOverlay.vue",
+        "demos/sender/actions-config-basic.vue",
+        "demos/sender/actions-enhanced.vue",
+        "demos/sender/attachments-in-sender.vue",
+        "demos/sender/submit-type.vue",
+        "demos/sender/custom-slots.vue",
+        "demos/sender/input-prefix-placeholder.vue",
+        "demos/sender/methods-demo.vue",
+        "demos/sender/size.vue"
+      ]
+    },
+    {
+      "name": "TrClearButton",
+      "exportName": "TrClearButton",
+      "aliases": [
+        "ClearButton"
+      ],
+      "package": "@opentiny/tiny-robot",
+      "documentationStatus": "documented",
+      "status": "stable",
+      "page": "/components/sender",
+      "examples": [
+        "demos/sender/basic.vue",
+        "demos/sender/mode-switch.vue",
+        "demos/sender/loading-state.vue",
+        "demos/sender/word-limit.vue",
+        "demos/sender/template-editor.vue",
+        "demos/sender/mention.vue",
+        "demos/sender/suggestion-basic.vue",
+        "demos/sender/suggestion-filter.vue",
+        "demos/sender/suggestion-highlight.vue",
+        "demos/sender/voice-input.vue",
+        "demos/sender/mockSpeechHandler.ts",
+        "demos/sender/voice-custom.vue",
+        "demos/sender/speechHandlers.ts",
+        "demos/sender/voice-custom-ui.vue",
+        "demos/sender/PressToTalkOverlay.vue",
+        "demos/sender/actions-config-basic.vue",
+        "demos/sender/actions-enhanced.vue",
+        "demos/sender/attachments-in-sender.vue",
+        "demos/sender/submit-type.vue",
+        "demos/sender/custom-slots.vue",
+        "demos/sender/input-prefix-placeholder.vue",
+        "demos/sender/methods-demo.vue",
+        "demos/sender/size.vue"
+      ]
+    },
+    {
+      "name": "TrUploadButton",
+      "exportName": "TrUploadButton",
+      "aliases": [
+        "UploadButton"
+      ],
+      "package": "@opentiny/tiny-robot",
+      "documentationStatus": "documented",
+      "status": "stable",
+      "page": "/components/sender",
+      "examples": [
+        "demos/sender/basic.vue",
+        "demos/sender/mode-switch.vue",
+        "demos/sender/loading-state.vue",
+        "demos/sender/word-limit.vue",
+        "demos/sender/template-editor.vue",
+        "demos/sender/mention.vue",
+        "demos/sender/suggestion-basic.vue",
+        "demos/sender/suggestion-filter.vue",
+        "demos/sender/suggestion-highlight.vue",
+        "demos/sender/voice-input.vue",
+        "demos/sender/mockSpeechHandler.ts",
+        "demos/sender/voice-custom.vue",
+        "demos/sender/speechHandlers.ts",
+        "demos/sender/voice-custom-ui.vue",
+        "demos/sender/PressToTalkOverlay.vue",
+        "demos/sender/actions-config-basic.vue",
+        "demos/sender/actions-enhanced.vue",
+        "demos/sender/attachments-in-sender.vue",
+        "demos/sender/submit-type.vue",
+        "demos/sender/custom-slots.vue",
+        "demos/sender/input-prefix-placeholder.vue",
+        "demos/sender/methods-demo.vue",
+        "demos/sender/size.vue"
+      ]
+    },
+    {
+      "name": "TrVoiceButton",
+      "exportName": "TrVoiceButton",
+      "aliases": [
+        "VoiceButton"
+      ],
+      "package": "@opentiny/tiny-robot",
+      "documentationStatus": "documented",
+      "status": "stable",
+      "page": "/components/sender",
+      "examples": [
+        "demos/sender/basic.vue",
+        "demos/sender/mode-switch.vue",
+        "demos/sender/loading-state.vue",
+        "demos/sender/word-limit.vue",
+        "demos/sender/template-editor.vue",
+        "demos/sender/mention.vue",
+        "demos/sender/suggestion-basic.vue",
+        "demos/sender/suggestion-filter.vue",
+        "demos/sender/suggestion-highlight.vue",
+        "demos/sender/voice-input.vue",
+        "demos/sender/mockSpeechHandler.ts",
+        "demos/sender/voice-custom.vue",
+        "demos/sender/speechHandlers.ts",
+        "demos/sender/voice-custom-ui.vue",
+        "demos/sender/PressToTalkOverlay.vue",
+        "demos/sender/actions-config-basic.vue",
+        "demos/sender/actions-enhanced.vue",
+        "demos/sender/attachments-in-sender.vue",
+        "demos/sender/submit-type.vue",
+        "demos/sender/custom-slots.vue",
+        "demos/sender/input-prefix-placeholder.vue",
+        "demos/sender/methods-demo.vue",
+        "demos/sender/size.vue"
+      ]
+    },
+    {
+      "name": "TrWordCounter",
+      "exportName": "TrWordCounter",
+      "aliases": [
+        "WordCounter"
+      ],
+      "package": "@opentiny/tiny-robot",
+      "documentationStatus": "documented",
+      "status": "stable",
+      "page": "/components/sender",
+      "examples": [
+        "demos/sender/basic.vue",
+        "demos/sender/mode-switch.vue",
+        "demos/sender/loading-state.vue",
+        "demos/sender/word-limit.vue",
+        "demos/sender/template-editor.vue",
+        "demos/sender/mention.vue",
+        "demos/sender/suggestion-basic.vue",
+        "demos/sender/suggestion-filter.vue",
+        "demos/sender/suggestion-highlight.vue",
+        "demos/sender/voice-input.vue",
+        "demos/sender/mockSpeechHandler.ts",
+        "demos/sender/voice-custom.vue",
+        "demos/sender/speechHandlers.ts",
+        "demos/sender/voice-custom-ui.vue",
+        "demos/sender/PressToTalkOverlay.vue",
+        "demos/sender/actions-config-basic.vue",
+        "demos/sender/actions-enhanced.vue",
+        "demos/sender/attachments-in-sender.vue",
+        "demos/sender/submit-type.vue",
+        "demos/sender/custom-slots.vue",
+        "demos/sender/input-prefix-placeholder.vue",
+        "demos/sender/methods-demo.vue",
+        "demos/sender/size.vue"
+      ]
+    },
+    {
+      "name": "TrDefaultActionButtons",
+      "exportName": "TrDefaultActionButtons",
+      "aliases": [
+        "DefaultActionButtons"
+      ],
+      "package": "@opentiny/tiny-robot",
+      "documentationStatus": "documented",
+      "status": "stable",
+      "page": "/components/sender",
+      "examples": [
+        "demos/sender/basic.vue",
+        "demos/sender/mode-switch.vue",
+        "demos/sender/loading-state.vue",
+        "demos/sender/word-limit.vue",
+        "demos/sender/template-editor.vue",
+        "demos/sender/mention.vue",
+        "demos/sender/suggestion-basic.vue",
+        "demos/sender/suggestion-filter.vue",
+        "demos/sender/suggestion-highlight.vue",
+        "demos/sender/voice-input.vue",
+        "demos/sender/mockSpeechHandler.ts",
+        "demos/sender/voice-custom.vue",
+        "demos/sender/speechHandlers.ts",
+        "demos/sender/voice-custom-ui.vue",
+        "demos/sender/PressToTalkOverlay.vue",
+        "demos/sender/actions-config-basic.vue",
+        "demos/sender/actions-enhanced.vue",
+        "demos/sender/attachments-in-sender.vue",
+        "demos/sender/submit-type.vue",
+        "demos/sender/custom-slots.vue",
+        "demos/sender/input-prefix-placeholder.vue",
+        "demos/sender/methods-demo.vue",
+        "demos/sender/size.vue"
+      ]
+    }
+  ]
+}
