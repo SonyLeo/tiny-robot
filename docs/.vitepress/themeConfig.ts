@@ -59,7 +59,10 @@ const sharedSidebarItems = [
   {
     text: '最佳实践',
     base: '/best-practices/',
-    items: [{ text: 'MCP 与 Skill 扩展管理', link: 'extension-manager-integration' }],
+    items: [
+      { text: 'MCP 与 Skill 扩展管理', link: 'extension-manager-integration' },
+      { text: 'TrChat 接入 GenUI SDK', link: 'genui-sdk-integration/docs/' },
+    ],
   },
   {
     text: '图标',
