@@ -540,6 +540,15 @@ export const createMessageEngine = (
       const choice = (chunk.choices || []).find((item) => item.index === 0) ?? chunk.choices?.[0]
 
       if (!choice) {
+        if (chunk.usage) {
+          mutate('messages', () => {
+            if (!assistantMessage.metadata) {
+              assistantMessage.metadata = {}
+            }
+            assistantMessage.metadata.usage = chunk.usage
+            assistantMessage.metadata.updatedAt = Math.floor(Date.now() / 1000)
+          })
+        }
         continue
       }
 

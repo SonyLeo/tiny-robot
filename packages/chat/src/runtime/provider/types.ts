@@ -5,6 +5,7 @@ export type ChatProviderType = 'openai' | 'deepseek' | 'qwen'
 
 export interface ChatProviderModelConfig extends Omit<ChatModelOption, 'metadata'> {
   mapFeatureValues?: (values: ModelSelectorFeatureValues) => Record<string, unknown>
+  includeUsage?: boolean
 }
 
 export interface ChatProviderConfig {

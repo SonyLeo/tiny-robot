@@ -46,6 +46,7 @@ export function createProviderResponseProvider(
           ...providerRequestBody,
           model: currentModel.id,
           stream: true,
+          ...(currentModel.includeUsage ? { stream_options: { include_usage: true } } : {}),
         }),
         signal: requestSignal,
       })
