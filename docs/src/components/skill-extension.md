@@ -6,19 +6,19 @@ outline: [1, 3]
 
 `SkillImportForm` 提供本地文件夹和 GitHub 两种 Skill 导入界面，并在解析成功后把 Skill 定义交给应用；`SkillExtensionDetail` 只读展示已取得的定义、说明和资源。应用可以将两者放在自己的页面、Dialog 或 Drawer 中，并自行决定数据来源、保存方式及容器行为。
 
-## 概览
+## 概览 {#概览}
 
-### 适用场景
+### 适用场景 {#适用场景}
 
 - 从本地文件夹或 GitHub 仓库路径取得一个 Skill 定义。
 - 展示 Skill 的说明与资源清单，让用户了解已加载的内容。
 - 与 [ExtensionManager](./extension-manager.md) 组合时，由应用处理通用操作事件，打开对应界面并更新扩展列表。
 
-### 职责边界
+### 职责边界 {#职责边界}
 
 导入表单管理输入、校验、解析中的加载状态和错误反馈；默认解析器由 kit 提供。**解析不等于持久化**：应用收到 Skill 定义后，仍需自行保存并更新扩展列表。详情组件只展示应用传入的定义，不读取资源内容或加载远程数据；弹窗标题、关闭和焦点管理由应用负责。
 
-## 快速开始
+## 快速开始 {#快速开始}
 
 `@opentiny/tiny-robot-kit` 是组件库的 peer dependency。使用默认解析器前应安装两个包：
 
@@ -46,9 +46,9 @@ npm install @opentiny/tiny-robot @opentiny/tiny-robot-kit
   description="使用 kit 默认解析器导入真实 Skill，并查看应用收到的定义。"
 />
 
-## 用法示例
+## 用法示例 {#用法示例}
 
-### 导入本地文件夹
+### 导入本地文件夹 {#导入本地文件夹}
 
 `source="local"` 时，用户选择或拖入一个包含根目录 `SKILL.md` 的文件夹。组件先检查目录结构及文件总大小，再立即调用解析器；解析成功后仍需点击“确定”才触发 `submit`。默认上限是 10 MB，可用 `max-upload-size` 调整。
 
@@ -73,7 +73,7 @@ description: 用于试用 Skill 导入。
   description="选择包含 SKILL.md 的文件夹，确认后查看应用收到的定义。"
 />
 
-### 观察加载、失败与重试
+### 观察加载、失败与重试 {#观察加载-失败与重试}
 
 `source="github"` 接受带 Skill 子目录的 HTTPS GitHub `tree` 地址，或直接指向 `SKILL.md` 的 `blob` 地址。点击“导入”后，组件先把规范化的 `url` 和 `owner/repo` 形式的 `repo` 交给解析器；成功时直接触发 `submit`，失败时在组件内显示错误。默认解析器会查询仓库真实的分支和标签，按最长匹配确定 `ref` 与目录边界，也支持 40 位 commit SHA。自定义解析器若需要 `ref` 和目录，必须自行解析，或调用 kit 的加载能力。示例用手动完成的本地 Promise 展示加载、成功和失败，并可再次导入或重置。
 
@@ -85,7 +85,7 @@ description: 用于试用 Skill 导入。
 
 默认解析超时为 30 秒，可通过 `resolve-timeout` 调整；设为 `0` 表示不超时。超时后组件停止等待并忽略晚到结果，但不会取消已经发出的请求。切换 `source` 会清空组件内的文件选择、GitHub 地址和错误。若容器关闭后任务仍要继续，应用应自行持有任务并提供后续通知；组件卸载后不再显示解析反馈。
 
-### 查看 Skill 详情
+### 查看 Skill 详情 {#查看-skill-详情}
 
 将已取得的 `SkillDefinition` 传给 `SkillExtensionDetail`，即可显示名称、描述、`SKILL.md` 正文和资源路径。详情默认打开 `SKILL.md` 页签，用户可切换到“资源文件”查看清单。组件按 `resources.length` 显示数量，并列出每项的路径及可选大小；它不读取 `text`、`binary` 或惰性读取器的内容。
 
@@ -95,42 +95,42 @@ description: 用于试用 Skill 导入。
   description="切换 SKILL.md 与资源文件页签，查看只读正文、资源路径和大小。"
 />
 
-## 可访问性与设计约束
+## 可访问性与设计约束 {#可访问性与设计约束}
 
 本地文件选择区支持键盘访问；移除文件夹后焦点回到上传入口。GitHub 地址无效时输入框会标记错误并获得焦点，解析错误以可见提示呈现。解析期间提交按钮不可用，用户可以在失败后修改输入并重试。
 
 页签支持点击，以及左右方向键、Home 和 End 切换。`SKILL.md` 正文位于可聚焦、可滚动的只读编辑区，保留原有换行和空格。光标进入后可选中、复制，按 Ctrl+A（macOS 上按 Command+A）可全选正文；长文本可以用键盘阅读。资源清单也在自身区域内滚动，不会无限拉长详情。两处默认最大高度都是 `240px`，可用下方 CSS 变量调整。导入器将 YAML 头部解析为名称和描述，因此此处展示的是 `instructions` 正文。资源路径允许换行。详情只展示内容；页面或弹窗的标题、关闭按钮、焦点返回和持久化由宿主及应用负责。
 
-## API
+## API {#api}
 
 组件和以下类型均从 `@opentiny/tiny-robot` 导入；示例使用 `TrSkillImportForm`、`TrSkillExtensionDetail` 及对应的 `<tr-skill-import-form>`、`<tr-skill-extension-detail>` 标签。两个组件都没有公开 Slots 或 Expose 方法。
 
-### SkillImportForm
+### SkillImportForm {#skillimportform}
 
-#### Props
+#### Props {#props}
 
 | 属性名            | 说明                                                                                           | 类型                    | 默认值              | 必填 |
 | ----------------- | ---------------------------------------------------------------------------------------------- | ----------------------- | ------------------- | ---- |
-| `source`          | 导入来源；切换时重置组件内的草稿、解析结果和错误。                                             | `SkillImportFormSource` | `'local'`           | 否   |
-| `max-upload-size` | 本地文件夹允许的文件总字节数，超过时不调用解析器。                                             | `number`                | `10485760`（10 MB） | 否   |
-| `resolve-timeout` | 解析超时毫秒数；`0` 表示不超时。超时不取消在途请求，但组件会忽略其晚到结果。                   | `number`                | `30000`（30 秒）    | 否   |
-| `resolve-skill`   | 自定义异步解析器；未提供时使用 kit 默认解析器，并在线解析 GitHub URL 中的真实 ref 与目录边界。 | `SkillResolver`         | kit 默认解析器      | 否   |
+| [`source`](#用法示例) | 导入来源；切换时重置组件内的草稿、解析结果和错误。                                             | `SkillImportFormSource` | `'local'`           | 否   |
+| [`max-upload-size`](#导入本地文件夹) | 本地文件夹允许的文件总字节数，超过时不调用解析器。                                             | `number`                | `10485760`（10 MB） | 否   |
+| [`resolve-timeout`](#观察加载-失败与重试) | 解析超时毫秒数；`0` 表示不超时。超时不取消在途请求，但组件会忽略其晚到结果。                   | `number`                | `30000`（30 秒）    | 否   |
+| [`resolve-skill`](#观察加载-失败与重试) | 自定义异步解析器；未提供时使用 kit 默认解析器，并在线解析 GitHub URL 中的真实 ref 与目录边界。 | `SkillResolver`         | kit 默认解析器      | 否   |
 
-#### Events
+#### Events {#events}
 
 | 事件名   | 触发时机                                                                           | 回调参数                                |
 | -------- | ---------------------------------------------------------------------------------- | --------------------------------------- |
-| `submit` | 本地文件夹解析成功且用户点击“确定”，或 GitHub 地址解析成功后；应用需自行保存定义。 | `(definition: SkillDefinition) => void` |
-| `cancel` | 用户在本地导入界面点击“取消”时；组件不自行关闭宿主或清空草稿。                     | `() => void`                            |
+| [`submit`](#用法示例) | 本地文件夹解析成功且用户点击“确定”，或 GitHub 地址解析成功后；应用需自行保存定义。 | `(definition: SkillDefinition) => void` |
+| [`cancel`](#导入本地文件夹) | 用户在本地导入界面点击“取消”时；组件不自行关闭宿主或清空草稿。                     | `() => void`                            |
 
-#### CSS Variables
+#### CSS Variables {#css-variables}
 
 | 变量名                                      | 说明                                         | 默认值                                 |
 | ------------------------------------------- | -------------------------------------------- | -------------------------------------- |
-| `--tr-skill-import-form-primary-color`      | 导入表单的强调色；未设置时跟随主题主文本色。 | `var(--tr-text-primary, #191919)`      |
-| `--tr-skill-import-form-primary-text-color` | 导入表单主按钮的文字色。                     | `var(--tr-container-bg-default, #fff)` |
+| [`--tr-skill-import-form-primary-color`](#css-variables) | 导入表单的强调色；未设置时跟随主题主文本色。 | `var(--tr-text-primary, #191919)`      |
+| [`--tr-skill-import-form-primary-text-color`](#css-variables) | 导入表单主按钮的文字色。                     | `var(--tr-container-bg-default, #fff)` |
 
-#### Types
+#### Types {#types}
 
 | 类型名                    | 类型或签名 | 说明                                                      |
 | ------------------------- | ---------- | --------------------------------------------------------- |
@@ -173,16 +173,16 @@ type SkillResolver = (input: SkillImportFormInput) => Promise<SkillDefinition>
 | `lastModified`          | `number`                                   | 最后修改时间数值。       | 否           |
 | `metadata`              | `Record<string, unknown>`                  | 附加元数据。             | 否           |
 
-### SkillExtensionDetail
+### SkillExtensionDetail {#skillextensiondetail}
 
-#### Props
+#### Props {#props-1}
 
 | 属性名       | 说明                                          | 类型              | 默认值 | 必填 |
 | ------------ | --------------------------------------------- | ----------------- | ------ | ---- |
-| `definition` | 要展示的完整 Skill 定义；组件不加载或修改它。 | `SkillDefinition` | —      | 是   |
-| `updated-at` | 已格式化的更新时间文本；未提供时不显示。      | `string`          | —      | 否   |
+| [`definition`](#查看-skill-详情) | 要展示的完整 Skill 定义；组件不加载或修改它。 | `SkillDefinition` | —      | 是   |
+| [`updated-at`](#查看-skill-详情) | 已格式化的更新时间文本；未提供时不显示。      | `string`          | —      | 否   |
 
-#### Types
+#### Types {#types-1}
 
 | 类型名                      | 类型或签名 | 说明               |
 | --------------------------- | ---------- | ------------------ |
@@ -190,11 +190,11 @@ type SkillResolver = (input: SkillImportFormInput) => Promise<SkillDefinition>
 
 `SkillExtensionDetail` 不触发公开事件；说明和资源都是只读内容。`updated-at` 只展示传入文本，不自行格式化日期。
 
-#### CSS Variables
+#### CSS Variables {#css-variables-1}
 
 | 变量名                                           | 说明                                        | 默认值  |
 | ------------------------------------------------ | ------------------------------------------- | ------- |
-| `--tr-skill-extension-detail-content-max-height` | `SKILL.md` 编辑区和资源清单各自的最大高度。 | `240px` |
+| [`--tr-skill-extension-detail-content-max-height`](#css-variables-1) | `SKILL.md` 编辑区和资源清单各自的最大高度。 | `240px` |
 
 开发者可在组件或外层容器上设置此变量，例如：
 

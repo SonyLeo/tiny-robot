@@ -6,20 +6,20 @@ outline: deep
 
 此组件目前仅针对 SuggestionPills 组件开发，可配置项暂不全面
 
-## 代码示例
+## 代码示例 {#代码示例}
 
-### 基本示例
+### 基本示例 {#基本示例}
 
 <demo vue="../../demos/dropdown-menu/basic.vue" />
 
-## Props
+## Props {#props}
 
 | 属性       | 类型                             | 必填 | 默认值    | 说明                                                                                              |
 | ---------- | -------------------------------- | ---- | --------- | ------------------------------------------------------------------------------------------------- |
-| `appendTo` | `string \| HTMLElement`          | 否   | -         | 指定下拉菜单挂载的容器元素或选择器                                                                |
-| `items`    | `DropdownMenuItem[]`             | 是   | -         | 菜单项数据数组                                                                                    |
-| `show`     | `boolean`                        | 否   | -         | 控制菜单显示状态：<br>• `click`/`hover` 模式：双向绑定(v-model:show)<br>• `manual` 模式：单向绑定 |
-| `trigger`  | `'click' \| 'hover' \| 'manual'` | 否   | `'click'` | 菜单触发方式：<br>• `click` - 点击触发<br>• `hover` - 悬停触发<br>• `manual` - 手动控制           |
+| [`appendTo`](#基本示例) | `string \| HTMLElement`          | 否   | -         | 指定下拉菜单挂载的容器元素或选择器                                                                |
+| [`items`](#基本示例) | `DropdownMenuItem[]`             | 是   | -         | 菜单项数据数组                                                                                    |
+| [`show`](#基本示例) | `boolean`                        | 否   | -         | 控制菜单显示状态：<br>• `click`/`hover` 模式：双向绑定(v-model:show)<br>• `manual` 模式：单向绑定 |
+| [`trigger`](#基本示例) | `'click' \| 'hover' \| 'manual'` | 否   | `'click'` | 菜单触发方式：<br>• `click` - 点击触发<br>• `hover` - 悬停触发<br>• `manual` - 手动控制           |
 
 **属性详细说明**
 
@@ -36,20 +36,20 @@ outline: deep
    - `hover`：鼠标悬停触发元素显示菜单，移出后隐藏
    - `manual`：完全通过外部控制的显示状态
 
-## Slots
+## Slots {#slots}
 
 | 插槽名    | 类型                     | 说明               |
 | --------- | ------------------------ | ------------------ |
-| `trigger` | `() => VNode \| VNode[]` | 自定义触发元素插槽 |
+| [`trigger`](#基本示例) | `() => VNode \| VNode[]` | 自定义触发元素插槽 |
 
-## Events
+## Events {#events}
 
 | 事件名          | 参数                     | 说明                                                                       |
 | --------------- | ------------------------ | -------------------------------------------------------------------------- |
-| `item-click`    | `item: DropdownMenuItem` | 点击菜单项时触发                                                           |
-| `click-outside` | `event: MouseEvent`      | 点击菜单外部区域时触发（仅在 `trigger` 为 `'click'` 或 `'manual'` 时有效） |
+| [`item-click`](#基本示例) | `item: DropdownMenuItem` | 点击菜单项时触发                                                           |
+| [`click-outside`](#基本示例) | `event: MouseEvent`      | 点击菜单外部区域时触发（仅在 `trigger` 为 `'click'` 或 `'manual'` 时有效） |
 
-## Types
+## Types {#types}
 
 **DropdownMenuItem** - 菜单项数据结构
 
@@ -58,17 +58,17 @@ outline: deep
 | `id`   | `string` | 菜单项唯一标识 |
 | `text` | `string` | 菜单项显示文本 |
 
-## CSS 变量
+## CSS 变量 {#css-变量}
 
 | 变量名                                   | 说明                     | 默认值                         |
 | ---------------------------------------- | ------------------------ | ------------------------------ |
-| `--tr-dropdown-menu-bg-color`            | 下拉菜单背景色           | `#ffffff`                      |
-| `--tr-dropdown-menu-box-shadow`          | 下拉菜单阴影             | `0 0 20px rgba(0, 0, 0, 0.08)` |
-| `--tr-dropdown-menu-min-width`           | 下拉菜单最小宽度         | `130px`                        |
-| `--tr-dropdown-menu-item-color`          | 菜单项文字颜色           | `rgb(25, 25, 25)`              |
-| `--tr-dropdown-menu-item-hover-bg-color` | 菜单项悬停时背景色       | `#f5f5f5`                      |
-| `--tr-dropdown-menu-item-font-weight`    | 菜单项字体粗细           | `normal`                       |
-| `--tr-dropdown-menu-min-top`             | 下拉菜单最小 `top` 值    | `0px`                          |
-| `--tr-dropdown-menu-max-bottom`          | 下拉菜单最大 `bottom` 值 | `100%`                         |
-| `--tr-dropdown-menu-min-left`            | 下拉菜单最小 `left` 值   | `0px`                          |
-| `--tr-dropdown-menu-max-right`           | 下拉菜单最大 `right` 值  | `100%`                         |
+| [`--tr-dropdown-menu-bg-color`](#css-变量) | 下拉菜单背景色           | `#ffffff`                      |
+| [`--tr-dropdown-menu-box-shadow`](#css-变量) | 下拉菜单阴影             | `0 0 20px rgba(0, 0, 0, 0.08)` |
+| [`--tr-dropdown-menu-min-width`](#css-变量) | 下拉菜单最小宽度         | `130px`                        |
+| [`--tr-dropdown-menu-item-color`](#css-变量) | 菜单项文字颜色           | `rgb(25, 25, 25)`              |
+| [`--tr-dropdown-menu-item-hover-bg-color`](#css-变量) | 菜单项悬停时背景色       | `#f5f5f5`                      |
+| [`--tr-dropdown-menu-item-font-weight`](#css-变量) | 菜单项字体粗细           | `normal`                       |
+| [`--tr-dropdown-menu-min-top`](#css-变量) | 下拉菜单最小 `top` 值    | `0px`                          |
+| [`--tr-dropdown-menu-max-bottom`](#css-变量) | 下拉菜单最大 `bottom` 值 | `100%`                         |
+| [`--tr-dropdown-menu-min-left`](#css-变量) | 下拉菜单最小 `left` 值   | `0px`                          |
+| [`--tr-dropdown-menu-max-right`](#css-变量) | 下拉菜单最大 `right` 值  | `100%`                         |

@@ -7,37 +7,37 @@ outline: deep
 Welcome 是一个用于展示欢迎信息的通用组件，包含标题、描述、图标等内容。
 组件支持自定义对齐方向、图标、底部内容等功能。
 
-## 代码示例
+## 代码示例 {#代码示例}
 
-### 基本
+### 基本 {#基本}
 
 基础用法
 
 <demo vue="../../demos/welcome/basic.vue" />
 
-### 对齐方向
+### 对齐方向 {#对齐方向}
 
 通过 `align` 属性设置对齐方向
 
 <demo vue="../../demos/welcome/align.vue" />
 
-### 底部内容
+### 底部内容 {#底部内容}
 
 使用 `footer` 插槽，给 Welcome 底部添加内容
 
 <demo vue="../../demos/welcome/footer.vue" />
 
-## Props
+## Props {#props}
 
 | 属性          | 类型                            | 必填 | 默认值     | 说明                                |
 | ------------- | ------------------------------- | ---- | ---------- | ----------------------------------- |
-| `title`       | `string`                        | 是   | -          | 标题                                |
-| `description` | `string`                        | 是   | -          | 标题描述                            |
-| `align`       | `'left' \| 'center' \| 'right'` | 否   | `'center'` | 内容对齐方式                        |
-| `icon`        | `VNode`                         | 否   | -          | 自定义图标节点，支持 Vue 组件或 JSX |
+| [`title`](#基本) | `string`                        | 是   | -          | 标题                                |
+| [`description`](#基本) | `string`                        | 是   | -          | 标题描述                            |
+| [`align`](#对齐方向) | `'left' \| 'center' \| 'right'` | 否   | `'center'` | 内容对齐方式                        |
+| [`icon`](#基本) | `VNode`                         | 否   | -          | 自定义图标节点，支持 Vue 组件或 JSX |
 
-## Slots
+## Slots {#slots}
 
 | 插槽名   | 说明             |
 | -------- | ---------------- |
-| `footer` | 组件底部内容插槽 |
+| [`footer`](#底部内容) | 组件底部内容插槽 |

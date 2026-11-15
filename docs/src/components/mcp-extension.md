@@ -6,23 +6,23 @@ outline: [1, 3]
 
 `McpExtensionForm` 收集一条 MCP 连接配置，支持表单和 JSON 两种输入方式；`McpExtensionDetail` 展示已加载的 MCP 信息与工具开关。两者都是可嵌入页面或弹窗的内容组件，适合在应用处理扩展管理操作后分别呈现添加和详情界面。
 
-## 概览
+## 概览 {#概览}
 
-### 适用场景
+### 适用场景 {#适用场景}
 
 - 用 `McpExtensionForm` 让用户填写一条 SSE 或 Streamable HTTP 连接，并把校验后的配置交给应用。
 - 用 `McpExtensionDetail` 展示名称、描述和工具列表，让应用接收工具开关意图。
 - 与 [ExtensionManager](./extension-manager.md) 组合时，由应用根据用户的添加或查看操作打开相应界面。
 
-### 职责边界
+### 职责边界 {#职责边界}
 
 表单负责收集和校验连接配置，详情组件展示应用传入的信息与工具状态。两者都不会替应用加载详情或保存数据，也不拥有弹窗标题和关闭行为。应用负责调用服务、保存结果、更新界面，并处理取消和关闭操作。
 
 MCP 存储工具是独立的公开入口，表单不会自动调用它们；具体接口见文末。已有的 `McpAddForm` 也是独立公共组件。
 
-## 用法示例
+## 用法示例 {#用法示例}
 
-### 添加一条 MCP 连接
+### 添加一条 MCP 连接 {#添加一条-mcp-连接}
 
 为必填的 `model-value` 提供初始值。用户输入可转换为配置时，`v-model` 会更新；点击“确定”通过校验后，应用收到完整配置和输入方式。示例只在页面显示收到的结果，真实保存由应用实现。
 
@@ -32,7 +32,7 @@ MCP 存储工具是独立的公开入口，表单不会自动调用它们；具�
   description="填写名称和 HTTP 地址后提交；取消和重置都可在页面观察。"
 />
 
-### 使用 JSON 配置
+### 使用 JSON 配置 {#使用-json-配置}
 
 `mode` 是受控值：提供它时，应用应处理 `update:mode` 并同步新值。未提供 `mode` 时，组件自行切换方式，初始方式由 `default-mode` 决定。切换方式会从最近可表示的 `model-value` 建立新草稿；暂时无效的 JSON 留在当前编辑器内，不会覆盖绑定值。
 
@@ -44,7 +44,7 @@ MCP 存储工具是独立的公开入口，表单不会自动调用它们；具�
   description="编辑单条 MCP JSON 配置，观察提交来源和错误恢复。"
 />
 
-### 显示并切换工具
+### 显示并切换工具 {#显示并切换工具}
 
 `McpExtensionDetail` 按传入的 `tools` 展示开关。用户操作时，它只触发 `tool-toggle`，不会自行修改 `tools`。示例由应用更新数组，因此开关状态会在事件后保持；禁用项不能触发切换。
 
@@ -54,36 +54,36 @@ MCP 存储工具是独立的公开入口，表单不会自动调用它们；具�
   description="切换工具后由应用更新传入数据，并可一键恢复初始状态。"
 />
 
-## 可访问性与设计约束
+## 可访问性与设计约束 {#可访问性与设计约束}
 
 表单使用有名称的输入框和单选组。提交未通过校验时，错误会关联到对应字段，并把焦点移到第一个无效字段；修正字段后，相应错误会清除。缩略图 URL 加载失败时会显示本地默认图和可见错误提示。代码编辑器也会在提交失败时获得焦点。
 
 工具开关使用带工具名称的原生复选框，并提供 switch 语义；禁用项不进入可操作状态。详情摘要中的名称和描述会按可用宽度换行，单个工具的名称和描述则以单行省略；应用应为详情区域提供合适的宽度。弹窗焦点管理、标题、关闭按钮与返回焦点由宿主负责。
 
-## API
+## API {#api}
 
 组件和以下类型均从 `@opentiny/tiny-robot` 导入；示例使用 `TrMcpExtensionForm`、`TrMcpExtensionDetail` 及对应的 `<tr-*>` 标签。两个组件都没有公开 Slots 或 Expose 方法。
 
-### McpExtensionForm
+### McpExtensionForm {#mcpextensionform}
 
-#### Props
+#### Props {#props}
 
 | 属性名         | 说明                                                                         | 类型                    | 默认值   | 必填 |
 | -------------- | ---------------------------------------------------------------------------- | ----------------------- | -------- | ---- |
-| `model-value`  | 当前连接配置；草稿可转换时通过 `update:model-value` 请求更新，父组件需同步。 | `McpExtensionFormValue` | —        | 是   |
-| `mode`         | 受控的添加方式；提供时优先于 `default-mode`，父组件需处理 `update:mode`。    | `McpExtensionFormMode`  | —        | 否   |
-| `default-mode` | 未提供 `mode` 时使用的初始添加方式。                                         | `McpExtensionFormMode`  | `'form'` | 否   |
+| [`model-value`](#添加一条-mcp-连接) | 当前连接配置；草稿可转换时通过 `update:model-value` 请求更新，父组件需同步。 | `McpExtensionFormValue` | —        | 是   |
+| [`mode`](#使用-json-配置) | 受控的添加方式；提供时优先于 `default-mode`，父组件需处理 `update:mode`。    | `McpExtensionFormMode`  | —        | 否   |
+| [`default-mode`](#使用-json-配置) | 未提供 `mode` 时使用的初始添加方式。                                         | `McpExtensionFormMode`  | `'form'` | 否   |
 
-#### Events
+#### Events {#events}
 
 | 事件名               | 触发时机                                                                             | 回调参数                                                                   |
 | -------------------- | ------------------------------------------------------------------------------------ | -------------------------------------------------------------------------- |
-| `update:model-value` | 表单草稿可转换为配置，或代码草稿可解析时；可能早于完整提交校验。父组件需更新绑定值。 | `(value: McpExtensionFormValue) => void`                                   |
-| `update:mode`        | 用户选择另一种添加方式时；提供 `mode` 的父组件需同步新值。                           | `(mode: McpExtensionFormMode) => void`                                     |
-| `submit`             | 点击“确定”且当前方式校验通过后；组件先更新绑定值，再交由应用保存。                   | `(value: McpExtensionFormValue, meta: McpExtensionFormSubmitMeta) => void` |
-| `cancel`             | 用户点击“取消”时；组件不清空草稿或关闭宿主。                                         | `() => void`                                                               |
+| [`update:model-value`](#添加一条-mcp-连接) | 表单草稿可转换为配置，或代码草稿可解析时；可能早于完整提交校验。父组件需更新绑定值。 | `(value: McpExtensionFormValue) => void`                                   |
+| [`update:mode`](#使用-json-配置) | 用户选择另一种添加方式时；提供 `mode` 的父组件需同步新值。                           | `(mode: McpExtensionFormMode) => void`                                     |
+| [`submit`](#添加一条-mcp-连接) | 点击“确定”且当前方式校验通过后；组件先更新绑定值，再交由应用保存。                   | `(value: McpExtensionFormValue, meta: McpExtensionFormSubmitMeta) => void` |
+| [`cancel`](#添加一条-mcp-连接) | 用户点击“取消”时；组件不清空草稿或关闭宿主。                                         | `() => void`                                                               |
 
-#### Types
+#### Types {#types}
 
 | 类型名                       | 类型或签名 | 说明                                |
 | ---------------------------- | ---------- | ----------------------------------- |
@@ -112,25 +112,25 @@ interface McpExtensionFormSubmitMeta {
 
 `name` 和 `url` 在提交时必填，`url` 必须为 HTTP 或 HTTPS 地址。表单中的 `headers` 输入是 JSON 对象；可转换的数字、布尔值会成为字符串。空白的可选字段在提交结果中省略。`thumbnail` 是图片 URL 或空值，图片加载失败时仅回退预览，不自动替换应用保存的 URL。
 
-### McpExtensionDetail
+### McpExtensionDetail {#mcpextensiondetail}
 
-#### Props
+#### Props {#props-1}
 
 | 属性名        | 说明                                     | 类型                 | 默认值 | 必填 |
 | ------------- | ---------------------------------------- | -------------------- | ------ | ---- |
-| `id`          | MCP 标识；详情组件不根据它加载数据。     | `string`             | —      | 是   |
-| `name`        | 展示的 MCP 名称。                        | `string`             | —      | 是   |
-| `tools`       | 应用提供的工具列表；事件不会直接修改它。 | `McpExtensionTool[]` | —      | 是   |
-| `description` | 描述；为空时显示“暂无描述”。             | `string`             | —      | 否   |
-| `updated-at`  | 已格式化的更新时间文本；未提供时不显示。 | `string`             | —      | 否   |
+| [`id`](#显示并切换工具) | MCP 标识；详情组件不根据它加载数据。     | `string`             | —      | 是   |
+| [`name`](#显示并切换工具) | 展示的 MCP 名称。                        | `string`             | —      | 是   |
+| [`tools`](#显示并切换工具) | 应用提供的工具列表；事件不会直接修改它。 | `McpExtensionTool[]` | —      | 是   |
+| [`description`](#显示并切换工具) | 描述；为空时显示“暂无描述”。             | `string`             | —      | 否   |
+| [`updated-at`](#显示并切换工具) | 已格式化的更新时间文本；未提供时不显示。 | `string`             | —      | 否   |
 
-#### Events
+#### Events {#events-1}
 
 | 事件名        | 触发时机                                                 | 回调参数                                       |
 | ------------- | -------------------------------------------------------- | ---------------------------------------------- |
-| `tool-toggle` | 用户切换可用工具时；仅提供下一状态，应用需更新 `tools`。 | `(event: McpExtensionToolToggleEvent) => void` |
+| [`tool-toggle`](#显示并切换工具) | 用户切换可用工具时；仅提供下一状态，应用需更新 `tools`。 | `(event: McpExtensionToolToggleEvent) => void` |
 
-#### Types
+#### Types {#types-1}
 
 | 类型名                        | 类型或签名 | 说明                           |
 | ----------------------------- | ---------- | ------------------------------ |
@@ -158,7 +158,7 @@ interface McpExtensionToolToggleEvent {
 
 `id` 应在列表中稳定且唯一；`disabled: true` 时不能切换。工具数量直接来自 `tools.length`，`updated-at` 只展示传入文本，不会自行格式化日期。
 
-## 公开 MCP 存储工具
+## 公开 MCP 存储工具 {#公开-mcp-存储工具}
 
 MCP 存储是工具函数，不是组件。`McpExtensionStorage` 在一个实例中分别管理连接定义 `data` 和配置 `options`。`source + id` 是稳定身份；名称只用于显示，因此不同来源可以同名。卸载时调用 `deleteData`，工具开关和应用配置仍保留；再次安装同一身份会恢复这些配置。
 

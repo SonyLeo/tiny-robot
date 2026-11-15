@@ -10,11 +10,13 @@ badge: deprecated
 
 MCP Server Picker 组件是一个用于展示和管理插件的组件，支持已安装插件和插件市场两个标签页，可以进行插件的添加、删除和启用/禁用操作。
 
-## 基础用法
+## 基础用法 {#mcp-server-picker-basic}
 
 <demo vue="../../demos/mcp-server-picker/basic-usage.vue" />
 
-### 插件添加状态
+<span id="插件添加状态"></span>
+
+### 插件添加状态 {#mcp-server-picker-add-state}
 
 市场插件支持三种添加状态，提供更好的用户体验：
 
@@ -24,7 +26,9 @@ MCP Server Picker 组件是一个用于展示和管理插件的组件，支持�
 
 通过 `addState` 属性控制插件的添加状态，开发者可以在添加插件的异步过程中动态更新状态，提升用户体验。
 
-#### 状态控制示例
+<span id="状态控制示例"></span>
+
+#### 状态控制示例 {#mcp-server-picker-add-state-example}
 
 ```typescript
 const handlePluginAdd = (plugin: PluginInfo) => {
@@ -48,67 +52,71 @@ const handlePluginAdd = (plugin: PluginInfo) => {
 }
 ```
 
-## 弹出方式
+<span id="弹出方式"></span>
+
+## 弹出方式 {#mcp-server-picker-popup}
 
 > MCP Server Picker 组件支持两种弹出方式， 即 `Fixed` 模式和 `Drawer` 模式，通过 `popupConfig` 配置对象统一管理
 
 <demo vue="../../demos/mcp-server-picker/popup-config.vue" />
 
 
-## Props
+## Props {#mcp-server-picker-props}
 
 | 属性                       | 类型                      | 默认值                                                            | 说明                                         |
 | -------------------------- | ------------------------- | ----------------------------------------------------------------- | -------------------------------------------- |
-| installedPlugins           | `PluginInfo[]`            | `[]`                                                              | 已安装插件列表                               |
-| marketPlugins              | `PluginInfo[]`            | `[]`                                                              | 市场插件列表                                 |
-| enableSearch               | `boolean`                 | `true`                                                            | 是否启用搜索功能                             |
-| searchPlaceholder          | `string`                  | `'搜索插件'`                                                      | 搜索框占位符                                 |
-| installedSearchFn          | `(query: string, item: PluginInfo) => boolean` | - | 已安装插件搜索函数 |
-| marketSearchFn             | `(query: string, item: PluginInfo) => boolean` | - | 市场插件搜索函数 |
-| enableMarketCategoryFilter | `boolean`                 | `true`                                                            | 是否启用市场分类筛选功能                     |
-| marketCategoryOptions      | `MarketCategoryOption[]`  | `[]`                                                              | 市场分类选项列表                             |
-| marketCategoryPlaceholder  | `string`                  | `'按照分类筛选'`                                                  | 分类筛选下拉框占位符                         |
-| visible                    | `boolean`                 | `false`                                                           | 是否显示整个组件面板（支持 v-model:visible） |
-| activeCount                | `number`                  | -                                                                 | 激活插件数量（支持 v-model:activeCount）     |
-| defaultActiveTab           | `'installed' \| 'market'` | `'installed'`                                                     | 默认激活的标签页                             |
-| showInstalledTab           | `boolean`                 | `true`                                                            | 是否显示已安装标签页                         |
-| showMarketTab              | `boolean`                 | `true`                                                            | 是否显示市场标签页                           |
-| installedTabTitle          | `string`                  | `'已安装插件'`                                                    | 已安装标签页标题                             |
-| marketTabTitle             | `string`                  | `'市场'`                                                          | 市场标签页标题                               |
-| popupConfig                | `PopupConfig`             | `{ type: 'fixed', position: {}, drawer: { direction: 'right' } }` | 弹出配置对象                                 |
-| title                      | `string`                  | `'插件'`                                                          | 组件标题                                     |
-| showCustomAddButton        | `boolean`                 | `true`                                                            | 是否显示自定义添加按钮                       |
-| customAddButtonText        | `string`                  | `'自定义添加'`                                                    | 自定义添加按钮文本                           |
-| allowPluginToggle          | `boolean`                 | `true`                                                            | 是否允许切换插件状态                         |
-| allowToolToggle            | `boolean`                 | `true`                                                            | 是否允许切换工具状态                         |
-| allowPluginDelete          | `boolean`                 | `true`                                                            | 是否允许删除插件                             |
-| allowPluginAdd             | `boolean`                 | `true`                                                            | 是否允许添加插件                             |
-| loading                    | `boolean`                 | `false`                                                           | 已安装插件加载状态                           |
-| marketLoading              | `boolean`                 | `false`                                                           | 市场插件加载状态                             |
+| [`installedPlugins`](#mcp-server-picker-basic) | `PluginInfo[]` | `[]` | 已安装插件列表 |
+| [`marketPlugins`](#mcp-server-picker-basic) | `PluginInfo[]` | `[]` | 市场插件列表 |
+| [`enableSearch`](#mcp-server-picker-basic) | `boolean` | `true` | 是否启用搜索功能 |
+| [`searchPlaceholder`](#mcp-server-picker-basic) | `string` | `'搜索插件'` | 搜索框占位符 |
+| [`installedSearchFn`](#mcp-server-picker-basic) | `(query: string, item: PluginInfo) => boolean` | - | 已安装插件搜索函数 |
+| [`marketSearchFn`](#mcp-server-picker-basic) | `(query: string, item: PluginInfo) => boolean` | - | 市场插件搜索函数 |
+| [`enableMarketCategoryFilter`](#mcp-server-picker-basic) | `boolean` | `true` | 是否启用市场分类筛选功能 |
+| [`marketCategoryOptions`](#mcp-server-picker-basic) | `MarketCategoryOption[]` | `[]` | 市场分类选项列表 |
+| [`marketCategoryPlaceholder`](#mcp-server-picker-basic) | `string` | `'按照分类筛选'` | 分类筛选下拉框占位符 |
+| [`visible`](#mcp-server-picker-basic) | `boolean` | `false` | 是否显示整个组件面板（支持 v-model:visible） |
+| [`activeCount`](#mcp-server-picker-basic) | `number` | - | 激活插件数量（支持 v-model:activeCount） |
+| [`defaultActiveTab`](#mcp-server-picker-basic) | `'installed' \| 'market'` | `'installed'` | 默认激活的标签页 |
+| [`showInstalledTab`](#mcp-server-picker-basic) | `boolean` | `true` | 是否显示已安装标签页 |
+| [`showMarketTab`](#mcp-server-picker-basic) | `boolean` | `true` | 是否显示市场标签页 |
+| [`installedTabTitle`](#mcp-server-picker-basic) | `string` | `'已安装插件'` | 已安装标签页标题 |
+| [`marketTabTitle`](#mcp-server-picker-basic) | `string` | `'市场'` | 市场标签页标题 |
+| [`popupConfig`](#mcp-server-picker-popup) | `PopupConfig` | `{ type: 'fixed', position: {}, drawer: { direction: 'right' } }` | 弹出配置对象 |
+| [`title`](#mcp-server-picker-basic) | `string` | `'插件'` | 组件标题 |
+| [`showCustomAddButton`](#mcp-server-picker-basic) | `boolean` | `true` | 是否显示自定义添加按钮 |
+| [`customAddButtonText`](#mcp-server-picker-basic) | `string` | `'自定义添加'` | 自定义添加按钮文本 |
+| [`allowPluginToggle`](#mcp-server-picker-basic) | `boolean` | `true` | 是否允许切换插件状态 |
+| [`allowToolToggle`](#mcp-server-picker-basic) | `boolean` | `true` | 是否允许切换工具状态 |
+| [`allowPluginDelete`](#mcp-server-picker-basic) | `boolean` | `true` | 是否允许删除插件 |
+| [`allowPluginAdd`](#mcp-server-picker-basic) | `boolean` | `true` | 是否允许添加插件 |
+| [`loading`](#mcp-server-picker-basic) | `boolean` | `false` | 已安装插件加载状态 |
+| [`marketLoading`](#mcp-server-picker-basic) | `boolean` | `false` | 市场插件加载状态 |
 
 
-## Slots
+<span id="slots"></span>
+
+## Slots {#mcp-server-picker-slots}
 
 | 插槽名称          | 描述                             | 默认内容                |
 | ----------------- | -------------------------------- | ----------------------- |
-| `header-actions`   | 头部右侧操作区插槽               | 无                      |
+| [`header-actions`](#mcp-server-picker-basic) | 头部右侧操作区插槽 | 无 |
 
-## Events
+## Events {#mcp-server-picker-events}
 
 | 事件名                   | 说明                   | 回调参数                                                |
 | ------------------------ | ---------------------- | ------------------------------------------------------- |
-| market-category-change   | 市场分类筛选变化       | `(category: string)`                                    |
-| update:visible           | 面板显示状态变化       | `(visible: boolean)`                                    |
-| update:activeCount       | 激活插件数量变化       | `(count: number)`                                       |
-| tab-change               | 标签页切换             | `(activeTab: 'installed' \| 'market')`                  |
-| plugin-toggle            | 插件启用/禁用          | `(plugin: PluginInfo, enabled: boolean)`                |
-| plugin-delete            | 删除插件               | `(plugin: PluginInfo)`                                  |
-| plugin-add               | 市场插件添加           | `(plugin: PluginInfo)`                                  |
-| plugin-create            | 插件创建               | `(type: 'form' \| 'code', data: PluginCreationData)`    |
-| tool-toggle              | 工具启用/禁用          | `(plugin: PluginInfo, toolId: string, enabled: boolean)` |
-| refresh                  | 刷新请求               | `(tab: 'installed' \| 'market')`                        |
+| [`market-category-change`](#mcp-server-picker-basic) | 市场分类筛选变化 | `(category: string)` |
+| [`update:visible`](#mcp-server-picker-basic) | 面板显示状态变化 | `(visible: boolean)` |
+| [`update:activeCount`](#mcp-server-picker-basic) | 激活插件数量变化 | `(count: number)` |
+| [`tab-change`](#mcp-server-picker-basic) | 标签页切换 | `(activeTab: 'installed' \| 'market')` |
+| [`plugin-toggle`](#mcp-server-picker-basic) | 插件启用/禁用 | `(plugin: PluginInfo, enabled: boolean)` |
+| [`plugin-delete`](#mcp-server-picker-basic) | 删除插件 | `(plugin: PluginInfo)` |
+| [`plugin-add`](#mcp-server-picker-add-state) | 市场插件添加 | `(plugin: PluginInfo)` |
+| [`plugin-create`](#mcp-server-picker-basic) | 插件创建 | `(type: 'form' \| 'code', data: PluginCreationData)` |
+| [`tool-toggle`](#mcp-server-picker-basic) | 工具启用/禁用 | `(plugin: PluginInfo, toolId: string, enabled: boolean)` |
+| [`refresh`](#mcp-server-picker-basic) | 刷新请求 | `(tab: 'installed' \| 'market')` |
 
-## Types
+## Types {#mcp-server-picker-types}
 
 **PluginInfo**
 

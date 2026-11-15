@@ -4,11 +4,11 @@ outline: [1, 4]
 
 # Bubble 气泡组件
 
-## 概览
+## 概览 {#概览}
 
 Bubble 用于展示单条消息或消息列表，适合聊天、AI 流式回复以及需要自定义内容渲染的场景。它既可以独立展示气泡，也可以通过 `BubbleList` 和 `BubbleProvider` 组合管理分组、渲染器与共享配置。
 
-### 适用场景
+### 适用场景 {#适用场景}
 
 主要解决以下问题：
 
@@ -18,21 +18,21 @@ Bubble 用于展示单条消息或消息列表，适合聊天、AI 流式回复�
 - **自定义渲染**：通过渲染器系统支持自定义内容渲染逻辑
 - **状态管理**：支持消息状态管理，用于存储 UI 相关的数据
 
-## 用法示例
+## 用法示例 {#用法示例}
 
 传入 `content` 即可展示一条使用默认外观的消息。
 
 <demo vue="../../demos/bubble/basic.vue" title="基础气泡" description="使用 content 展示一条默认气泡消息。" />
 
-### 外观与生成状态
+### 外观与生成状态 {#外观与生成状态}
 
-#### 头像和位置
+#### 头像和位置 {#头像和位置}
 
 通过 `avatar` 设置自定义头像，通过 `placement` 设置位置，提供了 `start`、`end` 两个选项
 
 <demo vue="../../demos/bubble/avatar-and-placement.vue" title="头像和位置" description="为不同角色配置头像，并使用 placement 控制气泡对齐方向。" />
 
-#### 气泡形状
+#### 气泡形状 {#气泡形状}
 
 通过 `shape` 设置气泡形状。目前提供了 `rounded`、`corner` 和 `none` 三个选项。默认为 `corner`，可以使用 css 变量来设置圆角
 
@@ -42,21 +42,21 @@ Bubble 用于展示单条消息或消息列表，适合聊天、AI 流式回复�
 
 <demo vue="../../demos/bubble/shape.vue" title="气泡形状" description="对比 corner、rounded 和 none 三种气泡形状。" />
 
-#### 加载状态
+#### 加载状态 {#加载状态}
 
 通过 `loading` 设置加载中状态
 
 <demo vue="../../demos/bubble/loading.vue" title="加载状态" description="使用 loading 展示消息生成前的等待状态。" />
 
-#### 流式文本
+#### 流式文本 {#流式文本}
 
 `content` 属性是响应式的，动态设置 `content` 即可实现流式文本
 
 <demo vue="../../demos/bubble/streaming.vue" title="流式文本" description="持续更新响应式 content，模拟 AI 回复逐步生成的过程。" />
 
-### 内容类型与解析
+### 内容类型与解析 {#内容类型与解析}
 
-#### 渲染 Markdown
+#### 渲染 Markdown {#渲染-markdown}
 
 Bubble 提供 `BubbleRenderers.Markdown` 渲染器。使用前需要在应用中安装 `markdown-it` 和 `dompurify`；单个 Bubble 可以通过 `fallback-content-renderer` 配置，列表或组件树则推荐由 `BubbleProvider` 统一配置。
 
@@ -78,7 +78,7 @@ npm install markdown-it dompurify
 
 <demo vue="../../demos/bubble/markdown.vue" title="Markdown 内容" description="配置 Markdown 渲染器展示格式化文本。" />
 
-#### 图片渲染
+#### 图片渲染 {#图片渲染}
 
 Bubble 组件支持渲染图片内容。当 `content` 为数组且包含 `type: 'image_url'` 的内容项时，会自动使用 Image 渲染器。
 
@@ -89,7 +89,7 @@ Bubble 组件支持渲染图片内容。当 `content` 为数组且包含 `type: 
 
 <demo vue="../../demos/bubble/image.vue" title="图片与图文混排" description="使用固定的公开图片展示多图，以及图片位于文本前后的混合内容。" />
 
-#### 内容渲染模式
+#### 内容渲染模式 {#内容渲染模式}
 
 通过 `contentRenderMode` 设置内容渲染模式：
 
@@ -100,7 +100,7 @@ Bubble 组件支持渲染图片内容。当 `content` 为数组且包含 `type: 
 
 > **注意**：`'single'` 模式会将所有内容在一个 box 中渲染（默认）。`'split'` 模式会在 `content` 为数组时，将每个内容项单独一个 box 渲染。
 
-#### 内容解析器
+#### 内容解析器 {#内容解析器}
 
 通过 `contentResolver` 可以自定义内容解析逻辑，用于从消息的其他字段提取内容。
 
@@ -108,23 +108,23 @@ Bubble 组件支持渲染图片内容。当 `content` 为数组且包含 `type: 
 
 > **注意**：默认情况下，组件使用 `message.content` 作为内容。如果需要自定义内容解析逻辑（例如从其他字段提取内容），可以通过 `contentResolver` 属性传入自定义函数。
 
-#### 插槽扩展
+#### 插槽扩展 {#插槽扩展}
 
 气泡组件提供了多个插槽，分别是 `prefix` 插槽, `suffix` 插槽、`content-footer` 插槽 和 `after` 插槽
 
 <demo vue="../../demos/bubble/slots.vue" title="插槽扩展" description="通过 prefix、suffix、content-footer 和 after 插槽扩展气泡区域。" />
 
-#### Schema 卡片渲染
+#### Schema 卡片渲染 {#schema-卡片渲染}
 
 <demo vue="../../demos/bubble/schema-render.vue" :vueFiles="['../../demos/bubble/schema-render.vue', '../../demos/bubble/schema-card.ce.vue']" title="Schema 卡片渲染" description="将结构化消息匹配到自定义卡片渲染器。" playground="false" />
 
-### BubbleList 列表与分组
+### BubbleList 列表与分组 {#bubblelist-列表与分组}
 
-#### 基础列表
+#### 基础列表 {#基础列表}
 
 <demo vue="../../demos/bubble/list.vue" title="基础消息列表" description="使用 BubbleList 按角色配置连续的聊天消息。" />
 
-#### 分组策略
+#### 分组策略 {#分组策略}
 
 BubbleList 支持多种分组策略。分组时，连续的 `hidden` 消息会归为同一组。
 
@@ -151,13 +151,13 @@ BubbleList 支持多种分组策略。分组时，连续的 `hidden` 消息会�
 
 <demo vue="../../demos/bubble/list-array-content.vue" title="列表中的数组内容" description="观察分组数量与 contentRenderMode 共同决定数组内容的渲染方式。" />
 
-#### 隐藏角色
+#### 隐藏角色 {#隐藏角色}
 
 角色配置中使用 `hidden` 来隐藏这个角色的所有消息
 
 <demo vue="../../demos/bubble/list-hidden.vue" title="隐藏指定角色" description="通过角色配置隐藏不需要展示的消息。" />
 
-#### 自动滚动
+#### 自动滚动 {#自动滚动}
 
 通过 `autoScroll` 属性启用自动跟随。BubbleList 会观察实际渲染内容的尺寸；图片、Markdown、自定义渲染器等异步内容增高时，只要仍处于跟随状态，就会继续滚动到底部。
 
@@ -170,7 +170,7 @@ BubbleList 支持多种分组策略。分组时，连续的 `hidden` 消息会�
 > 3. `autoScroll` 支持响应式切换；关闭时暂停自动行为，再次开启时会恢复此前保留的跟随意图。
 > 4. 当最后一条消息的 `role` 为 `'user'` 时，会使用平滑滚动（`smooth`）滚动到底部，确保用户能立即看到自己发送的内容。
 
-#### useAutoScroll
+#### useAutoScroll {#useautoscroll}
 
 `useAutoScroll` 用于在内容增长时自动跟随到底部，向上浏览时暂停跟随。分别传入滚动容器和承载全部内容的元素：
 
@@ -218,14 +218,14 @@ useAutoScroll(scrollRef, source, {
 
 其中 `source` 是旧版业务数据变化信号。新代码应使用对象参数和 `contentRef`，让自动滚动由实际 UI 尺寸变化驱动。
 
-### 渲染器架构与扩展
+### 渲染器架构与扩展 {#渲染器架构与扩展}
 
 Bubble 组件采用渲染器架构，支持灵活的内容渲染和自定义扩展。渲染器系统分为两种类型：
 
 - **Box 渲染器**：用于渲染消息的外层容器（box），控制气泡的样式和布局
 - **Content 渲染器**：用于渲染消息的具体内容，如文本、图片、Markdown 等
 
-#### 渲染器匹配机制
+#### 渲染器匹配机制 {#渲染器匹配机制}
 
 渲染器通过匹配规则来选择，匹配过程如下：
 
@@ -234,7 +234,7 @@ Bubble 组件采用渲染器架构，支持灵活的内容渲染和自定义扩�
 3. 使用该规则对应的渲染器
 4. 如果没有匹配到任何规则，使用 fallback 渲染器
 
-#### 渲染器配置层级
+#### 渲染器配置层级 {#渲染器配置层级}
 
 渲染器配置支持三个层级，优先级从高到低：
 
@@ -252,13 +252,13 @@ Bubble 组件采用渲染器架构，支持灵活的内容渲染和自定义扩�
 </template>
 ```
 
-#### 通过 BubbleProvider 配置渲染器
+#### 通过 BubbleProvider 配置渲染器 {#通过-bubbleprovider-配置渲染器}
 
 `BubbleProvider` 组件提供了 `box-renderer-matches` 和 `content-renderer-matches` 属性，用于设置渲染器匹配规则。通过 BubbleProvider 配置的渲染器会在整个组件树中生效，适合全局配置。
 
 <demo vue="../../demos/bubble/provider-renderer.vue" title="Provider 渲染器配置" description="在 BubbleProvider 中配置匹配规则，让整个组件树复用自定义渲染器。" />
 
-#### 通过 BubbleProvider 统一注入 attributes
+#### 通过 BubbleProvider 统一注入 attributes {#通过-bubbleprovider-统一注入-attributes}
 
 除了配置渲染器，`BubbleProvider` 还支持通过 `box-attributes` 和 `content-attributes` 为 Box / Content 统一注入 attributes。
 
@@ -272,7 +272,7 @@ Bubble 组件采用渲染器架构，支持灵活的内容渲染和自定义扩�
 
 > `BubbleProvider` 注入的 attributes 会在对应的 Box / Content 上统一生效；如果某个匹配规则本身也配置了 `attributes`，会在 Provider attributes 的基础上继续合并。
 
-#### 渲染器匹配优先级
+#### 渲染器匹配优先级 {#渲染器匹配优先级}
 
 匹配规则可以使用 `priority` 属性来设置优先级，值越小优先级越高。系统提供了以下优先级常量：
 
@@ -294,7 +294,7 @@ Bubble 组件采用渲染器架构，支持灵活的内容渲染和自定义扩�
 
 > **注意**：渲染器匹配时，优先级数值越小优先级越高。自定义渲染器应该根据匹配条件选择合适的优先级。
 
-#### 内置渲染器
+#### 内置渲染器 {#内置渲染器}
 
 组件内置了以下渲染器，可以通过 `BubbleRenderers` 访问：
 
@@ -321,7 +321,7 @@ Bubble 组件采用渲染器架构，支持灵活的内容渲染和自定义扩�
 
 工具描述超过一行时会自动截断，鼠标悬停在描述上可以通过原生提示查看完整内容。
 
-#### 实现自定义渲染器
+#### 实现自定义渲染器 {#实现自定义渲染器}
 
 **Content 渲染器**
 
@@ -392,7 +392,7 @@ defineProps<BubbleBoxRendererProps>()
 - 在 Content 渲染器中可使用 `useMessageContent(props)` 获取当前 `content` 和 `contentText`，以正确处理 `contentIndex` 与数组内容
 - 多根节点或复合渲染器应使用 `inheritAttrs: false`，并显式决定 `$attrs` 绑定到哪个节点；不要把同一份 attributes 复制到多个兄弟节点上，避免重复 `id`、ARIA 或测试选择器
 
-### 交互与状态管理
+### 交互与状态管理 {#交互与状态管理}
 
 如果你希望在 Bubble 内部（例如自定义 Content 渲染器中）向外通知交互行为，可以使用 `useBubbleEventFn()` 触发 `bubble-event`。事件会从当前渲染器逐层透传到外层的 `Bubble` / `BubbleList`，应用可以统一监听并处理。
 
@@ -436,7 +436,7 @@ emitBubbleEvent({
 
 > **注意**：`state-change` 是针对 `bubble-event` 中 `state:update` 提供的便捷事件，只负责通知外部更新 UI 状态。若状态没有同步回传给消息的 `state` 属性，渲染器下一次渲染时不会保留该状态。
 
-### 工具调用确认
+### 工具调用确认 {#工具调用确认}
 
 该示例只使用 Bubble 和 `@opentiny/tiny-robot-kit`。页面加载后会自动发起一次模拟工具调用；完成允许或拒绝后，还可以点击“再次发起审批”重复演示。消息列表会在限定高度的区域内滚动，顶部操作区始终保持可见。
 
@@ -499,144 +499,144 @@ await activeConversation.value?.engine.dispatchCommand(command, { toolCallId })
 
 更详细的 `toolPlugin` 配置和命令说明，请参考 [工具插件 API](../tools/message)。
 
-## API
+## API {#api}
 
-### 公开导出
+### 公开导出 {#公开导出}
 
 | 导出                                  | 用途                                                                                         |
 | ------------------------------------- | -------------------------------------------------------------------------------------------- |
-| `TrBubble` / `Bubble`                 | 展示单个消息或消息组                                                                         |
-| `TrBubbleList` / `BubbleList`         | 分组并展示消息列表，提供自动滚动方法                                                         |
-| `TrBubbleProvider` / `BubbleProvider` | 为后代 Bubble 统一配置渲染器、attributes、错误渲染器与共享存储                               |
-| `BubbleRenderers`                     | 内置 Box、Text、Image、Markdown、Loading、Reasoning、Tool、Tools、ToolRole、Error 渲染器集合 |
-| `BubbleRendererMatchPriority`         | 内置匹配优先级常量：`LOADING`、`NORMAL`、`CONTENT`、`ROLE`                                   |
+| [`TrBubble`](#用法示例) / [`Bubble`](#用法示例) | 展示单个消息或消息组                                                                         |
+| [`TrBubbleList`](#bubblelist-列表与分组) / [`BubbleList`](#bubblelist-列表与分组) | 分组并展示消息列表，提供自动滚动方法                                                         |
+| [`TrBubbleProvider`](#通过-bubbleprovider-配置渲染器) / [`BubbleProvider`](#通过-bubbleprovider-配置渲染器) | 为后代 Bubble 统一配置渲染器、attributes、错误渲染器与共享存储                               |
+| [`BubbleRenderers`](#内置渲染器) | 内置 Box、Text、Image、Markdown、Loading、Reasoning、Tool、Tools、ToolRole、Error 渲染器集合 |
+| [`BubbleRendererMatchPriority`](#渲染器匹配优先级) | 内置匹配优先级常量：`LOADING`、`NORMAL`、`CONTENT`、`ROLE`                                   |
 
-### Props
+### Props {#props}
 
-#### Bubble
+#### Bubble {#bubble}
 
 单个气泡的属性配置。
 
 | 属性                        | 说明                                                                  | 类型                                                          | 默认值                         | 必填 |
 | --------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------- | ------------------------------ | ---- |
-| `role`                      | 气泡角色标识；在 BubbleList 中用于分组并关联 `role-configs`           | `string`                                                      | —                              | 否   |
-| `content`                   | 气泡内容                                                              | `ChatMessageContent`                                          | —                              | 否   |
-| `reasoning_content`         | 推理内容，供内置 Reasoning 渲染器读取                                 | `string`                                                      | —                              | 否   |
-| `tool_calls`                | 工具调用列表，供内置 Tool 渲染器读取                                  | `ToolCall[]`                                                  | —                              | 否   |
-| `tool_call_id`              | 当前工具结果关联的工具调用 ID                                         | `string`                                                      | —                              | 否   |
-| `name`                      | 消息名称                                                              | `string`                                                      | —                              | 否   |
-| `id`                        | 消息标识                                                              | `string`                                                      | —                              | 否   |
-| `loading`                   | 显示加载状态                                                          | `boolean`                                                     | `false`                        | 否   |
-| `state`                     | 渲染器使用的 UI 状态；组件不会自行持久化外部更新                      | `Record<string, unknown>`                                     | —                              | 否   |
-| `hidden`                    | 隐藏整个气泡                                                          | `boolean`                                                     | `false`                        | 否   |
-| `avatar`                    | 气泡头像的 Vue 节点或组件                                             | `VNode \| Component`                                          | —                              | 否   |
-| `placement`                 | 气泡在容器起始侧或结束侧对齐                                          | `'start' \| 'end'`                                            | `'start'`                      | 否   |
-| `shape`                     | 气泡外形                                                              | `'corner' \| 'rounded' \| 'none'`                             | `'corner'`                     | 否   |
-| `content-render-mode`       | `single` 把内容放入一个 box；`split` 为数组中的每个内容项创建独立 box | `'single' \| 'split'`                                         | `'single'`                     | 否   |
-| `content-resolver`          | 在选择渲染器前解析消息内容                                            | `(message: BubbleMessage) => ChatMessageContent \| undefined` | `(message) => message.content` | 否   |
-| `fallback-box-renderer`     | 没有匹配规则时使用的 box 渲染器                                       | `Component<BubbleBoxRendererProps>`                           | 内置默认渲染器                 | 否   |
-| `fallback-content-renderer` | 没有匹配规则时使用的内容渲染器                                        | `Component<BubbleContentRendererProps>`                       | 内置默认渲染器                 | 否   |
+| [`role`](#bubblelist-列表与分组) | 气泡角色标识；在 BubbleList 中用于分组并关联 `role-configs`           | `string`                                                      | —                              | 否   |
+| [`content`](#内容类型与解析) | 气泡内容                                                              | `ChatMessageContent`                                          | —                              | 否   |
+| [`reasoning_content`](#内置渲染器) | 推理内容，供内置 Reasoning 渲染器读取                                 | `string`                                                      | —                              | 否   |
+| [`tool_calls`](#工具调用确认) | 工具调用列表，供内置 Tool 渲染器读取                                  | `ToolCall[]`                                                  | —                              | 否   |
+| [`tool_call_id`](#工具调用确认) | 当前工具结果关联的工具调用 ID                                         | `string`                                                      | —                              | 否   |
+| [`name`](#用法示例) | 消息名称                                                              | `string`                                                      | —                              | 否   |
+| [`id`](#用法示例) | 消息标识                                                              | `string`                                                      | —                              | 否   |
+| [`loading`](#加载状态) | 显示加载状态                                                          | `boolean`                                                     | `false`                        | 否   |
+| [`state`](#交互与状态管理) | 渲染器使用的 UI 状态；组件不会自行持久化外部更新                      | `Record<string, unknown>`                                     | —                              | 否   |
+| [`hidden`](#隐藏角色) | 隐藏整个气泡                                                          | `boolean`                                                     | `false`                        | 否   |
+| [`avatar`](#头像和位置) | 气泡头像的 Vue 节点或组件                                             | `VNode \| Component`                                          | —                              | 否   |
+| [`placement`](#头像和位置) | 气泡在容器起始侧或结束侧对齐                                          | `'start' \| 'end'`                                            | `'start'`                      | 否   |
+| [`shape`](#气泡形状) | 气泡外形                                                              | `'corner' \| 'rounded' \| 'none'`                             | `'corner'`                     | 否   |
+| [`content-render-mode`](#内容渲染模式) | `single` 把内容放入一个 box；`split` 为数组中的每个内容项创建独立 box | `'single' \| 'split'`                                         | `'single'`                     | 否   |
+| [`content-resolver`](#内容解析器) | 在选择渲染器前解析消息内容                                            | `(message: BubbleMessage) => ChatMessageContent \| undefined` | `(message) => message.content` | 否   |
+| [`fallback-box-renderer`](#渲染器配置层级) | 没有匹配规则时使用的 box 渲染器                                       | `Component<BubbleBoxRendererProps>`                           | 内置默认渲染器                 | 否   |
+| [`fallback-content-renderer`](#渲染器配置层级) | 没有匹配规则时使用的内容渲染器                                        | `Component<BubbleContentRendererProps>`                       | 内置默认渲染器                 | 否   |
 
-#### BubbleList
+#### BubbleList {#bubblelist}
 
 气泡列表组件的属性配置。
 
 | 属性                  | 说明                                                                                                         | 类型                                                                                                        | 默认值                         | 必填 |
 | --------------------- | ------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------- | ------------------------------ | ---- |
-| `messages`            | 消息数组                                                                                                     | `BubbleMessage[]`                                                                                           | —                              | 是   |
-| `group-strategy`      | 按相邻角色、分隔角色或自定义函数分组                                                                         | `'consecutive' \| 'divider' \| ((messages: BubbleMessage[], dividerRole?: string) => BubbleMessageGroup[])` | `'divider'`                    | 否   |
-| `divider-role`        | `divider` 策略中需要单独成组的角色                                                                           | `string`                                                                                                    | `'user'`                       | 否   |
-| `fallback-role`       | 消息缺少角色或角色为空时使用的角色                                                                           | `string`                                                                                                    | `'assistant'`                  | 否   |
-| `role-configs`        | 按角色提供头像、位置、形状、隐藏状态与 fallback 渲染器                                                       | `Record<string, BubbleRoleConfig>`                                                                          | —                              | 否   |
-| `content-render-mode` | 统一设置列表中 Bubble 的内容渲染模式                                                                         | `BubbleProps['contentRenderMode']`                                                                          | —                              | 否   |
-| `content-resolver`    | 统一设置列表中 Bubble 的内容解析函数                                                                         | `BubbleProps['contentResolver']`                                                                            | `(message) => message.content` | 否   |
-| `auto-scroll`         | 根据实际渲染内容尺寸自动跟随底部；异步内容增高时继续跟随，用户向上滚动时暂停，回到底部后恢复；支持响应式切换 | `boolean`                                                                                                   | `false`                        | 否   |
+| [`messages`](#基础列表) | 消息数组                                                                                                     | `BubbleMessage[]`                                                                                           | —                              | 是   |
+| [`group-strategy`](#分组策略) | 按相邻角色、分隔角色或自定义函数分组                                                                         | `'consecutive' \| 'divider' \| ((messages: BubbleMessage[], dividerRole?: string) => BubbleMessageGroup[])` | `'divider'`                    | 否   |
+| [`divider-role`](#分组策略) | `divider` 策略中需要单独成组的角色                                                                           | `string`                                                                                                    | `'user'`                       | 否   |
+| [`fallback-role`](#分组策略) | 消息缺少角色或角色为空时使用的角色                                                                           | `string`                                                                                                    | `'assistant'`                  | 否   |
+| [`role-configs`](#分组策略) | 按角色提供头像、位置、形状、隐藏状态与 fallback 渲染器                                                       | `Record<string, BubbleRoleConfig>`                                                                          | —                              | 否   |
+| [`content-render-mode`](#内容渲染模式) | 统一设置列表中 Bubble 的内容渲染模式                                                                         | `BubbleProps['contentRenderMode']`                                                                          | —                              | 否   |
+| [`content-resolver`](#内容解析器) | 统一设置列表中 Bubble 的内容解析函数                                                                         | `BubbleProps['contentResolver']`                                                                            | `(message) => message.content` | 否   |
+| [`auto-scroll`](#自动滚动) | 根据实际渲染内容尺寸自动跟随底部；异步内容增高时继续跟随，用户向上滚动时暂停，回到底部后恢复；支持响应式切换 | `boolean`                                                                                                   | `false`                        | 否   |
 
-#### BubbleProvider
+#### BubbleProvider {#bubbleprovider}
 
 气泡提供者组件的属性配置。
 
 | 属性                        | 说明                                          | 类型                                          | 默认值         | 必填 |
 | --------------------------- | --------------------------------------------- | --------------------------------------------- | -------------- | ---- |
-| `box-renderer-matches`      | 在内置规则之前参与排序和匹配的 box 渲染器规则 | `BubbleBoxRendererMatch[]`                    | `[]`           | 否   |
-| `content-renderer-matches`  | 在内置规则之前参与排序和匹配的内容渲染器规则  | `BubbleContentRendererMatch[]`                | `[]`           | 否   |
-| `box-attributes`            | 注入 box 的静态 attributes 或 resolver        | `BubbleBoxAttributesConfig`                   | —              | 否   |
-| `content-attributes`        | 注入内容节点的静态 attributes 或 resolver     | `BubbleContentAttributesConfig`               | —              | 否   |
-| `fallback-box-renderer`     | 没有规则匹配时使用的 box 渲染器               | `Component<BubbleBoxRendererProps>`           | 内置默认渲染器 | 否   |
-| `fallback-content-renderer` | 没有规则匹配时使用的内容渲染器                | `Component<BubbleContentRendererProps>`       | 内置默认渲染器 | 否   |
-| `error-renderer`            | 消息级错误渲染器；省略或传入 `null` 时关闭    | `Component<BubbleErrorRendererProps> \| null` | —              | 否   |
-| `store`                     | 在同一 Provider 下为渲染器共享的数据          | `Record<string, unknown>`                     | `{}`           | 否   |
+| [`box-renderer-matches`](#渲染器匹配机制) | 在内置规则之前参与排序和匹配的 box 渲染器规则 | `BubbleBoxRendererMatch[]`                    | `[]`           | 否   |
+| [`content-renderer-matches`](#渲染器匹配机制) | 在内置规则之前参与排序和匹配的内容渲染器规则  | `BubbleContentRendererMatch[]`                | `[]`           | 否   |
+| [`box-attributes`](#通过-bubbleprovider-统一注入-attributes) | 注入 box 的静态 attributes 或 resolver        | `BubbleBoxAttributesConfig`                   | —              | 否   |
+| [`content-attributes`](#通过-bubbleprovider-统一注入-attributes) | 注入内容节点的静态 attributes 或 resolver     | `BubbleContentAttributesConfig`               | —              | 否   |
+| [`fallback-box-renderer`](#渲染器配置层级) | 没有规则匹配时使用的 box 渲染器               | `Component<BubbleBoxRendererProps>`           | 内置默认渲染器 | 否   |
+| [`fallback-content-renderer`](#渲染器配置层级) | 没有规则匹配时使用的内容渲染器                | `Component<BubbleContentRendererProps>`       | 内置默认渲染器 | 否   |
+| [`error-renderer`](#内置渲染器) | 消息级错误渲染器；省略或传入 `null` 时关闭    | `Component<BubbleErrorRendererProps> \| null` | —              | 否   |
+| [`store`](#通过-bubbleprovider-配置渲染器) | 在同一 Provider 下为渲染器共享的数据          | `Record<string, unknown>`                     | `{}`           | 否   |
 
-### Events
+### Events {#events}
 
-#### Bubble 与 BubbleList Events
+#### Bubble 与 BubbleList Events {#bubble-与-bubblelist-events}
 
 | 事件名         | 触发时机                                                                               | 回调参数                                                                                         |
 | -------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| `state-change` | 渲染器发出 `state:update` 后触发；组件只通知下一状态，应用需要把值同步回消息的 `state` | `(payload: { key: string; value: unknown; messageIndex: number; contentIndex: number }) => void` |
-| `bubble-event` | 渲染器发出任意 Bubble 事件时触发；`state:update` 还会额外派发 `state-change`           | `(payload: BubbleEvent & { messageIndex: number; contentIndex: number }) => void`                |
+| [`state-change`](#交互与状态管理) | 渲染器发出 `state:update` 后触发；组件只通知下一状态，应用需要把值同步回消息的 `state` | `(payload: { key: string; value: unknown; messageIndex: number; contentIndex: number }) => void` |
+| [`bubble-event`](#工具调用确认) | 渲染器发出任意 Bubble 事件时触发；`state:update` 还会额外派发 `state-change`           | `(payload: BubbleEvent & { messageIndex: number; contentIndex: number }) => void`                |
 
 `bubble-event` 允许自定义事件名。内置渲染器会使用以下事件：
 
 | 内置事件名            | `payload` 类型                         | 说明                                                                                 |
 | --------------------- | -------------------------------------- | ------------------------------------------------------------------------------------ |
-| `state:update`        | `{ key: string; value: unknown }`      | 请求应用更新消息的 `state`；组件随后额外触发 `state-change`，不会自行持久化状态。     |
-| `tool-call:resume`    | `{ toolCallId: string }`               | Tool 处于 `awaiting-approval` 时点击“允许”触发；应用需转发 `TOOL_RESUME_COMMAND`。     |
-| `tool-call:reject`    | `{ toolCallId: string }`               | Tool 处于 `awaiting-approval` 时点击“拒绝”触发；应用需转发 `TOOL_REJECT_COMMAND`。      |
+| [`state:update`](#交互与状态管理) | `{ key: string; value: unknown }`      | 请求应用更新消息的 `state`；组件随后额外触发 `state-change`，不会自行持久化状态。     |
+| [`tool-call:resume`](#工具调用确认) | `{ toolCallId: string }`               | Tool 处于 `awaiting-approval` 时点击“允许”触发；应用需转发 `TOOL_RESUME_COMMAND`。     |
+| [`tool-call:reject`](#工具调用确认) | `{ toolCallId: string }`               | Tool 处于 `awaiting-approval` 时点击“拒绝”触发；应用需转发 `TOOL_REJECT_COMMAND`。      |
 
 `bubble-event` 的回调参数还包含 `messageIndex` 和 `contentIndex`。工具审批事件只负责通知应用，Bubble 不会执行工具、拒绝调用或修改工具状态；请由 `toolPlugin` / `useMessage`（或会话引擎）处理对应命令。
 
-### Slots
+### Slots {#slots}
 
-#### Bubble Slots
+#### Bubble Slots {#bubble-slots}
 
 | 插槽名           | 用途                          | 作用域参数                                                            |
 | ---------------- | ----------------------------- | --------------------------------------------------------------------- |
-| `prefix`         | 在气泡主体前添加内容          | `{ messages: BubbleMessage[]; role?: string }`                        |
-| `suffix`         | 在气泡主体后添加内容          | `{ messages: BubbleMessage[]; role?: string }`                        |
-| `after`          | 在气泡内容区域之后添加内容    | `{ messages: BubbleMessage[]; role?: string }`                        |
-| `content-footer` | 在每个内容 box 的底部添加内容 | `{ messages: BubbleMessage[]; role?: string; contentIndex?: number }` |
+| [`prefix`](#插槽扩展) | 在气泡主体前添加内容          | `{ messages: BubbleMessage[]; role?: string }`                        |
+| [`suffix`](#插槽扩展) | 在气泡主体后添加内容          | `{ messages: BubbleMessage[]; role?: string }`                        |
+| [`after`](#插槽扩展) | 在气泡内容区域之后添加内容    | `{ messages: BubbleMessage[]; role?: string }`                        |
+| [`content-footer`](#插槽扩展) | 在每个内容 box 的底部添加内容 | `{ messages: BubbleMessage[]; role?: string; contentIndex?: number }` |
 
-#### BubbleList Slots
+#### BubbleList Slots {#bubblelist-slots}
 
 | 插槽名           | 用途                           | 作用域参数                                                                                      |
 | ---------------- | ------------------------------ | ----------------------------------------------------------------------------------------------- |
-| `prefix`         | 在分组气泡主体前添加内容       | `{ messages: BubbleMessage[]; role?: string; messageIndexes: number[] }`                        |
-| `suffix`         | 在分组气泡主体后添加内容       | `{ messages: BubbleMessage[]; role?: string; messageIndexes: number[] }`                        |
-| `after`          | 在分组气泡内容区域之后添加内容 | `{ messages: BubbleMessage[]; role?: string; messageIndexes: number[] }`                        |
-| `content-footer` | 在每个内容 box 的底部添加内容  | `{ messages: BubbleMessage[]; role?: string; contentIndex?: number; messageIndexes: number[] }` |
+| [`prefix`](#插槽扩展) | 在分组气泡主体前添加内容       | `{ messages: BubbleMessage[]; role?: string; messageIndexes: number[] }`                        |
+| [`suffix`](#插槽扩展) | 在分组气泡主体后添加内容       | `{ messages: BubbleMessage[]; role?: string; messageIndexes: number[] }`                        |
+| [`after`](#插槽扩展) | 在分组气泡内容区域之后添加内容 | `{ messages: BubbleMessage[]; role?: string; messageIndexes: number[] }`                        |
+| [`content-footer`](#插槽扩展) | 在每个内容 box 的底部添加内容  | `{ messages: BubbleMessage[]; role?: string; contentIndex?: number; messageIndexes: number[] }` |
 
-### Methods
+### Methods {#methods}
 
-#### BubbleList Methods
+#### BubbleList Methods {#bubblelist-methods}
 
 | 方法             | 签名                                           | 说明                                                                                      |
 | ---------------- | ---------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `scrollToBottom` | `(behavior?: ScrollBehavior) => Promise<void>` | `BubbleList` 滚动到底部。传入 `'smooth'` 可平滑滚动；即使 `autoScroll` 已关闭也可以调用。 |
+| [`scrollToBottom`](#自动滚动) | `(behavior?: ScrollBehavior) => Promise<void>` | `BubbleList` 滚动到底部。传入 `'smooth'` 可平滑滚动；即使 `autoScroll` 已关闭也可以调用。 |
 
-### Composables
+### Composables {#composables}
 
 以下组合式函数均从 `@opentiny/tiny-robot` 导入。渲染器相关函数必须在 `Bubble`、`BubbleList` 或 `BubbleProvider` 建立的组件树中使用；缺少对应注入时会回退到默认渲染器、空存储或警告函数。
 
 | 函数                       | 用途                                                             | 签名或返回值                                                                                                                                                                      |
 | -------------------------- | ---------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `useBubbleBoxRenderer`     | 按当前消息组、内容索引和 Provider 配置选择 Box 渲染器            | `(messages: MaybeRefOrGetter<BubbleMessage[]>, contentIndex?: number) => ComputedRef<{ renderer: Component; attributes?: BubbleAttributes }>`                                     |
-| `useBubbleContentRenderer` | 按当前消息和内容索引选择 Content 渲染器                          | `(message: MaybeRefOrGetter<BubbleMessage>, contentIndex: number) => ComputedRef<{ renderer: Component; attributes?: BubbleAttributes }>`                                         |
-| `useBubbleErrorRenderer`   | 读取 Provider 中配置的消息级错误渲染器                           | `() => ComputedRef<Component<BubbleErrorRendererProps> \| null \| undefined>`                                                                                                     |
-| `useBubbleEventFn`         | 在自定义渲染器中向外层发出 `BubbleEvent`                         | `() => (event: BubbleEvent) => void`                                                                                                                                              |
-| `useBubbleStateChangeFn`   | 发出名称为 `state:update` 的状态事件                             | `() => (key: string, value: unknown) => void`                                                                                                                                     |
-| `useMessageContent`        | 按 `contentResolver` 与 `contentIndex` 取得标准化内容项和文本    | `(props: Readonly<BubbleContentRendererProps>) => { content: ComputedRef<ChatMessageContentItem>; contentText: ComputedRef<string> }`                                             |
-| `useOmitMessageFields`     | 从响应式消息中排除已由复合渲染器消费的字段，返回剩余消息与 Props | `<P extends BubbleContentRendererProps, K extends keyof BubbleMessage>(props: P, fields: K[]) => { restMessage: ComputedRef<Omit<BubbleMessage, K>>; restProps: ComputedRef<P> }` |
-| `useToolCall`              | 读取指定工具调用、Provider 中的结果和当前 UI 状态                | `(props: BubbleContentRendererProps & { toolCallIndex: number }) => { toolCall; toolCallWithResult; state }`                                                                      |
-| `useAutoScroll`            | 监听滚动容器与内容尺寸，在用户仍处于跟随状态时滚动到底部         | `(options: UseAutoScrollOptions) => UseAutoScrollReturn`                                                                                                                          |
+| [`useBubbleBoxRenderer`](#渲染器匹配机制) | 按当前消息组、内容索引和 Provider 配置选择 Box 渲染器            | `(messages: MaybeRefOrGetter<BubbleMessage[]>, contentIndex?: number) => ComputedRef<{ renderer: Component; attributes?: BubbleAttributes }>`                                     |
+| [`useBubbleContentRenderer`](#渲染器匹配机制) | 按当前消息和内容索引选择 Content 渲染器                          | `(message: MaybeRefOrGetter<BubbleMessage>, contentIndex: number) => ComputedRef<{ renderer: Component; attributes?: BubbleAttributes }>`                                         |
+| [`useBubbleErrorRenderer`](#内置渲染器) | 读取 Provider 中配置的消息级错误渲染器                           | `() => ComputedRef<Component<BubbleErrorRendererProps> \| null \| undefined>`                                                                                                     |
+| [`useBubbleEventFn`](#实现自定义渲染器) | 在自定义渲染器中向外层发出 `BubbleEvent`                         | `() => (event: BubbleEvent) => void`                                                                                                                                              |
+| [`useBubbleStateChangeFn`](#实现自定义渲染器) | 发出名称为 `state:update` 的状态事件                             | `() => (key: string, value: unknown) => void`                                                                                                                                     |
+| [`useMessageContent`](#内容类型与解析) | 按 `contentResolver` 与 `contentIndex` 取得标准化内容项和文本    | `(props: Readonly<BubbleContentRendererProps>) => { content: ComputedRef<ChatMessageContentItem>; contentText: ComputedRef<string> }`                                             |
+| [`useOmitMessageFields`](#实现自定义渲染器) | 从响应式消息中排除已由复合渲染器消费的字段，返回剩余消息与 Props | `<P extends BubbleContentRendererProps, K extends keyof BubbleMessage>(props: P, fields: K[]) => { restMessage: ComputedRef<Omit<BubbleMessage, K>>; restProps: ComputedRef<P> }` |
+| [`useToolCall`](#工具调用确认) | 读取指定工具调用、Provider 中的结果和当前 UI 状态                | `(props: BubbleContentRendererProps & { toolCallIndex: number }) => { toolCall; toolCallWithResult; state }`                                                                      |
+| [`useAutoScroll`](#useautoscroll) | 监听滚动容器与内容尺寸，在用户仍处于跟随状态时滚动到底部         | `(options: UseAutoScrollOptions) => UseAutoScrollReturn`                                                                                                                          |
 
 `useAutoScroll` 的 `enabled` 接受普通值、Ref 或 Getter，并会持续跟踪变化。组合式函数使用 `ResizeObserver`、`requestAnimationFrame` 和全局键盘监听，仅适用于浏览器环境；卸载时会清理动画帧、监听器和内部 watch。`scrollToBottom()` 是命令式操作，不受 `enabled` 限制。旧位置参数签名由 `LegacyUseAutoScrollOptions` 描述，已弃用。
 
-### Types
+### Types {#types}
 
 以下类型均从 `@opentiny/tiny-robot` 导出。
 
-#### 推荐类型
+#### 推荐类型 {#推荐类型}
 
 | 类型名                                | 类别 / 用途      | 说明                                      |
 | ------------------------------------- | ---------------- | ----------------------------------------- |
@@ -669,13 +669,13 @@ await activeConversation.value?.engine.dispatchCommand(command, { toolCallId })
 | `UseAutoScrollOptions`                | 组合式函数参数   | 自动滚动对象参数                          |
 | `UseAutoScrollReturn`                 | 组合式函数返回值 | 自动滚动的动作与边界状态                  |
 
-#### 已弃用类型
+#### 已弃用类型 {#已弃用类型}
 
 | 类型名                       | 类别 / 用途    | 说明                         |
 | ---------------------------- | -------------- | ---------------------------- |
 | `LegacyUseAutoScrollOptions` | 组合式函数参数 | 已弃用的自动滚动位置参数配置 |
 
-#### 类型定义
+#### 类型定义 {#类型定义}
 
 以下为 `BubbleMessage` 公开结构的完整等价展开：
 
@@ -837,87 +837,87 @@ type BubbleMessageGroup = {
 
 | 变量名                  | 说明           | 默认值 |
 | ----------------------- | -------------- | ------ |
-| `--tr-bubble-gap`       | 头像与内容间距 | `16px` |
-| `--tr-bubble-max-width` | 气泡最大宽度   | `80%`  |
-| `--tr-bubble-min-width` | 气泡最小宽度   | `auto` |
+| [`--tr-bubble-gap`](#css-变量) | 头像与内容间距 | `16px` |
+| [`--tr-bubble-max-width`](#css-变量) | 气泡最大宽度   | `80%`  |
+| [`--tr-bubble-min-width`](#css-变量) | 气泡最小宽度   | `auto` |
 
 **Box 容器**
 
 | 变量名                                 | 说明                                                          | 默认值                                              |
 | -------------------------------------- | ------------------------------------------------------------- | --------------------------------------------------- |
-| `--tr-bubble-box-bg`                   | Box 背景色                                                    | `var(--tr-container-bg-default)`                    |
-| `--tr-bubble-box-padding`              | Box 内边距                                                    | `8px 16px`                                          |
-| `--tr-bubble-box-content-gap`          | 默认 Box 内相邻内容块的垂直间距                               | `8px`                                               |
-| `--tr-bubble-box-border-radius`        | `shape="none"` 等场景使用的基础圆角                           | `0`                                                 |
-| `--tr-bubble-box-shadow`               | Box 阴影                                                      | `var(--tr-shadow-md)`                               |
-| `--tr-bubble-box-border`               | Box 边框                                                      | `none`                                              |
-| `--tr-bubble-box-shape-rounded-radius` | `rounded` 形状圆角，也作为错误视图圆角的默认来源              | `18px`                                              |
-| `--tr-bubble-box-shape-corner-radius`  | `corner` 形状的尖角圆角；`start` 对应左上角，`end` 对应右上角 | `4px`                                               |
-| `--tr-bubble-box-image-border-color`   | 纯图片 Box 的边框颜色                                         | `transparent`                                       |
-| `--tr-bubble-box-image-border`         | 纯图片 Box 的边框                                             | `4px solid var(--tr-bubble-box-image-border-color)` |
-| `--tr-bubble-box-image-padding`        | 纯图片 Box 的内边距                                           | `0`                                                 |
+| [`--tr-bubble-box-bg`](#css-变量) | Box 背景色                                                    | `var(--tr-container-bg-default)`                    |
+| [`--tr-bubble-box-padding`](#css-变量) | Box 内边距                                                    | `8px 16px`                                          |
+| [`--tr-bubble-box-content-gap`](#css-变量) | 默认 Box 内相邻内容块的垂直间距                               | `8px`                                               |
+| [`--tr-bubble-box-border-radius`](#css-变量) | `shape="none"` 等场景使用的基础圆角                           | `0`                                                 |
+| [`--tr-bubble-box-shadow`](#css-变量) | Box 阴影                                                      | `var(--tr-shadow-md)`                               |
+| [`--tr-bubble-box-border`](#css-变量) | Box 边框                                                      | `none`                                              |
+| [`--tr-bubble-box-shape-rounded-radius`](#css-变量) | `rounded` 形状圆角，也作为错误视图圆角的默认来源              | `18px`                                              |
+| [`--tr-bubble-box-shape-corner-radius`](#css-变量) | `corner` 形状的尖角圆角；`start` 对应左上角，`end` 对应右上角 | `4px`                                               |
+| [`--tr-bubble-box-image-border-color`](#css-变量) | 纯图片 Box 的边框颜色                                         | `transparent`                                       |
+| [`--tr-bubble-box-image-border`](#css-变量) | 纯图片 Box 的边框                                             | `4px solid var(--tr-bubble-box-image-border-color)` |
+| [`--tr-bubble-box-image-padding`](#css-变量) | 纯图片 Box 的内边距                                           | `0`                                                 |
 
 **Text 文本**
 
 | 变量名                         | 说明         | 默认值                   |
 | ------------------------------ | ------------ | ------------------------ |
-| `--tr-bubble-text-color`       | 文本文字颜色 | `var(--tr-text-primary)` |
-| `--tr-bubble-text-font-size`   | 文本字号     | `inherit`                |
-| `--tr-bubble-text-line-height` | 文本行高     | `1.5`                    |
+| [`--tr-bubble-text-color`](#css-变量) | 文本文字颜色 | `var(--tr-text-primary)` |
+| [`--tr-bubble-text-font-size`](#css-变量) | 文本字号     | `inherit`                |
+| [`--tr-bubble-text-line-height`](#css-变量) | 文本行高     | `1.5`                    |
 
 **Loading 与错误提示**
 
 | 变量名                            | 说明             | 默认值                                                                          |
 | --------------------------------- | ---------------- | ------------------------------------------------------------------------------- |
-| `--tr-bubble-loading-color`       | 加载图标颜色     | `var(--tr-text-secondary)`                                                      |
-| `--tr-bubble-loading-size`        | 加载图标尺寸     | `24px`                                                                          |
-| `--tr-bubble-error-color`         | 错误提示文字颜色 | `color-mix(in srgb, var(--tr-color-error) 70%, var(--tr-text-primary))`         |
-| `--tr-bubble-error-bg`            | 错误提示背景色   | `color-mix(in srgb, var(--tr-color-error) 10%, var(--tr-container-bg-default))` |
-| `--tr-bubble-error-border-radius` | 错误提示圆角     | `var(--tr-bubble-box-shape-rounded-radius)`                                     |
+| [`--tr-bubble-loading-color`](#css-变量) | 加载图标颜色     | `var(--tr-text-secondary)`                                                      |
+| [`--tr-bubble-loading-size`](#css-变量) | 加载图标尺寸     | `24px`                                                                          |
+| [`--tr-bubble-error-color`](#css-变量) | 错误提示文字颜色 | `color-mix(in srgb, var(--tr-color-error) 70%, var(--tr-text-primary))`         |
+| [`--tr-bubble-error-bg`](#css-变量) | 错误提示背景色   | `color-mix(in srgb, var(--tr-color-error) 10%, var(--tr-container-bg-default))` |
+| [`--tr-bubble-error-border-radius`](#css-变量) | 错误提示圆角     | `var(--tr-bubble-box-shape-rounded-radius)`                                     |
 
 **Image 图片**
 
 | 变量名                                     | 说明                        | 默认值                          |
 | ------------------------------------------ | --------------------------- | ------------------------------- |
-| `--tr-bubble-image-max-width`              | 图片最大宽度                | `100%`                          |
-| `--tr-bubble-image-max-height`             | 图片最大高度                | `240px`                         |
-| `--tr-bubble-image-border-radius`          | 图片圆角                    | `2px`                           |
-| `--tr-bubble-image-space-y`                | 多张图片之间的垂直间距      | `8px`                           |
-| `--tr-bubble-image-embedded-border`        | 嵌入其他 Box 时的图片边框   | `1px solid rgba(0, 0, 0, 0.04)` |
-| `--tr-bubble-image-embedded-border-radius` | 嵌入其他 Box 时的图片圆角   | `4px`                           |
-| `--tr-bubble-image-embedded-margin-block`  | 嵌入其他 Box 时的垂直外边距 | `4px`                           |
+| [`--tr-bubble-image-max-width`](#css-变量) | 图片最大宽度                | `100%`                          |
+| [`--tr-bubble-image-max-height`](#css-变量) | 图片最大高度                | `240px`                         |
+| [`--tr-bubble-image-border-radius`](#css-变量) | 图片圆角                    | `2px`                           |
+| [`--tr-bubble-image-space-y`](#css-变量) | 多张图片之间的垂直间距      | `8px`                           |
+| [`--tr-bubble-image-embedded-border`](#css-变量) | 嵌入其他 Box 时的图片边框   | `1px solid rgba(0, 0, 0, 0.04)` |
+| [`--tr-bubble-image-embedded-border-radius`](#css-变量) | 嵌入其他 Box 时的图片圆角   | `4px`                           |
+| [`--tr-bubble-image-embedded-margin-block`](#css-变量) | 嵌入其他 Box 时的垂直外边距 | `4px`                           |
 
 **Tool 工具调用**
 
 | 变量名                             | 说明                   | 默认值                             |
 | ---------------------------------- | ---------------------- | ---------------------------------- |
-| `--tr-bubble-tool-call-bg`         | 工具调用背景色         | `var(--tr-container-bg-default-2)` |
-| `--tr-bubble-tool-call-space-y`    | 工具调用之间的垂直间距 | `8px`                              |
-| `--tr-bubble-tool-call-min-width`  | 工具调用最小宽度       | `280px`                           |
-| `--tr-bubble-tool-call-max-width`  | 工具调用最大宽度       | `unset`                            |
-| `--tr-bubble-tool-call-max-height` | 工具调用详情最大高度   | `300px`                            |
-| `--tr-bubble-tool-key-color`       | JSON 键名颜色          | 浅色 `#922`；深色 `#ff6b6b`        |
-| `--tr-bubble-tool-number-color`    | JSON 数字颜色          | 浅色 `#00f`；深色 `#4da6ff`        |
-| `--tr-bubble-tool-string-color`    | JSON 字符串颜色        | 浅色 `#080`；深色 `#6bcf7f`        |
-| `--tr-bubble-tool-boolean-color`   | JSON 布尔值颜色        | 浅色 `#c60`；深色 `#ffb366`        |
-| `--tr-bubble-tool-null-color`      | JSON `null` 颜色       | 浅色 `gray`；深色 `#b3b3b3`        |
+| [`--tr-bubble-tool-call-bg`](#css-变量) | 工具调用背景色         | `var(--tr-container-bg-default-2)` |
+| [`--tr-bubble-tool-call-space-y`](#css-变量) | 工具调用之间的垂直间距 | `8px`                              |
+| [`--tr-bubble-tool-call-min-width`](#css-变量) | 工具调用最小宽度       | `280px`                           |
+| [`--tr-bubble-tool-call-max-width`](#css-变量) | 工具调用最大宽度       | `unset`                            |
+| [`--tr-bubble-tool-call-max-height`](#css-变量) | 工具调用详情最大高度   | `300px`                            |
+| [`--tr-bubble-tool-key-color`](#css-变量) | JSON 键名颜色          | 浅色 `#922`；深色 `#ff6b6b`        |
+| [`--tr-bubble-tool-number-color`](#css-变量) | JSON 数字颜色          | 浅色 `#00f`；深色 `#4da6ff`        |
+| [`--tr-bubble-tool-string-color`](#css-变量) | JSON 字符串颜色        | 浅色 `#080`；深色 `#6bcf7f`        |
+| [`--tr-bubble-tool-boolean-color`](#css-变量) | JSON 布尔值颜色        | 浅色 `#c60`；深色 `#ffb366`        |
+| [`--tr-bubble-tool-null-color`](#css-变量) | JSON `null` 颜色       | 浅色 `gray`；深色 `#b3b3b3`        |
 
 **Reasoning 推理**
 
 | 变量名                                    | 说明                 | 默认值                            |
 | ----------------------------------------- | -------------------- | --------------------------------- |
-| `--tr-bubble-reasoning-max-height`        | 推理内容最大高度     | `300px`                           |
-| `--tr-bubble-reasoning-side-border-width` | 推理内容左侧边线宽度 | `1.5px`                           |
-| `--tr-bubble-reasoning-side-border-color` | 推理内容左侧边线颜色 | `var(--tr-border-color-disabled)` |
+| [`--tr-bubble-reasoning-max-height`](#css-变量) | 推理内容最大高度     | `300px`                           |
+| [`--tr-bubble-reasoning-side-border-width`](#css-变量) | 推理内容左侧边线宽度 | `1.5px`                           |
+| [`--tr-bubble-reasoning-side-border-color`](#css-变量) | 推理内容左侧边线颜色 | `var(--tr-border-color-disabled)` |
 
 **BubbleList 容器变量**
 
 | 变量名                     | 说明             | 默认值 |
 | -------------------------- | ---------------- | ------ |
-| `--tr-bubble-list-gap`     | 气泡项之间的间距 | `16px` |
-| `--tr-bubble-list-padding` | 容器内边距       | `16px` |
+| [`--tr-bubble-list-gap`](#css-变量) | 气泡项之间的间距 | `16px` |
+| [`--tr-bubble-list-padding`](#css-变量) | 容器内边距       | `16px` |
 
-## 迁移与弃用
+## 迁移与弃用 {#迁移与弃用}
 
 Bubble v0.4 重构了消息结构与渲染器体系。从 v0.3.x 升级时，请按照 [Bubble 迁移指南](../migration/v0.4/bubble) 调整消息数据、渲染器和事件接入方式；新项目直接使用本文 API。
 

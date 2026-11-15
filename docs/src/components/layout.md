@@ -13,13 +13,13 @@ outline: [1, 3]
 - 浮层布局：支持定位、拖拽和缩放
 - 代理滚动条：适用于内容列居中或限宽后，原生滚动条偏离主区右边界的场景
 
-## 基础布局
+## 基础布局 {#基础布局}
 
 `Layout` 提供 `left-aside`、`header`、`main`、`footer` 和 `right-aside` 五个区域插槽，用于编排页面结构。
 
 <demo vue="../../demos/layout/basic.vue" title="基础布局" description="最小布局示例。" />
 
-## 布局模式
+## 布局模式 {#布局模式}
 
 `mode` 控制 `Layout` 的整体形态，默认值为 `normal`。
 
@@ -28,13 +28,13 @@ outline: [1, 3]
 
 <demo vue="../../demos/layout/mode.vue" title="布局模式" description="切换 normal 和 floating 查看布局形态差异。" />
 
-## 侧栏
+## 侧栏 {#侧栏}
 
 侧栏由 `leftAside` / `rightAside` 控制，类型为 [`LayoutAsideOptions`](#layout-aside-options)。
 
 侧栏内容通过 `left-aside` / `right-aside` 插槽提供。
 
-### 展示形态
+### 展示形态 {#展示形态}
 
 `LayoutAsideOptions.mode` 控制侧栏展示形态，默认值为 `dock`。
 
@@ -45,7 +45,7 @@ outline: [1, 3]
 
 <demo vue="../../demos/layout/aside-modes.vue" title="显示模式" description="左侧占据页面空间，右侧覆盖在内容上方。" />
 
-### 收起行为
+### 收起行为 {#收起行为}
 
 `collapsedWidth` 控制收起后还保留多少宽度，仅 `dock` 模式生效；`collapseEffect` 控制收起时的动画效果。
 
@@ -60,13 +60,13 @@ outline: [1, 3]
   description="对比 overlay 和 slide 两种收起动画。"
 />
 
-### 宽度调整
+### 宽度调整 {#宽度调整}
 
 `resizable` 可以开启 `dock` 侧栏的拖拽改宽，宽度范围由 `minExpandedWidth` 和 `maxExpandedWidth` 控制。
 
 <demo vue="../../demos/layout/aside-resizable.vue" title="宽度调整" description="拖动分隔线查看当前宽度和边界。" />
 
-### 侧栏受控
+### 侧栏受控 {#侧栏受控}
 
 `open` 和 `expandedWidth` 是受控值，状态变化后需要通过事件同步外部状态。
 
@@ -78,7 +78,7 @@ outline: [1, 3]
   description="外部控制侧栏开关和宽度。"
 />
 
-## 浮层
+## 浮层 {#浮层}
 
 浮层相关配置和交互只在浮层模式(`mode="floating"`)下生效。
 
@@ -88,7 +88,7 @@ outline: [1, 3]
 
 > `defaultFloatingState` 和 `floatingState` 不要同时传入
 
-### 非受控浮层
+### 非受控浮层 {#非受控浮层}
 
 非受控浮层通过 `defaultFloatingState` 设置初始位置和尺寸。
 
@@ -98,7 +98,7 @@ outline: [1, 3]
   description="只设置初始位置和大小，后续由组件内部维护。"
 />
 
-### 受控浮层
+### 受控浮层 {#受控浮层}
 
 受控浮层以 `floatingState` 作为唯一状态源，组件始终按外部状态渲染。
 
@@ -110,7 +110,7 @@ outline: [1, 3]
   description="由外部维护位置和尺寸状态。"
 />
 
-### 浮层模式下的侧栏
+### 浮层模式下的侧栏 {#浮层模式下的侧栏}
 
 浮层里同样可以放入侧栏、头部和主区。
 
@@ -120,13 +120,13 @@ outline: [1, 3]
   description="在浮层里组合常驻侧栏和按需抽屉。"
 />
 
-## 代理滚动条
+## 代理滚动条 {#代理滚动条}
 
 在布局组件中，消息列表通常作为内部滚动区域存在。但当消息列表的宽度小于外层容器宽度时，浏览器原生滚动条会出现在消息列表自身的右侧，而不是外层容器的右侧。
 
 为了解决这个布局问题，布局组件内部使用 ProxyScrollbar 渲染代理滚动条。代理滚动条与消息列表平级，通过接收消息列表的 DOM 引用来同步真实滚动状态，并将滚动条视觉上渲染到外层容器右侧。
 
-### 使用要求
+### 使用要求 {#使用要求}
 
 - 将实际承担滚动的元素传给 `scrollTarget`。
 - 为使 `Layout.ProxyScrollbar` 正常生效，传给 `scrollTarget` 的滚动容器需要具备明确高度，并通过 `overflow: auto` 或 `overflow: scroll` 承担真实滚动。
@@ -140,7 +140,7 @@ outline: [1, 3]
 }
 ```
 
-### 基本结构
+### 基本结构 {#基本结构}
 
 ```vue
 <script setup lang="ts">
@@ -162,7 +162,7 @@ const messageListRef = ref<HTMLElement | null>(null)
 </template>
 ```
 
-### 使用示例
+### 使用示例 {#使用示例}
 
 <demo
   vue="../../demos/layout/main-scroll.vue"
@@ -175,7 +175,7 @@ const messageListRef = ref<HTMLElement | null>(null)
   description="内容区居中后，滚动条仍固定在主区右侧。"
 />
 
-### 注意事项
+### 注意事项 {#注意事项}
 
 - 代理滚动条会默认给目标滚动元素添加以下样式，用于隐藏原生滚动条
 
@@ -192,7 +192,7 @@ const messageListRef = ref<HTMLElement | null>(null)
 
 - `Layout.ProxyScrollbar` 仅用于代理滚动条显示与拖拽，不负责内容渲染或性能优化。传入 `ProxyScrollbar` 的 `scrollTarget` 必须是真正产生滚动的 DOM 元素。
 
-## 侧栏开关
+## 侧栏开关 {#侧栏开关}
 
 `Layout.AsideToggle` 是内置侧栏开关按钮，可以在 `Layout` 内部任意区域使用。
 
@@ -200,75 +200,75 @@ const messageListRef = ref<HTMLElement | null>(null)
 
 <demo vue="../../demos/layout/aside-toggle.vue" title="侧栏开关" description="在侧栏内容中使用 AsideToggle 触发当前侧栏开关。" />
 
-## Props
+## Props {#props}
 
 ### Layout {#layout-props}
 
 | 属性名                 | 说明                                                                                             | 类型                                                | 默认值     |
 | ---------------------- | ------------------------------------------------------------------------------------------------ | --------------------------------------------------- | ---------- |
-| `mode`                 | 布局模式；`normal` 参与普通布局，`floating` 会脱离普通布局，不占原来的位置空间                   | `'normal' \| 'floating'`                            | `'normal'` |
-| `leftAside`            | 左侧栏配置                                                                                       | [`LayoutAsideOptions`](#layout-aside-options)       | `-`        |
-| `rightAside`           | 右侧栏配置                                                                                       | [`LayoutAsideOptions`](#layout-aside-options)       | `-`        |
-| `floatingState`        | 受控浮层状态，需配合 `update:floatingState` 同步外部状态；不要和 `defaultFloatingState` 同时传入 | [`LayoutFloatingState`](#layout-floating-state)     | `-`        |
-| `defaultFloatingState` | 非受控浮层初始状态，仅首次挂载读取一次；不要和 `floatingState` 同时传入                          | [`LayoutFloatingState`](#layout-floating-state)     | `-`        |
-| `floatingOptions`      | 浮层行为配置，包括拖拽、缩放和尺寸约束；不参与状态控制                                           | [`LayoutFloatingOptions`](#layout-floating-options) | `-`        |
-| `rightAsideDrawerOnOverflow` | 浮层宽度不足以容纳当前左侧栏、主区最小宽度和展开的右侧栏时，将右侧栏从 dock 切换为 Drawer | `boolean` | `false` |
+| [`mode`](#布局模式) | 布局模式；`normal` 参与普通布局，`floating` 会脱离普通布局，不占原来的位置空间                   | `'normal' \| 'floating'`                            | `'normal'` |
+| [`leftAside`](#侧栏) | 左侧栏配置                                                                                       | [`LayoutAsideOptions`](#layout-aside-options)       | `-`        |
+| [`rightAside`](#侧栏) | 右侧栏配置                                                                                       | [`LayoutAsideOptions`](#layout-aside-options)       | `-`        |
+| [`floatingState`](#受控浮层) | 受控浮层状态，需配合 `update:floatingState` 同步外部状态；不要和 `defaultFloatingState` 同时传入 | [`LayoutFloatingState`](#layout-floating-state)     | `-`        |
+| [`defaultFloatingState`](#非受控浮层) | 非受控浮层初始状态，仅首次挂载读取一次；不要和 `floatingState` 同时传入                          | [`LayoutFloatingState`](#layout-floating-state)     | `-`        |
+| [`floatingOptions`](#浮层) | 浮层行为配置，包括拖拽、缩放和尺寸约束；不参与状态控制                                           | [`LayoutFloatingOptions`](#layout-floating-options) | `-`        |
+| [`rightAsideDrawerOnOverflow`](#侧栏) | 浮层宽度不足以容纳当前左侧栏、主区最小宽度和展开的右侧栏时，将右侧栏从 dock 切换为 Drawer | `boolean` | `false` |
 
 ### Layout.ProxyScrollbar {#layout-proxy-scrollbar-props}
 
 | 属性名         | 说明                                     | 类型                                          | 默认值 |
 | -------------- | ---------------------------------------- | --------------------------------------------- | ------ |
-| `scrollTarget` | 真实滚动容器的元素，或对应组件实例的 ref | [`LayoutScrollTarget`](#layout-scroll-target) | `-`    |
+| [`scrollTarget`](#使用示例) | 真实滚动容器的元素，或对应组件实例的 ref | [`LayoutScrollTarget`](#layout-scroll-target) | `-`    |
 
 ### Layout.AsideToggle {#layout-aside-toggle-props}
 
 | 属性名 | 说明           | 类型                | 默认值 |
 | ------ | -------------- | ------------------- | ------ |
-| `side` | 控制的侧栏位置 | `'left' \| 'right'` | `-`    |
+| [`side`](#侧栏开关) | 控制的侧栏位置 | `'left' \| 'right'` | `-`    |
 
-## Slots
+## Slots {#slots}
 
 ### Layout {#layout-slots}
 
 | 插槽名        | 说明       | 作用域参数 |
 | ------------- | ---------- | ---------- |
-| `left-aside`  | 左侧栏内容 | `-`        |
-| `header`      | 顶部区域   | `-`        |
-| `main`        | 主区内容   | `-`        |
-| `footer`      | 底部区域   | `-`        |
-| `right-aside` | 右侧栏内容 | `-`        |
+| [`left-aside`](#侧栏) | 左侧栏内容 | `-`        |
+| [`header`](#基础布局) | 顶部区域   | `-`        |
+| [`main`](#基础布局) | 主区内容   | `-`        |
+| [`footer`](#基础布局) | 底部区域   | `-`        |
+| [`right-aside`](#侧栏) | 右侧栏内容 | `-`        |
 
-### Layout.AsideToggle
+### Layout.AsideToggle {#layout-asidetoggle}
 
 | 插槽名    | 说明               | 作用域参数            |
 | --------- | ------------------ | --------------------- |
-| `default` | 自定义切换按钮内容 | `{ isOpen: boolean }` |
+| [`default`](#侧栏开关) | 自定义切换按钮内容 | `{ isOpen: boolean }` |
 
-## Events
+## Events {#events}
 
 ### Layout {#layout-layout-events}
 
 | 事件名                     | 说明                     | 回调参数                                                                 |
 | -------------------------- | ------------------------ | ------------------------------------------------------------------------ |
-| `update:floatingState`     | 浮层位置或尺寸变化       | (value: [`LayoutFloatingState`](#layout-floating-state))                 |
-| `aside-open-change`        | 侧栏开关变化             | (detail: [`LayoutAsideOpenDetail`](#layout-aside-open-detail))           |
-| `left-aside-open-change`   | 左侧栏开关变化           | (detail: [`LayoutAsideOpenValue`](#layout-aside-open-value))             |
-| `right-aside-open-change`  | 右侧栏开关变化           | (detail: [`LayoutAsideOpenValue`](#layout-aside-open-value))             |
-| `aside-resize-start`       | 开始调整侧栏宽度         | (detail: [`LayoutAsideResizeDetail`](#layout-aside-resize-detail))       |
-| `aside-resize`             | 调整侧栏宽度时持续触发   | (detail: [`LayoutAsideResizeDetail`](#layout-aside-resize-detail))       |
-| `aside-resize-end`         | 结束调整侧栏宽度         | (detail: [`LayoutAsideResizeDetail`](#layout-aside-resize-detail))       |
-| `left-aside-resize-start`  | 开始调整左侧栏宽度       | (detail: [`LayoutAsideResizeValue`](#layout-aside-resize-value))         |
-| `left-aside-resize`        | 调整左侧栏宽度时持续触发 | (detail: [`LayoutAsideResizeValue`](#layout-aside-resize-value))         |
-| `left-aside-resize-end`    | 结束调整左侧栏宽度       | (detail: [`LayoutAsideResizeValue`](#layout-aside-resize-value))         |
-| `right-aside-resize-start` | 开始调整右侧栏宽度       | (detail: [`LayoutAsideResizeValue`](#layout-aside-resize-value))         |
-| `right-aside-resize`       | 调整右侧栏宽度时持续触发 | (detail: [`LayoutAsideResizeValue`](#layout-aside-resize-value))         |
-| `right-aside-resize-end`   | 结束调整右侧栏宽度       | (detail: [`LayoutAsideResizeValue`](#layout-aside-resize-value))         |
-| `floating-drag-start`      | 开始拖动浮层             | (detail: [`LayoutFloatingDragDetail`](#layout-floating-drag-detail))     |
-| `floating-drag`            | 拖动浮层时持续触发       | (detail: [`LayoutFloatingDragDetail`](#layout-floating-drag-detail))     |
-| `floating-drag-end`        | 结束拖动浮层             | (detail: [`LayoutFloatingDragDetail`](#layout-floating-drag-detail))     |
-| `floating-resize-start`    | 开始调整浮层尺寸         | (detail: [`LayoutFloatingResizeDetail`](#layout-floating-resize-detail)) |
-| `floating-resize`          | 调整浮层尺寸时持续触发   | (detail: [`LayoutFloatingResizeDetail`](#layout-floating-resize-detail)) |
-| `floating-resize-end`      | 结束调整浮层尺寸         | (detail: [`LayoutFloatingResizeDetail`](#layout-floating-resize-detail)) |
+| [`update:floatingState`](#受控浮层) | 浮层位置或尺寸变化       | (value: [`LayoutFloatingState`](#layout-floating-state))                 |
+| [`aside-open-change`](#侧栏开关) | 侧栏开关变化             | (detail: [`LayoutAsideOpenDetail`](#layout-aside-open-detail))           |
+| [`left-aside-open-change`](#侧栏开关) | 左侧栏开关变化           | (detail: [`LayoutAsideOpenValue`](#layout-aside-open-value))             |
+| [`right-aside-open-change`](#侧栏开关) | 右侧栏开关变化           | (detail: [`LayoutAsideOpenValue`](#layout-aside-open-value))             |
+| [`aside-resize-start`](#宽度调整) | 开始调整侧栏宽度         | (detail: [`LayoutAsideResizeDetail`](#layout-aside-resize-detail))       |
+| [`aside-resize`](#宽度调整) | 调整侧栏宽度时持续触发   | (detail: [`LayoutAsideResizeDetail`](#layout-aside-resize-detail))       |
+| [`aside-resize-end`](#宽度调整) | 结束调整侧栏宽度         | (detail: [`LayoutAsideResizeDetail`](#layout-aside-resize-detail))       |
+| [`left-aside-resize-start`](#宽度调整) | 开始调整左侧栏宽度       | (detail: [`LayoutAsideResizeValue`](#layout-aside-resize-value))         |
+| [`left-aside-resize`](#宽度调整) | 调整左侧栏宽度时持续触发 | (detail: [`LayoutAsideResizeValue`](#layout-aside-resize-value))         |
+| [`left-aside-resize-end`](#宽度调整) | 结束调整左侧栏宽度       | (detail: [`LayoutAsideResizeValue`](#layout-aside-resize-value))         |
+| [`right-aside-resize-start`](#宽度调整) | 开始调整右侧栏宽度       | (detail: [`LayoutAsideResizeValue`](#layout-aside-resize-value))         |
+| [`right-aside-resize`](#宽度调整) | 调整右侧栏宽度时持续触发 | (detail: [`LayoutAsideResizeValue`](#layout-aside-resize-value))         |
+| [`right-aside-resize-end`](#宽度调整) | 结束调整右侧栏宽度       | (detail: [`LayoutAsideResizeValue`](#layout-aside-resize-value))         |
+| [`floating-drag-start`](#浮层) | 开始拖动浮层             | (detail: [`LayoutFloatingDragDetail`](#layout-floating-drag-detail))     |
+| [`floating-drag`](#浮层) | 拖动浮层时持续触发       | (detail: [`LayoutFloatingDragDetail`](#layout-floating-drag-detail))     |
+| [`floating-drag-end`](#浮层) | 结束拖动浮层             | (detail: [`LayoutFloatingDragDetail`](#layout-floating-drag-detail))     |
+| [`floating-resize-start`](#浮层) | 开始调整浮层尺寸         | (detail: [`LayoutFloatingResizeDetail`](#layout-floating-resize-detail)) |
+| [`floating-resize`](#浮层) | 调整浮层尺寸时持续触发   | (detail: [`LayoutFloatingResizeDetail`](#layout-floating-resize-detail)) |
+| [`floating-resize-end`](#浮层) | 结束调整浮层尺寸         | (detail: [`LayoutFloatingResizeDetail`](#layout-floating-resize-detail)) |
 
 ## Types {#types}
 
@@ -350,33 +350,33 @@ const messageListRef = ref<HTMLElement | null>(null)
 | -------- | ---------------- | --------------------------------------------------- |
 | `handle` | 当前拖动的边或角 | `'s' \| 'e' \| 'w' \| 'ne' \| 'nw' \| 'se' \| 'sw'` |
 
-## CSS 变量
+## CSS 变量 {#css-变量}
 
 ### 布局基础 {#layout-css-basics}
 
 | 变量名                         | 说明            |
 | ------------------------------ | --------------- |
-| `--tr-layout-height`           | 布局高度        |
-| `--tr-layout-bg`               | 容器背景        |
-| `--tr-layout-left-aside-bg`    | 左侧栏背景      |
-| `--tr-layout-right-aside-bg`   | 右侧栏背景      |
-| `--tr-layout-header-bg`        | 顶部背景        |
-| `--tr-layout-main-bg`          | 主区背景        |
-| `--tr-layout-footer-bg`        | 底部背景        |
-| `--tr-layout-divider-color`    | 分隔线颜色      |
-| `--tr-layout-overlay-bg`       | drawer 遮罩颜色 |
-| `--tr-layout-panel-shadow`     | drawer 阴影     |
-| `--tr-layout-floating-radius`  | 浮层圆角        |
-| `--tr-layout-floating-shadow`  | 浮层阴影        |
-| `--tr-layout-floating-z-index` | 浮层层级        |
+| [`--tr-layout-height`](#css-变量) | 布局高度        |
+| [`--tr-layout-bg`](#css-变量) | 容器背景        |
+| [`--tr-layout-left-aside-bg`](#css-变量) | 左侧栏背景      |
+| [`--tr-layout-right-aside-bg`](#css-变量) | 右侧栏背景      |
+| [`--tr-layout-header-bg`](#css-变量) | 顶部背景        |
+| [`--tr-layout-main-bg`](#css-变量) | 主区背景        |
+| [`--tr-layout-footer-bg`](#css-变量) | 底部背景        |
+| [`--tr-layout-divider-color`](#css-变量) | 分隔线颜色      |
+| [`--tr-layout-overlay-bg`](#css-变量) | drawer 遮罩颜色 |
+| [`--tr-layout-panel-shadow`](#css-变量) | drawer 阴影     |
+| [`--tr-layout-floating-radius`](#css-变量) | 浮层圆角        |
+| [`--tr-layout-floating-shadow`](#css-变量) | 浮层阴影        |
+| [`--tr-layout-floating-z-index`](#css-变量) | 浮层层级        |
 
 ### 内容与交互 {#layout-css-content}
 
 | 变量名                                       | 说明            |
 | -------------------------------------------- | --------------- |
-| `--tr-layout-main-min-width`                 | 主区最小宽度    |
-| `--tr-layout-drawer-width`                   | drawer 展示宽度 |
-| `--tr-layout-main-scrollbar-width`           | 滚动条宽度      |
-| `--tr-layout-main-scrollbar-thumb-bg`        | 滚动条滑块颜色  |
-| `--tr-layout-main-scrollbar-thumb-bg-hover`  | 滑块悬停颜色    |
-| `--tr-layout-main-scrollbar-thumb-bg-active` | 滑块激活颜色    |
+| [`--tr-layout-main-min-width`](#css-变量) | 主区最小宽度    |
+| [`--tr-layout-drawer-width`](#css-变量) | drawer 展示宽度 |
+| [`--tr-layout-main-scrollbar-width`](#css-变量) | 滚动条宽度      |
+| [`--tr-layout-main-scrollbar-thumb-bg`](#css-变量) | 滚动条滑块颜色  |
+| [`--tr-layout-main-scrollbar-thumb-bg-hover`](#css-变量) | 滑块悬停颜色    |
+| [`--tr-layout-main-scrollbar-thumb-bg-active`](#css-变量) | 滑块激活颜色    |

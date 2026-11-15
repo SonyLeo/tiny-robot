@@ -7,27 +7,27 @@ pageClass: demo-container-page-bg
 
 `ExtensionManager` 用于浏览和管理通用 Extension。组件提供标签页切换、筛选、自动分区和分区展开，并自行维护筛选与分区展开状态。当前标签页既可以由父组件控制，也可以由组件维护。安装、卸载、开关状态和详情跳转等操作会触发事件，由应用决定如何更新 Extension 数据或打开后续界面。
 
-## 概览
+## 概览 {#概览}
 
-### 适用场景
+### 适用场景 {#适用场景}
 
 - 在一个面板中按标签页浏览 Extension，并按标签和关键词过滤。
 - 为已安装和可安装的 Extension 提供一致的卡片、操作和进度反馈。
 - 在应用页面、Modal 或 Drawer 中嵌入管理内容。组件本身不控制容器的显示、焦点和滚动。
 
-### 选择建议
+### 选择建议 {#选择建议}
 
 `ExtensionManager` 只处理通用的扩展管理功能。`installed` 和 `tags` 用于分区与筛选，不会传入 Card 或 CardGrid 的 `item` 插槽。添加 MCP、导入 Skill 和查看详情可交给对应的[专用 MCP 组件](./mcp-extension.md)或 [Skill 组件](./skill-extension.md)，并由应用负责加载、保存和打开界面。完整组合流程见 [MCP 与 Skill 扩展管理实践](/best-practices/extension-manager-integration)。
 
-## 快速开始
+## 快速开始 {#快速开始}
 
 下面以 MCP 和 Skills 两类 Extension 为例，展示一个可直接运行的管理场景。MCP 已安装，支持启用开关，并可从更多操作中卸载；Skills 可以安装，安装后会移动到“已安装”分区。卸载 MCP 后，条目会回到“可安装”分区，并可重新安装。
 
 <demo vue="../../demos/extension-manager/basic.vue" title="管理 MCP 与 Skills" description="切换 MCP 开关、安装 Skills，或卸载并重新安装 MCP，观察条目在分区之间移动。" />
 
-## 浏览与展示
+## 浏览与展示 {#浏览与展示}
 
-### 筛选与自动分区
+### 筛选与自动分区 {#筛选与自动分区}
 
 组件会读取当前标签页中各条目的 `tags`，生成标签筛选选项。当前标签页没有可用标签时，组件隐藏标签筛选器，但仍显示关键词搜索。
 
@@ -37,21 +37,21 @@ pageClass: demo-container-page-bg
 
 <demo vue="../../demos/extension-manager/browse-and-filter.vue" title="浏览、筛选与自动分区" description="切换标签页、选择标签或输入关键词，观察筛选后的已安装和可安装分区。" />
 
-### 进度反馈
+### 进度反馈 {#进度反馈}
 
 Card 的 `progress` 可以是 `0` 至 `100` 的数值，超出范围会被限制；使用 `'indeterminate'` 表示不确定进度。
 
 <demo vue="../../demos/extension-manager/progress.vue" title="卡片进度" description="分别展示确定进度、不确定进度和超出范围数值的限制结果。" />
 
-### 空状态
+### 空状态 {#空状态}
 
 每个当前标签页都有“已安装”和“可安装”两个可折叠分区。没有匹配项时，`ExtensionManager` 的 `empty` 插槽接收分区标题；没有可显示的标签页时显示 `empty-text`。
 
 <demo vue="../../demos/extension-manager/empty-states.vue" title="分区与管理器空状态" description="分别定制空分区内容，并为没有标签页的管理器提供提示文字。" />
 
-## 状态管理与事件
+## 状态管理与事件 {#状态管理与事件}
 
-### 状态管理分工
+### 状态管理分工 {#状态管理分工}
 
 `ExtensionManager` 同时处理外部数据、可由父组件控制的值，以及组件自身的界面状态。接入时需要先明确每项数据由谁更新。用户点击“安装”、切换开关或点击名称时，组件不会直接修改 `tabs` 或条目数据。
 
@@ -63,7 +63,7 @@ Card 的 `progress` 可以是 `0` 至 `100` 的数值，超出范围会被限制
 | 标签筛选和搜索词     | 组件   | 按标签页分别保存筛选条件                |
 | 分区展开状态         | 组件   | 先更新内部状态，再触发 `section-toggle` |
 
-### 当前标签页
+### 当前标签页 {#当前标签页}
 
 当前标签页同时支持受控和非受控两种使用方式：
 
@@ -84,7 +84,7 @@ Card 的 `progress` 可以是 `0` 至 `100` 的数值，超出范围会被限制
 
 <demo vue="../../demos/extension-manager/single-tab-navigation.vue" title="隐藏单标签导航" description="切换 hide-single-tab，观察标签导航隐藏后标题和内容保持不变。" />
 
-### 处理操作事件
+### 处理操作事件 {#处理操作事件}
 
 快速开始中的 MCP 开关与卸载操作，以及 Skills 安装按钮，展示了应用如何根据 `action` 更新数据。`action` 和 `name-click` 只说明用户执行了什么操作，不表示组件已经修改 `tabs`。例如，switch action 的 `action.checked` 是用户选择的新状态。Card 仍会显示传入的 `checked`，因此应用需要更新对应 action。用户点击安装或卸载按钮时，组件同样只触发事件。操作完成后，应用需要更新 `item.installed` 和对应 `actions`，组件随后会按照新的 `tabs` 重新分区。
 
@@ -92,9 +92,9 @@ Card 的 `progress` 可以是 `0` 至 `100` 的数值，超出范围会被限制
 
 需要把列表事件、MCP/Skill 添加与详情界面、定义存储和用户选项接成一个流程时，参见 [MCP 与 Skill 扩展管理实践](/best-practices/extension-manager-integration)。
 
-## 组合与定制
+## 组合与定制 {#组合与定制}
 
-### 定制 ExtensionManager 区域
+### 定制 ExtensionManager 区域 {#定制-extensionmanager-区域}
 
 `header-actions`、`tab`、`item` 和 `empty` 分别用于定制头部操作区、标签内容、条目和空状态。定制 `tab` 时，建议调用作用域中的 `select()` 选择标签页，不要依赖内部 DOM。
 
@@ -102,7 +102,7 @@ Card 的 `progress` 可以是 `0` 至 `100` 的数值，超出范围会被限制
 
 <demo vue="../../demos/extension-manager/manager-slots.vue" title="替换管理器区域" description="在不依赖内部 DOM 的前提下定制头部、标签、条目和空分区。" />
 
-### 独立组合 Card 与 CardGrid
+### 独立组合 Card 与 CardGrid {#独立组合-card-与-cardgrid}
 
 `ExtensionManager.Card` 和 `ExtensionManager.CardGrid` 可以独立使用，也分别以 `TrExtensionCard` 和 `TrExtensionCardGrid` 导出。Card 直接接收 `name`、`description` 和 `actions` 等 Prop，不接收 `item` Prop。CardGrid 则接收带有稳定 `id` 的条目数组。
 
@@ -112,15 +112,15 @@ Card 会先过滤 `hidden: true` 的 action，再按数组顺序和 `primary-act
 
 <demo vue="../../demos/extension-manager/card-and-grid.vue" title="独立使用 Card 与 CardGrid" description="在独立 Card 中定制主操作并展示更多操作，同时使用 CardGrid 的 item 插槽替换条目内容。" />
 
-## 可访问性与设计约束
+## 可访问性与设计约束 {#可访问性与设计约束}
 
-### 键盘与焦点
+### 键盘与焦点 {#键盘与焦点}
 
 标签页使用原生按钮和 tab 语义。焦点位于标签页时，使用 `ArrowLeft`、`ArrowRight` 循环选择并聚焦相邻标签页，使用 `Home` 或 `End` 跳到首个或末个标签页；`Enter` 和 `Space` 也可以激活标签页。
 
 Card 名称默认可以点击，并支持 `Enter` 和 `Space`。设置 `name-clickable="false"` 后，名称显示为普通文本，不再进入 Tab 顺序。分区标题、switch、更多操作按钮、筛选控件和清空搜索按钮均保留对应原生控件的键盘行为。系统启用“减少动态效果”后，活动标签指示条不再播放过渡动画。
 
-### 响应式与长内容
+### 响应式与长内容 {#响应式与长内容}
 
 筛选区域根据 `ExtensionManager` 自身的容器宽度调整布局，不依赖浏览器视口宽度。存在标签筛选器且容器宽度不超过 `480px` 时，标签选择和搜索框由两列变为单列；没有可用标签时，搜索框始终独占一行。
 
@@ -128,7 +128,7 @@ CardGrid 根据自身容器宽度自动调整列数。每列默认至少为 `320
 
 <demo vue="../../demos/extension-manager/responsive-layout.vue" title="容器响应式布局" description="切换宽窄容器，观察筛选控件和 CardGrid 如何根据组件容器宽度调整布局。" />
 
-## API
+## API {#api}
 
 以下组件和类型均从 `@opentiny/tiny-robot` 导出：
 
@@ -142,99 +142,99 @@ import type {
 } from '@opentiny/tiny-robot'
 ```
 
-### ExtensionManager Props
+### ExtensionManager Props {#extensionmanager-props}
 
 | 属性名               | 说明                                                                                                                     | 类型                    | 默认值       | 必填 |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------ | ----------------------- | ------------ | ---- |
-| `tabs`               | 标签页及其 Extension 数据；每个 tab 和 item 的 `id` 应稳定且唯一。                                                       | `ExtensionManagerTab[]` | —            | 是   |
-| `active-tab`         | 当前标签页，优先于 `default-active-tab`。无效值会显示第一个可用标签页，并触发 `update:active-tab` 通知父组件更新当前值。 | `string`                | —            | 否   |
-| `default-active-tab` | 未设置 `active-tab` 时使用的初始标签页；无效值会自动改为第一个标签页。                                                   | `string`                | —            | 否   |
-| `hide-single-tab`    | 只有一个标签页时隐藏标签导航；多个标签页时始终显示导航。                                                                 | `boolean`               | `false`      | 否   |
-| `title`              | 头部标题；与 `header-actions` 都未提供时不渲染头部。                                                                     | `string`                | —            | 否   |
-| `empty-text`         | 没有可显示的标签页时显示的提示文字。                                                                                     | `string`                | `'暂无内容'` | 否   |
+| [`tabs`](#快速开始) | 标签页及其 Extension 数据；每个 tab 和 item 的 `id` 应稳定且唯一。                                                       | `ExtensionManagerTab[]` | —            | 是   |
+| [`active-tab`](#当前标签页) | 当前标签页，优先于 `default-active-tab`。无效值会显示第一个可用标签页，并触发 `update:active-tab` 通知父组件更新当前值。 | `string`                | —            | 否   |
+| [`default-active-tab`](#当前标签页) | 未设置 `active-tab` 时使用的初始标签页；无效值会自动改为第一个标签页。                                                   | `string`                | —            | 否   |
+| [`hide-single-tab`](#当前标签页) | 只有一个标签页时隐藏标签导航；多个标签页时始终显示导航。                                                                 | `boolean`               | `false`      | 否   |
+| [`title`](#定制-extensionmanager-区域) | 头部标题；与 `header-actions` 都未提供时不渲染头部。                                                                     | `string`                | —            | 否   |
+| [`empty-text`](#空状态) | 没有可显示的标签页时显示的提示文字。                                                                                     | `string`                | `'暂无内容'` | 否   |
 
-### ExtensionManager Events
+### ExtensionManager Events {#extensionmanager-events}
 
 `update:active-tab` 和 `tab-change` 在受控、非受控模式下的更新方式不同，详见“交互与状态管理”。其他事件的状态变化和应用处理方式如下。
 
 | 事件名              | 触发时机                                                                                                          | 回调参数                                              |
 | ------------------- | ----------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| `update:active-tab` | 用户选择不同标签页，或当前标签页因 `active-tab` / `tabs` 变化而改用其他标签页时。非受控模式初始化不会触发该事件。 | `(tabId: string \| undefined) => void`                |
-| `tab-change`        | 用户选择不同标签页后；在 `update:active-tab` 之后触发。                                                           | `(event: ExtensionManagerTabChangeEvent) => void`     |
-| `section-toggle`    | 组件更新分区展开状态后触发；`expanded` 是更新后的值，应用不需要再同步该状态。                                     | `(event: ExtensionManagerSectionToggleEvent) => void` |
-| `action`            | 默认 Card 的操作被触发时触发；组件不会修改 `tabs`，应用需要处理操作并更新数据。                                   | `(event: ExtensionManagerActionEvent) => void`        |
-| `name-click`        | 默认 Card 名称被鼠标、Enter 或 Space 激活时触发；应用根据该事件决定如何打开详情。                                 | `(event: ExtensionManagerNameClickEvent) => void`     |
+| [`update:active-tab`](#当前标签页) | 用户选择不同标签页，或当前标签页因 `active-tab` / `tabs` 变化而改用其他标签页时。非受控模式初始化不会触发该事件。 | `(tabId: string \| undefined) => void`                |
+| [`tab-change`](#当前标签页) | 用户选择不同标签页后；在 `update:active-tab` 之后触发。                                                           | `(event: ExtensionManagerTabChangeEvent) => void`     |
+| [`section-toggle`](#状态管理分工) | 组件更新分区展开状态后触发；`expanded` 是更新后的值，应用不需要再同步该状态。                                     | `(event: ExtensionManagerSectionToggleEvent) => void` |
+| [`action`](#处理操作事件) | 默认 Card 的操作被触发时触发；组件不会修改 `tabs`，应用需要处理操作并更新数据。                                   | `(event: ExtensionManagerActionEvent) => void`        |
+| [`name-click`](#处理操作事件) | 默认 Card 名称被鼠标、Enter 或 Space 激活时触发；应用根据该事件决定如何打开详情。                                 | `(event: ExtensionManagerNameClickEvent) => void`     |
 
-### ExtensionManager Slots
+### ExtensionManager Slots {#extensionmanager-slots}
 
 | 插槽名           | 用途                                                                                                                             | 作用域参数                                                                                                         |
 | ---------------- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `header-actions` | 扩展标题右侧的操作区。                                                                                                           | `—`                                                                                                                |
-| `tab`            | 替换单个标签的内容。建议调用 `select()` 选择标签页，不要依赖内部 DOM。                                                           | `{ tab: ExtensionManagerTab; active: boolean; select: () => void }`                                                |
-| `item`           | 替换默认 Card。组件仍负责外层列表和条目顺序，并使用 `item.id` 标识条目；插槽内容需要自行实现 Card 的事件、键盘交互和 ARIA 语义。 | `{ tab: ExtensionManagerTab; sectionKey: ExtensionManagerSectionKey; item: ExtensionCardGridItem; index: number }` |
-| `empty`          | 替换当前标签页内空分区的内容。                                                                                                   | `{ tab: ExtensionManagerTab; sectionKey: ExtensionManagerSectionKey; title: string }`                              |
+| [`header-actions`](#定制-extensionmanager-区域) | 扩展标题右侧的操作区。                                                                                                           | `—`                                                                                                                |
+| [`tab`](#定制-extensionmanager-区域) | 替换单个标签的内容。建议调用 `select()` 选择标签页，不要依赖内部 DOM。                                                           | `{ tab: ExtensionManagerTab; active: boolean; select: () => void }`                                                |
+| [`item`](#定制-extensionmanager-区域) | 替换默认 Card。组件仍负责外层列表和条目顺序，并使用 `item.id` 标识条目；插槽内容需要自行实现 Card 的事件、键盘交互和 ARIA 语义。 | `{ tab: ExtensionManagerTab; sectionKey: ExtensionManagerSectionKey; item: ExtensionCardGridItem; index: number }` |
+| [`empty`](#空状态) | 替换当前标签页内空分区的内容。                                                                                                   | `{ tab: ExtensionManagerTab; sectionKey: ExtensionManagerSectionKey; title: string }`                              |
 
-### CardGrid Props
+### CardGrid Props {#cardgrid-props}
 
 以下 Card 配置按 `item` 字段、CardGrid Prop、Card 默认值的顺序生效。`0` 和 `false` 都是有效配置，不会继续使用下一层默认值。
 
 | 属性名                     | 说明                                                                                                      | 类型                                 | 有效默认值     | 必填 |
 | -------------------------- | --------------------------------------------------------------------------------------------------------- | ------------------------------------ | -------------- | ---- |
-| `items`                    | 要渲染的卡片数据；每项都必须有稳定且唯一的 `id`。                                                         | `ExtensionCardGridItem[]`            | —              | 是   |
-| `empty-text`               | `items` 为空且未提供 `empty` 插槽时的提示。                                                               | `string`                             | `'暂无内容'`   | 否   |
-| `primary-actions-limit`    | item 未设置同名字段时，每个 Card 放入主操作区域的 action 数量。`0` 会将所有可见 action 放入更多操作菜单。 | `number`                             | `1`            | 否   |
-| `name-clickable`           | item 未设置同名字段时，Card 名称是否可以点击和键盘激活。                                                  | `boolean`                            | `true`         | 否   |
-| `overflow-menu-label`      | item 未设置同名字段时，更多操作按钮的可访问名称和 `title`。                                               | `string`                             | `'更多操作'`   | 否   |
-| `overflow-menu-placement`  | item 未设置同名字段时，更多操作菜单的首选位置。空间不足时，组件可能切换到另一方向。                       | `ExtensionCardOverflowMenuPlacement` | `'bottom-end'` | 否   |
-| `overflow-menu-show-icons` | item 未设置同名字段时，更多操作菜单是否显示 action 图标。                                                 | `boolean`                            | `true`         | 否   |
+| [`items`](#独立组合-card-与-cardgrid) | 要渲染的卡片数据；每项都必须有稳定且唯一的 `id`。                                                         | `ExtensionCardGridItem[]`            | —              | 是   |
+| [`empty-text`](#独立组合-card-与-cardgrid) | `items` 为空且未提供 `empty` 插槽时的提示。                                                               | `string`                             | `'暂无内容'`   | 否   |
+| [`primary-actions-limit`](#独立组合-card-与-cardgrid) | item 未设置同名字段时，每个 Card 放入主操作区域的 action 数量。`0` 会将所有可见 action 放入更多操作菜单。 | `number`                             | `1`            | 否   |
+| [`name-clickable`](#独立组合-card-与-cardgrid) | item 未设置同名字段时，Card 名称是否可以点击和键盘激活。                                                  | `boolean`                            | `true`         | 否   |
+| [`overflow-menu-label`](#独立组合-card-与-cardgrid) | item 未设置同名字段时，更多操作按钮的可访问名称和 `title`。                                               | `string`                             | `'更多操作'`   | 否   |
+| [`overflow-menu-placement`](#独立组合-card-与-cardgrid) | item 未设置同名字段时，更多操作菜单的首选位置。空间不足时，组件可能切换到另一方向。                       | `ExtensionCardOverflowMenuPlacement` | `'bottom-end'` | 否   |
+| [`overflow-menu-show-icons`](#独立组合-card-与-cardgrid) | item 未设置同名字段时，更多操作菜单是否显示 action 图标。                                                 | `boolean`                            | `true`         | 否   |
 
-### CardGrid Events
+### CardGrid Events {#cardgrid-events}
 
 | 事件名       | 触发时机                                                    | 回调参数                                           |
 | ------------ | ----------------------------------------------------------- | -------------------------------------------------- |
-| `action`     | 默认 Card 的 action 被触发时，事件包含所属条目的 `itemId`。 | `(event: ExtensionCardGridActionEvent) => void`    |
-| `name-click` | 默认 Card 名称被激活时，事件包含所属条目的 `itemId`。       | `(event: ExtensionCardGridNameClickEvent) => void` |
+| [`action`](#独立组合-card-与-cardgrid) | 默认 Card 的 action 被触发时，事件包含所属条目的 `itemId`。 | `(event: ExtensionCardGridActionEvent) => void`    |
+| [`name-click`](#独立组合-card-与-cardgrid) | 默认 Card 名称被激活时，事件包含所属条目的 `itemId`。       | `(event: ExtensionCardGridNameClickEvent) => void` |
 
-### CardGrid Slots
+### CardGrid Slots {#cardgrid-slots}
 
 | 插槽名  | 用途                                                                                                                             | 作用域参数                                       |
 | ------- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
-| `item`  | 替换默认 Card。Grid 仍负责外层列表和条目顺序，并使用 `item.id` 标识条目；插槽内容不会自动触发 Grid 的 `action` 或 `name-click`。 | `{ item: ExtensionCardGridItem; index: number }` |
-| `empty` | 替换空列表提示，优先于 `empty-text`。                                                                                            | `—`                                              |
+| [`item`](#独立组合-card-与-cardgrid) | 替换默认 Card。Grid 仍负责外层列表和条目顺序，并使用 `item.id` 标识条目；插槽内容不会自动触发 Grid 的 `action` 或 `name-click`。 | `{ item: ExtensionCardGridItem; index: number }` |
+| [`empty`](#独立组合-card-与-cardgrid) | 替换空列表提示，优先于 `empty-text`。                                                                                            | `—`                                              |
 
-### Card Props
+### Card Props {#card-props}
 
 | 属性名                     | 说明                                                                                                                                        | 类型                                 | 默认值         | 必填 |
 | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ | -------------- | ---- |
-| `name`                     | 卡片名称，也是图片 icon 的替代文本和进度条可访问名称。                                                                                      | `string`                             | —              | 是   |
-| `description`              | 名称下方的单行描述。                                                                                                                        | `string`                             | —              | 否   |
-| `icon`                     | 图片 URL 或 Vue 组件；缺省时显示名称首字母占位。                                                                                            | `string \| Component`                | —              | 否   |
-| `actions`                  | action 列表。Card 先过滤 `hidden` 项，再划分主操作和更多操作。`disabled` 项保留原排列位置，但不会触发事件。action id 应在同一 Card 内唯一。 | `ExtensionCardAction[]`              | `[]`           | 否   |
-| `primary-actions-limit`    | 可见 action 中放入主操作区域的数量。负数按 `0` 处理，小数向下取整；`0` 表示所有可见 action 都进入更多操作菜单。                             | `number`                             | `1`            | 否   |
-| `progress`                 | 数值进度会限制在 0–100；`'indeterminate'` 显示不确定进度。                                                                                  | `number \| 'indeterminate'`          | —              | 否   |
-| `name-clickable`           | 是否将名称显示为可通过键盘激活的按钮。                                                                                                      | `boolean`                            | `true`         | 否   |
-| `overflow-menu-label`      | 溢出菜单按钮的可访问名称和 title。                                                                                                          | `string`                             | `'更多操作'`   | 否   |
-| `overflow-menu-placement`  | 更多操作菜单的首选位置，支持 `'bottom-end'` 和 `'top-end'`。首选方向空间不足时，组件可能切换到另一方向。                                    | `ExtensionCardOverflowMenuPlacement` | `'bottom-end'` | 否   |
-| `overflow-menu-show-icons` | 是否在更多操作菜单中显示 action 图标。设为 `true` 且至少一个 action 有图标时，菜单会为所有 action 保留统一的图标列。                        | `boolean`                            | `true`         | 否   |
+| [`name`](#独立组合-card-与-cardgrid) | 卡片名称，也是图片 icon 的替代文本和进度条可访问名称。                                                                                      | `string`                             | —              | 是   |
+| [`description`](#独立组合-card-与-cardgrid) | 名称下方的单行描述。                                                                                                                        | `string`                             | —              | 否   |
+| [`icon`](#独立组合-card-与-cardgrid) | 图片 URL 或 Vue 组件；缺省时显示名称首字母占位。                                                                                            | `string \| Component`                | —              | 否   |
+| [`actions`](#独立组合-card-与-cardgrid) | action 列表。Card 先过滤 `hidden` 项，再划分主操作和更多操作。`disabled` 项保留原排列位置，但不会触发事件。action id 应在同一 Card 内唯一。 | `ExtensionCardAction[]`              | `[]`           | 否   |
+| [`primary-actions-limit`](#独立组合-card-与-cardgrid) | 可见 action 中放入主操作区域的数量。负数按 `0` 处理，小数向下取整；`0` 表示所有可见 action 都进入更多操作菜单。                             | `number`                             | `1`            | 否   |
+| [`progress`](#进度反馈) | 数值进度会限制在 0–100；`'indeterminate'` 显示不确定进度。                                                                                  | `number \| 'indeterminate'`          | —              | 否   |
+| [`name-clickable`](#独立组合-card-与-cardgrid) | 是否将名称显示为可通过键盘激活的按钮。                                                                                                      | `boolean`                            | `true`         | 否   |
+| [`overflow-menu-label`](#独立组合-card-与-cardgrid) | 溢出菜单按钮的可访问名称和 title。                                                                                                          | `string`                             | `'更多操作'`   | 否   |
+| [`overflow-menu-placement`](#独立组合-card-与-cardgrid) | 更多操作菜单的首选位置，支持 `'bottom-end'` 和 `'top-end'`。首选方向空间不足时，组件可能切换到另一方向。                                    | `ExtensionCardOverflowMenuPlacement` | `'bottom-end'` | 否   |
+| [`overflow-menu-show-icons`](#独立组合-card-与-cardgrid) | 是否在更多操作菜单中显示 action 图标。设为 `true` 且至少一个 action 有图标时，菜单会为所有 action 保留统一的图标列。                        | `boolean`                            | `true`         | 否   |
 
-### Card Events
+### Card Events {#card-events}
 
 | 事件名       | 触发时机                                                                                                                                         | 回调参数                                       |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------- |
-| `action`     | 可见且未禁用的 action 被触发时。switch 的 `checked` 是新值；只有 `primary-action` 插槽调用 `trigger(payload)` 时，参数才会进入事件的 `payload`。 | `(event: ExtensionCardActionEvent) => void`    |
-| `name-click` | 可点击名称被鼠标、Enter 或 Space 激活时。                                                                                                        | `(event: MouseEvent \| KeyboardEvent) => void` |
+| [`action`](#独立组合-card-与-cardgrid) | 可见且未禁用的 action 被触发时。switch 的 `checked` 是新值；只有 `primary-action` 插槽调用 `trigger(payload)` 时，参数才会进入事件的 `payload`。 | `(event: ExtensionCardActionEvent) => void`    |
+| [`name-click`](#独立组合-card-与-cardgrid) | 可点击名称被鼠标、Enter 或 Space 激活时。                                                                                                        | `(event: MouseEvent \| KeyboardEvent) => void` |
 
-### Card Slots
+### Card Slots {#card-slots}
 
 | 插槽名           | 用途                                                                                                                                                                    | 作用域参数                                                                    |
 | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| `primary-action` | 自定义主操作区域中 `type: 'custom'` 的 action。调用 `trigger(payload)` 会触发标准 `action` 事件；未提供插槽时显示普通按钮。该插槽不处理更多操作菜单中的 custom action。 | `{ action: ExtensionCardCustomAction; trigger: (payload?: unknown) => void }` |
+| [`primary-action`](#独立组合-card-与-cardgrid) | 自定义主操作区域中 `type: 'custom'` 的 action。调用 `trigger(payload)` 会触发标准 `action` 事件；未提供插槽时显示普通按钮。该插槽不处理更多操作菜单中的 custom action。 | `{ action: ExtensionCardCustomAction; trigger: (payload?: unknown) => void }` |
 
-### Types
+### Types {#types}
 
 以下索引按组件分组。所有类型均从 `@opentiny/tiny-robot` 导出。
 
-#### Card Types
+#### Card Types {#card-types}
 
 | 类型名                               | 类型或签名 | 说明                                                                |
 | ------------------------------------ | ---------- | ------------------------------------------------------------------- |
@@ -250,7 +250,7 @@ import type {
 | `ExtensionCardSlots`                 | interface  | Card 的公开插槽类型。                                               |
 | `ExtensionCardOverflowMenuPlacement` | union      | `'bottom-end' \| 'top-end'`。                                       |
 
-#### CardGrid Types
+#### CardGrid Types {#cardgrid-types}
 
 | 类型名                            | 类型或签名 | 说明                                              |
 | --------------------------------- | ---------- | ------------------------------------------------- |
@@ -261,7 +261,7 @@ import type {
 | `ExtensionCardGridEmits`          | interface  | CardGrid 的公开事件类型。                         |
 | `ExtensionCardGridSlots`          | interface  | CardGrid 的公开插槽类型。                         |
 
-#### ExtensionManager Types
+#### ExtensionManager Types {#extensionmanager-types}
 
 | 类型名                               | 类型或签名 | 说明                                                                   |
 | ------------------------------------ | ---------- | ---------------------------------------------------------------------- |
@@ -277,7 +277,7 @@ import type {
 | `ExtensionManagerEmits`              | interface  | `ExtensionManager` 的公开事件类型。                                    |
 | `ExtensionManagerSlots`              | interface  | `ExtensionManager` 的公开插槽类型。                                    |
 
-#### 核心数据与事件类型（节选）
+#### 核心数据与事件类型（节选） {#核心数据与事件类型-节选}
 
 下面的代码块选择性展开 Card action、条目结构和事件 payload，便于理解它们之间的关系，并不是全部公开类型定义。Props、Events 和 Slots 的完整公开契约见前面的对应 API 表；未展开的类型仍可通过上面的 Types 索引查找。
 
@@ -391,16 +391,16 @@ export interface ExtensionManagerNameClickEvent {
 
 `ExtensionCardRenderableAction` 是从每种 `ExtensionCardAction` 中移除 `hidden` 字段后得到的联合类型。`ExtensionCardActionBase`、`ExtensionCardSwitchAction`、`ExtensionCardButtonAction` 和 `ExtensionCardCustomAction` 也从包根导出，字段与上面的完整 action 定义一致。`ExtensionManager` 的 `action` 通过 `tabId`、`sectionKey` 和 `itemId` 标记操作来自哪个条目，嵌套的 `action` 使用 Card 的完整事件结构。`name-click` 会提供原生鼠标或键盘事件，应用可以根据该事件打开详情或处理焦点。
 
-### CSS Variables
+### CSS Variables {#css-variables}
 
 下表仅列出当前作为公共定制接口的 CSS Variables。将这些变量设置在 Card、CardGrid 或其父级元素上，即可调整对应样式。未列出的组件内部变量不属于公共定制接口，不应依赖。
 
 | 变量名                                        | 说明                                                           | 默认值                             |
 | --------------------------------------------- | -------------------------------------------------------------- | ---------------------------------- |
-| `--tr-extension-card-bg-color`                | Card 背景色。                                                  | `var(--tr-container-bg-default-2)` |
-| `--tr-extension-card-bg-color-hover`          | 主操作按钮、默认图标占位、进度条轨道及更多操作按钮悬停背景色。 | `var(--tr-container-bg-hover)`     |
-| `--tr-extension-card-focus-color`             | 可点击名称的 focus-visible 描边颜色。                          | `var(--tr-text-primary)`           |
-| `--tr-extension-card-icon-color`              | 更多操作按钮的三点图标颜色。                                   | `var(--tr-text-tertiary)`          |
-| `--tr-extension-card-switch-bg-color`         | 未选中 switch 轨道颜色。                                       | `var(--tr-text-disabled)`          |
-| `--tr-extension-card-switch-bg-color-checked` | 选中 switch 轨道颜色。                                         | `var(--tr-color-primary)`          |
-| `--tr-extension-card-grid-card-min-width`     | CardGrid 每个响应式网格轨道的最小宽度。                        | `320px`                            |
+| [`--tr-extension-card-bg-color`](#css-variables) | Card 背景色。                                                  | `var(--tr-container-bg-default-2)` |
+| [`--tr-extension-card-bg-color-hover`](#css-variables) | 主操作按钮、默认图标占位、进度条轨道及更多操作按钮悬停背景色。 | `var(--tr-container-bg-hover)`     |
+| [`--tr-extension-card-focus-color`](#css-variables) | 可点击名称的 focus-visible 描边颜色。                          | `var(--tr-text-primary)`           |
+| [`--tr-extension-card-icon-color`](#css-variables) | 更多操作按钮的三点图标颜色。                                   | `var(--tr-text-tertiary)`          |
+| [`--tr-extension-card-switch-bg-color`](#css-variables) | 未选中 switch 轨道颜色。                                       | `var(--tr-text-disabled)`          |
+| [`--tr-extension-card-switch-bg-color-checked`](#css-variables) | 选中 switch 轨道颜色。                                         | `var(--tr-color-primary)`          |
+| [`--tr-extension-card-grid-card-min-width`](#css-variables) | CardGrid 每个响应式网格轨道的最小宽度。                        | `320px`                            |
