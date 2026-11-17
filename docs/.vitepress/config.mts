@@ -22,7 +22,6 @@ export default defineConfig({
   title: 'TinyRobot',
   description: 'TinyRobot',
   srcDir: 'src',
-  srcExclude: ['best-practices/genui-sdk-integration/project/**'],
   outDir: 'dist',
   base: process.env.VITEPRESS_BASE || '/',
   head: [
