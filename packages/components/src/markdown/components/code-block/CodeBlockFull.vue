@@ -4,6 +4,7 @@ import { computed, ref, watch } from 'vue'
 import TrIconButton from '../../../icon-button'
 import type { TrMarkdownCodeActionsRender, TrMarkdownCodeHighlightEngine } from '../../index.type'
 import CodeBlockHeader from './CodeBlockHeader.vue'
+import { handleCodeBlockKeydown } from './codeBlockKeyboard'
 import { useCodeHighlight } from './useCodeHighlight'
 
 const props = withDefaults(
@@ -80,9 +81,19 @@ watch(
       </CodeBlockHeader>
     </div>
 
-    <div class="tr-markdown__code-full-body" :class="{ 'tr-markdown__code-full-body--collapsed': !expanded }">
+    <div
+      class="tr-markdown__code-full-body"
+      :class="{ 'tr-markdown__code-full-body--collapsed': !expanded }"
+      :inert="!expanded"
+    >
       <div class="tr-markdown__code-full-body-inner">
-        <div class="tr-markdown__code-block tr-markdown__code-block--full">
+        <div
+          class="tr-markdown__code-block tr-markdown__code-block--full"
+          role="region"
+          aria-label="Code block"
+          tabindex="0"
+          @keydown="handleCodeBlockKeydown"
+        >
           <pre v-if="!highlightedHtml" class="tr-markdown__code-plain"><code>{{ codeText }}</code></pre>
           <div
             v-else

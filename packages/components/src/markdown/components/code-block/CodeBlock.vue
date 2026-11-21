@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import type { TrMarkdownCodeActionsRender, TrMarkdownCodeHighlightEngine } from '../../index.type'
 import CodeBlockHeader from './CodeBlockHeader.vue'
+import { handleCodeBlockKeydown } from './codeBlockKeyboard'
 import CodeLanguageTag from './CodeLanguageTag.vue'
 import { useCodeHighlight } from './useCodeHighlight'
 
@@ -47,7 +48,13 @@ const { highlightedHtml } = useCodeHighlight({
       :language="language"
       :show-language="false"
     />
-    <div class="tr-markdown__code-block">
+    <div
+      class="tr-markdown__code-block"
+      role="region"
+      aria-label="Code block"
+      tabindex="0"
+      @keydown="handleCodeBlockKeydown"
+    >
       <pre v-if="!highlightedHtml" class="tr-markdown__code-plain"><code>{{ codeText }}</code></pre>
       <div v-else class="tr-markdown__code-highlight tr-markdown__code-highlight--block" v-html="highlightedHtml"></div>
     </div>

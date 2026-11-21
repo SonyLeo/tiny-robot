@@ -285,8 +285,9 @@ Parser/renderer 整体替换、通用 IR 重构和完整 renderer 移植不在�
 ### 阶段 3 记录（2026-11-22）
 
 - 原 Bubble 视觉 fixture 未加载生产 `bubble.less`，旧截图保留作历史记录。加载后发现生产 Bubble 字号 token 是 `inherit`，标题 `calc(inherit * …)` 计算无效。Bubble 标题以实际继承到的字号为基数，scale 候选值 `0.25`；默认和 article 仍使用各自的排版基数。LobeUI `dev`（`5c034056`）的 chat variant 默认正文 14px、行高 1.6，同倍率下 H1 为 19.25px。TinyRobot 的 16px Bubble fixture 验证 H1 为 22px；同一修复算法将 scale 临时设为 1 则为 40px，用于隔离倍率影响，并非旧故障截图。
-- 列表保留 `start`（含 `0`），表格只转发 left/center/right 对齐，375px 下验证表格内部可滚动而页面不被撑开。demo 默认不注入排版 CSS，关闭「production defaults」才启用自定义值。
+- 列表保留 `start`（含 `0`），表格只转发 left/center/right 对齐。较短窄屏 fixture 验证表格内部可滚动；更长真实语料暴露的旧 Bubble 容器问题见下文。demo 默认不注入排版 CSS，关闭「production defaults」才启用自定义值。
 - `tr-markdown-phase0.spec.ts` + `tr-markdown-phase3.spec.ts`：7 项通过，核对并重建两张 Bubble 生产回归截图；demo 的默认排版切换 E2E 通过；组件和 demo type-check 通过。
+- 键盘补验：375px 下的长代码原先在 WebKit 26.5 跳过代码滚动区焦点；单独加 tab stop 后，方向键仍无法改变横向位置。现在普通与展开式代码块在真实滚动区提供命名焦点，左右键在可滚动时移动内容，保留组合键和子元素事件；折叠内容用 `inert` 退出焦点顺序。此次验证覆盖普通 fenced/indented code 和 full 折叠状态，Markdown 专用 HTML/Mermaid 源码视图不在此次修改范围。
 - 待 3 人在同文案、同宽度、同主题条件下盲评中文可读性、标题层级/间距、列表/表格、代码块与主题一致性。此项尚未验收。
 
 ### 阶段 4 记录（2026-11-22）
@@ -314,11 +315,13 @@ Parser/renderer 整体替换、通用 IR 重构和完整 renderer 移植不在�
 - 从仓库根目录先运行 `pnpm build:components`，再运行 `node scripts/test-package-consumer.mjs`，可复跑最终消费检查。脚本打包组件库及 SVG 工作区依赖，将两个本地 tarball 安装到临时 Vue 项目并用 Vite 构建，再用浏览器检查生产页面。已核对打包清单中的 SVG 依赖版本已改写、深色主题标记生效、有序列表保留 `start="3"`，以及显示 TypeScript、显示 Python、切换 Shiki 时分别按需下载相应的 JavaScript 文件并完成着色。运行无页面错误；消费端仍有 Vite 大 chunk 提示。这项检查覆盖本地打包产物，不代表 registry 发布或分支集成后的结果。
 - 新增语言通过现有 Highlight.js 安装解析，无新增生产依赖；`markdown-it`、`dompurify`、Vue peer 范围未改，Mermaid、KaTeX 和高亮引擎的构建外部化规则未改。本地解析依赖为 markdown-it 14.3.3、DOMPurify 3.4.18、Highlight.js 11.12.0、Shiki 2.5.0。仓库忽略 `pnpm-lock.yaml`，这些是验收版本，不是发布端固定版本。
 - 后续：用同一组中文语料收集阶段 3 三人盲评意见，记录评分和需调整项；分支集成时复跑 Markdown CT、Markdown/Bubble 集成用例、组件和文档构建、打包消费检查。当前未与 `robot/develop` 集成，也未发布。
+- 阶段 3 键盘补丁后，重新运行全部 Markdown Chromium CT（47 通过，1 项可选量测默认跳过）、Markdown/Bubble E2E（4 通过）及 WebKit 专项键盘 CT（2 通过）。组件和测试类型检查、组件包构建、文档构建与本地打包消费检查均通过。WebKit 仅运行了这两项验收，未将结果外推为全套 WebKit 回归通过。
 
 ### 与 `robot/develop` 集成前检查（2026-11-22）
 
 - 远端 `develop` 与本地跟踪引用同为 `56e7e4ed4`。以阶段 6 提交 `b1dade391` 做 `git merge-tree --write-tree --name-only b1dade391 56e7e4ed4`，得到 13 个冲突文件。此命令没有变更工作树或分支。以下是解决冲突时需保留的行为；尚未做合并后的运行验证。
 - Bubble：保留上游消息内容解析与渲染器匹配，并核对 `BubbleRenderers.Markdown`、逐消息 `contentAttributes` 和普通文本回退。上游 `2179c5a83` 还修复了 Safari 代码区键盘横滚；切到 `TrMarkdown` 后，实际接收焦点和方向键的应该是代码滚动容器，不能只保留旧渲染器的 `<pre>` 属性。上游 Bubble CT 对滚动样式、焦点属性和键盘操作的断言应迁移到实际滚动容器，并保留长标题和列表的断行验证。合并后复跑窄屏、主题及 WebKit 键盘验证。
+- 窄屏诊断：旧 Bubble 容器在 375px 的完整中文语料中将文档撑到 1240px，Markdown 根宽度为 973px，表格也失去了内部滚动空间。合入时保留上游 `977d8143da` 的 `min-width: 0` 与 `minmax(0, 1fr)` 布局；通过实际 Bubble 的 `page.scrollWidth`、Markdown 根与表格/代码区 `clientWidth` / `scrollWidth` 复验，不能只检查 Markdown 根节点的相对尺寸。
 - 测试：上游 CT 使用 `packages/test/component`，Markdown CT 位于 `packages/test/src/markdown-ct`。合并两套发现规则和页面初始化后，先用 `--list` 确认都能发现，再运行 Markdown、Bubble，以及 Markdown demo 的回归测试；检查 CT 专用 TypeScript 配置是否也覆盖 Markdown 用例。
 - 构建与消费：以上游 `pnpm@10.34.5`、包 `exports`、Kit peer 依赖和 vanilla 构建为基础，保留 Markdown 导出和高级依赖的按需加载规则。先运行 `pnpm build:components`、`pnpm -F docs build` 和上游 `pnpm test:package-install`；再适配并运行 Markdown 浏览器消费检查。现有 `test-package-consumer.mjs` 核对 `pnpm@9.15.0`，不能原样套用到上游。包安装成功也不能单独证明 Markdown 样式和高亮在浏览器中正常。
 

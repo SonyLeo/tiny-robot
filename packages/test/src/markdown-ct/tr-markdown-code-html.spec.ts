@@ -45,6 +45,12 @@ const createClosedStreamingHtmlFenceWithoutTrailingNewline = (source: string) =>
 ${source}
 \`\`\``
 
+const keyboardScrollableCodeContent = `\`\`\`ts
+const fencedCode = 'This deliberately long line must scroll horizontally in a narrow markdown surface.'
+\`\`\`
+
+    const indentedCode = 'This deliberately long line must scroll horizontally in a narrow markdown surface.'`
+
 const streamingHeadOnly = `<!doctype html>
 <html lang="en">
   <head>
@@ -118,6 +124,80 @@ test.describe('TrMarkdown code and HTML preview contracts', () => {
 
     await expect(expandButton).toHaveAttribute('title', 'Expand code block')
     await expect(block.locator('.tr-markdown__code-full-body')).toHaveClass(/tr-markdown__code-full-body--collapsed/)
+  })
+
+  test.describe('keyboard scrolling for multiline code blocks', () => {
+    test.use({ viewport: { width: 375, height: 900 } })
+
+    test('reaches fenced and indented scroll regions from the keyboard', async ({ mount, page }) => {
+      const component = await mount(TrMarkdownStory, {
+        props: {
+          code: {
+            copyable: false,
+            showLanguage: false,
+          },
+          content: keyboardScrollableCodeContent,
+          variant: 'bubble',
+        },
+      })
+
+      const regions = component.locator('.tr-markdown__code-block')
+      await expect(regions).toHaveCount(2)
+      await expect(regions.nth(0).locator('.hljs-keyword').first()).toBeVisible()
+      await expect(regions.nth(1).locator('.tr-markdown__code-plain')).toBeVisible()
+
+      await page.evaluate(() => {
+        const sentinel = document.createElement('button')
+        sentinel.type = 'button'
+        sentinel.textContent = 'Before code blocks'
+        sentinel.id = 'markdown-ct-code-keyboard-sentinel'
+        document.body.prepend(sentinel)
+        sentinel.focus()
+      })
+
+      for (const region of await regions.all()) {
+        await page.keyboard.press('Tab')
+        await expect(region).toBeFocused()
+        await expect(region).toHaveAttribute('role', 'region')
+        await expect(region).toHaveAttribute('aria-label', 'Code block')
+        await expect(region).toHaveAttribute('tabindex', '0')
+        await expect(region).toHaveCSS('overflow-x', 'auto')
+        expect(await region.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true)
+        await expect(region).toHaveCSS('outline-style', 'solid')
+
+        await page.keyboard.press('ArrowRight')
+        await expect.poll(() => region.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0)
+      }
+    })
+
+    test('removes the collapsed full body from the focus tree', async ({ mount }) => {
+      const component = await mount(TrMarkdownStory, {
+        props: {
+          code: {
+            blockMode: 'full',
+            defaultExpand: false,
+            highlight: { enabled: false },
+          },
+          content: keyboardScrollableCodeContent,
+        },
+      })
+
+      const block = component.locator('.tr-markdown__code-block-wrap--full').first()
+      const body = block.locator('.tr-markdown__code-full-body')
+      const region = block.locator('.tr-markdown__code-block')
+      const expandButton = block.locator('.tr-markdown__code-expand')
+
+      await expect(body).toHaveAttribute('inert', '')
+      await expect(region).toHaveAttribute('tabindex', '0')
+      await region.focus()
+      await expect(region).not.toBeFocused()
+
+      await expandButton.click()
+      await expect(body).not.toHaveAttribute('inert', '')
+      await expect(region).toHaveAttribute('tabindex', '0')
+      await region.focus()
+      await expect(region).toBeFocused()
+    })
   })
 
   test('renders HTML preview only when enabled and falls back for fragments', async ({ mount }) => {
