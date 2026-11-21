@@ -99,6 +99,16 @@ Parser/renderer 整体替换、通用 IR 重构和完整 renderer 移植不在�
 - 至少一组截图直接使用组件生产默认 props，不注入 demo 专属排版值。
 - 不在本阶段调整样式或引擎，避免基线被污染。
 
+### 阶段记录（2026-11-22）
+
+- 已冻结 6 组静态语料：中文层级与嵌套任务列表、非 1 起始编号与对齐表格、引用/alert、常见及未知代码语言、公式/Mermaid/图片混合内容、安全边界输入。语料位于 `packages/components/src/markdown/fixtures/phase0.ts`，静态 CT 固定标题、列表、表格、代码和安全回退的 DOM 结果。
+- 两组确定性流式序列覆盖 append、rewrite、删除段落和 finalize，并比较流式完成后的文本与同一原文静态渲染结果；另覆盖未闭合链接/粗体、未完成表格、代码追加及 fence-like 行。
+- 截图覆盖 standalone light、Bubble light、375px Bubble dark。截图 harness 固定 Arial/PingFang SC/Microsoft YaHei sans-serif 字体回退、容器宽度、内边距、浏览器 Chromium 和动画状态；组件仍使用生产默认 props，没有 demo typography overrides。未将字体配置注入组件。
+- 安全 CT 检查 Markdown 输入不会产生 script、事件属性或危险 SVG/URL；KaTeX `trust: false` 下公式正常降级/渲染且不生成 javascript 链接；非法 Mermaid 保留源代码并显示错误状态。测试不触发真实网络资源。
+- 验收命令：`pnpm -F tiny-robot-test exec playwright test -c playwright-ct.config.ts --workers=1 --reporter=line src/markdown-ct/tr-markdown-phase0.spec.ts`（5 passed）；`pnpm -F tiny-robot-test exec playwright test -c playwright-ct.config.ts --workers=1 --reporter=line src/markdown-ct/tr-markdown-static.spec.ts`（6 passed）；`pnpm --filter @opentiny/tiny-robot type-check`（通过）；`git diff --check`（通过）。CT 走源码 alias；未运行完整 E2E、docs build 或 consumer dist build，本阶段记录为后续发布门禁而非已验证。
+- 测试环境发现 CT adapter 与 runner 不能使用独立漂移的版本：Playwright 的 Babel AST 转换器混用时会在发现测试阶段报 `Couldn't find a Program`。`packages/test/package.json` 已将两项精确对齐到 `1.62.0`，与当前仓库可验证组合一致。
+- 已发现语义缺口：`ordered_list_open` 的 parser node 带有起始编号信息，但 Vue `List` 映射目前只传 `ordered`，`<ol start="3">` 未保留。阶段 0 仅锁定这个结果；阶段 3 负责修复并将断言升级为要求 `start="3"`。
+
 ## 阶段 1：流式解析正确性修复
 
 ### 目标
@@ -248,7 +258,7 @@ Parser/renderer 整体替换、通用 IR 重构和完整 renderer 移植不在�
 
 | 阶段 | 状态 | 说明 |
 |---|---|---|
-| 0：冻结基线 | 待开始 | 已有丰富 demo/CT，需要整理成生产默认的固定视觉与语义语料 |
+| 0：冻结基线 | 已完成 | 固定语料、安全边界、生产默认截图与流式最终一致性 CT 已通过；有序列表 start 丢失登记到阶段 3 |
 | 1：流式正确性 | 待开始 | 围栏 scanner 一致性和异步高亮结果有效性优先 |
 | 2：解析 invalidation | 待开始 | 收窄 watcher；量测是否有必要复用 parser |
 | 3：默认视觉 | 待开始 | Bubble 标题/间距、demo 默认值、列表/table 语义 |

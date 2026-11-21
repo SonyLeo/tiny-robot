@@ -23,8 +23,8 @@
     "vue": "^3.3.11"
   },
   "devDependencies": {
-    "@playwright/experimental-ct-vue": "^1.40.0",
-    "@playwright/test": "^1.40.0",
+    "@playwright/experimental-ct-vue": "1.62.0",
+    "@playwright/test": "1.62.0",
     "@types/node": "^22.13.17",
     "@vue/compiler-dom": "^3.3.11",
     "@vitejs/plugin-vue": "^4.5.2",
