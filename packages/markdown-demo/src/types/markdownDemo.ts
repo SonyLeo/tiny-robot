@@ -19,6 +19,7 @@ export type TrMarkdownCodeActionsRender = (context: TrMarkdownCodeActionContext)
 export interface MarkdownDemoVisibleControls {
   content?: boolean
   variant?: boolean
+  productionDefaults?: boolean
   fontSize?: boolean
   headerMultiple?: boolean
   lineHeight?: boolean
@@ -167,6 +168,7 @@ export type MarkdownDemoView = 'public' | 'internal'
 export interface MarkdownDemoControls {
   content: string
   variant: NonNullable<TrMarkdownProps['variant']>
+  productionDefaults: boolean
   streamingActive: boolean
   fontSize: number
   headerMultiple: number

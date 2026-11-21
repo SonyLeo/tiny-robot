@@ -27,4 +27,23 @@ test.describe('markdown-demo public and internal views', () => {
     await expect(page.getByRole('heading', { level: 3, name: 'Bubble integration' })).toBeVisible()
     await expect(page.getByRole('heading', { level: 3, name: 'Animated streaming variants' })).toBeVisible()
   })
+
+  test('switches the demo between production defaults and explicit typography overrides', async ({ page }) => {
+    await page.goto('/')
+
+    const basicCase = page.locator('#basic .demo-card').first()
+    await expect(basicCase).toBeVisible()
+    await basicCase.getByRole('button', { name: 'Open playground controls' }).click()
+
+    const markdownRoot = basicCase.locator('.tr-markdown-root').first()
+    const productionDefaults = basicCase.getByRole('checkbox', { name: 'production defaults' })
+    await expect(productionDefaults).toBeChecked()
+    await expect(markdownRoot).not.toHaveAttribute('style', /tr-markdown-font-size/)
+
+    await productionDefaults.uncheck()
+    await expect(markdownRoot).toHaveAttribute('style', /--tr-markdown-font-size: 16px/)
+
+    await productionDefaults.check()
+    await expect(markdownRoot).not.toHaveAttribute('style', /tr-markdown-font-size/)
+  })
 })

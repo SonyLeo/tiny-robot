@@ -37,13 +37,21 @@ test.describe('TrMarkdown phase 0 baseline fixtures', () => {
     await expect(component.locator('ol')).toHaveCount(1)
     await expect(component.locator('ol > li')).toHaveCount(3)
     await expect(component.locator('ol > li').first()).toContainText('先确认构建产物和变更日志')
-    // TODO(phase 3): forward markdown-it's ordered-list start attribute to <ol>.
-    await expect(component.locator('ol')).not.toHaveAttribute('start')
+    await expect(component.locator('ol')).toHaveAttribute('start', '3')
     await expect(component.locator('.tr-markdown__table')).toHaveCount(1)
     await expect(component.locator('th')).toHaveCount(3)
     await expect(component.locator('th').nth(0)).toHaveText('项目')
     await expect(component.locator('th').nth(1)).toHaveText('状态')
     await expect(component.locator('th').nth(2)).toHaveText('说明')
+    await expect(component.locator('th').nth(0)).toHaveAttribute('style', /text-align:\s*left/)
+    await expect(component.locator('th').nth(1)).toHaveAttribute('style', /text-align:\s*center/)
+    await expect(component.locator('th').nth(2)).toHaveAttribute('style', /text-align:\s*right/)
+    await expect(component.locator('td').nth(0)).toHaveAttribute('style', /text-align:\s*left/)
+    await expect(component.locator('td').nth(1)).toHaveAttribute('style', /text-align:\s*center/)
+    await expect(component.locator('td').nth(2)).toHaveAttribute('style', /text-align:\s*right/)
+
+    await component.update({ props: { content: '0. 从零开始\n1. 继续执行' } })
+    await expect(component.locator('ol')).toHaveAttribute('start', '0')
 
     const alerts = getStaticFixture('quote-alert')
     await component.update({

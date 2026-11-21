@@ -25,6 +25,16 @@ outline: [1, 3]
 
 ```vue
 <template>
+  <TrMarkdown :content="content" />
+</template>
+```
+
+正文、标题、列表、表格和代码块使用组件库提供的排版。默认 `variant="default"` 适合通用内容；独立组件可以显式选择 `bubble` 或 `article`。Bubble 的 Markdown adapter 默认使用 `bubble`。演示页默认展示这套生产排版，关闭「production defaults」后可单独对比自定义字号、行高、标题比例和间距。
+
+启用高级能力或完整代码块时，可以按需配置：
+
+```vue
+<template>
   <TrMarkdown
     :content="content"
     :features="{

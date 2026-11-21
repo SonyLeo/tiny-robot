@@ -4,7 +4,9 @@ import TrBubble from '../../../components/src/bubble/Bubble.vue'
 import TrBubbleProvider from '../../../components/src/bubble/BubbleProvider.vue'
 import BubbleMarkdown from '../../../components/src/bubble/renderers/Markdown.vue'
 import TrMarkdown from '../../../components/src/markdown/TrMarkdown.vue'
+import '../../../components/src/styles/components/bubble.less'
 import type { TrMarkdownProps } from '../../../components/src/markdown/index.type'
+import ThemeProvider from '../../../components/src/theme-provider/index.vue'
 import '../../../components/src/markdown/styles/markdown.less'
 
 const props = withDefaults(
@@ -12,6 +14,8 @@ const props = withDefaults(
     content?: string
     features?: TrMarkdownProps['features']
     mode?: 'standalone' | 'bubble'
+    headingScale?: number
+    narrow?: boolean
     streaming?: TrMarkdownProps['streaming']
     theme?: 'light' | 'dark'
     variant?: TrMarkdownProps['variant']
@@ -19,6 +23,8 @@ const props = withDefaults(
   {
     content: '',
     mode: 'standalone',
+    headingScale: undefined,
+    narrow: false,
     theme: 'light',
     variant: 'default',
   },
@@ -32,15 +38,27 @@ const rootClass = computed(() => [
 </script>
 
 <template>
-  <main :class="rootClass" :data-tr-color-mode="theme" data-phase0-baseline>
-    <section v-if="mode === 'standalone'" class="markdown-phase0__surface" data-testid="phase0-standalone">
-      <TrMarkdown :content="content" :features="features" :streaming="streaming" :variant="variant" />
-    </section>
-    <section v-else class="markdown-phase0__surface" data-testid="phase0-bubble">
-      <TrBubbleProvider>
-        <TrBubble :content="content" :fallback-content-renderer="BubbleMarkdown" />
-      </TrBubbleProvider>
-    </section>
+  <main
+    :class="[
+      ...rootClass,
+      {
+        'markdown-phase0--heading-scale-override': headingScale !== undefined,
+        'markdown-phase0--narrow': narrow,
+      },
+    ]"
+    data-phase0-baseline
+    :style="headingScale === undefined ? undefined : { '--phase0-heading-scale': headingScale }"
+  >
+    <ThemeProvider :color-mode="theme" target-element="html">
+      <section v-if="mode === 'standalone'" class="markdown-phase0__surface" data-testid="phase0-standalone">
+        <TrMarkdown :content="content" :features="features" :streaming="streaming" :variant="variant" />
+      </section>
+      <section v-else class="markdown-phase0__surface" data-testid="phase0-bubble">
+        <TrBubbleProvider>
+          <TrBubble :content="content" :fallback-content-renderer="BubbleMarkdown" />
+        </TrBubbleProvider>
+      </section>
+    </ThemeProvider>
   </main>
 </template>
 
@@ -67,5 +85,16 @@ const rootClass = computed(() => [
     width: 375px;
     padding: 18px;
   }
+}
+</style>
+
+<style>
+.markdown-phase0--heading-scale-override .tr-markdown--bubble {
+  --tr-markdown-heading-scale: var(--phase0-heading-scale);
+}
+
+.markdown-phase0--narrow {
+  width: 375px;
+  padding: 18px;
 }
 </style>

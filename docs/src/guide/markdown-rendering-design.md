@@ -89,7 +89,7 @@ animated 模式在解析稳定内容后继续经过 block diff、reveal queue、
 Markdown 的视觉基线属于产品契约，不是下游项目的自由拼装选项。正式默认值应在 `TrMarkdown` 的 default/bubble/article 场景中定义，demo 展示这些默认值；除非 demo 是展示某一明确配置，不得注入一套与产品默认不同的字号、标题比例或间距后把它当作标准效果。
 
 - `default`：通用内容展示。
-- `bubble`：聊天密度，使用正文/标题/段落/代码组合的协调比例。
+- `bubble`：聊天密度，正文继承容器字号；标题按实际继承的字号计算，标题缩放系数为 `0.25`。默认值的人工视觉复核见实施路线。
 - `article`：更舒展的阅读排版。
 - CSS variables 只作为少数有稳定语义的主题/密度 token。组件库要规定默认值；不把每个 CSS 细节都升级成公共 prop。
 - 视觉回归覆盖独立与 Bubble、light/dark、桌面/窄屏、普通及高级节点、流式完成前后。
@@ -144,9 +144,8 @@ Markdown 维护会逐步增加自动化开发的比例，因此代码、API 和�
 
 路线图以源码复核后再关闭以下事项：
 
-1. 生产默认样式要与演示页相符；bubble 标题比例与常见输出内容密度需基于对照截图定标。
-2. 默认 renderer 必须保留语义属性：有序列表 start、表格单元格 alignment 等不能在 token→node 或 node→Vue 映射途中丢失。
-3. 默认 highlight 语言表对 Python、SQL、YAML 等常见 AI 输出覆盖不足，需由目标语料确定清单。
+1. Bubble 默认排版仍需按同语料截图完成人工评审。
+2. 默认 highlight 语言表对 Python、SQL、YAML 等常见 AI 输出覆盖不足，需由目标语料确定清单。
 
 这些是实现清单，不构成承诺所有行为已有回归失败；路线逐项定义验证方式。
 

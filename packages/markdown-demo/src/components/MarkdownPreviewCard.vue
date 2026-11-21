@@ -23,6 +23,7 @@ let telemetryObserver: MutationObserver | null = null
 const defaultVisibleControls = {
   content: true,
   variant: true,
+  productionDefaults: true,
   fontSize: true,
   headerMultiple: true,
   lineHeight: true,
@@ -46,6 +47,7 @@ const createControls = (demoCase: MarkdownDemoCase): MarkdownDemoControls => {
   return {
     content: demoCase.initialContent,
     variant: demoCase.markdownProps?.variant || 'default',
+    productionDefaults: true,
     streamingActive: streamingEnabled && (typeof streaming === 'boolean' ? streaming : streaming?.active !== false),
     fontSize: 16,
     headerMultiple: 1,
@@ -369,6 +371,7 @@ const hasControlsContent = computed(() => {
     Boolean(props.demoCase.controlsComponent) ||
     visibleControls.value.content ||
     visibleControls.value.variant ||
+    visibleControls.value.productionDefaults ||
     visibleControls.value.fontSize ||
     visibleControls.value.headerMultiple ||
     visibleControls.value.lineHeight ||
@@ -409,12 +412,16 @@ const isPublicView = computed(() => props.viewMode === 'public')
 const codeFontSize = computed(() => `${(controls.fontSize * 0.85).toFixed(2)}px`)
 
 const markdownStyle = computed(() => ({
-  '--tr-markdown-font-size': `${controls.fontSize}px`,
-  '--tr-markdown-line-height': `${controls.lineHeight}`,
-  '--tr-markdown-heading-scale': `${controls.headerMultiple}`,
-  '--tr-markdown-spacing-scale': `${controls.marginMultiple}`,
-  '--tr-markdown-code-font-size': codeFontSize.value,
-  '--tr-markdown-code-line-height': `${controls.lineHeight}`,
+  ...(controls.productionDefaults
+    ? {}
+    : {
+        '--tr-markdown-font-size': `${controls.fontSize}px`,
+        '--tr-markdown-line-height': `${controls.lineHeight}`,
+        '--tr-markdown-heading-scale': `${controls.headerMultiple}`,
+        '--tr-markdown-spacing-scale': `${controls.marginMultiple}`,
+        '--tr-markdown-code-font-size': codeFontSize.value,
+        '--tr-markdown-code-line-height': `${controls.lineHeight}`,
+      }),
 }))
 
 const markdownProps = computed(() => {
@@ -540,6 +547,11 @@ const setStreamingActive = (active: boolean) => {
               <option value="bubble">bubble</option>
               <option value="article">article</option>
             </select>
+          </label>
+
+          <label v-if="visibleControls.productionDefaults" class="control-group control-group--checkbox">
+            <span>production defaults</span>
+            <input v-model="controls.productionDefaults" type="checkbox" />
           </label>
 
           <label v-if="visibleControls.fontSize" class="control-group">

@@ -14,6 +14,19 @@ import type { TrMarkdownRenderNode } from '../../index.type'
 import { isCitationHref, resolveCitationRenderProps } from '../citations'
 import { headingLevelMap, type TrMarkdownRenderHelpers } from './shared'
 
+const resolveOrderedListStart = (value: unknown): number | undefined => {
+  const start = typeof value === 'number' ? value : typeof value === 'string' && value.trim() ? Number(value) : NaN
+
+  return Number.isFinite(start) && Number.isInteger(start) ? start : undefined
+}
+
+const resolveTableCellAttrs = (attrs: Record<string, unknown> | undefined) => {
+  const style = typeof attrs?.style === 'string' ? attrs.style.trim() : ''
+  const alignment = style.match(/^text-align\s*:\s*(left|center|right)\s*$/i)?.[1]?.toLowerCase()
+
+  return alignment ? { style: `text-align:${alignment}` } : undefined
+}
+
 export const renderBlockNode = (
   node: TrMarkdownRenderNode,
   helpers: TrMarkdownRenderHelpers,
@@ -40,8 +53,13 @@ export const renderBlockNode = (
         helpers.renderChildren(node.children),
       )
     case 'ordered_list_open':
-      return h(components.list || List, helpers.resolveComponentProps(['list'], { ordered: true }), () =>
-        helpers.renderChildren(node.children),
+      return h(
+        components.list || List,
+        helpers.resolveComponentProps(['list'], {
+          ordered: true,
+          start: resolveOrderedListStart(node.attrs?.start),
+        }),
+        () => helpers.renderChildren(node.children),
       )
     case 'list_item_open':
       return h(
@@ -124,7 +142,7 @@ export const renderBlockNode = (
     case 'tr_open':
     case 'th_open':
     case 'td_open':
-      return h(node.tag || 'div', undefined, helpers.renderChildren(node.children))
+      return h(node.tag || 'div', resolveTableCellAttrs(node.attrs), helpers.renderChildren(node.children))
     case 'hr':
       return h(components.hr || Hr, helpers.resolveComponentProps(['hr']))
     default:
