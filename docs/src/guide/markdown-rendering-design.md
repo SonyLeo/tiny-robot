@@ -57,6 +57,8 @@ animated 模式在解析稳定内容后继续经过 block diff、reveal queue、
 
 当前保留 `markdown-it` 和 `markdown-it-footnote`。markdown-it 有稳定的 token、插件和规则边界，足以承载现有组件映射。它不负责输出视觉，也不提供 AI 增量/重写语义。更换 parser 需要逐项迁移 GFM 细节、脚注、数学、任务列表、媒体、自定义语义块、位置数据、引用变换、安全和回归语料。
 
+默认 adapter 只在稳定源文、adapter 本身或有效语法配置变动时重新解析；数学和脚注的展示配置不影响语法开关。自定义 adapter 按完整有效 options 变化更新。引用元数据通过最近一次解析成功的原始节点单独计算，主题及展示选项也独立更新。解析仍按调用创建实例，便于保持文档状态隔离。
+
 **只有出现硬需求才评估 Unified/remark/rehype 或 Comark。** 例如：现有生态缺少无法合理补齐的必需语法、多个内容来源必须共享 mdast/hast transforms，或服务端预解析文档能实测改善首屏。React 的 `react-markdown` 不能直接作为 Vue renderer。
 
 生产依赖声明、实际安装版本、lockfile 和发布边界必须一起审查。当前源分支的 `packages/components/package.json` 仍声明 `markdown-it` `^14.1.0`，而外部调研讨论过 15.x。不要把上游最新版的修复算作当前消费方已获得的修复；版本升级需检查 breaking changes、安全公告、peer 范围、lockfile 和消费构建。
@@ -70,13 +72,13 @@ animated 模式在解析稳定内容后继续经过 block diff、reveal queue、
 3. **重写正确性：** 非前缀更新、插入、删除和整体替换必须使受影响状态失效；正确性优先于复用缓存。
 4. **完成态收敛：** `active=false` 时以原始、未补全内容执行正式解析；输出必须与同一原文一次性静态解析一致。
 
-当前实现通过 `stableContent` 与独立 `StreamTail` 隔离未完成内容，支持 link、image、table、code fence 等 hold，并提供 basic 与 animated 模式。它仍有需先修复的围栏状态一致性风险：`useIncompleteMarkdown.ts` 和 `useMarkdownSmoother.ts` 各自解释围栏闭合，应使用共享、可测试的围栏扫描规则。公开调研中的 `remend` 只作为临时语法预处理候选，不是 sanitizer、block cache、rewrite engine 或完整 renderer。若尝试，必须处理补全占位 URL，且 finalized 绝不解析补全结果。
+当前实现通过 `stableContent` 与独立 `StreamTail` 隔离未完成内容，支持 link、image、table、code fence 等 hold，并提供 basic 与 animated 模式。`useIncompleteMarkdown.ts` 和 `useMarkdownSmoother.ts` 共用围栏扫描规则，识别行首围栏并保留原始输入偏移；最终 Markdown 语义仍由 parser 判定。系统要求减少动态效果时，流式内容使用基础呈现并保留 tail 和 active 状态。公开调研中的 `remend` 只作为临时语法预处理候选，不是 sanitizer、block cache、rewrite engine 或完整 renderer。若尝试，必须处理补全占位 URL，且 finalized 绝不解析补全结果。
 
 不得因为“按块缓存”看似更快就直接引入哈希缓存。文档级引用定义、脚注、前置 HTML、表格结构等可能影响先前区块。优化前先量测 parse count 和 parse cost；若采用缓存，必须证明依赖边界，非 append 更新采用保守失效。
 
 ### 代码高亮与代码块
 
-普通代码高亮通过引擎接口独立于 Markdown parser。当前默认 Highlight.js，可选 Shiki，语言/主题按需加载。当前已实现 Highlight.js 的按需子语言列表较窄，Shiki 有单独白名单；“支持 Shiki”不等于每种常见语言已正确高亮。语言覆盖、主题、token engine、代码块容器和工具栏是不同变量。
+普通代码高亮通过引擎接口独立于 Markdown parser。当前默认 Highlight.js，可选 Shiki，语言/主题按需加载。新代码等待着色时立即显示原文；同一源码等待主题或引擎变化时可继续显示原有高亮。只有最新请求能更新展示，禁用和卸载使等待中的请求失效。当前已实现 Highlight.js 的按需子语言列表较窄，Shiki 有单独白名单；“支持 Shiki”不等于每种常见语言已正确高亮。语言覆盖、主题、token engine、代码块容器和工具栏是不同变量。
 
 先比较现有 Highlight.js 主题、调优后的 Highlight.js 与现有 Shiki 路径；同容器、同字体、同代码、同主题背景评估可读性，再量测首次文本可见、完成着色时间和实际消费构建的异步 chunk。只有产品明确要求生成过程中高亮增长中的代码块，才评估 `@shikijs/stream` 的 token recall 协议；它不处理整篇 Markdown 流式状态。
 
@@ -142,13 +144,9 @@ Markdown 维护会逐步增加自动化开发的比例，因此代码、API 和�
 
 路线图以源码复核后再关闭以下事项：
 
-1. 合并 incomplete fence 与 smoother 对围栏闭合的判断，修正围栏内 fence-like 行可能被误当作关闭的问题。
-2. 异步高亮只允许最新 code/language/engine/theme 请求更新组件；disable/reset 后旧 Promise 不可覆盖当前状态。
-3. 缩小 parse watcher 的依赖面：展示特性变化不重解析语法；citations 更新只重新应用 citation transform；语法配置变化才重解析。
-4. 普通 markdown-it adapter 解析器是否可按语法配置安全复用，需基准测试和并发/状态隔离验证后决定。
-5. 生产默认样式要与演示页相符；bubble 标题比例与常见输出内容密度需基于对照截图定标。
-6. 默认 renderer 必须保留语义属性：有序列表 start、表格单元格 alignment 等不能在 token→node 或 node→Vue 映射途中丢失。
-7. 默认 highlight 语言表对 Python、SQL、YAML 等常见 AI 输出覆盖不足，需由目标语料确定清单。
+1. 生产默认样式要与演示页相符；bubble 标题比例与常见输出内容密度需基于对照截图定标。
+2. 默认 renderer 必须保留语义属性：有序列表 start、表格单元格 alignment 等不能在 token→node 或 node→Vue 映射途中丢失。
+3. 默认 highlight 语言表对 Python、SQL、YAML 等常见 AI 输出覆盖不足，需由目标语料确定清单。
 
 这些是实现清单，不构成承诺所有行为已有回归失败；路线逐项定义验证方式。
 

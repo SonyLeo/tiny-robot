@@ -260,10 +260,10 @@ Parser/renderer 整体替换、通用 IR 重构和完整 renderer 移植不在�
 |---|---|---|
 | 0：冻结基线 | 已完成 | 固定语料、安全边界、生产默认截图与流式最终一致性 CT 已通过；有序列表 start 丢失登记到阶段 3 |
 | 1：流式正确性 | 已完成 | 共享 fence scanner、异步高亮有效性与 reduced motion 已验收；19 项组合 CT、组件 type-check 通过。实现与边界记录见本表之后的阶段日志 |
-| 2：解析 invalidation | 准备中 | 梳理语法依赖、citation 更新与量测；在阶段 1 验收后单独提交 |
-| 3：默认视觉 | 进行中 | Bubble 主题 fixture、heading scale 与列表/table 语义改动及前后截图已准备；CT 通过，视觉人工盲评仍未完成 |
-| 4：高亮 Spike | 待开始 | Highlight.js 主题/语言与现有 Shiki 隔离对比 |
-| 5：预处理/renderer Spike | 待开始 | remend 优先；完整 renderer 只有明确理由才选一个验证 |
+| 2：解析触发条件 | 已完成 | 默认语法键、引用投影、自定义 adapter 兼容和旧解析失效已验收；保留 parser 实例隔离 |
+| 3：默认视觉 | 进行中 | 列表和表格语义已有候选；补齐同样式条件的截图、demo 默认值与窄屏验证，待人工盲评 |
+| 4：高亮 Spike | 进行中 | 核对 Highlight.js、补齐语言并调色的 Highlight.js、Shiki 三组同容器对照与消费构建量测 |
+| 5：预处理/renderer Spike | 进行中 | 启动隔离的 remend 1.5.0 对照；完整 renderer 只有明确理由才选一个验证 |
 | 6：收敛发布 | 待开始 | 依据前序结果更新 API、依赖、文档和构建验证 |
 
 阶段可并行准备与评审，但实施依赖须遵守：0 → 1 → 2；视觉阶段 3 可在基线冻结后与纯流逻辑工作并行；高亮 4 与 remend 5A 可并行；完整 renderer 5B 等现有语义 fixture 定型、且有明确待验证优势后再启动。阶段 4、5 的验收允许以证据支持「保留现状」收尾；在预算或人工评分缺失时，不提升候选为生产默认。
@@ -274,8 +274,24 @@ Parser/renderer 整体替换、通用 IR 重构和完整 renderer 移植不在�
 - 异步高亮加入请求版本和卸载失效保护；当源码变化时立即移除旧代码的高亮结果，避免 pending 期间把旧代码样式套在新源码上；同源码的语言、引擎或主题变更期间保留现有展示，只有最新请求可提交。disable/空代码和异常回退为纯文本。
 - `prefers-reduced-motion: reduce` 禁用 animated reveal，但不篡改 streaming active/tail 状态，内容仍可读。
 - CT：`tr-markdown-phase1.spec.ts`、streaming、code/html、phase0 组合运行（`pnpm -F tiny-robot-test exec playwright test -c playwright-ct.config.ts --workers=1 --reporter=line src/markdown-ct/tr-markdown-phase1.spec.ts src/markdown-ct/tr-markdown-streaming.spec.ts src/markdown-ct/tr-markdown-code-html.spec.ts src/markdown-ct/tr-markdown-phase0.spec.ts --update-snapshots`，19 passed）；组件 `pnpm --filter @opentiny/tiny-robot type-check` 与 `git diff --check` 通过。CT 走源码 alias。
-- 阶段 3 为其 Bubble fixture 加载了生产 `bubble.less`，正确触发已有 `bubble` variant token；两张 Bubble 截图因此更新，720px light 高度 297→351，375px dark 321→379。更新的截图只修正测试基线，没有改变正文字号/间距 token；修改前后的图保存在当前开发环境 visualization archive。列表有序起始值和表格对齐将属性传到 HTML 节点并纳入语义断言。
-- 人工三人盲评尚未进行；阶段 3 可实现逻辑和视觉基线需要外部人工评审后才算验收完成。
+
+### 阶段 2 记录（2026-11-22）
+
+- 默认 adapter 由稳定源文、adapter 身份、有效 HTML/linkify/typographer/breaks 和 math/footnotes 开关触发。Gallery、Mermaid 模式、复制、variant、引用元数据更新不重跑语法解析；自定义 adapter 仍按其收到的完整有效 options 响应变化，原有配置优先关系保持不变。
+- 引用基于最近提交的原始解析节点单独计算，可更新、清空、再次应用；不累积包装。解析逆序返回或组件卸载时，失效请求不能提交。
+- 独立验收 `TINY_ROBOT_MARKDOWN_BENCH=1 pnpm -F tiny-robot-test exec playwright test -c playwright-ct.config.ts --workers=1 --reporter=line src/markdown-ct/tr-markdown-phase2.spec.ts src/markdown-ct/tr-markdown-static.spec.ts`：15 passed（含 opt-in 量测），组件和测试 type-check、`git diff --check` 通过。测量由 Playwright 的 Node v22.23.4 worker 调用默认 adapter，每组 2 次预热、7 次采样，1K/10K/20K 字符的中位数约为 0.27/0.53/0.69 ms。数字只覆盖本机的简单重复段落和语法 tree 转换，不代表复杂文档、浏览器 DOM、着色、动画或低端设备。修改降低的是无关更新的 parse 次数，未改变单次 parser 算法。
+- 暂不复用 markdown-it 实例或缓存块；该语料的耗时和目前已知的跨块失效成本不支持增加缓存。后续如真实长回答测量发现 parser 是瓶颈，再验证插件状态及文档隔离。
+
+### 阶段 3 初步记录（2026-11-22）
+
+- 现有 Bubble 截图 fixture 缺少生产 `bubble.less`。加载后截图尺寸有变化，且无法将变化归因于标题缩放，因为两组的样式装载条件不同。正式视觉对照改用一致的生产样式、主题和文案，旧图保留作历史基线。
+- LobeUI `dev`（`5c034056`）的 chat variant 默认正文 14px、行高 1.6，标题倍率参数为 0.25，H1 为 `14 × (1 + 1.5 × 0.25) = 19.25px`。TinyRobot H1 使用相同字体倍率公式，但需要加载 Bubble 主题 token 才能算出实际值；标题间距还使用不同公式。待核对真实 DOM、明暗主题和窄屏后决定候选值。
+- 列表起始编号和表格对齐在 Vue renderer 层显式映射；只透传合法语义值。待补齐 demo 的生产默认和覆盖模式、长 URL / 表格 / 代码窄屏验收。三人盲评尚未进行。
+
+### 发布验证预检（2026-11-22）
+
+- 在阶段 1 提交之后、阶段 2/3 候选修改期间运行 `pnpm build:components` 和 `pnpm -F docs build`，均通过。VitePress 输出既有的插件 Node 模块外部化和大 chunk 提示。组件库 `dist/markdown/index.js` 为 166.66 kB / 40.57 kB gzip，仅记录库入口，不包括下游打包器解析出的外部依赖。
+- `pnpm -F tiny-robot-test exec playwright test --workers=1 --reporter=line src/markdown/index.spec.ts` 跑通 4 个源码集成用例，覆盖 Markdown 页面、Bubble 两条接入方式、iframe 和动画流式。最终阶段须对定版重跑，并另验证消费端产物。
 
 ## 每阶段工作记录模板
 

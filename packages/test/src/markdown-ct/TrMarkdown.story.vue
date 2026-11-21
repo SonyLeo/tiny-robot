@@ -14,6 +14,7 @@ const props = withDefaults(
     features?: TrMarkdownProps['features']
     fixture?: MarkdownStoryFixture
     link?: TrMarkdownProps['link']
+    parser?: TrMarkdownProps['parser']
     parserOptions?: TrMarkdownProps['parserOptions']
     probeContext?: boolean
     renderOptions?: TrMarkdownProps['renderOptions']
@@ -287,6 +288,7 @@ const resolvedRenderOptions = computed<TrMarkdownProps['renderOptions']>(() => {
     :content="content"
     :features="features"
     :link="link"
+    :parser="parser"
     :parser-options="parserOptions"
     :render-options="resolvedRenderOptions"
     :streaming="streaming"
