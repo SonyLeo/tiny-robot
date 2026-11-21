@@ -1,4 +1,5 @@
 import { computed, watch } from 'vue'
+import { usePreferredReducedMotion } from '@vueuse/core'
 import type { TrMarkdownProps } from '../index.type'
 import { createTrMarkdownStreamProfiler, resolveTrMarkdownStreamProfilerOptions } from '../stream/streamProfiler'
 import { resolveStreamingConfig, useMarkdownStreamState } from '../stream/useMarkdownStreamState'
@@ -8,9 +9,13 @@ export const useMarkdownStreamStateRuntime = (props: Readonly<TrMarkdownProps>) 
   const streamProfilerOptions = computed(() => resolveTrMarkdownStreamProfilerOptions(streamingConfig.value.profile))
   const streamProfiler = createTrMarkdownStreamProfiler(streamProfilerOptions)
   const streamProfilerSnapshot = computed(() => streamProfiler.snapshot.value)
+  const prefersReducedMotion = usePreferredReducedMotion()
   const streamState = useMarkdownStreamState(() => props.content || '', streamingConfig)
   const animatedStreamingEnabled = computed(
-    () => streamingConfig.value.enabled && streamingConfig.value.mode === 'animated',
+    () =>
+      streamingConfig.value.enabled &&
+      streamingConfig.value.mode === 'animated' &&
+      prefersReducedMotion.value !== 'reduce',
   )
 
   let previousProfilerContent = ''

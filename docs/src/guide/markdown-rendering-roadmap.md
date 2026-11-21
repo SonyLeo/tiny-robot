@@ -250,23 +250,32 @@ Parser/renderer 整体替换、通用 IR 重构和完整 renderer 移植不在�
 - 每项已接受的新增依赖有必要性、加载方式、许可证、版本与回滚说明。
 - feature fixture 与所有 CT/E2E smoke 均通过；记录未运行或环境限制。
 - 组件包构建与文档/consumer 行为的验证边界清楚说明。
-- 当前 worktree 的无关修改保留；不自动提交、不清理其他 worktree。
+- 当前 worktree 的无关修改保留，不清理其他 worktree。按任务约定，每个阶段由主 Agent 独立验收、更新进度后单独本地提交。
 
 ## 阶段状态
 
-此状态记录本路线文档创建时的规划起点，不表示实现已完成：
+此表记录当前执行状态。代码已写入但验收未完成的阶段仍为「进行中」；视觉人工评审、选型决策和发布验证分别记录证据，不以源码用例结果代替。
 
 | 阶段 | 状态 | 说明 |
 |---|---|---|
 | 0：冻结基线 | 已完成 | 固定语料、安全边界、生产默认截图与流式最终一致性 CT 已通过；有序列表 start 丢失登记到阶段 3 |
-| 1：流式正确性 | 待开始 | 围栏 scanner 一致性和异步高亮结果有效性优先 |
-| 2：解析 invalidation | 待开始 | 收窄 watcher；量测是否有必要复用 parser |
-| 3：默认视觉 | 待开始 | Bubble 标题/间距、demo 默认值、列表/table 语义 |
+| 1：流式正确性 | 已完成 | 共享 fence scanner、异步高亮有效性与 reduced motion 已验收；19 项组合 CT、组件 type-check 通过。实现与边界记录见本表之后的阶段日志 |
+| 2：解析 invalidation | 准备中 | 梳理语法依赖、citation 更新与量测；在阶段 1 验收后单独提交 |
+| 3：默认视觉 | 进行中 | Bubble 主题 fixture、heading scale 与列表/table 语义改动及前后截图已准备；CT 通过，视觉人工盲评仍未完成 |
 | 4：高亮 Spike | 待开始 | Highlight.js 主题/语言与现有 Shiki 隔离对比 |
 | 5：预处理/renderer Spike | 待开始 | remend 优先；完整 renderer 只有明确理由才选一个验证 |
 | 6：收敛发布 | 待开始 | 依据前序结果更新 API、依赖、文档和构建验证 |
 
-阶段可并行准备 fixture，但实施依赖须遵守：0 → 1 → 2；视觉阶段 3 可在基线冻结后与纯流逻辑工作并行；高亮 4 与 remend 5A 可并行；完整 renderer 5B 等现有语义 fixture 定型后再启动。
+阶段可并行准备与评审，但实施依赖须遵守：0 → 1 → 2；视觉阶段 3 可在基线冻结后与纯流逻辑工作并行；高亮 4 与 remend 5A 可并行；完整 renderer 5B 等现有语义 fixture 定型、且有明确待验证优势后再启动。阶段 4、5 的验收允许以证据支持「保留现状」收尾；在预算或人工评分缺失时，不提升候选为生产默认。
+
+### 阶段 1 记录（2026-11-22）
+
+- 新增纯函数共享 fence scanner，`useIncompleteMarkdown` 与 smoother 不再各自解释闭合规则。支持相同 marker、closing run 不短于 opener、最多 3 个前导空格、closing 行仅接受 ASCII 空格/tab；LF/CRLF/CR 的源偏移和 info string 边界已覆盖。markdown-it 同步规则指出，反引号 opener 的 info string 不允许再含反引号；关闭 fence 的尾随空格仅按 CommonMark 空格/tab 判断。
+- 异步高亮加入请求版本和卸载失效保护；当源码变化时立即移除旧代码的高亮结果，避免 pending 期间把旧代码样式套在新源码上；同源码的语言、引擎或主题变更期间保留现有展示，只有最新请求可提交。disable/空代码和异常回退为纯文本。
+- `prefers-reduced-motion: reduce` 禁用 animated reveal，但不篡改 streaming active/tail 状态，内容仍可读。
+- CT：`tr-markdown-phase1.spec.ts`、streaming、code/html、phase0 组合运行（`pnpm -F tiny-robot-test exec playwright test -c playwright-ct.config.ts --workers=1 --reporter=line src/markdown-ct/tr-markdown-phase1.spec.ts src/markdown-ct/tr-markdown-streaming.spec.ts src/markdown-ct/tr-markdown-code-html.spec.ts src/markdown-ct/tr-markdown-phase0.spec.ts --update-snapshots`，19 passed）；组件 `pnpm --filter @opentiny/tiny-robot type-check` 与 `git diff --check` 通过。CT 走源码 alias。
+- 阶段 3 为其 Bubble fixture 加载了生产 `bubble.less`，正确触发已有 `bubble` variant token；两张 Bubble 截图因此更新，720px light 高度 297→351，375px dark 321→379。更新的截图只修正测试基线，没有改变正文字号/间距 token；修改前后的图保存在当前开发环境 visualization archive。列表有序起始值和表格对齐将属性传到 HTML 节点并纳入语义断言。
+- 人工三人盲评尚未进行；阶段 3 可实现逻辑和视觉基线需要外部人工评审后才算验收完成。
 
 ## 每阶段工作记录模板
 

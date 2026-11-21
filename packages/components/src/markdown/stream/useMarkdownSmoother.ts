@@ -1,5 +1,15 @@
 const punctuationBoundaryPattern = /(?:[。！？!?；;：:,，]\s*|\n+)/g
-const codeFenceLinePattern = /^ {0,3}(```+|~~~+).*$/
+import { scanMarkdownFences } from './markdownFenceScanner'
+
+const moveInlineWhitespaceToTail = (content: string, index: number) => {
+  let resolvedIndex = index
+
+  while (resolvedIndex > 0 && /[ \t]/.test(content[resolvedIndex - 1] || '')) {
+    resolvedIndex -= 1
+  }
+
+  return resolvedIndex
+}
 
 export interface TrMarkdownSmoothState {
   stableContent: string
@@ -7,46 +17,13 @@ export interface TrMarkdownSmoothState {
 }
 
 const resolveFenceRangeAt = (content: string, index: number) => {
-  let openFence: { marker: string; size: number; start: number } | null = null
-  let offset = 0
+  const fence = scanMarkdownFences(content).fences.find((candidate) => index > candidate.start && index < candidate.end)
 
-  for (const line of content.split('\n')) {
-    const matched = line.match(codeFenceLinePattern)
-    const lineStart = offset
-    const lineEnd = offset + line.length
-    offset = lineEnd + 1
-
-    if (!matched) {
-      continue
-    }
-
-    const markerToken = matched[1]
-    const marker = markerToken[0]
-    const size = markerToken.length
-
-    if (!openFence) {
-      openFence = { marker, size, start: lineStart }
-      continue
-    }
-
-    if (openFence.marker === marker && size >= openFence.size) {
-      const closeEnd = Math.min(content.length, lineEnd)
-      if (index > openFence.start && index < closeEnd) {
-        return {
-          closed: true,
-          end: closeEnd,
-          start: openFence.start,
-        }
-      }
-      openFence = null
-    }
-  }
-
-  if (openFence && index > openFence.start) {
+  if (fence) {
     return {
-      closed: false,
-      end: content.length,
-      start: openFence.start,
+      closed: fence.closed,
+      end: fence.end,
+      start: fence.start,
     }
   }
 }
@@ -96,6 +73,11 @@ export const splitMarkdownTail = (content: string, smoothingChars = 32): TrMarkd
   if (stableEnd < 0) {
     stableEnd = Math.max(0, content.length - maxTailChars)
   }
+
+  // Markdown parsers commonly trim trailing inline whitespace from a block.
+  // Keep that separator in the raw tail so the stable node and tail still
+  // concatenate to the exact source text (for example, "is already").
+  stableEnd = moveInlineWhitespaceToTail(content, stableEnd)
 
   const fenceRange = resolveFenceRangeAt(content, stableEnd)
   if (fenceRange) {

@@ -1,4 +1,5 @@
 import type { TrMarkdownStreamTailKind } from '../index.type'
+import { findOpenMarkdownFence } from './markdownFenceScanner'
 
 export interface TrMarkdownIncompleteState {
   holdIndex: number
@@ -8,7 +9,6 @@ export interface TrMarkdownIncompleteState {
 
 type Candidate = TrMarkdownIncompleteState | undefined
 
-const codeFencePattern = /^ {0,3}(```+|~~~+).*$/gm
 const tableDelimiterPattern = /^\s*\|?(?:\s*:?-{3,}:?\s*\|)+(?:\s*:?-{3,}:?\s*)?\|?\s*$/
 const tableLinePattern = /^\s*\|.*\|?\s*$/
 const markdownImageTargetPattern = /!\[[^\]\n]*\]\([^\)\n]*$/
@@ -43,31 +43,13 @@ const getLineInfos = (content: string): LineInfo[] => {
 }
 
 const getUnclosedCodeFenceState = (content: string): Candidate => {
-  let openFence: { marker: string; size: number; index: number } | null = null
-  codeFencePattern.lastIndex = 0
-
-  for (const match of content.matchAll(codeFencePattern)) {
-    const markerToken = match[1]
-    const marker = markerToken[0]
-    const size = markerToken.length
-    const index = match.index ?? 0
-
-    if (!openFence) {
-      openFence = { marker, size, index }
-      continue
-    }
-
-    if (openFence.marker === marker && size >= openFence.size) {
-      openFence = null
-    }
-  }
-
+  const openFence = findOpenMarkdownFence(content)
   if (!openFence) {
     return
   }
 
   return {
-    holdIndex: openFence.index,
+    holdIndex: openFence.start,
     kind: 'code',
     reason: 'code-fence',
   }
