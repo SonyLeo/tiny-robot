@@ -64,5 +64,4 @@ const contentAttributes = () => ({
 ## 设计与进度
 
 - 设计说明：[/guide/markdown-rendering-design](/guide/markdown-rendering-design)
-- 路线与状态：[/guide/markdown-rendering-roadmap](/guide/markdown-rendering-roadmap)
-- 历史调研与迁移记录：[/guide/archive/markdown/](/guide/archive/markdown/)
+- 实施阶段与验收：[/guide/markdown-rendering-roadmap](/guide/markdown-rendering-roadmap)

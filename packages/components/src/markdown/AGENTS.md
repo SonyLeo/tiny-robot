@@ -162,5 +162,6 @@ If you change public behavior, also verify that docs, fixtures, demo cases, and 
   - `docs/src/guide/markdown-rendering-design.md`
 - put status, remaining tasks, and rollout sequencing in:
   - `docs/src/guide/markdown-rendering-roadmap.md`
+- treat these two documents as the only current design/implementation sources; old markdown research, spike, checklist, and process documents have been removed because their decisions and status snapshots drifted from the current code.
 - keep this `AGENTS.md` short
   - it should help future agents start work quickly, not become a second design spec
