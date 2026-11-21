@@ -660,43 +660,43 @@ function handleSubmit(text: string, data?: StructuredData) {
 
 | 类型名                  | 类别            | 类型或签名                                                            | 说明                                 |
 | ----------------------- | --------------- | --------------------------------------------------------------------- | ------------------------------------ |
-| `SenderProps`           | 组件 Props      | `interface`                                                           | Sender 属性                          |
-| `SenderEmits`           | 组件 Events     | `interface`                                                           | Sender 事件                          |
-| `SenderSlots`           | 组件 Slots      | `interface`                                                           | Sender 插槽                          |
-| `SenderExternalPayload` | 提交数据        | `interface`                                                           | 单个外部提交内容                     |
-| `SenderSubmitExtra`     | 提交数据        | `interface`                                                           | `submit` 的额外提交数据              |
-| `InputMode`             | Prop 类型       | `'single' \| 'multiple'`                                              | 输入布局模式                         |
-| `SubmitTrigger`         | Prop 类型       | `'enter' \| 'ctrlEnter' \| 'shiftEnter'`                              | 提交快捷键模式                       |
-| `EnterKeyHint`          | Prop 类型       | HTML `enterkeyhint` 联合类型                                          | 移动端虚拟键盘提示                   |
-| `AutoSize`              | Prop 类型       | `boolean \| { minRows: number; maxRows: number }`                     | 多行编辑器高度范围                   |
-| `DefaultActions`        | 配置对象        | `interface`                                                           | 默认提交和清空按钮配置               |
-| `StructuredData`        | 结构化数据      | `TemplateItem[] \| MentionStructuredItem[]`                           | Template 或 Mention 的结构化提交数据 |
-| `SelectOption`          | Template 数据   | `interface`                                                           | Template 选择项                      |
-| `TemplateItem`          | Template 数据   | `type`                                                                | 文本、可编辑块或选择器模板项         |
-| `MentionItem`           | Mention 数据    | `interface`                                                           | Mention 输入项                       |
-| `SenderSuggestionItem`  | Suggestion 数据 | `interface`                                                           | Suggestion 输入项                    |
-| `SuggestionOptions`     | 扩展配置        | `interface`                                                           | Suggestion 扩展配置                  |
-| `SuggestionState`       | 扩展状态        | `interface`                                                           | Suggestion 插件状态                  |
-| `SuggestionTextPart`    | 高亮数据        | `interface`                                                           | 建议文本的高亮片段                   |
-| `HighlightFunction`     | 扩展回调        | `(suggestionText: string, inputText: string) => SuggestionTextPart[]` | 自定义建议高亮函数                   |
-| `ActionButtonProps`     | 组件 Props      | `interface`                                                           | Sender Action 基础按钮属性           |
-| `UploadButtonProps`     | 组件 Props      | `interface`                                                           | 上传按钮属性                         |
-| `UploadButtonEmits`     | 组件 Events     | `interface`                                                           | 上传按钮事件                         |
-| `VoiceButtonProps`      | 组件 Props      | `interface`                                                           | 语音按钮属性                         |
-| `VoiceButtonEmits`      | 组件 Events     | `interface`                                                           | 语音按钮事件                         |
-| `TooltipContent`        | Prop 类型       | `string \| (() => string \| VNode)`                                   | Sender Action 的 Tooltip 内容        |
-| `TooltipPlacement`      | Prop 类型       | `type`                                                                | Tooltip 方位联合类型                 |
-| `SpeechCallbacks`       | 语音回调        | `interface`                                                           | 语音处理过程回调                     |
-| `SpeechHandler`         | 服务接口        | `interface`                                                           | 可替换的语音处理器                   |
-| `SpeechConfig`          | 配置对象        | `interface`                                                           | 语音识别配置                         |
-| `SpeechState`           | 状态对象        | `interface`                                                           | 语音识别状态                         |
+| [`SenderProps`](#sender) | 组件 Props      | `interface`                                                           | Sender 属性                          |
+| [`SenderEmits`](#sender-events) | 组件 Events     | `interface`                                                           | Sender 事件                          |
+| [`SenderSlots`](#sender-slots) | 组件 Slots      | `interface`                                                           | Sender 插槽                          |
+| [`SenderExternalPayload`](#结构化数据) | 提交数据        | `interface`                                                           | 单个外部提交内容                     |
+| [`SenderSubmitExtra`](#结构化数据) | 提交数据        | `interface`                                                           | `submit` 的额外提交数据              |
+| [`InputMode`](#输入模式) | Prop 类型       | `'single' \| 'multiple'`                                              | 输入布局模式                         |
+| [`SubmitTrigger`](#提交方式) | Prop 类型       | `'enter' \| 'ctrlEnter' \| 'shiftEnter'`                              | 提交快捷键模式                       |
+| [`EnterKeyHint`](#输入模式) | Prop 类型       | HTML `enterkeyhint` 联合类型                                          | 移动端虚拟键盘提示                   |
+| [`AutoSize`](#输入模式) | Prop 类型       | `boolean \| { minRows: number; maxRows: number }`                     | 多行编辑器高度范围                   |
+| [`DefaultActions`](#默认按钮配置) | 配置对象        | `interface`                                                           | 默认提交和清空按钮配置               |
+| [`StructuredData`](#结构化数据) | 结构化数据      | `TemplateItem[] \| MentionStructuredItem[]`                           | Template 或 Mention 的结构化提交数据 |
+| [`SelectOption`](#模板编辑) | Template 数据   | `interface`                                                           | Template 选择项                      |
+| [`TemplateItem`](#模板编辑) | Template 数据   | `type`                                                                | 文本、可编辑块或选择器模板项         |
+| [`MentionItem`](#提及功能) | Mention 数据    | `interface`                                                           | Mention 输入项                       |
+| [`SenderSuggestionItem`](#智能联想) | Suggestion 数据 | `interface`                                                           | Suggestion 输入项                    |
+| [`SuggestionOptions`](#智能联想) | 扩展配置        | `interface`                                                           | Suggestion 扩展配置                  |
+| [`SuggestionState`](#智能联想) | 扩展状态        | `interface`                                                           | Suggestion 插件状态                  |
+| [`SuggestionTextPart`](#智能联想) | 高亮数据        | `interface`                                                           | 建议文本的高亮片段                   |
+| [`HighlightFunction`](#智能联想) | 扩展回调        | `(suggestionText: string, inputText: string) => SuggestionTextPart[]` | 自定义建议高亮函数                   |
+| [`ActionButtonProps`](#增强按钮) | 组件 Props      | `interface`                                                           | Sender Action 基础按钮属性           |
+| [`UploadButtonProps`](#上传内容) | 组件 Props      | `interface`                                                           | 上传按钮属性                         |
+| [`UploadButtonEmits`](#上传内容) | 组件 Events     | `interface`                                                           | 上传按钮事件                         |
+| [`VoiceButtonProps`](#基础语音交互) | 组件 Props      | `interface`                                                           | 语音按钮属性                         |
+| [`VoiceButtonEmits`](#基础语音交互) | 组件 Events     | `interface`                                                           | 语音按钮事件                         |
+| [`TooltipContent`](#增强按钮) | Prop 类型       | `string \| (() => string \| VNode)`                                   | Sender Action 的 Tooltip 内容        |
+| [`TooltipPlacement`](#增强按钮) | Prop 类型       | `type`                                                                | Tooltip 方位联合类型                 |
+| [`SpeechCallbacks`](#第三方语音服务) | 语音回调        | `interface`                                                           | 语音处理过程回调                     |
+| [`SpeechHandler`](#第三方语音服务) | 服务接口        | `interface`                                                           | 可替换的语音处理器                   |
+| [`SpeechConfig`](#第三方语音服务) | 配置对象        | `interface`                                                           | 语音识别配置                         |
+| [`SpeechState`](#基础语音交互) | 状态对象        | `interface`                                                           | 语音识别状态                         |
 
 #### 高级组合式 API 类型 {#高级组合式-api-类型}
 
 | 类型名                                     | 对应入口                       | 类型或签名                                                           | 说明                          |
 | ------------------------------------------ | ------------------------------ | -------------------------------------------------------------------- | ----------------------------- |
-| `SenderContext` / `UseSenderContextReturn` | `useSenderContext`             | `interface` / `SenderContext`                                        | Sender 上下文及其返回类型别名 |
-| `SenderContentRegister`                    | `useSenderContentRegistration` | `(source: string, payload: MaybeRefOrGetter<unknown>) => () => void` | 注册外部内容并返回注销函数    |
+| [`SenderContext`](#方法调用) / [`UseSenderContextReturn`](#方法调用) | `useSenderContext`             | `interface` / `SenderContext`                                        | Sender 上下文及其返回类型别名 |
+| [`SenderContentRegister`](#上传内容) | `useSenderContentRegistration` | `(source: string, payload: MaybeRefOrGetter<unknown>) => () => void` | 注册外部内容并返回注销函数    |
 
 #### 常用字段 {#常用字段}
 

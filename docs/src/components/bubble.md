@@ -194,18 +194,18 @@ const { scrollToBottom, arrivedState } = useAutoScroll({
 
 | 参数              | 类型                        | 默认值 | 说明                                                       |
 | ----------------- | --------------------------- | ------ | ---------------------------------------------------------- |
-| `scrollRef`       | `MaybeComputedElementRef`   | —      | 产生滚动条的容器元素。                                     |
-| `contentRef`      | `MaybeComputedElementRef`   | —      | 滚动容器内承载全部内容的元素；其尺寸变化用于触发自动跟随。 |
-| `enabled`         | `MaybeRefOrGetter<boolean>` | `true` | 是否启用自动跟随，支持响应式切换。                         |
-| `scrollOnMount`   | `boolean`                   | `true` | 挂载时是否滚动到底部。                                     |
-| `scrollThrottle`  | `number`                    | `0`    | 滚动事件节流时间，单位为毫秒。                             |
-| `bottomThreshold` | `number`                    | `20`   | 判断是否接近底部的距离阈值，单位为像素。                   |
+| [`scrollRef`](#useautoscroll) | `MaybeComputedElementRef`   | —      | 产生滚动条的容器元素。                                     |
+| [`contentRef`](#useautoscroll) | `MaybeComputedElementRef`   | —      | 滚动容器内承载全部内容的元素；其尺寸变化用于触发自动跟随。 |
+| [`enabled`](#useautoscroll) | `MaybeRefOrGetter<boolean>` | `true` | 是否启用自动跟随，支持响应式切换。                         |
+| [`scrollOnMount`](#useautoscroll) | `boolean`                   | `true` | 挂载时是否滚动到底部。                                     |
+| [`scrollThrottle`](#useautoscroll) | `number`                    | `0`    | 滚动事件节流时间，单位为毫秒。                             |
+| [`bottomThreshold`](#useautoscroll) | `number`                    | `20`   | 判断是否接近底部的距离阈值，单位为像素。                   |
 
 | 返回值           | 类型                                           | 说明                                    |
 | ---------------- | ---------------------------------------------- | --------------------------------------- |
-| `pause`          | `() => void`                                  | 暂停自动跟随，适用于跳转到指定消息。 |
-| `scrollToBottom` | `(behavior?: ScrollBehavior) => Promise<void>` | 滚动到底部并恢复跟随；不受 `enabled` 限制。 |
-| `arrivedState`   | `UseScrollReturn['arrivedState']`              | 当前是否到达各滚动边界的响应式状态。    |
+| [`pause`](#useautoscroll) | `() => void`                                  | 暂停自动跟随，适用于跳转到指定消息。 |
+| [`scrollToBottom`](#useautoscroll) | `(behavior?: ScrollBehavior) => Promise<void>` | 滚动到底部并恢复跟随；不受 `enabled` 限制。 |
+| [`arrivedState`](#useautoscroll) | `UseScrollReturn['arrivedState']`              | 当前是否到达各滚动边界的响应式状态。    |
 
 旧的位置参数签名仍为兼容性保留，但已弃用：
 
@@ -704,47 +704,47 @@ AskUser 的每次交互都会先通过 `state:update` 请求更新状态，再�
 
 | 类型名                                | 类别 / 用途      | 说明                                      |
 | ------------------------------------- | ---------------- | ----------------------------------------- |
-| `BubbleProps`                         | 组件属性         | 单个 Bubble 的属性                        |
-| `BubbleListProps`                     | 组件属性         | BubbleList 的属性                         |
-| `BubbleProviderProps`                 | Provider 属性    | BubbleProvider 的属性                     |
-| `BubbleSlots`                         | 组件插槽         | Bubble 插槽                               |
-| `BubbleListSlots`                     | 组件插槽         | BubbleList 插槽                           |
-| `BubbleMessage`                       | 消息数据         | 消息基础类型                              |
-| `AskUserContent`                      | AskUser 内容     | `type: 'ask_user'` questions 内容项        |
-| `AskUserQuestion`                     | AskUser 配置     | 当前协议中的问题                              |
-| `AskUserQuestionOption`               | AskUser 配置     | 当前协议中的选项                              |
-| `AskUserStatus`                       | AskUser 状态     | AskUser 的交互状态                        |
-| `AskUserState`                        | AskUser 状态     | AskUser 在消息 `state.askUser` 中保存的状态 |
-| `AskUserStateMap`                     | AskUser 状态     | 多个 AskUser 按交互 ID 保存的状态集合       |
-| `AskUserStateValue`                   | AskUser 状态     | 单个状态或多个状态集合                     |
-| `BubbleErrorInfo`                     | 错误数据         | 消息错误信息                              |
-| `BubbleErrorRendererProps`            | 渲染器属性       | 消息级错误渲染器接收的属性                |
-| `BubbleMessageGroup`                  | 分组数据         | BubbleList 分组结果                       |
-| `ChatMessageContent`                  | 内容数据         | 字符串或内容项数组                        |
-| `ChatMessageContentItem`              | 内容数据         | 带 `type` 的可扩展内容项                  |
-| `ToolCall`                            | 工具调用数据     | OpenAI 风格工具调用                       |
-| `BubbleRoleConfig`                    | 角色配置         | BubbleList 的角色默认配置                 |
-| `BubbleAttributes`                    | 渲染器属性映射   | 渲染器 attributes 基础映射                |
-| `BubbleBoxRendererContext`            | 渲染器上下文     | Box 渲染器匹配时的完整内容上下文          |
-| `BubbleBoxRendererAttributeMap`       | 渲染器属性映射   | Box 渲染器 attributes 映射                |
-| `BubbleBoxRendererAttributesResolver` | 渲染器回调       | 动态 Box 匹配规则 attributes 解析函数     |
-| `BubbleBoxAttributesResolver`         | Provider 回调    | 动态 Provider Box attributes 解析函数     |
-| `BubbleContentAttributesResolver`     | Provider 回调    | 动态 Provider Content attributes 解析函数 |
-| `BubbleBoxAttributesConfig`           | Provider 配置    | 静态或动态 Box attributes 配置            |
-| `BubbleContentAttributesConfig`       | Provider 配置    | 静态或动态 Content attributes 配置        |
-| `BubbleBoxRendererMatch`              | 渲染器配置       | Box 渲染器匹配规则                        |
-| `BubbleContentRendererMatch`          | 渲染器配置       | Content 渲染器匹配规则                    |
-| `BubbleBoxRendererProps`              | 渲染器属性       | 自定义 Box 渲染器接收的属性               |
-| `BubbleContentRendererProps`          | 渲染器属性       | 自定义 Content 渲染器接收的属性           |
-| `BubbleEvent`                         | 事件数据         | 渲染器向 Bubble 发出的事件                |
-| `UseAutoScrollOptions`                | 组合式函数参数   | 自动滚动对象参数                          |
-| `UseAutoScrollReturn`                 | 组合式函数返回值 | 自动滚动的动作与边界状态                  |
+| [`BubbleProps`](#用法示例) | 组件属性         | 单个 Bubble 的属性                        |
+| [`BubbleListProps`](#基础列表) | 组件属性         | BubbleList 的属性                         |
+| [`BubbleProviderProps`](#通过-bubbleprovider-配置渲染器) | Provider 属性    | BubbleProvider 的属性                     |
+| [`BubbleSlots`](#插槽扩展) | 组件插槽         | Bubble 插槽                               |
+| [`BubbleListSlots`](#插槽扩展) | 组件插槽         | BubbleList 插槽                           |
+| [`BubbleMessage`](#基础列表) | 消息数据         | 消息基础类型                              |
+| [`AskUserContent`](#askuser)           | AskUser 内容     | `type: 'ask_user'` questions 内容项        |
+| [`AskUserQuestion`](#askuser)          | AskUser 配置     | 当前协议中的问题                              |
+| [`AskUserQuestionOption`](#askuser)    | AskUser 配置     | 当前协议中的选项                              |
+| [`AskUserStatus`](#askuser)            | AskUser 状态     | AskUser 的交互状态                        |
+| [`AskUserState`](#askuser)             | AskUser 状态     | AskUser 在消息 `state.askUser` 中保存的状态 |
+| [`AskUserStateMap`](#askuser)          | AskUser 状态     | 多个 AskUser 按交互 ID 保存的状态集合       |
+| [`AskUserStateValue`](#askuser)        | AskUser 状态     | 单个状态或多个状态集合                     |
+| [`BubbleErrorInfo`](#内置渲染器) | 错误数据         | 消息错误信息                              |
+| [`BubbleErrorRendererProps`](#内置渲染器) | 渲染器属性       | 消息级错误渲染器接收的属性                |
+| [`BubbleMessageGroup`](#分组策略) | 分组数据         | BubbleList 分组结果                       |
+| [`ChatMessageContent`](#内容类型与解析) | 内容数据         | 字符串或内容项数组                        |
+| [`ChatMessageContentItem`](#内容类型与解析) | 内容数据         | 带 `type` 的可扩展内容项                  |
+| [`ToolCall`](#工具调用确认) | 工具调用数据     | OpenAI 风格工具调用                       |
+| [`BubbleRoleConfig`](#分组策略) | 角色配置         | BubbleList 的角色默认配置                 |
+| [`BubbleAttributes`](#通过-bubbleprovider-统一注入-attributes) | 渲染器属性映射   | 渲染器 attributes 基础映射                |
+| [`BubbleBoxRendererContext`](#渲染器匹配机制) | 渲染器上下文     | Box 渲染器匹配时的完整内容上下文          |
+| [`BubbleBoxRendererAttributeMap`](#渲染器匹配机制) | 渲染器属性映射   | Box 渲染器 attributes 映射                |
+| [`BubbleBoxRendererAttributesResolver`](#渲染器匹配机制) | 渲染器回调       | 动态 Box 匹配规则 attributes 解析函数     |
+| [`BubbleBoxAttributesResolver`](#通过-bubbleprovider-统一注入-attributes) | Provider 回调    | 动态 Provider Box attributes 解析函数     |
+| [`BubbleContentAttributesResolver`](#通过-bubbleprovider-统一注入-attributes) | Provider 回调    | 动态 Provider Content attributes 解析函数 |
+| [`BubbleBoxAttributesConfig`](#通过-bubbleprovider-统一注入-attributes) | Provider 配置    | 静态或动态 Box attributes 配置            |
+| [`BubbleContentAttributesConfig`](#通过-bubbleprovider-统一注入-attributes) | Provider 配置    | 静态或动态 Content attributes 配置        |
+| [`BubbleBoxRendererMatch`](#渲染器匹配机制) | 渲染器配置       | Box 渲染器匹配规则                        |
+| [`BubbleContentRendererMatch`](#渲染器匹配机制) | 渲染器配置       | Content 渲染器匹配规则                    |
+| [`BubbleBoxRendererProps`](#实现自定义渲染器) | 渲染器属性       | 自定义 Box 渲染器接收的属性               |
+| [`BubbleContentRendererProps`](#实现自定义渲染器) | 渲染器属性       | 自定义 Content 渲染器接收的属性           |
+| [`BubbleEvent`](#交互与状态管理) | 事件数据         | 渲染器向 Bubble 发出的事件                |
+| [`UseAutoScrollOptions`](#useautoscroll) | 组合式函数参数   | 自动滚动对象参数                          |
+| [`UseAutoScrollReturn`](#useautoscroll) | 组合式函数返回值 | 自动滚动的动作与边界状态                  |
 
 #### 已弃用类型 {#已弃用类型}
 
 | 类型名                       | 类别 / 用途    | 说明                         |
 | ---------------------------- | -------------- | ---------------------------- |
-| `LegacyUseAutoScrollOptions` | 组合式函数参数 | 已弃用的自动滚动位置参数配置 |
+| [`LegacyUseAutoScrollOptions`](#useautoscroll) | 组合式函数参数 | 已弃用的自动滚动位置参数配置 |
 
 #### 类型定义 {#类型定义}
 

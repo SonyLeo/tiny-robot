@@ -238,44 +238,44 @@ import type {
 
 | 类型名                               | 类型或签名 | 说明                                                                |
 | ------------------------------------ | ---------- | ------------------------------------------------------------------- |
-| `ExtensionCardAction`                | union      | Card 的 switch、button 和 custom action。                           |
-| `ExtensionCardActionBase`            | interface  | 所有 Card action 共有的标识、文案、图标和状态字段。                 |
-| `ExtensionCardSwitchAction`          | interface  | `checked` 值由应用提供的 switch action。                            |
-| `ExtensionCardButtonAction`          | interface  | 普通 button action。                                                |
-| `ExtensionCardCustomAction`          | interface  | 可由 `primary-action` 插槽渲染的 custom action。                    |
-| `ExtensionCardRenderableAction`      | union      | 从每种 `ExtensionCardAction` 中移除 `hidden` 字段后得到的联合类型。 |
-| `ExtensionCardActionEvent`           | interface  | Card 触发 action 事件时提供的数据。                                 |
-| `ExtensionCardProps`                 | interface  | Card 的公开 Props 类型。                                            |
-| `ExtensionCardEmits`                 | interface  | Card 的公开事件类型。                                               |
-| `ExtensionCardSlots`                 | interface  | Card 的公开插槽类型。                                               |
-| `ExtensionCardOverflowMenuPlacement` | union      | `'bottom-end' \| 'top-end'`。                                       |
+| [`ExtensionCardAction`](#独立组合-card-与-cardgrid)                | union      | Card 的 switch、button 和 custom action。                           |
+| [`ExtensionCardActionBase`](#独立组合-card-与-cardgrid)            | interface  | 所有 Card action 共有的标识、文案、图标和状态字段。                 |
+| [`ExtensionCardSwitchAction`](#独立组合-card-与-cardgrid)          | interface  | `checked` 值由应用提供的 switch action。                            |
+| [`ExtensionCardButtonAction`](#独立组合-card-与-cardgrid)          | interface  | 普通 button action。                                                |
+| [`ExtensionCardCustomAction`](#独立组合-card-与-cardgrid)          | interface  | 可由 `primary-action` 插槽渲染的 custom action。                    |
+| [`ExtensionCardRenderableAction`](#独立组合-card-与-cardgrid)      | union      | 从每种 `ExtensionCardAction` 中移除 `hidden` 字段后得到的联合类型。 |
+| [`ExtensionCardActionEvent`](#独立组合-card-与-cardgrid)           | interface  | Card 触发 action 事件时提供的数据。                                 |
+| [`ExtensionCardProps`](#独立组合-card-与-cardgrid)                 | interface  | Card 的公开 Props 类型。                                            |
+| [`ExtensionCardEmits`](#独立组合-card-与-cardgrid)                 | interface  | Card 的公开事件类型。                                               |
+| [`ExtensionCardSlots`](#独立组合-card-与-cardgrid)                 | interface  | Card 的公开插槽类型。                                               |
+| [`ExtensionCardOverflowMenuPlacement`](#独立组合-card-与-cardgrid) | union      | `'bottom-end' \| 'top-end'`。                                       |
 
 #### CardGrid Types {#cardgrid-types}
 
 | 类型名                            | 类型或签名 | 说明                                              |
 | --------------------------------- | ---------- | ------------------------------------------------- |
-| `ExtensionCardGridItem`           | type       | 带 `id` 的 Card 数据。                            |
-| `ExtensionCardGridActionEvent`    | interface  | 包含 `itemId` 和 Card action 的事件数据。         |
-| `ExtensionCardGridNameClickEvent` | interface  | 包含 `itemId` 和 Card name-click 原生事件的数据。 |
-| `ExtensionCardGridProps`          | interface  | CardGrid 的公开 Props 类型。                      |
-| `ExtensionCardGridEmits`          | interface  | CardGrid 的公开事件类型。                         |
-| `ExtensionCardGridSlots`          | interface  | CardGrid 的公开插槽类型。                         |
+| [`ExtensionCardGridItem`](#独立组合-card-与-cardgrid)           | type       | 带 `id` 的 Card 数据。                            |
+| [`ExtensionCardGridActionEvent`](#独立组合-card-与-cardgrid)    | interface  | 包含 `itemId` 和 Card action 的事件数据。         |
+| [`ExtensionCardGridNameClickEvent`](#独立组合-card-与-cardgrid) | interface  | 包含 `itemId` 和 Card name-click 原生事件的数据。 |
+| [`ExtensionCardGridProps`](#独立组合-card-与-cardgrid)          | interface  | CardGrid 的公开 Props 类型。                      |
+| [`ExtensionCardGridEmits`](#独立组合-card-与-cardgrid)          | interface  | CardGrid 的公开事件类型。                         |
+| [`ExtensionCardGridSlots`](#独立组合-card-与-cardgrid)          | interface  | CardGrid 的公开插槽类型。                         |
 
 #### ExtensionManager Types {#extensionmanager-types}
 
 | 类型名                               | 类型或签名 | 说明                                                                   |
 | ------------------------------------ | ---------- | ---------------------------------------------------------------------- |
-| `ExtensionManagerItem`               | type       | `ExtensionManager` 接收的条目；在 Grid item 基础上增加分区和筛选字段。 |
-| `ExtensionManagerTab`                | interface  | `ExtensionManager` 的标签页数据。                                      |
-| `ExtensionManagerSectionKey`         | union      | `'installed' \| 'available'`。                                         |
-| `ExtensionManagerTagOption`          | interface  | 组件根据当前数据生成的标签选项结构。                                   |
-| `ExtensionManagerTabChangeEvent`     | interface  | 标签切换事件数据。                                                     |
-| `ExtensionManagerSectionToggleEvent` | interface  | 分区折叠事件数据。                                                     |
-| `ExtensionManagerActionEvent`        | interface  | 包含标签页、分区、条目和 Card action 的事件数据。                      |
-| `ExtensionManagerNameClickEvent`     | interface  | 包含标签页、分区、条目和 Card name-click 原生事件的数据。              |
-| `ExtensionManagerProps`              | interface  | `ExtensionManager` 的公开 Props 类型。                                 |
-| `ExtensionManagerEmits`              | interface  | `ExtensionManager` 的公开事件类型。                                    |
-| `ExtensionManagerSlots`              | interface  | `ExtensionManager` 的公开插槽类型。                                    |
+| [`ExtensionManagerItem`](#快速开始)               | type       | `ExtensionManager` 接收的条目；在 Grid item 基础上增加分区和筛选字段。 |
+| [`ExtensionManagerTab`](#快速开始)                | interface  | `ExtensionManager` 的标签页数据。                                      |
+| [`ExtensionManagerSectionKey`](#快速开始)         | union      | `'installed' \| 'available'`。                                         |
+| [`ExtensionManagerTagOption`](#筛选与自动分区)    | interface  | 组件根据当前数据生成的标签选项结构。                                   |
+| [`ExtensionManagerTabChangeEvent`](#当前标签页)   | interface  | 标签切换事件数据。                                                     |
+| [`ExtensionManagerSectionToggleEvent`](#状态管理分工) | interface | 分区折叠事件数据。                                                     |
+| [`ExtensionManagerActionEvent`](#处理操作事件)    | interface  | 包含标签页、分区、条目和 Card action 的事件数据。                      |
+| [`ExtensionManagerNameClickEvent`](#处理操作事件) | interface  | 包含标签页、分区、条目和 Card name-click 原生事件的数据。              |
+| [`ExtensionManagerProps`](#快速开始)              | interface  | `ExtensionManager` 的公开 Props 类型。                                 |
+| [`ExtensionManagerEmits`](#处理操作事件)           | interface  | `ExtensionManager` 的公开事件类型。                                    |
+| [`ExtensionManagerSlots`](#定制-extensionmanager-区域) | interface | `ExtensionManager` 的公开插槽类型。                                  |
 
 #### 核心数据与事件类型（节选） {#核心数据与事件类型-节选}
 

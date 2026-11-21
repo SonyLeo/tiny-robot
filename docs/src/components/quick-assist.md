@@ -699,14 +699,14 @@ function configureVanillaTheme(config: VanillaThemeConfig, root?: Document): voi
 
 | 字段 | 类型 | 默认值 | 说明 |
 | --- | --- | --- | --- |
-| `type` | `'attribute' \| 'class'` | 必填 | 按属性值或 class 判断主题 |
-| `selector` | `string` | `'html'` | 主题来源元素的 CSS 选择器，取首个匹配元素 |
-| `attribute` | `string` | `'data-tr-color-mode'` | 仅 `attribute` 类型：监听的属性名 |
-| `values.light` | `string` | `'light'` | 仅 `attribute` 类型：亮色对应的属性值 |
-| `values.dark` | `string` | `'dark'` | 仅 `attribute` 类型：暗色对应的属性值 |
-| `darkClass` | `string` | `'dark'` | 仅 `class` 类型：暗色 class 名，按完整 token 匹配 |
-| `lightClass` | `string` | — | 仅 `class` 类型：可选亮色 class 名；亮暗同时存在时暗色优先 |
-| `defaultMode` | `'light' \| 'dark'` | `'light'` | 属性值未知、class 均未匹配或来源元素移除时的回退模式 |
+| [`type`](#example-theme) | `'attribute' \| 'class'` | 必填 | 按属性值或 class 判断主题 |
+| [`selector`](#example-theme) | `string` | `'html'` | 主题来源元素的 CSS 选择器，取首个匹配元素 |
+| [`attribute`](#example-theme) | `string` | `'data-tr-color-mode'` | 仅 `attribute` 类型：监听的属性名 |
+| [`values.light`](#example-theme) | `string` | `'light'` | 仅 `attribute` 类型：亮色对应的属性值 |
+| [`values.dark`](#example-theme) | `string` | `'dark'` | 仅 `attribute` 类型：暗色对应的属性值 |
+| [`darkClass`](#example-theme) | `string` | `'dark'` | 仅 `class` 类型：暗色 class 名，按完整 token 匹配 |
+| [`lightClass`](#example-theme) | `string` | — | 仅 `class` 类型：可选亮色 class 名；亮暗同时存在时暗色优先 |
+| [`defaultMode`](#example-theme) | `'light' \| 'dark'` | `'light'` | 属性值未知、class 均未匹配或来源元素移除时的回退模式 |
 
 ### Events {#events}
 
@@ -714,7 +714,7 @@ function configureVanillaTheme(config: VanillaThemeConfig, root?: Document): voi
 
 - `sessionId: number`：实例内划词会话编号，每次接受新选区时递增，用于串联同一次划词从开始到关闭的事件；初始化配置错误发生在划词前，`sessionId` 为 `0`。
 
-| `event.type` | 附加字段 | 触发时机与说明 |
+| [`event.type`](#example-events) | 附加字段 | 触发时机与说明 |
 | --- | --- | --- |
 | [`selection`](#example-events) | — | 接受新的合法选区或主动激活 |
 | [`trigger_show`](#example-events) | — | 展示划词入口 |
@@ -727,15 +727,15 @@ function configureVanillaTheme(config: VanillaThemeConfig, root?: Document): voi
 
 `QuickAssistErrorStage` 全部取值：
 
-| `stage` 值 | 触发场景 |
+| [`stage` 值](#example-events) | 触发场景 |
 | --- | --- |
-| `'config'` | `createQuickAssist` 或 `updateOptions` 参数校验失败 |
-| `'context'` | `getContext` 或上下文基础提取异常 |
-| `'sanitize'` | `sanitizeContext` 抛错、返回值缺少必填字段或含不可克隆对象 |
-| `'suggestions'` | 静态模板求值异常、`getSuggestions` 失败、响应无效、`validateSuggestion` / `mergeSuggestions` 异常 |
-| `'prompt'` | `buildPrompt` 回调抛错 |
-| `'adapter'` | `adapter.submit(request)` 同步抛错或返回被拒绝的 Promise |
-| `'callback'` | `attrs.suggestion` 渲染回调抛错 |
+| [`'config'`](#example-events) | `createQuickAssist` 或 `updateOptions` 参数校验失败 |
+| [`'context'`](#example-events) | `getContext` 或上下文基础提取异常 |
+| [`'sanitize'`](#example-events) | `sanitizeContext` 抛错、返回值缺少必填字段或含不可克隆对象 |
+| [`'suggestions'`](#example-events) | 静态模板求值异常、`getSuggestions` 失败、响应无效、`validateSuggestion` / `mergeSuggestions` 异常 |
+| [`'prompt'`](#example-events) | `buildPrompt` 回调抛错 |
+| [`'adapter'`](#example-events) | `adapter.submit(request)` 同步抛错或返回被拒绝的 Promise |
+| [`'callback'`](#example-events) | `attrs.suggestion` 渲染回调抛错 |
 
 ### Types {#types}
 
@@ -743,21 +743,21 @@ function configureVanillaTheme(config: VanillaThemeConfig, root?: Document): voi
 
 | 类型名 | 用途 | 说明 |
 | --- | --- | --- |
-| `QuickAssistOptions` | 配置项 | `createQuickAssist` 入参配置 |
-| `QuickAssistInstance` | 实例句柄 | `createQuickAssist` 返回值 |
-| `AIAdapter` | 宿主适配器 | `{ submit: (request: AIRequest) => void \| Promise<void> }` |
-| `AIRequest` | 提交载荷 | 传给 `adapter.submit` 的冻结请求对象 |
-| `QuickAssistContext` | 上下文载荷 | 传给推荐、`buildPrompt` 与 `adapter` 的上下文对象 |
-| `Suggestion` / `SuggestionFactory` | 推荐项 | 静态或远程推荐对象 / 延迟求值工厂对象 |
-| `QuickAssistSuggestionInput` | 推荐输入联合类型 | `Suggestion \| SuggestionFactory` |
-| `BuildPromptInput` | Prompt 构造入参 | `{ query: string; context: QuickAssistContext; suggestion?: Suggestion }` |
-| `SelectionSnapshot` | 原生选区快照 | 传给 `selection.validate` 与 `getNearbyContext`（含 DOM `Range`） |
-| `QuickAssistActivationInput` / `QuickAssistAnchorShortcut` | 主动激活入参 | 完整几何句柄形式 / DOM 元素快捷形式 |
-| `QuickAssistActivationView` | 主动激活只读视图 | 传给 `selection.validateActivation`（不含 DOM `Range`） |
-| `QuickAssistSelectionSource` | 自定义触发源 | `registerSource` 入参 |
-| `QuickAssistAttrs` | 安全 DOM 属性映射 | `root`、`trigger`、`popover`、`input`、`submit`、`suggestion` |
-| `QuickAssistEvent` / `QuickAssistCloseReason` / `QuickAssistErrorStage` | 事件类型 | `onEvent` 回调载荷与枚举 |
-| `VanillaThemeConfig` / `VanillaThemeSource` / `VanillaColorMode` | 主题配置 | `configureVanillaTheme` 入参类型 |
+| [`QuickAssistOptions`](#example-basic) | 配置项 | `createQuickAssist` 入参配置 |
+| [`QuickAssistInstance`](#example-lifecycle) | 实例句柄 | `createQuickAssist` 返回值 |
+| [`AIAdapter`](#example-basic) | 宿主适配器 | `{ submit: (request: AIRequest) => void \| Promise<void> }` |
+| [`AIRequest`](#example-chat-panel) | 提交载荷 | 传给 `adapter.submit` 的冻结请求对象 |
+| [`QuickAssistContext`](#example-context) | 上下文载荷 | 传给推荐、`buildPrompt` 与 `adapter` 的上下文对象 |
+| [`Suggestion`](#example-suggestions) / [`SuggestionFactory`](#example-suggestions) | 推荐项 | 静态或远程推荐对象 / 延迟求值工厂对象 |
+| [`QuickAssistSuggestionInput`](#example-suggestions) | 推荐输入联合类型 | `Suggestion \| SuggestionFactory` |
+| [`BuildPromptInput`](#example-build-prompt) | Prompt 构造入参 | `{ query: string; context: QuickAssistContext; suggestion?: Suggestion }` |
+| [`SelectionSnapshot`](#example-selection-scope) | 原生选区快照 | 传给 `selection.validate` 与 `getNearbyContext`（含 DOM `Range`） |
+| [`QuickAssistActivationInput`](#example-activation) / [`QuickAssistAnchorShortcut`](#example-activation) | 主动激活入参 | 完整几何句柄形式 / DOM 元素快捷形式 |
+| [`QuickAssistActivationView`](#example-activation) | 主动激活只读视图 | 传给 `selection.validateActivation`（不含 DOM `Range`） |
+| [`QuickAssistSelectionSource`](#example-register-source) | 自定义触发源 | `registerSource` 入参 |
+| [`QuickAssistAttrs`](#example-attrs) | 安全 DOM 属性映射 | `root`、`trigger`、`popover`、`input`、`submit`、`suggestion` |
+| [`QuickAssistEvent`](#example-events) / [`QuickAssistCloseReason`](#example-events) / [`QuickAssistErrorStage`](#example-events) | 事件类型 | `onEvent` 回调载荷与枚举 |
+| [`VanillaThemeConfig`](#example-theme) / [`VanillaThemeSource`](#example-theme) / [`VanillaColorMode`](#example-theme) | 主题配置 | `configureVanillaTheme` 入参类型 |
 
 以下为接入时最常用的核心数据结构完整定义（其余签名见对应 API 表格与 `@opentiny/tiny-robot/vanilla` 类型声明）：
 
@@ -826,26 +826,26 @@ QuickAssist 支持在 `.tr-quick-assist` 上覆盖以下 CSS 变量。默认值�
 
 | 变量名 | 说明 | 默认值（浅色 / 深色） |
 | --- | --- | --- |
-| `--tr-quick-assist-bg` | 入口背景色及浅色浮层基础背景色 | `#fff` / `#262626`，可继承 `--tr-container-bg-default` |
-| `--tr-quick-assist-popover-bg` | 输入浮层、输入框及发送按钮背景色 | `var(--tr-quick-assist-bg)` / `#1a1a1a` |
-| `--tr-quick-assist-text` | 主要文字颜色 | `#191919` / `#e6e6e6`，可继承 `--tr-text-primary` |
-| `--tr-quick-assist-muted` | 入口悬停文字、推荐问题、输入框占位文字及状态提示颜色 | `#595959` / `#b3b3b3`，可继承 `--tr-text-secondary` |
-| `--tr-quick-assist-border` | 输入框、推荐问题描边及滚动条轨道参考色 | `#e6e6e6` / `rgba(255, 255, 255, 0.2)`，可继承 `--tr-assist-border-color` |
-| `--tr-quick-assist-trigger-border` | 入口描边颜色，悬停时保持不变 | `#dbdbdb` / `rgba(255, 255, 255, 0.2)`，可继承 `--tr-assist-trigger-border-color` |
-| `--tr-quick-assist-popover-border` | 输入浮层外描边颜色，悬停时保持不变 | `var(--tr-quick-assist-trigger-border)`（`#dbdbdb` / `rgba(255, 255, 255, 0.2)`） |
-| `--tr-quick-assist-hover-bg` | 推荐问题悬停背景色 | `#f5f5f5` / `#262626`，可继承 `--tr-assist-suggestion-bg-hover` |
-| `--tr-quick-assist-suggestion-bg` | 推荐问题默认背景色 | `var(--tr-quick-assist-popover-bg)`（`#fff` / `#1a1a1a`） |
-| `--tr-quick-assist-glow-opacity` | 输入框下沿四色渐变光晕透明度，设为 `0` 可隐藏 | `0.16` / `0.3` |
-| `--tr-quick-assist-scrollbar-thumb` | 输入框溢出时 4×16px 滚动条滑块颜色 | `#dbdbdb` / `#808080`（深色可继承 `--tr-text-disabled`） |
-| `--tr-quick-assist-accent` | 入口、发送按钮及推荐问题键盘聚焦轮廓颜色 | `#191919` / `#e6e6e6`，可继承 `--tr-text-primary` |
-| `--tr-quick-assist-radius` | 输入浮层圆角 | `16px` |
-| `--tr-quick-assist-pill-radius` | 入口及推荐问题按钮圆角 | `var(--tr-radius-full, 9999px)` |
-| `--tr-quick-assist-shadow` | 入口及输入浮层阴影 | `0 2px 8px 0 rgba(0, 0, 0, 0.16)` / `0 2px 8px 0 rgba(0, 0, 0, 0.48)` |
-| `--tr-quick-assist-z-index` | 组件层级 | `var(--tr-z-index-popover, 1500)` |
-| `--tr-quick-assist-popover-width` | 输入浮层宽度（仍受视口宽度减 `16px` 限制） | `344px` |
-| `--tr-quick-assist-selection-disabled-text` | 选区超限时禁用入口文字颜色 | `#c4c4c4` / `var(--tr-text-disabled, #808080)` |
-| `--tr-quick-assist-selection-disabled-border` | 选区超限时禁用入口描边颜色 | `#dbdbdb` / `var(--tr-quick-assist-trigger-border)` |
-| `--tr-quick-assist-selection-error` | 选区超限提示中当前字数的警示颜色 | `#f63737` / `var(--tr-color-error, #d94838)` |
+| [`--tr-quick-assist-bg`](#css-variables) | 入口背景色及浅色浮层基础背景色 | `#fff` / `#262626`，可继承 `--tr-container-bg-default` |
+| [`--tr-quick-assist-popover-bg`](#css-variables) | 输入浮层、输入框及发送按钮背景色 | `var(--tr-quick-assist-bg)` / `#1a1a1a` |
+| [`--tr-quick-assist-text`](#css-variables) | 主要文字颜色 | `#191919` / `#e6e6e6`，可继承 `--tr-text-primary` |
+| [`--tr-quick-assist-muted`](#css-variables) | 入口悬停文字、推荐问题、输入框占位文字及状态提示颜色 | `#595959` / `#b3b3b3`，可继承 `--tr-text-secondary` |
+| [`--tr-quick-assist-border`](#css-variables) | 输入框、推荐问题描边及滚动条轨道参考色 | `#e6e6e6` / `rgba(255, 255, 255, 0.2)`，可继承 `--tr-assist-border-color` |
+| [`--tr-quick-assist-trigger-border`](#css-variables) | 入口描边颜色，悬停时保持不变 | `#dbdbdb` / `rgba(255, 255, 255, 0.2)`，可继承 `--tr-assist-trigger-border-color` |
+| [`--tr-quick-assist-popover-border`](#css-variables) | 输入浮层外描边颜色，悬停时保持不变 | `var(--tr-quick-assist-trigger-border)`（`#dbdbdb` / `rgba(255, 255, 255, 0.2)`） |
+| [`--tr-quick-assist-hover-bg`](#css-variables) | 推荐问题悬停背景色 | `#f5f5f5` / `#262626`，可继承 `--tr-assist-suggestion-bg-hover` |
+| [`--tr-quick-assist-suggestion-bg`](#css-variables) | 推荐问题默认背景色 | `var(--tr-quick-assist-popover-bg)`（`#fff` / `#1a1a1a`） |
+| [`--tr-quick-assist-glow-opacity`](#css-variables) | 输入框下沿四色渐变光晕透明度，设为 `0` 可隐藏 | `0.16` / `0.3` |
+| [`--tr-quick-assist-scrollbar-thumb`](#css-variables) | 输入框溢出时 4×16px 滚动条滑块颜色 | `#dbdbdb` / `#808080`（深色可继承 `--tr-text-disabled`） |
+| [`--tr-quick-assist-accent`](#css-variables) | 入口、发送按钮及推荐问题键盘聚焦轮廓颜色 | `#191919` / `#e6e6e6`，可继承 `--tr-text-primary` |
+| [`--tr-quick-assist-radius`](#css-variables) | 输入浮层圆角 | `16px` |
+| [`--tr-quick-assist-pill-radius`](#css-variables) | 入口及推荐问题按钮圆角 | `var(--tr-radius-full, 9999px)` |
+| [`--tr-quick-assist-shadow`](#css-variables) | 入口及输入浮层阴影 | `0 2px 8px 0 rgba(0, 0, 0, 0.16)` / `0 2px 8px 0 rgba(0, 0, 0, 0.48)` |
+| [`--tr-quick-assist-z-index`](#css-variables) | 组件层级 | `var(--tr-z-index-popover, 1500)` |
+| [`--tr-quick-assist-popover-width`](#css-variables) | 输入浮层宽度（仍受视口宽度减 `16px` 限制） | `344px` |
+| [`--tr-quick-assist-selection-disabled-text`](#css-variables) | 选区超限时禁用入口文字颜色 | `#c4c4c4` / `var(--tr-text-disabled, #808080)` |
+| [`--tr-quick-assist-selection-disabled-border`](#css-variables) | 选区超限时禁用入口描边颜色 | `#dbdbdb` / `var(--tr-quick-assist-trigger-border)` |
+| [`--tr-quick-assist-selection-error`](#css-variables) | 选区超限提示中当前字数的警示颜色 | `#f63737` / `var(--tr-color-error, #d94838)` |
 
 > AI 图标和发送图标使用随深浅主题与禁用状态切换的内置 SVG 资源，不受 `--tr-quick-assist-text` 或 `--tr-quick-assist-accent` 控制。
 

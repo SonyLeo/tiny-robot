@@ -87,11 +87,11 @@ MCP 存储工具是独立的公开入口，表单不会自动调用它们；具�
 
 | 类型名                       | 类型或签名 | 说明                                |
 | ---------------------------- | ---------- | ----------------------------------- |
-| `McpExtensionFormMode`       | union      | `'form' \| 'code'`。                |
-| `McpExtensionFormValue`      | interface  | 一条经过表单或代码编辑的连接配置。  |
-| `McpExtensionFormProps`      | interface  | 表单的公开 Props。                  |
-| `McpExtensionFormSubmitMeta` | interface  | 提交来源，`source` 为当前输入方式。 |
-| `McpExtensionFormEmits`      | interface  | 表单的四个公开事件签名。            |
+| [`McpExtensionFormMode`](#使用-json-配置)       | union      | `'form' \| 'code'`。                |
+| [`McpExtensionFormValue`](#添加一条-mcp-连接)      | interface  | 一条经过表单或代码编辑的连接配置。  |
+| [`McpExtensionFormProps`](#mcpextensionform)      | interface  | 表单的公开 Props。                  |
+| [`McpExtensionFormSubmitMeta`](#添加一条-mcp-连接) | interface  | 提交来源，`source` 为当前输入方式。 |
+| [`McpExtensionFormEmits`](#mcpextensionform)      | interface  | 表单的四个公开事件签名。            |
 
 以下是 `McpExtensionFormValue` 与 `McpExtensionFormSubmitMeta` 的完整定义：
 
@@ -134,10 +134,10 @@ interface McpExtensionFormSubmitMeta {
 
 | 类型名                        | 类型或签名 | 说明                           |
 | ----------------------------- | ---------- | ------------------------------ |
-| `McpExtensionTool`            | interface  | 工具标识、显示信息与开关状态。 |
-| `McpExtensionDetailProps`     | interface  | 详情的公开 Props。             |
-| `McpExtensionToolToggleEvent` | interface  | 被切换工具的 ID 和目标状态。   |
-| `McpExtensionDetailEmits`     | interface  | `tool-toggle` 的公开事件签名。 |
+| [`McpExtensionTool`](#显示并切换工具)            | interface  | 工具标识、显示信息与开关状态。 |
+| [`McpExtensionDetailProps`](#mcpextensiondetail) | interface  | 详情的公开 Props。             |
+| [`McpExtensionToolToggleEvent`](#显示并切换工具) | interface  | 被切换工具的 ID 和目标状态。   |
+| [`McpExtensionDetailEmits`](#mcpextensiondetail) | interface  | `tool-toggle` 的公开事件签名。 |
 
 以下是 `McpExtensionTool` 与 `McpExtensionToolToggleEvent` 的完整定义：
 
@@ -193,23 +193,23 @@ await storage.deleteData(identity) // 配置仍可用 getOptions(identity) 读�
 
 | 公开入口                          | 签名                                                                                                                           | 用途                           |
 | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ------------------------------ |
-| `createMcpExtensionStorage`       | `<TBusiness>(options?: McpExtensionStorageOptions<TBusiness>) => McpExtensionStorage<TBusiness>`                               | Web Storage 或异步文档适配器。 |
-| `createMemoryMcpExtensionStorage` | `<TBusiness>(options?: Pick<McpExtensionStorageOptions<TBusiness>, 'parseBusinessOptions'>) => McpExtensionStorage<TBusiness>` | 独立的内存实例。               |
+| [`createMcpExtensionStorage`](#公开-mcp-存储工具)       | `<TBusiness>(options?: McpExtensionStorageOptions<TBusiness>) => McpExtensionStorage<TBusiness>`                               | Web Storage 或异步文档适配器。 |
+| [`createMemoryMcpExtensionStorage`](#公开-mcp-存储工具) | `<TBusiness>(options?: Pick<McpExtensionStorageOptions<TBusiness>, 'parseBusinessOptions'>) => McpExtensionStorage<TBusiness>` | 独立的内存实例。               |
 
 所有方法均返回 Promise。`identity` 是 `{ source, id }`。
 
 | 方法                                                             | 返回值                                                 | 行为                                                                                      |
 | ---------------------------------------------------------------- | ------------------------------------------------------ | ----------------------------------------------------------------------------------------- |
-| `listData()`                                                     | `Promise<McpExtensionData[]>`                          | 读取已保存的定义。                                                                        |
-| `getData(identity)`                                              | `Promise<McpExtensionData \| undefined>`               | 按稳定身份读取定义。                                                                      |
-| `upsertData(input)`                                              | `Promise<McpExtensionData>`                            | 保存定义；较高 `version` 更新，较低版本保持原定义，同版本内容冲突时报错；不修改 options。 |
-| `deleteData(identity)`                                           | `Promise<void>`                                        | 删除定义，保留 options；定义不存在时报错。                                                |
-| `getOptions(identity)`                                           | `Promise<McpExtensionOptions<TBusiness> \| undefined>` | 配置可以独立于定义存在。                                                                  |
-| `setOptions(identity, options)`                                  | `Promise<McpExtensionOptions<TBusiness>>`              | 保存工具策略及应用配置。                                                                  |
-| `deleteOptions(identity)`                                        | `Promise<void>`                                        | 显式清除配置。                                                                            |
-| `setToolEnabled(identity, toolId, enabled)`                      | `Promise<McpExtensionOptions<TBusiness>>`              | 只修改工具覆盖值，保留其他配置；没有定义时也可调用。                                      |
-| `create(input)` / `createFromConfig(config)`                     | `Promise<McpExtensionData>`                            | 手动添加：生成 `manual` 来源的 UUID、版本 1；配置文本仅接受单个服务器。                   |
-| `update(identity, input)` / `updateFromConfig(identity, config)` | `Promise<McpExtensionData>`                            | 编辑已保存的连接字段并递增版本；保留身份和 options。                                      |
+| [`listData()`](#公开-mcp-存储工具) | `Promise<McpExtensionData[]>`                          | 读取已保存的定义。                                                                        |
+| [`getData(identity)`](#公开-mcp-存储工具) | `Promise<McpExtensionData \| undefined>`               | 按稳定身份读取定义。                                                                      |
+| [`upsertData(input)`](#公开-mcp-存储工具) | `Promise<McpExtensionData>`                            | 保存定义；较高 `version` 更新，较低版本保持原定义，同版本内容冲突时报错；不修改 options。 |
+| [`deleteData(identity)`](#公开-mcp-存储工具) | `Promise<void>`                                        | 删除定义，保留 options；定义不存在时报错。                                                |
+| [`getOptions(identity)`](#公开-mcp-存储工具) | `Promise<McpExtensionOptions<TBusiness> \| undefined>` | 配置可以独立于定义存在。                                                                  |
+| [`setOptions(identity, options)`](#公开-mcp-存储工具) | `Promise<McpExtensionOptions<TBusiness>>`              | 保存工具策略及应用配置。                                                                  |
+| [`deleteOptions(identity)`](#公开-mcp-存储工具) | `Promise<void>`                                        | 显式清除配置。                                                                            |
+| [`setToolEnabled(identity, toolId, enabled)`](#公开-mcp-存储工具) | `Promise<McpExtensionOptions<TBusiness>>`              | 只修改工具覆盖值，保留其他配置；没有定义时也可调用。                                      |
+| [`create(input)`](#公开-mcp-存储工具) / [`createFromConfig(config)`](#公开-mcp-存储工具) | `Promise<McpExtensionData>` | 手动添加：生成 `manual` 来源的 UUID、版本 1；配置文本仅接受单个服务器。 |
+| [`update(identity, input)`](#公开-mcp-存储工具) / [`updateFromConfig(identity, config)`](#公开-mcp-存储工具) | `Promise<McpExtensionData>` | 编辑已保存的连接字段并递增版本；保留身份和 options。 |
 
 以下为本节存储类型的完整字段；`McpExtensionStorage<TBusiness>` 的全部方法列在上表。`McpExtensionTool` 的字段见前文详情组件 API。
 

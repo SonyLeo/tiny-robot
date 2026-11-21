@@ -134,14 +134,14 @@ description: 用于试用 Skill 导入。
 
 | 类型名                    | 类型或签名 | 说明                                                      |
 | ------------------------- | ---------- | --------------------------------------------------------- |
-| `SkillFileKind`           | union      | `'text' \| 'binary'`。                                    |
-| `SkillResourceDescriptor` | union      | 资源路径、标识、元数据及按种类区分的内容读取方式。        |
-| `SkillDefinition`         | interface  | 解析完成的 Skill 定义。                                   |
-| `SkillImportFormSource`   | union      | `'local' \| 'github'`。                                   |
-| `SkillImportFormInput`    | union      | 解析器收到的本地文件，或 GitHub URL 与仓库标识。          |
-| `SkillResolver`           | function   | 接收 `SkillImportFormInput`，异步返回 `SkillDefinition`。 |
-| `SkillImportFormProps`    | interface  | 导入组件的公开 Props。                                    |
-| `SkillImportFormEmits`    | interface  | `submit` 和 `cancel` 的公开事件签名。                     |
+| [`SkillFileKind`](#查看-skill-详情)           | union      | `'text' \| 'binary'`。                                    |
+| [`SkillResourceDescriptor`](#查看-skill-详情) | union      | 资源路径、标识、元数据及按种类区分的内容读取方式。        |
+| [`SkillDefinition`](#查看-skill-详情)         | interface  | 解析完成的 Skill 定义。                                   |
+| [`SkillImportFormSource`](#用法示例)   | union      | `'local' \| 'github'`。                                   |
+| [`SkillImportFormInput`](#观察加载-失败与重试)    | union      | 解析器收到的本地文件，或 GitHub URL 与仓库标识。          |
+| [`SkillResolver`](#观察加载-失败与重试)           | function   | 接收 `SkillImportFormInput`，异步返回 `SkillDefinition`。 |
+| [`SkillImportFormProps`](#skillimportform)    | interface  | 导入组件的公开 Props。                                    |
+| [`SkillImportFormEmits`](#skillimportform)    | interface  | `submit` 和 `cancel` 的公开事件签名。                     |
 
 以下是 `SkillDefinition`、`SkillImportFormInput` 与 `SkillResolver` 的完整定义：
 
@@ -186,7 +186,7 @@ type SkillResolver = (input: SkillImportFormInput) => Promise<SkillDefinition>
 
 | 类型名                      | 类型或签名 | 说明               |
 | --------------------------- | ---------- | ------------------ |
-| `SkillExtensionDetailProps` | interface  | 详情的公开 Props。 |
+| [`SkillExtensionDetailProps`](#skillextensiondetail) | interface  | 详情的公开 Props。 |
 
 `SkillExtensionDetail` 不触发公开事件；说明和资源都是只读内容。`updated-at` 只展示传入文本，不自行格式化日期。
 
