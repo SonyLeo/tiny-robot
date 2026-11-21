@@ -72,7 +72,7 @@ animated 模式在解析稳定内容后继续经过 block diff、reveal queue、
 3. **重写正确性：** 非前缀更新、插入、删除和整体替换必须使受影响状态失效；正确性优先于复用缓存。
 4. **完成态收敛：** `active=false` 时以原始、未补全内容执行正式解析；输出必须与同一原文一次性静态解析一致。
 
-当前实现通过 `stableContent` 与独立 `StreamTail` 隔离未完成内容，支持 link、image、table、code fence 等 hold，并提供 basic 与 animated 模式。`useIncompleteMarkdown.ts` 和 `useMarkdownSmoother.ts` 共用围栏扫描规则，识别行首围栏并保留原始输入偏移；最终 Markdown 语义仍由 parser 判定。系统要求减少动态效果时，流式内容使用基础呈现并保留 tail 和 active 状态。公开调研中的 `remend` 只作为临时语法预处理候选，不是 sanitizer、block cache、rewrite engine 或完整 renderer。若尝试，必须处理补全占位 URL，且 finalized 绝不解析补全结果。
+当前实现通过 `stableContent` 与独立 `StreamTail` 隔离未完成内容，支持 link、image、table、code fence 等 hold，并提供 basic 与 animated 模式。`useIncompleteMarkdown.ts` 和 `useMarkdownSmoother.ts` 共用围栏扫描规则，识别行首围栏并保留原始输入偏移；最终 Markdown 语义仍由 parser 判定。系统要求减少动态效果时，流式内容使用基础呈现并保留 tail 和 active 状态。隔离试验表明 `remend` 可以补全部分未终止行内语法，但无法替代当前围栏、表格和尾部处理，且生成的链接或图片占位值需要额外的呈现策略。本轮不引入；若后续试验，补全只作用于临时显示，finalized 仍解析原文。
 
 不得因为“按块缓存”看似更快就直接引入哈希缓存。文档级引用定义、脚注、前置 HTML、表格结构等可能影响先前区块。优化前先量测 parse count 和 parse cost；若采用缓存，必须证明依赖边界，非 append 更新采用保守失效。
 
