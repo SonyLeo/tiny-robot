@@ -315,6 +315,13 @@ Parser/renderer 整体替换、通用 IR 重构和完整 renderer 移植不在�
 - 新增语言通过现有 Highlight.js 安装解析，无新增生产依赖；`markdown-it`、`dompurify`、Vue peer 范围未改，Mermaid、KaTeX 和高亮引擎的构建外部化规则未改。本地解析依赖为 markdown-it 14.3.3、DOMPurify 3.4.18、Highlight.js 11.12.0、Shiki 2.5.0。仓库忽略 `pnpm-lock.yaml`，这些是验收版本，不是发布端固定版本。
 - 后续：用同一组中文语料收集阶段 3 三人盲评意见，记录评分和需调整项；分支集成时复跑 Markdown CT、Markdown/Bubble 集成用例、组件和文档构建、打包消费检查。当前未与 `robot/develop` 集成，也未发布。
 
+### 与 `robot/develop` 集成前检查（2026-11-22）
+
+- 远端 `develop` 与本地跟踪引用同为 `56e7e4ed4`。以阶段 6 提交 `b1dade391` 做 `git merge-tree --write-tree --name-only b1dade391 56e7e4ed4`，得到 13 个冲突文件。此命令没有变更工作树或分支。以下是解决冲突时需保留的行为；尚未做合并后的运行验证。
+- Bubble：保留上游消息内容解析与渲染器匹配，并核对 `BubbleRenderers.Markdown`、逐消息 `contentAttributes` 和普通文本回退。上游 `2179c5a83` 还修复了 Safari 代码区键盘横滚；切到 `TrMarkdown` 后，实际接收焦点和方向键的应该是代码滚动容器，不能只保留旧渲染器的 `<pre>` 属性。上游 Bubble CT 对滚动样式、焦点属性和键盘操作的断言应迁移到实际滚动容器，并保留长标题和列表的断行验证。合并后复跑窄屏、主题及 WebKit 键盘验证。
+- 测试：上游 CT 使用 `packages/test/component`，Markdown CT 位于 `packages/test/src/markdown-ct`。合并两套发现规则和页面初始化后，先用 `--list` 确认都能发现，再运行 Markdown、Bubble，以及 Markdown demo 的回归测试；检查 CT 专用 TypeScript 配置是否也覆盖 Markdown 用例。
+- 构建与消费：以上游 `pnpm@10.34.5`、包 `exports`、Kit peer 依赖和 vanilla 构建为基础，保留 Markdown 导出和高级依赖的按需加载规则。先运行 `pnpm build:components`、`pnpm -F docs build` 和上游 `pnpm test:package-install`；再适配并运行 Markdown 浏览器消费检查。现有 `test-package-consumer.mjs` 核对 `pnpm@9.15.0`，不能原样套用到上游。包安装成功也不能单独证明 Markdown 样式和高亮在浏览器中正常。
+
 ## 每阶段工作记录模板
 
 实施者每阶段在 PR 描述或工作记录中填写：
