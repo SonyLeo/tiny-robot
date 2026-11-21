@@ -262,7 +262,7 @@ Parser/renderer 整体替换、通用 IR 重构和完整 renderer 移植不在�
 | 1：流式正确性 | 已完成 | 共享 fence scanner、异步高亮有效性与 reduced motion 已验收；19 项组合 CT、组件 type-check 通过。实现与边界记录见本表之后的阶段日志 |
 | 2：解析触发条件 | 已完成 | 默认语法键、引用投影、自定义 adapter 兼容和旧解析失效已验收；保留 parser 实例隔离 |
 | 3：默认视觉 | 待人工验收 | 标题、编号列表、表格语义、窄屏和 demo 默认测试通过；需 3 人盲评 |
-| 4：高亮 Spike | 进行中 | 核对 Highlight.js、补齐语言并调色的 Highlight.js、Shiki 三组同容器对照与消费构建量测 |
+| 4：高亮 Spike | 已完成 | 保留 Highlight.js 默认和 Shiki 可选；为现有引擎补 Python、SQL、YAML，颜色候选留待评审 |
 | 5：预处理/renderer Spike | 已完成，保留现状 | remend 对部分行内中途态有帮助，未证明可删现有流逻辑；完整 renderer 不启动原型 |
 | 6：收敛发布 | 进行中 | 聚合源码回归、生产文档和打包消费检查；待阶段 3 人工验收后收口 |
 
@@ -288,6 +288,12 @@ Parser/renderer 整体替换、通用 IR 重构和完整 renderer 移植不在�
 - 列表保留 `start`（含 `0`），表格只转发 left/center/right 对齐，375px 下验证表格内部可滚动而页面不被撑开。demo 默认不注入排版 CSS，关闭「production defaults」才启用自定义值。
 - `tr-markdown-phase0.spec.ts` + `tr-markdown-phase3.spec.ts`：7 项通过，核对并重建两张 Bubble 生产回归截图；demo 的默认排版切换 E2E 通过；组件和 demo type-check 通过。
 - 待 3 人在同文案、同宽度、同主题条件下盲评中文可读性、标题层级/间距、列表/表格、代码块与主题一致性。此项尚未验收。
+
+### 阶段 4 记录（2026-11-22）
+
+- 用 `node phase4-highlight-spike/run-phase4.mjs` 比较当前 Highlight.js、加入 Python/SQL/YAML 的 Highlight.js、当前可选 Shiki。统一代码、容器、字体与行高，为 Highlight.js 另外比较两套调色。当前两引擎均对白名单外的 Python/SQL/YAML 降级；增加三个语法模块直接补齐缺口。维持默认 Highlight.js、可选 Shiki 和当前发布颜色，没有引入新包，也未引入 `@shikijs/stream`。
+- 隔离消费构建量测的三个按需块约为 1.76 / 2.70 / 1.11 kB gzip；同构建入口的全部输出约增加 5.81 kB gzip，包含哈希与共享 chunk 布局变化，不能把全量输出视为首屏下载。浏览器试验量的是模块基本就绪后的着色完成时间，原文 DOM 写入计时不等于首次可见或冷请求。暂未获得默认引擎更替所需的人工评分和预算，调色色板也仅为候选。
+- 源码 CT 验证 Python（含 `py`）、SQL、YAML（含 `yml`）着色、原文和复制结果、未知语言纯文本。闭合 fence 的 append/rewrite 对照验证最终文本一致；异步竞态由阶段 1 CT 单独验收。
 
 ### 发布验证预检（2026-11-22）
 

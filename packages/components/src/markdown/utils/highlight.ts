@@ -60,12 +60,17 @@ const languageModules = {
   jsx: () => import('highlight.js/lib/languages/javascript'),
   markdown: () => import('highlight.js/lib/languages/markdown'),
   md: () => import('highlight.js/lib/languages/markdown'),
+  py: () => import('highlight.js/lib/languages/python'),
+  python: () => import('highlight.js/lib/languages/python'),
   sh: () => import('highlight.js/lib/languages/bash'),
   shell: () => import('highlight.js/lib/languages/bash'),
+  sql: () => import('highlight.js/lib/languages/sql'),
   ts: () => import('highlight.js/lib/languages/typescript'),
   tsx: () => import('highlight.js/lib/languages/typescript'),
   typescript: () => import('highlight.js/lib/languages/typescript'),
   xml: () => import('highlight.js/lib/languages/xml'),
+  yaml: () => import('highlight.js/lib/languages/yaml'),
+  yml: () => import('highlight.js/lib/languages/yaml'),
 } as const
 
 const ensureHighlightCacheSize = () => {
