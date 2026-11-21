@@ -315,6 +315,7 @@ Parser/renderer 整体替换、通用 IR 重构和完整 renderer 移植不在�
 - `pnpm build:components` 通过，组件库 Markdown 入口为 166.90 kB / 40.62 kB gzip。`pnpm -F docs build` 通过，VitePress 生成客户端和服务端 bundle 及静态页面；仍有文档插件外部化提示与大 chunk 提示。库入口大小仅供对照。
 - 从仓库根目录先运行 `pnpm build:components`，再运行 `node scripts/test-package-consumer.mjs`，可复跑最终消费检查。脚本打包组件库及 SVG 工作区依赖，将两个本地 tarball 安装到临时 Vue 项目并用 Vite 构建，再用浏览器检查生产页面。已核对打包清单中的 SVG 依赖版本已改写、深色主题标记生效、有序列表保留 `start="3"`，以及显示 TypeScript、显示 Python、切换 Shiki 时分别按需下载相应的 JavaScript 文件并完成着色。运行无页面错误；消费端仍有 Vite 大 chunk 提示。这项检查覆盖本地打包产物，不代表 registry 发布或分支集成后的结果。
 - 新增语言通过现有 Highlight.js 安装解析，无新增生产依赖；`markdown-it`、`dompurify`、Vue peer 范围未改，Mermaid、KaTeX 和高亮引擎的构建外部化规则未改。本地解析依赖为 markdown-it 14.3.3、DOMPurify 3.4.18、Highlight.js 11.12.0、Shiki 2.5.0。仓库忽略 `pnpm-lock.yaml`，这些是验收版本，不是发布端固定版本。
+- Vue 版本边界：打包消费脚本默认测 Vue 3.5.46；设置 `TINY_ROBOT_CONSUMER_VUE_VERSION=3.3.11` 可复验声明下限。两组均以单一 Vue 安装运行，覆盖主题、列表语义、图片画廊打开/关闭及高亮按需加载。Vue 3.3.11 下，`@vueuse/core` 和 `@vueuse/shared` 13.9.0 的 `vue@^3.5.0` peer 仍产生安装警告。此结果证明这组 Markdown 浏览器场景可运行，不能代表严格 peer 安装或其余组件也通过；合入后用上游安装检查复核依赖约束。
 - 后续：用同一组中文语料收集阶段 3 三人盲评意见，记录评分和需调整项；分支集成时复跑 Markdown CT、Markdown/Bubble 集成用例、组件和文档构建、打包消费检查。当前未与 `robot/develop` 集成，也未发布。
 - 阶段 3 键盘补丁后，重新运行全部 Markdown Chromium CT（47 通过，1 项可选量测默认跳过）、Markdown/Bubble E2E（4 通过）及 WebKit 专项键盘 CT（2 通过）。组件和测试类型检查、组件包构建、文档构建与本地打包消费检查均通过。WebKit 仅运行了这两项验收，未将结果外推为全套 WebKit 回归通过。
 

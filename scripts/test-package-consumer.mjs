@@ -1,5 +1,5 @@
 import { createRequire } from 'node:module'
-import { copyFileSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { copyFileSync, existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { basename, join, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
@@ -8,6 +8,7 @@ import { execFileSync } from 'node:child_process'
 const scriptDir = resolve(fileURLToPath(new URL('.', import.meta.url)))
 const repo = resolve(scriptDir, '..')
 const pnpmVersion = '9.15.0'
+const consumerVueVersion = process.env.TINY_ROBOT_CONSUMER_VUE_VERSION || '3.5.46'
 const consumerFiles = {
   'index.html':
     '<!doctype html><html lang="en"><meta charset="utf-8"><title>Packaged TinyRobot Markdown</title><div id="app"></div><script type="module" src="/main.js"></script></html>\n',
@@ -15,7 +16,7 @@ const consumerFiles = {
 import { TrMarkdown, TrThemeProvider } from '@opentiny/tiny-robot'
 import '@opentiny/tiny-robot/dist/style.css'
 
-const content = ref('# Packed Markdown\\n\\n3. Real ordered list\\n4. Next item')
+const content = ref('# Packed Markdown\\n\\n3. Real ordered list\\n4. Next item\\n\\n![Desk setup](data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs= "Desk setup")')
 const engine = ref('highlightjs')
 createApp({
   setup() {
@@ -24,7 +25,11 @@ createApp({
         h('button', { id: 'show-code', onClick: () => { content.value += '\\n\\n' + String.fromCharCode(96).repeat(3) + 'ts\\nconst ready = true\\n' + String.fromCharCode(96).repeat(3) } }, 'Show code'),
         h('button', { id: 'show-python', onClick: () => { content.value += '\\n\\n' + String.fromCharCode(96).repeat(3) + 'python\\ndef ready():\\n    return True\\n' + String.fromCharCode(96).repeat(3) } }, 'Show Python'),
         h('button', { id: 'switch-engine', onClick: () => { engine.value = 'shiki' } }, 'Switch engine'),
-        h(TrMarkdown, { content: content.value, code: { highlight: { engine: engine.value } } }),
+        h(TrMarkdown, {
+          content: content.value,
+          code: { highlight: { engine: engine.value } },
+          features: { imageGallery: { enabled: true } },
+        }),
       ],
     })
   },
@@ -43,6 +48,20 @@ const run = (command, args, cwd, options = {}) => {
 
 const readPackedManifest = (archive) => {
   return JSON.parse(run('tar', ['-xOzf', archive, 'package/package.json'], repo))
+}
+
+const findInstalledVueVersions = (root) => {
+  const nodeModules = join(root, 'node_modules')
+  const pnpmStore = join(nodeModules, '.pnpm')
+  const backingManifests = existsSync(pnpmStore)
+    ? readdirSync(pnpmStore)
+        .filter((entry) => entry.startsWith('vue@'))
+        .map((entry) => join(pnpmStore, entry, 'node_modules/vue/package.json'))
+        .filter((manifestPath) => existsSync(manifestPath))
+    : [join(nodeModules, 'vue/package.json')]
+  const versions = backingManifests.map((manifestPath) => JSON.parse(readFileSync(manifestPath, 'utf8')).version)
+  const rootVersion = JSON.parse(readFileSync(join(nodeModules, 'vue/package.json'), 'utf8')).version
+  return { backingManifests, rootVersion, versions }
 }
 
 const pack = (workspace, packDir) => {
@@ -93,7 +112,7 @@ const smoke = async () => {
             [svgPackageName]: `file:${svgFile}`,
             dompurify: '3.4.18',
             'markdown-it': '14.3.3',
-            vue: '3.5.46',
+            vue: consumerVueVersion,
           },
           devDependencies: { vite: '5.4.21' },
           pnpm: { overrides: { [svgPackageName]: `file:${svgFile}` } },
@@ -110,6 +129,16 @@ const smoke = async () => {
     )
     if (JSON.stringify(installedManifest).includes('workspace:')) {
       throw new Error('Installed TinyRobot package manifest still contains workspace: references')
+    }
+    const installedVue = findInstalledVueVersions(staging)
+    if (
+      installedVue.backingManifests.length !== 1 ||
+      installedVue.rootVersion !== consumerVueVersion ||
+      installedVue.versions[0] !== consumerVueVersion
+    ) {
+      throw new Error(
+        `Consumer staging must contain exactly one Vue ${consumerVueVersion} backing package; root=${installedVue.rootVersion || 'none'}, backings=${installedVue.versions.join(', ') || 'none'}`,
+      )
     }
 
     run('pnpm', ['exec', 'vite', 'build'], staging, { stdio: 'inherit' })
@@ -133,6 +162,23 @@ const smoke = async () => {
     if ((await page.locator('html[data-tr-color-mode="dark"]').count()) !== 1) {
       throw new Error('Consumer page did not apply the dark color mode')
     }
+    const markdown = page.locator('.tr-markdown').first()
+    await markdown.locator('[data-image-gallery-trigger="true"]').first().waitFor({ state: 'visible' })
+    if ((await markdown.getAttribute('data-image-gallery-enabled')) !== 'true') {
+      throw new Error('Consumer page did not enable the Markdown image gallery')
+    }
+    if ((await markdown.getAttribute('data-image-gallery-count')) !== '1') {
+      throw new Error('Consumer page did not collect the Markdown image gallery item')
+    }
+    await markdown.locator('[data-image-gallery-trigger="true"]').first().click()
+    const gallery = page.locator('[data-image-gallery="true"]').first()
+    await gallery.waitFor({ state: 'visible' })
+    await gallery
+      .locator('.tr-markdown__image-gallery-caption')
+      .filter({ hasText: 'Desk setup' })
+      .waitFor({ state: 'visible' })
+    await gallery.getByRole('button', { name: 'Close image gallery' }).click()
+    await gallery.waitFor({ state: 'hidden' })
 
     const resourcesBeforeCode = new Set(responseUrls)
     if (
@@ -178,7 +224,7 @@ const smoke = async () => {
     if (pageErrors.length) throw new Error(`Consumer browser errors:\n${pageErrors.join('\n')}`)
 
     console.log(
-      'Packed Markdown consumer passed: workspace dependency rewriting, dark theme, ordered list, and on-demand TypeScript, Python, and Shiki chunks.',
+      `Packed Markdown consumer passed on Vue ${consumerVueVersion}: workspace dependency rewriting, dark theme, ordered list, image gallery, and on-demand TypeScript, Python, and Shiki chunks.`,
     )
   } finally {
     if (browser) await browser.close()
