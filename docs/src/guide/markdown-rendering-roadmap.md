@@ -318,6 +318,7 @@ Parser/renderer 整体替换、通用 IR 重构和完整 renderer 移植不在�
 - Vue 版本边界：打包消费脚本默认测 Vue 3.5.46；设置 `TINY_ROBOT_CONSUMER_VUE_VERSION=3.3.11` 可复验声明下限。两组均以单一 Vue 安装运行，覆盖主题、列表语义、图片画廊打开/关闭及高亮按需加载。Vue 3.3.11 下，`@vueuse/core` 和 `@vueuse/shared` 13.9.0 的 `vue@^3.5.0` peer 仍产生安装警告。此结果证明这组 Markdown 浏览器场景可运行，不能代表严格 peer 安装或其余组件也通过；合入后用上游安装检查复核依赖约束。
 - 后续：用同一组中文语料收集阶段 3 三人盲评意见，记录评分和需调整项；分支集成时复跑 Markdown CT、Markdown/Bubble 集成用例、组件和文档构建、打包消费检查。当前未与 `robot/develop` 集成，也未发布。
 - 阶段 3 键盘补丁后，重新运行全部 Markdown Chromium CT（47 通过，1 项可选量测默认跳过）、Markdown/Bubble E2E（4 通过）及 WebKit 专项键盘 CT（2 通过）。组件和测试类型检查、组件包构建、文档构建与本地打包消费检查均通过。WebKit 仅运行了这两项验收，未将结果外推为全套 WebKit 回归通过。
+- 在安装 WebKit 26.5 的环境中，已用隔离 Playwright CT 配置运行 `tr-markdown-code-html.spec.ts`：7 项通过、1 项失败。唯一失败为 `.shiki .line.diff.add`：代码块正常高亮，但 `[!code ++]` 保留为普通注释，未转换为 Shiki `diff add` 行；同一组件测试在 Chromium 通过。Shiki 2.5 原生 JavaScript regex engine 的 `auto` 和 `ES2018` 均可转换独立验证语料，但组件路径在 WebKit 仍失败，原因尚未确认。此已复现差异限于可选 Shiki notation transformer 的 WebKit 组合，不影响本轮通过的键盘横滚测试；默认高亮仍为 Highlight.js。阶段 4 已记录已比较的实现和语言选择，不代表所有可选引擎组合在各浏览器等价。
 
 ### 与 `robot/develop` 集成前检查（2026-11-22）
 
