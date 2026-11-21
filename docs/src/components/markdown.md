@@ -52,6 +52,8 @@ outline: [1, 3]
 
 默认用 Highlight.js 着色，支持 Python（`python` / `py`）、SQL、YAML（`yaml` / `yml`）等语言。也可选用示例中的 Shiki；两个引擎的支持语言不同，未识别的语言以纯文本显示。系统要求减少动态效果时，生成中的 Markdown 继续更新，但不会逐字播放。
 
+直接安装组件包时，项目需满足组件包声明的 Vue `^3.3.11`、`markdown-it ^14.1.0` 和 `dompurify ^3.3.1` peer 依赖，并在应用入口引入 `@opentiny/tiny-robot/dist/style.css`。普通 Markdown 的原始 HTML 默认关闭；`features.htmlPreview` 单独控制 fenced HTML 的沙箱预览。
+
 ## Bubble 集成
 
 Bubble 集成不需要修改 Bubble 源码，推荐通过 `BubbleRenderers.Markdown` 接入。

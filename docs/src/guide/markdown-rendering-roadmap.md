@@ -264,7 +264,7 @@ Parser/renderer 整体替换、通用 IR 重构和完整 renderer 移植不在�
 | 3：默认视觉 | 待人工验收 | 标题、编号列表、表格语义、窄屏和 demo 默认测试通过；需 3 人盲评 |
 | 4：高亮 Spike | 已完成 | 保留 Highlight.js 默认和 Shiki 可选；为现有引擎补 Python、SQL、YAML，颜色候选留待评审 |
 | 5：预处理/renderer Spike | 已完成，保留现状 | remend 对部分行内中途态有帮助，未证明可删现有流逻辑；完整 renderer 不启动原型 |
-| 6：收敛发布 | 进行中 | 聚合源码回归、生产文档和打包消费检查；待阶段 3 人工验收后收口 |
+| 6：收敛发布 | 技术验收通过 | 源码回归、组件构建、生产文档构建和本地打包消费检查均通过；分支集成与发布尚未执行 |
 
 阶段可并行准备与评审，但实施依赖须遵守：0 → 1 → 2；视觉阶段 3 可在基线冻结后与纯流逻辑工作并行；高亮 4 与 remend 5A 可并行；完整 renderer 5B 等现有语义 fixture 定型、且有明确待验证优势后再启动。阶段 4、5 的验收允许以证据支持「保留现状」收尾；在预算或人工评分缺失时，不提升候选为生产默认。
 
@@ -306,6 +306,14 @@ Parser/renderer 整体替换、通用 IR 重构和完整 renderer 移植不在�
 - 当前 `stableContent + tailContent` 在测试语料中保持原文；11 个收尾输入用 `active=false` 重新解析原文，结果与静态解析一致。此结果只确认原文收尾边界；试验未接入生产渲染，不能据此宣称替换后已通过组件、安全或性能验收。
 - 默认保留共享围栏扫描、table hold、link/image hold 和 smoother。对未闭合强调和行内代码有明确产品诉求时，可再单测仅限这两类的临时补全，验证布局跳变和源码/复制/引用隔离。当前无生产依赖变更。
 - 5B 不启动。`@comark/vue@0.9.2` 的 Vue peer `^3.5.43` 高于 TinyRobot 最低兼容版本；`markstream-vue@2.0.29` 声明 Vue `>=3.0.0`，本次未找到足以抵消节点映射、主题、回归和迁移成本的明确替换点。
+
+### 阶段 6 记录（2026-11-22）
+
+- 源码验证：Markdown CT 共 45 项通过、1 项按默认设置跳过（可选 parser 基准已在阶段 2 单独运行）；Markdown/Bubble 集成 E2E 4 项、Markdown demo E2E 2 项通过。组件、测试和 demo 类型检查通过。
+- `pnpm build:components` 通过，组件库 Markdown 入口为 166.90 kB / 40.62 kB gzip。`pnpm -F docs build` 通过，VitePress 生成客户端和服务端 bundle 及静态页面；仍有文档插件外部化提示与大 chunk 提示。库入口大小仅供对照。
+- 从仓库根目录先运行 `pnpm build:components`，再运行 `node scripts/test-package-consumer.mjs`，可复跑最终消费检查。脚本打包组件库及 SVG 工作区依赖，将两个本地 tarball 安装到临时 Vue 项目并用 Vite 构建，再用浏览器检查生产页面。已核对打包清单中的 SVG 依赖版本已改写、深色主题标记生效、有序列表保留 `start="3"`，以及显示 TypeScript、显示 Python、切换 Shiki 时分别按需下载相应的 JavaScript 文件并完成着色。运行无页面错误；消费端仍有 Vite 大 chunk 提示。这项检查覆盖本地打包产物，不代表 registry 发布或分支集成后的结果。
+- 新增语言通过现有 Highlight.js 安装解析，无新增生产依赖；`markdown-it`、`dompurify`、Vue peer 范围未改，Mermaid、KaTeX 和高亮引擎的构建外部化规则未改。本地解析依赖为 markdown-it 14.3.3、DOMPurify 3.4.18、Highlight.js 11.12.0、Shiki 2.5.0。仓库忽略 `pnpm-lock.yaml`，这些是验收版本，不是发布端固定版本。
+- 后续：用同一组中文语料收集阶段 3 三人盲评意见，记录评分和需调整项；分支集成时复跑 Markdown CT、Markdown/Bubble 集成用例、组件和文档构建、打包消费检查。当前未与 `robot/develop` 集成，也未发布。
 
 ## 每阶段工作记录模板
 
