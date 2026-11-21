@@ -6,7 +6,7 @@
 
 - ✅ 基于 Playwright 的 E2E 测试
 - ✅ 基于 Playwright Component Testing 的 `TrMarkdown` 单组件契约测试
-- ✅ 只使用 Chromium 内核进行测试
+- Chromium 是默认测试项目；可选 WebKit CT 单独验证浏览器兼容边界
 - ✅ 包含完整的 Container 组件测试用例
 - ✅ 支持 CI/CD 集成
 - ✅ 提供测试报告和调试功能
@@ -52,45 +52,70 @@ npx playwright install --with-deps --only-shell chromium
 ```
 
 ### 运行测试
+
 ```bash
 pnpm test
 ```
 
 ### 运行 Component Testing
+
 ```bash
 pnpm test:ct
 ```
 
 ### 运行 Component Testing UI
+
 ```bash
 pnpm test:ct:ui
 ```
 
 ### 运行带界面的测试
+
 ```bash
 pnpm test:ui
 ```
 
 ### 运行可见浏览器模式
+
 ```bash
 pnpm test:headed
 ```
 
 ### 运行调试模式
+
 ```bash
 pnpm test:debug
 ```
 
 ### 查看测试报告
+
 ```bash
 pnpm test:report
 ```
+
+### WebKit Component Testing
+
+WebKit CT 是一个 opt-in 验证通道，使用独立的端口、缓存、测试产物和报告目录：
+
+```bash
+pnpm exec playwright test -c playwright-ct.webkit.config.ts
+```
+
+也可以将同一配置传给单个测试文件或标题筛选。报告位于
+`.cache/playwright-ct-webkit/report`，可用以下命令查看：
+
+```bash
+pnpm exec playwright show-report .cache/playwright-ct-webkit/report
+```
+
+在 WebKit 26.5 + Playwright 1.62.0 下，`tr-markdown-code-html.spec.ts` 当前预期为 7 项通过、1 项失败：失败只发生在 Shiki full code transformer 的 `.shiki .line.diff.add` 断言。代码仍然正确渲染，但 `[!code ++]` 作为普通注释保留；Chromium 的同一用例通过。Shiki 2.5 的原生 JavaScript regex engine 在独立语料中可转换该标记，因而现有证据只定位到 WebKit 与 Shiki notation transformer 的组合差异，不能据此修改组件行为或将失败静默掉。键盘横向滚动用例应继续通过。
 
 ## 调试指南
 
 ### 本地调试
 
 1. **使用调试模式**：
+
    ```bash
    pnpm test:debug
    ```
@@ -117,12 +142,14 @@ pnpm test:report
 #### 简单3步法
 
 **第一步：创建测试文件**
+
 ```bash
 # 在 src/your-component/ 目录下创建测试文件
 touch src/your-component/yourComponent.spec.ts
 ```
 
 **第二步：编写基本测试**
+
 ```typescript
 // src/your-component/yourComponent.spec.ts
 import { test, expect } from '@playwright/test'
@@ -143,6 +170,7 @@ test.describe('组件名称测试', () => {
 ```
 
 **第三步：运行测试**
+
 ```bash
 # 运行单个测试文件
 pnpm playwright test src/your-component/yourComponent.spec.ts
